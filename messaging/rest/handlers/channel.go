@@ -1,63 +1,56 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `channel.go`, `channel.util.go` or `channel_test.go` to
-	implement your API calls, helper functions and tests. The file `channel.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-// Internal API interface
-type ChannelAPI interface {
-	List(context.Context, *request.ChannelList) (interface{}, error)
-	Create(context.Context, *request.ChannelCreate) (interface{}, error)
-	Update(context.Context, *request.ChannelUpdate) (interface{}, error)
-	State(context.Context, *request.ChannelState) (interface{}, error)
-	SetFlag(context.Context, *request.ChannelSetFlag) (interface{}, error)
-	RemoveFlag(context.Context, *request.ChannelRemoveFlag) (interface{}, error)
-	Read(context.Context, *request.ChannelRead) (interface{}, error)
-	Members(context.Context, *request.ChannelMembers) (interface{}, error)
-	Join(context.Context, *request.ChannelJoin) (interface{}, error)
-	Part(context.Context, *request.ChannelPart) (interface{}, error)
-	Invite(context.Context, *request.ChannelInvite) (interface{}, error)
-	Attach(context.Context, *request.ChannelAttach) (interface{}, error)
-}
+type (
+	// Internal API interface
+	ChannelAPI interface {
+		List(context.Context, *request.ChannelList) (interface{}, error)
+		Create(context.Context, *request.ChannelCreate) (interface{}, error)
+		Update(context.Context, *request.ChannelUpdate) (interface{}, error)
+		State(context.Context, *request.ChannelState) (interface{}, error)
+		SetFlag(context.Context, *request.ChannelSetFlag) (interface{}, error)
+		RemoveFlag(context.Context, *request.ChannelRemoveFlag) (interface{}, error)
+		Read(context.Context, *request.ChannelRead) (interface{}, error)
+		Members(context.Context, *request.ChannelMembers) (interface{}, error)
+		Join(context.Context, *request.ChannelJoin) (interface{}, error)
+		Part(context.Context, *request.ChannelPart) (interface{}, error)
+		Invite(context.Context, *request.ChannelInvite) (interface{}, error)
+		Attach(context.Context, *request.ChannelAttach) (interface{}, error)
+	}
 
-// HTTP API interface
-type Channel struct {
-	List       func(http.ResponseWriter, *http.Request)
-	Create     func(http.ResponseWriter, *http.Request)
-	Update     func(http.ResponseWriter, *http.Request)
-	State      func(http.ResponseWriter, *http.Request)
-	SetFlag    func(http.ResponseWriter, *http.Request)
-	RemoveFlag func(http.ResponseWriter, *http.Request)
-	Read       func(http.ResponseWriter, *http.Request)
-	Members    func(http.ResponseWriter, *http.Request)
-	Join       func(http.ResponseWriter, *http.Request)
-	Part       func(http.ResponseWriter, *http.Request)
-	Invite     func(http.ResponseWriter, *http.Request)
-	Attach     func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Channel struct {
+		List       func(http.ResponseWriter, *http.Request)
+		Create     func(http.ResponseWriter, *http.Request)
+		Update     func(http.ResponseWriter, *http.Request)
+		State      func(http.ResponseWriter, *http.Request)
+		SetFlag    func(http.ResponseWriter, *http.Request)
+		RemoveFlag func(http.ResponseWriter, *http.Request)
+		Read       func(http.ResponseWriter, *http.Request)
+		Members    func(http.ResponseWriter, *http.Request)
+		Join       func(http.ResponseWriter, *http.Request)
+		Part       func(http.ResponseWriter, *http.Request)
+		Invite     func(http.ResponseWriter, *http.Request)
+		Attach     func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewChannel(h ChannelAPI) *Channel {
 	return &Channel{

@@ -40,7 +40,7 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 	ee, f, err := ctrl.actionSvc.Find(ctx, actionlog.Filter{
 		From:       r.From,
 		To:         r.To,
-		ActorID:    payload.ParseUInt64s(r.ActorID),
+		ActorID:    payload.ParseUint64s(r.ActorID),
 		Resource:   r.Resource,
 		Action:     r.Action,
 		PageFilter: rh.Paging(r),

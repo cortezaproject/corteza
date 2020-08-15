@@ -240,7 +240,7 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(
 		r.NamespaceID,
 		r.ModuleID,
-		payload.ParseUInt64s(r.RecordIDs)...,
+		payload.ParseUint64s(r.RecordIDs)...,
 	)
 }
 

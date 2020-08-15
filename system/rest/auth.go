@@ -20,7 +20,7 @@ var _ = errors.Wrap
 type (
 	Auth struct {
 		tokenEncoder auth.TokenEncoder
-		settings     *types.Settings
+		settings     *types.AppSettings
 		authSvc      service.AuthService
 	}
 
@@ -92,7 +92,7 @@ func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interf
 			"internalSignUpEnabled":                   int.Signup.Enabled,
 
 			"externalEnabled":   ext.Enabled,
-			"externalProviders": ext.Providers.Valid(ctrl.settings),
+			"externalProviders": ext.Providers.Valid(),
 		}
 	)
 

@@ -1,69 +1,62 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `record.go`, `record.util.go` or `record_test.go` to
-	implement your API calls, helper functions and tests. The file `record.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-// Internal API interface
-type RecordAPI interface {
-	Report(context.Context, *request.RecordReport) (interface{}, error)
-	List(context.Context, *request.RecordList) (interface{}, error)
-	ImportInit(context.Context, *request.RecordImportInit) (interface{}, error)
-	ImportRun(context.Context, *request.RecordImportRun) (interface{}, error)
-	ImportProgress(context.Context, *request.RecordImportProgress) (interface{}, error)
-	Export(context.Context, *request.RecordExport) (interface{}, error)
-	Exec(context.Context, *request.RecordExec) (interface{}, error)
-	Create(context.Context, *request.RecordCreate) (interface{}, error)
-	Read(context.Context, *request.RecordRead) (interface{}, error)
-	Update(context.Context, *request.RecordUpdate) (interface{}, error)
-	BulkDelete(context.Context, *request.RecordBulkDelete) (interface{}, error)
-	Delete(context.Context, *request.RecordDelete) (interface{}, error)
-	Upload(context.Context, *request.RecordUpload) (interface{}, error)
-	TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
-	TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
-}
+type (
+	// Internal API interface
+	RecordAPI interface {
+		Report(context.Context, *request.RecordReport) (interface{}, error)
+		List(context.Context, *request.RecordList) (interface{}, error)
+		ImportInit(context.Context, *request.RecordImportInit) (interface{}, error)
+		ImportRun(context.Context, *request.RecordImportRun) (interface{}, error)
+		ImportProgress(context.Context, *request.RecordImportProgress) (interface{}, error)
+		Export(context.Context, *request.RecordExport) (interface{}, error)
+		Exec(context.Context, *request.RecordExec) (interface{}, error)
+		Create(context.Context, *request.RecordCreate) (interface{}, error)
+		Read(context.Context, *request.RecordRead) (interface{}, error)
+		Update(context.Context, *request.RecordUpdate) (interface{}, error)
+		BulkDelete(context.Context, *request.RecordBulkDelete) (interface{}, error)
+		Delete(context.Context, *request.RecordDelete) (interface{}, error)
+		Upload(context.Context, *request.RecordUpload) (interface{}, error)
+		TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
+		TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
+	}
 
-// HTTP API interface
-type Record struct {
-	Report              func(http.ResponseWriter, *http.Request)
-	List                func(http.ResponseWriter, *http.Request)
-	ImportInit          func(http.ResponseWriter, *http.Request)
-	ImportRun           func(http.ResponseWriter, *http.Request)
-	ImportProgress      func(http.ResponseWriter, *http.Request)
-	Export              func(http.ResponseWriter, *http.Request)
-	Exec                func(http.ResponseWriter, *http.Request)
-	Create              func(http.ResponseWriter, *http.Request)
-	Read                func(http.ResponseWriter, *http.Request)
-	Update              func(http.ResponseWriter, *http.Request)
-	BulkDelete          func(http.ResponseWriter, *http.Request)
-	Delete              func(http.ResponseWriter, *http.Request)
-	Upload              func(http.ResponseWriter, *http.Request)
-	TriggerScript       func(http.ResponseWriter, *http.Request)
-	TriggerScriptOnList func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Record struct {
+		Report              func(http.ResponseWriter, *http.Request)
+		List                func(http.ResponseWriter, *http.Request)
+		ImportInit          func(http.ResponseWriter, *http.Request)
+		ImportRun           func(http.ResponseWriter, *http.Request)
+		ImportProgress      func(http.ResponseWriter, *http.Request)
+		Export              func(http.ResponseWriter, *http.Request)
+		Exec                func(http.ResponseWriter, *http.Request)
+		Create              func(http.ResponseWriter, *http.Request)
+		Read                func(http.ResponseWriter, *http.Request)
+		Update              func(http.ResponseWriter, *http.Request)
+		BulkDelete          func(http.ResponseWriter, *http.Request)
+		Delete              func(http.ResponseWriter, *http.Request)
+		Upload              func(http.ResponseWriter, *http.Request)
+		TriggerScript       func(http.ResponseWriter, *http.Request)
+		TriggerScriptOnList func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewRecord(h RecordAPI) *Record {
 	return &Record{

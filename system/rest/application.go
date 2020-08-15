@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -19,8 +18,17 @@ var _ = errors.Wrap
 
 type (
 	Application struct {
-		application service.ApplicationService
+		application applicationService
 		ac          applicationAccessController
+	}
+
+	applicationService interface {
+		LookupByID(ctx context.Context, ID uint64) (app *types.Application, err error)
+		Search(ctx context.Context, filter types.ApplicationFilter) (aa types.ApplicationSet, f types.ApplicationFilter, err error)
+		Create(ctx context.Context, new *types.Application) (app *types.Application, err error)
+		Update(ctx context.Context, upd *types.Application) (app *types.Application, err error)
+		Delete(ctx context.Context, ID uint64) (err error)
+		Undelete(ctx context.Context, ID uint64) (err error)
 	}
 
 	applicationAccessController interface {
@@ -62,7 +70,7 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 		PageFilter: rh.Paging(r),
 	}
 
-	set, filter, err := ctrl.application.With(ctx).Find(f)
+	set, filter, err := ctrl.application.Search(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -82,7 +90,7 @@ func (ctrl *Application) Create(ctx context.Context, r *request.ApplicationCreat
 		}
 	}
 
-	app, err = ctrl.application.With(ctx).Create(app)
+	app, err = ctrl.application.Create(ctx, app)
 	return ctrl.makePayload(ctx, app, err)
 }
 
@@ -103,21 +111,21 @@ func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdat
 		}
 	}
 
-	app, err = ctrl.application.With(ctx).Update(app)
+	app, err = ctrl.application.Update(ctx, app)
 	return ctrl.makePayload(ctx, app, err)
 }
 
 func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (interface{}, error) {
-	app, err := ctrl.application.With(ctx).FindByID(r.ApplicationID)
+	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
 	return ctrl.makePayload(ctx, app, err)
 }
 
 func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.application.With(ctx).Delete(r.ApplicationID)
+	return resputil.OK(), ctrl.application.Delete(ctx, r.ApplicationID)
 }
 
 func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
-	return resputil.OK(), ctrl.application.With(ctx).Undelete(r.ApplicationID)
+	return resputil.OK(), ctrl.application.Undelete(ctx, r.ApplicationID)
 }
 
 func (ctrl *Application) TriggerScript(ctx context.Context, r *request.ApplicationTriggerScript) (rsp interface{}, err error) {
@@ -125,7 +133,7 @@ func (ctrl *Application) TriggerScript(ctx context.Context, r *request.Applicati
 		application *types.Application
 	)
 
-	if application, err = ctrl.application.With(ctx).FindByID(r.ApplicationID); err != nil {
+	if application, err = ctrl.application.LookupByID(ctx, r.ApplicationID); err != nil {
 		return
 	}
 

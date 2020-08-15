@@ -107,7 +107,7 @@ func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, e
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUInt64s(r.PageIDs))
+	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
 }
 
 func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {

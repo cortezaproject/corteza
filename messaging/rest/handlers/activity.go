@@ -1,41 +1,34 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `activity.go`, `activity.util.go` or `activity_test.go` to
-	implement your API calls, helper functions and tests. The file `activity.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-// Internal API interface
-type ActivityAPI interface {
-	Send(context.Context, *request.ActivitySend) (interface{}, error)
-}
+type (
+	// Internal API interface
+	ActivityAPI interface {
+		Send(context.Context, *request.ActivitySend) (interface{}, error)
+	}
 
-// HTTP API interface
-type Activity struct {
-	Send func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Activity struct {
+		Send func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewActivity(h ActivityAPI) *Activity {
 	return &Activity{

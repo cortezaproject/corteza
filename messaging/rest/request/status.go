@@ -1,38 +1,57 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `status.go`, `status.util.go` or `status_test.go` to
-	implement your API calls, helper functions and tests. The file `status.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// StatusList request parameters
-type StatusList struct {
-}
+type (
+	// Internal API interface
+	StatusList struct {
+	}
+
+	StatusSet struct {
+		// Icon POST parameter
+		//
+		// Status icon
+		Icon string
+
+		// Message POST parameter
+		//
+		// Status message
+		Message string
+
+		// Expires POST parameter
+		//
+		// Clear status when it expires (eg: when-active, afternoon, tomorrow 1h, 30m, 1 PM, 2019-05-20)
+		Expires string
+	}
+
+	StatusDelete struct {
+	}
+)
 
 // NewStatusList request
 func NewStatusList() *StatusList {
@@ -41,9 +60,7 @@ func NewStatusList() *StatusList {
 
 // Auditable returns all auditable/loggable parameters
 func (r StatusList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
-
-	return out
+	return map[string]interface{}{}
 }
 
 // Fill processes request and fills internal variables
@@ -55,43 +72,11 @@ func (r *StatusList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
 	return err
-}
-
-var _ RequestFiller = NewStatusList()
-
-// StatusSet request parameters
-type StatusSet struct {
-	hasIcon bool
-	rawIcon string
-	Icon    string
-
-	hasMessage bool
-	rawMessage string
-	Message    string
-
-	hasExpires bool
-	rawExpires string
-	Expires    string
 }
 
 // NewStatusSet request
@@ -101,13 +86,26 @@ func NewStatusSet() *StatusSet {
 
 // Auditable returns all auditable/loggable parameters
 func (r StatusSet) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"icon":    r.Icon,
+		"message": r.Message,
+		"expires": r.Expires,
+	}
+}
 
-	out["icon"] = r.Icon
-	out["message"] = r.Message
-	out["expires"] = r.Expires
+// Auditable returns all auditable/loggable parameters
+func (r StatusSet) GetIcon() string {
+	return r.Icon
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r StatusSet) GetMessage() string {
+	return r.Message
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r StatusSet) GetExpires() string {
+	return r.Expires
 }
 
 // Fill processes request and fills internal variables
@@ -119,48 +117,40 @@ func (r *StatusSet) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		// POST params
 
-	if val, ok := post["icon"]; ok {
-		r.hasIcon = true
-		r.rawIcon = val
-		r.Icon = val
-	}
-	if val, ok := post["message"]; ok {
-		r.hasMessage = true
-		r.rawMessage = val
-		r.Message = val
-	}
-	if val, ok := post["expires"]; ok {
-		r.hasExpires = true
-		r.rawExpires = val
-		r.Expires = val
+		if val, ok := req.Form["icon"]; ok && len(val) > 0 {
+			r.Icon, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["message"]; ok && len(val) > 0 {
+			r.Message, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["expires"]; ok && len(val) > 0 {
+			r.Expires, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewStatusSet()
-
-// StatusDelete request parameters
-type StatusDelete struct {
 }
 
 // NewStatusDelete request
@@ -170,9 +160,7 @@ func NewStatusDelete() *StatusDelete {
 
 // Auditable returns all auditable/loggable parameters
 func (r StatusDelete) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
-
-	return out
+	return map[string]interface{}{}
 }
 
 // Fill processes request and fills internal variables
@@ -184,71 +172,9 @@ func (r *StatusDelete) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
 	return err
-}
-
-var _ RequestFiller = NewStatusDelete()
-
-// HasIcon returns true if icon was set
-func (r *StatusSet) HasIcon() bool {
-	return r.hasIcon
-}
-
-// RawIcon returns raw value of icon parameter
-func (r *StatusSet) RawIcon() string {
-	return r.rawIcon
-}
-
-// GetIcon returns casted value of  icon parameter
-func (r *StatusSet) GetIcon() string {
-	return r.Icon
-}
-
-// HasMessage returns true if message was set
-func (r *StatusSet) HasMessage() bool {
-	return r.hasMessage
-}
-
-// RawMessage returns raw value of message parameter
-func (r *StatusSet) RawMessage() string {
-	return r.rawMessage
-}
-
-// GetMessage returns casted value of  message parameter
-func (r *StatusSet) GetMessage() string {
-	return r.Message
-}
-
-// HasExpires returns true if expires was set
-func (r *StatusSet) HasExpires() bool {
-	return r.hasExpires
-}
-
-// RawExpires returns raw value of expires parameter
-func (r *StatusSet) RawExpires() string {
-	return r.rawExpires
-}
-
-// GetExpires returns casted value of  expires parameter
-func (r *StatusSet) GetExpires() string {
-	return r.Expires
 }

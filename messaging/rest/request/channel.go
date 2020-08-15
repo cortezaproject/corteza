@@ -1,43 +1,199 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `channel.go`, `channel.util.go` or `channel_test.go` to
-	implement your API calls, helper functions and tests. The file `channel.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/messaging/types"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// ChannelList request parameters
-type ChannelList struct {
-	hasQuery bool
-	rawQuery string
-	Query    string
-}
+type (
+	// Internal API interface
+	ChannelList struct {
+		// Query GET parameter
+		//
+		// Search query
+		Query string
+	}
+
+	ChannelCreate struct {
+		// Name POST parameter
+		//
+		// Name of Channel
+		Name string
+
+		// Topic POST parameter
+		//
+		// Subject of Channel
+		Topic string
+
+		// Type POST parameter
+		//
+		// Channel type
+		Type string
+
+		// MembershipPolicy POST parameter
+		//
+		// Membership policy (eg: featured, forced)?
+		MembershipPolicy types.ChannelMembershipPolicy
+
+		// Members POST parameter
+		//
+		// Initial members of the channel
+		Members []string
+	}
+
+	ChannelUpdate struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Name of Channel
+		Name string
+
+		// Topic POST parameter
+		//
+		// Subject of Channel
+		Topic string
+
+		// MembershipPolicy POST parameter
+		//
+		// Membership policy (eg: featured, forced)?
+		MembershipPolicy types.ChannelMembershipPolicy
+
+		// Type POST parameter
+		//
+		// Channel type
+		Type string
+
+		// OrganisationID POST parameter
+		//
+		// Move channel to different organisation
+		OrganisationID uint64 `json:",string"`
+	}
+
+	ChannelState struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// State POST parameter
+		//
+		// Valid values: delete, undelete, archive, unarchive
+		State string
+	}
+
+	ChannelSetFlag struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// Flag POST parameter
+		//
+		// Valid values: pinned, hidden, ignored
+		Flag string
+	}
+
+	ChannelRemoveFlag struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+	}
+
+	ChannelRead struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+	}
+
+	ChannelMembers struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+	}
+
+	ChannelJoin struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// UserID PATH parameter
+		//
+		// Member ID
+		UserID uint64 `json:",string"`
+	}
+
+	ChannelPart struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// UserID PATH parameter
+		//
+		// Member ID
+		UserID uint64 `json:",string"`
+	}
+
+	ChannelInvite struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// UserID POST parameter
+		//
+		// User ID
+		UserID []string
+	}
+
+	ChannelAttach struct {
+		// ChannelID PATH parameter
+		//
+		// Channel ID
+		ChannelID uint64 `json:",string"`
+
+		// ReplyTo POST parameter
+		//
+		// Upload as a reply
+		ReplyTo uint64 `json:",string"`
+
+		// Upload POST parameter
+		//
+		// File to upload
+		Upload *multipart.FileHeader
+	}
+)
 
 // NewChannelList request
 func NewChannelList() *ChannelList {
@@ -46,11 +202,14 @@ func NewChannelList() *ChannelList {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"query": r.Query,
+	}
+}
 
-	out["query"] = r.Query
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelList) GetQuery() string {
+	return r.Query
 }
 
 // Fill processes request and fills internal variables
@@ -62,57 +221,23 @@ func (r *ChannelList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		// GET params
+		tmp := req.URL.Query()
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := get["query"]; ok {
-		r.hasQuery = true
-		r.rawQuery = val
-		r.Query = val
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelList()
-
-// ChannelCreate request parameters
-type ChannelCreate struct {
-	hasName bool
-	rawName string
-	Name    string
-
-	hasTopic bool
-	rawTopic string
-	Topic    string
-
-	hasType bool
-	rawType string
-	Type    string
-
-	hasMembershipPolicy bool
-	rawMembershipPolicy string
-	MembershipPolicy    types.ChannelMembershipPolicy
-
-	hasMembers bool
-	rawMembers []string
-	Members    []string
 }
 
 // NewChannelCreate request
@@ -122,15 +247,38 @@ func NewChannelCreate() *ChannelCreate {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelCreate) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"name":             r.Name,
+		"topic":            r.Topic,
+		"type":             r.Type,
+		"membershipPolicy": r.MembershipPolicy,
+		"members":          r.Members,
+	}
+}
 
-	out["name"] = r.Name
-	out["topic"] = r.Topic
-	out["type"] = r.Type
-	out["membershipPolicy"] = r.MembershipPolicy
-	out["members"] = r.Members
+// Auditable returns all auditable/loggable parameters
+func (r ChannelCreate) GetName() string {
+	return r.Name
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelCreate) GetTopic() string {
+	return r.Topic
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelCreate) GetType() string {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelCreate) GetMembershipPolicy() types.ChannelMembershipPolicy {
+	return r.MembershipPolicy
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelCreate) GetMembers() []string {
+	return r.Members
 }
 
 // Fill processes request and fills internal variables
@@ -142,82 +290,54 @@ func (r *ChannelCreate) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		// POST params
 
-	if val, ok := post["name"]; ok {
-		r.hasName = true
-		r.rawName = val
-		r.Name = val
-	}
-	if val, ok := post["topic"]; ok {
-		r.hasTopic = true
-		r.rawTopic = val
-		r.Topic = val
-	}
-	if val, ok := post["type"]; ok {
-		r.hasType = true
-		r.rawType = val
-		r.Type = val
-	}
-	if val, ok := post["membershipPolicy"]; ok {
-		r.hasMembershipPolicy = true
-		r.rawMembershipPolicy = val
-		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
-	}
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 
-	if val, ok := req.Form["members"]; ok {
-		r.hasMembers = true
-		r.rawMembers = val
-		r.Members = parseStrings(val)
+		if val, ok := req.Form["topic"]; ok && len(val) > 0 {
+			r.Topic, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["type"]; ok && len(val) > 0 {
+			r.Type, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["membershipPolicy"]; ok && len(val) > 0 {
+			r.MembershipPolicy, err = types.ChannelMembershipPolicy(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		//if val, ok := req.Form["members[]"]; ok && len(val) > 0  {
+		//    r.Members, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelCreate()
-
-// ChannelUpdate request parameters
-type ChannelUpdate struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasName bool
-	rawName string
-	Name    string
-
-	hasTopic bool
-	rawTopic string
-	Topic    string
-
-	hasMembershipPolicy bool
-	rawMembershipPolicy string
-	MembershipPolicy    types.ChannelMembershipPolicy
-
-	hasType bool
-	rawType string
-	Type    string
-
-	hasOrganisationID bool
-	rawOrganisationID string
-	OrganisationID    uint64 `json:",string"`
 }
 
 // NewChannelUpdate request
@@ -227,16 +347,44 @@ func NewChannelUpdate() *ChannelUpdate {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelUpdate) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID":        r.ChannelID,
+		"name":             r.Name,
+		"topic":            r.Topic,
+		"membershipPolicy": r.MembershipPolicy,
+		"type":             r.Type,
+		"organisationID":   r.OrganisationID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["name"] = r.Name
-	out["topic"] = r.Topic
-	out["membershipPolicy"] = r.MembershipPolicy
-	out["type"] = r.Type
-	out["organisationID"] = r.OrganisationID
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetTopic() string {
+	return r.Topic
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetMembershipPolicy() types.ChannelMembershipPolicy {
+	return r.MembershipPolicy
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetType() string {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelUpdate) GetOrganisationID() uint64 {
+	return r.OrganisationID
 }
 
 // Fill processes request and fills internal variables
@@ -248,68 +396,66 @@ func (r *ChannelUpdate) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["topic"]; ok && len(val) > 0 {
+			r.Topic, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["membershipPolicy"]; ok && len(val) > 0 {
+			r.MembershipPolicy, err = types.ChannelMembershipPolicy(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["type"]; ok && len(val) > 0 {
+			r.Type, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["organisationID"]; ok && len(val) > 0 {
+			r.OrganisationID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	if val, ok := post["name"]; ok {
-		r.hasName = true
-		r.rawName = val
-		r.Name = val
-	}
-	if val, ok := post["topic"]; ok {
-		r.hasTopic = true
-		r.rawTopic = val
-		r.Topic = val
-	}
-	if val, ok := post["membershipPolicy"]; ok {
-		r.hasMembershipPolicy = true
-		r.rawMembershipPolicy = val
-		r.MembershipPolicy = types.ChannelMembershipPolicy(val)
-	}
-	if val, ok := post["type"]; ok {
-		r.hasType = true
-		r.rawType = val
-		r.Type = val
-	}
-	if val, ok := post["organisationID"]; ok {
-		r.hasOrganisationID = true
-		r.rawOrganisationID = val
-		r.OrganisationID = parseUInt64(val)
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelUpdate()
-
-// ChannelState request parameters
-type ChannelState struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasState bool
-	rawState string
-	State    string
 }
 
 // NewChannelState request
@@ -319,12 +465,20 @@ func NewChannelState() *ChannelState {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelState) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"state":     r.State,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["state"] = r.State
+// Auditable returns all auditable/loggable parameters
+func (r ChannelState) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelState) GetState() string {
+	return r.State
 }
 
 // Fill processes request and fills internal variables
@@ -336,48 +490,38 @@ func (r *ChannelState) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["state"]; ok && len(val) > 0 {
+			r.State, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	if val, ok := post["state"]; ok {
-		r.hasState = true
-		r.rawState = val
-		r.State = val
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelState()
-
-// ChannelSetFlag request parameters
-type ChannelSetFlag struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasFlag bool
-	rawFlag string
-	Flag    string
 }
 
 // NewChannelSetFlag request
@@ -387,12 +531,20 @@ func NewChannelSetFlag() *ChannelSetFlag {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelSetFlag) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"flag":      r.Flag,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["flag"] = r.Flag
+// Auditable returns all auditable/loggable parameters
+func (r ChannelSetFlag) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelSetFlag) GetFlag() string {
+	return r.Flag
 }
 
 // Fill processes request and fills internal variables
@@ -404,44 +556,38 @@ func (r *ChannelSetFlag) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["flag"]; ok && len(val) > 0 {
+			r.Flag, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	if val, ok := post["flag"]; ok {
-		r.hasFlag = true
-		r.rawFlag = val
-		r.Flag = val
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelSetFlag()
-
-// ChannelRemoveFlag request parameters
-type ChannelRemoveFlag struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
 }
 
 // NewChannelRemoveFlag request
@@ -451,11 +597,14 @@ func NewChannelRemoveFlag() *ChannelRemoveFlag {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelRemoveFlag) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelRemoveFlag) GetChannelID() uint64 {
+	return r.ChannelID
 }
 
 // Fill processes request and fills internal variables
@@ -467,39 +616,23 @@ func (r *ChannelRemoveFlag) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelRemoveFlag()
-
-// ChannelRead request parameters
-type ChannelRead struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
 }
 
 // NewChannelRead request
@@ -509,11 +642,14 @@ func NewChannelRead() *ChannelRead {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelRead) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelRead) GetChannelID() uint64 {
+	return r.ChannelID
 }
 
 // Fill processes request and fills internal variables
@@ -525,39 +661,23 @@ func (r *ChannelRead) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelRead()
-
-// ChannelMembers request parameters
-type ChannelMembers struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
 }
 
 // NewChannelMembers request
@@ -567,11 +687,14 @@ func NewChannelMembers() *ChannelMembers {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelMembers) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelMembers) GetChannelID() uint64 {
+	return r.ChannelID
 }
 
 // Fill processes request and fills internal variables
@@ -583,43 +706,23 @@ func (r *ChannelMembers) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelMembers()
-
-// ChannelJoin request parameters
-type ChannelJoin struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasUserID bool
-	rawUserID string
-	UserID    uint64 `json:",string"`
 }
 
 // NewChannelJoin request
@@ -629,12 +732,20 @@ func NewChannelJoin() *ChannelJoin {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelJoin) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"userID":    r.UserID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["userID"] = r.UserID
+// Auditable returns all auditable/loggable parameters
+func (r ChannelJoin) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelJoin) GetUserID() uint64 {
+	return r.UserID
 }
 
 // Fill processes request and fills internal variables
@@ -646,46 +757,29 @@ func (r *ChannelJoin) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	r.hasUserID = true
-	r.rawUserID = chi.URLParam(req, "userID")
-	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelJoin()
-
-// ChannelPart request parameters
-type ChannelPart struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasUserID bool
-	rawUserID string
-	UserID    uint64 `json:",string"`
 }
 
 // NewChannelPart request
@@ -695,12 +789,20 @@ func NewChannelPart() *ChannelPart {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelPart) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"userID":    r.UserID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["userID"] = r.UserID
+// Auditable returns all auditable/loggable parameters
+func (r ChannelPart) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelPart) GetUserID() uint64 {
+	return r.UserID
 }
 
 // Fill processes request and fills internal variables
@@ -712,46 +814,29 @@ func (r *ChannelPart) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	r.hasUserID = true
-	r.rawUserID = chi.URLParam(req, "userID")
-	r.UserID = parseUInt64(chi.URLParam(req, "userID"))
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelPart()
-
-// ChannelInvite request parameters
-type ChannelInvite struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasUserID bool
-	rawUserID []string
-	UserID    []string
 }
 
 // NewChannelInvite request
@@ -761,12 +846,20 @@ func NewChannelInvite() *ChannelInvite {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelInvite) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"userID":    r.UserID,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["userID"] = r.UserID
+// Auditable returns all auditable/loggable parameters
+func (r ChannelInvite) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelInvite) GetUserID() []string {
+	return r.UserID
 }
 
 // Fill processes request and fills internal variables
@@ -778,53 +871,38 @@ func (r *ChannelInvite) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["userID[]"]; ok && len(val) > 0  {
+		//    r.UserID, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	if val, ok := req.Form["userID"]; ok {
-		r.hasUserID = true
-		r.rawUserID = val
-		r.UserID = parseStrings(val)
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelInvite()
-
-// ChannelAttach request parameters
-type ChannelAttach struct {
-	hasChannelID bool
-	rawChannelID string
-	ChannelID    uint64 `json:",string"`
-
-	hasReplyTo bool
-	rawReplyTo string
-	ReplyTo    uint64 `json:",string"`
-
-	hasUpload bool
-	rawUpload string
-	Upload    *multipart.FileHeader
 }
 
 // NewChannelAttach request
@@ -834,14 +912,26 @@ func NewChannelAttach() *ChannelAttach {
 
 // Auditable returns all auditable/loggable parameters
 func (r ChannelAttach) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"channelID": r.ChannelID,
+		"replyTo":   r.ReplyTo,
+		"upload":    r.Upload,
+	}
+}
 
-	out["channelID"] = r.ChannelID
-	out["replyTo"] = r.ReplyTo
-	out["upload.size"] = r.Upload.Size
-	out["upload.filename"] = r.Upload.Filename
+// Auditable returns all auditable/loggable parameters
+func (r ChannelAttach) GetChannelID() uint64 {
+	return r.ChannelID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r ChannelAttach) GetReplyTo() uint64 {
+	return r.ReplyTo
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChannelAttach) GetUpload() *multipart.FileHeader {
+	return r.Upload
 }
 
 // Fill processes request and fills internal variables
@@ -853,458 +943,41 @@ func (r *ChannelAttach) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseMultipartForm(32 << 20); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["replyTo"]; ok && len(val) > 0 {
+			r.ReplyTo, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasChannelID = true
-	r.rawChannelID = chi.URLParam(req, "channelID")
-	r.ChannelID = parseUInt64(chi.URLParam(req, "channelID"))
-	if val, ok := post["replyTo"]; ok {
-		r.hasReplyTo = true
-		r.rawReplyTo = val
-		r.ReplyTo = parseUInt64(val)
-	}
-	if _, r.Upload, err = req.FormFile("upload"); err != nil {
-		return errors.Wrap(err, "error processing uploaded file")
+		val = chi.URLParam(req, "channelID")
+		r.ChannelID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewChannelAttach()
-
-// HasQuery returns true if query was set
-func (r *ChannelList) HasQuery() bool {
-	return r.hasQuery
-}
-
-// RawQuery returns raw value of query parameter
-func (r *ChannelList) RawQuery() string {
-	return r.rawQuery
-}
-
-// GetQuery returns casted value of  query parameter
-func (r *ChannelList) GetQuery() string {
-	return r.Query
-}
-
-// HasName returns true if name was set
-func (r *ChannelCreate) HasName() bool {
-	return r.hasName
-}
-
-// RawName returns raw value of name parameter
-func (r *ChannelCreate) RawName() string {
-	return r.rawName
-}
-
-// GetName returns casted value of  name parameter
-func (r *ChannelCreate) GetName() string {
-	return r.Name
-}
-
-// HasTopic returns true if topic was set
-func (r *ChannelCreate) HasTopic() bool {
-	return r.hasTopic
-}
-
-// RawTopic returns raw value of topic parameter
-func (r *ChannelCreate) RawTopic() string {
-	return r.rawTopic
-}
-
-// GetTopic returns casted value of  topic parameter
-func (r *ChannelCreate) GetTopic() string {
-	return r.Topic
-}
-
-// HasType returns true if type was set
-func (r *ChannelCreate) HasType() bool {
-	return r.hasType
-}
-
-// RawType returns raw value of type parameter
-func (r *ChannelCreate) RawType() string {
-	return r.rawType
-}
-
-// GetType returns casted value of  type parameter
-func (r *ChannelCreate) GetType() string {
-	return r.Type
-}
-
-// HasMembershipPolicy returns true if membershipPolicy was set
-func (r *ChannelCreate) HasMembershipPolicy() bool {
-	return r.hasMembershipPolicy
-}
-
-// RawMembershipPolicy returns raw value of membershipPolicy parameter
-func (r *ChannelCreate) RawMembershipPolicy() string {
-	return r.rawMembershipPolicy
-}
-
-// GetMembershipPolicy returns casted value of  membershipPolicy parameter
-func (r *ChannelCreate) GetMembershipPolicy() types.ChannelMembershipPolicy {
-	return r.MembershipPolicy
-}
-
-// HasMembers returns true if members was set
-func (r *ChannelCreate) HasMembers() bool {
-	return r.hasMembers
-}
-
-// RawMembers returns raw value of members parameter
-func (r *ChannelCreate) RawMembers() []string {
-	return r.rawMembers
-}
-
-// GetMembers returns casted value of  members parameter
-func (r *ChannelCreate) GetMembers() []string {
-	return r.Members
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelUpdate) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelUpdate) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelUpdate) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasName returns true if name was set
-func (r *ChannelUpdate) HasName() bool {
-	return r.hasName
-}
-
-// RawName returns raw value of name parameter
-func (r *ChannelUpdate) RawName() string {
-	return r.rawName
-}
-
-// GetName returns casted value of  name parameter
-func (r *ChannelUpdate) GetName() string {
-	return r.Name
-}
-
-// HasTopic returns true if topic was set
-func (r *ChannelUpdate) HasTopic() bool {
-	return r.hasTopic
-}
-
-// RawTopic returns raw value of topic parameter
-func (r *ChannelUpdate) RawTopic() string {
-	return r.rawTopic
-}
-
-// GetTopic returns casted value of  topic parameter
-func (r *ChannelUpdate) GetTopic() string {
-	return r.Topic
-}
-
-// HasMembershipPolicy returns true if membershipPolicy was set
-func (r *ChannelUpdate) HasMembershipPolicy() bool {
-	return r.hasMembershipPolicy
-}
-
-// RawMembershipPolicy returns raw value of membershipPolicy parameter
-func (r *ChannelUpdate) RawMembershipPolicy() string {
-	return r.rawMembershipPolicy
-}
-
-// GetMembershipPolicy returns casted value of  membershipPolicy parameter
-func (r *ChannelUpdate) GetMembershipPolicy() types.ChannelMembershipPolicy {
-	return r.MembershipPolicy
-}
-
-// HasType returns true if type was set
-func (r *ChannelUpdate) HasType() bool {
-	return r.hasType
-}
-
-// RawType returns raw value of type parameter
-func (r *ChannelUpdate) RawType() string {
-	return r.rawType
-}
-
-// GetType returns casted value of  type parameter
-func (r *ChannelUpdate) GetType() string {
-	return r.Type
-}
-
-// HasOrganisationID returns true if organisationID was set
-func (r *ChannelUpdate) HasOrganisationID() bool {
-	return r.hasOrganisationID
-}
-
-// RawOrganisationID returns raw value of organisationID parameter
-func (r *ChannelUpdate) RawOrganisationID() string {
-	return r.rawOrganisationID
-}
-
-// GetOrganisationID returns casted value of  organisationID parameter
-func (r *ChannelUpdate) GetOrganisationID() uint64 {
-	return r.OrganisationID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelState) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelState) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelState) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasState returns true if state was set
-func (r *ChannelState) HasState() bool {
-	return r.hasState
-}
-
-// RawState returns raw value of state parameter
-func (r *ChannelState) RawState() string {
-	return r.rawState
-}
-
-// GetState returns casted value of  state parameter
-func (r *ChannelState) GetState() string {
-	return r.State
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelSetFlag) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelSetFlag) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelSetFlag) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasFlag returns true if flag was set
-func (r *ChannelSetFlag) HasFlag() bool {
-	return r.hasFlag
-}
-
-// RawFlag returns raw value of flag parameter
-func (r *ChannelSetFlag) RawFlag() string {
-	return r.rawFlag
-}
-
-// GetFlag returns casted value of  flag parameter
-func (r *ChannelSetFlag) GetFlag() string {
-	return r.Flag
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelRemoveFlag) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelRemoveFlag) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelRemoveFlag) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelRead) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelRead) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelRead) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelMembers) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelMembers) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelMembers) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelJoin) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelJoin) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelJoin) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasUserID returns true if userID was set
-func (r *ChannelJoin) HasUserID() bool {
-	return r.hasUserID
-}
-
-// RawUserID returns raw value of userID parameter
-func (r *ChannelJoin) RawUserID() string {
-	return r.rawUserID
-}
-
-// GetUserID returns casted value of  userID parameter
-func (r *ChannelJoin) GetUserID() uint64 {
-	return r.UserID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelPart) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelPart) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelPart) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasUserID returns true if userID was set
-func (r *ChannelPart) HasUserID() bool {
-	return r.hasUserID
-}
-
-// RawUserID returns raw value of userID parameter
-func (r *ChannelPart) RawUserID() string {
-	return r.rawUserID
-}
-
-// GetUserID returns casted value of  userID parameter
-func (r *ChannelPart) GetUserID() uint64 {
-	return r.UserID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelInvite) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelInvite) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelInvite) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasUserID returns true if userID was set
-func (r *ChannelInvite) HasUserID() bool {
-	return r.hasUserID
-}
-
-// RawUserID returns raw value of userID parameter
-func (r *ChannelInvite) RawUserID() []string {
-	return r.rawUserID
-}
-
-// GetUserID returns casted value of  userID parameter
-func (r *ChannelInvite) GetUserID() []string {
-	return r.UserID
-}
-
-// HasChannelID returns true if channelID was set
-func (r *ChannelAttach) HasChannelID() bool {
-	return r.hasChannelID
-}
-
-// RawChannelID returns raw value of channelID parameter
-func (r *ChannelAttach) RawChannelID() string {
-	return r.rawChannelID
-}
-
-// GetChannelID returns casted value of  channelID parameter
-func (r *ChannelAttach) GetChannelID() uint64 {
-	return r.ChannelID
-}
-
-// HasReplyTo returns true if replyTo was set
-func (r *ChannelAttach) HasReplyTo() bool {
-	return r.hasReplyTo
-}
-
-// RawReplyTo returns raw value of replyTo parameter
-func (r *ChannelAttach) RawReplyTo() string {
-	return r.rawReplyTo
-}
-
-// GetReplyTo returns casted value of  replyTo parameter
-func (r *ChannelAttach) GetReplyTo() uint64 {
-	return r.ReplyTo
-}
-
-// HasUpload returns true if upload was set
-func (r *ChannelAttach) HasUpload() bool {
-	return r.hasUpload
-}
-
-// RawUpload returns raw value of upload parameter
-func (r *ChannelAttach) RawUpload() string {
-	return r.rawUpload
-}
-
-// GetUpload returns casted value of  upload parameter
-func (r *ChannelAttach) GetUpload() *multipart.FileHeader {
-	return r.Upload
 }

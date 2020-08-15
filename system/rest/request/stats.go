@@ -1,38 +1,37 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `stats.go`, `stats.util.go` or `stats_test.go` to
-	implement your API calls, helper functions and tests. The file `stats.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// StatsList request parameters
-type StatsList struct {
-}
+type (
+	// Internal API interface
+	StatsList struct {
+	}
+)
 
 // NewStatsList request
 func NewStatsList() *StatsList {
@@ -41,9 +40,7 @@ func NewStatsList() *StatsList {
 
 // Auditable returns all auditable/loggable parameters
 func (r StatsList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
-
-	return out
+	return map[string]interface{}{}
 }
 
 // Fill processes request and fills internal variables
@@ -55,26 +52,9 @@ func (r *StatsList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
-	}
-
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
 	}
 
 	return err
 }
-
-var _ RequestFiller = NewStatsList()

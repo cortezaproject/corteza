@@ -41,7 +41,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 		// Due to golang's inability do decode uint64 slice from string slice, we're expecting
 		// string input for members (for now)
 		// https://github.com/golang/go/issues/15624
-		Members: payload.ParseUInt64s(r.Members),
+		Members: payload.ParseUint64s(r.Members),
 
 		MembershipPolicy: r.MembershipPolicy,
 	}
@@ -106,7 +106,7 @@ func (ctrl *Channel) Invite(ctx context.Context, r *request.ChannelInvite) (inte
 	// Due to golang's inability do decode uint64 slice from string slice, we're expecting
 	// string input for members (for now)
 	// https://github.com/golang/go/issues/15624
-	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).InviteUser(r.ChannelID, payload.ParseUInt64s(r.UserID)...))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).InviteUser(r.ChannelID, payload.ParseUint64s(r.UserID)...))
 }
 
 func (ctrl *Channel) Join(ctx context.Context, r *request.ChannelJoin) (interface{}, error) {

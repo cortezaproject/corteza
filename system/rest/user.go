@@ -18,8 +18,6 @@ var _ = errors.Wrap
 
 type (
 	User struct {
-		settings *types.Settings
-
 		user service.UserService
 		role service.RoleService
 	}
@@ -32,7 +30,6 @@ type (
 
 func (User) New() *User {
 	ctrl := &User{}
-	ctrl.settings = service.CurrentSettings
 	ctrl.user = service.DefaultUser
 	ctrl.role = service.DefaultRole
 	return ctrl
@@ -40,8 +37,8 @@ func (User) New() *User {
 
 func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
 	f := types.UserFilter{
-		UserID:    payload.ParseUInt64s(r.UserID),
-		RoleID:    payload.ParseUInt64s(r.RoleID),
+		UserID:    payload.ParseUint64s(r.UserID),
+		RoleID:    payload.ParseUint64s(r.RoleID),
 		Query:     r.Query,
 		Email:     r.Email,
 		Username:  r.Username,

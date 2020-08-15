@@ -1,0 +1,1290 @@
+---
+
+# This is direct conversion from old api/*/spec.json files
+# using https://www.json2yaml.com/
+#
+# Next step: swagger.
+
+endpoints:
+- title: Authentication
+  path: "/auth"
+  entrypoint: auth
+  authentication: []
+  apis:
+  - name: settings
+    method: GET
+    title: Returns auth settings
+    path: "/"
+    parameters: {}
+  - name: check
+    method: GET
+    title: Check JWT token
+    path: "/check"
+    parameters: {}
+  - name: impersonate
+    method: POST
+    title: Impersonate a user
+    path: "/impersonate"
+    parameters:
+      post:
+      - name: userID
+        type: uint64
+        required: true
+        title: ID of the impersonated user
+  - name: exchangeAuthToken
+    method: POST
+    title: Exchange auth token for JWT
+    path: "/exchange"
+    parameters:
+      post:
+      - name: token
+        type: string
+        required: true
+        title: Token to be exchanged for JWT
+  - name: logout
+    method: GET
+    title: Logout
+    path: "/logout"
+    parameters: {}
+- title: Internal authentication
+  path: "/auth/internal"
+  entrypoint: authInternal
+  authentication: []
+  apis:
+  - name: login
+    method: POST
+    title: Login user
+    path: "/login"
+    parameters:
+      post:
+      - name: email
+        type: string
+        required: true
+        title: Email
+      - name: password
+        type: string
+        required: true
+        sensitive: true
+        title: Password
+  - name: signup
+    method: POST
+    title: User signup/registration
+    path: "/signup"
+    parameters:
+      post:
+      - name: email
+        type: string
+        required: true
+        title: Email
+      - name: username
+        type: string
+        required: false
+        title: Username
+      - name: password
+        type: string
+        required: true
+        sensitive: true
+        title: Password
+      - name: handle
+        type: string
+        required: false
+        title: User handle
+      - name: name
+        type: string
+        required: false
+        title: Display name
+  - name: requestPasswordReset
+    method: POST
+    title: Request password reset token (via email)
+    path: "/request-password-reset"
+    parameters:
+      post:
+      - name: email
+        type: string
+        required: true
+        title: Email
+  - name: exchangePasswordResetToken
+    method: POST
+    title: Exchange password reset token for new token and user info
+    path: "/exchange-password-reset-token"
+    parameters:
+      post:
+      - name: token
+        type: string
+        required: true
+        title: Token
+  - name: resetPassword
+    method: POST
+    title: Reset password with exchanged password reset token
+    path: "/reset-password"
+    parameters:
+      post:
+      - name: token
+        type: string
+        required: true
+        title: Token
+      - name: password
+        type: string
+        required: true
+        sensitive: true
+        title: Password
+  - name: confirmEmail
+    method: POST
+    title: Confirm email with token
+    path: "/confirm-email"
+    parameters:
+      post:
+      - name: token
+        type: string
+        required: true
+        title: Token
+  - name: changePassword
+    method: POST
+    title: Changes password for current user, requires current password
+    path: "/change-password"
+    parameters:
+      post:
+      - name: oldPassword
+        type: string
+        required: true
+        sensitive: true
+        title: Old password
+      - name: newPassword
+        type: string
+        required: true
+        sensitive: true
+        title: New password
+- title: Settings
+  path: "/settings"
+  entrypoint: settings
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: List settings
+    path: "/"
+    parameters:
+      get:
+      - name: prefix
+        type: string
+        title: Key prefix
+  - name: update
+    method: PATCH
+    title: Update settings
+    path: "/"
+    parameters:
+      post:
+      - name: values
+        type: types.SettingValueSet
+        title: 'Array of new settings: `[{ name: ..., value: ... }]`. Omit value to
+          remove setting'
+        required: true
+  - name: get
+    method: GET
+    title: Get a value for a key
+    path: "/{key}"
+    parameters:
+      path:
+      - name: key
+        type: string
+        title: Setting key
+        required: true
+      get:
+      - name: ownerID
+        type: uint64
+        title: Owner ID
+  - name: set
+    path: "/{key}"
+    method: POST
+    title: Set value for specific setting
+    parameters:
+      path:
+      - name: key
+        type: string
+        title: Key
+        required: true
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        title: File to upload
+      - name: ownerID
+        type: uint64
+        title: Owner ID
+  - name: current
+    method: GET
+    title: Current compose settings
+    path: "/current"
+- title: Subscription
+  path: "/subscription"
+  entrypoint: subscription
+  apis:
+  - name: current
+    method: GET
+    title: Returns current subscription status
+    path: "/"
+    parameters: {}
+- title: Organisations
+  description: Organisations represent a top-level grouping entity. There may be many
+    organisations defined in a single deployment.
+  path: "/organisations"
+  entrypoint: organisation
+  authentication:
+  - Client ID
+  - Session ID
+  apis:
+  - name: list
+    method: GET
+    title: List organisations
+    path: "/"
+    parameters:
+      get:
+      - type: string
+        name: query
+        required: false
+        title: Search query
+  - name: create
+    method: POST
+    title: Create organisation
+    path: "/"
+    parameters:
+      post:
+      - type: string
+        name: name
+        required: true
+        title: Organisation Name
+  - name: update
+    method: PUT
+    title: Update organisation details
+    path: "/{id}"
+    parameters:
+      path:
+      - type: uint64
+        name: id
+        required: false
+        title: Organisation ID
+      post:
+      - type: string
+        name: name
+        required: true
+        title: Organisation Name
+  - name: delete
+    method: DELETE
+    title: Remove organisation
+    path: "/{id}"
+    parameters:
+      path:
+      - type: uint64
+        name: id
+        required: true
+        title: Organisation ID
+  - name: read
+    method: GET
+    title: Read organisation details
+    path: "/{id}"
+    parameters:
+      path:
+      - type: uint64
+        name: id
+        required: true
+        title: Organisation ID
+  - name: archive
+    method: POST
+    title: Archive organisation
+    path: "/{id}/archive"
+    parameters:
+      path:
+      - type: uint64
+        name: id
+        required: true
+        title: Organisation ID
+- title: Roles
+  description: An organisation may have many roles. Roles may have many channels available.
+    Access to channels may be shared between roles.
+  path: "/roles"
+  entrypoint: role
+  authentication:
+  - Client ID
+  - Session ID
+  apis:
+  - name: list
+    method: GET
+    title: List roles
+    path: "/"
+    parameters:
+      get:
+      - type: string
+        name: query
+        required: false
+        title: Search query
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted roles
+        type: uint
+      - name: archived
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) achived roles
+        type: uint
+      - type: uint
+        name: limit
+        title: Limit
+      - type: uint
+        name: offset
+        title: Offset
+      - type: uint
+        name: page
+        title: Page number (1-based)
+      - type: uint
+        name: perPage
+        title: Returned items per page (default 50)
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Update role details
+    path: "/"
+    parameters:
+      post:
+      - type: string
+        name: name
+        required: true
+        title: Name of Role
+      - type: string
+        name: handle
+        required: true
+        title: Handle for Role
+      - type: "[]string"
+        name: members
+        required: false
+        title: Role member IDs
+  - name: update
+    method: PUT
+    title: Update role details
+    path: "/{roleID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+      post:
+      - type: string
+        name: name
+        required: false
+        title: Name of Role
+      - type: string
+        name: handle
+        required: false
+        title: Handle for Role
+      - type: "[]string"
+        name: members
+        required: false
+        title: Role member IDs
+  - name: read
+    method: GET
+    title: Read role details and memberships
+    path: "/{roleID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+  - name: delete
+    method: DELETE
+    title: Remove role
+    path: "/{roleID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+  - name: archive
+    method: POST
+    title: Archive role
+    path: "/{roleID}/archive"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+  - name: unarchive
+    method: POST
+    title: Unarchive role
+    path: "/{roleID}/unarchive"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+  - name: undelete
+    method: POST
+    title: Undelete role
+    path: "/{roleID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+  - name: move
+    method: POST
+    title: Move role to different organisation
+    path: "/{roleID}/move"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+      post:
+      - type: uint64
+        name: organisationID
+        required: true
+        title: Role ID
+  - name: merge
+    method: POST
+    title: Merge one role into another
+    path: "/{roleID}/merge"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+      post:
+      - type: uint64
+        name: destination
+        required: true
+        title: Destination Role ID
+  - name: memberList
+    method: GET
+    title: Returns all role members
+    path: "/{roleID}/members"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+  - name: memberAdd
+    method: POST
+    title: Add member to a role
+    path: "/{roleID}/member/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: memberRemove
+    method: DELETE
+    title: Remove member from a role
+    path: "/{roleID}/member/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: triggerScript
+    method: POST
+    title: Fire system:role trigger
+    path: "/{roleID}/trigger"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: ID
+      post:
+      - name: script
+        type: string
+        title: Script to execute
+        required: true
+- title: Users
+  path: "/users"
+  entrypoint: user
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: Search users (Directory)
+    path: "/"
+    parameters:
+      get:
+      - name: userID
+        type: "[]string"
+        required: false
+        title: Filter by user ID
+      - name: roleID
+        type: "[]string"
+        required: false
+        title: Filter by role membership
+      - type: string
+        name: query
+        required: false
+        title: Search query to match against users
+      - type: string
+        name: username
+        required: false
+        title: Search username to match against users
+      - type: string
+        name: email
+        required: false
+        title: Search email to match against users
+      - type: string
+        name: handle
+        required: false
+        title: Search handle to match against users
+      - name: kind
+        type: types.UserKind
+        required: false
+        title: Kind (normal, bot)
+      - type: bool
+        name: incDeleted
+        required: false
+        title: "[Deprecated] Include deleted users (requires 'access' permission)"
+      - type: bool
+        name: incSuspended
+        required: false
+        title: "[Deprecated] Include suspended users"
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted users
+        type: uint
+      - name: suspended
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) suspended users
+        type: uint
+      - type: uint
+        name: limit
+        title: Limit
+      - type: uint
+        name: offset
+        title: Offset
+      - type: uint
+        name: page
+        title: Page number (1-based)
+      - type: uint
+        name: perPage
+        title: Returned items per page (default 50)
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create user
+    path: "/"
+    parameters:
+      post:
+      - name: email
+        type: string
+        required: true
+        title: Email
+      - name: name
+        type: string
+        required: false
+        title: Name
+      - name: handle
+        type: string
+        required: false
+        title: Handle
+      - name: kind
+        type: types.UserKind
+        required: false
+        title: Kind (normal, bot)
+  - name: update
+    method: PUT
+    title: Update user details
+    path: "/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+      post:
+      - name: email
+        type: string
+        required: true
+        title: Email
+      - name: name
+        type: string
+        required: true
+        title: Name
+      - name: handle
+        type: string
+        required: false
+        title: Handle
+      - name: kind
+        type: types.UserKind
+        required: false
+        title: Kind (normal, bot)
+  - name: read
+    method: GET
+    title: Read user details
+    path: "/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: delete
+    method: DELETE
+    title: Remove user
+    path: "/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: suspend
+    method: POST
+    title: Suspend user
+    path: "/{userID}/suspend"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: unsuspend
+    method: POST
+    title: Unsuspend user
+    path: "/{userID}/unsuspend"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: undelete
+    method: POST
+    title: Undelete user
+    path: "/{userID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: setPassword
+    method: POST
+    title: Set's or changes user's password
+    path: "/{userID}/password"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+      post:
+      - name: password
+        type: string
+        required: true
+        sensitive: true
+        title: New password
+  - name: membershipList
+    method: GET
+    title: Add member to a role
+    path: "/{userID}/membership"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: membershipAdd
+    method: POST
+    title: Add role to a user
+    path: "/{userID}/membership/{roleID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: membershipRemove
+    method: DELETE
+    title: Remove role from a user
+    path: "/{userID}/membership/{roleID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Role ID
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
+  - name: triggerScript
+    method: POST
+    title: Fire system:user trigger
+    path: "/{userID}/trigger"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: ID
+      post:
+      - name: script
+        type: string
+        title: Script to execute
+        required: true
+- title: Applications
+  path: "/application"
+  entrypoint: application
+  authentication: []
+  imports:
+    - sqlxTypes github.com/jmoiron/sqlx/types
+  apis:
+  - name: list
+    method: GET
+    title: List applications
+    path: "/"
+    parameters:
+      get:
+      - name: name
+        required: false
+        title: Application name
+        type: string
+      - name: query
+        required: false
+        title: Filter applications
+        type: string
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted roles
+        type: uint
+      - type: uint
+        name: limit
+        title: Limit
+      - type: uint
+        name: offset
+        title: Offset
+      - type: uint
+        name: page
+        title: Page number (1-based)
+      - type: uint
+        name: perPage
+        title: Returned items per page (default 50)
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create application
+    path: "/"
+    parameters:
+      post:
+      - name: name
+        type: string
+        required: true
+        title: Application name
+      - name: enabled
+        type: bool
+        required: false
+        title: Enabled
+      - name: unify
+        type: sqlxTypes.JSONText
+        required: false
+        title: Unify properties
+      - name: config
+        type: sqlxTypes.JSONText
+        required: false
+        title: Arbitrary JSON holding application configuration
+  - name: update
+    method: PUT
+    title: Update user details
+    path: "/{applicationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+      post:
+      - name: name
+        type: string
+        required: true
+        title: Email
+      - name: enabled
+        type: bool
+        required: false
+        title: Enabled
+      - name: unify
+        type: sqlxTypes.JSONText
+        required: false
+        title: Unify properties
+      - name: config
+        type: sqlxTypes.JSONText
+        required: false
+        title: Arbitrary JSON holding application configuration
+  - name: read
+    method: GET
+    title: Read application details
+    path: "/{applicationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+  - name: delete
+    method: DELETE
+    title: Remove application
+    path: "/{applicationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+  - name: undelete
+    method: POST
+    title: Undelete application
+    path: "/{applicationID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+  - name: triggerScript
+    method: POST
+    title: Fire system:application trigger
+    path: "/{applicationID}/trigger"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: ID
+      post:
+      - name: script
+        type: string
+        title: Script to execute
+        required: true
+- title: Permissions
+  parameters: {}
+  entrypoint: permissions
+  path: "/permissions"
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/permissions
+  apis:
+  - name: list
+    path: "/"
+    method: GET
+    title: Retrieve defined permissions
+    parameters: {}
+  - name: effective
+    path: "/effective"
+    method: GET
+    title: Effective rules for current user
+    parameters:
+      get:
+      - name: resource
+        type: string
+        required: false
+        title: Show only rules for a specific resource
+  - name: read
+    path: "/{roleID}/rules"
+    method: GET
+    title: Retrieve role permissions
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+  - name: delete
+    path: "/{roleID}/rules"
+    method: DELETE
+    title: Remove all defined role permissions
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+  - name: update
+    path: "/{roleID}/rules"
+    method: PATCH
+    title: Update permission settings
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+      post:
+      - name: rules
+        type: permissions.RuleSet
+        required: true
+        title: List of permission rules to set
+- title: Reminders
+  entrypoint: reminder
+  path: "/reminder"
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - sqlxTypes github.com/jmoiron/sqlx/types
+    - time
+  apis:
+  - name: list
+    method: GET
+    title: List/read reminders
+    path: "/"
+    parameters:
+      get:
+      - name: reminderID
+        type: "[]string"
+        required: false
+        title: Filter by reminder ID
+      - name: resource
+        required: false
+        title: Only reminders of a specific resource
+        type: string
+      - name: assignedTo
+        required: false
+        title: Only reminders for a given user
+        type: uint64
+      - name: scheduledFrom
+        required: false
+        title: Only reminders from this time (included)
+        type: "*time.Time"
+      - name: scheduledUntil
+        required: false
+        title: Only reminders up to this time (included)
+        type: "*time.Time"
+      - name: scheduledOnly
+        required: false
+        title: Only scheduled reminders
+        type: bool
+      - name: excludeDismissed
+        required: false
+        title: Filter out dismissed reminders
+        type: bool
+      - type: uint
+        name: limit
+        title: Limit
+      - type: uint
+        name: offset
+        title: Offset
+      - type: uint
+        name: page
+        title: Page number (1-based)
+      - type: uint
+        name: perPage
+        title: Returned items per page (default 50)
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Add new reminder
+    path: "/"
+    parameters:
+      post:
+      - name: resource
+        title: Resource
+        type: string
+        required: true
+      - name: assignedTo
+        title: Assigned To
+        type: uint64
+        required: true
+      - name: payload
+        title: Payload
+        type: sqlxTypes.JSONText
+        required: true
+      - name: remindAt
+        title: Remind At
+        type: "*time.Time"
+        required: false
+  - name: update
+    method: PUT
+    title: Update reminder
+    path: "/{reminderID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: Reminder ID
+      post:
+      - name: resource
+        title: Resource
+        type: string
+        required: true
+      - name: assignedTo
+        title: Assigned To
+        type: uint64
+        required: true
+      - name: payload
+        title: Payload
+        type: sqlxTypes.JSONText
+        required: true
+      - name: remindAt
+        title: Remind At
+        type: "*time.Time"
+        required: false
+  - name: read
+    method: GET
+    title: Read reminder by ID
+    path: "/{reminderID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: Reminder ID
+  - name: delete
+    method: DELETE
+    title: Delete reminder
+    path: "/{reminderID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: Reminder ID
+  - name: dismiss
+    method: PATCH
+    title: Dismiss reminder
+    path: "/{reminderID}/dismiss"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: reminder ID
+  - name: snooze
+    method: PATCH
+    title: Snooze reminder
+    path: "/{reminderID}/snooze"
+    parameters:
+      path:
+      - type: uint64
+        name: reminderID
+        required: true
+        title: reminder ID
+      post:
+      - type: "*time.Time"
+        name: remindAt
+        required: true
+        title: New Remind At Time
+- title: Attachments
+  path: "/attachment/{kind}"
+  entrypoint: attachment
+  authentication:
+  - Client ID
+  - Session ID
+  parameters:
+    path:
+    - name: kind
+      type: string
+      required: true
+      title: Kind
+    get:
+    - type: string
+      name: sign
+      required: false
+      title: Signature
+    - type: uint64
+      name: userID
+      required: false
+      title: User ID
+  apis:
+  - name: read
+    path: "/{attachmentID}"
+    method: GET
+    title: Attachment details
+    parameters:
+      path:
+      - name: attachmentID
+        type: uint64
+        required: true
+        title: Attachment ID
+  - name: delete
+    path: "/{attachmentID}"
+    method: DELETE
+    title: Delete attachment
+    parameters:
+      path:
+      - name: attachmentID
+        type: uint64
+        required: true
+        title: Attachment ID
+  - name: original
+    path: "/{attachmentID}/original/{name}"
+    method: GET
+    title: Serves attached file
+    parameters:
+      path:
+      - name: attachmentID
+        type: uint64
+        required: true
+        title: Attachment ID
+      - name: name
+        type: string
+        required: true
+        title: File name
+      get:
+      - type: bool
+        name: download
+        required: false
+        title: Force file download
+  - name: preview
+    path: "/{attachmentID}/preview.{ext}"
+    method: GET
+    title: Serves preview of an attached file
+    parameters:
+      path:
+      - name: attachmentID
+        type: uint64
+        required: true
+        title: Attachment ID
+      - name: ext
+        type: string
+        required: true
+        title: Preview extension/format
+- title: Statistics
+  entrypoint: stats
+  path: "/stats"
+  authentication:
+  - Client ID
+  - Session ID
+  apis:
+  - name: list
+    method: GET
+    title: List system statistics
+    path: "/"
+    parameters: {}
+- title: System automation scripts
+  path: "/automation"
+  entrypoint: automation
+  apis:
+  - name: list
+    method: GET
+    title: List all available automation scripts for system resources
+    path: "/"
+    parameters:
+      get:
+      - name: resourceTypePrefixes
+        type: "[]string"
+        title: Filter by resource prefix
+      - name: resourceTypes
+        type: "[]string"
+        title: Filter by resource type
+      - name: eventTypes
+        type: "[]string"
+        title: Filter by event type
+      - name: excludeInvalid
+        type: bool
+        title: Exclude scripts that can not be used (errors)
+      - name: excludeClientScripts
+        type: bool
+        title: Do not include client scripts
+      - name: excludeServerScripts
+        type: bool
+        title: Do not include server scripts
+  - name: bundle
+    method: GET
+    title: Serves client scripts bundle
+    path: "/{bundle}-{type}.{ext}"
+    parameters:
+      path:
+      - name: bundle
+        type: string
+        title: Name of the bundle
+      - name: type
+        type: string
+        title: Bundle type
+      - name: ext
+        type: string
+        title: Bundle extension
+  - name: triggerScript
+    method: POST
+    title: Triggers execution of a specific script on a system service level
+    path: "/trigger"
+    parameters:
+      post:
+      - name: script
+        type: string
+        title: Script to execute
+        required: true
+- title: Action log
+  entrypoint: actionlog
+  path: "/actionlog"
+  imports:
+    - time
+  apis:
+  - name: list
+    method: GET
+    title: Action log events
+    path: "/"
+    parameters:
+      get:
+      - name: from
+        type: "*time.Time"
+        required: false
+        title: From
+      - name: to
+        type: "*time.Time"
+        required: false
+        title: To
+      - name: resource
+        required: false
+        title: Resource
+        type: string
+      - name: action
+        required: false
+        title: Action
+        type: string
+      - name: actorID
+        required: false
+        title: Filter by one or more actors
+        type: "[]string"
+      - type: uint
+        name: limit
+        title: Limit
+      - type: uint
+        name: offset
+        title: Offset
+      - type: uint
+        name: page
+        title: Page number (1-based)
+      - type: uint
+        name: perPage
+        title: Returned items per page (default 50)

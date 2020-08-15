@@ -29,13 +29,13 @@ func (Search) New() *Search {
 
 func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (interface{}, error) {
 	mm, _, err := ctrl.svc.msg.With(ctx).Find(types.MessageFilter{
-		ChannelID:      payload.ParseUInt64s(r.ChannelID),
+		ChannelID:      payload.ParseUint64s(r.ChannelID),
 		AfterID:        r.AfterMessageID,
 		BeforeID:       r.BeforeMessageID,
 		FromID:         r.FromMessageID,
 		ToID:           r.ToMessageID,
-		ThreadID:       payload.ParseUInt64s(r.ThreadID),
-		UserID:         payload.ParseUInt64s(r.UserID),
+		ThreadID:       payload.ParseUint64s(r.ThreadID),
+		UserID:         payload.ParseUint64s(r.UserID),
 		Type:           r.Type,
 		PinnedOnly:     r.PinnedOnly,
 		BookmarkedOnly: r.BookmarkedOnly,
@@ -49,7 +49,7 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 
 func (ctrl *Search) Threads(ctx context.Context, r *request.SearchThreads) (interface{}, error) {
 	mm, _, err := ctrl.svc.msg.With(ctx).FindThreads(types.MessageFilter{
-		ChannelID: payload.ParseUInt64s(r.ChannelID),
+		ChannelID: payload.ParseUint64s(r.ChannelID),
 		Limit:     r.Limit,
 
 		Query: r.Query,

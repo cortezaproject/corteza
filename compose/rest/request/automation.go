@@ -1,61 +1,90 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `automation.go`, `automation.util.go` or `automation_test.go` to
-	implement your API calls, helper functions and tests. The file `automation.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// AutomationList request parameters
-type AutomationList struct {
-	hasResourceTypePrefixes bool
-	rawResourceTypePrefixes []string
-	ResourceTypePrefixes    []string
+type (
+	// Internal API interface
+	AutomationList struct {
+		// ResourceTypePrefixes GET parameter
+		//
+		// Filter by resource prefix
+		ResourceTypePrefixes []string
 
-	hasResourceTypes bool
-	rawResourceTypes []string
-	ResourceTypes    []string
+		// ResourceTypes GET parameter
+		//
+		// Filter by resource type
+		ResourceTypes []string
 
-	hasEventTypes bool
-	rawEventTypes []string
-	EventTypes    []string
+		// EventTypes GET parameter
+		//
+		// Filter by event type
+		EventTypes []string
 
-	hasExcludeInvalid bool
-	rawExcludeInvalid string
-	ExcludeInvalid    bool
+		// ExcludeInvalid GET parameter
+		//
+		// Exclude scripts that can not be used (errors)
+		ExcludeInvalid bool
 
-	hasExcludeClientScripts bool
-	rawExcludeClientScripts string
-	ExcludeClientScripts    bool
+		// ExcludeClientScripts GET parameter
+		//
+		// Do not include client scripts
+		ExcludeClientScripts bool
 
-	hasExcludeServerScripts bool
-	rawExcludeServerScripts string
-	ExcludeServerScripts    bool
-}
+		// ExcludeServerScripts GET parameter
+		//
+		// Do not include server scripts
+		ExcludeServerScripts bool
+	}
+
+	AutomationBundle struct {
+		// Bundle PATH parameter
+		//
+		// Name of the bundle
+		Bundle string
+
+		// Type PATH parameter
+		//
+		// Bundle type
+		Type string
+
+		// Ext PATH parameter
+		//
+		// Bundle extension
+		Ext string
+	}
+
+	AutomationTriggerScript struct {
+		// Script POST parameter
+		//
+		// Script to execute
+		Script string
+	}
+)
 
 // NewAutomationList request
 func NewAutomationList() *AutomationList {
@@ -64,16 +93,44 @@ func NewAutomationList() *AutomationList {
 
 // Auditable returns all auditable/loggable parameters
 func (r AutomationList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"resourceTypePrefixes": r.ResourceTypePrefixes,
+		"resourceTypes":        r.ResourceTypes,
+		"eventTypes":           r.EventTypes,
+		"excludeInvalid":       r.ExcludeInvalid,
+		"excludeClientScripts": r.ExcludeClientScripts,
+		"excludeServerScripts": r.ExcludeServerScripts,
+	}
+}
 
-	out["resourceTypePrefixes"] = r.ResourceTypePrefixes
-	out["resourceTypes"] = r.ResourceTypes
-	out["eventTypes"] = r.EventTypes
-	out["excludeInvalid"] = r.ExcludeInvalid
-	out["excludeClientScripts"] = r.ExcludeClientScripts
-	out["excludeServerScripts"] = r.ExcludeServerScripts
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetResourceTypePrefixes() []string {
+	return r.ResourceTypePrefixes
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetResourceTypes() []string {
+	return r.ResourceTypes
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetEventTypes() []string {
+	return r.EventTypes
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetExcludeInvalid() bool {
+	return r.ExcludeInvalid
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetExcludeClientScripts() bool {
+	return r.ExcludeClientScripts
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AutomationList) GetExcludeServerScripts() bool {
+	return r.ExcludeServerScripts
 }
 
 // Fill processes request and fills internal variables
@@ -85,89 +142,68 @@ func (r *AutomationList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		// GET params
+		tmp := req.URL.Query()
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := urlQuery["resourceTypePrefixes[]"]; ok {
-		r.hasResourceTypePrefixes = true
-		r.rawResourceTypePrefixes = val
-		r.ResourceTypePrefixes = parseStrings(val)
-	} else if val, ok = urlQuery["resourceTypePrefixes"]; ok {
-		r.hasResourceTypePrefixes = true
-		r.rawResourceTypePrefixes = val
-		r.ResourceTypePrefixes = parseStrings(val)
-	}
-
-	if val, ok := urlQuery["resourceTypes[]"]; ok {
-		r.hasResourceTypes = true
-		r.rawResourceTypes = val
-		r.ResourceTypes = parseStrings(val)
-	} else if val, ok = urlQuery["resourceTypes"]; ok {
-		r.hasResourceTypes = true
-		r.rawResourceTypes = val
-		r.ResourceTypes = parseStrings(val)
-	}
-
-	if val, ok := urlQuery["eventTypes[]"]; ok {
-		r.hasEventTypes = true
-		r.rawEventTypes = val
-		r.EventTypes = parseStrings(val)
-	} else if val, ok = urlQuery["eventTypes"]; ok {
-		r.hasEventTypes = true
-		r.rawEventTypes = val
-		r.EventTypes = parseStrings(val)
-	}
-
-	if val, ok := get["excludeInvalid"]; ok {
-		r.hasExcludeInvalid = true
-		r.rawExcludeInvalid = val
-		r.ExcludeInvalid = parseBool(val)
-	}
-	if val, ok := get["excludeClientScripts"]; ok {
-		r.hasExcludeClientScripts = true
-		r.rawExcludeClientScripts = val
-		r.ExcludeClientScripts = parseBool(val)
-	}
-	if val, ok := get["excludeServerScripts"]; ok {
-		r.hasExcludeServerScripts = true
-		r.rawExcludeServerScripts = val
-		r.ExcludeServerScripts = parseBool(val)
+		if val, ok := tmp["resourceTypePrefixes[]"]; ok {
+			r.ResourceTypePrefixes, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["resourceTypePrefixes"]; ok {
+			r.ResourceTypePrefixes, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resourceTypes[]"]; ok {
+			r.ResourceTypes, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["resourceTypes"]; ok {
+			r.ResourceTypes, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["eventTypes[]"]; ok {
+			r.EventTypes, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["eventTypes"]; ok {
+			r.EventTypes, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["excludeInvalid"]; ok && len(val) > 0 {
+			r.ExcludeInvalid, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["excludeClientScripts"]; ok && len(val) > 0 {
+			r.ExcludeClientScripts, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["excludeServerScripts"]; ok && len(val) > 0 {
+			r.ExcludeServerScripts, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewAutomationList()
-
-// AutomationBundle request parameters
-type AutomationBundle struct {
-	hasBundle bool
-	rawBundle string
-	Bundle    string
-
-	hasType bool
-	rawType string
-	Type    string
-
-	hasExt bool
-	rawExt string
-	Ext    string
 }
 
 // NewAutomationBundle request
@@ -177,13 +213,26 @@ func NewAutomationBundle() *AutomationBundle {
 
 // Auditable returns all auditable/loggable parameters
 func (r AutomationBundle) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"bundle": r.Bundle,
+		"type":   r.Type,
+		"ext":    r.Ext,
+	}
+}
 
-	out["bundle"] = r.Bundle
-	out["type"] = r.Type
-	out["ext"] = r.Ext
+// Auditable returns all auditable/loggable parameters
+func (r AutomationBundle) GetBundle() string {
+	return r.Bundle
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r AutomationBundle) GetType() string {
+	return r.Type
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AutomationBundle) GetExt() string {
+	return r.Ext
 }
 
 // Fill processes request and fills internal variables
@@ -195,45 +244,35 @@ func (r *AutomationBundle) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "bundle")
+		r.Bundle, err = val, nil
+		if err != nil {
+			return err
+		}
 
-	r.hasBundle = true
-	r.rawBundle = chi.URLParam(req, "bundle")
-	r.Bundle = chi.URLParam(req, "bundle")
-	r.hasType = true
-	r.rawType = chi.URLParam(req, "type")
-	r.Type = chi.URLParam(req, "type")
-	r.hasExt = true
-	r.rawExt = chi.URLParam(req, "ext")
-	r.Ext = chi.URLParam(req, "ext")
+		val = chi.URLParam(req, "type")
+		r.Type, err = val, nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "ext")
+		r.Ext, err = val, nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewAutomationBundle()
-
-// AutomationTriggerScript request parameters
-type AutomationTriggerScript struct {
-	hasScript bool
-	rawScript string
-	Script    string
 }
 
 // NewAutomationTriggerScript request
@@ -243,11 +282,14 @@ func NewAutomationTriggerScript() *AutomationTriggerScript {
 
 // Auditable returns all auditable/loggable parameters
 func (r AutomationTriggerScript) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"script": r.Script,
+	}
+}
 
-	out["script"] = r.Script
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r AutomationTriggerScript) GetScript() string {
+	return r.Script
 }
 
 // Fill processes request and fills internal variables
@@ -259,182 +301,24 @@ func (r *AutomationTriggerScript) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		// POST params
 
-	if val, ok := post["script"]; ok {
-		r.hasScript = true
-		r.rawScript = val
-		r.Script = val
+		if val, ok := req.Form["script"]; ok && len(val) > 0 {
+			r.Script, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewAutomationTriggerScript()
-
-// HasResourceTypePrefixes returns true if resourceTypePrefixes was set
-func (r *AutomationList) HasResourceTypePrefixes() bool {
-	return r.hasResourceTypePrefixes
-}
-
-// RawResourceTypePrefixes returns raw value of resourceTypePrefixes parameter
-func (r *AutomationList) RawResourceTypePrefixes() []string {
-	return r.rawResourceTypePrefixes
-}
-
-// GetResourceTypePrefixes returns casted value of  resourceTypePrefixes parameter
-func (r *AutomationList) GetResourceTypePrefixes() []string {
-	return r.ResourceTypePrefixes
-}
-
-// HasResourceTypes returns true if resourceTypes was set
-func (r *AutomationList) HasResourceTypes() bool {
-	return r.hasResourceTypes
-}
-
-// RawResourceTypes returns raw value of resourceTypes parameter
-func (r *AutomationList) RawResourceTypes() []string {
-	return r.rawResourceTypes
-}
-
-// GetResourceTypes returns casted value of  resourceTypes parameter
-func (r *AutomationList) GetResourceTypes() []string {
-	return r.ResourceTypes
-}
-
-// HasEventTypes returns true if eventTypes was set
-func (r *AutomationList) HasEventTypes() bool {
-	return r.hasEventTypes
-}
-
-// RawEventTypes returns raw value of eventTypes parameter
-func (r *AutomationList) RawEventTypes() []string {
-	return r.rawEventTypes
-}
-
-// GetEventTypes returns casted value of  eventTypes parameter
-func (r *AutomationList) GetEventTypes() []string {
-	return r.EventTypes
-}
-
-// HasExcludeInvalid returns true if excludeInvalid was set
-func (r *AutomationList) HasExcludeInvalid() bool {
-	return r.hasExcludeInvalid
-}
-
-// RawExcludeInvalid returns raw value of excludeInvalid parameter
-func (r *AutomationList) RawExcludeInvalid() string {
-	return r.rawExcludeInvalid
-}
-
-// GetExcludeInvalid returns casted value of  excludeInvalid parameter
-func (r *AutomationList) GetExcludeInvalid() bool {
-	return r.ExcludeInvalid
-}
-
-// HasExcludeClientScripts returns true if excludeClientScripts was set
-func (r *AutomationList) HasExcludeClientScripts() bool {
-	return r.hasExcludeClientScripts
-}
-
-// RawExcludeClientScripts returns raw value of excludeClientScripts parameter
-func (r *AutomationList) RawExcludeClientScripts() string {
-	return r.rawExcludeClientScripts
-}
-
-// GetExcludeClientScripts returns casted value of  excludeClientScripts parameter
-func (r *AutomationList) GetExcludeClientScripts() bool {
-	return r.ExcludeClientScripts
-}
-
-// HasExcludeServerScripts returns true if excludeServerScripts was set
-func (r *AutomationList) HasExcludeServerScripts() bool {
-	return r.hasExcludeServerScripts
-}
-
-// RawExcludeServerScripts returns raw value of excludeServerScripts parameter
-func (r *AutomationList) RawExcludeServerScripts() string {
-	return r.rawExcludeServerScripts
-}
-
-// GetExcludeServerScripts returns casted value of  excludeServerScripts parameter
-func (r *AutomationList) GetExcludeServerScripts() bool {
-	return r.ExcludeServerScripts
-}
-
-// HasBundle returns true if bundle was set
-func (r *AutomationBundle) HasBundle() bool {
-	return r.hasBundle
-}
-
-// RawBundle returns raw value of bundle parameter
-func (r *AutomationBundle) RawBundle() string {
-	return r.rawBundle
-}
-
-// GetBundle returns casted value of  bundle parameter
-func (r *AutomationBundle) GetBundle() string {
-	return r.Bundle
-}
-
-// HasType returns true if type was set
-func (r *AutomationBundle) HasType() bool {
-	return r.hasType
-}
-
-// RawType returns raw value of type parameter
-func (r *AutomationBundle) RawType() string {
-	return r.rawType
-}
-
-// GetType returns casted value of  type parameter
-func (r *AutomationBundle) GetType() string {
-	return r.Type
-}
-
-// HasExt returns true if ext was set
-func (r *AutomationBundle) HasExt() bool {
-	return r.hasExt
-}
-
-// RawExt returns raw value of ext parameter
-func (r *AutomationBundle) RawExt() string {
-	return r.rawExt
-}
-
-// GetExt returns casted value of  ext parameter
-func (r *AutomationBundle) GetExt() string {
-	return r.Ext
-}
-
-// HasScript returns true if script was set
-func (r *AutomationTriggerScript) HasScript() bool {
-	return r.hasScript
-}
-
-// RawScript returns raw value of script parameter
-func (r *AutomationTriggerScript) RawScript() string {
-	return r.rawScript
-}
-
-// GetScript returns casted value of  script parameter
-func (r *AutomationTriggerScript) GetScript() string {
-	return r.Script
 }

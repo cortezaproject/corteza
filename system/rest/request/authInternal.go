@@ -29,7 +29,7 @@ var (
 
 type (
 	// Internal API interface
-	Auth_internalLogin struct {
+	AuthInternalLogin struct {
 		// Email POST parameter
 		//
 		// Email
@@ -41,7 +41,7 @@ type (
 		Password string
 	}
 
-	Auth_internalSignup struct {
+	AuthInternalSignup struct {
 		// Email POST parameter
 		//
 		// Email
@@ -68,21 +68,21 @@ type (
 		Name string
 	}
 
-	Auth_internalRequestPasswordReset struct {
+	AuthInternalRequestPasswordReset struct {
 		// Email POST parameter
 		//
 		// Email
 		Email string
 	}
 
-	Auth_internalExchangePasswordResetToken struct {
+	AuthInternalExchangePasswordResetToken struct {
 		// Token POST parameter
 		//
 		// Token
 		Token string
 	}
 
-	Auth_internalResetPassword struct {
+	AuthInternalResetPassword struct {
 		// Token POST parameter
 		//
 		// Token
@@ -94,14 +94,14 @@ type (
 		Password string
 	}
 
-	Auth_internalConfirmEmail struct {
+	AuthInternalConfirmEmail struct {
 		// Token POST parameter
 		//
 		// Token
 		Token string
 	}
 
-	Auth_internalChangePassword struct {
+	AuthInternalChangePassword struct {
 		// OldPassword POST parameter
 		//
 		// Old password
@@ -114,21 +114,31 @@ type (
 	}
 )
 
-// NewAuth_internalLogin request
-func NewAuth_internalLogin() *Auth_internalLogin {
-	return &Auth_internalLogin{}
+// NewAuthInternalLogin request
+func NewAuthInternalLogin() *AuthInternalLogin {
+	return &AuthInternalLogin{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalLogin) Auditable() map[string]interface{} {
+func (r AuthInternalLogin) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"email":    r.Email,
 		"password": r.Password,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalLogin) GetEmail() string {
+	return r.Email
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalLogin) GetPassword() string {
+	return r.Password
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalLogin) Fill(req *http.Request) (err error) {
+func (r *AuthInternalLogin) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -136,7 +146,7 @@ func (r *Auth_internalLogin) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -165,13 +175,13 @@ func (r *Auth_internalLogin) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewAuth_internalSignup request
-func NewAuth_internalSignup() *Auth_internalSignup {
-	return &Auth_internalSignup{}
+// NewAuthInternalSignup request
+func NewAuthInternalSignup() *AuthInternalSignup {
+	return &AuthInternalSignup{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalSignup) Auditable() map[string]interface{} {
+func (r AuthInternalSignup) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"email":    r.Email,
 		"username": r.Username,
@@ -181,8 +191,33 @@ func (r Auth_internalSignup) Auditable() map[string]interface{} {
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalSignup) GetEmail() string {
+	return r.Email
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalSignup) GetUsername() string {
+	return r.Username
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalSignup) GetPassword() string {
+	return r.Password
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalSignup) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalSignup) GetName() string {
+	return r.Name
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalSignup) Fill(req *http.Request) (err error) {
+func (r *AuthInternalSignup) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -190,7 +225,7 @@ func (r *Auth_internalSignup) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -240,20 +275,25 @@ func (r *Auth_internalSignup) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewAuth_internalRequestPasswordReset request
-func NewAuth_internalRequestPasswordReset() *Auth_internalRequestPasswordReset {
-	return &Auth_internalRequestPasswordReset{}
+// NewAuthInternalRequestPasswordReset request
+func NewAuthInternalRequestPasswordReset() *AuthInternalRequestPasswordReset {
+	return &AuthInternalRequestPasswordReset{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalRequestPasswordReset) Auditable() map[string]interface{} {
+func (r AuthInternalRequestPasswordReset) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"email": r.Email,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalRequestPasswordReset) GetEmail() string {
+	return r.Email
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalRequestPasswordReset) Fill(req *http.Request) (err error) {
+func (r *AuthInternalRequestPasswordReset) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -261,7 +301,7 @@ func (r *Auth_internalRequestPasswordReset) Fill(req *http.Request) (err error) 
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -283,20 +323,25 @@ func (r *Auth_internalRequestPasswordReset) Fill(req *http.Request) (err error) 
 	return err
 }
 
-// NewAuth_internalExchangePasswordResetToken request
-func NewAuth_internalExchangePasswordResetToken() *Auth_internalExchangePasswordResetToken {
-	return &Auth_internalExchangePasswordResetToken{}
+// NewAuthInternalExchangePasswordResetToken request
+func NewAuthInternalExchangePasswordResetToken() *AuthInternalExchangePasswordResetToken {
+	return &AuthInternalExchangePasswordResetToken{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalExchangePasswordResetToken) Auditable() map[string]interface{} {
+func (r AuthInternalExchangePasswordResetToken) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"token": r.Token,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalExchangePasswordResetToken) GetToken() string {
+	return r.Token
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalExchangePasswordResetToken) Fill(req *http.Request) (err error) {
+func (r *AuthInternalExchangePasswordResetToken) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -304,7 +349,7 @@ func (r *Auth_internalExchangePasswordResetToken) Fill(req *http.Request) (err e
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -326,21 +371,31 @@ func (r *Auth_internalExchangePasswordResetToken) Fill(req *http.Request) (err e
 	return err
 }
 
-// NewAuth_internalResetPassword request
-func NewAuth_internalResetPassword() *Auth_internalResetPassword {
-	return &Auth_internalResetPassword{}
+// NewAuthInternalResetPassword request
+func NewAuthInternalResetPassword() *AuthInternalResetPassword {
+	return &AuthInternalResetPassword{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalResetPassword) Auditable() map[string]interface{} {
+func (r AuthInternalResetPassword) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"token":    r.Token,
 		"password": r.Password,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalResetPassword) GetToken() string {
+	return r.Token
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalResetPassword) GetPassword() string {
+	return r.Password
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalResetPassword) Fill(req *http.Request) (err error) {
+func (r *AuthInternalResetPassword) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -348,7 +403,7 @@ func (r *Auth_internalResetPassword) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -377,20 +432,25 @@ func (r *Auth_internalResetPassword) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewAuth_internalConfirmEmail request
-func NewAuth_internalConfirmEmail() *Auth_internalConfirmEmail {
-	return &Auth_internalConfirmEmail{}
+// NewAuthInternalConfirmEmail request
+func NewAuthInternalConfirmEmail() *AuthInternalConfirmEmail {
+	return &AuthInternalConfirmEmail{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalConfirmEmail) Auditable() map[string]interface{} {
+func (r AuthInternalConfirmEmail) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"token": r.Token,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalConfirmEmail) GetToken() string {
+	return r.Token
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalConfirmEmail) Fill(req *http.Request) (err error) {
+func (r *AuthInternalConfirmEmail) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -398,7 +458,7 @@ func (r *Auth_internalConfirmEmail) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
@@ -420,21 +480,31 @@ func (r *Auth_internalConfirmEmail) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewAuth_internalChangePassword request
-func NewAuth_internalChangePassword() *Auth_internalChangePassword {
-	return &Auth_internalChangePassword{}
+// NewAuthInternalChangePassword request
+func NewAuthInternalChangePassword() *AuthInternalChangePassword {
+	return &AuthInternalChangePassword{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r Auth_internalChangePassword) Auditable() map[string]interface{} {
+func (r AuthInternalChangePassword) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"oldPassword": r.OldPassword,
 		"newPassword": r.NewPassword,
 	}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalChangePassword) GetOldPassword() string {
+	return r.OldPassword
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthInternalChangePassword) GetNewPassword() string {
+	return r.NewPassword
+}
+
 // Fill processes request and fills internal variables
-func (r *Auth_internalChangePassword) Fill(req *http.Request) (err error) {
+func (r *AuthInternalChangePassword) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -442,7 +512,7 @@ func (r *Auth_internalChangePassword) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
