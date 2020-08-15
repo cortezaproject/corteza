@@ -2,10 +2,8 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
@@ -67,7 +65,7 @@ func (cImp *Channel) Cast(name string, def interface{}) (err error) {
 
 		cImp.set = append(cImp.set, channel)
 	} else if channel.ID == 0 {
-		return errors.Errorf("channel name %q already defined in this import session", channel.Name)
+		return fmt.Errorf("channel name %q already defined in this import session", channel.Name)
 	} else {
 		cImp.dirty[channel.ID] = true
 	}
@@ -120,6 +118,10 @@ func (cImp *Channel) Store(ctx context.Context, k channelKeeper) error {
 			channel, err = k.Create(channel)
 		} else if cImp.dirty[channel.ID] {
 			channel, err = k.Update(channel)
+		}
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
 		}
 
 		if err != nil {

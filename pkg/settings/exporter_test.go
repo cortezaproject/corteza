@@ -1,11 +1,11 @@
 package settings
 
 import (
-	"testing"
-
-	"github.com/jmoiron/sqlx/types"
+	"github.com/cortezaproject/corteza-server/system/types"
+	sqlType "github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+	"testing"
 )
 
 func TestExport(t *testing.T) {
@@ -53,10 +53,10 @@ func TestExport(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tt := Export(ValueSet{
-				&Value{
+			tt := Export(types.SettingValueSet{
+				&types.SettingValue{
 					Name:  test.name,
-					Value: types.JSONText(test.rawValue),
+					Value: sqlType.JSONText(test.rawValue),
 				},
 			})
 			req.Len(tt, 1)

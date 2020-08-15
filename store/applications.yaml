@@ -1,0 +1,27 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+fields:
+  - { field: ID }
+  - { field: Name }
+  - { field: OwnerID }
+  - { field: Enabled }
+  - { field: Unify }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for application by ID
+
+      It returns application even if deleted
+
+rdbms:
+  alias: app
+  table: sys_application
+  customFilterConverter: true

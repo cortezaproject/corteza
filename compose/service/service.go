@@ -3,20 +3,17 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"go.uber.org/zap"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
@@ -30,9 +27,8 @@ type (
 	}
 
 	Config struct {
-		ActionLog        options.ActionLogOpt
-		Storage          options.StorageOpt
-		GRPCClientSystem options.GRPCServerOpt
+		ActionLog options.ActionLogOpt
+		Storage   options.StorageOpt
 	}
 
 	eventDispatcher interface {
@@ -44,20 +40,20 @@ type (
 var (
 	DefaultStore store.Store
 
+	// DefaultNgStore is an interface to storage backend(s)
+	// ng (next-gen) is a temporary prefix
+	// so that we can differentiate between it and the file-only store
+	DefaultNgStore storeInterface
+
 	DefaultLogger *zap.Logger
 
 	DefaultActionlog actionlog.Recorder
-
-	DefaultSettings settings.Service
 
 	// DefaultPermissions Retrieves & stores permissions
 	DefaultPermissions permissionServicer
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
-
-	// CurrentSettings represents current compose settings
-	CurrentSettings = &types.Settings{}
 
 	DefaultNamespace     NamespaceService
 	DefaultImportSession ImportSessionService
@@ -78,10 +74,19 @@ var (
 )
 
 // Initializes compose-only services
-func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
-	hcd := healthcheck.Defaults()
+func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
+	var (
+		hcd = healthcheck.Defaults()
 
-	var db = repository.DB(ctx)
+		cmpStore storeInterface
+		ok       bool
+	)
+
+	// we're doing conversion to avoid having
+	// store interface exposed or generated inside app package
+	if cmpStore, ok = s.(storeInterface); !ok {
+		return fmt.Errorf("store %T is incompatible with compose storeInterface", s)
+	}
 
 	DefaultLogger = log.Named("service")
 
@@ -96,29 +101,16 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			tee = log
 		}
 
-		DefaultActionlog = actionlog.NewService(
-			// will log directly to system schema for now
-			actionlogRepository.Mysql(repository.DB(ctx).Quiet(), "sys_actionlog"),
-			log,
-			tee,
-			policy,
-		)
+		DefaultActionlog = actionlog.NewService(DefaultNgStore, log, tee, policy)
 	}
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, db, "compose_permission_rules")
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, cmpStore)
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
-
-	DefaultSettings = settings.NewService(
-		settings.NewRepository(repository.DB(ctx), "compose_settings"),
-		DefaultLogger,
-		DefaultAccessControl,
-		CurrentSettings,
-	)
 
 	if DefaultStore == nil {
 		const svcPath = "compose"
@@ -161,15 +153,6 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
 
-	//{
-	//	systemClientConn, err := NewSystemGRPCClient(ctx, c.GRPCClientSystem, DefaultLogger)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	DefaultSystemUser = SystemUser(systemProto.NewUsersClient(systemClientConn))
-	//	DefaultSystemRole = SystemRole(systemProto.NewRolesClient(systemClientConn))
-	//}
 	DefaultSystemUser = systemService.DefaultUser
 
 	DefaultImportSession = ImportSession()
@@ -185,12 +168,6 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 }
 
 func Activate(ctx context.Context) (err error) {
-	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(auth.SetSuperUserContext(ctx))
-	if err != nil {
-		return
-	}
-
 	return
 }
 

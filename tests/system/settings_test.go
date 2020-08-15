@@ -1,25 +1,23 @@
 package system
 
 import (
+	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	sqlTypes "github.com/jmoiron/sqlx/types"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"testing"
-
-	"github.com/cortezaproject/corteza-server/pkg/settings"
-	"github.com/cortezaproject/corteza-server/system/service"
-	tt "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/jmoiron/sqlx/types"
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
 
 func TestSettingsList(t *testing.T) {
 	h := newHelper(t)
-	h.allow(tt.SystemPermissionResource, "settings.read")
-	h.allow(tt.SystemPermissionResource, "settings.manage")
+	h.allow(types.SystemPermissionResource, "settings.read")
+	h.allow(types.SystemPermissionResource, "settings.manage")
 
-	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
-		&settings.Value{Name: "t_sys_k1.s1", Value: types.JSONText(`"t_sys_v1"`)},
-		&settings.Value{Name: "t_sys_k1.s2", Value: types.JSONText(`"t_sys_v2"`)},
+	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
+		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
+		&types.SettingValue{Name: "t_sys_k1.s2", Value: sqlTypes.JSONText(`"t_sys_v2"`)},
 	})
 	h.a.NoError(err)
 
@@ -37,7 +35,7 @@ func TestSettingsList(t *testing.T) {
 
 func TestSettingsList_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(tt.SystemPermissionResource, "settings.read")
+	h.deny(types.SystemPermissionResource, "settings.read")
 
 	h.apiInit().
 		Get("/settings/").
@@ -49,11 +47,11 @@ func TestSettingsList_noPermissions(t *testing.T) {
 
 func TestSettingsUpdate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(tt.SystemPermissionResource, "settings.manage")
-	h.allow(tt.SystemPermissionResource, "settings.read")
+	h.allow(types.SystemPermissionResource, "settings.manage")
+	h.allow(types.SystemPermissionResource, "settings.read")
 
-	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
-		&settings.Value{Name: "t_sys_k1.s1", Value: types.JSONText(`"t_sys_v1"`)},
+	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
+		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
 	})
 	h.a.NoError(err)
 
@@ -76,7 +74,7 @@ func TestSettingsUpdate(t *testing.T) {
 
 func TestSettingsUpdate_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(tt.SystemPermissionResource, "settings.manage")
+	h.deny(types.SystemPermissionResource, "settings.manage")
 
 	h.apiInit().
 		Patch("/settings/").
@@ -89,11 +87,11 @@ func TestSettingsUpdate_noPermissions(t *testing.T) {
 
 func TestSettingsGet(t *testing.T) {
 	h := newHelper(t)
-	h.allow(tt.SystemPermissionResource, "settings.read")
-	h.allow(tt.SystemPermissionResource, "settings.manage")
+	h.allow(types.SystemPermissionResource, "settings.read")
+	h.allow(types.SystemPermissionResource, "settings.manage")
 
-	err := service.DefaultSettings.BulkSet(h.secCtx(), settings.ValueSet{
-		&settings.Value{Name: "t_sys_k1.s1", Value: types.JSONText(`"t_sys_v1"`)},
+	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
+		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
 	})
 	h.a.NoError(err)
 
@@ -117,7 +115,7 @@ func TestSettingsGet(t *testing.T) {
 
 func TestSettingsGet_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(tt.SystemPermissionResource, "settings.read")
+	h.deny(types.SystemPermissionResource, "settings.read")
 
 	h.apiInit().
 		Get("/settings/t_sys_k1.s1").

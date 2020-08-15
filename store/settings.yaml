@@ -1,0 +1,27 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+types:
+  type: types.SettingValue
+  filterType: types.SettingsFilter
+
+fields:
+  - { field: Name, isPrimaryKey: true }
+  - { field: Value }
+  - { field: OwnedBy, isPrimaryKey: true, column: rel_owner }
+  - { field: UpdatedBy }
+  - { field: UpdatedAt }
+
+lookups:
+  - fields: [ Name, OwnedBy ]
+    description: |-
+      searches for settings by name and owner
+
+rdbms:
+  alias: st
+  table: settings
+  customFilterConverter: true
+

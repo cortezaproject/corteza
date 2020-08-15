@@ -2,9 +2,8 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
@@ -79,13 +78,13 @@ func (nsImp *Namespace) CastSet(set interface{}) error {
 // { <namespace-handle>: { namespace } } or [ { namespace }, ... ]
 func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 	if !deinterfacer.IsMap(def) {
-		return errors.New("expecting map of values for namespace")
+		return fmt.Errorf("expecting map of values for namespace")
 	}
 
 	var namespace *types.Namespace
 
 	if !importer.IsValidHandle(handle) {
-		return errors.New("invalid namespace handle")
+		return fmt.Errorf("invalid namespace handle")
 	}
 
 	handle = importer.NormalizeHandle(handle)
@@ -207,7 +206,7 @@ func (nsImp *Namespace) Get(handle string) (*types.Namespace, error) {
 	handle = importer.NormalizeHandle(handle)
 
 	if !importer.IsValidHandle(handle) {
-		return nil, errors.New("invalid namespace handle")
+		return nil, fmt.Errorf("invalid namespace handle")
 	}
 
 	return nsImp.set.FindByHandle(handle), nil
@@ -236,6 +235,10 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 			namespace, err = nsk.Update(namespace)
 		}
 
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
+		}
+
 		if err != nil {
 			return
 		}
@@ -246,22 +249,22 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 		if _, ok := nsImp.modules[handle]; ok {
 			nsImp.modules[handle].namespace = namespace
 			if err = nsImp.modules[handle].Store(ctx, mk); err != nil {
-				return errors.Wrap(err, "could not import modules")
+				return fmt.Errorf("could not import modules: %w", err)
 			}
 
 			nsImp.charts[handle].namespace = namespace
 			if err = nsImp.charts[handle].Store(ctx, ck); err != nil {
-				return errors.Wrap(err, "could not import charts")
+				return fmt.Errorf("could not import charts: %w", err)
 			}
 
 			nsImp.pages[handle].namespace = namespace
 			if err = nsImp.pages[handle].Store(ctx, pk); err != nil {
-				return errors.Wrap(err, "could not import pages")
+				return fmt.Errorf("could not import pages: %w", err)
 			}
 
 			nsImp.records[handle].namespace = namespace
 			if err = nsImp.records[handle].Store(ctx, rk); err != nil {
-				return errors.Wrap(err, "could not import records")
+				return fmt.Errorf("could not import records: %w", err)
 			}
 		}
 

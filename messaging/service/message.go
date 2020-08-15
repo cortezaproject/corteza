@@ -824,7 +824,7 @@ func (svc message) extractMentions(m *types.Message) (mm types.MentionSet) {
 	}
 
 	for m := 0; m < len(match); m++ {
-		uid := payload.ParseUInt64(match[m][reSubID])
+		uid := payload.ParseUint64(match[m][reSubID])
 		if len(mm.FindByUserID(uid)) == 0 {
 			// Copy template & assign user id
 			mnt := tpl

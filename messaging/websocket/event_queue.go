@@ -69,7 +69,7 @@ func (eq *eventQueue) feedSessions(ctx context.Context, qp repository.EventsRepo
 		}
 
 		if item.SubType == types.EventQueueItemSubTypeUser {
-			userID = payload.ParseUInt64(item.Subscriber)
+			userID = payload.ParseUint64(item.Subscriber)
 			if userID == 0 {
 				return errors.New("subscriber could not be parsed as uint64")
 			}

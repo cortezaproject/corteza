@@ -2,10 +2,8 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 )
@@ -44,7 +42,7 @@ func NewRecordImporter(imp *Importer, ns *types.Namespace) *Record {
 
 func (rImp *Record) getModule(handle string) (*types.Module, error) {
 	if g, ok := rImp.imp.namespaces.modules[rImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, rImp.namespace.Slug)
+		return nil, fmt.Errorf("could not get modules %q from non existing namespace %q", handle, rImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
 	}
@@ -62,7 +60,7 @@ func (rImp *Record) CastSet(set interface{}) error {
 // { <module-handle>: [ { record }, ... ]
 func (rImp *Record) Cast(moduleHandle string, def interface{}) (err error) {
 	if !deinterfacer.IsSlice(def) {
-		return errors.New("expecting set of records")
+		return fmt.Errorf("expecting set of records")
 	}
 
 	var (
@@ -73,7 +71,7 @@ func (rImp *Record) Cast(moduleHandle string, def interface{}) (err error) {
 	if module, err = rImp.getModule(moduleHandle); err != nil {
 		return
 	} else if module == nil {
-		return errors.Errorf("unexisting module %q", moduleHandle)
+		return fmt.Errorf("unexisting module %q", moduleHandle)
 	}
 
 	if _, has := rImp.set[module.Handle]; !has {
@@ -149,6 +147,10 @@ func (rImp *Record) Store(ctx context.Context, k recordKeeper) (err error) {
 				record, err = k.Create(record)
 			} else if rImp.dirty[record.ID] {
 				record, err = k.Update(record)
+			}
+
+			for errors.Unwrap(err) != nil {
+				err = errors.Unwrap(err)
 			}
 
 			if err != nil {

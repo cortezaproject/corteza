@@ -16,14 +16,10 @@ type (
 	}
 
 	accessControlPermissionServicer interface {
-		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
-		ResourceFilter(context.Context, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
-	}
-
-	permissionResource interface {
-		PermissionResource() permissions.Resource
+		ResourceFilter([]uint64, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 )
 
@@ -78,39 +74,39 @@ func (svc accessControl) CanCreateGroupChannel(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanUpdateChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "update", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "update", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanReadChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "read", svc.canReadFallback(ch))
+	return svc.can(ctx, ch.PermissionResource(), "read", svc.canReadFallback(ch))
 }
 
 func (svc accessControl) CanJoinChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "join", svc.canJoinFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "join", svc.canJoinFallback(ctx, ch))
 }
 
 func (svc accessControl) CanLeaveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "leave", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "leave", permissions.Allowed)
 }
 
 func (svc accessControl) CanArchiveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "archive", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "archive", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanUnarchiveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "unarchive", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "unarchive", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanDeleteChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "delete", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "delete", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanUndeleteChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "undelete", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "undelete", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanManageChannelMembers(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "members.manage", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.PermissionResource(), "members.manage", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanChangeChannelMembershipPolicy(ctx context.Context, ch *types.Channel) bool {
@@ -119,44 +115,44 @@ func (svc accessControl) CanChangeChannelMembershipPolicy(ctx context.Context, c
 }
 
 func (svc accessControl) CanManageChannelAttachments(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "attachments.manage")
+	return svc.can(ctx, ch.PermissionResource(), "attachments.manage")
 }
 
 func (svc accessControl) CanSendMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.send", svc.canSendMessagesFallback(ch))
+	return svc.can(ctx, ch.PermissionResource(), "message.send", svc.canSendMessagesFallback(ch))
 }
 
 func (svc accessControl) CanReplyMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.reply", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "message.reply", permissions.Allowed)
 }
 
 func (svc accessControl) CanEmbedMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.embed", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "message.embed", permissions.Allowed)
 }
 
 func (svc accessControl) CanAttachMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.attach", svc.canSendMessagesFallback(ch))
+	return svc.can(ctx, ch.PermissionResource(), "message.attach", svc.canSendMessagesFallback(ch))
 }
 
 func (svc accessControl) CanUpdateOwnMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.update.own", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "message.update.own", permissions.Allowed)
 }
 
 func (svc accessControl) CanUpdateMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.update.all")
+	return svc.can(ctx, ch.PermissionResource(), "message.update.all")
 }
 
 func (svc accessControl) CanDeleteOwnMessages(ctx context.Context, ch *types.Channel) bool {
 	// @todo implement
-	return svc.can(ctx, ch, "message.delete.own", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "message.delete.own", permissions.Allowed)
 }
 
 func (svc accessControl) CanDeleteMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.delete.all")
+	return svc.can(ctx, ch.PermissionResource(), "message.delete.all")
 }
 
 func (svc accessControl) CanReactMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch, "message.react", permissions.Allowed)
+	return svc.can(ctx, ch.PermissionResource(), "message.react", permissions.Allowed)
 }
 
 func (svc accessControl) canJoinFallback(ctx context.Context, ch *types.Channel) func() permissions.Access {
@@ -208,8 +204,36 @@ func (svc accessControl) isChannelOwnerFallback(ctx context.Context, ch *types.C
 	}
 }
 
-func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
-	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+func (svc accessControl) can(ctx context.Context, res permissions.Resource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+	var (
+		u     = auth.GetIdentityFromContext(ctx)
+		roles = u.Roles()
+	)
+
+	if auth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		// and checking "superuser" privileges there to more sustainable solution
+		// (eg: creating super-role with allow-all)
+		return true
+	}
+
+	return svc.permissions.Can(roles, res, op, ff...)
+}
+
+func (svc accessControl) filter(ctx context.Context, res permissions.Resource, op permissions.Operation, a permissions.Access) *permissions.ResourceFilter {
+	var (
+		u     = auth.GetIdentityFromContext(ctx)
+		roles = u.Roles()
+	)
+
+	if auth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		// and checking "superuser" privileges there to more sustainable solution
+		// (eg: creating super-role with allow-all)
+		return permissions.NewSuperuserFilter()
+	}
+
+	return svc.permissions.ResourceFilter(roles, res, op, a)
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {

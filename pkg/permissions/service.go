@@ -6,10 +6,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 )
 
@@ -23,9 +21,11 @@ type (
 
 		rules RuleSet
 
-		repository *repository
-		dbTable    string
+		repository rbacRulesStore
 	}
+
+	// RuleFilter is a dummy struct to satisfy store codegen
+	RuleFilter struct{}
 )
 
 const (
@@ -36,14 +36,13 @@ const (
 //
 // service{} struct preloads, checks, grants and flushes privileges to and from repository
 // It acts as a caching layer
-func Service(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl string) (svc *service) {
+func Service(ctx context.Context, logger *zap.Logger, s rbacRulesStore) (svc *service) {
 	svc = &service{
 		l: &sync.Mutex{},
 		f: make(chan bool),
 
 		logger:     logger.Named("permissions"),
-		repository: Repository(db, tbl),
-		dbTable:    tbl,
+		repository: s,
 	}
 
 	svc.Reload(ctx)
@@ -59,25 +58,9 @@ func Service(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl string
 // System user is always allowed to do everything
 //
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
-func (svc service) Can(ctx context.Context, res Resource, op Operation, ff ...CheckAccessFunc) bool {
-	{
-		// @todo remove this ASAP
-		//       for now, we need it because of complex init/setup relations under system
-		ctxTestingVal := ctx.Value("testing")
-		if t, ok := ctxTestingVal.(bool); ok && t {
-			return true
-		}
-	}
-
-	u := auth.GetIdentityFromContext(ctx)
-
-	if auth.IsSuperUser(u) {
-		return true
-	}
-
-	var roles = u.Roles()
+func (svc service) Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool {
 	// Checking rules
-	var v = svc.Check(res, op, roles...)
+	var v = svc.Check(res.PermissionResource(), op, roles...)
 	if v != Inherit {
 		return v == Allow
 	}
@@ -177,7 +160,7 @@ func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	rr, err := svc.repository.With(ctx).Load()
+	rr, _, err := svc.repository.SearchRbacRules(ctx, RuleFilter{})
 	svc.logger.Debug(
 		"reloading rules",
 		zap.Error(err),
@@ -193,18 +176,14 @@ func (svc *service) Reload(ctx context.Context) {
 // ResourceFilter is repository helper that we use to filter resources directly in the database
 //
 // See ResourceFilter struct documentation for details
-func (svc *service) ResourceFilter(ctx context.Context, r Resource, op Operation, fallback Access) *ResourceFilter {
-	u := auth.GetIdentityFromContext(ctx)
-
-	if auth.IsSuperUser(u) {
-		return &ResourceFilter{superuser: true}
-	}
-
+//
+// @deprecated
+func (svc *service) ResourceFilter(roles []uint64, r Resource, op Operation, fallback Access) *ResourceFilter {
 	return &ResourceFilter{
-		roles:     u.Roles(),
+		roles:     roles,
 		resource:  r,
 		operation: op,
-		dbTable:   svc.dbTable,
+		dbTable:   "rbac_rules",
 		chk:       svc,
 		fallback:  fallback,
 		pkColName: "id",
@@ -213,8 +192,13 @@ func (svc *service) ResourceFilter(ctx context.Context, r Resource, op Operation
 
 func (svc service) flush(ctx context.Context) (err error) {
 	d, u := svc.rules.dirty()
-	err = svc.repository.With(ctx).Store(d, u)
 
+	err = svc.repository.RemoveRbacRule(ctx, d...)
+	if err != nil {
+		return
+	}
+
+	err = svc.repository.UpdateRbacRule(ctx, u...)
 	if err != nil {
 		return
 	}

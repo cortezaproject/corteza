@@ -1,0 +1,41 @@
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+interface:
+  - compose/service
+
+types:
+  type: types.Namespace
+
+fields:
+  - { field: ID }
+  - { field: Name }
+  - { field: Slug, lookupFilterPreprocessor: lower }
+  - { field: Enabled }
+  - { field: Meta, type: "*types.NamespaceMeta" }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ Slug ]
+    description: |-
+      searches for namespace by slug (case-insensitive)
+
+  - fields: [ ID ]
+    description: |-
+      searches for compose namespace by ID
+
+      It returns compose namespace even if deleted
+
+partialUpdates:
+  - name: delete
+    set: { DeletedAt: now() }
+  - name: undelete
+    set: { DeletedAt: nil }
+
+rdbms:
+  alias: cns
+  table: compose_namespace
+  customFilterConverter: true
+

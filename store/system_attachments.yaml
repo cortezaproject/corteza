@@ -1,0 +1,38 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+types:
+  base: Attachment
+
+fields:
+  - { field: ID }
+  - { field: OwnerID }
+  - { field: Kind }
+  - { field: Url }
+  - { field: PreviewUrl }
+  - { field: Name }
+  - { field: Meta }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for attachment by its ID
+
+      It returns attachment even if deleted
+
+partialUpdates:
+  - name: delete
+    set: { DeletedAt: now() }
+  - name: undelete
+    set: { DeletedAt: nil }
+
+rdbms:
+  alias: att
+  table: sys_attachment
+  customFilterConverter: true

@@ -2,15 +2,13 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strconv"
-	"strings"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
+	"strconv"
+	"strings"
 )
 
 type (
@@ -56,7 +54,7 @@ func NewPageImporter(imp *Importer, ns *types.Namespace) *Page {
 
 func (pImp *Page) getModule(handle string) (*types.Module, error) {
 	if g, ok := pImp.imp.namespaces.modules[pImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
+		return nil, fmt.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
 	}
@@ -64,7 +62,7 @@ func (pImp *Page) getModule(handle string) (*types.Module, error) {
 
 func (pImp *Page) getChart(handle string) (*types.Chart, error) {
 	if g, ok := pImp.imp.namespaces.charts[pImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("could not get chart %q from non existing namespace %q", handle, pImp.namespace.Slug)
+		return nil, fmt.Errorf("could not get chart %q from non existing namespace %q", handle, pImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
 	}
@@ -99,7 +97,7 @@ func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 	var page *types.Page
 
 	if !importer.IsValidHandle(handle) {
-		return errors.New("invalid page handle")
+		return fmt.Errorf("invalid page handle")
 	}
 
 	handle = importer.NormalizeHandle(handle)
@@ -115,7 +113,7 @@ func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 
 		pImp.set = append(pImp.set, page)
 	} else if page.ID == 0 {
-		return errors.Errorf("page handle %q already defined in this import session", page.Handle)
+		return fmt.Errorf("page handle %q already defined in this import session", page.Handle)
 	} else {
 		pImp.dirty[page.ID] = true
 	}
@@ -198,7 +196,7 @@ func (pImp *Page) castBlocks(page *types.Page, def interface{}) error {
 			case "XYWH", "xywh", "dim", "dimension":
 				xywh := deinterfacer.ToInts(val)
 				if len(xywh) != 4 {
-					return errors.New("invalid dimension (xywh) value, expecting slice with 4 integers")
+					return fmt.Errorf("invalid dimension (xywh) value, expecting slice with 4 integers")
 				}
 
 				block.XYWH = [4]int{xywh[0], xywh[1], xywh[2], xywh[3]}
@@ -276,7 +274,7 @@ func (pImp *Page) sanitizeAutomationBlock(b types.PageBlock) types.PageBlock {
 func (pImp *Page) Get(handle string) (*types.Page, error) {
 	handle = importer.NormalizeHandle(handle)
 	if !importer.IsValidHandle(handle) {
-		return nil, errors.New("invalid page handle")
+		return nil, fmt.Errorf("invalid page handle")
 	}
 
 	return pImp.set.FindByHandle(handle), nil
@@ -298,7 +296,11 @@ func (pImp *Page) Store(ctx context.Context, k pageKeeper) (err error) {
 			// make sure we do not get stale-data error
 			page.UpdatedAt = nil
 			if _, err = k.Update(page); err != nil {
-				return errors.Wrap(err, "could not update resolved refs")
+				for errors.Unwrap(err) != nil {
+					err = errors.Unwrap(err)
+				}
+
+				return fmt.Errorf("could not update resolved refs: %w", err)
 			}
 		}
 	}
@@ -319,7 +321,7 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 		if err != nil {
 			return
 		} else if parentPage == nil {
-			return errors.Errorf("could not load parent %q", parent)
+			return fmt.Errorf("could not load parent %q", parent)
 		}
 	}
 
@@ -341,6 +343,10 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 			page, err = k.Create(page)
 		} else if pImp.dirty[page.ID] {
 			page, err = k.Update(page)
+		}
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
 		}
 
 		if err != nil {
@@ -396,7 +402,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 	return refs, func() error {
 		if moduleHandle, ok := pImp.modules[page.Handle]; ok {
 			if refm, err := pImp.getModule(moduleHandle); err != nil || refm == nil {
-				return errors.Errorf("could not load module %q for page %q (err: %v)",
+				return fmt.Errorf("could not load module %q for page %q: %w",
 					moduleHandle, page.Handle, err)
 			} else {
 				page.ModuleID = refm.ID
@@ -415,7 +421,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 			if h, ok := b.Options["page"]; ok {
 				if refp, err := pImp.Get(deinterfacer.ToString(h)); err != nil || refp == nil {
-					return errors.Errorf("could not load page %q for page %q block #%d (err: %v)",
+					return fmt.Errorf("could not load page %q for page %q block #%d: %w",
 						h, page.Handle, i+1, err)
 				} else {
 					b.Options["pageID"] = strconv.FormatUint(refp.ID, 10)
@@ -426,7 +432,7 @@ func (pImp *Page) resolveRefs(page *types.Page) (uint, error) {
 
 			if h, ok := b.Options["chart"]; ok {
 				if refc, err := pImp.getChart(deinterfacer.ToString(h)); err != nil || refc == nil {
-					return errors.Errorf("could not load chart %q for page %q block #%d (err: %v)",
+					return fmt.Errorf("could not load chart %q for page %q block #%d: %w",
 						h, page.Handle, i+1, err)
 				} else {
 					b.Options["chartID"] = strconv.FormatUint(refc.ID, 10)

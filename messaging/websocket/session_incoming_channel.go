@@ -81,7 +81,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {
-	ch, err := s.svc.ch.With(ctx).FindByID(payload.ParseUInt64(p.ID))
+	ch, err := s.svc.ch.With(ctx).FindByID(payload.ParseUint64(p.ID))
 	if err != nil {
 		return err
 	}

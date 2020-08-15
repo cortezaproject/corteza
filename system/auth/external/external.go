@@ -12,7 +12,16 @@ const (
 )
 
 func Init() {
-	setupGoth(service.CurrentSettings)
+	ase := service.CurrentSettings.Auth.External
+
+	if !ase.Enabled {
+		log().Info("external authentication disabled")
+		return
+	}
+
+	setupGoth(ase.SessionStoreSecure, []byte(ase.SessionStoreSecret))
+	setupGothProviders(ase.Providers, ase.RedirectUrl)
+
 }
 
 func log() *zap.Logger {

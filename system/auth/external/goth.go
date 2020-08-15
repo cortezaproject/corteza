@@ -2,6 +2,7 @@ package external
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 
 	"github.com/gorilla/sessions"
@@ -13,8 +14,6 @@ import (
 	"github.com/markbates/goth/providers/linkedin"
 	"github.com/markbates/goth/providers/openidConnect"
 	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 // We're expecting that our users will be able to complete
@@ -25,16 +24,11 @@ const (
 	WellKnown = "/.well-known/openid-configuration"
 )
 
-func setupGoth(s *types.Settings) {
-	if !s.Auth.External.Enabled {
-		log().Info("external authentication disabled")
-		return
-	}
-
-	store := sessions.NewCookieStore([]byte(s.Auth.External.SessionStoreSecret))
+func setupGoth(secure bool, secret []byte) {
+	store := sessions.NewCookieStore(secret)
 	store.MaxAge(gothMaxSessionStoreAge)
 	store.Options.HttpOnly = true
-	store.Options.Secure = s.Auth.External.SessionStoreSecure
+	store.Options.Secure = secure
 	gothic.Store = store
 
 	log().Debug("registering cookie session store")
@@ -44,11 +38,9 @@ func setupGoth(s *types.Settings) {
 
 	}
 
-	setupGothProviders(s)
-
 }
 
-func setupGothProviders(s *types.Settings) {
+func setupGothProviders(ep types.ExternalAuthProviderSet, redirectUrl string) {
 	var (
 		err error
 	)
@@ -60,7 +52,7 @@ func setupGothProviders(s *types.Settings) {
 	}
 
 	var enabled = 0
-	for _, pc := range s.Auth.External.Providers {
+	for _, pc := range ep {
 		if pc.Enabled {
 			enabled++
 		}
@@ -68,7 +60,7 @@ func setupGothProviders(s *types.Settings) {
 
 	log().Debug("initializing enabled external authentication providers", zap.Int("count", enabled))
 
-	for _, pc := range s.Auth.External.Providers {
+	for _, pc := range ep {
 		var provider goth.Provider
 
 		log := log().With(zap.String("provider", pc.Handle))
@@ -81,7 +73,7 @@ func setupGothProviders(s *types.Settings) {
 		if redirect == "" {
 			// If redirect URL is not explicitly set for this provider,
 			// generate one from template string
-			redirect = fmt.Sprintf(s.Auth.External.RedirectUrl, pc.Handle)
+			redirect = fmt.Sprintf(redirectUrl, pc.Handle)
 		}
 
 		if strings.Index(pc.Handle, OIDC_PROVIDER_PREFIX) == 0 {

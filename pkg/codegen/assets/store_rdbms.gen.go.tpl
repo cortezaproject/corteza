@@ -167,7 +167,7 @@ func (s Store) Remove{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 
 // Remove{{ pubIdent $.Types.Singular }}By{{ template "primaryKeySuffix" $.Fields }} removes row from the {{ $.RDBMS.Table }} table
 func (s Store) Remove{{ pubIdent $.Types.Singular }}By{{ template "primaryKeySuffix" $.Fields }}(ctx context.Context {{ template "primaryKeyArgs" $.Fields }}) error {
-	return ExecuteSqlizer(ctx, s.DB(), 	s.Delete(s.{{ $.Types.Singular }}Table()).Where({{ template "filterByPrimaryKeysWithArgs" $.Fields }},))
+	return ExecuteSqlizer(ctx, s.DB(), 	s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeysWithArgs" $.Fields }},))
 }
 
 

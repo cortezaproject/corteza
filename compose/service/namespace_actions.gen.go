@@ -1,7 +1,12 @@
 package service
 
-// This file is auto-generated from compose/service/namespace_actions.yaml
+// This file is auto-generated.
 //
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// compose/service/namespace_actions.yaml
 
 import (
 	"context"

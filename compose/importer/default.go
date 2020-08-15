@@ -2,15 +2,14 @@ package importer
 
 import (
 	"context"
-	"io"
-
-	"gopkg.in/yaml.v2"
-
+	"errors"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"gopkg.in/yaml.v2"
+	"io"
 )
 
 // Import performs standard import procedure with default services
@@ -52,6 +51,10 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 			err = imp.Cast(aux)
 		}
 
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
+		}
+
 		if err != nil {
 			return
 		}
@@ -75,7 +78,6 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		service.DefaultPage.With(ctx),
 		recordService,
 		service.DefaultAccessControl,
-		service.DefaultSettings,
 		roles,
 	)
 }

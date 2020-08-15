@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
@@ -15,14 +15,15 @@ type (
 	}
 
 	accessControlPermissionServicer interface {
-		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
-		ResourceFilter(context.Context, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
+		ResourceFilter([]uint64, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 
-	permissionResource interface {
+	secureResource interface {
 		PermissionResource() permissions.Resource
+		DynamicRoles(uint64) []uint64
 	}
 )
 
@@ -71,7 +72,7 @@ func (svc accessControl) CanReadNamespace(ctx context.Context, r *types.Namespac
 }
 
 func (svc accessControl) FilterReadableNamespaces(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.NamespacePermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.NamespacePermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateNamespace(ctx context.Context, r *types.Namespace) bool {
@@ -95,7 +96,7 @@ func (svc accessControl) CanReadModule(ctx context.Context, r *types.Module) boo
 }
 
 func (svc accessControl) FilterReadableModules(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.ModulePermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.ModulePermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateModule(ctx context.Context, r *types.Module) bool {
@@ -143,7 +144,7 @@ func (svc accessControl) CanReadChart(ctx context.Context, r *types.Chart) bool 
 }
 
 func (svc accessControl) FilterReadableCharts(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.ChartPermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.ChartPermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateChart(ctx context.Context, r *types.Chart) bool {
@@ -164,7 +165,7 @@ func (svc accessControl) CanReadPage(ctx context.Context, r *types.Page) bool {
 }
 
 func (svc accessControl) FilterReadablePages(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.PagePermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.PagePermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdatePage(ctx context.Context, r *types.Page) bool {
@@ -175,8 +176,40 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 	return svc.can(ctx, r, "delete")
 }
 
-func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
-	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+func (svc accessControl) can(ctx context.Context, res secureResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+	var u = auth.GetIdentityFromContext(ctx)
+
+	if auth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		// and checking "superuser" privileges there to more sustainable solution
+		// (eg: creating super-role with allow-all)
+		return true
+	}
+
+	return svc.permissions.Can(
+		append(u.Roles(), res.DynamicRoles(u.Identity())...),
+		res.PermissionResource(),
+		op,
+		ff...,
+	)
+}
+
+func (svc accessControl) filter(ctx context.Context, res permissions.Resource, op permissions.Operation, a permissions.Access) *permissions.ResourceFilter {
+	var u = auth.GetIdentityFromContext(ctx)
+
+	if auth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		//and checking "superuser" privileges there
+		// to more sustainable solution (eg: creating super-role with allow-all)
+		return permissions.NewSuperuserFilter()
+	}
+
+	return svc.permissions.ResourceFilter(
+		append(u.Roles(), res.DynamicRoles(u.Identity())...),
+		res,
+		op,
+		a,
+	)
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {

@@ -2,31 +2,28 @@ package compose
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"os"
-	"testing"
-
-	_ "github.com/joho/godotenv/autoload"
-	"github.com/spf13/afero"
-	"github.com/steinfletcher/apitest"
-	"github.com/stretchr/testify/require"
-	"github.com/titpetric/factory"
-
-	"github.com/go-chi/chi"
-
-	"github.com/cortezaproject/corteza-server/compose"
+	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/corteza"
 	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/cortezaproject/corteza-server/pkg/app"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/go-chi/chi"
+	_ "github.com/joho/godotenv/autoload"
+	"github.com/spf13/afero"
+	"github.com/steinfletcher/apitest"
+	"github.com/stretchr/testify/require"
+	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"os"
+	"testing"
 )
 
 type (
@@ -37,14 +34,10 @@ type (
 		cUser  *sysTypes.User
 		roleID uint64
 	}
-
-	TestApp struct {
-		helpers.TestApp
-	}
 )
 
 var (
-	testApp app.Runnable
+	testApp *app.CortezaApp
 	r       chi.Router
 
 	eventBus = eventbus.New()
@@ -58,29 +51,22 @@ func db() *factory.DB {
 	return factory.Database.MustGet().With(context.Background())
 }
 
-func (app *TestApp) Initialize(ctx context.Context) (err error) {
-	service.DefaultPermissions = permissions.NewTestService(ctx, app.Log, db(), "compose_permission_rules")
-	service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
-
-	eventBus = eventbus.New()
-	eventbus.Set(eventBus)
-
-	return
-}
-
-func (app *TestApp) Activate(ctx context.Context) (err error) {
-	service.DefaultPermissions.(*permissions.TestService).Reload(ctx)
-	return
-}
-
 func InitTestApp() {
 	if testApp == nil {
-		testApp = helpers.NewIntegrationTestApp(
-			compose.SERVICE,
-			&corteza.App{},
-			&TestApp{},
-			&compose.App{},
-		)
+		ctx := cli.Context()
+
+		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store.(rbacRulesStore))
+			service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
+			if err != nil {
+				return err
+			}
+
+			eventbus.Set(eventBus)
+			service.DefaultPermissions.(*permissions.TestService).Reload(ctx)
+			return nil
+		})
+
 	}
 
 	if r == nil {
@@ -121,7 +107,7 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	InitTestApp()
+	//InitTestApp()
 
 	return apitest.
 		New().
