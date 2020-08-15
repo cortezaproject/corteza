@@ -68,6 +68,7 @@ GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
 STATICCHECK = ${GOPATH}/bin/staticcheck
 PROTOGEN    = ${GOPATH}/bin/protoc-gen-go
+CODEGEN     = build/codegen
 
 # Using nodemon in development environment for "watch.*" tasks
 # https://nodemon.io
@@ -132,6 +133,10 @@ watch.test.%: $(NODEMON)
 	# changes & reruns  tests
 	$(WATCHER) "make test.$* || exit 0"
 
+# codegen: $(PROTOGEN)
+codegen: $(CODEGEN)
+	./build/codegen
+
 ########################################################################################################################
 # Quality Assurance
 
@@ -169,13 +174,6 @@ test.pkg:
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_pkg)
 
 test: test.unit
-
-# Outputs cross-package imports that should not be there.
-test.cross-dep:
-	@ grep -rE "github.com/cortezaproject/corteza-server/(compose|messaging)/" system || exit 0
-	@ grep -rE "github.com/cortezaproject/corteza-server/(system|messaging)/" compose || exit 0
-	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose)/" messaging || exit 0
-	@ grep -rE "github.com/cortezaproject/corteza-server/(system|compose|messaging)/" pkg || exit 0
 
 vet:
 	$(GO) vet ./...
@@ -217,6 +215,9 @@ $(PROTOGEN):
 
 $(NODEMON):
 	npm install -g nodemon
+
+$(CODEGEN):
+	$(GO) build -o $@ cmd/codegen/main.go
 
 clean:
 	rm -f $(GOCRITIC)
