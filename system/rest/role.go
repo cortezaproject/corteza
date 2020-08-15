@@ -85,7 +85,7 @@ func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}
 		return nil, err
 	}
 
-	for _, userID := range payload.ParseUInt64s(r.Members) {
+	for _, userID := range payload.ParseUint64s(r.Members) {
 		err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
 		if err != nil {
 			return nil, err
@@ -121,7 +121,7 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 			}
 		}
 
-		for _, userID := range payload.ParseUInt64s(r.Members) {
+		for _, userID := range payload.ParseUint64s(r.Members) {
 			err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
 			if err != nil {
 				return nil, err

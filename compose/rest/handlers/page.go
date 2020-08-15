@@ -1,57 +1,50 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `page.go`, `page.util.go` or `page_test.go` to
-	implement your API calls, helper functions and tests. The file `page.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-// Internal API interface
-type PageAPI interface {
-	List(context.Context, *request.PageList) (interface{}, error)
-	Create(context.Context, *request.PageCreate) (interface{}, error)
-	Read(context.Context, *request.PageRead) (interface{}, error)
-	Tree(context.Context, *request.PageTree) (interface{}, error)
-	Update(context.Context, *request.PageUpdate) (interface{}, error)
-	Reorder(context.Context, *request.PageReorder) (interface{}, error)
-	Delete(context.Context, *request.PageDelete) (interface{}, error)
-	Upload(context.Context, *request.PageUpload) (interface{}, error)
-	TriggerScript(context.Context, *request.PageTriggerScript) (interface{}, error)
-}
+type (
+	// Internal API interface
+	PageAPI interface {
+		List(context.Context, *request.PageList) (interface{}, error)
+		Create(context.Context, *request.PageCreate) (interface{}, error)
+		Read(context.Context, *request.PageRead) (interface{}, error)
+		Tree(context.Context, *request.PageTree) (interface{}, error)
+		Update(context.Context, *request.PageUpdate) (interface{}, error)
+		Reorder(context.Context, *request.PageReorder) (interface{}, error)
+		Delete(context.Context, *request.PageDelete) (interface{}, error)
+		Upload(context.Context, *request.PageUpload) (interface{}, error)
+		TriggerScript(context.Context, *request.PageTriggerScript) (interface{}, error)
+	}
 
-// HTTP API interface
-type Page struct {
-	List          func(http.ResponseWriter, *http.Request)
-	Create        func(http.ResponseWriter, *http.Request)
-	Read          func(http.ResponseWriter, *http.Request)
-	Tree          func(http.ResponseWriter, *http.Request)
-	Update        func(http.ResponseWriter, *http.Request)
-	Reorder       func(http.ResponseWriter, *http.Request)
-	Delete        func(http.ResponseWriter, *http.Request)
-	Upload        func(http.ResponseWriter, *http.Request)
-	TriggerScript func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Page struct {
+		List          func(http.ResponseWriter, *http.Request)
+		Create        func(http.ResponseWriter, *http.Request)
+		Read          func(http.ResponseWriter, *http.Request)
+		Tree          func(http.ResponseWriter, *http.Request)
+		Update        func(http.ResponseWriter, *http.Request)
+		Reorder       func(http.ResponseWriter, *http.Request)
+		Delete        func(http.ResponseWriter, *http.Request)
+		Upload        func(http.ResponseWriter, *http.Request)
+		TriggerScript func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewPage(h PageAPI) *Page {
 	return &Page{

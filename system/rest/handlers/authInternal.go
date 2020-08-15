@@ -20,18 +20,18 @@ import (
 
 type (
 	// Internal API interface
-	Auth_internalAPI interface {
-		Login(context.Context, *request.Auth_internalLogin) (interface{}, error)
-		Signup(context.Context, *request.Auth_internalSignup) (interface{}, error)
-		RequestPasswordReset(context.Context, *request.Auth_internalRequestPasswordReset) (interface{}, error)
-		ExchangePasswordResetToken(context.Context, *request.Auth_internalExchangePasswordResetToken) (interface{}, error)
-		ResetPassword(context.Context, *request.Auth_internalResetPassword) (interface{}, error)
-		ConfirmEmail(context.Context, *request.Auth_internalConfirmEmail) (interface{}, error)
-		ChangePassword(context.Context, *request.Auth_internalChangePassword) (interface{}, error)
+	AuthInternalAPI interface {
+		Login(context.Context, *request.AuthInternalLogin) (interface{}, error)
+		Signup(context.Context, *request.AuthInternalSignup) (interface{}, error)
+		RequestPasswordReset(context.Context, *request.AuthInternalRequestPasswordReset) (interface{}, error)
+		ExchangePasswordResetToken(context.Context, *request.AuthInternalExchangePasswordResetToken) (interface{}, error)
+		ResetPassword(context.Context, *request.AuthInternalResetPassword) (interface{}, error)
+		ConfirmEmail(context.Context, *request.AuthInternalConfirmEmail) (interface{}, error)
+		ChangePassword(context.Context, *request.AuthInternalChangePassword) (interface{}, error)
 	}
 
 	// HTTP API interface
-	Auth_internal struct {
+	AuthInternal struct {
 		Login                      func(http.ResponseWriter, *http.Request)
 		Signup                     func(http.ResponseWriter, *http.Request)
 		RequestPasswordReset       func(http.ResponseWriter, *http.Request)
@@ -42,144 +42,144 @@ type (
 	}
 )
 
-func NewAuth_internal(h Auth_internalAPI) *Auth_internal {
-	return &Auth_internal{
+func NewAuthInternal(h AuthInternalAPI) *AuthInternal {
+	return &AuthInternal{
 		Login: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalLogin()
+			params := request.NewAuthInternalLogin()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.Login", r, err)
+				logger.LogParamError("AuthInternal.Login", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.Login(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.Login", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.Login", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.Login", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.Login", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		Signup: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalSignup()
+			params := request.NewAuthInternalSignup()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.Signup", r, err)
+				logger.LogParamError("AuthInternal.Signup", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.Signup(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.Signup", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.Signup", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.Signup", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.Signup", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		RequestPasswordReset: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalRequestPasswordReset()
+			params := request.NewAuthInternalRequestPasswordReset()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.RequestPasswordReset", r, err)
+				logger.LogParamError("AuthInternal.RequestPasswordReset", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.RequestPasswordReset(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.RequestPasswordReset", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.RequestPasswordReset", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.RequestPasswordReset", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.RequestPasswordReset", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		ExchangePasswordResetToken: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalExchangePasswordResetToken()
+			params := request.NewAuthInternalExchangePasswordResetToken()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.ExchangePasswordResetToken", r, err)
+				logger.LogParamError("AuthInternal.ExchangePasswordResetToken", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.ExchangePasswordResetToken(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.ExchangePasswordResetToken", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.ExchangePasswordResetToken", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.ExchangePasswordResetToken", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.ExchangePasswordResetToken", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		ResetPassword: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalResetPassword()
+			params := request.NewAuthInternalResetPassword()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.ResetPassword", r, err)
+				logger.LogParamError("AuthInternal.ResetPassword", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.ResetPassword(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.ResetPassword", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.ResetPassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.ResetPassword", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.ResetPassword", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		ConfirmEmail: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalConfirmEmail()
+			params := request.NewAuthInternalConfirmEmail()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.ConfirmEmail", r, err)
+				logger.LogParamError("AuthInternal.ConfirmEmail", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.ConfirmEmail(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.ConfirmEmail", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.ConfirmEmail", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.ConfirmEmail", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.ConfirmEmail", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
 		},
 		ChangePassword: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewAuth_internalChangePassword()
+			params := request.NewAuthInternalChangePassword()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Auth_internal.ChangePassword", r, err)
+				logger.LogParamError("AuthInternal.ChangePassword", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
 			value, err := h.ChangePassword(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Auth_internal.ChangePassword", r, err, params.Auditable())
+				logger.LogControllerError("AuthInternal.ChangePassword", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("Auth_internal.ChangePassword", r, params.Auditable())
+			logger.LogControllerCall("AuthInternal.ChangePassword", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -187,7 +187,7 @@ func NewAuth_internal(h Auth_internalAPI) *Auth_internal {
 	}
 }
 
-func (h Auth_internal) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h AuthInternal) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Post("/auth/internal/login", h.Login)

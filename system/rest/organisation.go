@@ -28,7 +28,7 @@ func (Organisation) New() *Organisation {
 }
 
 func (ctrl *Organisation) Read(ctx context.Context, r *request.OrganisationRead) (interface{}, error) {
-	return ctrl.svc.org.With(ctx).FindByID(r.ID)
+	return ctrl.svc.org.With(ctx).FindByID(r.Id)
 }
 
 func (ctrl *Organisation) List(ctx context.Context, r *request.OrganisationList) (interface{}, error) {
@@ -45,7 +45,7 @@ func (ctrl *Organisation) Create(ctx context.Context, r *request.OrganisationCre
 
 func (ctrl *Organisation) Update(ctx context.Context, r *request.OrganisationUpdate) (interface{}, error) {
 	org := &types.Organisation{
-		ID:   r.ID,
+		ID:   r.Id,
 		Name: r.Name,
 	}
 
@@ -53,9 +53,9 @@ func (ctrl *Organisation) Update(ctx context.Context, r *request.OrganisationUpd
 }
 
 func (ctrl *Organisation) Delete(ctx context.Context, r *request.OrganisationDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.org.With(ctx).Delete(r.ID)
+	return resputil.OK(), ctrl.svc.org.With(ctx).Delete(r.Id)
 }
 
 func (ctrl *Organisation) Archive(ctx context.Context, r *request.OrganisationArchive) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.org.With(ctx).Archive(r.ID)
+	return resputil.OK(), ctrl.svc.org.With(ctx).Archive(r.Id)
 }

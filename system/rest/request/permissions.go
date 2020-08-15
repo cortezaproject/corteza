@@ -1,40 +1,71 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `permissions.go`, `permissions.util.go` or `permissions_test.go` to
-	implement your API calls, helper functions and tests. The file `permissions.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/go-chi/chi"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// PermissionsList request parameters
-type PermissionsList struct {
-}
+type (
+	// Internal API interface
+	PermissionsList struct {
+	}
+
+	PermissionsEffective struct {
+		// Resource GET parameter
+		//
+		// Show only rules for a specific resource
+		Resource string
+	}
+
+	PermissionsRead struct {
+		// RoleID PATH parameter
+		//
+		// Role ID
+		RoleID uint64 `json:",string"`
+	}
+
+	PermissionsDelete struct {
+		// RoleID PATH parameter
+		//
+		// Role ID
+		RoleID uint64 `json:",string"`
+	}
+
+	PermissionsUpdate struct {
+		// RoleID PATH parameter
+		//
+		// Role ID
+		RoleID uint64 `json:",string"`
+
+		// Rules POST parameter
+		//
+		// List of permission rules to set
+		Rules permissions.RuleSet
+	}
+)
 
 // NewPermissionsList request
 func NewPermissionsList() *PermissionsList {
@@ -43,9 +74,7 @@ func NewPermissionsList() *PermissionsList {
 
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
-
-	return out
+	return map[string]interface{}{}
 }
 
 // Fill processes request and fills internal variables
@@ -57,35 +86,11 @@ func (r *PermissionsList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
 	return err
-}
-
-var _ RequestFiller = NewPermissionsList()
-
-// PermissionsEffective request parameters
-type PermissionsEffective struct {
-	hasResource bool
-	rawResource string
-	Resource    string
 }
 
 // NewPermissionsEffective request
@@ -95,11 +100,14 @@ func NewPermissionsEffective() *PermissionsEffective {
 
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsEffective) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"resource": r.Resource,
+	}
+}
 
-	out["resource"] = r.Resource
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsEffective) GetResource() string {
+	return r.Resource
 }
 
 // Fill processes request and fills internal variables
@@ -111,41 +119,23 @@ func (r *PermissionsEffective) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		// GET params
+		tmp := req.URL.Query()
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := get["resource"]; ok {
-		r.hasResource = true
-		r.rawResource = val
-		r.Resource = val
+		if val, ok := tmp["resource"]; ok && len(val) > 0 {
+			r.Resource, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewPermissionsEffective()
-
-// PermissionsRead request parameters
-type PermissionsRead struct {
-	hasRoleID bool
-	rawRoleID string
-	RoleID    uint64 `json:",string"`
 }
 
 // NewPermissionsRead request
@@ -155,11 +145,14 @@ func NewPermissionsRead() *PermissionsRead {
 
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsRead) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"roleID": r.RoleID,
+	}
+}
 
-	out["roleID"] = r.RoleID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsRead) GetRoleID() uint64 {
+	return r.RoleID
 }
 
 // Fill processes request and fills internal variables
@@ -171,39 +164,23 @@ func (r *PermissionsRead) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "roleID")
+		r.RoleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasRoleID = true
-	r.rawRoleID = chi.URLParam(req, "roleID")
-	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPermissionsRead()
-
-// PermissionsDelete request parameters
-type PermissionsDelete struct {
-	hasRoleID bool
-	rawRoleID string
-	RoleID    uint64 `json:",string"`
 }
 
 // NewPermissionsDelete request
@@ -213,11 +190,14 @@ func NewPermissionsDelete() *PermissionsDelete {
 
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsDelete) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"roleID": r.RoleID,
+	}
+}
 
-	out["roleID"] = r.RoleID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsDelete) GetRoleID() uint64 {
+	return r.RoleID
 }
 
 // Fill processes request and fills internal variables
@@ -229,43 +209,23 @@ func (r *PermissionsDelete) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "roleID")
+		r.RoleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasRoleID = true
-	r.rawRoleID = chi.URLParam(req, "roleID")
-	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPermissionsDelete()
-
-// PermissionsUpdate request parameters
-type PermissionsUpdate struct {
-	hasRoleID bool
-	rawRoleID string
-	RoleID    uint64 `json:",string"`
-
-	hasRules bool
-	rawRules string
-	Rules    permissions.RuleSet
 }
 
 // NewPermissionsUpdate request
@@ -275,12 +235,20 @@ func NewPermissionsUpdate() *PermissionsUpdate {
 
 // Auditable returns all auditable/loggable parameters
 func (r PermissionsUpdate) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"roleID": r.RoleID,
+		"rules":  r.Rules,
+	}
+}
 
-	out["roleID"] = r.RoleID
-	out["rules"] = r.Rules
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsUpdate) GetRoleID() uint64 {
+	return r.RoleID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PermissionsUpdate) GetRules() permissions.RuleSet {
+	return r.Rules
 }
 
 // Fill processes request and fills internal variables
@@ -292,105 +260,36 @@ func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["rules[]"]; ok && len(val) > 0  {
+		//    r.Rules, err = permissions.RuleSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasRoleID = true
-	r.rawRoleID = chi.URLParam(req, "roleID")
-	r.RoleID = parseUInt64(chi.URLParam(req, "roleID"))
+		val = chi.URLParam(req, "roleID")
+		r.RoleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPermissionsUpdate()
-
-// HasResource returns true if resource was set
-func (r *PermissionsEffective) HasResource() bool {
-	return r.hasResource
-}
-
-// RawResource returns raw value of resource parameter
-func (r *PermissionsEffective) RawResource() string {
-	return r.rawResource
-}
-
-// GetResource returns casted value of  resource parameter
-func (r *PermissionsEffective) GetResource() string {
-	return r.Resource
-}
-
-// HasRoleID returns true if roleID was set
-func (r *PermissionsRead) HasRoleID() bool {
-	return r.hasRoleID
-}
-
-// RawRoleID returns raw value of roleID parameter
-func (r *PermissionsRead) RawRoleID() string {
-	return r.rawRoleID
-}
-
-// GetRoleID returns casted value of  roleID parameter
-func (r *PermissionsRead) GetRoleID() uint64 {
-	return r.RoleID
-}
-
-// HasRoleID returns true if roleID was set
-func (r *PermissionsDelete) HasRoleID() bool {
-	return r.hasRoleID
-}
-
-// RawRoleID returns raw value of roleID parameter
-func (r *PermissionsDelete) RawRoleID() string {
-	return r.rawRoleID
-}
-
-// GetRoleID returns casted value of  roleID parameter
-func (r *PermissionsDelete) GetRoleID() uint64 {
-	return r.RoleID
-}
-
-// HasRoleID returns true if roleID was set
-func (r *PermissionsUpdate) HasRoleID() bool {
-	return r.hasRoleID
-}
-
-// RawRoleID returns raw value of roleID parameter
-func (r *PermissionsUpdate) RawRoleID() string {
-	return r.rawRoleID
-}
-
-// GetRoleID returns casted value of  roleID parameter
-func (r *PermissionsUpdate) GetRoleID() uint64 {
-	return r.RoleID
-}
-
-// HasRules returns true if rules was set
-func (r *PermissionsUpdate) HasRules() bool {
-	return r.hasRules
-}
-
-// RawRules returns raw value of rules parameter
-func (r *PermissionsUpdate) RawRules() string {
-	return r.rawRules
-}
-
-// GetRules returns casted value of  rules parameter
-func (r *PermissionsUpdate) GetRules() permissions.RuleSet {
-	return r.Rules
 }

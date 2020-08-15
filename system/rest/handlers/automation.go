@@ -1,45 +1,38 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `automation.go`, `automation.util.go` or `automation_test.go` to
-	implement your API calls, helper functions and tests. The file `automation.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 )
 
-// Internal API interface
-type AutomationAPI interface {
-	List(context.Context, *request.AutomationList) (interface{}, error)
-	Bundle(context.Context, *request.AutomationBundle) (interface{}, error)
-	TriggerScript(context.Context, *request.AutomationTriggerScript) (interface{}, error)
-}
+type (
+	// Internal API interface
+	AutomationAPI interface {
+		List(context.Context, *request.AutomationList) (interface{}, error)
+		Bundle(context.Context, *request.AutomationBundle) (interface{}, error)
+		TriggerScript(context.Context, *request.AutomationTriggerScript) (interface{}, error)
+	}
 
-// HTTP API interface
-type Automation struct {
-	List          func(http.ResponseWriter, *http.Request)
-	Bundle        func(http.ResponseWriter, *http.Request)
-	TriggerScript func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Automation struct {
+		List          func(http.ResponseWriter, *http.Request)
+		Bundle        func(http.ResponseWriter, *http.Request)
+		TriggerScript func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewAutomation(h AutomationAPI) *Automation {
 	return &Automation{

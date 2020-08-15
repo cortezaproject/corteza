@@ -1,75 +1,263 @@
 package request
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `page.go`, `page.util.go` or `page_test.go` to
-	implement your API calls, helper functions and tests. The file `page.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
-	"io"
-	"strings"
-
 	"encoding/json"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
+	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"io"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
-
-	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"strings"
 )
 
-var _ = chi.URLParam
-var _ = multipart.FileHeader{}
+// dummy vars to prevent
+// unused imports complain
+var (
+	_ = chi.URLParam
+	_ = multipart.ErrMessageTooLarge
+	_ = payload.ParseUint64s
+)
 
-// PageList request parameters
-type PageList struct {
-	hasSelfID bool
-	rawSelfID string
-	SelfID    uint64 `json:",string"`
+type (
+	// Internal API interface
+	PageList struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
 
-	hasQuery bool
-	rawQuery string
-	Query    string
+		// SelfID GET parameter
+		//
+		// Parent page ID
+		SelfID uint64 `json:",string"`
 
-	hasHandle bool
-	rawHandle string
-	Handle    string
+		// Query GET parameter
+		//
+		// Search query
+		Query string
 
-	hasLimit bool
-	rawLimit string
-	Limit    uint
+		// Handle GET parameter
+		//
+		// Search by handle
+		Handle string
 
-	hasOffset bool
-	rawOffset string
-	Offset    uint
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
 
-	hasPage bool
-	rawPage string
-	Page    uint
+		// Offset GET parameter
+		//
+		// Offset
+		Offset uint
 
-	hasPerPage bool
-	rawPerPage string
-	PerPage    uint
+		// Page GET parameter
+		//
+		// Page number (1-based)
+		Page uint
 
-	hasSort bool
-	rawSort string
-	Sort    string
+		// PerPage GET parameter
+		//
+		// Returned items per page (default 50)
+		PerPage uint
 
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
-}
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
+	}
+
+	PageCreate struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// SelfID POST parameter
+		//
+		// Parent Page ID
+		SelfID uint64 `json:",string"`
+
+		// ModuleID POST parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// Title POST parameter
+		//
+		// Title
+		Title string
+
+		// Handle POST parameter
+		//
+		// Handle
+		Handle string
+
+		// Description POST parameter
+		//
+		// Description
+		Description string
+
+		// Weight POST parameter
+		//
+		// Page tree weight
+		Weight int
+
+		// Visible POST parameter
+		//
+		// Visible in navigation
+		Visible bool
+
+		// Blocks POST parameter
+		//
+		// Blocks JSON
+		Blocks sqlxTypes.JSONText
+	}
+
+	PageRead struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+	}
+
+	PageTree struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+	}
+
+	PageUpdate struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// SelfID POST parameter
+		//
+		// Parent Page ID
+		SelfID uint64 `json:",string"`
+
+		// ModuleID POST parameter
+		//
+		// Module ID (optional)
+		ModuleID uint64 `json:",string"`
+
+		// Title POST parameter
+		//
+		// Title
+		Title string
+
+		// Handle POST parameter
+		//
+		// Handle
+		Handle string
+
+		// Description POST parameter
+		//
+		// Description
+		Description string
+
+		// Weight POST parameter
+		//
+		// Page tree weight
+		Weight int
+
+		// Visible POST parameter
+		//
+		// Visible in navigation
+		Visible bool
+
+		// Blocks POST parameter
+		//
+		// Blocks JSON
+		Blocks sqlxTypes.JSONText
+	}
+
+	PageReorder struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// SelfID PATH parameter
+		//
+		// Parent page ID
+		SelfID uint64 `json:",string"`
+
+		// PageIDs POST parameter
+		//
+		// Page ID order
+		PageIDs []string
+	}
+
+	PageDelete struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+	}
+
+	PageUpload struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// Upload POST parameter
+		//
+		// File to upload
+		Upload *multipart.FileHeader
+	}
+
+	PageTriggerScript struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// Script POST parameter
+		//
+		// Script to execute
+		Script string
+	}
+)
 
 // NewPageList request
 func NewPageList() *PageList {
@@ -78,19 +266,62 @@ func NewPageList() *PageList {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageList) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"selfID":      r.SelfID,
+		"query":       r.Query,
+		"handle":      r.Handle,
+		"limit":       r.Limit,
+		"offset":      r.Offset,
+		"page":        r.Page,
+		"perPage":     r.PerPage,
+		"sort":        r.Sort,
+	}
+}
 
-	out["selfID"] = r.SelfID
-	out["query"] = r.Query
-	out["handle"] = r.Handle
-	out["limit"] = r.Limit
-	out["offset"] = r.Offset
-	out["page"] = r.Page
-	out["perPage"] = r.PerPage
-	out["sort"] = r.Sort
-	out["namespaceID"] = r.NamespaceID
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetSelfID() uint64 {
+	return r.SelfID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetQuery() string {
+	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetOffset() uint {
+	return r.Offset
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetPage() uint {
+	return r.Page
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetPerPage() uint {
+	return r.PerPage
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetSort() string {
+	return r.Sort
 }
 
 // Fill processes request and fills internal variables
@@ -102,111 +333,77 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["selfID"]; ok && len(val) > 0 {
+			r.SelfID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["offset"]; ok && len(val) > 0 {
+			r.Offset, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["page"]; ok && len(val) > 0 {
+			r.Page, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
+			r.PerPage, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	if val, ok := get["selfID"]; ok {
-		r.hasSelfID = true
-		r.rawSelfID = val
-		r.SelfID = parseUInt64(val)
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
-	if val, ok := get["query"]; ok {
-		r.hasQuery = true
-		r.rawQuery = val
-		r.Query = val
-	}
-	if val, ok := get["handle"]; ok {
-		r.hasHandle = true
-		r.rawHandle = val
-		r.Handle = val
-	}
-	if val, ok := get["limit"]; ok {
-		r.hasLimit = true
-		r.rawLimit = val
-		r.Limit = parseUint(val)
-	}
-	if val, ok := get["offset"]; ok {
-		r.hasOffset = true
-		r.rawOffset = val
-		r.Offset = parseUint(val)
-	}
-	if val, ok := get["page"]; ok {
-		r.hasPage = true
-		r.rawPage = val
-		r.Page = parseUint(val)
-	}
-	if val, ok := get["perPage"]; ok {
-		r.hasPerPage = true
-		r.rawPerPage = val
-		r.PerPage = parseUint(val)
-	}
-	if val, ok := get["sort"]; ok {
-		r.hasSort = true
-		r.rawSort = val
-		r.Sort = val
-	}
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
 
 	return err
-}
-
-var _ RequestFiller = NewPageList()
-
-// PageCreate request parameters
-type PageCreate struct {
-	hasSelfID bool
-	rawSelfID string
-	SelfID    uint64 `json:",string"`
-
-	hasModuleID bool
-	rawModuleID string
-	ModuleID    uint64 `json:",string"`
-
-	hasTitle bool
-	rawTitle string
-	Title    string
-
-	hasHandle bool
-	rawHandle string
-	Handle    string
-
-	hasDescription bool
-	rawDescription string
-	Description    string
-
-	hasWeight bool
-	rawWeight string
-	Weight    int
-
-	hasVisible bool
-	rawVisible string
-	Visible    bool
-
-	hasBlocks bool
-	rawBlocks string
-	Blocks    sqlxTypes.JSONText
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
 }
 
 // NewPageCreate request
@@ -216,19 +413,62 @@ func NewPageCreate() *PageCreate {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageCreate) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"selfID":      r.SelfID,
+		"moduleID":    r.ModuleID,
+		"title":       r.Title,
+		"handle":      r.Handle,
+		"description": r.Description,
+		"weight":      r.Weight,
+		"visible":     r.Visible,
+		"blocks":      r.Blocks,
+	}
+}
 
-	out["selfID"] = r.SelfID
-	out["moduleID"] = r.ModuleID
-	out["title"] = r.Title
-	out["handle"] = r.Handle
-	out["description"] = r.Description
-	out["weight"] = r.Weight
-	out["visible"] = r.Visible
-	out["blocks"] = r.Blocks
-	out["namespaceID"] = r.NamespaceID
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetSelfID() uint64 {
+	return r.SelfID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetTitle() string {
+	return r.Title
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetDescription() string {
+	return r.Description
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetWeight() int {
+	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetVisible() bool {
+	return r.Visible
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetBlocks() sqlxTypes.JSONText {
+	return r.Blocks
 }
 
 // Fill processes request and fills internal variables
@@ -240,86 +480,87 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	if val, ok := post["selfID"]; ok {
-		r.hasSelfID = true
-		r.rawSelfID = val
-		r.SelfID = parseUInt64(val)
-	}
-	if val, ok := post["moduleID"]; ok {
-		r.hasModuleID = true
-		r.rawModuleID = val
-		r.ModuleID = parseUInt64(val)
-	}
-	if val, ok := post["title"]; ok {
-		r.hasTitle = true
-		r.rawTitle = val
-		r.Title = val
-	}
-	if val, ok := post["handle"]; ok {
-		r.hasHandle = true
-		r.rawHandle = val
-		r.Handle = val
-	}
-	if val, ok := post["description"]; ok {
-		r.hasDescription = true
-		r.rawDescription = val
-		r.Description = val
-	}
-	if val, ok := post["weight"]; ok {
-		r.hasWeight = true
-		r.rawWeight = val
-		r.Weight = parseInt(val)
-	}
-	if val, ok := post["visible"]; ok {
-		r.hasVisible = true
-		r.rawVisible = val
-		r.Visible = parseBool(val)
-	}
-	if val, ok := post["blocks"]; ok {
-		r.hasBlocks = true
-		r.rawBlocks = val
-
-		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
+	{
+		if err = req.ParseForm(); err != nil {
 			return err
 		}
+
+		// POST params
+
+		if val, ok := req.Form["selfID"]; ok && len(val) > 0 {
+			r.SelfID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["moduleID"]; ok && len(val) > 0 {
+			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["title"]; ok && len(val) > 0 {
+			r.Title, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["description"]; ok && len(val) > 0 {
+			r.Description, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["visible"]; ok && len(val) > 0 {
+			r.Visible, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["blocks"]; ok && len(val) > 0 {
+			r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
 	}
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageCreate()
-
-// PageRead request parameters
-type PageRead struct {
-	hasPageID bool
-	rawPageID string
-	PageID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
 }
 
 // NewPageRead request
@@ -329,12 +570,20 @@ func NewPageRead() *PageRead {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageRead) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+	}
+}
 
-	out["pageID"] = r.PageID
-	out["namespaceID"] = r.NamespaceID
+// Auditable returns all auditable/loggable parameters
+func (r PageRead) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageRead) GetPageID() uint64 {
+	return r.PageID
 }
 
 // Fill processes request and fills internal variables
@@ -346,42 +595,29 @@ func (r *PageRead) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasPageID = true
-	r.rawPageID = chi.URLParam(req, "pageID")
-	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageRead()
-
-// PageTree request parameters
-type PageTree struct {
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
 }
 
 // NewPageTree request
@@ -391,11 +627,14 @@ func NewPageTree() *PageTree {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageTree) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+	}
+}
 
-	out["namespaceID"] = r.NamespaceID
-
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageTree) GetNamespaceID() uint64 {
+	return r.NamespaceID
 }
 
 // Fill processes request and fills internal variables
@@ -407,75 +646,23 @@ func (r *PageTree) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageTree()
-
-// PageUpdate request parameters
-type PageUpdate struct {
-	hasPageID bool
-	rawPageID string
-	PageID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
-
-	hasSelfID bool
-	rawSelfID string
-	SelfID    uint64 `json:",string"`
-
-	hasModuleID bool
-	rawModuleID string
-	ModuleID    uint64 `json:",string"`
-
-	hasTitle bool
-	rawTitle string
-	Title    string
-
-	hasHandle bool
-	rawHandle string
-	Handle    string
-
-	hasDescription bool
-	rawDescription string
-	Description    string
-
-	hasWeight bool
-	rawWeight string
-	Weight    int
-
-	hasVisible bool
-	rawVisible string
-	Visible    bool
-
-	hasBlocks bool
-	rawBlocks string
-	Blocks    sqlxTypes.JSONText
 }
 
 // NewPageUpdate request
@@ -485,20 +672,68 @@ func NewPageUpdate() *PageUpdate {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"selfID":      r.SelfID,
+		"moduleID":    r.ModuleID,
+		"title":       r.Title,
+		"handle":      r.Handle,
+		"description": r.Description,
+		"weight":      r.Weight,
+		"visible":     r.Visible,
+		"blocks":      r.Blocks,
+	}
+}
 
-	out["pageID"] = r.PageID
-	out["namespaceID"] = r.NamespaceID
-	out["selfID"] = r.SelfID
-	out["moduleID"] = r.ModuleID
-	out["title"] = r.Title
-	out["handle"] = r.Handle
-	out["description"] = r.Description
-	out["weight"] = r.Weight
-	out["visible"] = r.Visible
-	out["blocks"] = r.Blocks
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetSelfID() uint64 {
+	return r.SelfID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetTitle() string {
+	return r.Title
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetDescription() string {
+	return r.Description
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetWeight() int {
+	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetVisible() bool {
+	return r.Visible
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetBlocks() sqlxTypes.JSONText {
+	return r.Blocks
 }
 
 // Fill processes request and fills internal variables
@@ -510,93 +745,93 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
-
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
-
-	r.hasPageID = true
-	r.rawPageID = chi.URLParam(req, "pageID")
-	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	if val, ok := post["selfID"]; ok {
-		r.hasSelfID = true
-		r.rawSelfID = val
-		r.SelfID = parseUInt64(val)
-	}
-	if val, ok := post["moduleID"]; ok {
-		r.hasModuleID = true
-		r.rawModuleID = val
-		r.ModuleID = parseUInt64(val)
-	}
-	if val, ok := post["title"]; ok {
-		r.hasTitle = true
-		r.rawTitle = val
-		r.Title = val
-	}
-	if val, ok := post["handle"]; ok {
-		r.hasHandle = true
-		r.rawHandle = val
-		r.Handle = val
-	}
-	if val, ok := post["description"]; ok {
-		r.hasDescription = true
-		r.rawDescription = val
-		r.Description = val
-	}
-	if val, ok := post["weight"]; ok {
-		r.hasWeight = true
-		r.rawWeight = val
-		r.Weight = parseInt(val)
-	}
-	if val, ok := post["visible"]; ok {
-		r.hasVisible = true
-		r.rawVisible = val
-		r.Visible = parseBool(val)
-	}
-	if val, ok := post["blocks"]; ok {
-		r.hasBlocks = true
-		r.rawBlocks = val
-
-		if r.Blocks, err = parseJSONTextWithErr(val); err != nil {
+	{
+		if err = req.ParseForm(); err != nil {
 			return err
 		}
+
+		// POST params
+
+		if val, ok := req.Form["selfID"]; ok && len(val) > 0 {
+			r.SelfID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["moduleID"]; ok && len(val) > 0 {
+			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["title"]; ok && len(val) > 0 {
+			r.Title, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["description"]; ok && len(val) > 0 {
+			r.Description, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["visible"]; ok && len(val) > 0 {
+			r.Visible, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["blocks"]; ok && len(val) > 0 {
+			r.Blocks, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageUpdate()
-
-// PageReorder request parameters
-type PageReorder struct {
-	hasSelfID bool
-	rawSelfID string
-	SelfID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
-
-	hasPageIDs bool
-	rawPageIDs []string
-	PageIDs    []string
 }
 
 // NewPageReorder request
@@ -606,13 +841,26 @@ func NewPageReorder() *PageReorder {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageReorder) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"selfID":      r.SelfID,
+		"pageIDs":     r.PageIDs,
+	}
+}
 
-	out["selfID"] = r.SelfID
-	out["namespaceID"] = r.NamespaceID
-	out["pageIDs"] = r.PageIDs
+// Auditable returns all auditable/loggable parameters
+func (r PageReorder) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageReorder) GetSelfID() uint64 {
+	return r.SelfID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageReorder) GetPageIDs() []string {
+	return r.PageIDs
 }
 
 // Fill processes request and fills internal variables
@@ -624,52 +872,44 @@ func (r *PageReorder) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["pageIDs[]"]; ok && len(val) > 0  {
+		//    r.PageIDs, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasSelfID = true
-	r.rawSelfID = chi.URLParam(req, "selfID")
-	r.SelfID = parseUInt64(chi.URLParam(req, "selfID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	if val, ok := req.Form["pageIDs"]; ok {
-		r.hasPageIDs = true
-		r.rawPageIDs = val
-		r.PageIDs = parseStrings(val)
+		val = chi.URLParam(req, "selfID")
+		r.SelfID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageReorder()
-
-// PageDelete request parameters
-type PageDelete struct {
-	hasPageID bool
-	rawPageID string
-	PageID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
 }
 
 // NewPageDelete request
@@ -679,12 +919,20 @@ func NewPageDelete() *PageDelete {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageDelete) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+	}
+}
 
-	out["pageID"] = r.PageID
-	out["namespaceID"] = r.NamespaceID
+// Auditable returns all auditable/loggable parameters
+func (r PageDelete) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageDelete) GetPageID() uint64 {
+	return r.PageID
 }
 
 // Fill processes request and fills internal variables
@@ -696,50 +944,29 @@ func (r *PageDelete) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
-	}
+	{
+		var val string
+		// path params
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
-	r.hasPageID = true
-	r.rawPageID = chi.URLParam(req, "pageID")
-	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageDelete()
-
-// PageUpload request parameters
-type PageUpload struct {
-	hasPageID bool
-	rawPageID string
-	PageID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
-
-	hasUpload bool
-	rawUpload string
-	Upload    *multipart.FileHeader
 }
 
 // NewPageUpload request
@@ -749,14 +976,26 @@ func NewPageUpload() *PageUpload {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageUpload) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"upload":      r.Upload,
+	}
+}
 
-	out["pageID"] = r.PageID
-	out["namespaceID"] = r.NamespaceID
-	out["upload.size"] = r.Upload.Size
-	out["upload.filename"] = r.Upload.Filename
+// Auditable returns all auditable/loggable parameters
+func (r PageUpload) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageUpload) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpload) GetUpload() *multipart.FileHeader {
+	return r.Upload
 }
 
 // Fill processes request and fills internal variables
@@ -768,53 +1007,42 @@ func (r *PageUpload) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseMultipartForm(32 << 20); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasPageID = true
-	r.rawPageID = chi.URLParam(req, "pageID")
-	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	if _, r.Upload, err = req.FormFile("upload"); err != nil {
-		return errors.Wrap(err, "error processing uploaded file")
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageUpload()
-
-// PageTriggerScript request parameters
-type PageTriggerScript struct {
-	hasPageID bool
-	rawPageID string
-	PageID    uint64 `json:",string"`
-
-	hasNamespaceID bool
-	rawNamespaceID string
-	NamespaceID    uint64 `json:",string"`
-
-	hasScript bool
-	rawScript string
-	Script    string
 }
 
 // NewPageTriggerScript request
@@ -824,13 +1052,26 @@ func NewPageTriggerScript() *PageTriggerScript {
 
 // Auditable returns all auditable/loggable parameters
 func (r PageTriggerScript) Auditable() map[string]interface{} {
-	var out = map[string]interface{}{}
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"script":      r.Script,
+	}
+}
 
-	out["pageID"] = r.PageID
-	out["namespaceID"] = r.NamespaceID
-	out["script"] = r.Script
+// Auditable returns all auditable/loggable parameters
+func (r PageTriggerScript) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
 
-	return out
+// Auditable returns all auditable/loggable parameters
+func (r PageTriggerScript) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageTriggerScript) GetScript() string {
+	return r.Script
 }
 
 // Fill processes request and fills internal variables
@@ -842,668 +1083,42 @@ func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
 		case err == io.EOF:
 			err = nil
 		case err != nil:
-			return errors.Wrap(err, "error parsing http request body")
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
-	if err = req.ParseForm(); err != nil {
-		return err
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["script"]; ok && len(val) > 0 {
+			r.Script, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	get := map[string]string{}
-	post := map[string]string{}
-	urlQuery := req.URL.Query()
-	for name, param := range urlQuery {
-		get[name] = string(param[0])
-	}
-	postVars := req.Form
-	for name, param := range postVars {
-		post[name] = string(param[0])
-	}
+	{
+		var val string
+		// path params
 
-	r.hasPageID = true
-	r.rawPageID = chi.URLParam(req, "pageID")
-	r.PageID = parseUInt64(chi.URLParam(req, "pageID"))
-	r.hasNamespaceID = true
-	r.rawNamespaceID = chi.URLParam(req, "namespaceID")
-	r.NamespaceID = parseUInt64(chi.URLParam(req, "namespaceID"))
-	if val, ok := post["script"]; ok {
-		r.hasScript = true
-		r.rawScript = val
-		r.Script = val
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
-}
-
-var _ RequestFiller = NewPageTriggerScript()
-
-// HasSelfID returns true if selfID was set
-func (r *PageList) HasSelfID() bool {
-	return r.hasSelfID
-}
-
-// RawSelfID returns raw value of selfID parameter
-func (r *PageList) RawSelfID() string {
-	return r.rawSelfID
-}
-
-// GetSelfID returns casted value of  selfID parameter
-func (r *PageList) GetSelfID() uint64 {
-	return r.SelfID
-}
-
-// HasQuery returns true if query was set
-func (r *PageList) HasQuery() bool {
-	return r.hasQuery
-}
-
-// RawQuery returns raw value of query parameter
-func (r *PageList) RawQuery() string {
-	return r.rawQuery
-}
-
-// GetQuery returns casted value of  query parameter
-func (r *PageList) GetQuery() string {
-	return r.Query
-}
-
-// HasHandle returns true if handle was set
-func (r *PageList) HasHandle() bool {
-	return r.hasHandle
-}
-
-// RawHandle returns raw value of handle parameter
-func (r *PageList) RawHandle() string {
-	return r.rawHandle
-}
-
-// GetHandle returns casted value of  handle parameter
-func (r *PageList) GetHandle() string {
-	return r.Handle
-}
-
-// HasLimit returns true if limit was set
-func (r *PageList) HasLimit() bool {
-	return r.hasLimit
-}
-
-// RawLimit returns raw value of limit parameter
-func (r *PageList) RawLimit() string {
-	return r.rawLimit
-}
-
-// GetLimit returns casted value of  limit parameter
-func (r *PageList) GetLimit() uint {
-	return r.Limit
-}
-
-// HasOffset returns true if offset was set
-func (r *PageList) HasOffset() bool {
-	return r.hasOffset
-}
-
-// RawOffset returns raw value of offset parameter
-func (r *PageList) RawOffset() string {
-	return r.rawOffset
-}
-
-// GetOffset returns casted value of  offset parameter
-func (r *PageList) GetOffset() uint {
-	return r.Offset
-}
-
-// HasPage returns true if page was set
-func (r *PageList) HasPage() bool {
-	return r.hasPage
-}
-
-// RawPage returns raw value of page parameter
-func (r *PageList) RawPage() string {
-	return r.rawPage
-}
-
-// GetPage returns casted value of  page parameter
-func (r *PageList) GetPage() uint {
-	return r.Page
-}
-
-// HasPerPage returns true if perPage was set
-func (r *PageList) HasPerPage() bool {
-	return r.hasPerPage
-}
-
-// RawPerPage returns raw value of perPage parameter
-func (r *PageList) RawPerPage() string {
-	return r.rawPerPage
-}
-
-// GetPerPage returns casted value of  perPage parameter
-func (r *PageList) GetPerPage() uint {
-	return r.PerPage
-}
-
-// HasSort returns true if sort was set
-func (r *PageList) HasSort() bool {
-	return r.hasSort
-}
-
-// RawSort returns raw value of sort parameter
-func (r *PageList) RawSort() string {
-	return r.rawSort
-}
-
-// GetSort returns casted value of  sort parameter
-func (r *PageList) GetSort() string {
-	return r.Sort
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageList) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageList) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageList) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasSelfID returns true if selfID was set
-func (r *PageCreate) HasSelfID() bool {
-	return r.hasSelfID
-}
-
-// RawSelfID returns raw value of selfID parameter
-func (r *PageCreate) RawSelfID() string {
-	return r.rawSelfID
-}
-
-// GetSelfID returns casted value of  selfID parameter
-func (r *PageCreate) GetSelfID() uint64 {
-	return r.SelfID
-}
-
-// HasModuleID returns true if moduleID was set
-func (r *PageCreate) HasModuleID() bool {
-	return r.hasModuleID
-}
-
-// RawModuleID returns raw value of moduleID parameter
-func (r *PageCreate) RawModuleID() string {
-	return r.rawModuleID
-}
-
-// GetModuleID returns casted value of  moduleID parameter
-func (r *PageCreate) GetModuleID() uint64 {
-	return r.ModuleID
-}
-
-// HasTitle returns true if title was set
-func (r *PageCreate) HasTitle() bool {
-	return r.hasTitle
-}
-
-// RawTitle returns raw value of title parameter
-func (r *PageCreate) RawTitle() string {
-	return r.rawTitle
-}
-
-// GetTitle returns casted value of  title parameter
-func (r *PageCreate) GetTitle() string {
-	return r.Title
-}
-
-// HasHandle returns true if handle was set
-func (r *PageCreate) HasHandle() bool {
-	return r.hasHandle
-}
-
-// RawHandle returns raw value of handle parameter
-func (r *PageCreate) RawHandle() string {
-	return r.rawHandle
-}
-
-// GetHandle returns casted value of  handle parameter
-func (r *PageCreate) GetHandle() string {
-	return r.Handle
-}
-
-// HasDescription returns true if description was set
-func (r *PageCreate) HasDescription() bool {
-	return r.hasDescription
-}
-
-// RawDescription returns raw value of description parameter
-func (r *PageCreate) RawDescription() string {
-	return r.rawDescription
-}
-
-// GetDescription returns casted value of  description parameter
-func (r *PageCreate) GetDescription() string {
-	return r.Description
-}
-
-// HasWeight returns true if weight was set
-func (r *PageCreate) HasWeight() bool {
-	return r.hasWeight
-}
-
-// RawWeight returns raw value of weight parameter
-func (r *PageCreate) RawWeight() string {
-	return r.rawWeight
-}
-
-// GetWeight returns casted value of  weight parameter
-func (r *PageCreate) GetWeight() int {
-	return r.Weight
-}
-
-// HasVisible returns true if visible was set
-func (r *PageCreate) HasVisible() bool {
-	return r.hasVisible
-}
-
-// RawVisible returns raw value of visible parameter
-func (r *PageCreate) RawVisible() string {
-	return r.rawVisible
-}
-
-// GetVisible returns casted value of  visible parameter
-func (r *PageCreate) GetVisible() bool {
-	return r.Visible
-}
-
-// HasBlocks returns true if blocks was set
-func (r *PageCreate) HasBlocks() bool {
-	return r.hasBlocks
-}
-
-// RawBlocks returns raw value of blocks parameter
-func (r *PageCreate) RawBlocks() string {
-	return r.rawBlocks
-}
-
-// GetBlocks returns casted value of  blocks parameter
-func (r *PageCreate) GetBlocks() sqlxTypes.JSONText {
-	return r.Blocks
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageCreate) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageCreate) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageCreate) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasPageID returns true if pageID was set
-func (r *PageRead) HasPageID() bool {
-	return r.hasPageID
-}
-
-// RawPageID returns raw value of pageID parameter
-func (r *PageRead) RawPageID() string {
-	return r.rawPageID
-}
-
-// GetPageID returns casted value of  pageID parameter
-func (r *PageRead) GetPageID() uint64 {
-	return r.PageID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageRead) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageRead) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageRead) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageTree) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageTree) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageTree) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasPageID returns true if pageID was set
-func (r *PageUpdate) HasPageID() bool {
-	return r.hasPageID
-}
-
-// RawPageID returns raw value of pageID parameter
-func (r *PageUpdate) RawPageID() string {
-	return r.rawPageID
-}
-
-// GetPageID returns casted value of  pageID parameter
-func (r *PageUpdate) GetPageID() uint64 {
-	return r.PageID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageUpdate) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageUpdate) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageUpdate) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasSelfID returns true if selfID was set
-func (r *PageUpdate) HasSelfID() bool {
-	return r.hasSelfID
-}
-
-// RawSelfID returns raw value of selfID parameter
-func (r *PageUpdate) RawSelfID() string {
-	return r.rawSelfID
-}
-
-// GetSelfID returns casted value of  selfID parameter
-func (r *PageUpdate) GetSelfID() uint64 {
-	return r.SelfID
-}
-
-// HasModuleID returns true if moduleID was set
-func (r *PageUpdate) HasModuleID() bool {
-	return r.hasModuleID
-}
-
-// RawModuleID returns raw value of moduleID parameter
-func (r *PageUpdate) RawModuleID() string {
-	return r.rawModuleID
-}
-
-// GetModuleID returns casted value of  moduleID parameter
-func (r *PageUpdate) GetModuleID() uint64 {
-	return r.ModuleID
-}
-
-// HasTitle returns true if title was set
-func (r *PageUpdate) HasTitle() bool {
-	return r.hasTitle
-}
-
-// RawTitle returns raw value of title parameter
-func (r *PageUpdate) RawTitle() string {
-	return r.rawTitle
-}
-
-// GetTitle returns casted value of  title parameter
-func (r *PageUpdate) GetTitle() string {
-	return r.Title
-}
-
-// HasHandle returns true if handle was set
-func (r *PageUpdate) HasHandle() bool {
-	return r.hasHandle
-}
-
-// RawHandle returns raw value of handle parameter
-func (r *PageUpdate) RawHandle() string {
-	return r.rawHandle
-}
-
-// GetHandle returns casted value of  handle parameter
-func (r *PageUpdate) GetHandle() string {
-	return r.Handle
-}
-
-// HasDescription returns true if description was set
-func (r *PageUpdate) HasDescription() bool {
-	return r.hasDescription
-}
-
-// RawDescription returns raw value of description parameter
-func (r *PageUpdate) RawDescription() string {
-	return r.rawDescription
-}
-
-// GetDescription returns casted value of  description parameter
-func (r *PageUpdate) GetDescription() string {
-	return r.Description
-}
-
-// HasWeight returns true if weight was set
-func (r *PageUpdate) HasWeight() bool {
-	return r.hasWeight
-}
-
-// RawWeight returns raw value of weight parameter
-func (r *PageUpdate) RawWeight() string {
-	return r.rawWeight
-}
-
-// GetWeight returns casted value of  weight parameter
-func (r *PageUpdate) GetWeight() int {
-	return r.Weight
-}
-
-// HasVisible returns true if visible was set
-func (r *PageUpdate) HasVisible() bool {
-	return r.hasVisible
-}
-
-// RawVisible returns raw value of visible parameter
-func (r *PageUpdate) RawVisible() string {
-	return r.rawVisible
-}
-
-// GetVisible returns casted value of  visible parameter
-func (r *PageUpdate) GetVisible() bool {
-	return r.Visible
-}
-
-// HasBlocks returns true if blocks was set
-func (r *PageUpdate) HasBlocks() bool {
-	return r.hasBlocks
-}
-
-// RawBlocks returns raw value of blocks parameter
-func (r *PageUpdate) RawBlocks() string {
-	return r.rawBlocks
-}
-
-// GetBlocks returns casted value of  blocks parameter
-func (r *PageUpdate) GetBlocks() sqlxTypes.JSONText {
-	return r.Blocks
-}
-
-// HasSelfID returns true if selfID was set
-func (r *PageReorder) HasSelfID() bool {
-	return r.hasSelfID
-}
-
-// RawSelfID returns raw value of selfID parameter
-func (r *PageReorder) RawSelfID() string {
-	return r.rawSelfID
-}
-
-// GetSelfID returns casted value of  selfID parameter
-func (r *PageReorder) GetSelfID() uint64 {
-	return r.SelfID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageReorder) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageReorder) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageReorder) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasPageIDs returns true if pageIDs was set
-func (r *PageReorder) HasPageIDs() bool {
-	return r.hasPageIDs
-}
-
-// RawPageIDs returns raw value of pageIDs parameter
-func (r *PageReorder) RawPageIDs() []string {
-	return r.rawPageIDs
-}
-
-// GetPageIDs returns casted value of  pageIDs parameter
-func (r *PageReorder) GetPageIDs() []string {
-	return r.PageIDs
-}
-
-// HasPageID returns true if pageID was set
-func (r *PageDelete) HasPageID() bool {
-	return r.hasPageID
-}
-
-// RawPageID returns raw value of pageID parameter
-func (r *PageDelete) RawPageID() string {
-	return r.rawPageID
-}
-
-// GetPageID returns casted value of  pageID parameter
-func (r *PageDelete) GetPageID() uint64 {
-	return r.PageID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageDelete) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageDelete) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageDelete) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasPageID returns true if pageID was set
-func (r *PageUpload) HasPageID() bool {
-	return r.hasPageID
-}
-
-// RawPageID returns raw value of pageID parameter
-func (r *PageUpload) RawPageID() string {
-	return r.rawPageID
-}
-
-// GetPageID returns casted value of  pageID parameter
-func (r *PageUpload) GetPageID() uint64 {
-	return r.PageID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageUpload) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageUpload) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageUpload) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasUpload returns true if upload was set
-func (r *PageUpload) HasUpload() bool {
-	return r.hasUpload
-}
-
-// RawUpload returns raw value of upload parameter
-func (r *PageUpload) RawUpload() string {
-	return r.rawUpload
-}
-
-// GetUpload returns casted value of  upload parameter
-func (r *PageUpload) GetUpload() *multipart.FileHeader {
-	return r.Upload
-}
-
-// HasPageID returns true if pageID was set
-func (r *PageTriggerScript) HasPageID() bool {
-	return r.hasPageID
-}
-
-// RawPageID returns raw value of pageID parameter
-func (r *PageTriggerScript) RawPageID() string {
-	return r.rawPageID
-}
-
-// GetPageID returns casted value of  pageID parameter
-func (r *PageTriggerScript) GetPageID() uint64 {
-	return r.PageID
-}
-
-// HasNamespaceID returns true if namespaceID was set
-func (r *PageTriggerScript) HasNamespaceID() bool {
-	return r.hasNamespaceID
-}
-
-// RawNamespaceID returns raw value of namespaceID parameter
-func (r *PageTriggerScript) RawNamespaceID() string {
-	return r.rawNamespaceID
-}
-
-// GetNamespaceID returns casted value of  namespaceID parameter
-func (r *PageTriggerScript) GetNamespaceID() uint64 {
-	return r.NamespaceID
-}
-
-// HasScript returns true if script was set
-func (r *PageTriggerScript) HasScript() bool {
-	return r.hasScript
-}
-
-// RawScript returns raw value of script parameter
-func (r *PageTriggerScript) RawScript() string {
-	return r.rawScript
-}
-
-// GetScript returns casted value of  script parameter
-func (r *PageTriggerScript) GetScript() string {
-	return r.Script
 }

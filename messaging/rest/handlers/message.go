@@ -1,63 +1,56 @@
 package handlers
 
-/*
-	Hello! This file is auto-generated from `docs/src/spec.json`.
-
-	For development:
-	In order to update the generated files, edit this file under the location,
-	add your struct fields, imports, API definitions and whatever you want, and:
-
-	1. run [spec](https://github.com/titpetric/spec) in the same folder,
-	2. run `./_gen.php` in this folder.
-
-	You may edit `message.go`, `message.util.go` or `message_test.go` to
-	implement your API calls, helper functions and tests. The file `message.go`
-	is only generated the first time, and will not be overwritten if it exists.
-*/
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+//
 
 import (
 	"context"
-
-	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/titpetric/factory/resputil"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
-// Internal API interface
-type MessageAPI interface {
-	Create(context.Context, *request.MessageCreate) (interface{}, error)
-	ExecuteCommand(context.Context, *request.MessageExecuteCommand) (interface{}, error)
-	MarkAsRead(context.Context, *request.MessageMarkAsRead) (interface{}, error)
-	Edit(context.Context, *request.MessageEdit) (interface{}, error)
-	Delete(context.Context, *request.MessageDelete) (interface{}, error)
-	ReplyCreate(context.Context, *request.MessageReplyCreate) (interface{}, error)
-	PinCreate(context.Context, *request.MessagePinCreate) (interface{}, error)
-	PinRemove(context.Context, *request.MessagePinRemove) (interface{}, error)
-	BookmarkCreate(context.Context, *request.MessageBookmarkCreate) (interface{}, error)
-	BookmarkRemove(context.Context, *request.MessageBookmarkRemove) (interface{}, error)
-	ReactionCreate(context.Context, *request.MessageReactionCreate) (interface{}, error)
-	ReactionRemove(context.Context, *request.MessageReactionRemove) (interface{}, error)
-}
+type (
+	// Internal API interface
+	MessageAPI interface {
+		Create(context.Context, *request.MessageCreate) (interface{}, error)
+		ExecuteCommand(context.Context, *request.MessageExecuteCommand) (interface{}, error)
+		MarkAsRead(context.Context, *request.MessageMarkAsRead) (interface{}, error)
+		Edit(context.Context, *request.MessageEdit) (interface{}, error)
+		Delete(context.Context, *request.MessageDelete) (interface{}, error)
+		ReplyCreate(context.Context, *request.MessageReplyCreate) (interface{}, error)
+		PinCreate(context.Context, *request.MessagePinCreate) (interface{}, error)
+		PinRemove(context.Context, *request.MessagePinRemove) (interface{}, error)
+		BookmarkCreate(context.Context, *request.MessageBookmarkCreate) (interface{}, error)
+		BookmarkRemove(context.Context, *request.MessageBookmarkRemove) (interface{}, error)
+		ReactionCreate(context.Context, *request.MessageReactionCreate) (interface{}, error)
+		ReactionRemove(context.Context, *request.MessageReactionRemove) (interface{}, error)
+	}
 
-// HTTP API interface
-type Message struct {
-	Create         func(http.ResponseWriter, *http.Request)
-	ExecuteCommand func(http.ResponseWriter, *http.Request)
-	MarkAsRead     func(http.ResponseWriter, *http.Request)
-	Edit           func(http.ResponseWriter, *http.Request)
-	Delete         func(http.ResponseWriter, *http.Request)
-	ReplyCreate    func(http.ResponseWriter, *http.Request)
-	PinCreate      func(http.ResponseWriter, *http.Request)
-	PinRemove      func(http.ResponseWriter, *http.Request)
-	BookmarkCreate func(http.ResponseWriter, *http.Request)
-	BookmarkRemove func(http.ResponseWriter, *http.Request)
-	ReactionCreate func(http.ResponseWriter, *http.Request)
-	ReactionRemove func(http.ResponseWriter, *http.Request)
-}
+	// HTTP API interface
+	Message struct {
+		Create         func(http.ResponseWriter, *http.Request)
+		ExecuteCommand func(http.ResponseWriter, *http.Request)
+		MarkAsRead     func(http.ResponseWriter, *http.Request)
+		Edit           func(http.ResponseWriter, *http.Request)
+		Delete         func(http.ResponseWriter, *http.Request)
+		ReplyCreate    func(http.ResponseWriter, *http.Request)
+		PinCreate      func(http.ResponseWriter, *http.Request)
+		PinRemove      func(http.ResponseWriter, *http.Request)
+		BookmarkCreate func(http.ResponseWriter, *http.Request)
+		BookmarkRemove func(http.ResponseWriter, *http.Request)
+		ReactionCreate func(http.ResponseWriter, *http.Request)
+		ReactionRemove func(http.ResponseWriter, *http.Request)
+	}
+)
 
 func NewMessage(h MessageAPI) *Message {
 	return &Message{
