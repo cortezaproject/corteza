@@ -11,7 +11,7 @@ import (
 type (
 	// ResourceFilter is Helper for *Filter structs
 	//
-	// It is used to provide filtering on DB level and meant to be used
+	// It is used to provide filtering on db level and meant to be used
 	// mainly for checking for read operations.
 	//
 	// It creates a complex SQL syntax for permission checking depending on the
@@ -45,6 +45,10 @@ type (
 		roles     []uint64
 	}
 )
+
+func NewSuperuserFilter() *ResourceFilter {
+	return &ResourceFilter{superuser: true}
+}
 
 func (rf *ResourceFilter) Build(pkColName string) *ResourceFilter {
 	rf.pkColName = pkColName

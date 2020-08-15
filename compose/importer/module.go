@@ -3,16 +3,14 @@ package importer
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"sort"
-	"strconv"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
+	"sort"
+	"strconv"
 )
 
 type (
@@ -46,7 +44,7 @@ func NewModuleImporter(imp *Importer, ns *types.Namespace) *Module {
 
 func (pImp *Module) getPageImporter() (*Page, error) {
 	if pi, ok := pImp.imp.namespaces.pages[pImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("non existing namespace %q", pImp.namespace.Slug)
+		return nil, fmt.Errorf("non existing namespace %q", pImp.namespace.Slug)
 	} else {
 		return pi, nil
 	}
@@ -69,13 +67,13 @@ func (mImp *Module) CastSet(set interface{}) error {
 // { <module-handle>: { module } } or [ { module }, ... ]
 func (mImp *Module) Cast(handle string, def interface{}) (err error) {
 	if !deinterfacer.IsMap(def) {
-		return errors.New("expecting map of values for module")
+		return fmt.Errorf("expecting map of values for module")
 	}
 
 	var module *types.Module
 
 	if !importer.IsValidHandle(handle) {
-		return errors.New("invalid module handle")
+		return fmt.Errorf("invalid module handle")
 	}
 
 	handle = importer.NormalizeHandle(handle)
@@ -89,7 +87,7 @@ func (mImp *Module) Cast(handle string, def interface{}) (err error) {
 
 		mImp.set = append(mImp.set, module)
 	} else if module.ID == 0 {
-		return errors.Errorf("module handle %q already defined in this import session", module.Handle)
+		return fmt.Errorf("module handle %q already defined in this import session", module.Handle)
 	}
 
 	mImp.dirty[module.ID] = true
@@ -222,7 +220,7 @@ func (mImp *Module) castFieldOptions(field *types.ModuleField, def interface{}) 
 func (mImp *Module) Get(handle string) (*types.Module, error) {
 	handle = importer.NormalizeHandle(handle)
 	if !importer.IsValidHandle(handle) {
-		return nil, errors.New("invalid module handle")
+		return nil, fmt.Errorf("invalid module handle")
 	}
 
 	return mImp.set.FindByHandle(handle), nil
@@ -238,6 +236,10 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) (err error) {
 			module, err = k.Create(module)
 		} else if mImp.dirty[module.ID] {
 			module, err = k.Update(module)
+		}
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
 		}
 
 		if err != nil {
@@ -258,13 +260,16 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) (err error) {
 
 	for _, module := range mImp.set {
 		if refs, err = mImp.resolveRefs(module); err != nil {
-			return errors.Wrap(err, "could not resolve refs")
+			return fmt.Errorf("could not resolve refs: %w", err)
 		} else if refs >= 0 {
 			module.UpdatedAt = nil
 			if _, err = k.Update(module); err != nil {
-				return errors.Wrap(err, "could not update resolved refs")
-			}
+				for errors.Unwrap(err) != nil {
+					err = errors.Unwrap(err)
+				}
 
+				return fmt.Errorf("could not update resolved refs: %w", err)
+			}
 		}
 	}
 
@@ -285,18 +290,18 @@ func (mImp *Module) resolveRefs(module *types.Module) (uint, error) {
 				refHandle := deinterfacer.ToString(h)
 
 				if refHandle == "" {
-					return errors.Errorf("empty module reference handle on module %q, field %q options",
+					return fmt.Errorf("empty module reference handle on module %q, field %q options",
 						module.Handle, field.Name)
 
 				}
 
 				if !handle.IsValid(refHandle) {
-					return errors.Errorf("invalid module handle %q used for reference on module %q, field %q options",
+					return fmt.Errorf("invalid module handle %q used for reference on module %q, field %q options",
 						refHandle, module.Handle, field.Name)
 				}
 
 				if refmod, err := mImp.Get(refHandle); err != nil || refmod == nil {
-					return errors.Errorf("could not load module %q on module %q, field %q options (err: %v)",
+					return fmt.Errorf("could not load module %q on module %q, field %q options: %w",
 						refHandle, module.Handle, field.Name, err)
 				} else {
 					refs++

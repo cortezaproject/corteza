@@ -2,14 +2,13 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -81,10 +80,9 @@ func (imp *Importer) Store(
 	if err != nil {
 		return
 	}
-
 	if imp.permissions != nil {
 		// Make sure we properly replace role handles with IDs
-		roles.Walk(func(role *types.Role) error {
+		_ = roles.Walk(func(role *types.Role) error {
 			imp.permissions.UpdateRoles(role.Handle, role.ID)
 			return nil
 		})
@@ -92,15 +90,26 @@ func (imp *Importer) Store(
 
 	if imp.permissions != nil {
 		err = imp.permissions.Store(ctx, pk)
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
+		}
+
 		if err != nil {
 			return
 		}
+
 	}
 
 	if imp.settings != nil {
 		err = imp.settings.Store(ctx, sk)
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
+		}
+
 		if err != nil {
-			return errors.Wrap(err, "could not import settings")
+			return fmt.Errorf("could not import settings: %w", err)
 		}
 	}
 

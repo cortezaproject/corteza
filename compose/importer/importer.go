@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -110,11 +109,6 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 				return imp.namespaces.CastSet([]interface{}{val})
 			}
 
-		case "settings":
-			if imp.settings != nil {
-				return imp.settings.CastSet(val)
-			}
-
 		case "allow", "deny":
 			if imp.permissions != nil {
 				return imp.permissions.CastResourcesSet(key, val)
@@ -136,7 +130,6 @@ func (imp *Importer) Store(
 	pStore pageKeeper,
 	rStore recordKeeper,
 	pk permissions.ImportKeeper,
-	sk settings.ImportKeeper,
 	roles sysTypes.RoleSet,
 ) (err error) {
 	if imp.namespaces != nil {
@@ -157,13 +150,6 @@ func (imp *Importer) Store(
 		err = imp.permissions.Store(ctx, pk)
 		if err != nil {
 			return errors.Wrap(err, "could not import permissions")
-		}
-	}
-
-	if imp.settings != nil {
-		err = imp.settings.Store(ctx, sk)
-		if err != nil {
-			return errors.Wrap(err, "could not import settings")
 		}
 	}
 

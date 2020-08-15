@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,8 @@ func TestGeneralValueSetValidation(t *testing.T) {
 		req = require.New(t)
 
 		svc = record{
-			ac: AccessControl(&permissions.ServiceAllowAll{}),
+			ctx: context.Background(),
+			ac:  AccessControl(&permissions.ServiceAllowAll{}),
 		}
 		module = &types.Module{
 			Fields: types.ModuleFieldSet{

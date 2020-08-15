@@ -33,7 +33,7 @@ type (
 
 		actionlog actionlog.Recorder
 
-		settings *types.Settings
+		settings *types.AppSettings
 
 		auth         userAuth
 		subscription userSubscriptionChecker

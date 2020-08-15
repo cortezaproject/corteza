@@ -3,6 +3,7 @@ package external
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -12,9 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func AddProvider(ctx context.Context, eap *types.ExternalAuthProvider, force bool) error {
@@ -53,7 +52,7 @@ func AddProvider(ctx context.Context, eap *types.ExternalAuthProvider, force boo
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
-func DiscoverOidcProvider(ctx context.Context, s *types.Settings, name, url string) (eap *types.ExternalAuthProvider, err error) {
+func DiscoverOidcProvider(ctx context.Context, s *types.AppSettings, name, url string) (eap *types.ExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
 		client      *oidc.Client
@@ -138,7 +137,7 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 	}
 
 	if enable {
-		err = vv.Walk(func(value *settings.Value) error {
+		err = vv.Walk(func(value *types.SettingValue) error {
 			if strings.HasSuffix(value.Name, ".enabled") {
 				return value.SetValue(true)
 			}
@@ -150,7 +149,7 @@ func RegisterOidcProvider(ctx context.Context, name, providerUrl string, force, 
 			return
 		}
 
-		v := &settings.Value{Name: "auth.external.enabled"}
+		v := &types.SettingValue{Name: "auth.external.enabled"}
 		err = v.SetValue(true)
 		if err != nil {
 			return
@@ -186,7 +185,7 @@ func parseExternalProviderUrl(in string) (p *url.URL, err error) {
 // StaticValidateExternal
 //
 // Simple checks of external auth settings
-func staticValidateExternal(s *types.Settings) error {
+func staticValidateExternal(s *types.AppSettings) error {
 	if s.Auth.External.RedirectUrl == "" {
 		return errors.New("redirect URL is empty")
 	}
@@ -217,7 +216,7 @@ func staticValidateExternal(s *types.Settings) error {
 // ValidateExternalRedirectURL
 //
 // Validates external redirect URL
-func validateExternalRedirectURL(s *types.Settings) error {
+func validateExternalRedirectURL(s *types.AppSettings) error {
 	const tpt = "test-provider-test"
 	const cb = "/callback"
 

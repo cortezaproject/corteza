@@ -2,10 +2,8 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
@@ -50,7 +48,7 @@ func NewChartImporter(imp *Importer, ns *types.Namespace) *Chart {
 
 func (pImp *Chart) getModule(handle string) (*types.Module, error) {
 	if g, ok := pImp.imp.namespaces.modules[pImp.namespace.Slug]; !ok {
-		return nil, errors.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
+		return nil, fmt.Errorf("could not get modules %q from non existing namespace %q", handle, pImp.namespace.Slug)
 	} else {
 		return g.Get(handle)
 	}
@@ -73,13 +71,13 @@ func (cImp *Chart) CastSet(set interface{}) error {
 // { <chart-handle>: { chart } } or [ { chart }, ... ]
 func (cImp *Chart) Cast(handle string, def interface{}) (err error) {
 	if !deinterfacer.IsMap(def) {
-		return errors.New("expecting map of values for chart")
+		return fmt.Errorf("expecting map of values for chart")
 	}
 
 	var chart *types.Chart
 
 	if !importer.IsValidHandle(handle) {
-		return errors.New("invalid chart handle")
+		return fmt.Errorf("invalid chart handle")
 	}
 
 	handle = importer.NormalizeHandle(handle)
@@ -93,7 +91,7 @@ func (cImp *Chart) Cast(handle string, def interface{}) (err error) {
 
 		cImp.set = append(cImp.set, chart)
 	} else if chart.ID == 0 {
-		return errors.Errorf("chart handle %q already defined in this import session", chart.Handle)
+		return fmt.Errorf("chart handle %q already defined in this import session", chart.Handle)
 	} else {
 		cImp.dirty[chart.ID] = true
 	}
@@ -187,7 +185,7 @@ func (cImp *Chart) castConfigReports(chart *types.Chart, def interface{}) ([]*ty
 func (cImp *Chart) Get(handle string) (*types.Chart, error) {
 	handle = importer.NormalizeHandle(handle)
 	if !importer.IsValidHandle(handle) {
-		return nil, errors.New("invalid chart handle")
+		return nil, fmt.Errorf("invalid chart handle")
 	}
 
 	return cImp.set.FindByHandle(handle), nil
@@ -208,6 +206,10 @@ func (cImp *Chart) Store(ctx context.Context, k chartKeeper) (err error) {
 			chart, err = k.Update(chart)
 		}
 
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
+		}
+
 		if err != nil {
 			return
 		}
@@ -225,17 +227,17 @@ func (cImp *Chart) resolveRefs() error {
 	for _, ref := range cImp.modRefs {
 		chart := cImp.set.FindByHandle(ref.ch)
 		if chart == nil {
-			return errors.Errorf("invalid reference, unknown chart (%v)", ref)
+			return fmt.Errorf("invalid reference, unknown chart (%v)", ref)
 		}
 
 		if ref.ri > len(chart.Config.Reports) {
-			return errors.Errorf("invalid reference, report index out of range (%v)", ref)
+			return fmt.Errorf("invalid reference, report index out of range (%v)", ref)
 		}
 
 		if module, err := cImp.getModule(ref.mh); err != nil {
-			return errors.Errorf("invalid reference, module loading error: %v", err)
+			return fmt.Errorf("invalid reference, module loading error: %v", err)
 		} else if module == nil {
-			return errors.Errorf("invalid reference, unknown module (%v)", ref)
+			return fmt.Errorf("invalid reference, unknown module (%v)", ref)
 		} else {
 			chart.Config.Reports[ref.ri].ModuleID = module.ID
 		}

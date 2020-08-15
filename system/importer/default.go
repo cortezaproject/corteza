@@ -2,14 +2,13 @@ package importer
 
 import (
 	"context"
-	"io"
-
-	"gopkg.in/yaml.v2"
-
+	"errors"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"gopkg.in/yaml.v2"
+	"io"
 )
 
 // Import performs standard import procedure with default services
@@ -20,6 +19,11 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 	)
 
 	roles, _, err = service.DefaultRole.With(ctx).Find(types.RoleFilter{})
+
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
+	}
+
 	if err != nil {
 		return err
 	}

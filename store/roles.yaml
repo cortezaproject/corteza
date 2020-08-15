@@ -1,0 +1,38 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+fields:
+  - { field: ID }
+  - { field: Name }
+  - { field: Handle }
+  - { field: ArchivedAt }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for role by ID
+
+      It returns role even if deleted or suspended
+  - fields: [ Handle ]
+    filter: { DeletedAt: nil, ArchivedAt: nil }
+    description: |-
+      searches for role by its handle
+
+      It returns only valid roles (not deleted, not archived)
+  - fields: [ Name ]
+    filter: { DeletedAt: nil, ArchivedAt: nil }
+    description: |-
+      searches for role by its name
+
+      It returns only valid roles (not deleted, not archived)
+
+rdbms:
+  alias: rl
+  table: sys_role
+  customFilterConverter: true

@@ -1,0 +1,26 @@
+import:
+  - github.com/cortezaproject/corteza-server/pkg/permissions
+
+interface:
+  - system/service
+  - compose/service
+  - messaging/service
+  - tests/compose
+  - tests/messaging
+  - tests/system
+
+types:
+  type: permissions.Rule
+
+fields:
+  - { field: RoleID, isPrimaryKey: true }
+  - { field: Resource, isPrimaryKey: true }
+  - { field: Operation, isPrimaryKey: true }
+  - { field: Access }
+
+rdbms:
+  alias: rls
+  table: rbac_rules
+
+search:
+  disablePaging: true

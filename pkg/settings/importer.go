@@ -2,20 +2,18 @@ package settings
 
 import (
 	"context"
-	"encoding/json"
-
-	"github.com/pkg/errors"
-
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	Importer struct {
-		settings ValueSet
+		settings types.SettingValueSet
 	}
 
 	ImportKeeper interface {
-		BulkSet(ctx context.Context, vv ValueSet) (err error)
+		BulkSet(ctx context.Context, vv types.SettingValueSet) (err error)
 	}
 )
 
@@ -24,10 +22,10 @@ func NewImporter() *Importer {
 }
 
 // CastSet - resolves settings:
-//   <ValueSet> [ <Value>, ... ]
+//   <ValueSet> [ <SettingValue>, ... ]
 func (imp *Importer) CastSet(settings interface{}) (err error) {
 	if !deinterfacer.IsMap(settings) {
-		return errors.New("expecting map of settings")
+		return fmt.Errorf("expecting map of settings")
 	}
 
 	return deinterfacer.Each(settings, func(_ int, name string, value interface{}) error {
@@ -37,14 +35,10 @@ func (imp *Importer) CastSet(settings interface{}) (err error) {
 
 func (imp *Importer) addSetting(name string, value interface{}) (err error) {
 	// Convert to interface{}, since json.Marshal cant handle map[interface{}]interface{}
-	v, err := json.Marshal(deinterfacer.Simplify(value))
-	if err != nil {
-		return err
-	}
+	setting := &types.SettingValue{Name: name}
 
-	setting := &Value{
-		Name:  name,
-		Value: v,
+	if err = setting.SetValue(deinterfacer.Simplify(value)); err != nil {
+		return err
 	}
 
 	imp.settings = append(imp.settings, setting)
@@ -55,6 +49,6 @@ func (imp *Importer) Store(ctx context.Context, k ImportKeeper) (err error) {
 	return k.BulkSet(ctx, imp.settings)
 }
 
-func (imp *Importer) GetValues() ValueSet {
+func (imp *Importer) GetValues() types.SettingValueSet {
 	return imp.settings
 }

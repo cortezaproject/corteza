@@ -2,10 +2,8 @@ package importer
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -53,7 +51,7 @@ func (rImp *Role) Cast(handle string, def interface{}) (err error) {
 	var role *types.Role
 
 	if !importer.IsValidHandle(handle) {
-		return errors.New("invalid role handle")
+		return fmt.Errorf("invalid role handle")
 	}
 
 	handle = importer.NormalizeHandle(handle)
@@ -66,7 +64,7 @@ func (rImp *Role) Cast(handle string, def interface{}) (err error) {
 
 		rImp.set = append(rImp.set, role)
 	} else if role.ID == 0 {
-		return errors.Errorf("role handle %q already defined in this import session", role.Handle)
+		return fmt.Errorf("role handle %q already defined in this import session", role.Handle)
 	} else {
 		rImp.dirty[role.ID] = true
 	}
@@ -99,7 +97,7 @@ func (rImp *Role) Get(handle string) (*types.Role, error) {
 	handle = importer.NormalizeHandle(handle)
 
 	if !importer.IsValidHandle(handle) {
-		return nil, errors.New("invalid role handle")
+		return nil, fmt.Errorf("invalid role handle")
 	}
 
 	return rImp.set.FindByHandle(handle), nil
@@ -113,6 +111,10 @@ func (rImp *Role) Store(ctx context.Context, k roleKeeper) error {
 			role, err = k.Create(role)
 		} else if rImp.dirty[role.ID] {
 			role, err = k.Update(role)
+		}
+
+		for errors.Unwrap(err) != nil {
+			err = errors.Unwrap(err)
 		}
 
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"html/template"
 
 	"go.uber.org/zap"
@@ -12,14 +13,13 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	authNotification struct {
 		ctx      context.Context
 		logger   *zap.Logger
-		settings *types.Settings
+		settings *types.AppSettings
 	}
 
 	AuthNotificationService interface {

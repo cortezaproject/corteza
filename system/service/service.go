@@ -2,21 +2,21 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	actionlogRepository "github.com/cortezaproject/corteza-server/pkg/actionlog/repository"
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
-	"github.com/cortezaproject/corteza-server/system/repository"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -30,9 +30,8 @@ type (
 	}
 
 	Config struct {
-		ActionLog        options.ActionLogOpt
-		Storage          options.StorageOpt
-		GRPCClientSystem options.GRPCServerOpt
+		ActionLog options.ActionLogOpt
+		Storage   options.StorageOpt
 	}
 
 	permitChecker interface {
@@ -49,6 +48,11 @@ type (
 
 var (
 	DefaultStore store.Store
+
+	// DefaultNgStore is an interface to storage backend(s)
+	// ng (next-gen) is a temporary prefix
+	// so that we can differentiate between it and the file-only store
+	DefaultNgStore storeInterface
 
 	DefaultLogger *zap.Logger
 
@@ -67,7 +71,7 @@ var (
 	DefaultPermissions permissionServicer
 
 	// DefaultSettings controls system's settings
-	DefaultSettings settings.Service
+	DefaultSettings *settings
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
@@ -75,7 +79,7 @@ var (
 	DefaultAuthNotification AuthNotificationService
 
 	// CurrentSettings represents current system settings
-	CurrentSettings = &types.Settings{}
+	CurrentSettings = &types.AppSettings{}
 
 	DefaultActionlog actionlog.Recorder
 
@@ -85,15 +89,41 @@ var (
 	DefaultUser         UserService
 	DefaultRole         RoleService
 	DefaultOrganisation OrganisationService
-	DefaultApplication  ApplicationService
+	DefaultApplication  *application
 	DefaultReminder     ReminderService
 	DefaultAttachment   AttachmentService
 
 	DefaultStatistics *statistics
+
+	// wrapper around time.Now() that will aid service testing
+	now = func() time.Time {
+		return time.Now()
+	}
+
+	// returns pointer to time.Time struct that is set to current time
+	nowPtr = func() *time.Time {
+		n := now()
+		return &n
+	}
+
+	// wrapper around id.Next() that will aid service testing
+	nextID = func() uint64 {
+		return id.Next()
+	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
-	hcd := healthcheck.Defaults()
+func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
+	var (
+		hcd = healthcheck.Defaults()
+		ok  bool
+	)
+
+	// we're doing conversion to avoid having
+	// store interface exposed or generated inside app package
+	if DefaultNgStore, ok = s.(storeInterface); !ok {
+		return fmt.Errorf("store %T is incompatible with compose storeInterface", s)
+	}
+
 	DefaultLogger = log.Named("service")
 
 	{
@@ -107,28 +137,18 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 			tee = log
 		}
 
-		DefaultActionlog = actionlog.NewService(
-			actionlogRepository.Mysql(repository.DB(ctx).Quiet(), "sys_actionlog"),
-			log,
-			tee,
-			policy,
-		)
+		DefaultActionlog = actionlog.NewService(DefaultNgStore, log, tee, policy)
 	}
 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, repository.DB(ctx), "sys_permission_rules")
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, DefaultNgStore)
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	DefaultSettings = settings.NewService(
-		settings.NewRepository(repository.DB(ctx), "sys_settings"),
-		DefaultLogger,
-		DefaultAccessControl,
-		CurrentSettings,
-	)
+	DefaultSettings = Settings(DefaultNgStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	if DefaultStore == nil {
 		const svcPath = "compose"
@@ -172,7 +192,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
-	DefaultApplication = Application(ctx)
+	DefaultApplication = Application(DefaultNgStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()

@@ -1,0 +1,34 @@
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+interface:
+  - compose/service
+
+types:
+  type: types.Module
+
+fields:
+  - { field: ID }
+  - { field: Handle, lookupFilterPreprocessor: lower }
+  - { field: Name }
+  - { field: Meta, type: "types.JSONText" }
+  - { field: NamespaceID }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ Handle ]
+    description: |-
+      searches for compose module by handle (case-insensitive)
+
+  - fields: [ ID ]
+    description: |-
+      searches for compose module by ID
+
+      It returns compose module even if deleted
+
+rdbms:
+  alias: cmd
+  table: compose_module
+  customFilterConverter: true

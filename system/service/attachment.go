@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
-
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
@@ -40,8 +38,6 @@ type (
 
 		ac attachmentAccessController
 
-		settingsSvc settings.Service
-
 		attachment repository.AttachmentRepository
 	}
 
@@ -67,8 +63,6 @@ func Attachment(store store.Store) AttachmentService {
 
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
-
-		settingsSvc: DefaultSettings,
 	}).With(context.Background())
 }
 
@@ -80,8 +74,6 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 
 		actionlog: svc.actionlog,
 		ac:        svc.ac,
-
-		settingsSvc: svc.settingsSvc,
 
 		store: svc.store,
 

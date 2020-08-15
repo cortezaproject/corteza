@@ -1,0 +1,32 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+fields:
+  - { field: ID }
+  - { field: Resource }
+  - { field: Payload }
+  - { field: SnoozeCount }
+  - { field: AssignedTo }
+  - { field: AssignedBy }
+  - { field: AssignedAt }
+  - { field: DismissedBy }
+  - { field: DismissedAt }
+  - { field: RemindAt }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for reminder by its ID
+
+      It returns reminder even if deleted or suspended
+
+rdbms:
+  alias: rmd
+  table: reminders
+  customFilterConverter: true

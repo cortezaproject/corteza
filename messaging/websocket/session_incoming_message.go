@@ -10,7 +10,7 @@ import (
 
 func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) error {
 	_, err := s.svc.msg.With(ctx).Create(&types.Message{
-		ChannelID: payload.ParseUInt64(p.ChannelID),
+		ChannelID: payload.ParseUint64(p.ChannelID),
 		ReplyTo:   p.ReplyTo,
 		Message:   p.Message,
 	})
@@ -20,7 +20,7 @@ func (s *Session) messageCreate(ctx context.Context, p *incoming.MessageCreate) 
 
 func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) error {
 	_, err := s.svc.msg.With(ctx).Update(&types.Message{
-		ID:      payload.ParseUInt64(p.ID),
+		ID:      payload.ParseUint64(p.ID),
 		Message: p.Message,
 	})
 
@@ -28,5 +28,5 @@ func (s *Session) messageUpdate(ctx context.Context, p *incoming.MessageUpdate) 
 }
 
 func (s *Session) messageDelete(ctx context.Context, p *incoming.MessageDelete) error {
-	return s.svc.msg.With(ctx).Delete(payload.ParseUInt64(p.ID))
+	return s.svc.msg.With(ctx).Delete(payload.ParseUint64(p.ID))
 }

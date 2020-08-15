@@ -17,10 +17,10 @@ type (
 	}
 
 	accessControlPermissionServicer interface {
-		Can(context.Context, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
+		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
-		ResourceFilter(context.Context, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
+		ResourceFilter([]uint64, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 
 	permissionResource interface {
@@ -87,11 +87,11 @@ func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
-	return svc.can(ctx, rl, "read", permissions.Allowed)
+	return svc.can(ctx, rl.PermissionResource(), "read", permissions.Allowed)
 }
 
 func (svc accessControl) FilterReadableRoles(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.RolePermissionResource, "read", permissions.Allow)
+	return svc.filter(ctx, types.RolePermissionResource, "read", permissions.Allow)
 }
 
 func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool {
@@ -99,7 +99,7 @@ func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool
 		return false
 	}
 
-	return svc.can(ctx, rl, "update")
+	return svc.can(ctx, rl.PermissionResource(), "update")
 }
 
 func (svc accessControl) CanDeleteRole(ctx context.Context, rl *types.Role) bool {
@@ -107,62 +107,62 @@ func (svc accessControl) CanDeleteRole(ctx context.Context, rl *types.Role) bool
 		return false
 	}
 
-	return svc.can(ctx, rl, "delete")
+	return svc.can(ctx, rl.PermissionResource(), "delete")
 }
 
 func (svc accessControl) CanManageRoleMembers(ctx context.Context, rl *types.Role) bool {
 	if rl.ID == permissions.EveryoneRoleID {
 		return false
 	}
-	return svc.can(ctx, rl, "members.manage")
+	return svc.can(ctx, rl.PermissionResource(), "members.manage")
 }
 
 func (svc accessControl) CanReadApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app, "read", permissions.Allowed)
+	return svc.can(ctx, app.PermissionResource(), "read", permissions.Allowed)
 }
 
 func (svc accessControl) FilterReadableApplications(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.ApplicationPermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.ApplicationPermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app, "update")
+	return svc.can(ctx, app.PermissionResource(), "update")
 }
 
 func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app, "delete")
+	return svc.can(ctx, app.PermissionResource(), "delete")
 }
 
 func (svc accessControl) FilterReadableUsers(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.UserPermissionResource, "read", permissions.Deny)
+	return svc.filter(ctx, types.UserPermissionResource, "read", permissions.Deny)
 }
 
 func (svc accessControl) FilterUsersWithUnmaskableEmail(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.UserPermissionResource, "unmask.email", permissions.Deny)
+	return svc.filter(ctx, types.UserPermissionResource, "unmask.email", permissions.Deny)
 }
 
 func (svc accessControl) FilterUsersWithUnmaskableName(ctx context.Context) *permissions.ResourceFilter {
-	return svc.permissions.ResourceFilter(ctx, types.UserPermissionResource, "unmask.name", permissions.Deny)
+	return svc.filter(ctx, types.UserPermissionResource, "unmask.name", permissions.Deny)
 }
 
 func (svc accessControl) CanUpdateUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u, "update")
+	return svc.can(ctx, u.PermissionResource(), "update")
 }
 
 func (svc accessControl) CanSuspendUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u, "suspend")
+	return svc.can(ctx, u.PermissionResource(), "suspend")
 }
 
 func (svc accessControl) CanUnsuspendUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u, "unsuspend")
+	return svc.can(ctx, u.PermissionResource(), "unsuspend")
 }
 
 func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u, "delete")
+	return svc.can(ctx, u.PermissionResource(), "delete")
 }
 
 func (svc accessControl) CanImpersonateUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u, "impersonate", permissions.Denied)
+	return svc.can(ctx, u.PermissionResource(), "impersonate", permissions.Denied)
 }
 
 func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
@@ -171,7 +171,7 @@ func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool
 		return true
 	}
 
-	return svc.can(ctx, u, "unmask.email")
+	return svc.can(ctx, u.PermissionResource(), "unmask.email")
 }
 
 func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool {
@@ -180,11 +180,39 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 		return true
 	}
 
-	return svc.can(ctx, u, "unmask.name")
+	return svc.can(ctx, u.PermissionResource(), "unmask.name")
 }
 
-func (svc accessControl) can(ctx context.Context, res permissionResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
-	return svc.permissions.Can(ctx, res.PermissionResource(), op, ff...)
+func (svc accessControl) can(ctx context.Context, res permissions.Resource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+	var (
+		u     = internalAuth.GetIdentityFromContext(ctx)
+		roles = u.Roles()
+	)
+
+	if internalAuth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		// and checking "superuser" privileges there to more sustainable solution
+		// (eg: creating super-role with allow-all)
+		return true
+	}
+
+	return svc.permissions.Can(roles, res.PermissionResource(), op, ff...)
+}
+
+func (svc accessControl) filter(ctx context.Context, res permissions.Resource, op permissions.Operation, a permissions.Access) *permissions.ResourceFilter {
+	var (
+		u     = internalAuth.GetIdentityFromContext(ctx)
+		roles = u.Roles()
+	)
+
+	if internalAuth.IsSuperUser(u) {
+		// Temp solution to allow migration from passing context to ResourceFilter
+		//and checking "superuser" privileges there
+		// to more sustainable solution (eg: creating super-role with allow-all)
+		return permissions.NewSuperuserFilter()
+	}
+
+	return svc.permissions.ResourceFilter(roles, res, op, a)
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {

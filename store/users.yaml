@@ -1,0 +1,67 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+fields:
+  - { field: ID }
+  - { field: Email }
+  - { field: EmailConfirmed }
+  - { field: Username }
+  - { field: Name }
+  - { field: Handle }
+  - { field: Meta, type: "*types.UserMeta" }
+  - { field: Kind }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: SuspendedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for user by ID
+
+      It returns user even if deleted or suspended
+  - fields: [ Email ]
+    filter: { DeletedAt: nil, SuspendedAt: nil }
+    description: |-
+        searches for user by their email
+
+        It returns only valid users (not deleted, not suspended)
+  - fields: [ Handle ]
+    filter: { DeletedAt: nil, SuspendedAt: nil }
+    description: |-
+      searches for user by their email
+
+      It returns only valid users (not deleted, not suspended)
+  - fields: [ Username ]
+    filter: { DeletedAt: nil, SuspendedAt: nil }
+    description: |-
+      searches for user by their username
+
+      It returns only valid users (not deleted, not suspended)
+
+partialUpdates:
+  - name: delete
+    set: { DeletedAt: now() }
+    description: |-
+      deletes user
+  - name: undelete
+    set: { DeletedAt: nil }
+    description: |-
+      undeletes user
+  - name: suspend
+    set: { SuspendedAt: now() }
+    description: |-
+      suspends user
+  - name: unsuspend
+    set: { SuspendedAt: nil }
+    description: |-
+      unsuspends user
+
+rdbms:
+  alias: usr
+  table: sys_user
+  customFilterConverter: true

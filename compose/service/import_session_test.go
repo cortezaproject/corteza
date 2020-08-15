@@ -8,9 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var ctx context.Context = context.WithValue(context.Background(), "testing", true)
-
 func TestImportSession_FindByID(t *testing.T) {
+	var ctx = context.Background()
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
 	ss, _ := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)
@@ -44,6 +43,7 @@ func TestImportSession_FindByID(t *testing.T) {
 }
 
 func TestImportSession_SetByID(t *testing.T) {
+	var ctx = context.Background()
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
 
@@ -77,6 +77,7 @@ func TestImportSession_SetByID(t *testing.T) {
 }
 
 func TestImportSession_DeleteByID(t *testing.T) {
+	var ctx = context.Background()
 	DefaultLogger = zap.New(nil, nil)
 	svc := ImportSession()
 	ss, _ := svc.SetByID(ctx, 1, 0, 0, nil, nil, nil)

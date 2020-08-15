@@ -14,7 +14,7 @@ func SetIdentityToContext(ctx context.Context, identity Identifiable) context.Co
 }
 
 func GetIdentityFromContext(ctx context.Context) Identifiable {
-	if identity, ok := ctx.Value(identityCtxKey{}).(Identifiable); ok {
+	if identity, ok := ctx.Value(identityCtxKey{}).(Identifiable); ok && identity != nil {
 		return identity
 	} else {
 		return NewIdentity(0)

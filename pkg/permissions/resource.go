@@ -27,6 +27,12 @@ func (r Resource) PermissionResource() Resource {
 	return r
 }
 
+// DynamicRoles satisfies Resourcable interface when Resource is
+// used directly
+func (r Resource) DynamicRoles(i uint64) []uint64 {
+	return nil
+}
+
 func (r Resource) AppendID(ID uint64) Resource {
 	return r.append(strconv.FormatUint(ID, 10))
 }

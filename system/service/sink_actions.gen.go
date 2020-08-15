@@ -1,7 +1,12 @@
 package service
 
-// This file is auto-generated from system/service/sink_actions.yaml
+// This file is auto-generated.
 //
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// system/service/sink_actions.yaml
 
 import (
 	"context"

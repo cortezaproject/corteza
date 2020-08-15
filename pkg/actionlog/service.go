@@ -2,6 +2,7 @@ package actionlog
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"strings"
 
 	"github.com/go-chi/chi/middleware"
@@ -14,7 +15,7 @@ import (
 type (
 	service struct {
 		// where the audit log records are kept
-		repo recordKeeper
+		store actionlogStore
 
 		// Also write audit events here
 		tee *zap.Logger
@@ -34,15 +35,15 @@ type (
 		Find(context.Context, Filter) (ActionSet, Filter, error)
 	}
 
-	recordKeeper interface {
-		Record(context.Context, *Action) error
-		Find(context.Context, Filter) (ActionSet, Filter, error)
+	actionlogStore interface {
+		SearchActionlogs(ctx context.Context, f Filter) (ActionSet, Filter, error)
+		CreateActionlog(ctx context.Context, rr ...*Action) error
 	}
 )
 
 // NewService initializes action log service
 //
-func NewService(r recordKeeper, logger, tee *zap.Logger, policy policyMatcher) (svc *service) {
+func NewService(s actionlogStore, logger, tee *zap.Logger, policy policyMatcher) (svc *service) {
 	if tee == nil {
 		tee = zap.NewNop()
 	}
@@ -50,7 +51,7 @@ func NewService(r recordKeeper, logger, tee *zap.Logger, policy policyMatcher) (
 	svc = &service{
 		tee:    tee.Named("actionlog"),
 		logger: logger.Named("actionlog"),
-		repo:   r,
+		store:  s,
 		policy: policy,
 	}
 
@@ -64,6 +65,7 @@ func (svc service) Record(ctx context.Context, l loggable) {
 	}
 
 	a := enrich(ctx, l.LoggableAction())
+	a.ID = id.Next()
 
 	svc.log(a)
 
@@ -77,7 +79,7 @@ func (svc service) Record(ctx context.Context, l loggable) {
 	// auditlog to fail...
 	ctx = context.Background()
 
-	if err := svc.repo.Record(ctx, a); err != nil {
+	if err := svc.store.CreateActionlog(ctx, a); err != nil {
 		svc.logger.With(zap.Error(err)).Error("could not record audit event")
 	}
 }
@@ -98,11 +100,22 @@ func (svc service) log(a *Action) {
 		zap.Any("meta", a.Meta),
 	}
 
-	svc.tee.With(zlf...).Debug(a.Description)
+	svc.tee.
+		With(zlf...).
+		// Skipping 3 callers (the most common stack)
+		//   actionlog.service.log()
+		//   actionlog.service.Record()
+		//   (generated service function)
+		//
+		// One exception, access control, that calls Record fn directly,
+		// without going through generated actionlog helpers
+		WithOptions(zap.AddCallerSkip(3)).
+		// This is debug logger and we log all recordings as debug
+		Debug(a.Description)
 }
 
 func (svc service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {
-	return svc.repo.Find(ctx, flt)
+	return svc.store.SearchActionlogs(ctx, flt)
 }
 
 // Enriches action with additional info (ip, actor id, request id...)
