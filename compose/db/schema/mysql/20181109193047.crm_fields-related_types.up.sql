@@ -1,1 +1,0 @@
-INSERT INTO `crm_field` (`field_type`, `field_name`, `field_template`) VALUES ('related', 'Related content', ''), ('related_multi', 'Related content (multiple)', '');

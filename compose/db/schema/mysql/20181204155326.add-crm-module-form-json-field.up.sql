@@ -1,1 +1,0 @@
-ALTER TABLE `crm_module_form` ADD `json` JSON NOT NULL COMMENT 'Options in JSON format.' AFTER `kind`;
