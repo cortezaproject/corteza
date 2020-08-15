@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"os"
 	"strings"
 
@@ -9,7 +10,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
@@ -47,7 +47,7 @@ func Settings() *cobra.Command {
 		},
 	}
 
-	list.Flags().String("prefix", "", "Filter settings by prefix")
+	list.Flags().String("prefix", "", "SettingsFilter settings by prefix")
 
 	get := &cobra.Command{
 		Use: "get [key to get, ...]",
@@ -79,7 +79,7 @@ func Settings() *cobra.Command {
 
 			value := args[1]
 
-			v := &settings.Value{
+			v := &types.SettingValue{
 				Name: args[0],
 			}
 
@@ -124,13 +124,13 @@ func Settings() *cobra.Command {
 			var (
 				decoder = json.NewDecoder(fh)
 				input   = map[string]interface{}{}
-				vv      settings.ValueSet
+				vv      types.SettingValueSet
 			)
 
 			cli.HandleError(decoder.Decode(&input))
 
 			for k, v := range input {
-				val := &settings.Value{Name: k}
+				val := &types.SettingValue{Name: k}
 
 				cli.HandleError(val.SetValue(v))
 				vv = append(vv, val)
@@ -188,7 +188,7 @@ func Settings() *cobra.Command {
 				if vv, err := service.DefaultSettings.FindByPrefix(ctx); err != nil {
 					cli.HandleError(err)
 				} else {
-					_ = vv.Walk(func(v *settings.Value) error {
+					_ = vv.Walk(func(v *types.SettingValue) error {
 						names = append(names, v.Name)
 						return nil
 					})
@@ -203,7 +203,7 @@ func Settings() *cobra.Command {
 		},
 	}
 
-	del.Flags().String("prefix", "", "Filter settings by prefix")
+	del.Flags().String("prefix", "", "SettingsFilter settings by prefix")
 
 	cmd.AddCommand(
 		list,

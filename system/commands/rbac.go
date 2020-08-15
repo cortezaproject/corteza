@@ -50,24 +50,25 @@ type (
 	}
 )
 
-func RBAC() *cobra.Command {
+func RBAC(app serviceInitializer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rbac",
 		Short: "RBAC tools",
 		Long:  "Check and manipulates permissions",
 	}
 
-	cmd.AddCommand(rbacCheck())
+	cmd.AddCommand(rbacCheck(app))
 
 	//cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
 
 	return cmd
 }
 
-func rbacCheck() *cobra.Command {
+func rbacCheck(app serviceInitializer) *cobra.Command {
 	return &cobra.Command{
-		Use:   "check",
-		Short: "Check applied permissions against given file (only supports compose permissions for now)",
+		Use:     "check",
+		Short:   "Check applied permissions against given file (only supports compose permissions for now)",
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())

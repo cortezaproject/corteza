@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 var (
@@ -51,7 +51,7 @@ func Init() {
 
 		// Do we want to enable debug logger
 		// with a bit more dev-friendly output
-		debuggingLogger = options.EnvBool("", "LOG_DEBUG", false)
+		debuggingLogger = options.EnvBool("LOG_DEBUG", false)
 	)
 
 	if ll, has := os.LookupEnv("LOG_LEVEL"); has {

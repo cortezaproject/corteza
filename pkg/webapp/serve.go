@@ -2,7 +2,7 @@ package webapp
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/app/options"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/go-chi/chi"
 	"net/http"
 	"os"
