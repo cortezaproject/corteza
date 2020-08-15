@@ -27,3 +27,7 @@ type (
 func (o *Organisation) PermissionResource() permissions.Resource {
 	return OrganisationPermissionResource.AppendID(o.ID)
 }
+
+func (o *Organisation) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}

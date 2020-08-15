@@ -1,0 +1,10 @@
+types:
+  Namespace:
+  Attachment:
+  Module:
+  Page:
+  Chart:
+  Record:
+  ModuleField:
+  RecordValue:
+    noIdField: true

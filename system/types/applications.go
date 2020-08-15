@@ -61,9 +61,13 @@ func (a *Application) Valid() bool {
 	return a.ID > 0 && a.DeletedAt == nil
 }
 
+func (r *Application) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}
+
 // Resource returns a resource ID for this type
-func (a Application) PermissionResource() permissions.Resource {
-	return ApplicationPermissionResource.AppendID(a.ID)
+func (r Application) PermissionResource() permissions.Resource {
+	return ApplicationPermissionResource.AppendID(r.ID)
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

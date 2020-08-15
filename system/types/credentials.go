@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -20,6 +21,13 @@ type (
 		CreatedAt   time.Time      `json:"createdAt,omitempty"  db:"created_at"`
 		UpdatedAt   *time.Time     `json:"updatedAt,omitempty"  db:"updated_at"`
 		DeletedAt   *time.Time     `json:"deletedAt,omitempty"  db:"deleted_at"`
+	}
+
+	CredentialsFilter struct {
+		OwnerID     uint64         `json:"ownerID"`
+		Kind        string         `json:"kind"`
+		Credentials string         `json:"credentials"`
+		Deleted     rh.FilterState `json:"deleted"`
 	}
 )
 

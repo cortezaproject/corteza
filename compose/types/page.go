@@ -66,12 +66,18 @@ type (
 
 		// Resource permission check filter
 		IsReadable *permissions.ResourceFilter `json:"-"`
+
+		Deleted rh.FilterState `json:"deleted"`
 	}
 )
 
 // Resource returns a system resource ID for this type
 func (p Page) PermissionResource() permissions.Resource {
 	return PagePermissionResource.AppendID(p.ID)
+}
+
+func (p Page) DynamicRoles(userID uint64) []uint64 {
+	return nil
 }
 
 // FindByHandle finds page by it's handle

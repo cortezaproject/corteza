@@ -1,0 +1,10 @@
+types:
+  User:
+  Application:
+  Role:
+  Organisation:
+  Credentials:
+  Reminder:
+  Attachment:
+  SettingValue:
+    noIdField: true
