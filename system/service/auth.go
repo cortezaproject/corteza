@@ -855,7 +855,7 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 		return
 	}
 
-	if err = svc.notifications.EmailConfirmation(notificationLang, u.Email, token); err != nil {
+	if err = svc.notifications.EmailConfirmation(svc.ctx, notificationLang, u.Email, token); err != nil {
 		return
 	}
 
@@ -916,7 +916,7 @@ func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
 		return err
 	}
 
-	return svc.notifications.PasswordReset(notificationLang, u.Email, token)
+	return svc.notifications.PasswordReset(svc.ctx, notificationLang, u.Email, token)
 }
 
 func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error) {
