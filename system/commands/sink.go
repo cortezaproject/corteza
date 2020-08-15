@@ -7,7 +7,7 @@ import (
 )
 
 // Will perform OpenID connect auto-configuration
-func Sink() *cobra.Command {
+func Sink(app serviceInitializer) *cobra.Command {
 	var (
 		expires string
 		srup    = service.SinkRequestUrlParams{}
@@ -19,8 +19,9 @@ func Sink() *cobra.Command {
 	}
 
 	signatureCmd := &cobra.Command{
-		Use:   "signature",
-		Short: "Creates signature for sink HTTP endpoint",
+		Use:     "signature",
+		Short:   "Creates signature for sink HTTP endpoint",
+		PreRunE: commandPreRunInitService(app),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if expires != "" {
 				// validate expiration date if set

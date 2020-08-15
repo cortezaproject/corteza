@@ -16,7 +16,7 @@ import (
 )
 
 // Will perform OpenID connect auto-configuration
-func Auth() *cobra.Command {
+func Auth(app serviceInitializer) *cobra.Command {
 	var (
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
@@ -28,14 +28,12 @@ func Auth() *cobra.Command {
 	}
 
 	autoDiscoverCmd := &cobra.Command{
-		Use:   "auto-discovery [name] [url]",
-		Short: "Auto discovers new OIDC client",
-		Args:  cobra.ExactArgs(2),
+		Use:     "auto-discovery [name] [url]",
+		Short:   "Auto discovers new OIDC client",
+		Args:    cobra.ExactArgs(2),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-			)
-
+			ctx := auth.SetSuperUserContext(cli.Context())
 			_, err := external.RegisterOidcProvider(
 				ctx,
 				args[0],
@@ -68,9 +66,10 @@ func Auth() *cobra.Command {
 		"Skip validation")
 
 	jwtCmd := &cobra.Command{
-		Use:   "jwt [email-or-id]",
-		Short: "Generates new JWT for a user",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "jwt [email-or-id]",
+		Short:   "Generates new JWT for a user",
+		Args:    cobra.MinimumNArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -111,10 +110,12 @@ func Auth() *cobra.Command {
 	}
 
 	testEmails := &cobra.Command{
-		Use:   "test-notifications [recipient]",
-		Short: "Sends samples of all authentication notification to receipient",
-		Args:  cobra.ExactArgs(1),
+		Use:     "test-notifications [recipient]",
+		Short:   "Sends samples of all authentication notification to receipient",
+		Args:    cobra.ExactArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
 				err error

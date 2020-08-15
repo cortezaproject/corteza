@@ -17,7 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Users() *cobra.Command {
+func Users(app serviceInitializer) *cobra.Command {
 	var (
 		flagNoPassword bool
 	)
@@ -32,6 +32,8 @@ func Users() *cobra.Command {
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List users",
+
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -91,11 +93,12 @@ func Users() *cobra.Command {
 		Use:   "add [email]",
 		Short: "Add new user",
 		Args:  cobra.MinimumNArgs(1),
+
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-
-				db = factory.Database.MustGet()
+				db  = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
 				authSvc  = service.Auth(ctx)
@@ -146,9 +149,10 @@ func Users() *cobra.Command {
 		"Create user without password")
 
 	pwdCmd := &cobra.Command{
-		Use:   "password [email]",
-		Short: "Change password for user",
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "password [email]",
+		Short:   "Change password for user",
+		Args:    cobra.MinimumNArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())

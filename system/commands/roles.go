@@ -13,16 +13,17 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func Roles() *cobra.Command {
+func Roles(app serviceInitializer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "roles",
 		Short: "Role management",
 	}
 
 	addUserCmd := &cobra.Command{
-		Use:   "useradd [role-ID-or-name-or-handle] [user-ID-or-email]",
-		Short: "Add user to role",
-		Args:  cobra.ExactArgs(2),
+		Use:     "useradd [role-ID-or-name-or-handle] [user-ID-or-email]",
+		Short:   "Add user to role",
+		Args:    cobra.ExactArgs(2),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Create role and user repository.
 			var (
