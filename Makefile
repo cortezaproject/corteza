@@ -68,10 +68,13 @@ GOCRITIC    = ${GOPATH}/bin/gocritic
 MOCKGEN     = ${GOPATH}/bin/mockgen
 STATICCHECK = ${GOPATH}/bin/staticcheck
 PROTOGEN    = ${GOPATH}/bin/protoc-gen-go
+GIN         = ${GOPATH}/bin/gin
 CODEGEN     = build/codegen
 
 # Using nodemon in development environment for "watch.*" tasks
 # https://nodemon.io
+#
+# @todo we need some consistency here: realize was broken and replaced with gin. If we can use gin in the same maner
 NODEMON      = /usr/local/bin/nodemon
 WATCHER      = $(NODEMON) --delay ${WATCH_DELAY} -e go -w . --exec
 
@@ -119,6 +122,9 @@ $(RELEASE_PKEY):
 
 ########################################################################################################################
 # Development
+
+watch:
+	$(GIN) --laddr localhost --notifications --immediate --build cmd/corteza run -- serve
 
 mailhog.up:
 	$(DOCKER) run --rm --publish $(DEV_MAILHOG_HTTP_ADDR):8025 --publish $(DEV_MAILHOG_SMTP_ADDR):1025 mailhog/mailhog
@@ -212,6 +218,9 @@ $(STATICCHECK):
 
 $(PROTOGEN):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
+
+$(GIN):
+	$(GOGET) github.com/codegangsta/gin
 
 $(NODEMON):
 	npm install -g nodemon
