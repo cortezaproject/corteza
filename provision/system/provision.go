@@ -2,58 +2,78 @@ package system
 
 import (
 	"context"
-	"io"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
-	provision "github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/system/importer"
 	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/titpetric/factory"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
+	"io"
 )
 
-func provisionConfig(ctx context.Context, log *zap.Logger) (err error) {
-	log.Debug("running configuration provision")
+type (
+	settingsService interface {
+		FindByPrefix(context.Context, ...string) (types.SettingValueSet, error)
+		BulkSet(context.Context, types.SettingValueSet) error
+	}
+)
 
+func Provision(ctx context.Context, log *zap.Logger) (err error) {
 	var provisioned bool
+	var readers []io.Reader
 
-	// Make sure we have all full access for provisioning
-	ctx = auth.SetSuperUserContext(ctx)
-
-	// if system is already provisioned, we do partial provisioning:
-	// missing settings only
-	if provisioned, err = isProvisioned(ctx); err != nil {
+	if provisioned, err = notProvisioned(ctx); err != nil {
 		return err
-	} else if provisioned {
-		log.Debug("configuration already provisioned")
+	} else if !provisioned {
+		log.Info("provisioning system")
+		readers, err = impAux.ReadStatic(Asset)
+		if err != nil {
+			return err
+		}
+
+		if err = importer.Import(ctx, readers...); err != nil {
+			return err
+		}
+
+	} else {
+		log.Info("provisioning system")
+		// When already provisioned, make sure settings are re-provisioned
+		readers, err = impAux.ReadStatic(Asset)
+		if err != nil {
+			return err
+		}
+
+		if err = partialImportSettings(ctx, service.DefaultSettings, readers...); err != nil {
+			return err
+		}
 	}
 
-	readers, err := impAux.ReadStatic(provision.Asset)
-	if err != nil {
-		return err
+	if err = makeDefaultApplications(ctx, log); err != nil {
+		return
+	}
+	if err = authSettingsAutoDiscovery(ctx, log, service.DefaultSettings); err != nil {
+		return
+	}
+	if err = authAddExternals(ctx, log); err != nil {
+		return
+	}
+	if err = service.DefaultSettings.UpdateCurrent(ctx); err != nil {
+		return
+	}
+	if err = oidcAutoDiscovery(ctx, log); err != nil {
+		return
 	}
 
-	if provisioned {
-		return partialImportSettings(ctx, service.DefaultSettings, readers...)
-	}
-
-	return errors.Wrap(
-		importer.Import(ctx, readers...),
-		"could not provision configuration for system service",
-	)
+	return nil
 }
 
-// Provision ONLY when there are no rules for role admins
-func isProvisioned(ctx context.Context) (bool, error) {
-	return len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminsRoleID)) > 0, nil
+// provision ONLY when there are no rules for role admins
+func notProvisioned(ctx context.Context) (bool, error) {
+	return len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminsRoleID)) == 0, nil
 }
 
 func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
@@ -151,7 +171,7 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 }
 
 // Partial import of settings from provision files
-func partialImportSettings(ctx context.Context, ss settings.Service, ff ...io.Reader) (err error) {
+func partialImportSettings(ctx context.Context, ss settingsService, ff ...io.Reader) (err error) {
 	var (
 		// decoded content from YAML files
 		aux interface{}
@@ -163,10 +183,10 @@ func partialImportSettings(ctx context.Context, ss settings.Service, ff ...io.Re
 		imp = importer.NewImporter(nil, si, nil)
 
 		// current value
-		current settings.ValueSet
+		current types.SettingValueSet
 
 		// unexisting values
-		unex settings.ValueSet
+		unex types.SettingValueSet
 	)
 
 	for _, f := range ff {
