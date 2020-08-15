@@ -5,6 +5,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
@@ -102,7 +103,30 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 }
 
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
-	return false, fmt.Errorf("adding column on sqlite tables is not implemented")
+	var (
+		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
+
+		tmp []struct {
+			CID          int            `db:"cid"`
+			Name         string         `db:"name"`
+			NotNull      bool           `db:"notnull"`
+			PrimaryKey   bool           `db:"pk"`
+			DefaultValue sql.NullString `db:"dflt_value"`
+			Type         string         `db:"type"`
+		}
+	)
+
+	if err = u.s.DB().SelectContext(ctx, &tmp, lookup); err == sql.ErrNoRows {
+		if err = u.Exec(ctx, u.ddl.AddColumn(table, col)); err != nil {
+			return false, fmt.Errorf("could not add column %s to table %s: %w", table, col.Name, err)
+		}
+
+		return true, nil
+	} else if err != nil {
+		return false, fmt.Errorf("could not check if column exists: %w", err)
+	}
+
+	return false, nil
 }
 
 func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Index) (added bool, err error) {
