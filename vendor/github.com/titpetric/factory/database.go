@@ -235,10 +235,6 @@ func (r *DB) Begin() (err error) {
 
 // Transaction will create a transaction and invoke a callback
 func (r *DB) Transaction(callback func() error) (err error) {
-	// Max tries in case of a (dead)lock
-	// @todo should be configurable
-	const MAX_TRIES = 64
-
 	var try int
 
 	// Perform transaction statements
@@ -254,8 +250,7 @@ func (r *DB) Transaction(callback func() error) (err error) {
 		}
 
 		try++
-		//
-		if try > MAX_TRIES {
+		if try > 3 {
 			r.logger.Log(r.ctx, fmt.Sprintf("Retried transaction %d times, aborting", try-1))
 			break
 		}
@@ -272,15 +267,8 @@ func (r *DB) Transaction(callback func() error) (err error) {
 		//   - 1213: deadlock found
 		if cause.Number == 1205 || cause.Number == 1213 {
 			r.logger.Log(r.ctx, "Retrying transaction", logger.NewField("try", try), logger.NewField("cause", cause))
-
-			err = r.Rollback()
-			if err != nil {
-				r.logger.Log(r.ctx, "failed to rollback transaction", logger.NewField("err", err))
-				return err
-			}
-
-			// raise time to sleep on each try
-			time.Sleep(time.Millisecond * time.Duration(try * 50))
+			r.Rollback()
+			time.Sleep(50 * time.Millisecond)
 			continue
 		}
 
@@ -289,12 +277,7 @@ func (r *DB) Transaction(callback func() error) (err error) {
 	}
 
 	if err != nil {
-		rerr := r.Rollback()
-		if rerr != nil {
-			r.logger.Log(r.ctx, "failed to rollback transaction", logger.NewField("err", rerr))
-			return rerr
-		}
-
+		r.Rollback()
 		return err
 	}
 	return r.Commit()
@@ -335,7 +318,7 @@ func (r *DB) Rollback() (err error) {
 			r.inTx = 0
 			return nil
 		}
-		if _, err = r.Exec(fmt.Sprintf("ROLLBACK TO SAVEPOINT sp_%d", r.inTx-1)); err != nil {
+		if _, err = r.Exec(fmt.Sprintf("ROLLBACK SAVEPOINT sp_%d", r.inTx-1)); err != nil {
 			return errors.WithStack(err)
 		}
 		r.inTx--
