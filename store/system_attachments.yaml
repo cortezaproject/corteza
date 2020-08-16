@@ -26,12 +26,6 @@ lookups:
 
       It returns attachment even if deleted
 
-partialUpdates:
-  - name: delete
-    set: { DeletedAt: now() }
-  - name: undelete
-    set: { DeletedAt: nil }
-
 rdbms:
   alias: att
   table: sys_attachment

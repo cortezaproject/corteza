@@ -43,24 +43,6 @@ lookups:
 
       It returns only valid users (not deleted, not suspended)
 
-partialUpdates:
-  - name: delete
-    set: { DeletedAt: now() }
-    description: |-
-      deletes user
-  - name: undelete
-    set: { DeletedAt: nil }
-    description: |-
-      undeletes user
-  - name: suspend
-    set: { SuspendedAt: now() }
-    description: |-
-      suspends user
-  - name: unsuspend
-    set: { SuspendedAt: nil }
-    description: |-
-      unsuspends user
-
 rdbms:
   alias: usr
   table: sys_user

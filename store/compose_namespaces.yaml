@@ -28,12 +28,6 @@ lookups:
 
       It returns compose namespace even if deleted
 
-partialUpdates:
-  - name: delete
-    set: { DeletedAt: now() }
-  - name: undelete
-    set: { DeletedAt: nil }
-
 rdbms:
   alias: cns
   table: compose_namespace

@@ -66,7 +66,7 @@ func (s Store) LookupCredentialsByID(ctx context.Context, id uint64) (*types.Cre
 	})
 }
 
-// CreateCredentials creates one or more rows in sys_credentials table
+// CreateCredentials creates one or more rows in credentials table
 func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) error {
 	if len(rr) == 0 {
 		return nil
@@ -84,12 +84,12 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 	})
 }
 
-// UpdateCredentials updates one or more existing rows in sys_credentials
+// UpdateCredentials updates one or more existing rows in credentials
 func (s Store) UpdateCredentials(ctx context.Context, rr ...*types.Credentials) error {
 	return s.PartialUpdateCredentials(ctx, nil, rr...)
 }
 
-// PartialUpdateCredentials updates one or more existing rows in sys_credentials
+// PartialUpdateCredentials updates one or more existing rows in credentials
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
 func (s Store) PartialUpdateCredentials(ctx context.Context, onlyColumns []string, rr ...*types.Credentials) error {
@@ -112,7 +112,7 @@ func (s Store) PartialUpdateCredentials(ctx context.Context, onlyColumns []strin
 	})
 }
 
-// RemoveCredentials removes one or more rows from sys_credentials table
+// RemoveCredentials removes one or more rows from credentials table
 func (s Store) RemoveCredentials(ctx context.Context, rr ...*types.Credentials) error {
 	if len(rr) == 0 {
 		return nil
@@ -130,17 +130,17 @@ func (s Store) RemoveCredentials(ctx context.Context, rr ...*types.Credentials) 
 	})
 }
 
-// RemoveCredentialsByID removes row from the sys_credentials table
+// RemoveCredentialsByID removes row from the credentials table
 func (s Store) RemoveCredentialsByID(ctx context.Context, ID uint64) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.CredentialsTable("crd")).Where(squirrel.Eq{s.preprocessColumn("crd.id", ""): s.preprocessValue(ID, "")}))
 }
 
-// TruncateCredentials removes all rows from the sys_credentials table
+// TruncateCredentials removes all rows from the credentials table
 func (s Store) TruncateCredentials(ctx context.Context) error {
 	return Truncate(ctx, s.DB(), s.CredentialsTable())
 }
 
-// ExecUpdateCredentials updates all matched (by cnd) rows in sys_credentials with given data
+// ExecUpdateCredentials updates all matched (by cnd) rows in credentials with given data
 func (s Store) ExecUpdateCredentials(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.CredentialsTable("crd")).Where(cnd).SetMap(set))
 }
@@ -199,7 +199,7 @@ func (Store) CredentialsTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "sys_credentials" + alias
+	return "credentials" + alias
 }
 
 // CredentialsColumns returns all defined table columns

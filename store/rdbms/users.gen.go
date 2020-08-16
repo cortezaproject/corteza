@@ -107,7 +107,7 @@ func (s Store) LookupUserByUsername(ctx context.Context, username string) (*type
 	})
 }
 
-// CreateUser creates one or more rows in sys_user table
+// CreateUser creates one or more rows in users table
 func (s Store) CreateUser(ctx context.Context, rr ...*types.User) error {
 	if len(rr) == 0 {
 		return nil
@@ -125,12 +125,12 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) error {
 	})
 }
 
-// UpdateUser updates one or more existing rows in sys_user
+// UpdateUser updates one or more existing rows in users
 func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
 	return s.PartialUpdateUser(ctx, nil, rr...)
 }
 
-// PartialUpdateUser updates one or more existing rows in sys_user
+// PartialUpdateUser updates one or more existing rows in users
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
 func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr ...*types.User) error {
@@ -153,7 +153,7 @@ func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr .
 	})
 }
 
-// RemoveUser removes one or more rows from sys_user table
+// RemoveUser removes one or more rows from users table
 func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) error {
 	if len(rr) == 0 {
 		return nil
@@ -171,17 +171,17 @@ func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) error {
 	})
 }
 
-// RemoveUserByID removes row from the sys_user table
+// RemoveUserByID removes row from the users table
 func (s Store) RemoveUserByID(ctx context.Context, ID uint64) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, "")}))
 }
 
-// TruncateUsers removes all rows from the sys_user table
+// TruncateUsers removes all rows from the users table
 func (s Store) TruncateUsers(ctx context.Context) error {
 	return Truncate(ctx, s.DB(), s.UserTable())
 }
 
-// ExecUpdateUsers updates all matched (by cnd) rows in sys_user with given data
+// ExecUpdateUsers updates all matched (by cnd) rows in users with given data
 func (s Store) ExecUpdateUsers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.UserTable("usr")).Where(cnd).SetMap(set))
 }
@@ -241,7 +241,7 @@ func (Store) UserTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "sys_user" + alias
+	return "users" + alias
 }
 
 // UserColumns returns all defined table columns
