@@ -30,6 +30,7 @@ func (g genericUpgrades) Before(ctx context.Context) error {
 	return g.all(ctx,
 		g.RenameActionlog,
 		g.RenameReminders,
+		g.RenameUsers,
 	)
 }
 
@@ -50,6 +51,11 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 	case "actionlog":
 		return g.all(ctx,
 			g.AlterActionlogAddID,
+		)
+	case "users":
+		return g.all(ctx,
+			g.AlterUsersDropOrganisation,
+			g.AlterUsersDropRelatedUser,
 		)
 	}
 
@@ -161,7 +167,10 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 
 func (g genericUpgrades) RenameActionlog(ctx context.Context) error {
 	return g.RenameTable(ctx, "sys_actionlog", "actionlog")
+}
 
+func (g genericUpgrades) RenameUsers(ctx context.Context) error {
+	return g.RenameTable(ctx, "sys_user", "users")
 }
 
 // AlterActionlogAddID adds ID column, fills it with values and adds PK on it
@@ -197,6 +206,16 @@ func (g genericUpgrades) AlterActionlogAddID(ctx context.Context) (err error) {
 
 func (g genericUpgrades) RenameReminders(ctx context.Context) error {
 	return g.RenameTable(ctx, "sys_reminder", "reminders")
+}
+
+func (g genericUpgrades) AlterUsersDropOrganisation(ctx context.Context) error {
+	_, err := g.u.DropColumn(ctx, "users", "rel_organisation")
+	return err
+}
+
+func (g genericUpgrades) AlterUsersDropRelatedUser(ctx context.Context) error {
+	_, err := g.u.DropColumn(ctx, "users", "rel_user_id")
+	return err
 }
 
 func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error {

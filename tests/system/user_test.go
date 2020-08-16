@@ -3,41 +3,41 @@ package system
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"testing"
-
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-
-	"github.com/cortezaproject/corteza-server/system/repository"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+	"net/http"
+	"testing"
+	"time"
 )
 
 func (h helper) randEmail() string {
 	return fmt.Sprintf("%s@test.tld", rs())
 }
 
-func (h helper) repoUser() repository.UserRepository {
-	return repository.User(context.Background(), db())
+func (h helper) createUserWithEmail(email string) *types.User {
+	return h.createUser(&types.User{Email: email})
 }
 
-func (h helper) repoMakeUser(email string) *types.User {
-	return h.repoSaveUser(&types.User{Email: email})
-}
+func (h helper) createUser(user *types.User) *types.User {
+	if user.ID == 0 {
+		user.ID = id.Next()
+	}
 
-func (h helper) repoSaveUser(user *types.User) *types.User {
-	u, err := h.
-		repoUser().
-		Create(user)
-	h.a.NoError(err)
+	if user.CreatedAt.IsZero() {
+		user.CreatedAt = time.Now()
+	}
 
-	return u
+	h.a.NoError(service.DefaultNgStore.CreateUser(context.Background(), user))
+	return user
 }
 
 func TestUserRead(t *testing.T) {
 	h := newHelper(t)
 
-	u := h.repoMakeUser(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
 		Get(fmt.Sprintf("/users/%d", u.ID)).
@@ -48,7 +48,7 @@ func TestUserRead(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.userID`, fmt.Sprintf("%d", u.ID))).
 		End()
 
-	u = h.repoMakeUser(h.randEmail())
+	u = h.createUserWithEmail(h.randEmail())
 	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
 
 	h.apiInit().
@@ -67,7 +67,7 @@ func TestUserListAll(t *testing.T) {
 
 	seedCount := 5
 	for i := 0; i < seedCount; i++ {
-		h.repoMakeUser(h.randEmail())
+		h.createUserWithEmail(h.randEmail())
 	}
 
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
@@ -95,8 +95,8 @@ func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
-	h.repoMakeUser("usr")
-	f := h.repoMakeUser(h.randEmail())
+	h.createUserWithEmail("usr")
+	f := h.createUserWithEmail(h.randEmail())
 
 	h.deny(types.UserPermissionResource.AppendID(f.ID), "read")
 
@@ -147,7 +147,7 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
 
 	ee := h.randEmail()
-	h.repoMakeUser(ee)
+	h.createUserWithEmail(ee)
 
 	h.apiInit().
 		Debug().
@@ -167,7 +167,7 @@ func TestUserListQueryUsername(t *testing.T) {
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
 	ee := h.randEmail()
-	h.repoSaveUser(&types.User{
+	h.createUser(&types.User{
 		Email:    "test@test.tld",
 		Username: ee,
 	})
@@ -189,7 +189,7 @@ func TestUserListQueryHandle(t *testing.T) {
 	h.secCtx()
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
-	h.repoSaveUser(&types.User{
+	h.createUser(&types.User{
 		Email:  "test@test.tld",
 		Handle: "johnDoe",
 	})
@@ -210,11 +210,11 @@ func TestUserListWithOneAllowed(t *testing.T) {
 
 	h.secCtx()
 
-	newUserWeCanAccess := h.repoMakeUser(h.randEmail())
+	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
 	h.allow(newUserWeCanAccess.PermissionResource(), "read")
 
 	// And one we can not access
-	h.repoMakeUser(h.randEmail())
+	h.createUserWithEmail(h.randEmail())
 
 	aux := struct {
 		Response *struct {
@@ -262,16 +262,11 @@ func TestUserCreate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
-
-	u, err := h.repoUser().FindByEmail(email)
-	h.a.NoError(err)
-	h.a.NotNil(u)
-	h.a.True(u.EmailConfirmed)
 }
 
 func TestUserUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeUser(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
 		Put(fmt.Sprintf("/users/%d", u.ID)).
@@ -284,7 +279,7 @@ func TestUserUpdateForbidden(t *testing.T) {
 
 func TestUserUpdate(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeUser(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
 	h.allow(types.UserPermissionResource.AppendWildcard(), "update")
 
 	newEmail := h.randEmail()
@@ -296,16 +291,11 @@ func TestUserUpdate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
-
-	u, err := h.repoUser().FindByID(u.ID)
-	h.a.NoError(err)
-	h.a.NotNil(u)
-	h.a.Equal(newEmail, u.Email)
 }
 
 func TestUserDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
-	u := h.repoMakeUser(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/users/%d", u.ID)).
@@ -319,7 +309,7 @@ func TestUserDelete(t *testing.T) {
 	h := newHelper(t)
 	h.allow(types.UserPermissionResource.AppendWildcard(), "delete")
 
-	u := h.repoMakeUser(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/users/%d", u.ID)).
@@ -327,9 +317,4 @@ func TestUserDelete(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
-
-	u, err := h.repoUser().FindByID(u.ID)
-	h.a.NoError(err)
-	h.a.NotNil(u)
-	h.a.NotNil(u.DeletedAt)
 }

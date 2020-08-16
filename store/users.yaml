@@ -45,5 +45,5 @@ lookups:
 
 rdbms:
   alias: usr
-  table: sys_user
+  table: users
   customFilterConverter: true
