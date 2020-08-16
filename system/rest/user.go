@@ -70,10 +70,6 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Name:   r.Name,
 		Handle: r.Handle,
 		Kind:   r.Kind,
-
-		// consider email confirmed
-		// when creating user like this
-		EmailConfirmed: true,
 	}
 
 	return ctrl.user.With(ctx).Create(user)

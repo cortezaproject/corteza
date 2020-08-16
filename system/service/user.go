@@ -342,6 +342,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		new.ID = id.Next()
 		new.CreatedAt = now()
 
+		// consider email confirmed
+		// when creating user like this
+		new.EmailConfirmed = true
+
 		if err = svc.store.CreateUser(svc.ctx, new); err != nil {
 			return
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
+	"github.com/cortezaproject/corteza-server/store/sqlite"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -68,6 +69,11 @@ func InitTestApp() {
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store.(rbacRulesStore))
 			service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
+			if err != nil {
+				return err
+			}
+
+			service.DefaultNgStore, err = sqlite.NewInMemory(ctx)
 			if err != nil {
 				return err
 			}
