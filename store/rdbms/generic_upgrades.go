@@ -16,6 +16,7 @@ type (
 	upgrader interface {
 		TableExists(context.Context, string) (bool, error)
 		AddColumn(context.Context, string, *ddl.Column) (bool, error)
+		DropColumn(context.Context, string, string) (bool, error)
 		AddPrimaryKey(context.Context, string, *ddl.Index) (bool, error)
 		Exec(context.Context, string, ...interface{}) error
 	}

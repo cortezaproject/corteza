@@ -54,6 +54,8 @@ type (
 		DefaultValue string
 		Comment      string
 	}
+
+	Columns []*Column
 )
 
 const (

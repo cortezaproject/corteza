@@ -102,6 +102,12 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	return exists, nil
 }
 
+func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
+	return nil, fmt.Errorf("pending implementation")
+}
+
+// AddColumn adds column to table
+// @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
 	var (
 		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
@@ -119,6 +125,35 @@ func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) 
 	if err = u.s.DB().SelectContext(ctx, &tmp, lookup); err == sql.ErrNoRows {
 		if err = u.Exec(ctx, u.ddl.AddColumn(table, col)); err != nil {
 			return false, fmt.Errorf("could not add column %s to table %s: %w", table, col.Name, err)
+		}
+
+		return true, nil
+	} else if err != nil {
+		return false, fmt.Errorf("could not check if column exists: %w", err)
+	}
+
+	return false, nil
+}
+
+// DropColumn drops column from table
+// @todo extract column lookup
+func (u upgrader) DropColumn(ctx context.Context, table, column string) (dropped bool, err error) {
+	var (
+		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
+
+		tmp []struct {
+			CID          int            `db:"cid"`
+			Name         string         `db:"name"`
+			NotNull      bool           `db:"notnull"`
+			PrimaryKey   bool           `db:"pk"`
+			DefaultValue sql.NullString `db:"dflt_value"`
+			Type         string         `db:"type"`
+		}
+	)
+
+	if err = u.s.DB().SelectContext(ctx, &tmp, lookup); err == sql.ErrNoRows {
+		if err = u.Exec(ctx, u.ddl.DropColumn(table, column)); err != nil {
+			return false, fmt.Errorf("could not add column %s to table %s: %w", table, column, err)
 		}
 
 		return true, nil

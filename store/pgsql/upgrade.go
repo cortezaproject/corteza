@@ -94,6 +94,12 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	return exists, nil
 }
 
+func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
+	return nil, fmt.Errorf("pending implementation")
+}
+
+// AddColumn adds column to table
+// @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
 	var (
 		lookup = `SELECT is_nullable = 'YES' AS is_nullable,
@@ -116,6 +122,36 @@ func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) 
 
 		return true, nil
 	} else if err != nil {
+		return false, fmt.Errorf("could not check if column exists: %w", err)
+	}
+
+	return false, nil
+}
+
+// DropColumn drops column from table
+// @todo extract column lookup
+func (u upgrader) DropColumn(ctx context.Context, table, column string) (dropped bool, err error) {
+	var (
+		lookup = `SELECT is_nullable = 'YES' AS is_nullable,
+                         data_type
+                    FROM information_schema.columns 
+                   WHERE table_catalog = $1 
+                     AND table_name = $2
+                     AND column_name = $3`
+
+		tmp struct {
+			IsNullable bool   `db:"is_nullable"`
+			DataType   string `db:"data_type"`
+		}
+	)
+
+	if err = u.s.DB().GetContext(ctx, &tmp, lookup, u.s.Config().DBName, table, column); err == nil {
+		if err = u.Exec(ctx, u.ddl.DropColumn(table, column)); err != nil {
+			return false, fmt.Errorf("could not add column %s to table %s: %w", table, column, err)
+		}
+
+		return true, nil
+	} else if err != sql.ErrNoRows {
 		return false, fmt.Errorf("could not check if column exists: %w", err)
 	}
 

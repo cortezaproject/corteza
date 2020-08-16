@@ -37,6 +37,7 @@ CREATE TABLE {{ .Name }} (
 
 	genericAddColumn     = `ALTER TABLE {{ .Table }} ADD {{ template "create-table-column" .Column }}`
 	genericAddPrimaryKey = `ALTER TABLE {{ .Table }} ADD CONSTRAINT PRIMARY KEY {{ template "index-fields" .PrimaryKey.Fields }}`
+	genericDropColumn    = `ALTER TABLE {{ .Table }} DROP {{ .Column }}`
 
 	// index creation
 	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
@@ -64,6 +65,7 @@ func NewGenerator(log *zap.Logger) *Generator {
 	g.AddTemplate("create-table-column", genericCreateTableColumn)
 	g.AddTemplate("add-column", genericAddColumn)
 	g.AddTemplate("add-primary-key", genericAddPrimaryKey)
+	g.AddTemplate("drop-column", genericDropColumn)
 	g.AddTemplate("create-index", genericCreateIndex)
 	g.AddTemplate("index-condition", genericIndexCondition)
 	g.AddTemplate("index-name", genericIndexName)
@@ -101,6 +103,13 @@ func (g *Generator) AddColumn(table string, c *Column) string {
 	return g.executeTemplate("add-column", map[string]interface{}{
 		"Table":  table,
 		"Column": c,
+	})
+}
+
+func (g *Generator) DropColumn(table, column string) string {
+	return g.executeTemplate("drop-column", map[string]interface{}{
+		"Table":  table,
+		"Column": column,
 	})
 }
 
