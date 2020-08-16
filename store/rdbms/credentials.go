@@ -12,5 +12,13 @@ func (s Store) convertCredentialsFilter(f types.CredentialsFilter) (query squirr
 		query = query.Where(squirrel.Eq{"crd.kind": f.Kind})
 	}
 
+	if f.Credentials != "" {
+		query = query.Where(squirrel.Eq{"crd.credentials": f.Credentials})
+	}
+
+	if f.OwnerID > 0 {
+		query = query.Where(squirrel.Eq{"crd.rel_owner": f.OwnerID})
+	}
+
 	return
 }

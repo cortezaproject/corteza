@@ -1,159 +1,216 @@
 package service
 
 import (
+	"context"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store/sqlite"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/markbates/goth"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
-	"github.com/markbates/goth"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/system/repository"
-	repomock "github.com/cortezaproject/corteza-server/system/repository/mocks"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-// @todo this mockDB will be probably be used by other tests, move it to some common place
-type mockDB struct{}
-
-func (mockDB) Transaction(callback func() error) error { return callback() }
-
 // Mock auth service with nil for current time, dummy provider validator and mock db
-func makeMockAuthService(u repository.UserRepository, c repository.CredentialsRepository) *auth {
-	return &auth{
-		db:          &mockDB{},
-		users:       u,
-		credentials: c,
+func makeMockAuthService() *auth {
+	var (
+		ctx = context.Background()
 
-		providerValidator: func(s string) error {
-			// All providers are valid.
-			return nil
-		},
+		mem, err = sqlite.NewInMemory(ctx)
 
-		settings: &types.Settings{},
+		svc = &auth{
+			providerValidator: func(s string) error {
+				// All providers are valid.
+				return nil
+			},
 
-		eventbus: eventbus.New(),
+			settings: &types.AppSettings{},
+			eventbus: eventbus.New(),
+		}
+	)
 
-		now: func() *time.Time {
-			return nil
-		},
+	if err != nil {
+		panic(err)
 	}
+
+	if err = mem.Upgrade(ctx, zap.NewNop()); err != nil {
+		panic(err)
+	}
+
+	svc.store = mem
+
+	return svc
 }
 
-func TestAuth_External_Existing(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
+func TestAuth_External(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
 
-	// Create some virtual user and credentials
-	var u = &types.User{ID: 300000, Email: "foo@example.tld"}
-	var c = &types.Credentials{ID: 200000, OwnerID: u.ID}
+		// Create some virtual user and credentials
+		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: id.Next(), CreatedAt: now()}
+		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), SuspendedAt: nowPtr()}
 
-	// Profile to be used. make sure email matches
-	var p = goth.User{UserID: "some-profile-id", Provider: "google", Email: u.Email}
+		freshProfileID = func() string {
+			return fmt.Sprintf("fresh-profile-id-%d", id.Next())
+		}
 
-	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
-	crdRpoMock.EXPECT().
-		FindByCredentials("google", p.UserID).
-		Times(1).
-		Return(types.CredentialsSet{c}, nil)
+		fooCredentials = &types.Credentials{
+			ID:          id.Next(),
+			OwnerID:     validUser.ID,
+			Label:       "credentials for foo provider",
+			Kind:        "foo",
+			Credentials: freshProfileID(),
+			CreatedAt:   time.Time{},
+		}
 
-	crdRpoMock.EXPECT().
-		Update(gomock.Any()).
-		Times(1).
-		Return(c, nil)
+		barCredentials = &types.Credentials{
+			ID:          id.Next(),
+			OwnerID:     validUser.ID,
+			Label:       "credentials for bar provider",
+			Kind:        "bar",
+			Credentials: freshProfileID(),
+			CreatedAt:   time.Time{},
+		}
 
-	usrRpoMock := repomock.NewMockUserRepository(mockCtrl)
-	usrRpoMock.EXPECT().FindByID(u.ID).Times(1).Return(u, nil)
+		cases = []struct {
+			name    string
+			profile goth.User
+			user    *types.User
+			err     error
+		}{
+			{
+				"matching by user email",
+				goth.User{UserID: freshProfileID(), Provider: "-", Email: validUser.Email},
+				validUser,
+				nil},
+			{
+				"unknown profile",
+				goth.User{UserID: freshProfileID(), Provider: "-", Email: "fresh-from-foo@test.cortezaproject.org"},
+				&types.User{Email: "fresh-from-foo@test.cortezaproject.org"},
+				nil},
+			{
+				"profile match by provider ID",
+				goth.User{UserID: fooCredentials.Credentials, Provider: fooCredentials.Kind, Email: "valid+2nd+email@test.cortezaproject.org"},
+				validUser,
+				nil},
+		}
+	)
 
-	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
+	_ = spew.Dump
+
+	svc := makeMockAuthService()
 	svc.settings.Auth.External.Enabled = true
+	req.NoError(svc.store.TruncateUsers(ctx))
+	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(svc.store.CreateUser(ctx, validUser, suspendedUser))
+	req.NoError(svc.store.CreateCredentials(ctx, fooCredentials, barCredentials))
 
-	{
-		auser, err := svc.External(p)
-		require.NoError(t, err)
-		require.True(t, auser.ID == u.ID, "Did not receive expected user")
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			req = require.New(t)
+
+			var (
+				ru, rerr = svc.External(ctx, c.profile)
+			)
+
+			if c.err != nil {
+				req.EqualError(unwrapGeneric(rerr), c.err.Error())
+				return
+			}
+
+			req.NoError(unwrapGeneric(rerr))
+			req.NotNil(ru)
+
+			if c.user == nil {
+				panic("invalid test case, user should not be nil")
+			}
+
+			req.Equal(c.user.Email, ru.Email)
+		})
 	}
 }
 
-func TestAuth_External_NonExisting(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	var u = &types.User{ID: 300000, Email: "foo@example.tld"}
-	var c = &types.Credentials{ID: 200000, OwnerID: u.ID}
-	var p = goth.User{UserID: "some-profile-id", Provider: "google", Email: u.Email}
-
-	crdRpoMock := repomock.NewMockCredentialsRepository(mockCtrl)
-	crdRpoMock.EXPECT().
-		FindByCredentials("google", p.UserID).
-		Times(1).
-		Return(types.CredentialsSet{}, nil)
-
-	crdRpoMock.EXPECT().
-		Create(&types.Credentials{Kind: "google", OwnerID: u.ID, Credentials: p.UserID}).
-		Times(1).
-		Return(c, nil)
-
-	usrRpoMock := repomock.NewMockUserRepository(mockCtrl)
-	usrRpoMock.EXPECT().
-		FindByHandle("foo").
-		Times(1).
-		Return(nil, repository.ErrUserNotFound)
-
-	usrRpoMock.EXPECT().
-		FindByEmail(u.Email).
-		Times(1).
-		Return(nil, repository.ErrUserNotFound)
-
-	usrRpoMock.EXPECT().
-		Create(&types.User{Email: "foo@example.tld", Handle: "foo"}).
-		Times(1).
-		Return(u, nil)
-
-	usrRpoMock.EXPECT().
-		Total().
-		Times(1).
-		Return(uint(0))
-
-	svc := makeMockAuthService(usrRpoMock, crdRpoMock)
-	svc.settings.Auth.External.Enabled = true
-
-	{
-		auser, err := svc.External(p)
-		require.NoError(t, err)
-		require.True(t, auser.ID == u.ID, "Did not receive expected user")
-	}
+func TestAuth_InternalSignU(t *testing.T) {
+	t.Skip("pending implementation")
 }
 
-func Test_auth_validateInternalLogin(t *testing.T) {
-	type args struct {
-		email    string
-		password string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{name: "no email", args: args{"", ""}, wantErr: true},
-		{name: "bad email", args: args{"test", ""}, wantErr: true},
-		{name: "no pass", args: args{"test@domain.tld", ""}, wantErr: true},
-		//{name: "all good", args: args{"test@domain.tld", "password"}, wantErr: false},
+func TestAuth_InternalLogin(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
 
-		// until we get proper mocking, DI  for unit testing in place
-		// this will have to do
-	}
+		validPass     = "this is a valid password !! 42"
+		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), EmailConfirmed: true}
+		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), SuspendedAt: nowPtr()}
 
-	svc := makeMockAuthService(nil, nil)
+		tests = []struct {
+			name     string
+			email    string
+			password string
+			err      error
+		}{
+			{
+				"with no email",
+				"",
+				"",
+				fmt.Errorf("invalid email")},
+			{
+				"with bad email",
+				"test",
+				"",
+				fmt.Errorf("invalid email")},
+			{
+				"with empty password",
+				"test@domain.tld",
+				"",
+				fmt.Errorf("invalid username and password combination")},
+			{
+				"with valid credentials",
+				validUser.Email,
+				validPass,
+				nil},
+			{
+				"with invalid password",
+				validUser.Email,
+				"invalid password",
+				fmt.Errorf("invalid username and password combination")},
+			{
+				"with suspended user",
+				suspendedUser.Email,
+				validPass,
+				fmt.Errorf("invalid username and password combination")},
+		}
+	)
+
+	svc := makeMockAuthService()
 	svc.settings.Auth.Internal.Enabled = true
+	req.NoError(svc.store.TruncateUsers(ctx))
+	req.NoError(svc.store.TruncateCredentials(ctx))
+	req.NoError(svc.store.CreateUser(ctx, validUser, suspendedUser))
+	req.NoError(svc.SetPasswordCredentials(ctx, validUser.ID, validPass))
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := svc.InternalLogin(tt.args.email, tt.args.password); (err != nil) != tt.wantErr {
-				t.Errorf("auth.validateInternalLogin() error = %v, wantErr %v", err, tt.wantErr)
+			req = require.New(t)
+
+			var (
+				usr, err = svc.InternalLogin(ctx, tt.email, tt.password)
+			)
+
+			if tt.err == nil {
+				req.NoError(err)
+				req.NotNil(usr)
+			} else {
+				req.EqualError(err, tt.err.Error())
 			}
+
 		})
 	}
 }
@@ -206,7 +263,7 @@ func Test_auth_checkPassword(t *testing.T) {
 	}
 
 	svc := auth{
-		settings: &types.Settings{},
+		settings: &types.AppSettings{},
 	}
 
 	for _, tt := range tests {

@@ -101,7 +101,7 @@ func Users(app serviceInitializer) *cobra.Command {
 				db  = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
-				authSvc  = service.Auth(ctx)
+				authSvc  = service.Auth()
 
 				// @todo email validation
 				user = &types.User{Email: args[0]}
@@ -135,7 +135,7 @@ func Users(app serviceInitializer) *cobra.Command {
 					return
 				}
 
-				if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
+				if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
 					cli.HandleError(err)
 				}
 			}
@@ -159,7 +159,7 @@ func Users(app serviceInitializer) *cobra.Command {
 				db  = factory.Database.MustGet()
 
 				userRepo = repository.User(ctx, db)
-				authSvc  = service.Auth(ctx)
+				authSvc  = service.Auth()
 
 				user     *types.User
 				err      error
@@ -183,7 +183,7 @@ func Users(app serviceInitializer) *cobra.Command {
 				return
 			}
 
-			if err = authSvc.SetPassword(user.ID, string(password)); err != nil {
+			if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
 				cli.HandleError(err)
 			}
 		},

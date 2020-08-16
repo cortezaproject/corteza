@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -85,7 +86,7 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth         AuthService
+	DefaultAuth         *auth
 	DefaultUser         UserService
 	DefaultRole         RoleService
 	DefaultOrganisation OrganisationService
@@ -188,7 +189,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 	hcd.Add(store.Healthcheck(DefaultStore), "Store/System")
 
 	DefaultAuthNotification = AuthNotification(CurrentSettings)
-	DefaultAuth = Auth(ctx)
+	DefaultAuth = Auth()
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultOrganisation = Organisation(ctx)
@@ -214,4 +215,22 @@ func Activate(ctx context.Context) (err error) {
 func Watchers(ctx context.Context) {
 	// Reloading permissions on change
 	DefaultPermissions.Watch(ctx)
+}
+
+// isGeneric returns true if given error is generic
+func isGeneric(err error) bool {
+	g, ok := err.(interface{ IsGeneric() bool })
+	return ok && g != nil && g.IsGeneric()
+}
+
+// unwrapGeneric unwraps error if error is generic (and wrapped)
+func unwrapGeneric(err error) error {
+	for {
+		if isGeneric(err) {
+			err = errors.Unwrap(err)
+			continue
+		}
+
+		return err
+	}
 }

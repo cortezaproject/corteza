@@ -2,17 +2,15 @@ package rest
 
 import (
 	"context"
-	"net/http"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/pkg/errors"
+	"github.com/titpetric/factory/resputil"
+	"net/http"
 )
 
 var _ = errors.Wrap
@@ -21,7 +19,7 @@ type (
 	Auth struct {
 		tokenEncoder auth.TokenEncoder
 		settings     *types.AppSettings
-		authSvc      service.AuthService
+		authSvc      authUserService
 	}
 
 	authUserResponse struct {
@@ -32,6 +30,13 @@ type (
 	authUserPayload struct {
 		*outgoing.User
 		Roles []string `json:"roles"`
+	}
+
+	authUserService interface {
+		Impersonate(ctx context.Context, userID uint64) (*types.User, error)
+		ValidateAuthRequestToken(ctx context.Context, token string) (user *types.User, err error)
+		CanRegister(ctx context.Context) error
+		LoadRoleMemberships(ctx context.Context, user *types.User) error
 	}
 )
 
@@ -46,7 +51,7 @@ func (Auth) New() *Auth {
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
+			if user, err := service.DefaultUser.FindByID(identity.Identity()); err == nil {
 				var p *authUserResponse
 
 				if p, err = ctrl.makePayload(ctx, user); err != nil {
@@ -72,7 +77,7 @@ func (ctrl *Auth) Logout(ctx context.Context, r *request.AuthLogout) (interface{
 //
 // This is experimental and internals will most likely change in the future:
 func (ctrl *Auth) Impersonate(ctx context.Context, r *request.AuthImpersonate) (interface{}, error) {
-	u, err := ctrl.authSvc.With(ctx).Impersonate(r.UserID)
+	u, err := ctrl.authSvc.Impersonate(ctx, r.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +101,7 @@ func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interf
 		}
 	)
 
-	if err := ctrl.authSvc.With(ctx).CanRegister(); err != nil {
+	if err := ctrl.authSvc.CanRegister(ctx); err != nil {
 		// f["internalSignUpEnabled"] = false
 		out["signUpDisabled"] = err.Error()
 	}
@@ -105,9 +110,7 @@ func (ctrl *Auth) Settings(ctx context.Context, r *request.AuthSettings) (interf
 }
 
 func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchangeAuthToken) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-
-	user, err := svc.ValidateAuthRequestToken(r.Token)
+	user, err := ctrl.authSvc.ValidateAuthRequestToken(ctx, r.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +119,7 @@ func (ctrl *Auth) ExchangeAuthToken(ctx context.Context, r *request.AuthExchange
 }
 
 func (ctrl *Auth) makePayload(ctx context.Context, user *types.User) (*authUserResponse, error) {
-	var svc = ctrl.authSvc.With(ctx)
-	if err := svc.LoadRoleMemberships(user); err != nil {
+	if err := ctrl.authSvc.LoadRoleMemberships(ctx, user); err != nil {
 		return nil, err
 	}
 

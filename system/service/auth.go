@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
 	"regexp"
 	"strconv"
 	"time"
@@ -23,50 +26,16 @@ import (
 
 type (
 	auth struct {
-		db  db
-		ctx context.Context
-
 		actionlog actionlog.Recorder
 		ac        authAccessController
 		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
-		credentials   repository.CredentialsRepository
-		users         repository.UserRepository
-		roles         repository.RoleRepository
+		store         authStore
 		settings      *types.AppSettings
 		notifications AuthNotificationService
 
 		providerValidator func(string) error
-		now               func() *time.Time
-	}
-
-	AuthService interface {
-		With(ctx context.Context) AuthService
-
-		External(profile goth.User) (*types.User, error)
-		FrontendRedirectURL() string
-
-		InternalSignUp(input *types.User, password string) (*types.User, error)
-		InternalLogin(email string, password string) (*types.User, error)
-		SetPassword(userID uint64, AuthActionPassword string) error
-		ChangePassword(userID uint64, oldPassword, AuthActionPassword string) error
-		Impersonate(userID uint64) (*types.User, error)
-
-		IssueAuthRequestToken(user *types.User) (token string, err error)
-		ValidateAuthRequestToken(token string) (user *types.User, err error)
-		ValidateEmailConfirmationToken(token string) (user *types.User, err error)
-		ExchangePasswordResetToken(token string) (user *types.User, exchangedToken string, err error)
-		ValidatePasswordResetToken(token string) (user *types.User, err error)
-		SendEmailAddressConfirmationToken(email string) (err error)
-		SendPasswordResetToken(email string) (err error)
-
-		CanRegister() error
-
-		LoadRoleMemberships(*types.User) error
-
-		checkPasswordStrength(string) bool
-		changePassword(uint64, string) error
 	}
 
 	authAccessController interface {
@@ -75,6 +44,15 @@ type (
 
 	authSubscriptionChecker interface {
 		CanRegister(uint) error
+	}
+
+	authStore interface {
+		usersStore
+		rolesStore
+		credentialsStore
+
+		AddRoleMembersByID(context.Context, uint64, ...uint64) error
+		CountUsers(context.Context, types.UserFilter) (uint, error)
 	}
 )
 
@@ -97,8 +75,8 @@ func defaultProviderValidator(provider string) error {
 	return err
 }
 
-func Auth(ctx context.Context) AuthService {
-	return (&auth{
+func Auth() *auth {
+	return &auth{
 		eventbus:      eventbus.Service(),
 		ac:            DefaultAccessControl,
 		subscription:  CurrentSubscription,
@@ -108,36 +86,6 @@ func Auth(ctx context.Context) AuthService {
 		actionlog: DefaultActionlog,
 
 		providerValidator: defaultProviderValidator,
-
-		now: func() *time.Time {
-			var now = time.Now()
-			return &now
-		},
-	}).With(ctx)
-}
-
-// With returns copy of service with new context
-// obsolete approach, will be removed ASAP
-func (svc auth) With(ctx context.Context) AuthService {
-	db := repository.DB(ctx)
-	return &auth{
-		db:  db,
-		ctx: ctx,
-
-		credentials: repository.Credentials(ctx, db),
-		users:       repository.User(ctx, db),
-		roles:       repository.Role(ctx, db),
-
-		ac:                svc.ac,
-		subscription:      svc.subscription,
-		settings:          svc.settings,
-		notifications:     svc.notifications,
-		eventbus:          svc.eventbus,
-		providerValidator: svc.providerValidator,
-
-		actionlog: svc.actionlog,
-
-		now: svc.now,
 	}
 }
 
@@ -156,7 +104,9 @@ func (svc auth) With(ctx context.Context) AuthService {
 // 2.2. create user on-the-fly if it does not exist
 // 2.3. create credentials for that social login
 //
-func (svc auth) External(profile goth.User) (u *types.User, err error) {
+// External login/signup does not:
+//  - validate provider on profile, only uses it for matching credentials
+func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User, err error) {
 	var (
 		authProvider = &types.AuthProvider{Provider: profile.Provider}
 
@@ -180,7 +130,8 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 			return AuthErrProfileWithoutValidEmail(aam)
 		}
 
-		if cc, err := svc.credentials.FindByCredentials(profile.Provider, profile.UserID); err == nil {
+		f := types.CredentialsFilter{Kind: profile.Provider, Credentials: profile.UserID}
+		if cc, _, err := svc.store.SearchCredentials(ctx, f); err == nil {
 			// Credentials found, load user
 			for _, c := range cc {
 				if !c.Valid() {
@@ -190,36 +141,37 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				// Add credentials ID for audit log
 				aam.setCredentials(c)
 
-				if u, err = svc.users.FindByID(c.OwnerID); err != nil {
-					if repository.ErrUserNotFound.Eq(err) {
+				if u, err = svc.store.LookupUserByID(ctx, c.OwnerID); err != nil {
+					if errors.Is(err, store.ErrNotFound) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
-						if err = svc.credentials.DeleteByID(c.ID); err != nil {
+						if err = svc.store.RemoveCredentialsByID(ctx, c.ID); err != nil {
 							return err
 						} else {
 							goto findByEmail
 						}
 					}
+
 					return err
 				}
 
 				// Add user ID for audit log
 				aam.setUser(u)
-				svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+				ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-				if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+				if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 					return err
 				}
 
 				if u.Valid() {
 					// Valid user, Bingo!
-					c.LastUsedAt = svc.now()
-					if c, err = svc.credentials.Update(c); err != nil {
+					c.LastUsedAt = nowPtr()
+					if err = svc.store.UpdateCredentials(ctx, c); err != nil {
 						return err
 					}
 
-					_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
-					return svc.recordAction(svc.ctx, aam, AuthActionUpdateCredentials, nil)
+					_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
+					return svc.recordAction(ctx, aam, AuthActionUpdateCredentials, nil)
 				} else {
 					// Scenario: linked to an invalid user
 					if len(cc) > 1 {
@@ -248,8 +200,11 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 			setUser(nil)
 
 		// Find user via his email
-		if u, err = svc.users.FindByEmail(profile.Email); repository.ErrUserNotFound.Eq(err) {
+		if u, err = svc.store.LookupUserByEmail(ctx, profile.Email); errors.Is(err, store.ErrNotFound) {
 			// @todo check if it is ok to auto-create a user here
+			if err = svc.CanRegister(ctx); err != nil {
+				return AuthErrSubscription(aam).Wrap(err)
+			}
 
 			// In case we do not have this email, create a new user
 			u = &types.User{
@@ -262,31 +217,31 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 				u.Handle = profile.NickName
 			}
 
-			if err = svc.CanRegister(); err != nil {
-				return AuthErrSubscription(aam).Wrap(err)
-			}
-
-			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
+			if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeSignup(u, authProvider)); err != nil {
 				return err
 			}
 
 			if u.Handle == "" {
-				createHandle(svc.users, u)
+				createHandle(ctx, svc.store, u)
 			}
 
-			if u, err = svc.users.Create(u); err != nil {
+			u.ID = id.Next()
+			u.CreatedAt = now()
+			if err = svc.store.CreateUser(ctx, u); err != nil {
 				return err
 			}
 
 			aam.setUser(nil)
-			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+			ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterSignup(u, authProvider))
+			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(u, authProvider))
 
-			svc.recordAction(svc.ctx, aam, AuthActionExternalSignup, nil)
+			if err = svc.recordAction(ctx, aam, AuthActionExternalSignup, nil); err != nil {
+				return err
+			}
 
 			// Auto-promote first user
-			if err = svc.autoPromote(u); err != nil {
+			if err = svc.autoPromote(ctx, u); err != nil {
 				return err
 			}
 		} else if err != nil {
@@ -294,13 +249,13 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 		} else {
 			// User found
 			aam.setUser(u)
-			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+			ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+			if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 				return err
 			}
 
-			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
+			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
 
 			// If user
 			if !u.Valid() {
@@ -311,24 +266,26 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 		// If we got to this point, assume that user is authenticated
 		// but credentials need to be stored
 		c := &types.Credentials{
+			ID:          id.Next(),
+			CreatedAt:   now(),
 			Kind:        profile.Provider,
 			OwnerID:     u.ID,
 			Credentials: profile.UserID,
-			LastUsedAt:  svc.now(),
+			LastUsedAt:  nowPtr(),
 		}
 
-		if c, err = svc.credentials.Create(c); err != nil {
+		if err = svc.store.CreateCredentials(ctx, c); err != nil {
 			return err
 		}
 
 		aam.setCredentials(c)
-		svc.recordAction(svc.ctx, aam, AuthActionCreateCredentials, nil)
+		svc.recordAction(ctx, aam, AuthActionCreateCredentials, nil)
 
 		// Owner loaded, carry on.
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
+	return u, svc.recordAction(ctx, aam, AuthActionAuthenticate, err)
 }
 
 // FrontendRedirectURL - a proxy to frontend redirect url setting
@@ -341,7 +298,7 @@ func (svc auth) FrontendRedirectURL() string {
 // Forgiving but strict: valid existing users get notified
 //
 // We're accepting the whole user object here and copy all we need to the new user
-func (svc auth) InternalSignUp(input *types.User, password string) (u *types.User, err error) {
+func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password string) (u *types.User, err error) {
 	var (
 		authProvider = &types.AuthProvider{Provider: credentialsTypePassword}
 
@@ -370,10 +327,13 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 		}
 
 		var eUser *types.User
-		eUser, err = svc.users.FindByEmail(input.Email)
+		eUser, err = svc.store.LookupUserByEmail(ctx, input.Email)
 		if err == nil && eUser.Valid() {
-			var cc types.CredentialsSet
-			cc, err = svc.credentials.FindByKind(eUser.ID, credentialsTypePassword)
+			var (
+				cc types.CredentialsSet
+				f  = types.CredentialsFilter{OwnerID: eUser.ID, Kind: credentialsTypePassword}
+			)
+			cc, _, err = svc.store.SearchCredentials(ctx, f)
 			if err != nil {
 				return err
 			}
@@ -382,28 +342,29 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 				return AuthErrInvalidCredentials(aam)
 			} else {
 				// Update last-used-by timestamp on matching credentials
-				c.LastUsedAt = svc.now()
+				c.LastUsedAt = nowPtr()
+				c.UpdatedAt = nowPtr()
 				aam.setCredentials(c)
 
-				if _, err = svc.credentials.Update(c); err != nil {
+				if err = svc.store.UpdateCredentials(ctx, c); err != nil {
 					return err
 				}
 			}
 
 			// We're not actually doing sign-up here - user exists,
 			// password is a match, so lets trigger before/after user login events
-			if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(eUser, authProvider)); err != nil {
+			if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(eUser, authProvider)); err != nil {
 				return err
 			}
 
 			if !eUser.EmailConfirmed {
-				err = svc.sendEmailAddressConfirmationToken(eUser)
+				err = svc.sendEmailAddressConfirmationToken(ctx, eUser)
 				if err != nil {
 					return err
 				}
 			}
 
-			_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(eUser, authProvider))
+			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(eUser, authProvider))
 			u = eUser
 			return nil
 
@@ -418,15 +379,16 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 			// }
 			//
 			// return nil,nil
-		} else if !repository.ErrUserNotFound.Eq(err) {
+		} else if !errors.Is(err, store.ErrNotFound) {
 			return err
 		}
 
-		if err = svc.CanRegister(); err != nil {
+		if err = svc.CanRegister(ctx); err != nil {
 			return err
 		}
 
 		var nUser = &types.User{
+			ID:       id.Next(),
 			Email:    input.Email,
 			Name:     input.Name,
 			Username: input.Username,
@@ -436,54 +398,54 @@ func (svc auth) InternalSignUp(input *types.User, password string) (u *types.Use
 			EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
 		}
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeSignup(nUser, authProvider)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeSignup(nUser, authProvider)); err != nil {
 			return err
 		}
 
 		if input.Handle == "" {
-			createHandle(svc.users, input)
+			createHandle(ctx, svc.store, input)
 		}
 
 		// Whitelisted user data to copy
-		u, err = svc.users.Create(nUser)
+		err = svc.store.CreateUser(ctx, nUser)
 
 		if err != nil {
 			return err
 		}
 
 		aam.setUser(u)
-		_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterSignup(u, authProvider))
+		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(u, authProvider))
 
-		if err = svc.autoPromote(u); err != nil {
+		if err = svc.autoPromote(ctx, u); err != nil {
 			return err
 		}
 
 		if len(password) > 0 {
-			err = svc.changePassword(u.ID, password)
+			err = svc.SetPassword(ctx, u.ID, password)
 			if err != nil {
 				return err
 			}
 		}
 
 		if !u.EmailConfirmed {
-			err = svc.sendEmailAddressConfirmationToken(u)
+			err = svc.sendEmailAddressConfirmationToken(ctx, u)
 			if err != nil {
 				return err
 			}
 
-			return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, nil)
+			return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, nil)
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionInternalSignup, err)
+	return u, svc.recordAction(ctx, aam, AuthActionInternalSignup, err)
 }
 
 // InternalLogin verifies username/password combination in the internal credentials table
 //
 // Expects plain text password as an input
-func (svc auth) InternalLogin(email string, password string) (u *types.User, err error) {
+func (svc auth) InternalLogin(ctx context.Context, email string, password string) (u *types.User, err error) {
 	var (
 		authProvider = &types.AuthProvider{Provider: credentialsTypePassword}
 
@@ -511,8 +473,8 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 			cc types.CredentialsSet
 		)
 
-		u, err = svc.users.FindByEmail(email)
-		if repository.ErrUserNotFound.Eq(err) {
+		u, err = svc.store.LookupUserByEmail(ctx, email)
+		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrFailedForUnknownUser()
 		}
 
@@ -521,9 +483,9 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		}
 
 		// Update audit meta with found user
-		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		cc, err = svc.credentials.FindByKind(u.ID, credentialsTypePassword)
+		cc, _, err = svc.store.SearchCredentials(ctx, types.CredentialsFilter{OwnerID: u.ID, Kind: credentialsTypePassword})
 		if err != nil {
 			return err
 		}
@@ -532,15 +494,16 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 			return AuthErrInvalidCredentials(aam)
 		} else {
 			// Update last-used-by timestamp on matching credentials
-			c.LastUsedAt = svc.now()
+			c.UpdatedAt = nowPtr()
+			c.LastUsedAt = nowPtr()
 			aam.setCredentials(c)
 
-			if _, err = svc.credentials.Update(c); err != nil {
+			if err = svc.store.UpdateCredentials(ctx, c); err != nil {
 				return err
 			}
 		}
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
 			return err
 		}
 
@@ -549,18 +512,18 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		}
 
 		if !u.EmailConfirmed {
-			if err = svc.sendEmailAddressConfirmationToken(u); err != nil {
+			if err = svc.sendEmailAddressConfirmationToken(ctx, u); err != nil {
 				return err
 			}
 
 			return AuthErrFailedUnconfirmedEmail()
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
+		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
+	return u, svc.recordAction(ctx, aam, AuthActionAuthenticate, err)
 }
 
 // checkPassword returns true if given (encrypted) password matches any of the credentials
@@ -569,7 +532,9 @@ func (svc auth) checkPassword(password string, cc types.CredentialsSet) bool {
 }
 
 // SetPassword sets new password for a user
-func (svc auth) SetPassword(userID uint64, password string) (err error) {
+//
+// This function also records an action
+func (svc auth) SetPassword(ctx context.Context, userID uint64, password string) (err error) {
 	var (
 		u *types.User
 
@@ -584,50 +549,50 @@ func (svc auth) SetPassword(userID uint64, password string) (err error) {
 			return AuthErrInteralLoginDisabledByConfig(aam)
 		}
 
-		if !svc.checkPasswordStrength(password) {
+		if !svc.CheckPasswordStrength(password) {
 			return AuthErrPasswordNotSecure(aam)
 		}
 
-		u, err = svc.users.FindByID(userID)
-		if repository.ErrUserNotFound.Eq(err) {
+		u, err = svc.store.LookupUserByID(ctx, userID)
+		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
 
-		if err != svc.changePassword(userID, password) {
+		if err != svc.SetPasswordCredentials(ctx, userID, password) {
 			return err
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
+	return svc.recordAction(ctx, aam, AuthActionChangePassword, err)
 }
 
 // Impersonate verifies if user can impersonate another user and returns that user
 //
 // For now, it's the caller's responsibility to generate the auth token
-func (svc auth) Impersonate(userID uint64) (u *types.User, err error) {
+func (svc auth) Impersonate(ctx context.Context, userID uint64) (u *types.User, err error) {
 	var (
 		aam = &authActionProps{user: u}
 	)
 
 	err = func() error {
-		if u, err = svc.users.FindByID(userID); err != nil {
+		if u, err = svc.store.LookupUserByID(ctx, userID); err != nil {
 			return err
 		}
 
-		if !svc.ac.CanImpersonateUser(svc.ctx, u) {
+		if !svc.ac.CanImpersonateUser(ctx, u) {
 			return AuthErrNotAllowedToImpersonate()
 		}
 
 		return err
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionImpersonate, err)
+	return u, svc.recordAction(ctx, aam, AuthActionImpersonate, err)
 }
 
 // ChangePassword validates old password and changes it with new
-func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword string) (err error) {
+func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, AuthActionPassword string) (err error) {
 	var (
 		u  *types.User
 		cc types.CredentialsSet
@@ -647,16 +612,16 @@ func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword st
 			return AuthErrPasswordNotSecure(aam)
 		}
 
-		if !svc.checkPasswordStrength(AuthActionPassword) {
+		if !svc.CheckPasswordStrength(AuthActionPassword) {
 			return AuthErrPasswordNotSecure(aam)
 		}
 
-		u, err = svc.users.FindByID(userID)
-		if repository.ErrUserNotFound.Eq(err) {
+		u, err = svc.store.LookupUserByID(ctx, userID)
+		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
 
-		cc, err = svc.credentials.FindByKind(userID, credentialsTypePassword)
+		cc, _, err = svc.store.SearchCredentials(ctx, types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID})
 		if err != nil {
 			return err
 		}
@@ -665,21 +630,21 @@ func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword st
 			return AuthErrPasswodResetFailedOldPasswordCheckFailed(aam)
 		}
 
-		if err != svc.changePassword(userID, AuthActionPassword) {
+		if err != svc.SetPasswordCredentials(ctx, userID, AuthActionPassword) {
 			return err
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
+	return svc.recordAction(ctx, aam, AuthActionChangePassword, err)
 }
 
 func (svc auth) hashPassword(password string) (hash []byte, err error) {
 	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
-func (svc auth) checkPasswordStrength(password string) bool {
+func (svc auth) CheckPasswordStrength(password string) bool {
 	if len(password) <= 4 {
 		return false
 	}
@@ -687,35 +652,57 @@ func (svc auth) checkPasswordStrength(password string) bool {
 	return true
 }
 
-// ChangePassword (soft) deletes old password entry and creates a new one
+// SetPasswordCredentials (soft) deletes old password entry and creates a new entry with new password on every change
 //
-// Expects hashed password as an input
-func (svc auth) changePassword(userID uint64, password string) (err error) {
-	var hash []byte
+// This way we can implement more strict password-change policies in the future
+//
+// This method is used by auth and user procedures to unify password hashing and updating
+// credentials
+func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, password string) (err error) {
+	var (
+		hash []byte
+		cc   types.CredentialsSet
+		f    = types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID}
+	)
+
 	if hash, err = svc.hashPassword(password); err != nil {
 		return
 	}
 
-	if err = svc.credentials.DeleteByKind(userID, credentialsTypePassword); err != nil {
+	if cc, _, err = svc.store.SearchCredentials(ctx, f); err != nil {
+		return nil
+	}
+
+	// Mark all credentials as deleted
+	_ = cc.Walk(func(c *types.Credentials) error {
+		c.DeletedAt = nowPtr()
+		return nil
+	})
+
+	// Do a partial update and soft-delete all
+	if err = svc.store.PartialUpdateCredentials(ctx, []string{"deleted_at"}, cc...); err != nil {
 		return
 	}
 
-	_, err = svc.credentials.Create(&types.Credentials{
+	// Add new credentials with new password
+	c := &types.Credentials{
+		ID:          id.Next(),
+		CreatedAt:   now(),
 		OwnerID:     userID,
 		Kind:        credentialsTypePassword,
 		Credentials: string(hash),
-	})
+	}
 
-	return err
+	return svc.store.CreateCredentials(ctx, c)
 }
 
 // IssueAuthRequestToken returns token that can be used for authentication
-func (svc auth) IssueAuthRequestToken(user *types.User) (token string, err error) {
-	return svc.createUserToken(user, credentialsTypeAuthToken)
+func (svc auth) IssueAuthRequestToken(ctx context.Context, user *types.User) (token string, err error) {
+	return svc.createUserToken(ctx, user, credentialsTypeAuthToken)
 }
 
 // ValidateAuthRequestToken returns user that requested auth token
-func (svc auth) ValidateAuthRequestToken(token string) (u *types.User, err error) {
+func (svc auth) ValidateAuthRequestToken(ctx context.Context, token string) (u *types.User, err error) {
 	var (
 		aam = &authActionProps{
 			credentials: &types.Credentials{Kind: credentialsTypeAuthToken},
@@ -723,29 +710,29 @@ func (svc auth) ValidateAuthRequestToken(token string) (u *types.User, err error
 	)
 
 	err = func() error {
-		u, err = svc.loadUserFromToken(token, credentialsTypeAuthToken)
+		u, err = svc.loadUserFromToken(ctx, token, credentialsTypeAuthToken)
 		if err != nil && u != nil {
 			aam.setUser(u)
-			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+			ctx = internalAuth.SetIdentityToContext(ctx, u)
 		}
 		return err
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionValidateToken, err)
+	return u, svc.recordAction(ctx, aam, AuthActionValidateToken, err)
 }
 
 // ValidateEmailConfirmationToken issues a validation token that can be used for
-func (svc auth) ValidateEmailConfirmationToken(token string) (user *types.User, err error) {
-	return svc.loadFromTokenAndConfirmEmail(token, credentialsTypeEmailAuthToken)
+func (svc auth) ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error) {
+	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeEmailAuthToken)
 }
 
 // ValidatePasswordResetToken validates password reset token
-func (svc auth) ValidatePasswordResetToken(token string) (user *types.User, err error) {
-	return svc.loadFromTokenAndConfirmEmail(token, credentialsTypeEmailAuthToken)
+func (svc auth) ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error) {
+	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeEmailAuthToken)
 }
 
 // loadFromTokenAndConfirmEmail loads token, confirms user's
-func (svc auth) loadFromTokenAndConfirmEmail(token, tokenType string) (u *types.User, err error) {
+func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenType string) (u *types.User, err error) {
 	var (
 		aam = &authActionProps{
 			user:        u,
@@ -758,31 +745,32 @@ func (svc auth) loadFromTokenAndConfirmEmail(token, tokenType string) (u *types.
 			return AuthErrInternalSignupDisabledByConfig(aam)
 		}
 
-		u, err = svc.loadUserFromToken(token, tokenType)
+		u, err = svc.loadUserFromToken(ctx, token, tokenType)
 		if err != nil {
 			return err
 		}
 
 		aam.setUser(u)
-		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
 		if u.EmailConfirmed {
 			return nil
 		}
 
 		u.EmailConfirmed = true
-		if u, err = svc.users.Update(u); err != nil {
+		u.UpdatedAt = nowPtr()
+		if err = svc.store.UpdateUser(ctx, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, aam, AuthActionConfirmEmail, err)
+	return u, svc.recordAction(ctx, aam, AuthActionConfirmEmail, err)
 }
 
 // ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
-func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t string, err error) {
+func (svc auth) ExchangePasswordResetToken(ctx context.Context, token string) (u *types.User, t string, err error) {
 	var (
 		aam = &authActionProps{
 			user:        u,
@@ -795,15 +783,15 @@ func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t strin
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
 
-		u, err = svc.loadUserFromToken(token, credentialsTypeResetPasswordToken)
+		u, err = svc.loadUserFromToken(ctx, token, credentialsTypeResetPasswordToken)
 		if err != nil {
 			return AuthErrInvalidToken(aam).Wrap(err)
 		}
 
 		aam.setUser(u)
-		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		t, err = svc.createUserToken(u, credentialsTypeResetPasswordTokenExchanged)
+		t, err = svc.createUserToken(ctx, u, credentialsTypeResetPasswordTokenExchanged)
 		if err != nil {
 			u = nil
 			t = ""
@@ -813,11 +801,11 @@ func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t strin
 		return nil
 	}()
 
-	return u, t, svc.recordAction(svc.ctx, aam, AuthActionExchangePasswordResetToken, err)
+	return u, t, svc.recordAction(ctx, aam, AuthActionExchangePasswordResetToken, err)
 }
 
 // SendEmailAddressConfirmationToken sends email with email address confirmation token
-func (svc auth) SendEmailAddressConfirmationToken(email string) (err error) {
+func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, email string) (err error) {
 	var (
 		aam = &authActionProps{
 			email: email,
@@ -829,18 +817,18 @@ func (svc auth) SendEmailAddressConfirmationToken(email string) (err error) {
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
 
-		u, err := svc.users.FindByEmail(email)
+		u, err := svc.store.LookupUserByEmail(ctx, email)
 		if err != nil {
 			return AuthErrInvalidToken(aam)
 		}
 
-		return svc.sendEmailAddressConfirmationToken(u)
+		return svc.sendEmailAddressConfirmationToken(ctx, u)
 	}()
 
-	return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, err)
+	return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, err)
 }
 
-func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
+func (svc auth) sendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error) {
 	var (
 		notificationLang = "en"
 		token            string
@@ -851,19 +839,19 @@ func (svc auth) sendEmailAddressConfirmationToken(u *types.User) (err error) {
 		}
 	)
 
-	if token, err = svc.createUserToken(u, credentialsTypeEmailAuthToken); err != nil {
+	if token, err = svc.createUserToken(ctx, u, credentialsTypeEmailAuthToken); err != nil {
 		return
 	}
 
-	if err = svc.notifications.EmailConfirmation(svc.ctx, notificationLang, u.Email, token); err != nil {
+	if err = svc.notifications.EmailConfirmation(ctx, notificationLang, u.Email, token); err != nil {
 		return
 	}
 
-	return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, err)
+	return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, err)
 }
 
 // SendPasswordResetToken sends password reset token to email
-func (svc auth) SendPasswordResetToken(email string) (err error) {
+func (svc auth) SendPasswordResetToken(ctx context.Context, email string) (err error) {
 	var (
 		u *types.User
 
@@ -878,48 +866,53 @@ func (svc auth) SendPasswordResetToken(email string) (err error) {
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
 
-		if u, err = svc.users.FindByEmail(email); err != nil {
+		if u, err = svc.store.LookupUserByEmail(ctx, email); err != nil {
 			return err
 		}
 
-		svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		if err = svc.sendPasswordResetToken(u); err != nil {
+		if err = svc.sendPasswordResetToken(ctx, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, aam, AuthActionSendPasswordResetToken, err)
+	return svc.recordAction(ctx, aam, AuthActionSendPasswordResetToken, err)
 }
 
 // CanRegister verifies if user can register
-func (svc auth) CanRegister() error {
+func (svc auth) CanRegister(ctx context.Context) error {
 	if svc.subscription != nil {
+		c, err := svc.store.CountUsers(ctx, types.UserFilter{})
+		if err != nil {
+			return fmt.Errorf("can not check if user can register: %w", err)
+		}
+
 		// When we have an active subscription, we need to check
 		// if users can register or did this deployment hit
 		// it's user-limit
-		return svc.subscription.CanRegister(svc.users.Total())
+		return svc.subscription.CanRegister(c)
 	}
 
 	return nil
 }
 
-func (svc auth) sendPasswordResetToken(u *types.User) (err error) {
+func (svc auth) sendPasswordResetToken(ctx context.Context, u *types.User) (err error) {
 	var (
 		notificationLang = "en"
 	)
 
-	token, err := svc.createUserToken(u, credentialsTypeResetPasswordToken)
+	token, err := svc.createUserToken(ctx, u, credentialsTypeResetPasswordToken)
 	if err != nil {
 		return err
 	}
 
-	return svc.notifications.PasswordReset(svc.ctx, notificationLang, u.Email, token)
+	return svc.notifications.PasswordReset(ctx, notificationLang, u.Email, token)
 }
 
-func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error) {
+func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *types.User, err error) {
 	var (
 		aam = &authActionProps{
 			credentials: &types.Credentials{Kind: kind},
@@ -931,7 +924,7 @@ func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error)
 		return nil, AuthErrInvalidToken(aam)
 	}
 
-	c, err := svc.credentials.FindByID(credentialsID)
+	c, err := svc.store.LookupCredentialsByID(ctx, credentialsID)
 	if err == repository.ErrCredentialsNotFound {
 		return nil, AuthErrInvalidToken(aam)
 	}
@@ -942,7 +935,7 @@ func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error)
 		return
 	}
 
-	if err = svc.credentials.DeleteByID(c.ID); err != nil {
+	if err = svc.store.RemoveCredentialsByID(ctx, c.ID); err != nil {
 		return
 	}
 
@@ -950,7 +943,7 @@ func (svc auth) loadUserFromToken(token, kind string) (u *types.User, err error)
 		return nil, AuthErrInvalidToken(aam)
 	}
 
-	u, err = svc.users.FindByID(c.OwnerID)
+	u, err = svc.store.LookupUserByID(ctx, c.OwnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -984,7 +977,7 @@ func (svc auth) validateToken(token string) (ID uint64, credentials string) {
 
 // Generates & stores user token
 // it returns combined value of token + token ID to help with the lookups
-func (svc auth) createUserToken(u *types.User, kind string) (token string, err error) {
+func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string) (token string, err error) {
 	var (
 		expiresAt time.Time
 		aam       = &authActionProps{
@@ -997,18 +990,22 @@ func (svc auth) createUserToken(u *types.User, kind string) (token string, err e
 		switch kind {
 		case credentialsTypeAuthToken:
 			// 15 sec expiration for all tokens that are part of redirection
-			expiresAt = svc.now().Add(time.Second * 15)
+			expiresAt = nowPtr().Add(time.Second * 15)
 		default:
 			// 1h expiration for all tokens send via email
-			expiresAt = svc.now().Add(time.Minute * 60)
+			expiresAt = nowPtr().Add(time.Minute * 60)
 		}
 
-		c, err := svc.credentials.Create(&types.Credentials{
+		c := &types.Credentials{
+			ID:          id.Next(),
+			CreatedAt:   now(),
 			OwnerID:     u.ID,
 			Kind:        kind,
 			Credentials: string(rand.Bytes(credentialsTokenLength)),
 			ExpiresAt:   &expiresAt,
-		})
+		}
+
+		err := svc.store.CreateCredentials(ctx, c)
 
 		if err != nil {
 			return err
@@ -1018,32 +1015,35 @@ func (svc auth) createUserToken(u *types.User, kind string) (token string, err e
 		return nil
 	}()
 
-	return token, svc.recordAction(svc.ctx, aam, AuthActionIssueToken, err)
+	return token, svc.recordAction(ctx, aam, AuthActionIssueToken, err)
 }
 
 // Automatically promotes user to administrator if it is the first user in the database
-func (svc auth) autoPromote(u *types.User) (err error) {
-	if svc.users.Total() > 1 || u.ID == 0 {
-		return nil
-	}
-
-	if svc.roles == nil {
-		// no role repository; auto-promotion disabled
-		return nil
-	}
-
+func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	var (
+		c      uint
 		roleID = permissions.AdminsRoleID
 		aam    = &authActionProps{user: u, role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.roles.MemberAddByID(roleID, u.ID)
-	return svc.recordAction(svc.ctx, aam, AuthActionAutoPromote, err)
+	err = func() error {
+		if c, err = svc.store.CountUsers(ctx, types.UserFilter{}); err != nil {
+			return err
+		}
+
+		if c > 1 || u.ID == 0 {
+			return nil
+		}
+
+		return svc.store.AddRoleMembersByID(ctx, roleID, u.ID)
+	}()
+
+	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)
 }
 
 // LoadRoleMemberships loads membership info
-func (svc auth) LoadRoleMemberships(u *types.User) error {
-	rr, _, err := svc.roles.Find(types.RoleFilter{MemberID: u.ID})
+func (svc auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
+	rr, _, err := svc.store.SearchRoles(ctx, types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return err
 	}

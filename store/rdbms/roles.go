@@ -1,9 +1,12 @@
 package rdbms
 
 import (
+	"context"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/jmoiron/sqlx"
 )
 
 func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuilder, err error) {
@@ -54,8 +57,13 @@ func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuild
 	return
 }
 
-func (s Store) roleMemberTable() string {
-	return "sys_role_member"
+func (s Store) RoleMemberTable(aa ...string) string {
+	var alias string
+	if len(aa) > 0 {
+		alias = " AS " + aa[0]
+	}
+
+	return "sys_role_member" + alias
 }
 
 //func (s *Store) MembershipsFindByUserID(roleID uint64) (mm []*types.RoleMember, err error) {
@@ -69,15 +77,28 @@ func (s Store) roleMemberTable() string {
 //	sql := "SELECT * FROM " + rl.tableMember() + " WHERE rel_role = ?"
 //	return rval, rl.db().Select(&rval, sql, roleID)
 //}
-//
-//func (s *Store) MemberAddByID(roleID, userID uint64) error {
-//	mod := &types.RoleMember{
-//		RoleID: roleID,
-//		UserID: userID,
-//	}
-//	return rl.db().Replace(rl.tableMember(), mod)
-//}
-//
+
+func (s *Store) AddRoleMembersByID(ctx context.Context, roleID uint64, IDs ...uint64) error {
+	if len(IDs) == 0 {
+		return nil
+	}
+
+	var (
+		p = store.Payload{"rel_role": roleID, "rel_user": 0}
+	)
+
+	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
+		for _, p["rel_user"] = range IDs {
+			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RoleMemberTable()).SetMap(p))
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
 //func (s *Store) MemberRemoveByID(roleID, userID uint64) error {
 //	mod := &types.RoleMember{
 //		RoleID: roleID,
