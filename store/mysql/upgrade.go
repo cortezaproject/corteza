@@ -31,7 +31,13 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 	u.ddl.AddTemplate("create-table-suffix", "ENGINE=InnoDB DEFAULT CHARSET=utf8")
 
 	// Sadly, MySQL does not support partial indexes
-	u.ddl.AddTemplate("index-condition", " -- no support for partial indexes")
+	//
+	// To work around this, we'll ignore partial indexes
+	// and solve this on application level
+	u.ddl.AddTemplate(
+		"create-index",
+		`{{ if not .Condition }}CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }}{{ end }}`
+		)
 
 	// Cover mysql exceptions
 	u.ddl.AddTemplateFunc("columnType", func(ct *ddl.ColumnType) string {
@@ -140,6 +146,12 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	return true, nil
 }
 
+func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
+	return nil, fmt.Errorf("pending implementation")
+}
+
+// AddColumn adds column to table
+// @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
 	var (
 		lookup = `SELECT IS_NULLABLE = 'YES' AS IS_NULLABLE,
@@ -162,6 +174,36 @@ func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) 
 
 		return true, nil
 	} else if err != nil {
+		return false, fmt.Errorf("could not check if column exists: %w", err)
+	}
+
+	return false, nil
+}
+
+// DropColumn drops column from table
+// @todo extract column lookup
+func (u upgrader) DropColumn(ctx context.Context, table, column string) (dropped bool, err error) {
+	var (
+		lookup = `SELECT IS_NULLABLE = 'YES' AS IS_NULLABLE,
+                         DATA_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                   WHERE TABLE_SCHEMA = ? 
+                     AND TABLE_NAME = ?
+                     AND COLUMN_NAME = ?`
+
+		tmp struct {
+			IsNullable bool   `db:"IS_NULLABLE"`
+			DataType   string `db:"DATA_TYPE"`
+		}
+	)
+
+	if err = u.s.DB().GetContext(ctx, &tmp, lookup, u.s.Config().DBName, table, column); err == nil {
+		if err = u.Exec(ctx, u.ddl.DropColumn(table, column)); err != nil {
+			return false, fmt.Errorf("could not add column %s to table %s: %w", table, column, err)
+		}
+
+		return true, nil
+	} else if err != sql.ErrNoRows {
 		return false, fmt.Errorf("could not check if column exists: %w", err)
 	}
 
