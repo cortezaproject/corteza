@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net/http"
 	"net/url"
@@ -254,7 +253,6 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 
 	if srup.Path != "" {
 		if srup.Path != svc.pathCleanup(reqPath) {
-			spew.Dump(srup.Path, reqPath, svc.pathCleanup(reqPath))
 			return nil, SinkErrInvalidPath(sap)
 		}
 	}
