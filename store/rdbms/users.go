@@ -1,6 +1,8 @@
 package rdbms
 
 import (
+	"context"
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
@@ -78,4 +80,12 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 
 	query = query.OrderBy(orderBy...)
 	return
+}
+
+func (s Store) CountUsers(ctx context.Context, f types.UserFilter) (uint, error) {
+	if q, err := s.convertUserFilter(f); err != nil {
+		return 0, fmt.Errorf("could not count users: %w", err)
+	} else {
+		return Count(ctx, s.db, q)
+	}
 }

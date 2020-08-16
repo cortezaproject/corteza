@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 	"io"
 	"net/mail"
 	"regexp"
@@ -47,8 +48,8 @@ type (
 	}
 
 	userAuth interface {
-		checkPasswordStrength(string) bool
-		changePassword(uint64, string) error
+		CheckPasswordStrength(string) bool
+		SetPasswordCredentials(context.Context, uint64, string) error
 	}
 
 	userSubscriptionChecker interface {
@@ -328,7 +329,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		}
 
 		if new.Handle == "" {
-			createHandle(svc.user, new)
+			createHandle(svc.ctx, DefaultNgStore, new)
 		}
 
 		if err = svc.UniqueCheck(new); err != nil {
@@ -623,11 +624,11 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 			return UserErrNotAllowedToUpdate()
 		}
 
-		if !svc.auth.checkPasswordStrength(newPassword) {
+		if !svc.auth.CheckPasswordStrength(newPassword) {
 			return UserErrPasswordNotSecure()
 		}
 
-		if err := svc.auth.changePassword(userID, newPassword); err != nil {
+		if err := svc.auth.SetPasswordCredentials(svc.ctx, userID, newPassword); err != nil {
 			return err
 		}
 
@@ -699,13 +700,13 @@ rangeLoop:
 	return uu.Walk(s)
 }
 
-func createHandle(r repository.UserRepository, u *types.User) {
+func createHandle(ctx context.Context, s usersStore, u *types.User) {
 	if u.Handle == "" {
 		u.Handle, _ = handle.Cast(
 			// Must not exist before
-			func(s string) bool {
-				e, err := r.FindByHandle(s)
-				return err == repository.ErrUserNotFound && (e == nil || e.ID == u.ID)
+			func(lookup string) bool {
+				e, err := s.LookupUserByHandle(ctx, lookup)
+				return err == store.ErrNotFound && (e == nil || e.ID == u.ID)
 			},
 			// use name or username
 			u.Name,

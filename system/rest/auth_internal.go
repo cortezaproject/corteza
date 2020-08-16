@@ -28,7 +28,19 @@ type (
 
 	AuthInternal struct {
 		tokenEncoder auth.TokenEncoder
-		authSvc      service.AuthService
+		authSvc      authInternalAuthService
+	}
+
+	authInternalAuthService interface {
+		InternalSignUp(ctx context.Context, input *types.User, password string) (*types.User, error)
+		InternalLogin(ctx context.Context, email string, password string) (*types.User, error)
+		SetPassword(ctx context.Context, userID uint64, AuthActionPassword string) error
+		ChangePassword(ctx context.Context, userID uint64, oldPassword, AuthActionPassword string) error
+		LoadRoleMemberships(ctx context.Context, user *types.User) error
+		ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error)
+		ExchangePasswordResetToken(ctx context.Context, token string) (user *types.User, exchangedToken string, err error)
+		ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error)
+		SendPasswordResetToken(ctx context.Context, email string) (err error)
 	}
 )
 
@@ -40,18 +52,15 @@ func (AuthInternal) New() *AuthInternal {
 }
 
 func (ctrl *AuthInternal) Login(ctx context.Context, r *request.AuthInternalLogin) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-	u, err := svc.InternalLogin(r.Email, r.Password)
+	u, err := ctrl.authSvc.InternalLogin(ctx, r.Email, r.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return ctrl.authInternalValidUserResponse(svc, u)
+	return ctrl.authInternalValidUserResponse(ctx, u)
 }
 
 func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSignup) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-
 	newUser := &types.User{
 		Email:    r.Email,
 		Handle:   r.Handle,
@@ -59,7 +68,7 @@ func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSig
 		Name:     r.Name,
 	}
 
-	u, err := svc.InternalSignUp(newUser, r.Password)
+	u, err := ctrl.authSvc.InternalSignUp(ctx, newUser, r.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +78,19 @@ func (ctrl *AuthInternal) Signup(ctx context.Context, r *request.AuthInternalSig
 		return authInternalValidUserResponse{User: &authUserPayload{User: payload.User(u)}}, nil
 	}
 
-	if err = svc.LoadRoleMemberships(u); err != nil {
+	if err = ctrl.authSvc.LoadRoleMemberships(ctx, u); err != nil {
 		return nil, err
 	}
 
-	return ctrl.authInternalValidUserResponse(svc, u)
+	return ctrl.authInternalValidUserResponse(ctx, u)
 }
 
 func (ctrl *AuthInternal) RequestPasswordReset(ctx context.Context, r *request.AuthInternalRequestPasswordReset) (interface{}, error) {
-	return true, ctrl.authSvc.With(ctx).SendPasswordResetToken(r.Email)
+	return true, ctrl.authSvc.SendPasswordResetToken(ctx, r.Email)
 }
 
 func (ctrl *AuthInternal) ExchangePasswordResetToken(ctx context.Context, r *request.AuthInternalExchangePasswordResetToken) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-	u, token, err := svc.ExchangePasswordResetToken(r.Token)
+	u, token, err := ctrl.authSvc.ExchangePasswordResetToken(ctx, r.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -94,39 +102,36 @@ func (ctrl *AuthInternal) ExchangePasswordResetToken(ctx context.Context, r *req
 }
 
 func (ctrl *AuthInternal) ResetPassword(ctx context.Context, r *request.AuthInternalResetPassword) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-	var u, err = svc.ValidatePasswordResetToken(r.Token)
+	var u, err = ctrl.authSvc.ValidatePasswordResetToken(ctx, r.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	err = svc.SetPassword(u.ID, r.Password)
+	err = ctrl.authSvc.SetPassword(ctx, u.ID, r.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return ctrl.authInternalValidUserResponse(svc, u)
+	return ctrl.authInternalValidUserResponse(ctx, u)
 }
 
 func (ctrl *AuthInternal) ConfirmEmail(ctx context.Context, r *request.AuthInternalConfirmEmail) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
-	var u, err = svc.ValidateEmailConfirmationToken(r.Token)
+	var u, err = ctrl.authSvc.ValidateEmailConfirmationToken(ctx, r.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	return ctrl.authInternalValidUserResponse(svc, u)
+	return ctrl.authInternalValidUserResponse(ctx, u)
 }
 
 func (ctrl *AuthInternal) ChangePassword(ctx context.Context, r *request.AuthInternalChangePassword) (interface{}, error) {
-	var svc = ctrl.authSvc.With(ctx)
 	var identity = auth.GetIdentityFromContext(ctx)
 
 	if !identity.Valid() {
 		return nil, errors.New("invalid user (not authenticated)")
 	}
 
-	err := svc.ChangePassword(identity.Identity(), r.OldPassword, r.NewPassword)
+	err := ctrl.authSvc.ChangePassword(ctx, identity.Identity(), r.OldPassword, r.NewPassword)
 	if err != nil {
 		return nil, err
 	} else {
@@ -134,8 +139,8 @@ func (ctrl *AuthInternal) ChangePassword(ctx context.Context, r *request.AuthInt
 	}
 }
 
-func (ctrl AuthInternal) authInternalValidUserResponse(svc interface{ LoadRoleMemberships(*types.User) error }, u *types.User) (*authInternalValidUserResponse, error) {
-	if err := svc.LoadRoleMemberships(u); err != nil {
+func (ctrl AuthInternal) authInternalValidUserResponse(ctx context.Context, u *types.User) (*authInternalValidUserResponse, error) {
+	if err := ctrl.authSvc.LoadRoleMemberships(ctx, u); err != nil {
 		return nil, err
 	}
 

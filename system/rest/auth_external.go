@@ -23,8 +23,14 @@ import (
 
 type (
 	ExternalAuth struct {
-		auth       service.AuthService
+		auth       externalAuthService
 		jwtEncoder auth.TokenEncoder
+	}
+
+	externalAuthService interface {
+		External(ctx context.Context, profile goth.User) (*types.User, error)
+		FrontendRedirectURL() string
+		IssueAuthRequestToken(ctx context.Context, user *types.User) (token string, err error)
 	}
 )
 
@@ -113,27 +119,23 @@ func (ctrl *ExternalAuth) handleFailedCallback(w http.ResponseWriter, r *http.Re
 // 2) use `auth.frontend.url.redirect` setting
 // 3) use current url
 func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Request, cred goth.User) {
-	ctrl.log(r.Context(), zap.String("provider", cred.Provider)).Info("external login successful")
-
-	svc := ctrl.auth.With(r.Context())
 
 	var (
-		u   *types.User
-		err error
-	)
-
-	// Try to login/sign-up external user
-	if u, err = svc.External(cred); err != nil {
-		resputil.JSON(w, err)
-		return
-	}
-
-	var (
+		u        *types.User
+		err      error
 		ctx      = r.Context()
 		token    string
 		redirUrl *url.URL
 		c        *http.Cookie
 	)
+
+	ctrl.log(ctx, zap.String("provider", cred.Provider)).Info("external login successful")
+
+	// Try to login/sign-up external user
+	if u, err = ctrl.auth.External(ctx, cred); err != nil {
+		resputil.JSON(w, err)
+		return
+	}
 
 	if c, err = r.Cookie(redirCookieName); err != nil && err != http.ErrNoCookie {
 		ctrl.log(ctx, zap.Error(err)).Warn("error reading cookies")
@@ -151,7 +153,7 @@ func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Re
 
 	if redirUrl == nil {
 		// Try with frontend redirect URL
-		if fru := svc.FrontendRedirectURL(); fru != "" {
+		if fru := ctrl.auth.FrontendRedirectURL(); fru != "" {
 			redirUrl, err = url.Parse(fru)
 
 			if redirUrl == nil {
@@ -178,7 +180,7 @@ func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Re
 		if u != nil {
 			// Append auth request token to the URL
 			// This token is used by the client and exchanged for JWT
-			if token, err = svc.IssueAuthRequestToken(u); err == nil {
+			if token, err = ctrl.auth.IssueAuthRequestToken(ctx, u); err == nil {
 				q.Set("token", token)
 			}
 		}

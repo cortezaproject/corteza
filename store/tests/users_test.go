@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
@@ -9,13 +11,22 @@ import (
 	"time"
 )
 
-func testUsers(t *testing.T, s usersStore) {
+type (
+	usersStoreAdt interface {
+		usersStore
+		CountUsers(ctx context.Context, f types.UserFilter) (uint, error)
+	}
+)
+
+func testUsers(t *testing.T, tmp interface{}) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
 
 		//err  error
 		user *types.User
+
+		s = tmp.(usersStoreAdt)
 	)
 
 	t.Run("create", func(t *testing.T) {
@@ -154,4 +165,29 @@ func testUsers(t *testing.T, s usersStore) {
 	t.Run("ordered search", func(t *testing.T) {
 		t.Skip("not implemented")
 	})
+
+	t.Run("count", func(t *testing.T) {
+		var (
+			f      = types.UserFilter{}
+			c1, c2 uint
+			err    error
+			user   = &types.User{ID: id.Next(), CreatedAt: time.Now(), Email: fmt.Sprintf("user-crud+%s@crust.test", time.Now().String())}
+		)
+
+		c1, err = s.CountUsers(ctx, f)
+		req.NoError(err)
+
+		req.NoError(s.CreateUser(ctx, user))
+
+		c2, err = s.CountUsers(ctx, f)
+		req.NoError(err)
+		req.Equal(c1+1, c2)
+
+		req.NoError(s.RemoveUserByID(ctx, user.ID))
+
+		c2, err = s.CountUsers(ctx, f)
+		req.NoError(err)
+		req.Equal(c1, c2)
+	})
+
 }
