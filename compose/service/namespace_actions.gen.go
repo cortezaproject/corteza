@@ -302,13 +302,21 @@ func (e *namespaceError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *namespaceError) Is(Resource error) bool {
-	t, ok := Resource.(*namespaceError)
+func (e *namespaceError) Is(err error) bool {
+	t, ok := err.(*namespaceError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *namespaceError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps namespaceError around another error

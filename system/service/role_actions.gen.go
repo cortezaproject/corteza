@@ -431,13 +431,21 @@ func (e *roleError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *roleError) Is(Resource error) bool {
-	t, ok := Resource.(*roleError)
+func (e *roleError) Is(err error) bool {
+	t, ok := err.(*roleError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *roleError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps roleError around another error

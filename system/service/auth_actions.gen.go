@@ -318,13 +318,21 @@ func (e *authError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *authError) Is(Resource error) bool {
-	t, ok := Resource.(*authError)
+func (e *authError) Is(err error) bool {
+	t, ok := err.(*authError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *authError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps authError around another error

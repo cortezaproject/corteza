@@ -389,13 +389,21 @@ func (e *userError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *userError) Is(Resource error) bool {
-	t, ok := Resource.(*userError)
+func (e *userError) Is(err error) bool {
+	t, ok := err.(*userError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *userError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps userError around another error

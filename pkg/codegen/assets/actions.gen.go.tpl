@@ -255,13 +255,21 @@ func (e *{{ $.Service }}Error) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *{{ $.Service }}Error) Is(Resource error) bool {
-	t, ok := Resource.(*{{ $.Service }}Error)
+func (e *{{ $.Service }}Error) Is(err error) bool {
+	t, ok := err.(*{{ $.Service }}Error)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *{{ $.Service }}Error) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps {{ $.Service }}Error around another error

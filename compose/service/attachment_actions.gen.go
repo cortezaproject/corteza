@@ -451,13 +451,21 @@ func (e *attachmentError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *attachmentError) Is(Resource error) bool {
-	t, ok := Resource.(*attachmentError)
+func (e *attachmentError) Is(err error) bool {
+	t, ok := err.(*attachmentError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *attachmentError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps attachmentError around another error

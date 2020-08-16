@@ -308,13 +308,21 @@ func (e *applicationError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *applicationError) Is(Resource error) bool {
-	t, ok := Resource.(*applicationError)
+func (e *applicationError) Is(err error) bool {
+	t, ok := err.(*applicationError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *applicationError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps applicationError around another error

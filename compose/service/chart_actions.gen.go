@@ -338,13 +338,21 @@ func (e *chartError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *chartError) Is(Resource error) bool {
-	t, ok := Resource.(*chartError)
+func (e *chartError) Is(err error) bool {
+	t, ok := err.(*chartError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *chartError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps chartError around another error
