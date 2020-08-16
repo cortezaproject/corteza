@@ -347,13 +347,21 @@ func (e *moduleError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *moduleError) Is(Resource error) bool {
-	t, ok := Resource.(*moduleError)
+func (e *moduleError) Is(err error) bool {
+	t, ok := err.(*moduleError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *moduleError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps moduleError around another error

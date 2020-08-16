@@ -283,13 +283,21 @@ func (e *sinkError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *sinkError) Is(Resource error) bool {
-	t, ok := Resource.(*sinkError)
+func (e *sinkError) Is(err error) bool {
+	t, ok := err.(*sinkError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *sinkError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps sinkError around another error

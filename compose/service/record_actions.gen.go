@@ -443,13 +443,21 @@ func (e *recordError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *recordError) Is(Resource error) bool {
-	t, ok := Resource.(*recordError)
+func (e *recordError) Is(err error) bool {
+	t, ok := err.(*recordError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *recordError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps recordError around another error

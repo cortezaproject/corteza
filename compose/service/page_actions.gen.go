@@ -359,13 +359,21 @@ func (e *pageError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *pageError) Is(Resource error) bool {
-	t, ok := Resource.(*pageError)
+func (e *pageError) Is(err error) bool {
+	t, ok := err.(*pageError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *pageError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps pageError around another error

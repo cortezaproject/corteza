@@ -347,13 +347,21 @@ func (e *reminderError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *reminderError) Is(Resource error) bool {
-	t, ok := Resource.(*reminderError)
+func (e *reminderError) Is(err error) bool {
+	t, ok := err.(*reminderError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *reminderError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps reminderError around another error

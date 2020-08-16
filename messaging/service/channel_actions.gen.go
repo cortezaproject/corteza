@@ -324,13 +324,21 @@ func (e *channelError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *channelError) Is(Resource error) bool {
-	t, ok := Resource.(*channelError)
+func (e *channelError) Is(err error) bool {
+	t, ok := err.(*channelError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *channelError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps channelError around another error

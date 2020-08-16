@@ -218,13 +218,21 @@ func (e *accessControlError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *accessControlError) Is(Resource error) bool {
-	t, ok := Resource.(*accessControlError)
+func (e *accessControlError) Is(err error) bool {
+	t, ok := err.(*accessControlError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *accessControlError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps accessControlError around another error

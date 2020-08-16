@@ -283,13 +283,21 @@ func (e *notificationError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *notificationError) Is(Resource error) bool {
-	t, ok := Resource.(*notificationError)
+func (e *notificationError) Is(err error) bool {
+	t, ok := err.(*notificationError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *notificationError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps notificationError around another error

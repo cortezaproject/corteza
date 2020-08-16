@@ -171,13 +171,21 @@ func (e *statisticsError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *statisticsError) Is(Resource error) bool {
-	t, ok := Resource.(*statisticsError)
+func (e *statisticsError) Is(err error) bool {
+	t, ok := err.(*statisticsError)
 	if !ok {
 		return false
 	}
 
 	return t.resource == e.resource && t.error == e.error
+}
+
+// Is fn for error equality check
+//
+// This function is auto-generated.
+//
+func (e *statisticsError) IsGeneric() bool {
+	return e.error == "generic"
 }
 
 // Wrap wraps statisticsError around another error
