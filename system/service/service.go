@@ -21,10 +21,6 @@ import (
 )
 
 type (
-	db interface {
-		Transaction(callback func() error) error
-	}
-
 	permissionServicer interface {
 		accessControlPermissionServicer
 		Watch(ctx context.Context)
@@ -44,6 +40,16 @@ type (
 	eventDispatcher interface {
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
+	}
+
+	// storeInterface wraps generated interfaces to enable extensions
+	storeInterface interface {
+		// Include generated interfaces
+		storeGeneratedInterfaces
+
+		// And all additional required functions
+		AddRoleMembersByID(context.Context, uint64, ...uint64) error
+		CountUsers(context.Context, types.UserFilter) (uint, error)
 	}
 )
 

@@ -2,16 +2,18 @@ package service
 
 // This file is auto-generated.
 //
+// Template: pkg/store_interfaces_joined.gen.go.tpl
+// Definitions:
+//  - store/actionlog.yaml
+//  - store/rbac_rules.yaml
+//
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
 //
-// Definitions file that controls how this file is generated:
-//  - store/actionlog.yaml
-//  - store/rbac_rules.yaml
 
 type (
 	// Interface combines interfaces of all supported store interfaces
-	storeInterface interface {
+	storeGeneratedInterfaces interface {
 		actionlogsStore
 		rbacRulesStore
 	}

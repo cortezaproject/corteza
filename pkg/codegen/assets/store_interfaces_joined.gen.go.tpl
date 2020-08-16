@@ -2,17 +2,19 @@ package {{ .Package }}
 
 // This file is auto-generated.
 //
-// Changes to this file may cause incorrect behavior and will be lost if
-// the code is regenerated.
-//
-// Definitions file that controls how this file is generated:
+// Template: pkg/store_interfaces_joined.gen.go.tpl
+// Definitions:
 {{- range .Definitions }}
 //  - {{ .Source }}
 {{- end }}
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
 
 type (
 	// Interface combines interfaces of all supported store interfaces
-	storeInterface interface {
+	storeGeneratedInterfaces interface {
 	{{ range .Definitions -}}
 		{{ unpubIdent .Types.Plural }}Store
 	{{ end }}

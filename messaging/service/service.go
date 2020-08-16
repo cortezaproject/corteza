@@ -30,6 +30,15 @@ type (
 		ActionLog options.ActionLogOpt
 		Storage   options.StorageOpt
 	}
+
+	// storeInterface wraps generated interfaces to enable extensions
+	storeInterface interface {
+		// Include generated interfaces
+		storeGeneratedInterfaces
+
+		// And all additional required functions
+		// ...
+	}
 )
 
 var (

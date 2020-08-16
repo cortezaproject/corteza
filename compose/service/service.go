@@ -35,6 +35,15 @@ type (
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
 	}
+
+	// storeInterface wraps generated interfaces to enable extensions
+	storeInterface interface {
+		// Include generated interfaces
+		storeGeneratedInterfaces
+
+		// And all additional required functions
+		// ...
+	}
 )
 
 var (
