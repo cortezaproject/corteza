@@ -39,44 +39,139 @@ func (s Store) Search{{ pubIdent $.Types.Plural }}(ctx context.Context, f {{ $.T
     {{ if $.Search.DisablePaging }}
     scap := DefaultSliceCapacity
 	{{ else }}
-	q = ApplyPaging(q, f.PageFilter)
-
 	scap := f.PerPage
 	if scap == 0 {
 		scap = DefaultSliceCapacity
+	}
+
+	if f.Count, err = Count(ctx, s.db, q); err != nil || f.Count == 0 {
+		return nil, f, err
 	}
 	{{ end }}
 
 	var (
 		set = make([]*{{ $.Types.GoType }}, 0, scap)
-		res *{{ $.Types.GoType }}
-	)
 
-	return set, f, func() error {
-    {{- if not $.Search.DisablePaging }}
-		if f.Count, err = Count(ctx, s.db, q); err != nil || f.Count == 0 {
-			return err
-		}
-	{{- end }}
-		rows, err := s.Query(ctx, q)
-		if err != nil {
-			return err
-		}
+	{{- if $.Search.DisablePaging }}
+		fetch = func() error {
+			var (
+				res *{{ $.Types.GoType }}
+				rows, err = s.Query(ctx, q)
+			)
 
-		for rows.Next() {
-			if res, err = s.internal{{ pubIdent $.Types.Singular }}RowScanner(rows, rows.Err()); err != nil {
-				if cerr := rows.Close(); cerr != nil {
-					return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-				}
-
+			if err != nil {
 				return err
 			}
 
-			set = append(set, res)
+			for rows.Next() {
+				if res, err = s.internal{{ pubIdent $.Types.Singular }}RowScanner(rows, rows.Err()); err != nil {
+					if cerr := rows.Close(); cerr != nil {
+						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+					}
+
+					return err
+				}
+
+				set = append(set, res)
+			}
+
+			return rows.Close()
+		}
+	{{ else }}
+		// @todo this offset needs to be removed and replaced with key-based-paging
+		fetchPage = func(offset, limit uint) (fetched, skipped uint, err error) {
+			var (
+				res *{{ $.Types.GoType }}
+				chk bool
+			)
+
+			if limit > 0 {
+				q = q.Limit(uint64(limit))
+			}
+
+			if offset > 0 {
+				q = q.Offset(uint64(offset))
+			}
+
+			rows, err := s.Query(ctx, q)
+			if err != nil {
+				return
+			}
+
+			for rows.Next() {
+				fetched++
+				if res, err = s.internal{{ pubIdent $.Types.Singular }}RowScanner(rows, rows.Err()); err != nil {
+					if cerr := rows.Close(); cerr != nil {
+						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+					}
+
+					return
+				}
+
+				// If check function is set, call it and act accordingly
+				if f.Check != nil {
+					if chk, err = f.Check(res); err != nil {
+						if cerr := rows.Close(); cerr != nil {
+							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
+						}
+
+						return
+					} else if !chk {
+						// did not pass the check
+						// go with the next row
+						skipped++
+						continue
+					}
+				}
+
+				set = append(set, res)
+
+				// make sure we do not fetch more than requested!
+				if f.Limit > 0 && uint(len(set)) >= f.Limit {
+					break
+				}
+			}
+
+			err = rows.Close()
+			return
 		}
 
-		return rows.Close()
-	}()
+		fetch = func() error {
+			var (
+				fetched uint
+
+				// starting offset & limit are from filter arg
+				// note that this will have to be improved with key-based pagination
+				offset, limit = calculatePaging(f.PageFilter)
+			)
+
+			for refetch := 0; refetch < MaxRefetches; refetch++ {
+				if fetched, _, err = fetchPage(offset, limit); err != nil {
+					return err
+				}
+
+				// if limit is not set or we've already collected enough resources
+				// we can break the loop right away
+				if limit == 0 || fetched == 0 || uint(len(set)) >= f.Limit {
+					break
+				}
+
+				// we've skipped fetched resources (due to check() fn)
+				// and we still have less results (in set) than required by limit
+				// inc offset by number of fetched items
+				offset += fetched
+
+				if limit < MinRefetchLimit {
+					limit = MinRefetchLimit
+				}
+
+			}
+			return nil
+		}
+	{{ end -}}
+	)
+
+	return set, f, fetch()
 }
 {{ end }}
 

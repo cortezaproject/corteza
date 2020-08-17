@@ -28,30 +28,34 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 	scap := DefaultSliceCapacity
 
 	var (
-		set = make([]*permissions.Rule, 0, scap)
-		res *permissions.Rule
-	)
+		set   = make([]*permissions.Rule, 0, scap)
+		fetch = func() error {
+			var (
+				res       *permissions.Rule
+				rows, err = s.Query(ctx, q)
+			)
 
-	return set, f, func() error {
-		rows, err := s.Query(ctx, q)
-		if err != nil {
-			return err
-		}
-
-		for rows.Next() {
-			if res, err = s.internalRbacRuleRowScanner(rows, rows.Err()); err != nil {
-				if cerr := rows.Close(); cerr != nil {
-					return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-				}
-
+			if err != nil {
 				return err
 			}
 
-			set = append(set, res)
-		}
+			for rows.Next() {
+				if res, err = s.internalRbacRuleRowScanner(rows, rows.Err()); err != nil {
+					if cerr := rows.Close(); cerr != nil {
+						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+					}
 
-		return rows.Close()
-	}()
+					return err
+				}
+
+				set = append(set, res)
+			}
+
+			return rows.Close()
+		}
+	)
+
+	return set, f, fetch()
 }
 
 // CreateRbacRule creates one or more rows in rbac_rules table

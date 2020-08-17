@@ -78,6 +78,9 @@ const (
 	TxRetryHardLimit = 100
 
 	DefaultSliceCapacity = 1000
+
+	MinRefetchLimit = 10
+	MaxRefetches    = 100
 )
 
 var (

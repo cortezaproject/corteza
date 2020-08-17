@@ -57,6 +57,12 @@ type (
 		// Standard paging fields & helpers
 		rh.PageFilter
 
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(user *Record) (bool, error)
+
 		Deleted rh.FilterState `json:"deleted"`
 	}
 )
