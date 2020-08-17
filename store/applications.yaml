@@ -3,6 +3,7 @@ import:
 
 interface:
   - system/service
+  - provision/system
 
 fields:
   - { field: ID }
@@ -23,5 +24,5 @@ lookups:
 
 rdbms:
   alias: app
-  table: sys_application
+  table: applications
   customFilterConverter: true

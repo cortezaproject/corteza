@@ -3,7 +3,7 @@ package rdbms
 // This file is an auto-generated file
 //
 // Template:    pkg/codegen/assets/store_rdbms.gen.go.tpl
-// Definitions: store/system_attachments.yaml
+// Definitions: store/attachments.yaml
 //
 // Changes to this file may cause incorrect behavior
 // and will be lost if the code is regenerated.
@@ -74,7 +74,7 @@ func (s Store) LookupAttachmentByID(ctx context.Context, id uint64) (*types.Atta
 	})
 }
 
-// CreateAttachment creates one or more rows in sys_attachment table
+// CreateAttachment creates one or more rows in attachments table
 func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) error {
 	if len(rr) == 0 {
 		return nil
@@ -92,12 +92,12 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) er
 	})
 }
 
-// UpdateAttachment updates one or more existing rows in sys_attachment
+// UpdateAttachment updates one or more existing rows in attachments
 func (s Store) UpdateAttachment(ctx context.Context, rr ...*types.Attachment) error {
 	return s.PartialUpdateAttachment(ctx, nil, rr...)
 }
 
-// PartialUpdateAttachment updates one or more existing rows in sys_attachment
+// PartialUpdateAttachment updates one or more existing rows in attachments
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
 func (s Store) PartialUpdateAttachment(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) error {
@@ -120,7 +120,7 @@ func (s Store) PartialUpdateAttachment(ctx context.Context, onlyColumns []string
 	})
 }
 
-// RemoveAttachment removes one or more rows from sys_attachment table
+// RemoveAttachment removes one or more rows from attachments table
 func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) error {
 	if len(rr) == 0 {
 		return nil
@@ -138,17 +138,17 @@ func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) er
 	})
 }
 
-// RemoveAttachmentByID removes row from the sys_attachment table
+// RemoveAttachmentByID removes row from the attachments table
 func (s Store) RemoveAttachmentByID(ctx context.Context, ID uint64) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(ID, "")}))
 }
 
-// TruncateAttachments removes all rows from the sys_attachment table
+// TruncateAttachments removes all rows from the attachments table
 func (s Store) TruncateAttachments(ctx context.Context) error {
 	return Truncate(ctx, s.DB(), s.AttachmentTable())
 }
 
-// ExecUpdateAttachments updates all matched (by cnd) rows in sys_attachment with given data
+// ExecUpdateAttachments updates all matched (by cnd) rows in attachments with given data
 func (s Store) ExecUpdateAttachments(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.AttachmentTable("att")).Where(cnd).SetMap(set))
 }
@@ -206,7 +206,7 @@ func (Store) AttachmentTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "sys_attachment" + alias
+	return "attachments" + alias
 }
 
 // AttachmentColumns returns all defined table columns

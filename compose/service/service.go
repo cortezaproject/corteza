@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"go.uber.org/zap"
 	"time"
@@ -88,14 +87,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 		hcd = healthcheck.Defaults()
 
 		cmpStore storeInterface
-		ok       bool
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	if cmpStore, ok = s.(storeInterface); !ok {
-		return fmt.Errorf("store %T is incompatible with compose storeInterface", s)
-	}
+	cmpStore = s.(storeInterface)
 
 	DefaultLogger = log.Named("service")
 

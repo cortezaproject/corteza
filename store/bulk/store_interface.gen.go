@@ -6,6 +6,7 @@ package bulk
 // Definitions:
 //  - store/actionlog.yaml
 //  - store/applications.yaml
+//  - store/attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
 //  - store/compose_modules.yaml
@@ -14,9 +15,9 @@ package bulk
 //  - store/credentials.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
+//  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
-//  - store/system_attachments.yaml
 //  - store/users.yaml
 //
 // Changes to this file may cause incorrect behavior and will be lost if
@@ -28,6 +29,7 @@ type (
 	storeGeneratedInterfaces interface {
 		actionlogsStore
 		applicationsStore
+		attachmentsStore
 		composeChartsStore
 		composeModuleFieldsStore
 		composeModulesStore
@@ -36,9 +38,9 @@ type (
 		credentialsStore
 		rbacRulesStore
 		remindersStore
+		roleMembersStore
 		rolesStore
 		settingsStore
-		attachmentsStore
 		usersStore
 	}
 )

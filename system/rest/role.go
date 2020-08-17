@@ -148,12 +148,14 @@ func (ctrl Role) Unarchive(ctx context.Context, r *request.RoleUnarchive) (inter
 	return resputil.OK(), ctrl.role.With(ctx).Unarchive(r.RoleID)
 }
 
+// deprecated
 func (ctrl Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Merge(r.RoleID, r.Destination)
+	return resputil.OK(), nil
 }
 
+// deprecated
 func (ctrl Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Move(r.RoleID, r.OrganisationID)
+	return resputil.OK(), nil
 }
 
 func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {

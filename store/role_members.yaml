@@ -1,0 +1,17 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+interface:
+  - system/service
+
+fields:
+  - { field: UserID, isPrimaryKey: true }
+  - { field: RoleID, isPrimaryKey: true }
+
+rdbms:
+  alias: rm
+  table: role_members
+
+search:
+  disablePaging: true
+  customFilterConverter: true

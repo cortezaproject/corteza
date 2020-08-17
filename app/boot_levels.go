@@ -233,7 +233,7 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 
 		ctx = auth.SetSuperUserContext(ctx)
 
-		if err = system.Provision(ctx, app.Log); err != nil {
+		if err = system.Provision(ctx, app.Log, app.Store); err != nil {
 			return fmt.Errorf("could not provision messaging: %w", err)
 		}
 

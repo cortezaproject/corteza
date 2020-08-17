@@ -33,8 +33,10 @@ func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.Select
 	return
 }
 
-func (s Store) scanActionlogRow(row rowScanner, res *actionlog.Action) error {
-	return row.Scan(
+func (s Store) scanActionlogRow(row rowScanner, res *actionlog.Action) (err error) {
+	var metaBuf json.RawMessage
+
+	err = row.Scan(
 		&res.ID,
 		&res.Timestamp,
 		&res.RequestOrigin,
@@ -46,8 +48,17 @@ func (s Store) scanActionlogRow(row rowScanner, res *actionlog.Action) error {
 		&res.Error,
 		&res.Severity,
 		&res.Description,
-		&res.Meta,
+		&metaBuf,
 	)
+
+	if err != nil {
+		return err
+	}
+
+	// Ignoring unmarshal errors
+	_ = json.Unmarshal(metaBuf, &res.Meta)
+
+	return nil
 }
 
 func (s Store) encodeActionlog(res *actionlog.Action) store.Payload {
@@ -64,7 +75,7 @@ func (s Store) encodeActionlog(res *actionlog.Action) store.Payload {
 		"error":          res.Error,
 		"severity":       res.Severity,
 		"description":    res.Description,
-		"meta":           []byte{},
+		"meta":           []byte("{}"),
 	}
 
 	if res.Meta != nil {

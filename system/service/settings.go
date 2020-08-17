@@ -140,8 +140,7 @@ func (svc settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err 
 		return ErrNoManagePermission
 	}
 
-	// Load current settings from repository
-	// and get changed values
+	// Load current settings and get changed values
 	var current, old, new types.SettingValueSet
 	if current, err = svc.FindByPrefix(ctx); err != nil {
 		return

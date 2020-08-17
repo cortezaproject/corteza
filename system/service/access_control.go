@@ -45,7 +45,6 @@ func (svc accessControl) Effective(ctx context.Context) (ee permissions.Effectiv
 	ee.Push(types.SystemPermissionResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemPermissionResource, "application.create", svc.CanCreateApplication(ctx))
 	ee.Push(types.SystemPermissionResource, "role.create", svc.CanCreateRole(ctx))
-	ee.Push(types.SystemPermissionResource, "organisation.create", svc.CanCreateOrganisation(ctx))
 
 	return
 }
@@ -66,10 +65,6 @@ func (svc accessControl) CanManageSettings(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "settings.manage")
 }
 
-func (svc accessControl) CanCreateOrganisation(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "organisation.create")
-}
-
 func (svc accessControl) CanCreateUser(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemPermissionResource, "user.create")
 }
@@ -83,7 +78,7 @@ func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "reminder.assign")
+	return svc.can(ctx, types.SystemPermissionResource, "store.assign")
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
@@ -260,16 +255,10 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"grant",
 		"settings.read",
 		"settings.manage",
-		"organisation.create",
 		"role.create",
 		"user.create",
 		"application.create",
-		"reminder.assign",
-	)
-
-	wl.Set(
-		types.OrganisationPermissionResource,
-		"access",
+		"store.assign",
 	)
 
 	wl.Set(

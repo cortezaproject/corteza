@@ -16,6 +16,7 @@ type (
 	upgrader interface {
 		TableExists(context.Context, string) (bool, error)
 		AddColumn(context.Context, string, *ddl.Column) (bool, error)
+		DropTable(context.Context, string) (bool, error)
 		DropColumn(context.Context, string, string) (bool, error)
 		AddPrimaryKey(context.Context, string, *ddl.Index) (bool, error)
 		Exec(context.Context, string, ...interface{}) error
@@ -31,6 +32,11 @@ func (g genericUpgrades) Before(ctx context.Context) error {
 		g.RenameActionlog,
 		g.RenameReminders,
 		g.RenameUsers,
+		g.RenameRoles,
+		g.RenameRoleMembers,
+		g.RenameCredentials,
+		g.RenameApplications,
+		g.DropOrganisationTable,
 	)
 }
 
@@ -91,8 +97,6 @@ func (g genericUpgrades) MergeSettingsTables(ctx context.Context) error {
 			INSERT INTO settings (rel_owner, name, value, updated_by, updated_at) 
 			SELECT rel_owner, CONCAT('%s', name), value, updated_by, updated_at 
 			  FROM %s`
-
-		drop = `DROP TABLE %s`
 	)
 
 	for _, t := range tt {
@@ -108,7 +112,7 @@ func (g genericUpgrades) MergeSettingsTables(ctx context.Context) error {
 			return fmt.Errorf("could not merge %s: %w", t.tbl, err)
 		}
 
-		err = g.u.Exec(ctx, fmt.Sprintf(drop, t.tbl))
+		_, err = g.u.DropTable(ctx, t.tbl)
 		if err != nil {
 			return fmt.Errorf("could not drop %s: %w", t.tbl, err)
 		}
@@ -137,8 +141,6 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 			INSERT INTO rbac_rules (rel_role, resource, operation, access) 
 			SELECT rel_role, resource, operation, access
 			  FROM %s`
-
-		drop = `DROP TABLE %s`
 	)
 
 	for _, t := range tt {
@@ -154,7 +156,7 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 			return fmt.Errorf("could not merge %s: %w", t.tbl, err)
 		}
 
-		err = g.u.Exec(ctx, fmt.Sprintf(drop, t.tbl))
+		_, err = g.u.DropTable(ctx, t.tbl)
 		if err != nil {
 			return fmt.Errorf("could not drop %s: %w", t.tbl, err)
 		}
@@ -171,6 +173,22 @@ func (g genericUpgrades) RenameActionlog(ctx context.Context) error {
 
 func (g genericUpgrades) RenameUsers(ctx context.Context) error {
 	return g.RenameTable(ctx, "sys_user", "users")
+}
+
+func (g genericUpgrades) RenameRoles(ctx context.Context) error {
+	return g.RenameTable(ctx, "sys_role", "roles")
+}
+
+func (g genericUpgrades) RenameRoleMembers(ctx context.Context) error {
+	return g.RenameTable(ctx, "sys_role_member", "role_members")
+}
+
+func (g genericUpgrades) RenameApplications(ctx context.Context) error {
+	return g.RenameTable(ctx, "sys_application", "applications")
+}
+
+func (g genericUpgrades) RenameCredentials(ctx context.Context) error {
+	return g.RenameTable(ctx, "sys_credentials", "credentials")
 }
 
 // AlterActionlogAddID adds ID column, fills it with values and adds PK on it
@@ -206,6 +224,11 @@ func (g genericUpgrades) AlterActionlogAddID(ctx context.Context) (err error) {
 
 func (g genericUpgrades) RenameReminders(ctx context.Context) error {
 	return g.RenameTable(ctx, "sys_reminder", "reminders")
+}
+
+func (g genericUpgrades) DropOrganisationTable(ctx context.Context) error {
+	_, err := g.u.DropTable(ctx, "organization")
+	return err
 }
 
 func (g genericUpgrades) AlterUsersDropOrganisation(ctx context.Context) error {

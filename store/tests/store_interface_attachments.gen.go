@@ -1,4 +1,4 @@
-package service
+package tests
 
 // This file is auto-generated.
 //
@@ -6,7 +6,7 @@ package service
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-//  - store/system_attachments.yaml
+//  - store/attachments.yaml
 
 import (
 	"context"

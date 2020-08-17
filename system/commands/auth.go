@@ -1,18 +1,12 @@
 package commands
 
 import (
-	"regexp"
-	"strconv"
-
-	"github.com/spf13/cobra"
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
-	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cobra"
 )
 
 // Will perform OpenID connect auto-configuration
@@ -73,37 +67,18 @@ func Auth(app serviceInitializer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet()
-
-				userRepo = repository.User(ctx, db)
-				roleRepo = repository.Role(ctx, db)
-				// authSvc  = service.Auth(ctx)
 
 				user *types.User
 				err  error
-				ID   uint64
-				rr   types.RoleSet
 
 				userStr = args[0]
 			)
 
-			if user, err = userRepo.FindByEmail(userStr); repository.ErrUserNotFound.Eq(err) {
-				if regexp.MustCompile(`/^\d+$/`).MatchString(userStr) {
-					if ID, err = strconv.ParseUint(userStr, 10, 64); err == nil {
-						user, err = userRepo.FindByID(ID)
-					}
-				}
-			}
+			user, err = service.DefaultUser.FindByAny(ctx, userStr)
+			cli.HandleError(err)
 
-			if err == nil {
-				rr, _, err = roleRepo.Find(types.RoleFilter{MemberID: user.ID})
-			}
-
-			if err != nil {
-				cli.HandleError(err)
-			}
-
-			user.SetRoles(rr.IDs())
+			err = service.DefaultAuth.LoadRoleMemberships(ctx, user)
+			cli.HandleError(err)
 
 			cmd.Println(auth.DefaultJwtHandler.Encode(user))
 		},

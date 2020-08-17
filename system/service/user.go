@@ -39,14 +39,12 @@ type (
 		ac       userAccessController
 		eventbus eventDispatcher
 
-		store userStore
-	}
+		store interface {
+			usersStore
+			rolesStore
 
-	userStore interface {
-		usersStore
-		rolesStore
-
-		CountUsers(context.Context, types.UserFilter) (uint, error)
+			CountUsers(context.Context, types.UserFilter) (uint, error)
+		}
 	}
 
 	userAuth interface {
