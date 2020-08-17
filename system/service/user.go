@@ -59,6 +59,7 @@ type (
 	userAccessController interface {
 		CanAccess(context.Context) bool
 		CanCreateUser(context.Context) bool
+		CanReadUser(context.Context, *types.User) bool
 		CanUpdateUser(context.Context, *types.User) bool
 		CanDeleteUser(context.Context, *types.User) bool
 		CanSuspendUser(context.Context, *types.User) bool
@@ -253,10 +254,22 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	return u, nil
 }
 
+// Find interacts with backend storage and
+//
+// @todo rename to Search() for consistency
 func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFilter, err error) {
 	var (
 		uaProps = &userActionProps{filter: &filter}
 	)
+
+	filter.Check = func(user *types.User) (bool, error) {
+		if !svc.ac.CanReadUser(svc.ctx, user) {
+			return false, nil
+		}
+
+		svc.handlePrivateData(user)
+		return true, nil
+	}
 
 	err = func() error {
 		if filter.Deleted > 0 {
@@ -270,13 +283,13 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			}
 		}
 
-		// Prepare filter for email unmasking check
-		filter.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
-
-		// Prepare filter for name unmasking check
-		filter.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
-
-		filter.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
+		//// Prepare filter for email unmasking check
+		//filter.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
+		//
+		//// Prepare filter for name unmasking check
+		//filter.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
+		//
+		//filter.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
 
 		uu, f, err = svc.store.SearchUsers(svc.ctx, filter)
 		if err != nil {

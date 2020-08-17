@@ -140,6 +140,10 @@ func (svc accessControl) FilterUsersWithUnmaskableName(ctx context.Context) *per
 	return svc.filter(ctx, types.UserPermissionResource, "unmask.name", permissions.Deny)
 }
 
+func (svc accessControl) CanReadUser(ctx context.Context, u *types.User) bool {
+	return svc.can(ctx, u.PermissionResource(), "read")
+}
+
 func (svc accessControl) CanUpdateUser(ctx context.Context, u *types.User) bool {
 	return svc.can(ctx, u.PermissionResource(), "update")
 }

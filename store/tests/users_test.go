@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 	"time"
 )
@@ -21,26 +24,52 @@ type (
 func testUsers(t *testing.T, tmp interface{}) {
 	var (
 		ctx = context.Background()
-		req = require.New(t)
-
-		//err  error
-		user *types.User
 
 		s = tmp.(usersStoreAdt)
+
+		makeNew = func(nn ...string) *types.User {
+			// minimum data set for new user
+			name := strings.Join(nn, "")
+			return &types.User{
+				ID:        id.Next(),
+				CreatedAt: time.Now(),
+				Email:     "user-crud" + name + "@crust.test",
+				Username:  "username_" + name,
+				Handle:    "handle_" + name,
+			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.User) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+			user := makeNew()
+			req.NoError(s.CreateUser(ctx, user))
+			return req, user
+		}
+
+		truncAddFill = func(t *testing.T, l int) (*require.Assertions, types.UserSet) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+
+			set := make([]*types.User, l)
+
+			for i := 0; i < l; i++ {
+				set[i] = makeNew(string(rand.Bytes(10)))
+			}
+
+			req.NoError(s.CreateUser(ctx, set...))
+			return req, set
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
-		user = &types.User{
-			ID:        42,
-			CreatedAt: time.Now(),
-			Email:     "user-crud@crust.test",
-			Username:  "UserCRUD",
-			Handle:    "usercrud",
-		}
-		req.NoError(s.CreateUser(ctx, user))
+		req := require.New(t)
+		req.NoError(s.CreateUser(ctx, makeNew()))
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
+		req, user := truncAndCreate(t)
+
 		fetched, err := s.LookupUserByID(ctx, user.ID)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
@@ -54,13 +83,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		user = &types.User{
-			ID:        42,
-			CreatedAt: time.Now(),
-			Email:     "user-crud+2@crust.test",
-			Username:  "UserCRUD+2",
-			Handle:    "usercrud+2",
-		}
+		req, user := truncAndCreate(t)
 		req.NoError(s.UpdateUser(ctx, user))
 	})
 
@@ -94,80 +117,128 @@ func testUsers(t *testing.T, tmp interface{}) {
 	//})
 
 	t.Run("lookup by email", func(t *testing.T) {
+		req, user := truncAndCreate(t)
+
 		fetched, err := s.LookupUserByEmail(ctx, user.Email)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
 	})
 
 	t.Run("lookup by handle", func(t *testing.T) {
+		req, user := truncAndCreate(t)
+
 		fetched, err := s.LookupUserByHandle(ctx, user.Handle)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
 	})
 
 	t.Run("lookup by nonexisting handle", func(t *testing.T) {
+		req, _ := truncAndCreate(t)
+
 		fetched, err := s.LookupUserByHandle(ctx, "no such handle")
 		req.EqualError(err, "not found")
 		req.Nil(fetched)
 	})
 
 	t.Run("lookup by username", func(t *testing.T) {
+		req, user := truncAndCreate(t)
+
 		fetched, err := s.LookupUserByUsername(ctx, user.Username)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
 	})
 
-	t.Run("search by ID", func(t *testing.T) {
-		set, f, err := s.SearchUsers(ctx, types.UserFilter{UserID: []uint64{user.ID}})
-		req.NoError(err)
-		req.Equal([]uint64{user.ID}, f.UserID)
-		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
-		//req.Equal(set[0].ID, user.ID)
-	})
+	t.Run("search", func(t *testing.T) {
+		t.Run("by ID", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
 
-	t.Run("search by email", func(t *testing.T) {
-		set, f, err := s.SearchUsers(ctx, types.UserFilter{Email: user.Email})
-		req.NoError(err)
-		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
-	})
+			set, f, err := s.SearchUsers(ctx, types.UserFilter{UserID: []uint64{prefill[0].ID}})
+			req.NoError(err)
+			req.Equal([]uint64{prefill[0].ID}, f.UserID)
+			req.Len(set, 1)
+			req.Equal(uint(1), f.Count)
+			//req.Equal(set[0].ID, user.ID)
+		})
 
-	t.Run("search by username", func(t *testing.T) {
-		set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: user.Username})
-		req.NoError(err)
-		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
-	})
+		t.Run("by email", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
 
-	t.Run("search by query", func(t *testing.T) {
-		set, f, err := s.SearchUsers(ctx, types.UserFilter{Query: user.Handle})
-		req.NoError(err)
-		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
-	})
+			set, f, err := s.SearchUsers(ctx, types.UserFilter{Email: prefill[0].Email})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(uint(1), f.Count)
+		})
 
-	t.Run("search by username", func(t *testing.T) {
-		set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: "no such username"})
-		req.NoError(err)
-		req.Len(set, 0)
-		req.Equal(uint(0), f.Count)
-	})
+		t.Run("by username", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
+			set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: prefill[0].Username})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(uint(1), f.Count)
+		})
 
-	t.Run("search with masked details", func(t *testing.T) {
-		t.Skip("not implemented")
-	})
+		t.Run("by query", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
+			set, f, err := s.SearchUsers(ctx, types.UserFilter{Query: prefill[0].Handle})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(uint(1), f.Count)
+		})
 
-	t.Run("search by role", func(t *testing.T) {
-		t.Skip("not implemented")
-	})
+		t.Run("by username", func(t *testing.T) {
+			req, _ := truncAddFill(t, 5)
+			set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: "no such username"})
+			req.NoError(err)
+			req.Len(set, 0)
+			req.Equal(uint(0), f.Count)
+		})
 
-	t.Run("ordered search", func(t *testing.T) {
-		t.Skip("not implemented")
+		t.Run("with check", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{
+				Check: func(user *types.User) (bool, error) {
+					// simple check that matches with the first user from prefill
+					return user.ID == prefill[0].ID, nil
+				},
+			})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(prefill[0].ID, set[0].ID)
+		})
+
+		t.Run("with check and paging", func(t *testing.T) {
+			req, prefill := truncAddFill(t, 5)
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{
+				// This will cause paging to run multiple queries
+				// until it collects all data
+				PageFilter: rh.PageFilter{Limit: 2},
+				Check: func(user *types.User) (bool, error) {
+					// simple check that matches with the 4th user from prefill
+					return user.ID == prefill[4].ID, nil
+				},
+			})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(prefill[4].ID, set[0].ID)
+		})
+
+		t.Run("with masked details", func(t *testing.T) {
+			t.Skip("not implemented")
+		})
+
+		t.Run("by role", func(t *testing.T) {
+			t.Skip("not implemented")
+		})
+
+		t.Run("search", func(t *testing.T) {
+			t.Skip("not implemented")
+		})
 	})
 
 	t.Run("count", func(t *testing.T) {
 		var (
+			req = require.New(t)
+
 			f      = types.UserFilter{}
 			c1, c2 uint
 			err    error

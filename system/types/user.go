@@ -54,14 +54,11 @@ type (
 
 		Sort string `json:"sort"`
 
-		// Can we use email for searching or is it supposed to be masked for the current user?
-		IsEmailUnmaskable *permissions.ResourceFilter `json:"-"`
-
-		// Can we use name for searching or is it supposed to be masked for the current user?
-		IsNameUnmaskable *permissions.ResourceFilter `json:"-"`
-
-		// Resource permission check filter
-		IsReadable *permissions.ResourceFilter `json:"-"`
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(user *User) (bool, error)
 
 		// Standard paging fields & helpers
 		rh.PageFilter

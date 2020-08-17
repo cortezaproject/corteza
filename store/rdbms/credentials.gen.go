@@ -31,30 +31,34 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 	scap := DefaultSliceCapacity
 
 	var (
-		set = make([]*types.Credentials, 0, scap)
-		res *types.Credentials
-	)
+		set   = make([]*types.Credentials, 0, scap)
+		fetch = func() error {
+			var (
+				res       *types.Credentials
+				rows, err = s.Query(ctx, q)
+			)
 
-	return set, f, func() error {
-		rows, err := s.Query(ctx, q)
-		if err != nil {
-			return err
-		}
-
-		for rows.Next() {
-			if res, err = s.internalCredentialsRowScanner(rows, rows.Err()); err != nil {
-				if cerr := rows.Close(); cerr != nil {
-					return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-				}
-
+			if err != nil {
 				return err
 			}
 
-			set = append(set, res)
-		}
+			for rows.Next() {
+				if res, err = s.internalCredentialsRowScanner(rows, rows.Err()); err != nil {
+					if cerr := rows.Close(); cerr != nil {
+						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+					}
 
-		return rows.Close()
-	}()
+					return err
+				}
+
+				set = append(set, res)
+			}
+
+			return rows.Close()
+		}
+	)
+
+	return set, f, fetch()
 }
 
 // LookupCredentialsByID searches for credentials by ID

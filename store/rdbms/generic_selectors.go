@@ -27,28 +27,36 @@ func Count(ctx context.Context, db *sqlx.DB, q squirrel.SelectBuilder) (count ui
 	return count, nil
 }
 
-// FetchPaged fetches paged rows
-func ApplyPaging(q squirrel.SelectBuilder, p rh.PageFilter) squirrel.SelectBuilder {
-	if p.Limit+p.Offset == 0 {
+func calculatePaging(p rh.PageFilter) (o uint, l uint) {
+	o, l = p.Offset, p.Limit
+
+	if o+l == 0 {
 		// When both, offset & limit are 0,
 		// calculate both values from page/perPage params
 		if p.PerPage > 0 {
-			p.Limit = p.PerPage
+			l = p.PerPage
 		}
 
 		if p.Page < 1 {
 			p.Page = 1
 		}
 
-		p.Offset = (p.Page - 1) * p.PerPage
+		o = (p.Page - 1) * p.PerPage
 	}
 
-	if p.Limit > 0 {
-		q = q.Limit(uint64(p.Limit))
+	return
+}
+
+// FetchPaged fetches paged rows
+func ApplyPaging(q squirrel.SelectBuilder, p rh.PageFilter) squirrel.SelectBuilder {
+	o, l := calculatePaging(p)
+
+	if o > 0 {
+		q = q.Offset(uint64(o))
 	}
 
-	if p.Offset > 0 {
-		q = q.Offset(uint64(p.Offset))
+	if l > 0 {
+		q = q.Limit(uint64(l))
 	}
 
 	return q

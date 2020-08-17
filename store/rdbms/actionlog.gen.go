@@ -31,30 +31,34 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 	scap := DefaultSliceCapacity
 
 	var (
-		set = make([]*actionlog.Action, 0, scap)
-		res *actionlog.Action
-	)
+		set   = make([]*actionlog.Action, 0, scap)
+		fetch = func() error {
+			var (
+				res       *actionlog.Action
+				rows, err = s.Query(ctx, q)
+			)
 
-	return set, f, func() error {
-		rows, err := s.Query(ctx, q)
-		if err != nil {
-			return err
-		}
-
-		for rows.Next() {
-			if res, err = s.internalActionlogRowScanner(rows, rows.Err()); err != nil {
-				if cerr := rows.Close(); cerr != nil {
-					return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-				}
-
+			if err != nil {
 				return err
 			}
 
-			set = append(set, res)
-		}
+			for rows.Next() {
+				if res, err = s.internalActionlogRowScanner(rows, rows.Err()); err != nil {
+					if cerr := rows.Close(); cerr != nil {
+						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+					}
 
-		return rows.Close()
-	}()
+					return err
+				}
+
+				set = append(set, res)
+			}
+
+			return rows.Close()
+		}
+	)
+
+	return set, f, fetch()
 }
 
 // CreateActionlog creates one or more rows in actionlog table
