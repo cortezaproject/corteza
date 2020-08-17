@@ -3,23 +3,20 @@ package service
 import (
 	"bytes"
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/disintegration/imaging"
+	"github.com/edwvee/exiffix"
+	"github.com/pkg/errors"
 	"image"
 	"image/gif"
 	"io"
 	"net/http"
 	"path"
 	"strings"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/disintegration/imaging"
-	"github.com/edwvee/exiffix"
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory"
-
-	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	"github.com/cortezaproject/corteza-server/system/repository"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 const (
@@ -29,16 +26,11 @@ const (
 
 type (
 	attachment struct {
-		db  *factory.DB
-		ctx context.Context
-
+		ctx       context.Context
 		actionlog actionlog.Recorder
-
-		store store.Store
-
-		ac attachmentAccessController
-
-		attachment repository.AttachmentRepository
+		files     store.Store
+		ac        attachmentAccessController
+		store     attachmentsStore
 	}
 
 	attachmentAccessController interface {
@@ -59,25 +51,23 @@ type (
 
 func Attachment(store store.Store) AttachmentService {
 	return (&attachment{
-		store: store,
-
+		files:     store,
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
+		store:     DefaultNgStore,
 	}).With(context.Background())
 }
 
 func (svc attachment) With(ctx context.Context) AttachmentService {
-	db := repository.DB(ctx)
 	return &attachment{
-		db:  db,
 		ctx: ctx,
 
 		actionlog: svc.actionlog,
 		ac:        svc.ac,
 
-		store: svc.store,
+		files: svc.files,
 
-		attachment: repository.Attachment(ctx, db),
+		store: DefaultNgStore,
 	}
 }
 
@@ -86,38 +76,42 @@ func (svc attachment) FindByID(ID uint64) (att *types.Attachment, err error) {
 		aaProps = &attachmentActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if ID == 0 {
 			return AttachmentErrInvalidID()
 		}
 
-		if att, err = svc.attachment.FindByID(ID); err != nil {
+		if att, err = svc.store.LookupAttachmentByID(svc.ctx, ID); err != nil {
 			return err
 		}
 
 		aaProps.setAttachment(att)
 		return nil
-	})
+	}()
 
 	return att, svc.recordAction(svc.ctx, aaProps, AttachmentActionLookup, err)
 }
 
 func (svc attachment) DeleteByID(ID uint64) (err error) {
 	var (
+		att     *types.Attachment
 		aaProps = &attachmentActionProps{attachment: &types.Attachment{ID: ID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if ID == 0 {
 			return AttachmentErrInvalidID()
 		}
 
-		if aaProps.attachment, err = svc.attachment.FindByID(ID); err != nil {
+		if att, err = svc.store.LookupAttachmentByID(svc.ctx, ID); err != nil {
 			return err
 		}
 
-		return svc.attachment.DeleteByID(ID)
-	})
+		att.DeletedAt = nowPtr()
+		aaProps.setAttachment(att)
+
+		return svc.store.UpdateAttachment(svc.ctx, att)
+	}()
 
 	return svc.recordAction(svc.ctx, aaProps, AttachmentActionDelete, err)
 }
@@ -127,10 +121,10 @@ func (svc attachment) Find(filter types.AttachmentFilter) (aa types.AttachmentSe
 		aaProps = &attachmentActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
-		aa, f, err = svc.attachment.Find(filter)
+	err = func() (err error) {
+		aa, f, err = svc.store.SearchAttachments(svc.ctx, filter)
 		return err
-	})
+	}()
 
 	return aa, f, svc.recordAction(svc.ctx, aaProps, AttachmentActionSearch, err)
 }
@@ -140,7 +134,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		return nil, nil
 	}
 
-	return svc.store.Open(att.Url)
+	return svc.files.Open(att.Url)
 }
 
 func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
@@ -148,7 +142,7 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 		return nil, nil
 	}
 
-	return svc.store.Open(att.PreviewUrl)
+	return svc.files.Open(att.PreviewUrl)
 }
 
 func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
@@ -157,13 +151,13 @@ func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.Re
 		currentUserID = intAuth.GetIdentityFromContext(svc.ctx).Identity()
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if !svc.ac.CanManageSettings(svc.ctx) {
 			return AttachmentErrNotAllowedToCreate()
 		}
 
 		att = &types.Attachment{
-			ID:      factory.Sonyflake.NextID(),
+			ID:      id.Next(),
 			OwnerID: currentUserID,
 			Name:    strings.TrimSpace(name),
 			Kind:    types.AttachmentKindSettings,
@@ -180,7 +174,7 @@ func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.Re
 		}
 
 		return err
-	})
+	}()
 
 	return att, svc.recordAction(svc.ctx, aaProps, AttachmentActionCreate, err)
 }
@@ -190,7 +184,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		aaProps = &attachmentActionProps{}
 	)
 
-	if svc.store == nil {
+	if svc.files == nil {
 		return errors.New("can not create attachment: store handler not set")
 	}
 
@@ -205,10 +199,10 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToExtractMimeType(aaProps).Wrap(err)
 	}
 
-	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
+	att.Url = svc.files.Original(att.ID, att.Meta.Original.Extension)
 	aaProps.setUrl(att.Url)
 
-	if err = svc.store.Save(att.Url, fh); err != nil {
+	if err = svc.files.Save(att.Url, fh); err != nil {
 		return AttachmentErrFailedToStoreFile(aaProps).Wrap(err)
 	}
 
@@ -218,7 +212,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToProcessImage(aaProps).Wrap(err)
 	}
 
-	if att, err = svc.attachment.Create(att); err != nil {
+	if err = svc.store.CreateAttachment(svc.ctx, att); err != nil {
 		return
 	}
 
@@ -335,7 +329,7 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	meta.Extension = f2e[previewFormat]
 
 	// Can and how we make a preview of this attachment?
-	att.PreviewUrl = svc.store.Preview(att.ID, meta.Extension)
+	att.PreviewUrl = svc.files.Preview(att.ID, meta.Extension)
 
-	return svc.store.Save(att.PreviewUrl, buf)
+	return svc.files.Save(att.PreviewUrl, buf)
 }

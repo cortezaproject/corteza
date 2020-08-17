@@ -2,19 +2,15 @@ package commands
 
 import (
 	"fmt"
-	"strconv"
-	"syscall"
-
-	"github.com/spf13/cobra"
-	"github.com/titpetric/factory"
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
+	"strconv"
+	"syscall"
 )
 
 func Users(app serviceInitializer) *cobra.Command {
@@ -37,7 +33,6 @@ func Users(app serviceInitializer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet()
 
 				queryFlag = cmd.Flags().Lookup("query").Value.String()
 				limitFlag = cmd.Flags().Lookup("limit").Value.String()
@@ -49,7 +44,6 @@ func Users(app serviceInitializer) *cobra.Command {
 			limit, err = strconv.Atoi(limitFlag)
 			cli.HandleError(err)
 
-			userRepo := repository.User(ctx, db)
 			uf := types.UserFilter{
 				Sort:  "updated_at",
 				Query: queryFlag,
@@ -58,7 +52,7 @@ func Users(app serviceInitializer) *cobra.Command {
 				},
 			}
 
-			users, _, err := userRepo.Find(uf)
+			users, _, err := service.DefaultNgStore.SearchUsers(ctx, uf)
 			cli.HandleError(err)
 
 			fmt.Fprintf(
@@ -98,10 +92,8 @@ func Users(app serviceInitializer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet()
 
-				userRepo = repository.User(ctx, db)
-				authSvc  = service.Auth()
+				authSvc = service.Auth()
 
 				// @todo email validation
 				user = &types.User{Email: args[0]}
@@ -113,12 +105,7 @@ func Users(app serviceInitializer) *cobra.Command {
 			// Update current settings to be sure that we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
-			if existing, _ := userRepo.FindByEmail(user.Email); existing != nil && existing.ID > 0 {
-				cmd.Printf("User already exists [%d].\n", existing.ID)
-				return
-			}
-
-			if user, err = userRepo.Create(user); err != nil {
+			if user, err = service.DefaultUser.With(ctx).Create(user); err != nil {
 				cli.HandleError(err)
 			}
 
@@ -156,10 +143,6 @@ func Users(app serviceInitializer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
-				db  = factory.Database.MustGet()
-
-				userRepo = repository.User(ctx, db)
-				authSvc  = service.Auth()
 
 				user     *types.User
 				err      error
@@ -169,7 +152,7 @@ func Users(app serviceInitializer) *cobra.Command {
 			// Update current settings to be sure that we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
-			if user, err = userRepo.FindByEmail(args[0]); err != nil {
+			if user, err = service.DefaultUser.With(ctx).FindByEmail(args[0]); err != nil {
 				cli.HandleError(err)
 			}
 
@@ -183,7 +166,7 @@ func Users(app serviceInitializer) *cobra.Command {
 				return
 			}
 
-			if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
+			if err = service.DefaultAuth.SetPassword(ctx, user.ID, string(password)); err != nil {
 				cli.HandleError(err)
 			}
 		},

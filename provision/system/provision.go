@@ -2,17 +2,17 @@ package system
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/importer"
-	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 	"io"
+	"time"
 )
 
 type (
@@ -22,9 +22,12 @@ type (
 	}
 )
 
-func Provision(ctx context.Context, log *zap.Logger) (err error) {
-	var provisioned bool
-	var readers []io.Reader
+func Provision(ctx context.Context, log *zap.Logger, s interface{}) (err error) {
+	var (
+		store       = s.(storeGeneratedInterfaces)
+		provisioned bool
+		readers     []io.Reader
+	)
 
 	if provisioned, err = notProvisioned(ctx); err != nil {
 		return err
@@ -52,7 +55,7 @@ func Provision(ctx context.Context, log *zap.Logger) (err error) {
 		}
 	}
 
-	if err = makeDefaultApplications(ctx, log); err != nil {
+	if err = makeDefaultApplications(ctx, log, store); err != nil {
 		return
 	}
 	if err = authSettingsAutoDiscovery(ctx, log, service.DefaultSettings); err != nil {
@@ -76,12 +79,12 @@ func notProvisioned(ctx context.Context) (bool, error) {
 	return len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminsRoleID)) == 0, nil
 }
 
-func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
-	db := factory.Database.MustGet()
-
-	repo := repository.Application(ctx, db)
-
-	aa, _, err := repo.Find(types.ApplicationFilter{})
+// Updates default application directly in the store
+func makeDefaultApplications(ctx context.Context, log *zap.Logger, store storeGeneratedInterfaces) error {
+	var (
+		now        = time.Now()
+		aa, _, err = store.SearchApplications(ctx, types.ApplicationFilter{})
+	)
 	if err != nil {
 		return err
 	}
@@ -116,7 +119,9 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 			continue
 		}
 
-		if aa[a], err = repo.Update(aa[a]); err != nil {
+		aa[a].UpdatedAt = &now
+
+		if err = store.UpdateApplication(ctx, aa[a]); err != nil {
 			return err
 		}
 	}
@@ -159,7 +164,10 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 			}
 		}
 
-		defApp, err = repo.Create(defApp)
+		defApp.ID = id.Next()
+		defApp.CreatedAt = time.Now()
+
+		err = store.CreateApplication(ctx, defApp)
 		log.Info(
 			"creating default application",
 			zap.String("name", defApp.Name),

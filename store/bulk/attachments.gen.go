@@ -5,7 +5,7 @@ package bulk
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
 // Definitions file that controls how this file is generated:
-// store/system_attachments.yaml
+// store/attachments.yaml
 
 import (
 	"context"

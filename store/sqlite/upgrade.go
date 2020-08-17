@@ -106,6 +106,21 @@ func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, e
 	return nil, fmt.Errorf("pending implementation")
 }
 
+func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, err error) {
+	var exists bool
+	exists, err = u.TableExists(ctx, table)
+	if err != nil || !exists {
+		return false, err
+	}
+
+	err = u.Exec(ctx, fmt.Sprintf(`DROP TABLE %s`, table))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // AddColumn adds column to table
 // @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {

@@ -2,7 +2,8 @@ types:
   User:
   Application:
   Role:
-  Organisation:
+  RoleMember:
+    noIdField: true
   Credentials:
   Reminder:
   Attachment:

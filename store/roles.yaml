@@ -34,5 +34,5 @@ lookups:
 
 rdbms:
   alias: rl
-  table: sys_role
+  table: roles
   customFilterConverter: true

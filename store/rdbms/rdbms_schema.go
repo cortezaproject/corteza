@@ -76,7 +76,7 @@ func (s Schema) Tables() []*Table {
 }
 
 func (Schema) Users() *Table {
-	return TableDef("sys_user",
+	return TableDef("users",
 		ID,
 		ColumnDef("email", ColumnTypeVarchar, ColumnTypeLength(emailLength)),
 		ColumnDef("email_confirmed", ColumnTypeBoolean, DefaultValue("false")),
@@ -94,7 +94,7 @@ func (Schema) Users() *Table {
 }
 
 func (Schema) Credentials() *Table {
-	return TableDef(`sys_credentials`,
+	return TableDef(`credentials`,
 		ID,
 		ColumnDef("rel_owner", ColumnTypeIdentifier),
 		ColumnDef("label", ColumnTypeText),
@@ -110,7 +110,7 @@ func (Schema) Credentials() *Table {
 }
 
 func (Schema) Roles() *Table {
-	return TableDef(`sys_role`,
+	return TableDef(`roles`,
 		ID,
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
@@ -122,7 +122,7 @@ func (Schema) Roles() *Table {
 }
 
 func (Schema) RoleMembers() *Table {
-	return TableDef(`sys_role_member`,
+	return TableDef(`role_members`,
 		ColumnDef("rel_role", ColumnTypeIdentifier),
 		ColumnDef("rel_user", ColumnTypeIdentifier),
 
@@ -131,7 +131,7 @@ func (Schema) RoleMembers() *Table {
 }
 
 func (Schema) Applications() *Table {
-	return TableDef("sys_application",
+	return TableDef("applications",
 		ID,
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("enabled", ColumnTypeBoolean, DefaultValue("true")),
@@ -161,7 +161,7 @@ func (Schema) Reminders() *Table {
 }
 
 func (Schema) Attachments() *Table {
-	return TableDef("sys_attachment",
+	return TableDef("attachments",
 		ID,
 		ColumnDef("rel_owner", ColumnTypeIdentifier),
 		ColumnDef("kind", ColumnTypeText),

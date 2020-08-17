@@ -28,7 +28,7 @@ type (
 		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
-		store         authStore
+		store         authServiceStore
 		settings      *types.AppSettings
 		notifications AuthNotificationService
 
@@ -43,12 +43,12 @@ type (
 		CanRegister(uint) error
 	}
 
-	authStore interface {
+	authServiceStore interface {
 		usersStore
 		rolesStore
+		roleMembersStore
 		credentialsStore
 
-		AddRoleMembersByID(context.Context, uint64, ...uint64) error
 		CountUsers(context.Context, types.UserFilter) (uint, error)
 	}
 )
@@ -1033,13 +1033,15 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 			return nil
 		}
 
-		return svc.store.AddRoleMembersByID(ctx, roleID, u.ID)
+		return svc.store.CreateRoleMember(ctx, &types.RoleMember{roleID, u.ID})
 	}()
 
 	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)
 }
 
 // LoadRoleMemberships loads membership info
+//
+// @todo move this to role service
 func (svc auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
 	rr, _, err := svc.store.SearchRoles(ctx, types.RoleFilter{MemberID: u.ID})
 	if err != nil {

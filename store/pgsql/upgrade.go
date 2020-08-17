@@ -94,6 +94,21 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	return exists, nil
 }
 
+func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, err error) {
+	var exists bool
+	exists, err = u.TableExists(ctx, table)
+	if err != nil || !exists {
+		return false, err
+	}
+
+	err = u.Exec(ctx, fmt.Sprintf(`DROP TABLE %s`, table))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
 	return nil, fmt.Errorf("pending implementation")
 }

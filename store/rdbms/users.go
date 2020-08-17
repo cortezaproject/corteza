@@ -89,3 +89,50 @@ func (s Store) CountUsers(ctx context.Context, f types.UserFilter) (uint, error)
 		return Count(ctx, s.db, q)
 	}
 }
+
+func (s Store) UserMetrics(ctx context.Context) (rval *types.UserMetrics, err error) {
+	var (
+		counters = squirrel.
+			Select(
+				"COUNT(*) as total",
+				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
+				"SUM(IF(suspended_at IS NULL, 0, 1)) as suspended",
+				"SUM(IF(deleted_at IS NULL AND suspended_at IS NULL, 1, 0)) as valid",
+			).
+			From(s.UserTable("u"))
+	)
+
+	rval = &types.UserMetrics{}
+
+	var (
+		sql, args = counters.MustSql()
+		row       = s.db.QueryRowContext(ctx, sql, args...)
+	)
+
+	err = row.Scan(&rval.Total, &rval.Deleted, &rval.Suspended, &rval.Valid)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch daily metrics for created, updated, deleted and suspended users
+	err = s.multiDailyMetrics(
+		ctx,
+		squirrel.Select().From(s.UserTable("u")),
+		[]string{
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"suspended_at",
+		},
+		&rval.DailyCreated,
+		&rval.DailyUpdated,
+		&rval.DailyDeleted,
+		&rval.DailySuspended,
+	)
+
+	if err != nil {
+		return
+	}
+
+	return
+}

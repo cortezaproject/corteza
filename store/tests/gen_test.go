@@ -28,6 +28,13 @@ func testAllGenerated(t *testing.T, all interface{}) {
 		testApplications(t, s)
 	})
 
+	// Run generated tests for Attachment
+	t.Run("Attachment", func(t *testing.T) {
+		var s = all.(attachmentsStore)
+		require.New(t).NoError(s.TruncateAttachments(context.Background()))
+		testAttachment(t, s)
+	})
+
 	// Run generated tests for ComposeCharts
 	t.Run("ComposeCharts", func(t *testing.T) {
 		var s = all.(composeChartsStore)
@@ -84,6 +91,13 @@ func testAllGenerated(t *testing.T, all interface{}) {
 		testReminders(t, s)
 	})
 
+	// Run generated tests for RoleMembers
+	t.Run("RoleMembers", func(t *testing.T) {
+		var s = all.(roleMembersStore)
+		require.New(t).NoError(s.TruncateRoleMembers(context.Background()))
+		testRoleMembers(t, s)
+	})
+
 	// Run generated tests for Roles
 	t.Run("Roles", func(t *testing.T) {
 		var s = all.(rolesStore)
@@ -96,13 +110,6 @@ func testAllGenerated(t *testing.T, all interface{}) {
 		var s = all.(settingsStore)
 		require.New(t).NoError(s.TruncateSettings(context.Background()))
 		testSettings(t, s)
-	})
-
-	// Run generated tests for Attachment
-	t.Run("Attachment", func(t *testing.T) {
-		var s = all.(attachmentsStore)
-		require.New(t).NoError(s.TruncateAttachments(context.Background()))
-		testAttachment(t, s)
 	})
 
 	// Run generated tests for Users

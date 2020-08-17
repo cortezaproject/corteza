@@ -96,7 +96,7 @@ func (s Store) LookupRoleByName(ctx context.Context, name string) (*types.Role, 
 	})
 }
 
-// CreateRole creates one or more rows in sys_role table
+// CreateRole creates one or more rows in roles table
 func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) error {
 	if len(rr) == 0 {
 		return nil
@@ -114,12 +114,12 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) error {
 	})
 }
 
-// UpdateRole updates one or more existing rows in sys_role
+// UpdateRole updates one or more existing rows in roles
 func (s Store) UpdateRole(ctx context.Context, rr ...*types.Role) error {
 	return s.PartialUpdateRole(ctx, nil, rr...)
 }
 
-// PartialUpdateRole updates one or more existing rows in sys_role
+// PartialUpdateRole updates one or more existing rows in roles
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
 func (s Store) PartialUpdateRole(ctx context.Context, onlyColumns []string, rr ...*types.Role) error {
@@ -142,7 +142,7 @@ func (s Store) PartialUpdateRole(ctx context.Context, onlyColumns []string, rr .
 	})
 }
 
-// RemoveRole removes one or more rows from sys_role table
+// RemoveRole removes one or more rows from roles table
 func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) error {
 	if len(rr) == 0 {
 		return nil
@@ -160,17 +160,17 @@ func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) error {
 	})
 }
 
-// RemoveRoleByID removes row from the sys_role table
+// RemoveRoleByID removes row from the roles table
 func (s Store) RemoveRoleByID(ctx context.Context, ID uint64) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, "")}))
 }
 
-// TruncateRoles removes all rows from the sys_role table
+// TruncateRoles removes all rows from the roles table
 func (s Store) TruncateRoles(ctx context.Context) error {
 	return Truncate(ctx, s.DB(), s.RoleTable())
 }
 
-// ExecUpdateRoles updates all matched (by cnd) rows in sys_role with given data
+// ExecUpdateRoles updates all matched (by cnd) rows in roles with given data
 func (s Store) ExecUpdateRoles(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.RoleTable("rl")).Where(cnd).SetMap(set))
 }
@@ -225,7 +225,7 @@ func (Store) RoleTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "sys_role" + alias
+	return "roles" + alias
 }
 
 // RoleColumns returns all defined table columns

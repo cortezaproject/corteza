@@ -36,8 +36,8 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 	// and solve this on application level
 	u.ddl.AddTemplate(
 		"create-index",
-		`{{ if not .Condition }}CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }}{{ end }}`
-		)
+		`{{ if not .Condition }}CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ else }}SELECT 1 -- dummy sql, just to prevent "empty query" errors...{{ end }}`,
+	)
 
 	// Cover mysql exceptions
 	u.ddl.AddTemplateFunc("columnType", func(ct *ddl.ColumnType) string {
@@ -118,6 +118,21 @@ func (u upgrader) CreateTable(ctx context.Context, t *ddl.Table) (err error) {
 	}
 
 	return nil
+}
+
+func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, err error) {
+	var exists bool
+	exists, err = u.TableExists(ctx, table)
+	if err != nil || !exists {
+		return false, err
+	}
+
+	err = u.Exec(ctx, fmt.Sprintf(`DROP TABLE %s`, table))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (u upgrader) Exec(ctx context.Context, sql string, aa ...interface{}) error {

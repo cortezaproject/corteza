@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/system/repository"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -12,6 +11,7 @@ type (
 	statistics struct {
 		actionlog actionlog.Recorder
 		ac        statisticsAccessController
+		store     statisticsStore
 	}
 
 	statisticsAccessController interface {
@@ -23,39 +23,47 @@ type (
 		Roles        *types.RoleMetrics        `json:"roles"`
 		Applications *types.ApplicationMetrics `json:"applications"`
 	}
+
+	statisticsStore interface {
+		UserMetrics(ctx context.Context) (rval *types.UserMetrics, err error)
+		RoleMetrics(ctx context.Context) (rval *types.RoleMetrics, err error)
+		ApplicationMetrics(ctx context.Context) (rval *types.ApplicationMetrics, err error)
+	}
 )
 
 func Statistics() *statistics {
 	return &statistics{
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
+		store:     DefaultNgStore,
 	}
 }
 
+// Metrics collects relevant metrics and returns it
+//
+// @todo remove this service and move it to rest ctrl layer
 func (svc statistics) Metrics(ctx context.Context) (rval *StatisticsMetricsPayload, err error) {
-	db := repository.DB(ctx)
-
-	err = db.Transaction(func() error {
+	err = func() error {
 		if !svc.ac.CanAccess(ctx) {
 			return StatisticsErrNotAllowedToReadStatistics()
 		}
 
 		rval = &StatisticsMetricsPayload{}
 
-		if rval.Users, err = repository.User(ctx, db).Metrics(); err != nil {
+		if rval.Users, err = svc.store.UserMetrics(ctx); err != nil {
 			return err
 		}
 
-		if rval.Roles, err = repository.Role(ctx, db).Metrics(); err != nil {
+		if rval.Roles, err = svc.store.RoleMetrics(ctx); err != nil {
 			return err
 		}
 
-		if rval.Applications, err = repository.Application(ctx, db).Metrics(); err != nil {
+		if rval.Applications, err = svc.store.ApplicationMetrics(ctx); err != nil {
 			return err
 		}
 
 		return nil
-	})
+	}()
 
 	return rval, svc.recordAction(ctx, &statisticsActionProps{}, StatisticsActionServe, err)
 }

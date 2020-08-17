@@ -23,10 +23,6 @@ type (
 
 		Meta *UserMeta `json:"meta" db:"meta"`
 
-		OrganisationID uint64 `json:"organisationID,string" db:"rel_organisation"`
-		RelatedUserID  uint64 `json:"relatedUserID,string" db:"rel_user_id"`
-		User           *User  `json:"user" db:"-"`
-
 		EmailConfirmed bool `json:"-" db:"email_confirmed"`
 
 		CreatedAt   time.Time  `json:"createdAt,omitempty" db:"created_at"`

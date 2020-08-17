@@ -2,11 +2,12 @@ package types
 
 type (
 	RoleMember struct {
-		RoleID uint64 `db:"rel_role"`
-		UserID uint64 `db:"rel_user"`
+		RoleID uint64
+		UserID uint64
 	}
 
 	RoleMemberFilter struct {
-		Query string
+		RoleID uint64
+		UserID uint64
 	}
 )

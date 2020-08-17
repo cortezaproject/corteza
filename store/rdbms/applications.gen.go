@@ -74,7 +74,7 @@ func (s Store) LookupApplicationByID(ctx context.Context, id uint64) (*types.App
 	})
 }
 
-// CreateApplication creates one or more rows in sys_application table
+// CreateApplication creates one or more rows in applications table
 func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) error {
 	if len(rr) == 0 {
 		return nil
@@ -92,12 +92,12 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 	})
 }
 
-// UpdateApplication updates one or more existing rows in sys_application
+// UpdateApplication updates one or more existing rows in applications
 func (s Store) UpdateApplication(ctx context.Context, rr ...*types.Application) error {
 	return s.PartialUpdateApplication(ctx, nil, rr...)
 }
 
-// PartialUpdateApplication updates one or more existing rows in sys_application
+// PartialUpdateApplication updates one or more existing rows in applications
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
 func (s Store) PartialUpdateApplication(ctx context.Context, onlyColumns []string, rr ...*types.Application) error {
@@ -120,7 +120,7 @@ func (s Store) PartialUpdateApplication(ctx context.Context, onlyColumns []strin
 	})
 }
 
-// RemoveApplication removes one or more rows from sys_application table
+// RemoveApplication removes one or more rows from applications table
 func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) error {
 	if len(rr) == 0 {
 		return nil
@@ -138,17 +138,17 @@ func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) 
 	})
 }
 
-// RemoveApplicationByID removes row from the sys_application table
+// RemoveApplicationByID removes row from the applications table
 func (s Store) RemoveApplicationByID(ctx context.Context, ID uint64) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(ID, "")}))
 }
 
-// TruncateApplications removes all rows from the sys_application table
+// TruncateApplications removes all rows from the applications table
 func (s Store) TruncateApplications(ctx context.Context) error {
 	return Truncate(ctx, s.DB(), s.ApplicationTable())
 }
 
-// ExecUpdateApplications updates all matched (by cnd) rows in sys_application with given data
+// ExecUpdateApplications updates all matched (by cnd) rows in applications with given data
 func (s Store) ExecUpdateApplications(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ApplicationTable("app")).Where(cnd).SetMap(set))
 }
@@ -204,7 +204,7 @@ func (Store) ApplicationTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "sys_application" + alias
+	return "applications" + alias
 }
 
 // ApplicationColumns returns all defined table columns

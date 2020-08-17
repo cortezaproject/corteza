@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -47,9 +46,9 @@ type (
 		// Include generated interfaces
 		storeGeneratedInterfaces
 
-		// And all additional required functions
-		AddRoleMembersByID(context.Context, uint64, ...uint64) error
 		CountUsers(context.Context, types.UserFilter) (uint, error)
+
+		statisticsStore
 	}
 )
 
@@ -92,13 +91,12 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth         *auth
-	DefaultUser         UserService
-	DefaultRole         RoleService
-	DefaultOrganisation OrganisationService
-	DefaultApplication  *application
-	DefaultReminder     ReminderService
-	DefaultAttachment   AttachmentService
+	DefaultAuth        *auth
+	DefaultUser        UserService
+	DefaultRole        RoleService
+	DefaultApplication *application
+	DefaultReminder    ReminderService
+	DefaultAttachment  AttachmentService
 
 	DefaultStatistics *statistics
 
@@ -122,14 +120,11 @@ var (
 func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
-		ok  bool
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	if DefaultNgStore, ok = s.(storeInterface); !ok {
-		return fmt.Errorf("store %T is incompatible with compose storeInterface", s)
-	}
+	DefaultNgStore = s.(storeInterface)
 
 	DefaultLogger = log.Named("service")
 
@@ -198,7 +193,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 	DefaultAuth = Auth()
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
-	DefaultOrganisation = Organisation(ctx)
 	DefaultApplication = Application(DefaultNgStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx)
 	DefaultSink = Sink()

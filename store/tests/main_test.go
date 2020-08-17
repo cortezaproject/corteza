@@ -12,6 +12,12 @@ import (
 	"testing"
 )
 
+type (
+	storeInterface interface {
+		storeGeneratedInterfaces
+	}
+)
+
 func init() {
 	helpers.RecursiveDotEnvLoad()
 }
