@@ -64,9 +64,16 @@ func (svc *application) Search(ctx context.Context, filter types.ApplicationFilt
 		aaProps = &applicationActionProps{filter: &filter}
 	)
 
-	err = func() error {
-		filter.IsReadable = svc.ac.FilterReadableApplications(ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Application) (bool, error) {
+		if !svc.ac.CanReadApplication(ctx, res) {
+			return false, nil
+		}
 
+		return true, nil
+	}
+
+	err = func() error {
 		if filter.Deleted > rh.FilterStateExcluded {
 			// If list with deleted applications is requested
 			// user must have access permissions to system (ie: is admin)

@@ -2,16 +2,11 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"time"
 )
 
 func (s Store) convertReminderFilter(f types.ReminderFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "remind_at"
-	}
-
 	query = s.QueryReminders()
 
 	if len(f.ReminderID) > 0 {
@@ -39,13 +34,6 @@ func (s Store) convertReminderFilter(f types.ReminderFilter) (query squirrel.Sel
 	}
 	if f.ScheduledUntil != nil {
 		query = query.Where("rmd.remind_at <= ?", f.ScheduledUntil.Format(time.RFC3339))
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.ReminderColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

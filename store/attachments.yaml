@@ -26,6 +26,10 @@ lookups:
 
       It returns attachment even if deleted
 
+search:
+  disableSorting: true
+  disablePaging: true
+
 rdbms:
   alias: att
   table: attachments

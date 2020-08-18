@@ -3,12 +3,13 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -46,21 +47,17 @@ type (
 		Handle      string `json:"handle"`
 		Query       string `json:"query"`
 
-		Sort string `json:"sort"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
-
-		// Resource permission check filter
-		IsReadable *permissions.ResourceFilter `json:"-"`
+		Deleted rh.FilterState `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Chart) (bool, error)
+		Check func(*Chart) (bool, error) `json:"-"`
 
-		Deleted rh.FilterState `json:"deleted"`
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 )
 

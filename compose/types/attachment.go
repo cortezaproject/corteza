@@ -39,14 +39,14 @@ type (
 
 		Sort string `json:"sort"`
 
-		// Standard paging fields & helpers
+		// Standard helpers for paging and sorting
 		rh.PageFilter
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Attachment) (bool, error)
+		Check func(*Attachment) (bool, error)
 	}
 
 	attachmentImageMeta struct {

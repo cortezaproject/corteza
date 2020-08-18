@@ -51,35 +51,6 @@ func testRoles(t *testing.T, s rolesStore) {
 		req.NoError(s.UpdateRole(ctx, role))
 	})
 
-	//t.Run("delete/undelete", func(t *testing.T) {
-	//	ID := role.ID
-	//	role, err = s.LookupRoleByID(ctx, ID)
-	//	req.NoError(err)
-	//
-	//	req.NoError(s.DeleteRoleByID(ctx, ID))
-	//	role, err = s.LookupRoleByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(role.DeletedAt)
-	//
-	//	req.NoError(s.UndeleteRoleByID(ctx, ID))
-	//	role, err = s.LookupRoleByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(role.DeletedAt)
-	//})
-	//
-	//t.Run("archive/unarchive", func(t *testing.T) {
-	//	ID := role.ID
-	//	req.NoError(s.ArchiveRoleByID(ctx, ID))
-	//	role, err = s.LookupRoleByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(role.ArchivedAt)
-	//
-	//	req.NoError(s.UnarchiveRoleByID(ctx, ID))
-	//	role, err = s.LookupRoleByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(role.ArchivedAt)
-	//})
-
 	t.Run("lookup by handle", func(t *testing.T) {
 		fetched, err := s.LookupRoleByHandle(ctx, role.Handle)
 		req.NoError(err)
@@ -91,7 +62,6 @@ func testRoles(t *testing.T, s rolesStore) {
 		req.NoError(err)
 		req.Equal([]uint64{role.ID}, f.RoleID)
 		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
 		//req.Equal(set[0].ID, role.ID)
 	})
 
@@ -99,7 +69,8 @@ func testRoles(t *testing.T, s rolesStore) {
 		set, f, err := s.SearchRoles(ctx, types.RoleFilter{Name: role.Name})
 		req.NoError(err)
 		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
+
+		_ = f // dummy
 	})
 
 	t.Run("search by *", func(t *testing.T) {

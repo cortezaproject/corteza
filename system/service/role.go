@@ -96,9 +96,16 @@ func (svc role) Find(filter types.RoleFilter) (rr types.RoleSet, f types.RoleFil
 		raProps = &roleActionProps{filter: &filter}
 	)
 
-	err = func() error {
-		filter.IsReadable = svc.ac.FilterReadableRoles(svc.ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Role) (bool, error) {
+		if !svc.ac.CanReadRole(svc.ctx, res) {
+			return false, nil
+		}
 
+		return true, nil
+	}
+
+	err = func() error {
 		if filter.Deleted > 0 {
 			// If list with deleted or suspended users is requested
 			// user must have access permissions to system (ie: is admin)

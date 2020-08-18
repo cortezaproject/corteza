@@ -52,20 +52,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 
 		// Sort GET parameter
 		//
@@ -164,9 +154,7 @@ func (r ChartList) Auditable() map[string]interface{} {
 		"query":       r.Query,
 		"handle":      r.Handle,
 		"limit":       r.Limit,
-		"offset":      r.Offset,
-		"page":        r.Page,
-		"perPage":     r.PerPage,
+		"pageCursor":  r.PageCursor,
 		"sort":        r.Sort,
 	}
 }
@@ -192,18 +180,8 @@ func (r ChartList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChartList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ChartList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ChartList) GetPerPage() uint {
-	return r.PerPage
+func (r ChartList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -246,20 +224,8 @@ func (r *ChartList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

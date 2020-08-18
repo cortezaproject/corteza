@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -30,21 +31,17 @@ type (
 		Handle      string `json:"handle"`
 		Name        string `json:"name"`
 
-		Sort string `json:"sort"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
-
-		// Resource permission check filter
-		IsReadable *permissions.ResourceFilter `json:"-"`
+		Deleted rh.FilterState `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Module) (bool, error)
+		Check func(*Module) (bool, error) `json:"-"`
 
-		Deleted rh.FilterState `json:"deleted"`
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 )
 

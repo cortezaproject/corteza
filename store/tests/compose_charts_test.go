@@ -103,7 +103,6 @@ func testComposeCharts(t *testing.T, s composeChartsStore) {
 		set, f, err := s.SearchComposeCharts(ctx, types.ChartFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Deleted: rh.FilterStateInclusive})
@@ -123,5 +122,7 @@ func testComposeCharts(t *testing.T, s composeChartsStore) {
 		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Query: "/two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		_ = f // dummy
 	})
 }

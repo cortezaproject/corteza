@@ -103,7 +103,6 @@ func testComposePages(t *testing.T, s composePagesStore) {
 		set, f, err := s.SearchComposePages(ctx, types.PageFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchComposePages(ctx, types.PageFilter{Deleted: rh.FilterStateInclusive})
@@ -123,5 +122,7 @@ func testComposePages(t *testing.T, s composePagesStore) {
 		set, f, err = s.SearchComposePages(ctx, types.PageFilter{Query: "/two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		_ = f // dummy
 	})
 }

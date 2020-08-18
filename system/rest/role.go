@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
@@ -57,14 +58,22 @@ func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, er
 }
 
 func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, error) {
-	f := types.RoleFilter{
-		Query: r.Query,
+	var (
+		err error
+		f   = types.RoleFilter{
+			Query: r.Query,
 
-		Archived: rh.FilterState(r.Archived),
-		Deleted:  rh.FilterState(r.Deleted),
+			Archived: rh.FilterState(r.Archived),
+			Deleted:  rh.FilterState(r.Deleted),
+		}
+	)
 
-		Sort:       rh.NormalizeSortColumns(r.Sort),
-		PageFilter: rh.Paging(r),
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.role.With(ctx).Find(f)

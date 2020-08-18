@@ -23,15 +23,21 @@ import (
 // This function calls convertCredentialsFilter with the given
 // types.CredentialsFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter) (types.CredentialsSet, types.CredentialsFilter, error) {
+	var scap uint
 	q, err := s.convertCredentialsFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	scap := DefaultSliceCapacity
+	if scap == 0 {
+		scap = DefaultSliceCapacity
+	}
 
 	var (
-		set   = make([]*types.Credentials, 0, scap)
+		set = make([]*types.Credentials, 0, scap)
+		// Paging is disabled in definition yaml file
+		// {search: {disablePaging:true}} and this allows
+		// a much simpler row fetching logic
 		fetch = func() error {
 			var (
 				res       *types.Credentials
@@ -229,6 +235,8 @@ func (Store) CredentialsColumns(aa ...string) []string {
 		alias + "deleted_at",
 	}
 }
+
+// {false true true false}
 
 // internalCredentialsEncoder encodes fields from types.Credentials to store.Payload (map)
 //

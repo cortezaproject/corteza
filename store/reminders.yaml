@@ -14,10 +14,10 @@ fields:
   - { field: AssignedAt }
   - { field: DismissedBy }
   - { field: DismissedAt }
-  - { field: RemindAt }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: RemindAt,                               sortable: true }
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ ID ]

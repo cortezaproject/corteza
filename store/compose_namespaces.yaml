@@ -9,13 +9,13 @@ types:
 
 fields:
   - { field: ID }
-  - { field: Name }
-  - { field: Slug, lookupFilterPreprocessor: lower }
+  - { field: Name,                                   sortable: true }
+  - { field: Slug, lookupFilterPreprocessor: lower,  sortable: true, unique: true }
   - { field: Enabled }
   - { field: Meta, type: "*types.NamespaceMeta" }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ Slug ]

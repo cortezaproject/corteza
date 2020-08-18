@@ -8,10 +8,6 @@ import (
 )
 
 func (s Store) convertApplicationFilter(f types.ApplicationFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id"
-	}
-
 	query = s.QueryApplications()
 
 	query = rh.FilterNullByState(query, "app.deleted_at", f.Deleted)
@@ -25,17 +21,6 @@ func (s Store) convertApplicationFilter(f types.ApplicationFilter) (query squirr
 
 	if f.Name != "" {
 		query = query.Where(squirrel.Eq{"app.name": f.Name})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.ApplicationColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

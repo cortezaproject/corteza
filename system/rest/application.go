@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -60,14 +61,22 @@ func (Application) New() *Application {
 }
 
 func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (interface{}, error) {
-	f := types.ApplicationFilter{
-		Name:  r.Name,
-		Query: r.Query,
+	var (
+		err error
+		f   = types.ApplicationFilter{
+			Name:  r.Name,
+			Query: r.Query,
 
-		Deleted: rh.FilterState(r.Deleted),
+			Deleted: rh.FilterState(r.Deleted),
+		}
+	)
 
-		Sort:       rh.NormalizeSortColumns(r.Sort),
-		PageFilter: rh.Paging(r),
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.application.Search(ctx, f)

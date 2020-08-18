@@ -8,10 +8,6 @@ import (
 )
 
 func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
 	query = s.QueryComposePages()
 
 	query = rh.FilterNullByState(query, "cpg.deleted_at", f.Deleted)
@@ -37,17 +33,6 @@ func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.Sele
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cpg.handle)": strings.ToLower(f.Handle)})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.ComposePageColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			return &types.User{
 				ID:        id.Next(),
 				CreatedAt: time.Now(),
-				Email:     "user-crud" + name + "@crust.test",
+				Email:     "user-crud+" + name + "@crust.test",
 				Username:  "username_" + name,
 				Handle:    "handle_" + name,
 			}
@@ -47,7 +47,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			return req, user
 		}
 
-		truncAddFill = func(t *testing.T, l int) (*require.Assertions, types.UserSet) {
+		truncAndFill = func(t *testing.T, l int) (*require.Assertions, types.UserSet) {
 			req := require.New(t)
 			req.NoError(s.TruncateUsers(ctx))
 
@@ -60,6 +60,13 @@ func testUsers(t *testing.T, tmp interface{}) {
 			req.NoError(s.CreateUser(ctx, set...))
 			return req, set
 		}
+
+		// in case we need some quick old-school debugging
+		//dbg := func(uu ...*types.User) {
+		//	for i, u := range uu {
+		//		fmt.Printf(" => #%2d %s\n", i+1, u.Handle)
+		//	}
+		//}
 	)
 
 	t.Run("create", func(t *testing.T) {
@@ -86,35 +93,6 @@ func testUsers(t *testing.T, tmp interface{}) {
 		req, user := truncAndCreate(t)
 		req.NoError(s.UpdateUser(ctx, user))
 	})
-
-	//t.Run("delete/undelete", func(t *testing.T) {
-	//	ID := user.ID
-	//	user, err = s.LookupUserByID(ctx, ID)
-	//	req.NoError(err)
-	//
-	//	req.NoError(s.DeleteUserByID(ctx, ID))
-	//	user, err = s.LookupUserByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(user.DeletedAt)
-	//
-	//	req.NoError(s.UndeleteUserByID(ctx, ID))
-	//	user, err = s.LookupUserByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(user.DeletedAt)
-	//})
-	//
-	//t.Run("suspend/suspend", func(t *testing.T) {
-	//	ID := user.ID
-	//	req.NoError(s.SuspendUserByID(ctx, ID))
-	//	user, err = s.LookupUserByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(user.SuspendedAt)
-	//
-	//	req.NoError(s.UnsuspendUserByID(ctx, ID))
-	//	user, err = s.LookupUserByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(user.SuspendedAt)
-	//})
 
 	t.Run("lookup by email", func(t *testing.T) {
 		req, user := truncAndCreate(t)
@@ -150,51 +128,46 @@ func testUsers(t *testing.T, tmp interface{}) {
 
 	t.Run("search", func(t *testing.T) {
 		t.Run("by ID", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
+			req, prefill := truncAndFill(t, 5)
 
 			set, f, err := s.SearchUsers(ctx, types.UserFilter{UserID: []uint64{prefill[0].ID}})
 			req.NoError(err)
 			req.Equal([]uint64{prefill[0].ID}, f.UserID)
 			req.Len(set, 1)
-			req.Equal(uint(1), f.Count)
 			//req.Equal(set[0].ID, user.ID)
 		})
 
 		t.Run("by email", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
+			req, prefill := truncAndFill(t, 5)
 
-			set, f, err := s.SearchUsers(ctx, types.UserFilter{Email: prefill[0].Email})
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{Email: prefill[0].Email})
 			req.NoError(err)
 			req.Len(set, 1)
-			req.Equal(uint(1), f.Count)
 		})
 
 		t.Run("by username", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
-			set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: prefill[0].Username})
+			req, prefill := truncAndFill(t, 5)
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{Username: prefill[0].Username})
 			req.NoError(err)
 			req.Len(set, 1)
-			req.Equal(uint(1), f.Count)
 		})
 
 		t.Run("by query", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
-			set, f, err := s.SearchUsers(ctx, types.UserFilter{Query: prefill[0].Handle})
+			req, prefill := truncAndFill(t, 5)
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{Query: prefill[0].Handle})
 			req.NoError(err)
 			req.Len(set, 1)
-			req.Equal(uint(1), f.Count)
 		})
 
 		t.Run("by username", func(t *testing.T) {
-			req, _ := truncAddFill(t, 5)
-			set, f, err := s.SearchUsers(ctx, types.UserFilter{Username: "no such username"})
+			req, _ := truncAndFill(t, 5)
+			set, _, err := s.SearchUsers(ctx, types.UserFilter{Username: "no such username"})
 			req.NoError(err)
 			req.Len(set, 0)
-			req.Equal(uint(0), f.Count)
 		})
 
 		t.Run("with check", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
+			req, prefill := truncAndFill(t, 5)
 			set, _, err := s.SearchUsers(ctx, types.UserFilter{
 				Check: func(user *types.User) (bool, error) {
 					// simple check that matches with the first user from prefill
@@ -206,24 +179,123 @@ func testUsers(t *testing.T, tmp interface{}) {
 			req.Equal(prefill[0].ID, set[0].ID)
 		})
 
-		t.Run("with check and paging", func(t *testing.T) {
-			req, prefill := truncAddFill(t, 5)
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{
-				// This will cause paging to run multiple queries
-				// until it collects all data
-				PageFilter: rh.PageFilter{Limit: 2},
-				Check: func(user *types.User) (bool, error) {
-					// simple check that matches with the 4th user from prefill
-					return user.ID == prefill[4].ID, nil
-				},
-			})
+		t.Run("with keyed paging", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+
+			set := []*types.User{
+				makeNew("01"),
+				makeNew("02"),
+				makeNew("03"),
+				makeNew("04"),
+				makeNew("05"),
+				makeNew("06"),
+				makeNew("07"),
+				makeNew("08"),
+				makeNew("09"),
+				makeNew("10"),
+			}
+
+			req.NoError(s.CreateUser(ctx, set...))
+			f := types.UserFilter{}
+			f.Sort = store.SortExprSet{&store.SortExpr{Column: "email"}}
+
+			// Fetch first page
+			f.Limit = 3
+			set, f, err := s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 3)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+			req.Equal("handle_01", set[0].Handle)
+			req.Equal("handle_03", set[2].Handle)
+
+			// 2nd page
+			f.Limit = 6
+			f.PageCursor = f.NextPage
+			set, f, err = s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 6)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("handle_04", set[0].Handle)
+			req.Equal("handle_09", set[5].Handle)
+
+			// 3rd, last page (1 item left)
+			f.Limit = 2
+			f.PageCursor = f.NextPage
+			set, f, err = s.SearchUsers(ctx, f)
 			req.NoError(err)
 			req.Len(set, 1)
-			req.Equal(prefill[4].ID, set[0].ID)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("handle_10", set[0].Handle)
+
+			// try and go pass the last page
+			f.PageCursor = f.NextPage
+			set, _, err = s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 0)
+
+			// now, in reverse, last 3 items
+			f.Limit = 3
+			f.PageCursor = f.PrevPage
+			set, f, err = s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 3)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("handle_07", set[0].Handle)
+			req.Equal("handle_09", set[2].Handle)
+
+			// still in reverse, next 6 items
+			f.Limit = 5
+			f.PageCursor = f.PrevPage
+			set, f, err = s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 5)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("handle_02", set[0].Handle)
+			req.Equal("handle_06", set[4].Handle)
+
+			// still in reverse, last 5 items (actually, we'll only get 1)
+			f.Limit = 5
+			f.PageCursor = f.PrevPage
+			set, f, err = s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Nil(f.PrevPage)
+			req.NotNil(f.NextPage)
+			req.Equal("handle_01", set[0].Handle)
 		})
 
-		t.Run("with masked details", func(t *testing.T) {
-			t.Skip("not implemented")
+		t.Run("with keyed paging and multi-key sorting", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+
+			set := []*types.User{
+				makeNew("01"),
+				makeNew("02"),
+				makeNew("03"),
+				makeNew("04"),
+				makeNew("05"),
+			}
+
+			req.NoError(s.CreateUser(ctx, set...))
+			f := types.UserFilter{}
+			f.Sort = store.SortExprSet{&store.SortExpr{Column: "email", Descending: true}, &store.SortExpr{Column: "handle", Descending: true}}
+
+			// Fetch first page
+			f.Limit = 3
+			set, f, err := s.SearchUsers(ctx, f)
+			req.NoError(err)
+			req.Len(set, 3)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+			req.Equal("handle_05", set[0].Handle)
+			req.Equal("handle_03", set[2].Handle)
+
 		})
 
 		t.Run("by role", func(t *testing.T) {

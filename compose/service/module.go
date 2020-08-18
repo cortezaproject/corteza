@@ -179,9 +179,16 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 		aProps = &moduleActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() error {
-		filter.IsReadable = svc.ac.FilterReadableModules(svc.ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Module) (bool, error) {
+		if !svc.ac.CanReadModule(svc.ctx, res) {
+			return false, nil
+		}
 
+		return true, nil
+	}
+
+	err = func() error {
 		set, f, err = svc.moduleRepo.Find(filter)
 		if err != nil {
 			return err
@@ -197,7 +204,7 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 			m.Fields = ff.FilterByModule(m.ID)
 			return nil
 		})
-	})
+	}()
 
 	return set, f, svc.recordAction(svc.ctx, aProps, ModuleActionSearch, err)
 }

@@ -45,22 +45,6 @@ func testCredentials(t *testing.T, s credentialsStore) {
 		req.NoError(s.UpdateCredentials(ctx, credentials))
 	})
 
-	//t.Run("delete/undelete", func(t *testing.T) {
-	//	ID := credentials.ID
-	//	credentials, err = s.LookupCredentialsByID(ctx, ID)
-	//	req.NoError(err)
-	//
-	//	req.NoError(s.DeleteCredentialsByID(ctx, ID))
-	//	credentials, err = s.LookupCredentialsByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(credentials.DeletedAt)
-	//
-	//	req.NoError(s.UndeleteCredentialsByID(ctx, ID))
-	//	credentials, err = s.LookupCredentialsByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(credentials.DeletedAt)
-	//})
-
 	t.Run("search by *", func(t *testing.T) {
 		t.Skip("not implemented")
 	})

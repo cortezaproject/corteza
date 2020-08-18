@@ -23,111 +23,44 @@ import (
 // This function calls convertAttachmentFilter with the given
 // types.AttachmentFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchAttachments(ctx context.Context, f types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
+	var scap uint
 	q, err := s.convertAttachmentFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	scap := f.PerPage
 	if scap == 0 {
 		scap = DefaultSliceCapacity
 	}
 
-	if f.Count, err = Count(ctx, s.db, q); err != nil || f.Count == 0 {
-		return nil, f, err
-	}
-
 	var (
 		set = make([]*types.Attachment, 0, scap)
-		// @todo this offset needs to be removed and replaced with key-based-paging
-		fetchPage = func(offset, limit uint) (fetched, skipped uint, err error) {
+		// Paging is disabled in definition yaml file
+		// {search: {disablePaging:true}} and this allows
+		// a much simpler row fetching logic
+		fetch = func() error {
 			var (
-				res *types.Attachment
-				chk bool
+				res       *types.Attachment
+				rows, err = s.Query(ctx, q)
 			)
 
-			if limit > 0 {
-				q = q.Limit(uint64(limit))
-			}
-
-			if offset > 0 {
-				q = q.Offset(uint64(offset))
-			}
-
-			rows, err := s.Query(ctx, q)
 			if err != nil {
-				return
+				return err
 			}
 
 			for rows.Next() {
-				fetched++
 				if res, err = s.internalAttachmentRowScanner(rows, rows.Err()); err != nil {
 					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
 
-					return
-				}
-
-				// If check function is set, call it and act accordingly
-				if f.Check != nil {
-					if chk, err = f.Check(res); err != nil {
-						if cerr := rows.Close(); cerr != nil {
-							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
-						}
-
-						return
-					} else if !chk {
-						// did not pass the check
-						// go with the next row
-						skipped++
-						continue
-					}
-				}
-
-				set = append(set, res)
-
-				// make sure we do not fetch more than requested!
-				if f.Limit > 0 && uint(len(set)) >= f.Limit {
-					break
-				}
-			}
-
-			err = rows.Close()
-			return
-		}
-
-		fetch = func() error {
-			var (
-				fetched uint
-
-				// starting offset & limit are from filter arg
-				// note that this will have to be improved with key-based pagination
-				offset, limit = calculatePaging(f.PageFilter)
-			)
-
-			for refetch := 0; refetch < MaxRefetches; refetch++ {
-				if fetched, _, err = fetchPage(offset, limit); err != nil {
 					return err
 				}
 
-				// if limit is not set or we've already collected enough resources
-				// we can break the loop right away
-				if limit == 0 || fetched == 0 || uint(len(set)) >= f.Limit {
-					break
-				}
-
-				// we've skipped fetched resources (due to check() fn)
-				// and we still have less results (in set) than required by limit
-				// inc offset by number of fetched items
-				offset += fetched
-
-				if limit < MinRefetchLimit {
-					limit = MinRefetchLimit
-				}
-
+				set = append(set, res)
 			}
-			return nil
+
+			return rows.Close()
 		}
 	)
 
@@ -300,6 +233,8 @@ func (Store) AttachmentColumns(aa ...string) []string {
 		alias + "deleted_at",
 	}
 }
+
+// {false true true false}
 
 // internalAttachmentEncoder encodes fields from types.Attachment to store.Payload (map)
 //

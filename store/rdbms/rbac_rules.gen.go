@@ -23,12 +23,18 @@ import (
 // This function calls convertRbacRuleFilter with the given
 // permissions.RuleFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (permissions.RuleSet, permissions.RuleFilter, error) {
+	var scap uint
 	q := s.QueryRbacRules()
 
-	scap := DefaultSliceCapacity
+	if scap == 0 {
+		scap = DefaultSliceCapacity
+	}
 
 	var (
-		set   = make([]*permissions.Rule, 0, scap)
+		set = make([]*permissions.Rule, 0, scap)
+		// Paging is disabled in definition yaml file
+		// {search: {disablePaging:true}} and this allows
+		// a much simpler row fetching logic
 		fetch = func() error {
 			var (
 				res       *permissions.Rule
@@ -214,6 +220,8 @@ func (Store) RbacRuleColumns(aa ...string) []string {
 		alias + "access",
 	}
 }
+
+// {false true true false}
 
 // internalRbacRuleEncoder encodes fields from permissions.Rule to store.Payload (map)
 //

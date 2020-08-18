@@ -9,13 +9,13 @@ types:
 
 fields:
   - { field: ID }
-  - { field: Handle, lookupFilterPreprocessor: lower }
-  - { field: Name }
+  - { field: Handle, lookupFilterPreprocessor: lower, sortable: true, unique: true }
+  - { field: Name,                                    sortable: true }
   - { field: Config, type: "types.ChartConfig" }
   - { field: NamespaceID }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt,                               sortable: true }
+  - { field: UpdatedAt,                               sortable: true }
+  - { field: DeletedAt,                               sortable: true }
 
 lookups:
   - fields: [ ID ]

@@ -18,9 +18,9 @@ fields:
   - { field: Blocks, type: "types.PageBlocks" }
   - { field: Visible, type: bool }
   - { field: Weight, type: int  }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ Handle ]

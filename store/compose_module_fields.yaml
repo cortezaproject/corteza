@@ -12,7 +12,7 @@ fields:
   - { field: Name }
   - { field: ModuleID }
   - { field: Place,        type: int }
-  - { field: Kind }
+  - { field: Kind  }
   - { field: Label }
   - { field: Options,      type: "types.ModuleFieldOptions" }
   - { field: Private,      type: bool, column: is_private }
@@ -23,6 +23,7 @@ fields:
   - { field: CreatedAt }
   - { field: UpdatedAt }
   - { field: DeletedAt }
+
 
 rdbms:
   alias: cmf

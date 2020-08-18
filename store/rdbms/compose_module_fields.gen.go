@@ -186,6 +186,8 @@ func (Store) ComposeModuleFieldColumns(aa ...string) []string {
 	}
 }
 
+// {true true true true}
+
 // internalComposeModuleFieldEncoder encodes fields from types.ModuleField to store.Payload (map)
 //
 // Encoding is done by using generic approach or by calling encodeComposeModuleField

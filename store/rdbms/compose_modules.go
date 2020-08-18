@@ -8,10 +8,6 @@ import (
 )
 
 func (s Store) convertComposeModuleFilter(f types.ModuleFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
 	query = s.QueryComposeModules()
 
 	query = rh.FilterNullByState(query, "cmd.deleted_at", f.Deleted)
@@ -34,17 +30,6 @@ func (s Store) convertComposeModuleFilter(f types.ModuleFilter) (query squirrel.
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cmd.handle)": strings.ToLower(f.Handle)})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.ComposeModuleColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

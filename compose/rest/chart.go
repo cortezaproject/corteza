@@ -2,14 +2,13 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
-
 	"github.com/pkg/errors"
 )
 
@@ -50,15 +49,22 @@ func (Chart) New() *Chart {
 }
 
 func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, error) {
-	f := types.ChartFilter{
-		NamespaceID: r.NamespaceID,
+	var (
+		err error
+		f   = types.ChartFilter{
+			NamespaceID: r.NamespaceID,
 
-		Handle: r.Handle,
-		Query:  r.Query,
+			Handle: r.Handle,
+			Query:  r.Query,
+		}
+	)
 
-		Sort: r.Sort,
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
 
-		PageFilter: rh.Paging(r),
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.chart.With(ctx).Find(f)

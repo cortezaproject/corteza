@@ -129,7 +129,6 @@ func testComposeRecords(t *testing.T, s composeRecordsStore) {
 		set, f, err := s.SearchComposeRecords(ctx, mod, types.RecordFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateInclusive})
@@ -140,6 +139,8 @@ func testComposeRecords(t *testing.T, s composeRecordsStore) {
 		set, f, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateExclusive})
 		req.NoError(err)
 		req.Len(set, 1) // we've deleted one
+
+		_ = f // dummy
 	})
 
 	t.Run("filtered search", func(t *testing.T) {

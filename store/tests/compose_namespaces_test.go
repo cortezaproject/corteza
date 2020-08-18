@@ -100,7 +100,6 @@ func testComposeNamespaces(t *testing.T, s composeNamespacesStore) {
 		set, f, err := s.SearchComposeNamespaces(ctx, types.NamespaceFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Deleted: rh.FilterStateInclusive})
@@ -120,5 +119,7 @@ func testComposeNamespaces(t *testing.T, s composeNamespacesStore) {
 		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Query: "/two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		_ = f // dummy
 	})
 }

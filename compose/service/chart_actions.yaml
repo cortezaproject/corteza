@@ -21,7 +21,7 @@ props:
     fields: [ name, handle, ID, namespaceID, config ]
   - name: filter
     type: "*types.ChartFilter"
-    fields: [ query, handle, namespaceID, sort, limit, offset, page, perPage ]
+    fields: [ query, handle, namespaceID, sort, Limit ]
   - name: namespace
     type: "*types.Namespace"
     fields: [ name, slug, ID ]

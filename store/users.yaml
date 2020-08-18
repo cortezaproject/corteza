@@ -6,17 +6,17 @@ interface:
 
 fields:
   - { field: ID }
-  - { field: Email }
+  - { field: Email,                                  sortable: true, unique: true, fts: true }
   - { field: EmailConfirmed }
-  - { field: Username }
-  - { field: Name }
-  - { field: Handle }
-  - { field: Meta, type: "*types.UserMeta" }
+  - { field: Username,                               sortable: true, unique: true, fts: true }
+  - { field: Name,                                   sortable: true,               fts: true }
+  - { field: Handle,                                 sortable: true, unique: true, fts: true }
+  - { field: Meta,           type: "*types.UserMeta" }
   - { field: Kind }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: SuspendedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: SuspendedAt,                            sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ ID ]

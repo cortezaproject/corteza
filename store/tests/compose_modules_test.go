@@ -103,7 +103,6 @@ func testComposeModules(t *testing.T, s composeModulesStore) {
 		set, f, err := s.SearchComposeModules(ctx, types.ModuleFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: rh.FilterStateInclusive})
@@ -123,5 +122,7 @@ func testComposeModules(t *testing.T, s composeModulesStore) {
 		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Query: "/two-"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		_ = f // dummy
 	})
 }

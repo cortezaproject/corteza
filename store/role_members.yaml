@@ -13,5 +13,6 @@ rdbms:
   table: role_members
 
 search:
+  disableSorting: true
   disablePaging: true
   customFilterConverter: true

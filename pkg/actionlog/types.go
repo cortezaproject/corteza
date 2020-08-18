@@ -1,9 +1,8 @@
 package actionlog
 
 import (
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -63,8 +62,9 @@ type (
 		// @todo pending implementation
 		// Query   string     `json:"query"`
 
-		// Standard paging fields & helpers
-		rh.PageFilter
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 
 	loggableMetaValue interface {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"strings"
 	"time"
 
@@ -28,13 +27,11 @@ type (
 		Prefix  string `json:"prefix"`
 		OwnedBy uint64 `json:"ownedBy"`
 
-		rh.PageFilter
-
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *SettingValue) (bool, error)
+		Check func(*SettingValue) (bool, error) `json:"-"`
 	}
 
 	SettingsKV map[string]types.JSONText
@@ -43,13 +40,6 @@ type (
 const (
 	settingsFilterPerPageMax = 100
 )
-
-func (f *SettingsFilter) Normalize() {
-	f.Prefix = strings.TrimSpace(f.Prefix)
-	if f.PerPage > settingsFilterPerPageMax {
-		f.PerPage = settingsFilterPerPageMax
-	}
-}
 
 func (v *SettingValue) SetRawValue(str string) error {
 	var dummy interface{}

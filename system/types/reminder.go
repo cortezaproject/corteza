@@ -1,11 +1,10 @@
 package types
 
 import (
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -38,15 +37,14 @@ type (
 		ExcludeDismissed bool       `json:"excludeDismissed"`
 		ScheduledOnly    bool       `json:"scheduledOnly"`
 
-		Sort string `json:"sort"`
-
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Reminder) (bool, error)
+		Check func(*Reminder) (bool, error) `json:"-"`
 
-		// Standard paging fields & helpers
-		rh.PageFilter
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 )

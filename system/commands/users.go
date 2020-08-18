@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
@@ -44,13 +44,9 @@ func Users(app serviceInitializer) *cobra.Command {
 			limit, err = strconv.Atoi(limitFlag)
 			cli.HandleError(err)
 
-			uf := types.UserFilter{
-				Sort:  "updated_at",
-				Query: queryFlag,
-				PageFilter: rh.PageFilter{
-					PerPage: uint(limit),
-				},
-			}
+			uf := types.UserFilter{Query: queryFlag}
+			uf.Sort = store.SortExprSet{&store.SortExpr{Column: "updated_at"}}
+			uf.Limit = uint(limit)
 
 			users, _, err := service.DefaultNgStore.SearchUsers(ctx, uf)
 			cli.HandleError(err)

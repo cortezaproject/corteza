@@ -50,20 +50,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 
 		// Sort GET parameter
 		//
@@ -221,14 +211,12 @@ func NewRoleList() *RoleList {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"query":    r.Query,
-		"deleted":  r.Deleted,
-		"archived": r.Archived,
-		"limit":    r.Limit,
-		"offset":   r.Offset,
-		"page":     r.Page,
-		"perPage":  r.PerPage,
-		"sort":     r.Sort,
+		"query":      r.Query,
+		"deleted":    r.Deleted,
+		"archived":   r.Archived,
+		"limit":      r.Limit,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
 	}
 }
 
@@ -253,18 +241,8 @@ func (r RoleList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r RoleList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r RoleList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r RoleList) GetPerPage() uint {
-	return r.PerPage
+func (r RoleList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -313,20 +291,8 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}
