@@ -128,22 +128,28 @@ func (svc chart) search(filter types.ChartFilter) (set types.ChartSet, f types.C
 		aProps = &chartActionProps{filter: &filter}
 	)
 
-	f = filter
-	f.IsReadable = svc.ac.FilterReadableCharts(svc.ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Chart) (bool, error) {
+		if !svc.ac.CanReadChart(svc.ctx, res) {
+			return false, nil
+		}
 
-	err = svc.db.Transaction(func() error {
+		return true, nil
+	}
+
+	err = func() error {
 		if ns, err := svc.loadNamespace(f.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
 		}
 
-		if set, f, err = svc.chartRepo.Find(f); err != nil {
+		if set, f, err = svc.chartRepo.Find(filter); err != nil {
 			return err
 		}
 
 		return nil
-	})
+	}()
 
 	return set, f, svc.recordAction(svc.ctx, aProps, ChartActionSearch, err)
 }

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -57,13 +57,20 @@ func (Namespace) New() *Namespace {
 }
 
 func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (interface{}, error) {
-	f := types.NamespaceFilter{
-		Query: r.Query,
-		Slug:  r.Slug,
+	var (
+		err error
+		f   = types.NamespaceFilter{
+			Query: r.Query,
+			Slug:  r.Slug,
+		}
+	)
 
-		Sort: r.Sort,
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
 
-		PageFilter: rh.Paging(r),
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.namespace.With(ctx).Find(f)

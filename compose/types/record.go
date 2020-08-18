@@ -54,14 +54,14 @@ type (
 		Query       string `json:"query"`
 		Sort        string `json:"sort"`
 
-		// Standard paging fields & helpers
+		// Standard helpers for paging and sorting
 		rh.PageFilter
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Record) (bool, error)
+		Check func(*Record) (bool, error) `json:"-"`
 
 		Deleted rh.FilterState `json:"deleted"`
 	}

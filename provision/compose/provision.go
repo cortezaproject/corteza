@@ -27,6 +27,8 @@ func Provision(ctx context.Context, log *zap.Logger) error {
 
 // provision only where there are no namespaces
 func notProvisioned(ctx context.Context) (bool, error) {
-	_, f, err := service.DefaultNamespace.With(ctx).Find(types.NamespaceFilter{})
-	return f.Count == 0, err
+	f := types.NamespaceFilter{}
+	f.Limit = 1
+	set, _, err := service.DefaultNamespace.With(ctx).Find(f)
+	return len(set) == 0, err
 }

@@ -145,14 +145,24 @@ func (svc page) FindByModuleID(namespaceID, moduleID uint64) (p *types.Page, err
 	})
 }
 
+func checkPage(ctx context.Context, ac pageAccessController) func(res *types.Page) (bool, error) {
+	return func(res *types.Page) (bool, error) {
+		if !ac.CanReadPage(ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+}
+
 // search fn() orchestrates pages search, namespace preload and check
 func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	var (
 		aProps = &pageActionProps{filter: &filter}
 	)
 
-	f = filter
-	f.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = checkPage(svc.ctx, svc.ac)
 
 	err = svc.db.Transaction(func() error {
 		if ns, err := svc.loadNamespace(f.NamespaceID); err != nil {
@@ -161,7 +171,7 @@ func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.Page
 			aProps.setNamespace(ns)
 		}
 
-		if set, f, err = svc.pageRepo.Find(f); err != nil {
+		if set, f, err = svc.pageRepo.Find(filter); err != nil {
 			return err
 		}
 
@@ -179,25 +189,29 @@ func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f 
 		// This will enable parentID=0 query
 		Root: true,
 
-		IsReadable: svc.ac.FilterReadablePages(svc.ctx),
+		Check: checkPage(svc.ctx, svc.ac),
 	})
 }
 
 func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	filter.IsReadable = svc.ac.FilterReadablePages(svc.ctx)
 	return svc.search(filter)
 }
 
 func (svc page) Tree(namespaceID uint64) (tree types.PageSet, err error) {
-	var pages types.PageSet
-	pages, _, err = svc.search(types.PageFilter{
-		NamespaceID: namespaceID,
-		IsReadable:  svc.ac.FilterReadablePages(svc.ctx),
-		Sort:        "weight ASC",
-	})
+	var (
+		pages  types.PageSet
+		filter = types.PageFilter{
+			NamespaceID: namespaceID,
+			Check:       checkPage(svc.ctx, svc.ac),
+		}
+	)
 
-	if err != nil {
-		return nil, err
+	if err = filter.Sort.Set("weight ASC"); err != nil {
+		return
+	}
+
+	if pages, _, err = svc.search(filter); err != nil {
+		return
 	}
 
 	// safe to ignore errors

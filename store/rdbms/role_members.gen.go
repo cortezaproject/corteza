@@ -23,12 +23,18 @@ import (
 // This function calls convertRoleMemberFilter with the given
 // types.RoleMemberFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error) {
+	var scap uint
 	q := s.QueryRoleMembers()
 
-	scap := DefaultSliceCapacity
+	if scap == 0 {
+		scap = DefaultSliceCapacity
+	}
 
 	var (
-		set   = make([]*types.RoleMember, 0, scap)
+		set = make([]*types.RoleMember, 0, scap)
+		// Paging is disabled in definition yaml file
+		// {search: {disablePaging:true}} and this allows
+		// a much simpler row fetching logic
 		fetch = func() error {
 			var (
 				res       *types.RoleMember
@@ -206,6 +212,8 @@ func (Store) RoleMemberColumns(aa ...string) []string {
 		alias + "rel_role",
 	}
 }
+
+// {false true true false}
 
 // internalRoleMemberEncoder encodes fields from types.RoleMember to store.Payload (map)
 //

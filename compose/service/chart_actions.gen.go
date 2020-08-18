@@ -134,10 +134,7 @@ func (p chartActionProps) serialize() actionlog.Meta {
 		m.Set("filter.handle", p.filter.Handle, true)
 		m.Set("filter.namespaceID", p.filter.NamespaceID, true)
 		m.Set("filter.sort", p.filter.Sort, true)
-		m.Set("filter.limit", p.filter.Limit, true)
-		m.Set("filter.offset", p.filter.Offset, true)
-		m.Set("filter.page", p.filter.Page, true)
-		m.Set("filter.perPage", p.filter.PerPage, true)
+		m.Set("filter.Limit", p.filter.Limit, true)
 	}
 	if p.namespace != nil {
 		m.Set("namespace.name", p.namespace.Name, true)
@@ -232,19 +229,13 @@ func (p chartActionProps) tr(in string, err error) string {
 				p.filter.NamespaceID,
 				p.filter.Sort,
 				p.filter.Limit,
-				p.filter.Offset,
-				p.filter.Page,
-				p.filter.PerPage,
 			),
 		)
 		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
 		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
 		pairs = append(pairs, "{filter.namespaceID}", fns(p.filter.NamespaceID))
 		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
-		pairs = append(pairs, "{filter.offset}", fns(p.filter.Offset))
-		pairs = append(pairs, "{filter.page}", fns(p.filter.Page))
-		pairs = append(pairs, "{filter.perPage}", fns(p.filter.PerPage))
+		pairs = append(pairs, "{filter.Limit}", fns(p.filter.Limit))
 	}
 
 	if p.namespace != nil {

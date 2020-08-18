@@ -109,6 +109,19 @@ type (
 		// See specific implementation for details
 		LookupFilterPreprocess string `yaml:"lookupFilterPreprocessor"`
 
+		// Is field sortable?
+		IsSortable bool `yaml:"sortable"`
+
+		// When sorting is disabled and paging enabled and we need to have fixed default
+		// sorting set and sometimes default sorting needs to be in descending order
+		SortDescending bool `yaml:"sortDescending"`
+
+		// Is field unique
+		IsUnique bool `yaml:"unique"`
+
+		// @todo implementation
+		FullTextSearch bool `yaml:"fts"`
+
 		alias string
 	}
 
@@ -131,8 +144,10 @@ type (
 	}
 
 	storeTypeSearchDef struct {
-		Disable       bool `yaml:"disable"`
-		DisablePaging bool `yaml:"disablePaging"`
+		Disable              bool `yaml:"disable"`
+		DisablePaging        bool `yaml:"disablePaging"`
+		DisableSorting       bool `yaml:"disableSorting"`
+		DisableFilterCheckFn bool `yaml:"disableFilterCheckFunction"`
 	}
 )
 
@@ -156,6 +171,13 @@ func procStore() ([]*storeDef, error) {
 
 		def.Filename = path.Base(m)
 		def.Filename = def.Filename[:len(def.Filename)-5]
+
+		if def.Search.Disable {
+			// No use for any of that if search is disabled...
+			def.Search.DisablePaging = true
+			def.Search.DisableSorting = true
+			def.Search.DisableFilterCheckFn = true
+		}
 
 		// Always generate interface in store/tests and store/bulk
 		def.Interface = append(def.Interface, "store/tests", "store/bulk")
@@ -202,6 +224,7 @@ func procStore() ([]*storeDef, error) {
 		for _, f := range def.Fields {
 			if !hasPrimaryKey && f.Field == "ID" {
 				f.IsPrimaryKey = true
+				f.IsSortable = true
 			}
 
 			// copy alias from global spec so we can

@@ -8,10 +8,6 @@ import (
 )
 
 func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
 	query = s.QueryComposeCharts()
 
 	query = rh.FilterNullByState(query, "cch.deleted_at", f.Deleted)
@@ -30,17 +26,6 @@ func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.Se
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cch.handle)": strings.ToLower(f.Handle)})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.ComposeChartColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

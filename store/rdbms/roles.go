@@ -8,10 +8,6 @@ import (
 )
 
 func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id"
-	}
-
 	query = s.QueryRoles()
 
 	query = rh.FilterNullByState(query, "rl.deleted_at", f.Deleted)
@@ -39,17 +35,6 @@ func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuild
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"rl.handle": f.Handle})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.RoleColumns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
 	}
 
 	return

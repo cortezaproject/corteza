@@ -45,27 +45,10 @@ func testReminders(t *testing.T, s remindersStore) {
 		req.NoError(s.UpdateReminder(ctx, reminder))
 	})
 
-	//t.Run("delete/undelete", func(t *testing.T) {
-	//	ID := reminder.ID
-	//	reminder, err = s.LookupReminderByID(ctx, ID)
-	//	req.NoError(err)
-	//
-	//	req.NoError(s.DeleteReminderByID(ctx, ID))
-	//	reminder, err = s.LookupReminderByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.NotNil(reminder.DeletedAt)
-	//
-	//	req.NoError(s.UndeleteReminderByID(ctx, ID))
-	//	reminder, err = s.LookupReminderByID(ctx, ID)
-	//	req.NoError(err)
-	//	req.Nil(reminder.DeletedAt)
-	//})
-
 	t.Run("search", func(t *testing.T) {
-		set, f, err := s.SearchReminders(ctx, types.ReminderFilter{})
+		set, _, err := s.SearchReminders(ctx, types.ReminderFilter{})
 		req.NoError(err)
 		req.Len(set, 1)
-		req.Equal(uint(1), f.Count)
 	})
 
 	t.Run("search by *", func(t *testing.T) {

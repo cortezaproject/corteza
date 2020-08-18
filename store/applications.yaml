@@ -7,13 +7,13 @@ interface:
 
 fields:
   - { field: ID }
-  - { field: Name }
+  - { field: Name,      sortable: true }
   - { field: OwnerID }
   - { field: Enabled }
   - { field: Unify }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt, sortable: true }
+  - { field: UpdatedAt, sortable: true }
+  - { field: DeletedAt, sortable: true }
 
 lookups:
   - fields: [ ID ]

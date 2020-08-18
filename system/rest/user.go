@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
@@ -36,20 +37,27 @@ func (User) New() *User {
 }
 
 func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
-	f := types.UserFilter{
-		UserID:    payload.ParseUint64s(r.UserID),
-		RoleID:    payload.ParseUint64s(r.RoleID),
-		Query:     r.Query,
-		Email:     r.Email,
-		Username:  r.Username,
-		Handle:    r.Handle,
-		Kind:      r.Kind,
-		Suspended: rh.FilterState(r.Suspended),
-		Deleted:   rh.FilterState(r.Deleted),
+	var (
+		err error
+		f   = types.UserFilter{
+			UserID:    payload.ParseUint64s(r.UserID),
+			RoleID:    payload.ParseUint64s(r.RoleID),
+			Query:     r.Query,
+			Email:     r.Email,
+			Username:  r.Username,
+			Handle:    r.Handle,
+			Kind:      r.Kind,
+			Suspended: rh.FilterState(r.Suspended),
+			Deleted:   rh.FilterState(r.Deleted),
+		}
+	)
 
-		Sort: rh.NormalizeSortColumns(r.Sort),
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
 
-		PageFilter: rh.Paging(r),
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	if r.IncSuspended && f.Suspended == 0 {

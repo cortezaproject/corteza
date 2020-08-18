@@ -2,8 +2,7 @@ package repository
 
 import (
 	"context"
-	"strings"
-
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
 
@@ -97,41 +96,42 @@ func (r *namespace) findOneBy(field string, value interface{}) (*types.Namespace
 }
 
 func (r *namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
-	f = filter
-
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
-	query := r.query()
-	if f.Query != "" {
-		q := "%" + strings.ToLower(f.Query) + "%"
-		query = query.Where(squirrel.Or{
-			squirrel.Like{"LOWER(name)": q},
-			squirrel.Like{"LOWER(slug)": q},
-		})
-	}
-
-	if f.Slug != "" {
-		query = query.Where(squirrel.Eq{"LOWER(slug)": strings.ToLower(f.Slug)})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
-	}
-
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
-		return
-	}
-
-	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	//f = filter
+	//
+	//if f.Sort == "" {
+	//	f.Sort = "id ASC"
+	//}
+	//
+	//query := r.query()
+	//if f.Query != "" {
+	//	q := "%" + strings.ToLower(f.Query) + "%"
+	//	query = query.Where(squirrel.Or{
+	//		squirrel.Like{"LOWER(name)": q},
+	//		squirrel.Like{"LOWER(slug)": q},
+	//	})
+	//}
+	//
+	//if f.Slug != "" {
+	//	query = query.Where(squirrel.Eq{"LOWER(slug)": strings.ToLower(f.Slug)})
+	//}
+	//
+	//if f.IsReadable != nil {
+	//	query = query.Where(f.IsReadable)
+	//}
+	//
+	//var orderBy []string
+	//if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+	//	return
+	//} else {
+	//	query = query.OrderBy(orderBy...)
+	//}
+	//
+	//if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+	//	return
+	//}
+	//
+	//return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	return nil, f, fmt.Errorf("deprecated")
 }
 
 func (r *namespace) Create(mod *types.Namespace) (*types.Namespace, error) {

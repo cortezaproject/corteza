@@ -3,11 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -35,10 +34,10 @@ type (
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Attachment) (bool, error)
+		Check func(*Attachment) (bool, error) `json:"-"`
 
-		// Standard paging fields & helpers
-		rh.PageFilter
+		// Standard helpers for paging and sorting
+		store.Paging
 	}
 
 	attachmentImageMeta struct {

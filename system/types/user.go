@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/pkg/errors"
@@ -52,16 +53,15 @@ type (
 		Deleted   rh.FilterState `json:"deleted"`
 		Suspended rh.FilterState `json:"suspended"`
 
-		Sort string `json:"sort"`
-
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *User) (bool, error)
+		Check func(*User) (bool, error) `json:"-"`
 
-		// Standard paging fields & helpers
-		rh.PageFilter
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 
 	UserKind string

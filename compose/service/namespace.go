@@ -157,11 +157,17 @@ func (svc namespace) search(filter types.NamespaceFilter) (set types.NamespaceSe
 		aProps = &namespaceActionProps{filter: &filter}
 	)
 
-	f = filter
-	f.IsReadable = svc.ac.FilterReadableNamespaces(svc.ctx)
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Namespace) (bool, error) {
+		if !svc.ac.CanReadNamespace(svc.ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
 
 	err = svc.db.Transaction(func() error {
-		if set, f, err = svc.namespaceRepo.Find(f); err != nil {
+		if set, f, err = svc.namespaceRepo.Find(filter); err != nil {
 			return err
 		}
 

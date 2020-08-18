@@ -2,9 +2,8 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -38,15 +37,24 @@ func (Reminder) New() *Reminder {
 }
 
 func (ctrl *Reminder) List(ctx context.Context, r *request.ReminderList) (interface{}, error) {
-	f := types.ReminderFilter{
-		AssignedTo:       r.AssignedTo,
-		Resource:         r.Resource,
-		ScheduledFrom:    r.ScheduledFrom,
-		ScheduledUntil:   r.ScheduledUntil,
-		ExcludeDismissed: r.ExcludeDismissed,
-		ScheduledOnly:    r.ScheduledOnly,
+	var (
+		err error
+		f   = types.ReminderFilter{
+			AssignedTo:       r.AssignedTo,
+			Resource:         r.Resource,
+			ScheduledFrom:    r.ScheduledFrom,
+			ScheduledUntil:   r.ScheduledUntil,
+			ExcludeDismissed: r.ExcludeDismissed,
+			ScheduledOnly:    r.ScheduledOnly,
+		}
+	)
 
-		PageFilter: rh.Paging(r),
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.reminder.Find(ctx, f)

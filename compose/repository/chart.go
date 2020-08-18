@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -95,45 +96,46 @@ func (r chart) findOneBy(namespaceID uint64, field string, value interface{}) (*
 }
 
 func (r chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
-	f = filter
-
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
-	query := r.query()
-
-	if filter.NamespaceID > 0 {
-		query = query.Where(squirrel.Eq{"rel_namespace": filter.NamespaceID})
-	}
-
-	if f.Query != "" {
-		q := "%" + strings.ToLower(f.Query) + "%"
-		query = query.Where(squirrel.Or{
-			squirrel.Like{"LOWER(name)": q},
-		})
-	}
-
-	if f.Handle != "" {
-		query = query.Where("LOWER(handle) = LOWER(?)", f.Handle)
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
-	}
-
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
-		return
-	}
-
-	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	//f = filter
+	//
+	//if f.Sort == "" {
+	//	f.Sort = "id ASC"
+	//}
+	//
+	//query := r.query()
+	//
+	//if filter.NamespaceID > 0 {
+	//	query = query.Where(squirrel.Eq{"rel_namespace": filter.NamespaceID})
+	//}
+	//
+	//if f.Query != "" {
+	//	q := "%" + strings.ToLower(f.Query) + "%"
+	//	query = query.Where(squirrel.Or{
+	//		squirrel.Like{"LOWER(name)": q},
+	//	})
+	//}
+	//
+	//if f.Handle != "" {
+	//	query = query.Where("LOWER(handle) = LOWER(?)", f.Handle)
+	//}
+	//
+	//if f.IsReadable != nil {
+	//	query = query.Where(f.IsReadable)
+	//}
+	//
+	//var orderBy []string
+	//if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+	//	return
+	//} else {
+	//	query = query.OrderBy(orderBy...)
+	//}
+	//
+	//if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+	//	return
+	//}
+	//
+	//return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	return nil, f, fmt.Errorf("deprecated")
 }
 
 func (r chart) Create(mod *types.Chart) (*types.Chart, error) {

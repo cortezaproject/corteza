@@ -12,18 +12,18 @@ types:
   filterType: actionlog.Filter
 
 fields:
-  - { field: ID }
-  - { field: Timestamp, type: "time.Time", column: "ts" }
+  - { field: ID,           sortDescending: true }
+  - { field: Timestamp,    column: "ts", type: "time.Time" }
   - { field: RequestOrigin }
-  - { field: RequestID, column: "request_id" }
+  - { field: RequestID,    column: "request_id" }
   - { field: ActorIPAddr }
-  - { field: ActorID, column: "actor_id" }
+  - { field: ActorID,      column: "actor_id" }
   - { field: Resource }
   - { field: Action }
   - { field: Error }
-  - { field: Severity, type: "actionlog.Severity" }
+  - { field: Severity,     type: "actionlog.Severity" }
   - { field: Description }
-  - { field: Meta, type: "actionlog.UserMeta" }
+  - { field: Meta,         type: "actionlog.UserMeta" }
 
 rdbms:
   alias: alg
@@ -33,4 +33,5 @@ rdbms:
   customEncoder: true
 
 search:
-  disablePaging: true
+  disableSorting: true
+  disableFilterCheckFunction: true

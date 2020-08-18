@@ -10,8 +10,8 @@ types:
 
 fields:
   - { field: Name, isPrimaryKey: true }
-  - { field: Value }
   - { field: OwnedBy, isPrimaryKey: true, column: rel_owner }
+  - { field: Value }
   - { field: UpdatedBy }
   - { field: UpdatedAt }
 
@@ -19,6 +19,10 @@ lookups:
   - fields: [ Name, OwnedBy ]
     description: |-
       searches for settings by name and owner
+
+search:
+  disablePaging: true
+  disableSorting: true
 
 rdbms:
   alias: st

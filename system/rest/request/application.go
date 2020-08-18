@@ -51,20 +51,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 
 		// Sort GET parameter
 		//
@@ -163,14 +153,12 @@ func NewApplicationList() *ApplicationList {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"name":    r.Name,
-		"query":   r.Query,
-		"deleted": r.Deleted,
-		"limit":   r.Limit,
-		"offset":  r.Offset,
-		"page":    r.Page,
-		"perPage": r.PerPage,
-		"sort":    r.Sort,
+		"name":       r.Name,
+		"query":      r.Query,
+		"deleted":    r.Deleted,
+		"limit":      r.Limit,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
 	}
 }
 
@@ -195,18 +183,8 @@ func (r ApplicationList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApplicationList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ApplicationList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ApplicationList) GetPerPage() uint {
-	return r.PerPage
+func (r ApplicationList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -255,20 +233,8 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

@@ -255,15 +255,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: uint
-        name: offset
-        title: Offset
-      - type: uint
-        name: page
-        title: Page number (1-based)
-      - type: uint
-        name: perPage
-        title: Returned items per page (default 50)
+      - type: string
+        name: pageCursor
+        title: Page cursor
       - type: string
         name: sort
         title: Sort items
@@ -503,15 +497,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: uint
-        name: offset
-        title: Offset
-      - type: uint
-        name: page
-        title: Page number (1-based)
-      - type: uint
-        name: perPage
-        title: Returned items per page (default 50)
+      - type: string
+        name: pageCursor
+        title: Page cursor
       - type: string
         name: sort
         title: Sort items
@@ -711,15 +699,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: uint
-        name: offset
-        title: Offset
-      - type: uint
-        name: page
-        title: Page number (1-based)
-      - type: uint
-        name: perPage
-        title: Returned items per page (default 50)
+      - type: string
+        name: pageCursor
+        title: Page cursor
       - type: string
         name: sort
         title: Sort items
@@ -924,15 +906,9 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: uint
-        name: offset
-        title: Offset
-      - type: uint
-        name: page
-        title: Page number (1-based)
-      - type: uint
-        name: perPage
-        title: Returned items per page (default 50)
+      - type: string
+        name: pageCursor
+        title: Page cursor
       - type: string
         name: sort
         title: Sort items
@@ -1205,12 +1181,6 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: uint
-        name: offset
-        title: Offset
-      - type: uint
-        name: page
-        title: Page number (1-based)
-      - type: uint
-        name: perPage
-        title: Returned items per page (default 50)
+      - type: string
+        name: pageCursor
+        title: Page cursor

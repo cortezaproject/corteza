@@ -2,8 +2,7 @@ package repository
 
 import (
 	"context"
-	"strings"
-
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/titpetric/factory"
 
@@ -108,52 +107,53 @@ func (r page) findOneBy(namespaceID uint64, field string, value interface{}) (*t
 }
 
 func (r page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	f = filter
-
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
-	query := r.query()
-
-	if filter.NamespaceID > 0 {
-		query = query.Where("rel_namespace = ?", filter.NamespaceID)
-	}
-
-	if filter.ParentID > 0 {
-		query = query.Where("self_id = ?", filter.ParentID)
-	} else if filter.Root {
-		query = query.Where("self_id = 0")
-	}
-
-	if f.Handle != "" {
-		query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
-	}
-
-	if f.Query != "" {
-		q := "%" + strings.ToLower(f.Query) + "%"
-		query = query.Where(squirrel.Or{
-			squirrel.Like{"LOWER(title)": q},
-			squirrel.Like{"LOWER(description)": q},
-		})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
-	}
-
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
-		return
-	}
-
-	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	//f = filter
+	//
+	//if f.Sort == "" {
+	//	f.Sort = "id ASC"
+	//}
+	//
+	//query := r.query()
+	//
+	//if filter.NamespaceID > 0 {
+	//	query = query.Where("rel_namespace = ?", filter.NamespaceID)
+	//}
+	//
+	//if filter.ParentID > 0 {
+	//	query = query.Where("self_id = ?", filter.ParentID)
+	//} else if filter.Root {
+	//	query = query.Where("self_id = 0")
+	//}
+	//
+	//if f.Handle != "" {
+	//	query = query.Where("LOWER(handle) = ?", strings.ToLower(f.Handle))
+	//}
+	//
+	//if f.Query != "" {
+	//	q := "%" + strings.ToLower(f.Query) + "%"
+	//	query = query.Where(squirrel.Or{
+	//		squirrel.Like{"LOWER(title)": q},
+	//		squirrel.Like{"LOWER(description)": q},
+	//	})
+	//}
+	//
+	//if f.IsReadable != nil {
+	//	query = query.Where(f.IsReadable)
+	//}
+	//
+	//var orderBy []string
+	//if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+	//	return
+	//} else {
+	//	query = query.OrderBy(orderBy...)
+	//}
+	//
+	//if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+	//	return
+	//}
+	//
+	//return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	return nil, f, fmt.Errorf("deprecated")
 }
 
 func (r page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) error {

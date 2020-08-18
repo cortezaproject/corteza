@@ -111,50 +111,51 @@ func (r module) findOneBy(namespaceID uint64, field string, value interface{}) (
 }
 
 func (r module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
-	f = filter
-
-	if f.Sort == "" {
-		f.Sort = "id ASC"
-	}
-
-	query := r.query()
-
-	if filter.NamespaceID > 0 {
-		query = query.Where("rel_namespace = ?", filter.NamespaceID)
-	}
-
-	if f.Query != "" {
-		q := "%" + strings.ToLower(f.Query) + "%"
-		query = query.Where(squirrel.Or{
-			squirrel.Like{"LOWER(name)": q},
-			squirrel.Like{"LOWER(handle)": q},
-		})
-	}
-
-	if f.Name != "" {
-		query = query.Where(squirrel.Eq{"LOWER(name)": strings.ToLower(f.Name)})
-	}
-
-	if f.Handle != "" {
-		query = query.Where(squirrel.Eq{"LOWER(handle)": strings.ToLower(f.Handle)})
-	}
-
-	if f.IsReadable != nil {
-		query = query.Where(f.IsReadable)
-	}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
-	}
-
-	if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
-		return
-	}
-
-	return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	//f = filter
+	//
+	//if f.Sort == "" {
+	//	f.Sort = "id ASC"
+	//}
+	//
+	//query := r.query()
+	//
+	//if filter.NamespaceID > 0 {
+	//	query = query.Where("rel_namespace = ?", filter.NamespaceID)
+	//}
+	//
+	//if f.Query != "" {
+	//	q := "%" + strings.ToLower(f.Query) + "%"
+	//	query = query.Where(squirrel.Or{
+	//		squirrel.Like{"LOWER(name)": q},
+	//		squirrel.Like{"LOWER(handle)": q},
+	//	})
+	//}
+	//
+	//if f.Name != "" {
+	//	query = query.Where(squirrel.Eq{"LOWER(name)": strings.ToLower(f.Name)})
+	//}
+	//
+	//if f.Handle != "" {
+	//	query = query.Where(squirrel.Eq{"LOWER(handle)": strings.ToLower(f.Handle)})
+	//}
+	//
+	//if f.IsReadable != nil {
+	//	query = query.Where(f.IsReadable)
+	//}
+	//
+	//var orderBy []string
+	//if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+	//	return
+	//} else {
+	//	query = query.OrderBy(orderBy...)
+	//}
+	//
+	//if f.Count, err = rh.Count(r.db(), query); err != nil || f.Count == 0 {
+	//	return
+	//}
+	//
+	//return set, f, rh.FetchPaged(r.db(), query, f.PageFilter, &set)
+	return nil, f, fmt.Errorf("deprecated")
 }
 
 func (r module) Create(mod *types.Module) (*types.Module, error) {

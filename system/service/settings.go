@@ -70,6 +70,7 @@ func (svc settings) findByPrefix(ctx context.Context, pp ...string) (types.Setti
 	var (
 		f = types.SettingsFilter{
 			Prefix: strings.Join(pp, "."),
+			Check:  func(*types.SettingValue) (bool, error) { return true, nil },
 		}
 	)
 

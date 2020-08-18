@@ -21,7 +21,7 @@ props:
     fields: [ name, slug, ID, meta, enabled ]
   - name: filter
     type: "*types.NamespaceFilter"
-    fields: [ query, slug, sort, limit, offset, page, perPage ]
+    fields: [ query, slug, sort, Limit ]
 
 actions:
   - action: search

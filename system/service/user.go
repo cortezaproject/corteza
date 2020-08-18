@@ -262,12 +262,13 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 		uaProps = &userActionProps{filter: &filter}
 	)
 
-	filter.Check = func(user *types.User) (bool, error) {
-		if !svc.ac.CanReadUser(svc.ctx, user) {
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.User) (bool, error) {
+		if !svc.ac.CanReadUser(svc.ctx, res) {
 			return false, nil
 		}
 
-		svc.handlePrivateData(user)
+		svc.handlePrivateData(res)
 		return true, nil
 	}
 
@@ -282,14 +283,6 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 				return UserErrNotAllowedToListUsers()
 			}
 		}
-
-		//// Prepare filter for email unmasking check
-		//filter.IsEmailUnmaskable = svc.ac.FilterUsersWithUnmaskableEmail(svc.ctx)
-		//
-		//// Prepare filter for name unmasking check
-		//filter.IsNameUnmaskable = svc.ac.FilterUsersWithUnmaskableName(svc.ctx)
-		//
-		//filter.IsReadable = svc.ac.FilterReadableUsers(svc.ctx)
 
 		uu, f, err = svc.store.SearchUsers(svc.ctx, filter)
 		if err != nil {

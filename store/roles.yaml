@@ -6,12 +6,12 @@ interface:
 
 fields:
   - { field: ID }
-  - { field: Name }
-  - { field: Handle }
-  - { field: ArchivedAt }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: Name,                                   sortable: true }
+  - { field: Handle,                                 sortable: true, unique: true }
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: ArchivedAt,                             sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ ID ]

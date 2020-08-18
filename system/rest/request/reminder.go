@@ -72,20 +72,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 
 		// Sort GET parameter
 		//
@@ -192,9 +182,7 @@ func (r ReminderList) Auditable() map[string]interface{} {
 		"scheduledOnly":    r.ScheduledOnly,
 		"excludeDismissed": r.ExcludeDismissed,
 		"limit":            r.Limit,
-		"offset":           r.Offset,
-		"page":             r.Page,
-		"perPage":          r.PerPage,
+		"pageCursor":       r.PageCursor,
 		"sort":             r.Sort,
 	}
 }
@@ -240,18 +228,8 @@ func (r ReminderList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReminderList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReminderList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ReminderList) GetPerPage() uint {
-	return r.PerPage
+func (r ReminderList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -329,20 +307,8 @@ func (r *ReminderList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -55,16 +55,23 @@ func (Page) New() *Page {
 }
 
 func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, error) {
-	f := types.PageFilter{
-		NamespaceID: r.NamespaceID,
-		ParentID:    r.SelfID,
+	var (
+		err error
+		f   = types.PageFilter{
+			NamespaceID: r.NamespaceID,
+			ParentID:    r.SelfID,
 
-		Handle: r.Handle,
-		Query:  r.Query,
+			Handle: r.Handle,
+			Query:  r.Query,
+		}
+	)
 
-		Sort: r.Sort,
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
 
-		PageFilter: rh.Paging(r),
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.page.With(ctx).Find(f)

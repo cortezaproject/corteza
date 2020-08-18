@@ -93,7 +93,6 @@ func testApplications(t *testing.T, s applicationsStore) {
 		set, f, err := s.SearchApplications(ctx, types.ApplicationFilter{})
 		req.NoError(err)
 		req.Len(set, valid) // we've deleted one
-		req.Equal(valid, int(f.Count))
 
 		// search for ALL
 		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Deleted: rh.FilterStateInclusive})
@@ -113,5 +112,7 @@ func testApplications(t *testing.T, s applicationsStore) {
 		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Query: "/two"})
 		req.NoError(err)
 		req.Len(set, 2)
+
+		_ = f // dummy
 	})
 }

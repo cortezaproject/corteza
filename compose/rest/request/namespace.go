@@ -47,20 +47,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 
 		// Sort GET parameter
 		//
@@ -157,13 +147,11 @@ func NewNamespaceList() *NamespaceList {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"query":   r.Query,
-		"slug":    r.Slug,
-		"limit":   r.Limit,
-		"offset":  r.Offset,
-		"page":    r.Page,
-		"perPage": r.PerPage,
-		"sort":    r.Sort,
+		"query":      r.Query,
+		"slug":       r.Slug,
+		"limit":      r.Limit,
+		"pageCursor": r.PageCursor,
+		"sort":       r.Sort,
 	}
 }
 
@@ -183,18 +171,8 @@ func (r NamespaceList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NamespaceList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NamespaceList) GetPerPage() uint {
-	return r.PerPage
+func (r NamespaceList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -237,20 +215,8 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

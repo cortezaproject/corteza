@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/titpetric/factory/resputil"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -74,14 +74,22 @@ func (Module) New() *Module {
 }
 
 func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{}, error) {
-	f := types.ModuleFilter{
-		NamespaceID: r.NamespaceID,
-		Query:       r.Query,
-		Name:        r.Name,
-		Handle:      r.Handle,
-		Sort:        r.Sort,
+	var (
+		err error
+		f   = types.ModuleFilter{
+			NamespaceID: r.NamespaceID,
+			Query:       r.Query,
+			Name:        r.Name,
+			Handle:      r.Handle,
+		}
+	)
 
-		PageFilter: rh.Paging(r),
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+		return nil, err
 	}
 
 	set, filter, err := ctrl.module.With(ctx).Find(f)

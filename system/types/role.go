@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -31,20 +32,15 @@ type (
 		Deleted  rh.FilterState `json:"deleted"`
 		Archived rh.FilterState `json:"archived"`
 
-		Sort string `json:"sort"`
-
-		// Standard paging fields & helpers
-		rh.PageFilter
-
-		// Resource permission check filter
-		// deprecated
-		IsReadable *permissions.ResourceFilter `json:"-"`
-
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(user *Role) (bool, error)
+		Check func(*Role) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		store.Sorting
+		store.Paging
 	}
 
 	RoleMetrics struct {

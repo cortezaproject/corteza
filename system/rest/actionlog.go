@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -37,14 +38,22 @@ func (Actionlog) New() *Actionlog {
 }
 
 func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (interface{}, error) {
-	ee, f, err := ctrl.actionSvc.Find(ctx, actionlog.Filter{
-		From:       r.From,
-		To:         r.To,
-		ActorID:    payload.ParseUint64s(r.ActorID),
-		Resource:   r.Resource,
-		Action:     r.Action,
-		PageFilter: rh.Paging(r),
-	})
+	var (
+		err error
+		f   = actionlog.Filter{
+			From:     r.From,
+			To:       r.To,
+			ActorID:  payload.ParseUint64s(r.ActorID),
+			Resource: r.Resource,
+			Action:   r.Action,
+		}
+	)
+
+	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	ee, f, err := ctrl.actionSvc.Find(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, ee, f, err)
 }

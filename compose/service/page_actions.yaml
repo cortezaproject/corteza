@@ -21,7 +21,7 @@ props:
     fields: [ title, handle, ID, namespaceID, description, moduleID, blocks, visible, weight ]
   - name: filter
     type: "*types.PageFilter"
-    fields: [ query, handle, root, namespaceID, parentID, sort, limit, offset, page, perPage ]
+    fields: [ query, handle, root, namespaceID, parentID, sort, Limit ]
   - name: namespace
     type: "*types.Namespace"
     fields: [ name, slug, ID ]

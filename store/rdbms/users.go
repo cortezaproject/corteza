@@ -9,20 +9,7 @@ import (
 )
 
 func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuilder, err error) {
-	if f.Sort == "" {
-		f.Sort = "id"
-	}
-
 	query = s.QueryUsers()
-
-	// Returns user filter (flt) wrapped in IF() function with cnd as condition (when cnd != nil)
-	//whereMasked := func(cnd *permissions.ResourceFilter, flt squirrel.Sqlizer) squirrel.Sqlizer {
-	//	if cnd != nil {
-	//		return rh.SquirrelFunction("IF", cnd, flt, squirrel.Expr("false"))
-	//	} else {
-	//		return flt
-	//	}
-	//}
 
 	query = rh.FilterNullByState(query, "usr.deleted_at", f.Deleted)
 	query = rh.FilterNullByState(query, "usr.suspended_at", f.Suspended)
@@ -47,8 +34,6 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"usr.username": qs},
 			squirrel.Like{"usr.handle": qs},
-			//whereMasked(f.IsEmailUnmaskable, squirrel.Like{"usr.email": qs}),
-			//whereMasked(f.IsNameUnmaskable, squirrel.Like{"usr.name": qs}),
 		})
 	}
 
@@ -56,9 +41,9 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Eq{"usr.email": f.Email})
 	}
 
-	//if f.Email != "" {
-	//	query = query.Where(whereMasked(f.IsEmailUnmaskable, squirrel.Eq{"usr.email": f.Email}))
-	//}
+	if f.Email != "" {
+		query = query.Where(squirrel.Eq{"usr.email": f.Email})
+	}
 
 	if f.Username != "" {
 		query = query.Where(squirrel.Eq{"usr.username": f.Username})
@@ -72,16 +57,6 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Eq{"usr.kind": f.Kind})
 	}
 
-	//if f.IsReadable != nil {
-	//	query = query.Where(f.IsReadable)
-	//}
-
-	var orderBy []string
-	if orderBy, err = rh.ParseOrder(f.Sort, s.UserColumns()...); err != nil {
-		return
-	}
-
-	query = query.OrderBy(orderBy...)
 	return
 }
 
