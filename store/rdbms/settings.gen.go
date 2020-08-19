@@ -64,7 +64,7 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupSettingByNameOwnedBy searches for settings by name and owner
@@ -85,7 +85,7 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) err
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.SettingTable()).SetMap(s.internalSettingEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -95,7 +95,7 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) err
 
 // UpdateSetting updates one or more existing rows in settings
 func (s Store) UpdateSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	return s.PartialUpdateSetting(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateSetting(ctx, nil, rr...))
 }
 
 // PartialUpdateSetting updates one or more existing rows in settings
@@ -115,7 +115,7 @@ func (s Store) PartialUpdateSetting(ctx context.Context, onlyColumns []string, r
 				},
 				s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -135,7 +135,7 @@ func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) err
 				s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
 			}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -145,20 +145,20 @@ func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) err
 
 // RemoveSettingByNameOwnedBy removes row from the settings table
 func (s Store) RemoveSettingByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(name, ""),
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(name, ""),
 
 		s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(ownedBy, ""),
-	}))
+	})))
 }
 
 // TruncateSettings removes all rows from the settings table
 func (s Store) TruncateSettings(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.SettingTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.SettingTable()))
 }
 
 // ExecUpdateSettings updates all matched (by cnd) rows in settings with given data
 func (s Store) ExecUpdateSettings(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.SettingTable("st")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.SettingTable("st")).Where(cnd).SetMap(set)))
 }
 
 // SettingLookup prepares Setting query and executes it,

@@ -281,7 +281,7 @@ func (s Store) Search{{ pubIdent $.Types.Plural }}(ctx context.Context, f {{ $.T
 	{{ end -}}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 {{ end }}
 
@@ -309,7 +309,7 @@ func (s Store) Create{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.{{ $.Types.Singular }}Table()).SetMap(s.internal{{ pubIdent $.Types.Singular }}Encoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -319,7 +319,7 @@ func (s Store) Create{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 
 // Update{{ pubIdent $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
 func (s Store) Update{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ... *{{ $.Types.GoType }}) error {
-	return s.PartialUpdate{{ pubIdent $.Types.Singular }}(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdate{{ pubIdent $.Types.Singular }}(ctx, nil, rr...))
 }
 
 // PartialUpdate{{ pubIdent $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
@@ -343,7 +343,7 @@ func (s Store) PartialUpdate{{ pubIdent $.Types.Singular }}(ctx context.Context,
 					{{- end -}}
 			).Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -361,7 +361,7 @@ func (s Store) Remove{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeys" $.Fields }},))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -372,19 +372,19 @@ func (s Store) Remove{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 
 // Remove{{ pubIdent $.Types.Singular }}By{{ template "primaryKeySuffix" $.Fields }} removes row from the {{ $.RDBMS.Table }} table
 func (s Store) Remove{{ pubIdent $.Types.Singular }}By{{ template "primaryKeySuffix" $.Fields }}(ctx context.Context {{ template "primaryKeyArgs" $.Fields }}) error {
-	return ExecuteSqlizer(ctx, s.DB(), 	s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeysWithArgs" $.Fields }},))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), 	s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeysWithArgs" $.Fields }},)))
 }
 
 
 // Truncate{{ pubIdent $.Types.Plural }} removes all rows from the {{ $.RDBMS.Table }} table
 func (s Store) Truncate{{ pubIdent $.Types.Plural }}(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.{{ $.Types.Singular }}Table())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.{{ $.Types.Singular }}Table()))
 }
 
 
 // ExecUpdate{{ pubIdent $.Types.Plural }} updates all matched (by cnd) rows in {{ $.RDBMS.Table }} with given data
 func (s Store) ExecUpdate{{ pubIdent $.Types.Plural }}(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), 	s.Update(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), 	s.Update(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd).SetMap(set)))
 }
 
 // {{ $.Types.Singular }}Lookup prepares {{ $.Types.Singular }} query and executes it,

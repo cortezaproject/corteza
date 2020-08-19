@@ -219,7 +219,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupComposeModuleByHandle searches for compose module by handle (case-insensitive)
@@ -248,7 +248,7 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) err
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeModuleTable()).SetMap(s.internalComposeModuleEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -258,7 +258,7 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) err
 
 // UpdateComposeModule updates one or more existing rows in compose_module
 func (s Store) UpdateComposeModule(ctx context.Context, rr ...*types.Module) error {
-	return s.PartialUpdateComposeModule(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateComposeModule(ctx, nil, rr...))
 }
 
 // PartialUpdateComposeModule updates one or more existing rows in compose_module
@@ -276,7 +276,7 @@ func (s Store) PartialUpdateComposeModule(ctx context.Context, onlyColumns []str
 				squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -294,7 +294,7 @@ func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) err
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -304,17 +304,17 @@ func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) err
 
 // RemoveComposeModuleByID removes row from the compose_module table
 func (s Store) RemoveComposeModuleByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateComposeModules removes all rows from the compose_module table
 func (s Store) TruncateComposeModules(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ComposeModuleTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeModuleTable()))
 }
 
 // ExecUpdateComposeModules updates all matched (by cnd) rows in compose_module with given data
 func (s Store) ExecUpdateComposeModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeModuleTable("cmd")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeModuleTable("cmd")).Where(cnd).SetMap(set)))
 }
 
 // ComposeModuleLookup prepares ComposeModule query and executes it,

@@ -219,7 +219,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupComposeChartByID searches for compose chart by ID
@@ -248,7 +248,7 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) error
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeChartTable()).SetMap(s.internalComposeChartEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -258,7 +258,7 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) error
 
 // UpdateComposeChart updates one or more existing rows in compose_chart
 func (s Store) UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	return s.PartialUpdateComposeChart(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateComposeChart(ctx, nil, rr...))
 }
 
 // PartialUpdateComposeChart updates one or more existing rows in compose_chart
@@ -276,7 +276,7 @@ func (s Store) PartialUpdateComposeChart(ctx context.Context, onlyColumns []stri
 				squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -294,7 +294,7 @@ func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) error
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -304,17 +304,17 @@ func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) error
 
 // RemoveComposeChartByID removes row from the compose_chart table
 func (s Store) RemoveComposeChartByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateComposeCharts removes all rows from the compose_chart table
 func (s Store) TruncateComposeCharts(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ComposeChartTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeChartTable()))
 }
 
 // ExecUpdateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
 func (s Store) ExecUpdateComposeCharts(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeChartTable("cch")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeChartTable("cch")).Where(cnd).SetMap(set)))
 }
 
 // ComposeChartLookup prepares ComposeChart query and executes it,

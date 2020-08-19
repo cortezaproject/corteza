@@ -188,7 +188,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // CreateActionlog creates one or more rows in actionlog table
@@ -201,7 +201,7 @@ func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) err
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ActionlogTable()).SetMap(s.internalActionlogEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -211,7 +211,7 @@ func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) err
 
 // UpdateActionlog updates one or more existing rows in actionlog
 func (s Store) UpdateActionlog(ctx context.Context, rr ...*actionlog.Action) error {
-	return s.PartialUpdateActionlog(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateActionlog(ctx, nil, rr...))
 }
 
 // PartialUpdateActionlog updates one or more existing rows in actionlog
@@ -229,7 +229,7 @@ func (s Store) PartialUpdateActionlog(ctx context.Context, onlyColumns []string,
 				squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalActionlogEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -247,7 +247,7 @@ func (s Store) RemoveActionlog(ctx context.Context, rr ...*actionlog.Action) err
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -257,17 +257,17 @@ func (s Store) RemoveActionlog(ctx context.Context, rr ...*actionlog.Action) err
 
 // RemoveActionlogByID removes row from the actionlog table
 func (s Store) RemoveActionlogByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateActionlogs removes all rows from the actionlog table
 func (s Store) TruncateActionlogs(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ActionlogTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ActionlogTable()))
 }
 
 // ExecUpdateActionlogs updates all matched (by cnd) rows in actionlog with given data
 func (s Store) ExecUpdateActionlogs(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ActionlogTable("alg")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ActionlogTable("alg")).Where(cnd).SetMap(set)))
 }
 
 // ActionlogLookup prepares Actionlog query and executes it,

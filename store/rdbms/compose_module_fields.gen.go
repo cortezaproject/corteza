@@ -28,7 +28,7 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*types.Module
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeModuleFieldTable()).SetMap(s.internalComposeModuleFieldEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -38,7 +38,7 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*types.Module
 
 // UpdateComposeModuleField updates one or more existing rows in compose_module_field
 func (s Store) UpdateComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error {
-	return s.PartialUpdateComposeModuleField(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateComposeModuleField(ctx, nil, rr...))
 }
 
 // PartialUpdateComposeModuleField updates one or more existing rows in compose_module_field
@@ -56,7 +56,7 @@ func (s Store) PartialUpdateComposeModuleField(ctx context.Context, onlyColumns 
 				squirrel.Eq{s.preprocessColumn("cmf.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalComposeModuleFieldEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -74,7 +74,7 @@ func (s Store) RemoveComposeModuleField(ctx context.Context, rr ...*types.Module
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleFieldTable("cmf")).Where(squirrel.Eq{s.preprocessColumn("cmf.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -84,17 +84,17 @@ func (s Store) RemoveComposeModuleField(ctx context.Context, rr ...*types.Module
 
 // RemoveComposeModuleFieldByID removes row from the compose_module_field table
 func (s Store) RemoveComposeModuleFieldByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleFieldTable("cmf")).Where(squirrel.Eq{s.preprocessColumn("cmf.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleFieldTable("cmf")).Where(squirrel.Eq{s.preprocessColumn("cmf.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateComposeModuleFields removes all rows from the compose_module_field table
 func (s Store) TruncateComposeModuleFields(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ComposeModuleFieldTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeModuleFieldTable()))
 }
 
 // ExecUpdateComposeModuleFields updates all matched (by cnd) rows in compose_module_field with given data
 func (s Store) ExecUpdateComposeModuleFields(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeModuleFieldTable("cmf")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeModuleFieldTable("cmf")).Where(cnd).SetMap(set)))
 }
 
 // ComposeModuleFieldLookup prepares ComposeModuleField query and executes it,

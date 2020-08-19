@@ -74,6 +74,22 @@ func testUsers(t *testing.T, tmp interface{}) {
 		req.NoError(s.CreateUser(ctx, makeNew()))
 	})
 
+	t.Run("create with duplicate email", func(t *testing.T) {
+		req := require.New(t)
+		req.NoError(s.TruncateUsers(ctx))
+
+		req.NoError(s.CreateUser(ctx, makeNew("a")))
+		req.EqualError(s.CreateUser(ctx, makeNew("a")), store.ErrNotUnique.Error())
+	})
+
+	t.Run("create with duplicate ID", func(t *testing.T) {
+		req := require.New(t)
+		req.NoError(s.TruncateUsers(ctx))
+		user := makeNew("a")
+		req.NoError(s.CreateUser(ctx, user))
+		req.EqualError(s.CreateUser(ctx, user), store.ErrNotUnique.Error())
+	})
+
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, user := truncAndCreate(t)
 

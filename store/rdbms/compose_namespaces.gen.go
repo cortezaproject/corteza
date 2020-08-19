@@ -219,7 +219,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)
@@ -248,7 +248,7 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeNamespaceTable()).SetMap(s.internalComposeNamespaceEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -258,7 +258,7 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 
 // UpdateComposeNamespace updates one or more existing rows in compose_namespace
 func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error {
-	return s.PartialUpdateComposeNamespace(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateComposeNamespace(ctx, nil, rr...))
 }
 
 // PartialUpdateComposeNamespace updates one or more existing rows in compose_namespace
@@ -276,7 +276,7 @@ func (s Store) PartialUpdateComposeNamespace(ctx context.Context, onlyColumns []
 				squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalComposeNamespaceEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -294,7 +294,7 @@ func (s Store) RemoveComposeNamespace(ctx context.Context, rr ...*types.Namespac
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeNamespaceTable("cns")).Where(squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -304,17 +304,17 @@ func (s Store) RemoveComposeNamespace(ctx context.Context, rr ...*types.Namespac
 
 // RemoveComposeNamespaceByID removes row from the compose_namespace table
 func (s Store) RemoveComposeNamespaceByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeNamespaceTable("cns")).Where(squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeNamespaceTable("cns")).Where(squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateComposeNamespaces removes all rows from the compose_namespace table
 func (s Store) TruncateComposeNamespaces(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ComposeNamespaceTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeNamespaceTable()))
 }
 
 // ExecUpdateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
 func (s Store) ExecUpdateComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeNamespaceTable("cns")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeNamespaceTable("cns")).Where(cnd).SetMap(set)))
 }
 
 // ComposeNamespaceLookup prepares ComposeNamespace query and executes it,

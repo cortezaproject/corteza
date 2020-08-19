@@ -64,7 +64,7 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupCredentialsByID searches for credentials by ID
@@ -86,7 +86,7 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.CredentialsTable()).SetMap(s.internalCredentialsEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -96,7 +96,7 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 
 // UpdateCredentials updates one or more existing rows in credentials
 func (s Store) UpdateCredentials(ctx context.Context, rr ...*types.Credentials) error {
-	return s.PartialUpdateCredentials(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateCredentials(ctx, nil, rr...))
 }
 
 // PartialUpdateCredentials updates one or more existing rows in credentials
@@ -114,7 +114,7 @@ func (s Store) PartialUpdateCredentials(ctx context.Context, onlyColumns []strin
 				squirrel.Eq{s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalCredentialsEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -132,7 +132,7 @@ func (s Store) RemoveCredentials(ctx context.Context, rr ...*types.Credentials) 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.CredentialsTable("crd")).Where(squirrel.Eq{s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -142,17 +142,17 @@ func (s Store) RemoveCredentials(ctx context.Context, rr ...*types.Credentials) 
 
 // RemoveCredentialsByID removes row from the credentials table
 func (s Store) RemoveCredentialsByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.CredentialsTable("crd")).Where(squirrel.Eq{s.preprocessColumn("crd.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.CredentialsTable("crd")).Where(squirrel.Eq{s.preprocessColumn("crd.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateCredentials removes all rows from the credentials table
 func (s Store) TruncateCredentials(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.CredentialsTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.CredentialsTable()))
 }
 
 // ExecUpdateCredentials updates all matched (by cnd) rows in credentials with given data
 func (s Store) ExecUpdateCredentials(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.CredentialsTable("crd")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.CredentialsTable("crd")).Where(cnd).SetMap(set)))
 }
 
 // CredentialsLookup prepares Credentials query and executes it,

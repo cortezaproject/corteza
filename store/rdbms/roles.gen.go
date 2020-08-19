@@ -219,7 +219,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupRoleByID searches for role by ID
@@ -263,7 +263,7 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) error {
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RoleTable()).SetMap(s.internalRoleEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -273,7 +273,7 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) error {
 
 // UpdateRole updates one or more existing rows in roles
 func (s Store) UpdateRole(ctx context.Context, rr ...*types.Role) error {
-	return s.PartialUpdateRole(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateRole(ctx, nil, rr...))
 }
 
 // PartialUpdateRole updates one or more existing rows in roles
@@ -291,7 +291,7 @@ func (s Store) PartialUpdateRole(ctx context.Context, onlyColumns []string, rr .
 				squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalRoleEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -309,7 +309,7 @@ func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) error {
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -319,17 +319,17 @@ func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) error {
 
 // RemoveRoleByID removes row from the roles table
 func (s Store) RemoveRoleByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateRoles removes all rows from the roles table
 func (s Store) TruncateRoles(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.RoleTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.RoleTable()))
 }
 
 // ExecUpdateRoles updates all matched (by cnd) rows in roles with given data
 func (s Store) ExecUpdateRoles(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.RoleTable("rl")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.RoleTable("rl")).Where(cnd).SetMap(set)))
 }
 
 // RoleLookup prepares Role query and executes it,
