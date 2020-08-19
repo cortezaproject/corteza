@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 	"net/url"
 	"strings"
@@ -25,6 +26,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	}
 
 	cfg.PlaceholderFormat = squirrel.Dollar
+	cfg.ErrorHandler = errorHandler
 
 	s = new(Store)
 	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
@@ -67,4 +69,17 @@ func ProcDataSourceName(dsn string) (c *rdbms.Config, err error) {
 		DataSourceName: u.String(),
 		DBName:         strings.Trim(u.Path, "/"),
 	}, nil
+}
+
+func errorHandler(err error) error {
+	if err != nil {
+		if implErr, ok := err.(*pq.Error); ok {
+			switch implErr.Code.Name() {
+			case "unique_violation":
+				return store.ErrNotUnique.Wrap(implErr)
+			}
+		}
+	}
+
+	return err
 }

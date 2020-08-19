@@ -219,7 +219,7 @@ func (s Store) SearchApplications(ctx context.Context, f types.ApplicationFilter
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupApplicationByID searches for application by ID
@@ -241,7 +241,7 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ApplicationTable()).SetMap(s.internalApplicationEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -251,7 +251,7 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 
 // UpdateApplication updates one or more existing rows in applications
 func (s Store) UpdateApplication(ctx context.Context, rr ...*types.Application) error {
-	return s.PartialUpdateApplication(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateApplication(ctx, nil, rr...))
 }
 
 // PartialUpdateApplication updates one or more existing rows in applications
@@ -269,7 +269,7 @@ func (s Store) PartialUpdateApplication(ctx context.Context, onlyColumns []strin
 				squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalApplicationEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -287,7 +287,7 @@ func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -297,17 +297,17 @@ func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) 
 
 // RemoveApplicationByID removes row from the applications table
 func (s Store) RemoveApplicationByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateApplications removes all rows from the applications table
 func (s Store) TruncateApplications(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ApplicationTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ApplicationTable()))
 }
 
 // ExecUpdateApplications updates all matched (by cnd) rows in applications with given data
 func (s Store) ExecUpdateApplications(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ApplicationTable("app")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ApplicationTable("app")).Where(cnd).SetMap(set)))
 }
 
 // ApplicationLookup prepares Application query and executes it,

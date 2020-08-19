@@ -15,10 +15,16 @@ func (e *storeError) Unwrap() error {
 	return e.err
 }
 
+func (e *storeError) Wrap(err error) error {
+	e.err = err
+	return e
+}
+
 var (
-	ErrNotFound = &storeError{msg: "not found"}
+	ErrNotFound  = &storeError{msg: "not found"}
+	ErrNotUnique = &storeError{msg: "not unique"}
 )
 
-func Error(msg string, err error) error {
+func WrappedError(err error, msg string, a ...interface{}) error {
 	return &storeError{msg, err}
 }

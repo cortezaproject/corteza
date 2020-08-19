@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
@@ -26,6 +27,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 
 	cfg.PlaceholderFormat = squirrel.Question
 	cfg.TxRetryErrHandler = txRetryErrHandler
+	cfg.ErrorHandler = errorHandler
 
 	s = new(Store)
 	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
@@ -104,4 +106,19 @@ func txRetryErrHandler(try int, err error) bool {
 	}
 
 	return false
+}
+
+func errorHandler(err error) error {
+	if err != nil {
+
+		if implErr, ok := err.(*mysql.MySQLError); ok {
+			// https://www.fromdual.com/de/mysql-error-codes-and-messages
+			switch implErr.Number {
+			case 1062: // Can't write, because of unique constraint, to table '%s'
+				return store.ErrNotUnique.Wrap(implErr)
+			}
+		}
+	}
+
+	return err
 }

@@ -26,6 +26,7 @@ type (
 	txRetryOnErrHandler func(int, error) bool
 	columnPreprocFn     func(string, string) string
 	valuePreprocFn      func(interface{}, string) interface{}
+	errorHandler        func(error) error
 
 	schemaUpgradeGenerator interface {
 		TableExists(string) bool
@@ -57,6 +58,8 @@ type (
 
 		ColumnPreprocessors map[string]columnPreprocFn
 		ValuePreprocessors  map[string]valuePreprocFn
+
+		ErrorHandler errorHandler
 
 		// Implementations can override internal RDBMS row scanners
 		RowScanners map[string]interface{}
@@ -120,6 +123,10 @@ func New(ctx context.Context, cfg *Config) (*Store, error) {
 	if s.config.TxRetryErrHandler == nil {
 		// Default transaction retry handler
 		s.config.TxRetryErrHandler = TxNoRetry
+	}
+
+	if s.config.ErrorHandler == nil {
+		s.config.ErrorHandler = ErrHandlerFallthrough
 	}
 
 	if err := s.Connect(ctx); err != nil {
@@ -270,7 +277,6 @@ func ExecuteSqlizer(ctx context.Context, db sqlx.ExecerContext, sqlizer squirrel
 	}
 
 	_, err = db.ExecContext(ctx, query, args...)
-
 	return err
 }
 
@@ -335,4 +341,5 @@ func Tx(ctx context.Context, db *sqlx.DB, cfg *Config, txOpt *sql.TxOptions, tas
 // TxNoRetry - Transaction retry handler
 //
 // Only returns false so transactions will never retry
-func TxNoRetry(int, error) bool { return false }
+func TxNoRetry(int, error) bool             { return false }
+func ErrHandlerFallthrough(err error) error { return err }

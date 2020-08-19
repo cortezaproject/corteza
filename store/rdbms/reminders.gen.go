@@ -219,7 +219,7 @@ func (s Store) SearchReminders(ctx context.Context, f types.ReminderFilter) (typ
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupReminderByID searches for reminder by its ID
@@ -241,7 +241,7 @@ func (s Store) CreateReminder(ctx context.Context, rr ...*types.Reminder) error 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ReminderTable()).SetMap(s.internalReminderEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -251,7 +251,7 @@ func (s Store) CreateReminder(ctx context.Context, rr ...*types.Reminder) error 
 
 // UpdateReminder updates one or more existing rows in reminders
 func (s Store) UpdateReminder(ctx context.Context, rr ...*types.Reminder) error {
-	return s.PartialUpdateReminder(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateReminder(ctx, nil, rr...))
 }
 
 // PartialUpdateReminder updates one or more existing rows in reminders
@@ -269,7 +269,7 @@ func (s Store) PartialUpdateReminder(ctx context.Context, onlyColumns []string, 
 				squirrel.Eq{s.preprocessColumn("rmd.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalReminderEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -287,7 +287,7 @@ func (s Store) RemoveReminder(ctx context.Context, rr ...*types.Reminder) error 
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ReminderTable("rmd")).Where(squirrel.Eq{s.preprocessColumn("rmd.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -297,17 +297,17 @@ func (s Store) RemoveReminder(ctx context.Context, rr ...*types.Reminder) error 
 
 // RemoveReminderByID removes row from the reminders table
 func (s Store) RemoveReminderByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ReminderTable("rmd")).Where(squirrel.Eq{s.preprocessColumn("rmd.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ReminderTable("rmd")).Where(squirrel.Eq{s.preprocessColumn("rmd.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateReminders removes all rows from the reminders table
 func (s Store) TruncateReminders(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.ReminderTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ReminderTable()))
 }
 
 // ExecUpdateReminders updates all matched (by cnd) rows in reminders with given data
 func (s Store) ExecUpdateReminders(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.ReminderTable("rmd")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ReminderTable("rmd")).Where(cnd).SetMap(set)))
 }
 
 // ReminderLookup prepares Reminder query and executes it,

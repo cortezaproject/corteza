@@ -219,7 +219,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupUserByID searches for user by ID
@@ -274,7 +274,7 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) error {
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.UserTable()).SetMap(s.internalUserEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -284,7 +284,7 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) error {
 
 // UpdateUser updates one or more existing rows in users
 func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
-	return s.PartialUpdateUser(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateUser(ctx, nil, rr...))
 }
 
 // PartialUpdateUser updates one or more existing rows in users
@@ -302,7 +302,7 @@ func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr .
 				squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -320,7 +320,7 @@ func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) error {
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -330,17 +330,17 @@ func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) error {
 
 // RemoveUserByID removes row from the users table
 func (s Store) RemoveUserByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateUsers removes all rows from the users table
 func (s Store) TruncateUsers(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.UserTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.UserTable()))
 }
 
 // ExecUpdateUsers updates all matched (by cnd) rows in users with given data
 func (s Store) ExecUpdateUsers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.UserTable("usr")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.UserTable("usr")).Where(cnd).SetMap(set)))
 }
 
 // UserLookup prepares User query and executes it,

@@ -64,7 +64,7 @@ func (s Store) SearchAttachments(ctx context.Context, f types.AttachmentFilter) 
 		}
 	)
 
-	return set, f, fetch()
+	return set, f, s.config.ErrorHandler(fetch())
 }
 
 // LookupAttachmentByID searches for attachment by its ID
@@ -86,7 +86,7 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) er
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.AttachmentTable()).SetMap(s.internalAttachmentEncoder(res)))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -96,7 +96,7 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) er
 
 // UpdateAttachment updates one or more existing rows in attachments
 func (s Store) UpdateAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.PartialUpdateAttachment(ctx, nil, rr...)
+	return s.config.ErrorHandler(s.PartialUpdateAttachment(ctx, nil, rr...))
 }
 
 // PartialUpdateAttachment updates one or more existing rows in attachments
@@ -114,7 +114,7 @@ func (s Store) PartialUpdateAttachment(ctx context.Context, onlyColumns []string
 				squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")},
 				s.internalAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -132,7 +132,7 @@ func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) er
 		for _, res := range rr {
 			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")}))
 			if err != nil {
-				return err
+				return s.config.ErrorHandler(err)
 			}
 		}
 
@@ -142,17 +142,17 @@ func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) er
 
 // RemoveAttachmentByID removes row from the attachments table
 func (s Store) RemoveAttachmentByID(ctx context.Context, ID uint64) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(ID, "")}))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(ID, "")})))
 }
 
 // TruncateAttachments removes all rows from the attachments table
 func (s Store) TruncateAttachments(ctx context.Context) error {
-	return Truncate(ctx, s.DB(), s.AttachmentTable())
+	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.AttachmentTable()))
 }
 
 // ExecUpdateAttachments updates all matched (by cnd) rows in attachments with given data
 func (s Store) ExecUpdateAttachments(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return ExecuteSqlizer(ctx, s.DB(), s.Update(s.AttachmentTable("att")).Where(cnd).SetMap(set))
+	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.AttachmentTable("att")).Where(cnd).SetMap(set)))
 }
 
 // AttachmentLookup prepares Attachment query and executes it,
