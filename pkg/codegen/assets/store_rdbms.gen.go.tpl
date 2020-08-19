@@ -12,7 +12,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 {{- if not $.Search.DisablePaging }}
@@ -300,21 +299,15 @@ func (s Store) Lookup{{ pubIdent $.Types.Singular }}By{{ pubIdent $lookup.Suffix
 {{ end }}
 
 // Create{{ pubIdent $.Types.Singular }} creates one or more rows in {{ $.RDBMS.Table }} table
-func (s Store) Create{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ... *{{ $.Types.GoType }}) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) Create{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ... *{{ $.Types.GoType }}) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.{{ $.Types.Singular }}Table()).SetMap(s.internal{{ pubIdent $.Types.Singular }}Encoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.{{ $.Types.Singular }}Table()).SetMap(s.internal{{ pubIdent $.Types.Singular }}Encoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // Update{{ pubIdent $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
@@ -325,48 +318,36 @@ func (s Store) Update{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ...
 // PartialUpdate{{ pubIdent $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdate{{ pubIdent $.Types.Singular }}(ctx context.Context, onlyColumns []string, rr ... *{{ $.Types.GoType }}) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdate{{ pubIdent $.Types.Singular }}(ctx context.Context, onlyColumns []string, rr ... *{{ $.Types.GoType }}) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdate{{ pubIdent $.Types.Plural }}(
+			ctx,
+			{{ template "filterByPrimaryKeys" $.Fields }},
+			s.internal{{ pubIdent $.Types.Singular }}Encoder(res).Skip(
+				{{- range $field := $.Fields -}}
+					{{- if $field.IsPrimaryKey -}}
+						{{ printf "%q" $field.Column  }},
+					{{- end -}}
+				{{- end -}}
+		).Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdate{{ pubIdent $.Types.Plural }}(
-				ctx,
-				{{ template "filterByPrimaryKeys" $.Fields }},
-				s.internal{{ pubIdent $.Types.Singular }}Encoder(res).Skip(
-					{{- range $field := $.Fields -}}
-						{{- if $field.IsPrimaryKey -}}
-							{{ printf "%q" $field.Column  }},
-						{{- end -}}
-					{{- end -}}
-			).Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // Remove{{ pubIdent $.Types.Singular }} removes one or more rows from {{ $.RDBMS.Table }} table
-func (s Store) Remove{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ... *{{ $.Types.GoType }}) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) Remove{{ pubIdent $.Types.Singular }}(ctx context.Context, rr ... *{{ $.Types.GoType }}) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeys" $.Fields }},))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.{{ $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where({{ template "filterByPrimaryKeys" $.Fields }},))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 

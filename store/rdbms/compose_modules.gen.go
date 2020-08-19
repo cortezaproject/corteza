@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -239,21 +238,15 @@ func (s Store) LookupComposeModuleByID(ctx context.Context, id uint64) (*types.M
 }
 
 // CreateComposeModule creates one or more rows in compose_module table
-func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeModuleTable()).SetMap(s.internalComposeModuleEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeModuleTable()).SetMap(s.internalComposeModuleEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateComposeModule updates one or more existing rows in compose_module
@@ -264,42 +257,30 @@ func (s Store) UpdateComposeModule(ctx context.Context, rr ...*types.Module) err
 // PartialUpdateComposeModule updates one or more existing rows in compose_module
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposeModule(ctx context.Context, onlyColumns []string, rr ...*types.Module) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateComposeModule(ctx context.Context, onlyColumns []string, rr ...*types.Module) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateComposeModules(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateComposeModules(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveComposeModule removes one or more rows from compose_module table
-func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveComposeModuleByID removes row from the compose_module table

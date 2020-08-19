@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -239,21 +238,15 @@ func (s Store) LookupComposePageByID(ctx context.Context, id uint64) (*types.Pag
 }
 
 // CreateComposePage creates one or more rows in compose_page table
-func (s Store) CreateComposePage(ctx context.Context, rr ...*types.Page) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateComposePage(ctx context.Context, rr ...*types.Page) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposePageTable()).SetMap(s.internalComposePageEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposePageTable()).SetMap(s.internalComposePageEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateComposePage updates one or more existing rows in compose_page
@@ -264,42 +257,30 @@ func (s Store) UpdateComposePage(ctx context.Context, rr ...*types.Page) error {
 // PartialUpdateComposePage updates one or more existing rows in compose_page
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposePage(ctx context.Context, onlyColumns []string, rr ...*types.Page) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateComposePage(ctx context.Context, onlyColumns []string, rr ...*types.Page) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateComposePages(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalComposePageEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateComposePages(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalComposePageEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveComposePage removes one or more rows from compose_page table
-func (s Store) RemoveComposePage(ctx context.Context, rr ...*types.Page) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveComposePage(ctx context.Context, rr ...*types.Page) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposePageTable("cpg")).Where(squirrel.Eq{s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposePageTable("cpg")).Where(squirrel.Eq{s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveComposePageByID removes row from the compose_page table

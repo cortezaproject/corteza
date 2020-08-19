@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -239,21 +238,15 @@ func (s Store) LookupComposeChartByHandle(ctx context.Context, handle string) (*
 }
 
 // CreateComposeChart creates one or more rows in compose_chart table
-func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeChartTable()).SetMap(s.internalComposeChartEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeChartTable()).SetMap(s.internalComposeChartEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateComposeChart updates one or more existing rows in compose_chart
@@ -264,42 +257,30 @@ func (s Store) UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error
 // PartialUpdateComposeChart updates one or more existing rows in compose_chart
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposeChart(ctx context.Context, onlyColumns []string, rr ...*types.Chart) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateComposeChart(ctx context.Context, onlyColumns []string, rr ...*types.Chart) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateComposeCharts(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateComposeCharts(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveComposeChart removes one or more rows from compose_chart table
-func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveComposeChartByID removes row from the compose_chart table

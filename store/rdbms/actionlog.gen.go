@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -192,21 +191,15 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 }
 
 // CreateActionlog creates one or more rows in actionlog table
-func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ActionlogTable()).SetMap(s.internalActionlogEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ActionlogTable()).SetMap(s.internalActionlogEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateActionlog updates one or more existing rows in actionlog
@@ -217,42 +210,30 @@ func (s Store) UpdateActionlog(ctx context.Context, rr ...*actionlog.Action) err
 // PartialUpdateActionlog updates one or more existing rows in actionlog
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateActionlog(ctx context.Context, onlyColumns []string, rr ...*actionlog.Action) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateActionlog(ctx context.Context, onlyColumns []string, rr ...*actionlog.Action) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateActionlogs(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalActionlogEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateActionlogs(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalActionlogEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveActionlog removes one or more rows from actionlog table
-func (s Store) RemoveActionlog(ctx context.Context, rr ...*actionlog.Action) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveActionlog(ctx context.Context, rr ...*actionlog.Action) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveActionlogByID removes row from the actionlog table
