@@ -12,25 +12,25 @@ import (
 type (
 	// Modules - CRM module definitions
 	ModuleField struct {
-		ID       uint64 `json:"fieldID,string" db:"id"`
-		ModuleID uint64 `json:"moduleID,string" db:"rel_module"`
-		Place    int    `json:"-" db:"place"`
+		ID       uint64 `json:"fieldID,string"`
+		ModuleID uint64 `json:"moduleID,string"`
+		Place    int    `json:"-"`
 
-		Kind  string `json:"kind"  db:"kind"`
-		Name  string `json:"name"  db:"name"`
-		Label string `json:"label" db:"label"`
+		Kind  string `json:"kind"`
+		Name  string `json:"name"`
+		Label string `json:"label"`
 
-		Options ModuleFieldOptions `json:"options" db:"options"`
+		Options ModuleFieldOptions `json:"options"`
 
-		Private      bool           `json:"isPrivate" db:"is_private"`
-		Required     bool           `json:"isRequired" db:"is_required"`
-		Visible      bool           `json:"isVisible" db:"is_visible"`
-		Multi        bool           `json:"isMulti" db:"is_multi"`
-		DefaultValue RecordValueSet `json:"defaultValue" db:"default_value"`
+		Private      bool           `json:"isPrivate"`
+		Required     bool           `json:"isRequired"`
+		Visible      bool           `json:"isVisible"`
+		Multi        bool           `json:"isMulti"`
+		DefaultValue RecordValueSet `json:"defaultValue"`
 
-		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 )
 

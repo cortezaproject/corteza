@@ -15,21 +15,21 @@ import (
 
 type (
 	User struct {
-		ID       uint64   `json:"userID,string" db:"id"`
-		Username string   `json:"username" db:"username"`
-		Email    string   `json:"email" db:"email"`
-		Name     string   `json:"name" db:"name"`
-		Handle   string   `json:"handle" db:"handle"`
-		Kind     UserKind `json:"kind" db:"kind"`
+		ID       uint64   `json:"userID,string"`
+		Username string   `json:"username"`
+		Email    string   `json:"email"`
+		Name     string   `json:"name"`
+		Handle   string   `json:"handle"`
+		Kind     UserKind `json:"kind"`
 
-		Meta *UserMeta `json:"meta" db:"meta"`
+		Meta *UserMeta `json:"meta"`
 
-		EmailConfirmed bool `json:"-" db:"email_confirmed"`
+		EmailConfirmed bool `json:"-"`
 
-		CreatedAt   time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt   *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
-		SuspendedAt *time.Time `json:"suspendedAt,omitempty" db:"suspended_at"`
-		DeletedAt   *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
+		CreatedAt   time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
+		SuspendedAt *time.Time `json:"suspendedAt,omitempty"`
+		DeletedAt   *time.Time `json:"deletedAt,omitempty"`
 
 		// Hold list of roles this user is member of.
 		// we're using this for auth/identifier purposes, to support Roles() func

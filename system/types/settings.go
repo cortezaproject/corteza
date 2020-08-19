@@ -12,15 +12,15 @@ import (
 
 type (
 	SettingValue struct {
-		Name  string         `json:"name"  db:"name"`
-		Value types.JSONText `json:"value" db:"value"`
+		Name  string         `json:"name"`
+		Value types.JSONText `json:"value"`
 
 		// Setting owner, 0 for global settings
-		OwnedBy uint64 `json:"-" db:"rel_owner"`
+		OwnedBy uint64 `json:"-"`
 
 		// Who updated & when
-		UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
-		UpdatedBy uint64    `json:"updatedBy" db:"updated_by"`
+		UpdatedAt time.Time `json:"updatedAt"`
+		UpdatedBy uint64    `json:"updatedBy"`
 	}
 
 	SettingsFilter struct {

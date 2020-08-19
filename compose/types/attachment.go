@@ -12,19 +12,19 @@ import (
 
 type (
 	Attachment struct {
-		ID         uint64         `db:"id"          json:"attachmentID,string"`
-		OwnerID    uint64         `db:"rel_owner"   json:"ownerID,string"`
-		Kind       string         `db:"kind"        json:"-"`
-		Url        string         `db:"url"         json:"url,omitempty"`
-		PreviewUrl string         `db:"preview_url" json:"previewUrl,omitempty"`
-		Name       string         `db:"name"        json:"name,omitempty"`
-		Meta       attachmentMeta `db:"meta"        json:"meta"`
+		ID         uint64         `json:"attachmentID,string"`
+		OwnerID    uint64         `json:"ownerID,string"`
+		Kind       string         `json:"-"`
+		Url        string         `json:"url,omitempty"`
+		PreviewUrl string         `json:"previewUrl,omitempty"`
+		Name       string         `json:"name,omitempty"`
+		Meta       attachmentMeta `json:"meta"`
 
-		NamespaceID uint64 `db:"rel_namespace" json:"namespaceID,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 
-		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	// AttachmentFilter is used for filtering and as a return value from Find

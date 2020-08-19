@@ -14,16 +14,16 @@ import (
 
 type (
 	Application struct {
-		ID      uint64 `json:"applicationID,string" db:"id"`
-		Name    string `json:"name" db:"name"`
-		OwnerID uint64 `json:"ownerID" db:"rel_owner"`
-		Enabled bool   `json:"enabled" db:"enabled"`
+		ID      uint64 `json:"applicationID,string"`
+		Name    string `json:"name"`
+		OwnerID uint64 `json:"ownerID"`
+		Enabled bool   `json:"enabled"`
 
-		Unify *ApplicationUnify `json:"unify,omitempty" db:"unify"`
+		Unify *ApplicationUnify `json:"unify,omitempty"`
 
-		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	ApplicationUnify struct {

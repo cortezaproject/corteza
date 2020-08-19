@@ -12,12 +12,12 @@ import (
 type (
 	// RecordValue is a stored row in the `record_value` table
 	RecordValue struct {
-		RecordID  uint64     `db:"record_id"  json:"-"`
-		Name      string     `db:"name"       json:"name"`
-		Value     string     `db:"value"      json:"value,omitempty"`
-		Ref       uint64     `db:"ref"        json:"-"`
-		Place     uint       `db:"place"      json:"-"`
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		RecordID  uint64     `json:"-"`
+		Name      string     `json:"name"`
+		Value     string     `json:"value,omitempty"`
+		Ref       uint64     `json:"-"`
+		Place     uint       `json:"-"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
 		Updated  bool   `db:"-"      json:"-"`
 		OldValue string `db:"-"      json:"-"`

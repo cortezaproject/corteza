@@ -15,27 +15,27 @@ import (
 type (
 	// Page - page structure
 	Page struct {
-		ID     uint64 `json:"pageID,string" db:"id"`
-		SelfID uint64 `json:"selfID,string" db:"self_id"`
+		ID     uint64 `json:"pageID,string"`
+		SelfID uint64 `json:"selfID,string"`
 
-		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 
-		ModuleID uint64 `json:"moduleID,string" db:"rel_module"`
+		ModuleID uint64 `json:"moduleID,string"`
 
-		Handle      string `json:"handle" db:"handle"`
-		Title       string `json:"title" db:"title"`
-		Description string `json:"description" db:"description"`
+		Handle      string `json:"handle"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
 
-		Blocks PageBlocks `json:"blocks" db:"blocks"`
+		Blocks PageBlocks `json:"blocks"`
 
 		Children PageSet `json:"children,omitempty" db:"-"`
 
-		Visible bool `json:"visible" db:"visible"`
-		Weight  int  `json:"weight" db:"weight"`
+		Visible bool `json:"visible"`
+		Weight  int  `json:"weight"`
 
-		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	PageBlocks []PageBlock

@@ -14,15 +14,15 @@ import (
 
 type (
 	Namespace struct {
-		ID      uint64        `db:"id"        json:"namespaceID,string"`
-		Name    string        `db:"name"      json:"name"`
-		Slug    string        `db:"slug"      json:"slug"`
-		Enabled bool          `db:"enabled"   json:"enabled"`
-		Meta    NamespaceMeta `db:"meta"      json:"meta"`
+		ID      uint64        `json:"namespaceID,string"`
+		Name    string        `json:"name"`
+		Slug    string        `json:"slug"`
+		Enabled bool          `json:"enabled"`
+		Meta    NamespaceMeta `json:"meta"`
 
-		CreatedAt time.Time  `db:"created_at"  json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at"  json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `db:"deleted_at"  json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	NamespaceFilter struct {
