@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/jmoiron/sqlx"
 )
 
 // SearchAttachments returns all matching rows
@@ -77,21 +76,15 @@ func (s Store) LookupAttachmentByID(ctx context.Context, id uint64) (*types.Atta
 }
 
 // CreateAttachment creates one or more rows in attachments table
-func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.AttachmentTable()).SetMap(s.internalAttachmentEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.AttachmentTable()).SetMap(s.internalAttachmentEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateAttachment updates one or more existing rows in attachments
@@ -102,42 +95,30 @@ func (s Store) UpdateAttachment(ctx context.Context, rr ...*types.Attachment) er
 // PartialUpdateAttachment updates one or more existing rows in attachments
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateAttachment(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateAttachment(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateAttachments(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateAttachments(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveAttachment removes one or more rows from attachments table
-func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveAttachment(ctx context.Context, rr ...*types.Attachment) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.AttachmentTable("att")).Where(squirrel.Eq{s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveAttachmentByID removes row from the attachments table

@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/jmoiron/sqlx"
 )
 
 // SearchRbacRules returns all matching rows
@@ -65,21 +64,15 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 }
 
 // CreateRbacRule creates one or more rows in rbac_rules table
-func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RbacRuleTable()).SetMap(s.internalRbacRuleEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RbacRuleTable()).SetMap(s.internalRbacRuleEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateRbacRule updates one or more existing rows in rbac_rules
@@ -90,48 +83,36 @@ func (s Store) UpdateRbacRule(ctx context.Context, rr ...*permissions.Rule) erro
 // PartialUpdateRbacRule updates one or more existing rows in rbac_rules
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateRbacRule(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateRbacRule(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateRbacRules(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+				s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
+				s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+			},
+			s.internalRbacRuleEncoder(res).Skip("rel_role", "resource", "operation").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateRbacRules(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-					s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
-					s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
-				},
-				s.internalRbacRuleEncoder(res).Skip("rel_role", "resource", "operation").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveRbacRule removes one or more rows from rbac_rules table
-func (s Store) RemoveRbacRule(ctx context.Context, rr ...*permissions.Rule) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RbacRuleTable("rls")).Where(squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+			s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
+			s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+		}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RbacRuleTable("rls")).Where(squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-				s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
-				s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
-			}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveRbacRuleByRoleIDResourceOperation removes row from the rbac_rules table

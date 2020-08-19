@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/jmoiron/sqlx"
 )
 
 // SearchSettings returns all matching rows
@@ -76,21 +75,15 @@ func (s Store) LookupSettingByNameOwnedBy(ctx context.Context, name string, owne
 }
 
 // CreateSetting creates one or more rows in settings table
-func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.SettingTable()).SetMap(s.internalSettingEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.SettingTable()).SetMap(s.internalSettingEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateSetting updates one or more existing rows in settings
@@ -101,46 +94,34 @@ func (s Store) UpdateSetting(ctx context.Context, rr ...*types.SettingValue) err
 // PartialUpdateSetting updates one or more existing rows in settings
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateSetting(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateSetting(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateSettings(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
+				s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+			},
+			s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateSettings(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
-					s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
-				},
-				s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveSetting removes one or more rows from settings table
-func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
+			s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+		}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
-				s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
-			}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveSettingByNameOwnedBy removes row from the settings table

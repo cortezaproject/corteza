@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -265,21 +264,15 @@ func (s Store) LookupUserByUsername(ctx context.Context, username string) (*type
 }
 
 // CreateUser creates one or more rows in users table
-func (s Store) CreateUser(ctx context.Context, rr ...*types.User) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.UserTable()).SetMap(s.internalUserEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.UserTable()).SetMap(s.internalUserEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateUser updates one or more existing rows in users
@@ -290,42 +283,30 @@ func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
 // PartialUpdateUser updates one or more existing rows in users
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr ...*types.User) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr ...*types.User) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateUsers(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateUsers(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveUser removes one or more rows from users table
-func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveUserByID removes row from the users table

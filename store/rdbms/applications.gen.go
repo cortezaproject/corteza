@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -232,21 +231,15 @@ func (s Store) LookupApplicationByID(ctx context.Context, id uint64) (*types.App
 }
 
 // CreateApplication creates one or more rows in applications table
-func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ApplicationTable()).SetMap(s.internalApplicationEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ApplicationTable()).SetMap(s.internalApplicationEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateApplication updates one or more existing rows in applications
@@ -257,42 +250,30 @@ func (s Store) UpdateApplication(ctx context.Context, rr ...*types.Application) 
 // PartialUpdateApplication updates one or more existing rows in applications
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateApplication(ctx context.Context, onlyColumns []string, rr ...*types.Application) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateApplication(ctx context.Context, onlyColumns []string, rr ...*types.Application) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateApplications(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")},
+			s.internalApplicationEncoder(res).Skip("id").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateApplications(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")},
-				s.internalApplicationEncoder(res).Skip("id").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveApplication removes one or more rows from applications table
-func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveApplication(ctx context.Context, rr ...*types.Application) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ApplicationTable("app")).Where(squirrel.Eq{s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, "")}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveApplicationByID removes row from the applications table

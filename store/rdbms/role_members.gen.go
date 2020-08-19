@@ -15,7 +15,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/jmoiron/sqlx"
 )
 
 // SearchRoleMembers returns all matching rows
@@ -65,21 +64,15 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 }
 
 // CreateRoleMember creates one or more rows in role_members table
-func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RoleMemberTable()).SetMap(s.internalRoleMemberEncoder(res)))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RoleMemberTable()).SetMap(s.internalRoleMemberEncoder(res)))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // UpdateRoleMember updates one or more existing rows in role_members
@@ -90,46 +83,34 @@ func (s Store) UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) er
 // PartialUpdateRoleMember updates one or more existing rows in role_members
 //
 // It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateRoleMember(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) PartialUpdateRoleMember(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) (err error) {
+	for _, res := range rr {
+		err = s.ExecUpdateRoleMembers(
+			ctx,
+			squirrel.Eq{s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""),
+				s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+			},
+			s.internalRoleMemberEncoder(res).Skip("rel_user", "rel_role").Only(onlyColumns...))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = s.ExecUpdateRoleMembers(
-				ctx,
-				squirrel.Eq{s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""),
-					s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-				},
-				s.internalRoleMemberEncoder(res).Skip("rel_user", "rel_role").Only(onlyColumns...))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return
 }
 
 // RemoveRoleMember removes one or more rows from role_members table
-func (s Store) RemoveRoleMember(ctx context.Context, rr ...*types.RoleMember) error {
-	if len(rr) == 0 {
-		return nil
+func (s Store) RemoveRoleMember(ctx context.Context, rr ...*types.RoleMember) (err error) {
+	for _, res := range rr {
+		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleMemberTable("rm")).Where(squirrel.Eq{s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""),
+			s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+		}))
+		if err != nil {
+			return s.config.ErrorHandler(err)
+		}
 	}
 
-	return Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		for _, res := range rr {
-			err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleMemberTable("rm")).Where(squirrel.Eq{s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""),
-				s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-			}))
-			if err != nil {
-				return s.config.ErrorHandler(err)
-			}
-		}
-
-		return nil
-	})
+	return nil
 }
 
 // RemoveRoleMemberByUserIDRoleID removes row from the role_members table
