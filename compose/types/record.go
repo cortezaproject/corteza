@@ -32,20 +32,20 @@ type (
 
 	// Record is a stored row in the `record` table
 	Record struct {
-		ID       uint64 `json:"recordID,string" db:"id"`
-		ModuleID uint64 `json:"moduleID,string" db:"module_id"`
+		ID       uint64 `json:"recordID,string"`
+		ModuleID uint64 `json:"moduleID,string"`
 
 		Values RecordValueSet `json:"values,omitempty" db:"-"`
 
-		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 
-		OwnedBy   uint64     `db:"owned_by"   json:"ownedBy,string"`
-		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		CreatedBy uint64     `db:"created_by" json:"createdBy,string" `
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `db:"updated_by" json:"updatedBy,string,omitempty" `
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
-		DeletedBy uint64     `db:"deleted_by" json:"deletedBy,string,omitempty" `
+		OwnedBy   uint64     `json:"ownedBy,string"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string" `
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
 	RecordFilter struct {

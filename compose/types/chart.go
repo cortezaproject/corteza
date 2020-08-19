@@ -14,16 +14,16 @@ import (
 
 type (
 	Chart struct {
-		ID     uint64      `json:"chartID,string" db:"id"`
-		Handle string      `json:"handle" db:"handle"`
-		Name   string      `json:"name" db:"name"`
-		Config ChartConfig `json:"config" db:"config"`
+		ID     uint64      `json:"chartID,string"`
+		Handle string      `json:"handle"`
+		Name   string      `json:"name"`
+		Config ChartConfig `json:"config"`
 
 		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace,string"`
 
-		CreatedAt time.Time  `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	ChartConfig struct {

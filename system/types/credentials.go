@@ -10,17 +10,17 @@ import (
 
 type (
 	Credentials struct {
-		ID          uint64         `json:"credentialsID,string" db:"id"`
-		OwnerID     uint64         `json:"ownerID,string" db:"rel_owner"`
-		Label       string         `json:"label" db:"label"`
-		Kind        string         `json:"kind" db:"kind"`
-		Credentials string         `json:"-" db:"credentials"`
-		Meta        types.JSONText `json:"-" db:"meta"`
-		LastUsedAt  *time.Time     `json:"lastUsedAt,omitempty" db:"last_used_at"`
-		ExpiresAt   *time.Time     `json:"expiresAt,omitempty"  db:"expires_at"`
-		CreatedAt   time.Time      `json:"createdAt,omitempty"  db:"created_at"`
-		UpdatedAt   *time.Time     `json:"updatedAt,omitempty"  db:"updated_at"`
-		DeletedAt   *time.Time     `json:"deletedAt,omitempty"  db:"deleted_at"`
+		ID          uint64         `json:"credentialsID,string"`
+		OwnerID     uint64         `json:"ownerID,string"`
+		Label       string         `json:"label"`
+		Kind        string         `json:"kind"`
+		Credentials string         `json:"-"`
+		Meta        types.JSONText `json:"-"`
+		LastUsedAt  *time.Time     `json:"lastUsedAt,omitempty"`
+		ExpiresAt   *time.Time     `json:"expiresAt,omitempty"`
+		CreatedAt   time.Time      `json:"createdAt,omitempty"`
+		UpdatedAt   *time.Time     `json:"updatedAt,omitempty"`
+		DeletedAt   *time.Time     `json:"deletedAt,omitempty"`
 	}
 
 	CredentialsFilter struct {
