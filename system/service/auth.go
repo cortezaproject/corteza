@@ -167,7 +167,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.External.Enabled {
 			return AuthErrExternalDisabledByConfig(aam)
 		}
@@ -326,7 +326,7 @@ func (svc auth) External(profile goth.User) (u *types.User, err error) {
 
 		// Owner loaded, carry on.
 		return nil
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
 }
@@ -494,7 +494,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled {
 			return AuthErrInteralLoginDisabledByConfig()
 		}
@@ -558,7 +558,7 @@ func (svc auth) InternalLogin(email string, password string) (u *types.User, err
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.AuthAfterLogin(u, authProvider))
 		return nil
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, aam, AuthActionAuthenticate, err)
 }
@@ -579,7 +579,7 @@ func (svc auth) SetPassword(userID uint64, password string) (err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled {
 			return AuthErrInteralLoginDisabledByConfig(aam)
 		}
@@ -598,7 +598,7 @@ func (svc auth) SetPassword(userID uint64, password string) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
 }
@@ -638,7 +638,7 @@ func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword st
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled {
 			return AuthErrInteralLoginDisabledByConfig(aam)
 		}
@@ -670,7 +670,7 @@ func (svc auth) ChangePassword(userID uint64, oldPassword, AuthActionPassword st
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aam, AuthActionChangePassword, err)
 }
@@ -722,14 +722,14 @@ func (svc auth) ValidateAuthRequestToken(token string) (u *types.User, err error
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		u, err = svc.loadUserFromToken(token, credentialsTypeAuthToken)
 		if err != nil && u != nil {
 			aam.setUser(u)
 			svc.ctx = internalAuth.SetIdentityToContext(svc.ctx, u)
 		}
 		return err
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, aam, AuthActionValidateToken, err)
 }
@@ -753,7 +753,7 @@ func (svc auth) loadFromTokenAndConfirmEmail(token, tokenType string) (u *types.
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled {
 			return AuthErrInternalSignupDisabledByConfig(aam)
 		}
@@ -776,7 +776,7 @@ func (svc auth) loadFromTokenAndConfirmEmail(token, tokenType string) (u *types.
 		}
 
 		return nil
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, aam, AuthActionConfirmEmail, err)
 }
@@ -790,7 +790,7 @@ func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t strin
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
@@ -811,7 +811,7 @@ func (svc auth) ExchangePasswordResetToken(token string) (u *types.User, t strin
 		}
 
 		return nil
-	})
+	}()
 
 	return u, t, svc.recordAction(svc.ctx, aam, AuthActionExchangePasswordResetToken, err)
 }
@@ -824,7 +824,7 @@ func (svc auth) SendEmailAddressConfirmationToken(email string) (err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
@@ -835,7 +835,7 @@ func (svc auth) SendEmailAddressConfirmationToken(email string) (err error) {
 		}
 
 		return svc.sendEmailAddressConfirmationToken(u)
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aam, AuthActionSendEmailConfirmationToken, err)
 }

@@ -70,6 +70,10 @@ func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interfac
 			map[string]string{"key": r.Key, "ownedBy": strconv.FormatUint(r.OwnerID, 10)},
 		)
 
+		if err != nil {
+			return nil, err
+		}
+
 		s := &settings.Value{Name: r.Key, OwnedBy: r.OwnerID}
 		if err = s.SetValue(fmt.Sprintf("attachment:%d", att.ID)); err != nil {
 			return nil, err

@@ -140,7 +140,7 @@ func (svc user) FindByID(userID uint64) (u *types.User, err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if userID == 0 {
 			return UserErrInvalidID()
 		}
@@ -157,7 +157,7 @@ func (svc user) FindByID(userID uint64) (u *types.User, err error) {
 
 		u, err = svc.proc(svc.user.FindByID(userID))
 		return err
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
@@ -167,10 +167,10 @@ func (svc user) FindByEmail(email string) (u *types.User, err error) {
 		uaProps = &userActionProps{user: &types.User{Email: email}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		u, err = svc.proc(svc.user.FindByEmail(email))
 		return err
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
@@ -180,10 +180,10 @@ func (svc user) FindByUsername(username string) (u *types.User, err error) {
 		uaProps = &userActionProps{user: &types.User{Username: username}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		u, err = svc.proc(svc.user.FindByUsername(username))
 		return err
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
@@ -193,10 +193,10 @@ func (svc user) FindByHandle(handle string) (u *types.User, err error) {
 		uaProps = &userActionProps{user: &types.User{Handle: handle}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		u, err = svc.proc(svc.user.FindByHandle(handle))
 		return err
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
 }
@@ -261,7 +261,7 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 		uaProps = &userActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if filter.Deleted > 0 {
 			// If list with deleted users is requested
 			// user must have access permissions to system (ie: is admin)
@@ -290,7 +290,7 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			svc.handlePrivateData(u)
 			return nil
 		})
-	})
+	}()
 
 	return uu, f, svc.recordAction(svc.ctx, uaProps, UserActionSearch, err)
 }
@@ -300,7 +300,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		uaProps = &userActionProps{new: new}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if !svc.ac.CanCreateUser(svc.ctx) {
 			return UserErrNotAllowedToCreate()
 		}
@@ -341,7 +341,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterCreate(new, u))
 		return
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionCreate, err)
 }
@@ -356,7 +356,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 		uaProps = &userActionProps{update: upd}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if upd.ID == 0 {
 			return UserErrInvalidID()
 		}
@@ -402,7 +402,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterUpdate(upd, u))
 		return
-	})
+	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionUpdate, err)
 }
@@ -475,7 +475,7 @@ func (svc user) Delete(userID uint64) (err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if userID == 0 {
 			return UserErrInvalidID()
 		}
@@ -498,7 +498,7 @@ func (svc user) Delete(userID uint64) (err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterDelete(nil, u))
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, uaProps, UserActionDelete, err)
 }
@@ -509,7 +509,7 @@ func (svc user) Undelete(userID uint64) (err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if userID == 0 {
 			return UserErrInvalidID()
 		}
@@ -533,7 +533,7 @@ func (svc user) Undelete(userID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, uaProps, UserActionUndelete, err)
 
@@ -545,7 +545,7 @@ func (svc user) Suspend(userID uint64) (err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if userID == 0 {
 			return UserErrInvalidID()
 		}
@@ -565,7 +565,7 @@ func (svc user) Suspend(userID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, uaProps, UserActionSuspend, err)
 
@@ -577,7 +577,7 @@ func (svc user) Unsuspend(userID uint64) (err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if userID == 0 {
 			return UserErrInvalidID()
 		}
@@ -597,7 +597,7 @@ func (svc user) Unsuspend(userID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, uaProps, UserActionUnsuspend, err)
 
@@ -612,7 +612,7 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if u, err = svc.user.FindByID(userID); err != nil {
 			return err
 		}
@@ -632,7 +632,7 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, uaProps, UserActionSetPassword, err)
 

@@ -78,7 +78,7 @@ func (svc *application) FindByID(ID uint64) (app *types.Application, err error) 
 		aaProps = &applicationActionProps{application: &types.Application{ID: ID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if ID == 0 {
 			return ApplicationErrInvalidID()
 		}
@@ -94,7 +94,7 @@ func (svc *application) FindByID(ID uint64) (app *types.Application, err error) 
 		}
 
 		return nil
-	})
+	}()
 
 	return app, svc.recordAction(svc.ctx, aaProps, ApplicationActionLookup, err)
 }
@@ -104,7 +104,7 @@ func (svc *application) Find(filter types.ApplicationFilter) (aa types.Applicati
 		aaProps = &applicationActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		filter.IsReadable = svc.ac.FilterReadableApplications(svc.ctx)
 
 		if filter.Deleted > rh.FilterStateExcluded {
@@ -120,7 +120,7 @@ func (svc *application) Find(filter types.ApplicationFilter) (aa types.Applicati
 
 		aa, f, err = svc.application.Find(filter)
 		return err
-	})
+	}()
 
 	return aa, f, svc.recordAction(svc.ctx, aaProps, ApplicationActionSearch, err)
 }
@@ -130,7 +130,7 @@ func (svc *application) Create(new *types.Application) (app *types.Application, 
 		aaProps = &applicationActionProps{new: new}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if !svc.ac.CanCreateApplication(svc.ctx) {
 			return ApplicationErrNotAllowedToCreate()
 		}
@@ -147,7 +147,7 @@ func (svc *application) Create(new *types.Application) (app *types.Application, 
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterCreate(new, nil))
 		return nil
-	})
+	}()
 
 	return app, svc.recordAction(svc.ctx, aaProps, ApplicationActionCreate, err)
 }
@@ -157,7 +157,7 @@ func (svc *application) Update(upd *types.Application) (app *types.Application, 
 		aaProps = &applicationActionProps{update: upd}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if upd.ID == 0 {
 			return ApplicationErrInvalidID()
 		}
@@ -187,7 +187,7 @@ func (svc *application) Update(upd *types.Application) (app *types.Application, 
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterUpdate(upd, app))
 		return nil
-	})
+	}()
 
 	return app, svc.recordAction(svc.ctx, aaProps, ApplicationActionUpdate, err)
 }
@@ -198,7 +198,7 @@ func (svc *application) Delete(ID uint64) (err error) {
 		app     *types.Application
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if ID == 0 {
 			return ApplicationErrInvalidID()
 		}
@@ -221,7 +221,7 @@ func (svc *application) Delete(ID uint64) (err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterDelete(nil, app))
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aaProps, ApplicationActionDelete, err)
 }
@@ -232,7 +232,7 @@ func (svc *application) Undelete(ID uint64) (err error) {
 		app     *types.Application
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if ID == 0 {
 			return ApplicationErrInvalidID()
 		}
@@ -257,7 +257,7 @@ func (svc *application) Undelete(ID uint64) (err error) {
 		// @todo add event
 		//       _ = svc.eventbus.WaitFor(svc.ctx, event.ApplicationAfterUndelete(nil, app))
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, aaProps, ApplicationActionDelete, err)
 }
