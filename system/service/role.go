@@ -101,7 +101,7 @@ func (svc role) Find(filter types.RoleFilter) (rr types.RoleSet, f types.RoleFil
 		raProps = &roleActionProps{filter: &filter}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		filter.IsReadable = svc.ac.FilterReadableRoles(svc.ctx)
 
 		if filter.Deleted > 0 {
@@ -117,7 +117,7 @@ func (svc role) Find(filter types.RoleFilter) (rr types.RoleSet, f types.RoleFil
 
 		rr, f, err = svc.role.Find(filter)
 		return err
-	})
+	}()
 
 	return rr, f, svc.recordAction(svc.ctx, raProps, RoleActionSearch, err)
 }
@@ -127,11 +127,11 @@ func (svc role) FindByID(roleID uint64) (r *types.Role, err error) {
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		r, err = svc.findByID(roleID)
 		raProps.setRole(r)
 		return err
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
 }
@@ -149,11 +149,11 @@ func (svc role) FindByName(name string) (r *types.Role, err error) {
 		raProps = &roleActionProps{role: &types.Role{Name: name}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		r, err = svc.role.FindByName(name)
 		raProps.setRole(r)
 		return err
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
 }
@@ -163,11 +163,11 @@ func (svc role) FindByHandle(h string) (r *types.Role, err error) {
 		raProps = &roleActionProps{role: &types.Role{Handle: h}}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		r, err = svc.role.FindByName(h)
 		raProps.setRole(r)
 		return err
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
 }
@@ -197,7 +197,7 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 		raProps = &roleActionProps{new: new}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if !handle.IsValid(new.Handle) {
 			return RoleErrInvalidHandle()
 		}
@@ -222,7 +222,7 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterCreate(new, r))
 		return
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionCreate, err)
 
@@ -233,7 +233,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 		raProps = &roleActionProps{update: upd}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if upd.ID == 0 {
 			return RoleErrInvalidID()
 		}
@@ -271,7 +271,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterUpdate(upd, r))
 
 		return nil
-	})
+	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionUpdate, err)
 }
@@ -304,7 +304,7 @@ func (svc role) Delete(roleID uint64) (err error) {
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if r, err = svc.findByID(roleID); err != nil {
 			return err
 		}
@@ -326,7 +326,7 @@ func (svc role) Delete(roleID uint64) (err error) {
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterDelete(nil, r))
 
 		return
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionDelete, err)
 }
@@ -337,7 +337,7 @@ func (svc role) Undelete(roleID uint64) (err error) {
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if r, err = svc.findByID(roleID); err != nil {
 			return err
 		}
@@ -353,7 +353,7 @@ func (svc role) Undelete(roleID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionUndelete, err)
 }
@@ -364,7 +364,7 @@ func (svc role) Archive(roleID uint64) (err error) {
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if r, err = svc.findByID(roleID); err != nil {
 			return err
 		}
@@ -380,7 +380,7 @@ func (svc role) Archive(roleID uint64) (err error) {
 		}
 
 		return
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionArchive, err)
 }
@@ -391,7 +391,7 @@ func (svc role) Unarchive(roleID uint64) (err error) {
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if r, err = svc.findByID(roleID); err != nil {
 			return err
 		}
@@ -407,7 +407,7 @@ func (svc role) Unarchive(roleID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionUnarchive, err)
 }
@@ -423,7 +423,7 @@ func (svc role) Merge(roleID, targetRoleID uint64) (err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if roleID == 0 || targetRoleID == 0 {
 			return RoleErrInvalidID()
 		}
@@ -453,7 +453,7 @@ func (svc role) Merge(roleID, targetRoleID uint64) (err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionMerge, err)
 }
@@ -478,7 +478,7 @@ func (svc role) MemberList(roleID uint64) (mm []*types.RoleMember, err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = func() error {
 		if roleID == permissions.EveryoneRoleID || roleID == 0 {
 			return RoleErrInvalidID()
 		}
@@ -496,7 +496,7 @@ func (svc role) MemberList(roleID uint64) (mm []*types.RoleMember, err error) {
 		}
 
 		return nil
-	})
+	}()
 
 	return mm, svc.recordAction(svc.ctx, raProps, RoleActionMembers, err)
 }
@@ -513,7 +513,7 @@ func (svc role) MemberAdd(roleID, memberID uint64) (err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if roleID == permissions.EveryoneRoleID || roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
 		}
@@ -544,7 +544,7 @@ func (svc role) MemberAdd(roleID, memberID uint64) (err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleMemberAfterAdd(m, r))
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionMemberAdd, err)
 }
@@ -560,7 +560,7 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 		}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = func() (err error) {
 		if roleID == permissions.EveryoneRoleID || roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
 		}
@@ -591,7 +591,7 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleMemberAfterRemove(m, r))
 		return nil
-	})
+	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionMemberRemove, err)
 }
