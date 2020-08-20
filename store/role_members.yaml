@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 fields:
   - { field: UserID, isPrimaryKey: true }
   - { field: RoleID, isPrimaryKey: true }
@@ -13,6 +10,7 @@ rdbms:
   table: role_members
 
 search:
-  disableSorting: true
-  disablePaging: true
+  enableSorting: false
+  enablePaging: false
   customFilterConverter: true
+  enableFilterCheckFunction: false

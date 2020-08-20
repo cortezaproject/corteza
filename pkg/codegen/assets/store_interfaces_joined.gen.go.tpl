@@ -1,8 +1,8 @@
-package {{ .Package }}
+package store
 
 // This file is auto-generated.
 //
-// Template: pkg/store_interfaces_joined.gen.go.tpl
+// Template:	pkg/codegen/assets/store_interfaces_joined.gen.go.tpl
 // Definitions:
 {{- range .Definitions }}
 //  - {{ .Source }}
@@ -12,11 +12,21 @@ package {{ .Package }}
 // the code is regenerated.
 //
 
+import (
+	"context"
+)
+
 type (
-	// Interface combines interfaces of all supported store interfaces
-	storeGeneratedInterfaces interface {
+	Transactionable interface {
+		Tx(context.Context, func(context.Context, Storable) error) error
+	}
+
+	// Sortable interface combines interfaces of all supported store interfaces
+	Storable interface {
+		Transactionable
+
 	{{ range .Definitions -}}
-		{{ unpubIdent .Types.Plural }}Store
+		{{ export .Types.Plural }}
 	{{ end }}
 	}
 )

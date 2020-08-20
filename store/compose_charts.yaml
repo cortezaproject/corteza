@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
 
-interface:
-  - compose/service
-
 types:
   type: types.Chart
 
@@ -23,7 +20,7 @@ lookups:
       searches for compose chart by ID
 
       It returns compose chart even if deleted
-  - fields: [ Handle ]
+  - fields: [ NamespaceID, Handle ]
     description: |-
       searches for compose chart by handle (case-insensitive)
 

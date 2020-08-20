@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -94,20 +93,13 @@ type (
 )
 
 // Processes multiple action definitions
-func procActions() ([]*actionsDef, error) {
+func procActions(mm ...string) (dd []*actionsDef, err error) {
 	var (
 		f io.ReadCloser
 		d *actionsDef
-
-		dd = make([]*actionsDef, 0)
 	)
 
-	// <app>/service/<kind>_actions.yaml
-	mm, err := filepath.Glob(filepath.Join("*", "service", "*_actions.yaml"))
-	if err != nil {
-		return nil, fmt.Errorf("glob failed: %w", err)
-	}
-
+	dd = make([]*actionsDef, 0)
 	for _, m := range mm {
 		err = func() error {
 			if f, err = os.Open(m); err != nil {
@@ -284,7 +276,7 @@ func severityConstName(s string) string {
 	}
 }
 
-func genActions(tpl *template.Template, dd []*actionsDef) (err error) {
+func genActions(tpl *template.Template, dd ...*actionsDef) (err error) {
 	var (
 		// Will only be generated if file does not exist previously
 		tplActionsGen = tpl.Lookup("actions.gen.go.tpl")

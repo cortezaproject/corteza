@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"sort"
 	"time"
 
@@ -32,6 +33,11 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
+
+	ModuleFieldFilter struct {
+		ModuleID []uint64
+		Deleted  rh.FilterState
+	}
 )
 
 var (
@@ -45,6 +51,19 @@ func (m ModuleField) PermissionResource() permissions.Resource {
 
 func (m ModuleField) DynamicRoles(userID uint64) []uint64 {
 	return nil
+}
+
+func (m ModuleField) Clone() *ModuleField {
+	return &m
+}
+
+func (set ModuleFieldSet) Clone() (out ModuleFieldSet) {
+	out = make([]*ModuleField, len(set))
+	for i := range set {
+		out[i] = set[i].Clone()
+	}
+
+	return out
 }
 
 func (set *ModuleFieldSet) Scan(src interface{}) error {

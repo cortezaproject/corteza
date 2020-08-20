@@ -21,7 +21,7 @@ props:
     fields: [ ID, moduleID, namespaceID, ownedBy ]
   - name: filter
     type: "*types.RecordFilter"
-    fields: [ query, namespaceID, moduleID, deleted, sort, limit, offset, page, perPage ]
+    fields: [ query, namespaceID, moduleID, deleted, sort, limit ]
   - name: namespace
     type: "*types.Namespace"
     fields: [ name, slug, ID ]

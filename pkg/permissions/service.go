@@ -2,13 +2,11 @@ package permissions
 
 import (
 	"context"
-	"sync"
-	"time"
-
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"sync"
+	"time"
 )
 
 type (
@@ -21,7 +19,7 @@ type (
 
 		rules RuleSet
 
-		repository rbacRulesStore
+		store rbacRulesStore
 	}
 
 	// RuleFilter is a dummy struct to satisfy store codegen
@@ -34,15 +32,15 @@ const (
 
 // Service initializes service{} struct
 //
-// service{} struct preloads, checks, grants and flushes privileges to and from repository
+// service{} struct preloads, checks, grants and flushes privileges to and from store
 // It acts as a caching layer
 func Service(ctx context.Context, logger *zap.Logger, s rbacRulesStore) (svc *service) {
 	svc = &service{
 		l: &sync.Mutex{},
 		f: make(chan bool),
 
-		logger:     logger.Named("permissions"),
-		repository: s,
+		logger: logger.Named("permissions"),
+		store:  s,
 	}
 
 	svc.Reload(ctx)
@@ -160,7 +158,7 @@ func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	rr, _, err := svc.repository.SearchRbacRules(ctx, RuleFilter{})
+	rr, _, err := svc.store.SearchRbacRules(ctx, RuleFilter{})
 	svc.logger.Debug(
 		"reloading rules",
 		zap.Error(err),
@@ -173,7 +171,7 @@ func (svc *service) Reload(ctx context.Context) {
 	}
 }
 
-// ResourceFilter is repository helper that we use to filter resources directly in the database
+// ResourceFilter is store helper that we use to filter resources directly in the database
 //
 // See ResourceFilter struct documentation for details
 //
@@ -193,12 +191,12 @@ func (svc *service) ResourceFilter(roles []uint64, r Resource, op Operation, fal
 func (svc service) flush(ctx context.Context) (err error) {
 	d, u := svc.rules.dirty()
 
-	err = svc.repository.RemoveRbacRule(ctx, d...)
+	err = svc.store.DeleteRbacRule(ctx, d...)
 	if err != nil {
 		return
 	}
 
-	err = svc.repository.UpdateRbacRule(ctx, u...)
+	err = svc.store.UpsertRbacRule(ctx, u...)
 	if err != nil {
 		return
 	}

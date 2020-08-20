@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 
 	"github.com/pkg/errors"
@@ -60,8 +60,8 @@ type (
 		Check func(*User) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		store.Sorting
-		store.Paging
+		filter.Sorting
+		filter.Paging
 	}
 
 	UserKind string

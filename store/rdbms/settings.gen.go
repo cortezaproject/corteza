@@ -11,10 +11,20 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeSettingCreate triggerKey = "settingBeforeCreate"
+	TriggerBeforeSettingUpdate triggerKey = "settingBeforeUpdate"
+	TriggerBeforeSettingUpsert triggerKey = "settingBeforeUpsert"
+	TriggerBeforeSettingDelete triggerKey = "settingBeforeDelete"
 )
 
 // SearchSettings returns all matching rows
@@ -35,7 +45,7 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 	var (
 		set = make([]*types.SettingValue, 0, scap)
 		// Paging is disabled in definition yaml file
-		// {search: {disablePaging:true}} and this allows
+		// {search: {enablePaging:false}} and this allows
 		// a much simpler row fetching logic
 		fetch = func() error {
 			var (
@@ -48,14 +58,33 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 			}
 
 			for rows.Next() {
-				if res, err = s.internalSettingRowScanner(rows, rows.Err()); err != nil {
+				if rows.Err() == nil {
+					res, err = s.internalSettingRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
-						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
 
 					return err
 				}
 
+				// If check function is set, call it and act accordingly
+
+				if f.Check != nil {
+					if chk, err := f.Check(res); err != nil {
+						if cerr := rows.Close(); cerr != nil {
+							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
+						}
+
+						return err
+					} else if !chk {
+						// did not pass the check
+						// go with the next row
+						continue
+					}
+				}
 				set = append(set, res)
 			}
 
@@ -68,18 +97,28 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 
 // LookupSettingByNameOwnedBy searches for settings by name and owner
 func (s Store) LookupSettingByNameOwnedBy(ctx context.Context, name string, owned_by uint64) (*types.SettingValue, error) {
-	return s.SettingLookup(ctx, squirrel.Eq{
-		"st.name":      name,
-		"st.rel_owner": owned_by,
+	return s.execLookupSetting(ctx, squirrel.Eq{
+		s.preprocessColumn("st.name", ""):      s.preprocessValue(name, ""),
+		s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(owned_by, ""),
 	})
 }
 
 // CreateSetting creates one or more rows in settings table
 func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.SettingTable()).SetMap(s.internalSettingEncoder(res)))
+		err = s.checkSettingConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.settingHook(ctx, TriggerBeforeSettingCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateSettings(ctx, s.internalSettingEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -88,18 +127,26 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (er
 
 // UpdateSetting updates one or more existing rows in settings
 func (s Store) UpdateSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	return s.config.ErrorHandler(s.PartialUpdateSetting(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialSettingUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateSetting updates one or more existing rows in settings
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateSetting(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) (err error) {
+// PartialSettingUpdate updates one or more existing rows in settings
+func (s Store) PartialSettingUpdate(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateSettings(
+		err = s.checkSettingConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.settingHook(ctx, TriggerBeforeSettingUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateSettings(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
-				s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+			squirrel.Eq{
+				s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
 			},
 			s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
 		if err != nil {
@@ -110,12 +157,39 @@ func (s Store) PartialUpdateSetting(ctx context.Context, onlyColumns []string, r
 	return
 }
 
-// RemoveSetting removes one or more rows from settings table
-func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
+// UpsertSetting updates one or more existing rows in settings
+func (s Store) UpsertSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""),
-			s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
-		}))
+		err = s.checkSettingConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.settingHook(ctx, TriggerBeforeSettingUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertSettings(ctx, s.internalSettingEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteSetting Deletes one or more rows from settings table
+func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
+	for _, res := range rr {
+		// err = s.settingHook(ctx, TriggerBeforeSettingDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteSettings(ctx, squirrel.Eq{
+			s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -124,38 +198,76 @@ func (s Store) RemoveSetting(ctx context.Context, rr ...*types.SettingValue) (er
 	return nil
 }
 
-// RemoveSettingByNameOwnedBy removes row from the settings table
-func (s Store) RemoveSettingByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.SettingTable("st")).Where(squirrel.Eq{s.preprocessColumn("st.name", ""): s.preprocessValue(name, ""),
-
+// DeleteSettingByNameOwnedBy Deletes row from the settings table
+func (s Store) DeleteSettingByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
+	return s.execDeleteSettings(ctx, squirrel.Eq{
+		s.preprocessColumn("st.name", ""):      s.preprocessValue(name, ""),
 		s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(ownedBy, ""),
-	})))
+	})
 }
 
-// TruncateSettings removes all rows from the settings table
+// TruncateSettings Deletes all rows from the settings table
 func (s Store) TruncateSettings(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.SettingTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.settingTable()))
 }
 
-// ExecUpdateSettings updates all matched (by cnd) rows in settings with given data
-func (s Store) ExecUpdateSettings(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.SettingTable("st")).Where(cnd).SetMap(set)))
-}
-
-// SettingLookup prepares Setting query and executes it,
+// execLookupSetting prepares Setting query and executes it,
 // returning types.SettingValue (or error)
-func (s Store) SettingLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.SettingValue, error) {
-	return s.internalSettingRowScanner(s.QueryRow(ctx, s.QuerySettings().Where(cnd)))
-}
+func (s Store) execLookupSetting(ctx context.Context, cnd squirrel.Sqlizer) (res *types.SettingValue, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalSettingRowScanner(row rowScanner, err error) (*types.SettingValue, error) {
+	row, err = s.QueryRow(ctx, s.settingsSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.SettingValue{}
+	res, err = s.internalSettingRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateSettings updates all matched (by cnd) rows in settings with given data
+func (s Store) execCreateSettings(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.settingTable()).SetMap(payload)))
+}
+
+// execUpdateSettings updates all matched (by cnd) rows in settings with given data
+func (s Store) execUpdateSettings(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.settingTable("st")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertSettings inserts new or updates matching (by-primary-key) rows in settings with given data
+func (s Store) execUpsertSettings(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.settingTable(),
+		set,
+		"name",
+		"rel_owner",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteSettings Deletes all matched (by cnd) rows in settings with given data
+func (s Store) execDeleteSettings(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.settingTable("st")).Where(cnd)))
+}
+
+func (s Store) internalSettingRowScanner(row rowScanner) (res *types.SettingValue, err error) {
+	res = &types.SettingValue{}
+
 	if _, has := s.config.RowScanners["setting"]; has {
-		scanner := s.config.RowScanners["setting"].(func(rowScanner, *types.SettingValue) error)
+		scanner := s.config.RowScanners["setting"].(func(_ rowScanner, _ *types.SettingValue) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -179,12 +291,12 @@ func (s Store) internalSettingRowScanner(row rowScanner, err error) (*types.Sett
 }
 
 // QuerySettings returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QuerySettings() squirrel.SelectBuilder {
-	return s.Select(s.SettingTable("st"), s.SettingColumns("st")...)
+func (s Store) settingsSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.settingTable("st"), s.settingColumns("st")...)
 }
 
-// SettingTable name of the db table
-func (Store) SettingTable(aa ...string) string {
+// settingTable name of the db table
+func (Store) settingTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -196,7 +308,7 @@ func (Store) SettingTable(aa ...string) string {
 // SettingColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) SettingColumns(aa ...string) []string {
+func (Store) settingColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -211,7 +323,7 @@ func (Store) SettingColumns(aa ...string) []string {
 	}
 }
 
-// {false true true false}
+// {true true false false true}
 
 // internalSettingEncoder encodes fields from types.SettingValue to store.Payload (map)
 //
@@ -226,3 +338,16 @@ func (s Store) internalSettingEncoder(res *types.SettingValue) store.Payload {
 		"updated_at": res.UpdatedAt,
 	}
 }
+
+func (s *Store) checkSettingConstraints(ctx context.Context, res *types.SettingValue) error {
+
+	return nil
+}
+
+// func (s *Store) settingHook(ctx context.Context, key triggerKey, res *types.SettingValue) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.SettingValue) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

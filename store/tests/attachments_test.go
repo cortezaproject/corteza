@@ -2,52 +2,71 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
-	"time"
 )
 
-func testAttachment(t *testing.T, s attachmentsStore) {
+func testAttachment(t *testing.T, s store.Attachments) {
 	var (
 		ctx = context.Background()
-		req = require.New(t)
 
-		attachment *types.Attachment
+		makeNew = func(nn ...string) *types.Attachment {
+			// minimum data set for new attachment
+			name := strings.Join(nn, "")
+			return &types.Attachment{
+				ID:        id.Next(),
+				CreatedAt: *now(),
+				Name:      "handle_" + name,
+			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Attachment) {
+			req := require.New(t)
+			req.NoError(s.TruncateAttachments(ctx))
+			res := makeNew()
+			req.NoError(s.CreateAttachment(ctx, res))
+			return req, res
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
-		attachment = &types.Attachment{
-			ID:        42,
-			CreatedAt: time.Now(),
+		req := require.New(t)
+		attachment := &types.Attachment{
+			ID:        id.Next(),
+			CreatedAt: *now(),
 		}
 		req.NoError(s.CreateAttachment(ctx, attachment))
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		fetched, err := s.LookupAttachmentByID(ctx, attachment.ID)
+		req, att := truncAndCreate(t)
+
+		fetched, err := s.LookupAttachmentByID(ctx, att.ID)
 		req.NoError(err)
-		req.Equal(attachment.ID, fetched.ID)
+		req.Equal(att.ID, fetched.ID)
 		req.NotNil(fetched.CreatedAt)
 		req.Nil(fetched.UpdatedAt)
 		req.Nil(fetched.DeletedAt)
 	})
 
 	t.Run("update", func(t *testing.T) {
-		attachment = &types.Attachment{
-			ID:        42,
-			CreatedAt: time.Now(),
-		}
-		req.NoError(s.UpdateAttachment(ctx, attachment))
+		req, att := truncAndCreate(t)
+		att.Url = "url"
+		req.NoError(s.UpdateAttachment(ctx, att))
+		fetched, err := s.LookupAttachmentByID(ctx, att.ID)
+		req.NoError(err)
+		req.Equal(att.ID, fetched.ID)
+		req.Equal("url", fetched.Url)
+
 	})
 
 	t.Run("search", func(t *testing.T) {
 		t.Skip("not implemented")
-		//set, f, err := s.SearchAttachments(ctx, types.AttachmentFilter{})
-		//req.NoError(err)
-		//req.Len(set, 1)
-		//req.Equal(uint(1), f.Count)
 	})
 
 	t.Run("search by *", func(t *testing.T) {

@@ -103,7 +103,7 @@ func (g genericUpgrades) MergeSettingsTables(ctx context.Context) error {
 		if exists, err := g.u.TableExists(ctx, t.tbl); err != nil {
 			return err
 		} else if !exists {
-			g.log.Debug(fmt.Sprintf("skipping settings merge, table %s already removed", t.tbl))
+			g.log.Debug(fmt.Sprintf("skipping settings merge, table %s already Deleted", t.tbl))
 			continue
 		}
 
@@ -117,7 +117,7 @@ func (g genericUpgrades) MergeSettingsTables(ctx context.Context) error {
 			return fmt.Errorf("could not drop %s: %w", t.tbl, err)
 		}
 
-		g.log.Debug(fmt.Sprintf("table %s merged into settings and removed", t.tbl))
+		g.log.Debug(fmt.Sprintf("table %s merged into settings and Deleted", t.tbl))
 	}
 
 	return nil
@@ -147,7 +147,7 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 		if exists, err := g.u.TableExists(ctx, t.tbl); err != nil {
 			return err
 		} else if !exists {
-			g.log.Debug(fmt.Sprintf("skipping rbac rules merge, table %s already removed", t.tbl))
+			g.log.Debug(fmt.Sprintf("skipping rbac rules merge, table %s already Deleted", t.tbl))
 			continue
 		}
 
@@ -161,7 +161,7 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 			return fmt.Errorf("could not drop %s: %w", t.tbl, err)
 		}
 
-		g.log.Debug(fmt.Sprintf("table %s merged into rbac_rules and removed", t.tbl))
+		g.log.Debug(fmt.Sprintf("table %s merged into rbac_rules and Deleted", t.tbl))
 	}
 
 	return nil

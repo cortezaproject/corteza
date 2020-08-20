@@ -195,9 +195,6 @@ func (p recordActionProps) serialize() actionlog.Meta {
 		m.Set("filter.deleted", p.filter.Deleted, true)
 		m.Set("filter.sort", p.filter.Sort, true)
 		m.Set("filter.limit", p.filter.Limit, true)
-		m.Set("filter.offset", p.filter.Offset, true)
-		m.Set("filter.page", p.filter.Page, true)
-		m.Set("filter.perPage", p.filter.PerPage, true)
 	}
 	if p.namespace != nil {
 		m.Set("namespace.name", p.namespace.Name, true)
@@ -303,9 +300,6 @@ func (p recordActionProps) tr(in string, err error) string {
 				p.filter.Deleted,
 				p.filter.Sort,
 				p.filter.Limit,
-				p.filter.Offset,
-				p.filter.Page,
-				p.filter.PerPage,
 			),
 		)
 		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
@@ -314,9 +308,6 @@ func (p recordActionProps) tr(in string, err error) string {
 		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
 		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
 		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
-		pairs = append(pairs, "{filter.offset}", fns(p.filter.Offset))
-		pairs = append(pairs, "{filter.page}", fns(p.filter.Page))
-		pairs = append(pairs, "{filter.perPage}", fns(p.filter.PerPage))
 	}
 
 	if p.namespace != nil {

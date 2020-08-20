@@ -11,11 +11,19 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeActionlogCreate triggerKey = "actionlogBeforeCreate"
 )
 
 // SearchActionlogs returns all matching rows
@@ -39,11 +47,11 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
 	// Sorting is disabled in definition yaml file
-	// {search: {disableSorting:true}}
+	// {search: {enablePaging:false}}
 	//
 	// We still need to sort the results by primary key for paging purposes
-	sort := store.SortExprSet{
-		&store.SortExpr{Column: "id", Descending: true},
+	sort := filter.SortExprSet{
+		&filter.SortExpr{Column: "id", Descending: true},
 	}
 
 	if scap == 0 {
@@ -52,7 +60,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 
 	var (
 		set = make([]*actionlog.Action, 0, scap)
-		// fetches rows and scans them into Actionlog.Action resource this is then passed to Check function on filter
+		// fetches rows and scans them into actionlog.Action resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -61,7 +69,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *actionlog.Action
 
@@ -92,7 +100,12 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalActionlogRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalActionlogRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -193,78 +206,60 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 // CreateActionlog creates one or more rows in actionlog table
 func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ActionlogTable()).SetMap(s.internalActionlogEncoder(res)))
+		err = s.checkActionlogConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.actionlogHook(ctx, TriggerBeforeActionlogCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateActionlogs(ctx, s.internalActionlogEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
 	return
 }
 
-// UpdateActionlog updates one or more existing rows in actionlog
-func (s Store) UpdateActionlog(ctx context.Context, rr ...*actionlog.Action) error {
-	return s.config.ErrorHandler(s.PartialUpdateActionlog(ctx, nil, rr...))
-}
-
-// PartialUpdateActionlog updates one or more existing rows in actionlog
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateActionlog(ctx context.Context, onlyColumns []string, rr ...*actionlog.Action) (err error) {
-	for _, res := range rr {
-		err = s.ExecUpdateActionlogs(
-			ctx,
-			squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")},
-			s.internalActionlogEncoder(res).Skip("id").Only(onlyColumns...))
-		if err != nil {
-			return s.config.ErrorHandler(err)
-		}
-	}
-
-	return
-}
-
-// RemoveActionlog removes one or more rows from actionlog table
-func (s Store) RemoveActionlog(ctx context.Context, rr ...*actionlog.Action) (err error) {
-	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(res.ID, "")}))
-		if err != nil {
-			return s.config.ErrorHandler(err)
-		}
-	}
-
-	return nil
-}
-
-// RemoveActionlogByID removes row from the actionlog table
-func (s Store) RemoveActionlogByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ActionlogTable("alg")).Where(squirrel.Eq{s.preprocessColumn("alg.id", ""): s.preprocessValue(ID, "")})))
-}
-
-// TruncateActionlogs removes all rows from the actionlog table
+// TruncateActionlogs Deletes all rows from the actionlog table
 func (s Store) TruncateActionlogs(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ActionlogTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.actionlogTable()))
 }
 
-// ExecUpdateActionlogs updates all matched (by cnd) rows in actionlog with given data
-func (s Store) ExecUpdateActionlogs(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ActionlogTable("alg")).Where(cnd).SetMap(set)))
-}
-
-// ActionlogLookup prepares Actionlog query and executes it,
+// execLookupActionlog prepares Actionlog query and executes it,
 // returning actionlog.Action (or error)
-func (s Store) ActionlogLookup(ctx context.Context, cnd squirrel.Sqlizer) (*actionlog.Action, error) {
-	return s.internalActionlogRowScanner(s.QueryRow(ctx, s.QueryActionlogs().Where(cnd)))
-}
+func (s Store) execLookupActionlog(ctx context.Context, cnd squirrel.Sqlizer) (res *actionlog.Action, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalActionlogRowScanner(row rowScanner, err error) (*actionlog.Action, error) {
+	row, err = s.QueryRow(ctx, s.actionlogsSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &actionlog.Action{}
+	res, err = s.internalActionlogRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateActionlogs updates all matched (by cnd) rows in actionlog with given data
+func (s Store) execCreateActionlogs(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.actionlogTable()).SetMap(payload)))
+}
+
+func (s Store) internalActionlogRowScanner(row rowScanner) (res *actionlog.Action, err error) {
+	res = &actionlog.Action{}
+
 	if _, has := s.config.RowScanners["actionlog"]; has {
-		scanner := s.config.RowScanners["actionlog"].(func(rowScanner, *actionlog.Action) error)
+		scanner := s.config.RowScanners["actionlog"].(func(_ rowScanner, _ *actionlog.Action) error)
 		err = scanner(row, res)
 	} else {
 		err = s.scanActionlogRow(row, res)
@@ -282,12 +277,12 @@ func (s Store) internalActionlogRowScanner(row rowScanner, err error) (*actionlo
 }
 
 // QueryActionlogs returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryActionlogs() squirrel.SelectBuilder {
-	return s.Select(s.ActionlogTable("alg"), s.ActionlogColumns("alg")...)
+func (s Store) actionlogsSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.actionlogTable("alg"), s.actionlogColumns("alg")...)
 }
 
-// ActionlogTable name of the db table
-func (Store) ActionlogTable(aa ...string) string {
+// actionlogTable name of the db table
+func (Store) actionlogTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -299,7 +294,7 @@ func (Store) ActionlogTable(aa ...string) string {
 // ActionlogColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) ActionlogColumns(aa ...string) []string {
+func (Store) actionlogColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -321,7 +316,7 @@ func (Store) ActionlogColumns(aa ...string) []string {
 	}
 }
 
-// {false false true true}
+// {true true true false false}
 
 // internalActionlogEncoder encodes fields from actionlog.Action to store.Payload (map)
 //
@@ -331,9 +326,9 @@ func (s Store) internalActionlogEncoder(res *actionlog.Action) store.Payload {
 	return s.encodeActionlog(res)
 }
 
-func (s Store) collectActionlogCursorValues(res *actionlog.Action, cc ...string) *store.PagingCursor {
+func (s Store) collectActionlogCursorValues(res *actionlog.Action, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -357,3 +352,16 @@ func (s Store) collectActionlogCursorValues(res *actionlog.Action, cc ...string)
 
 	return cursor
 }
+
+func (s *Store) checkActionlogConstraints(ctx context.Context, res *actionlog.Action) error {
+
+	return nil
+}
+
+// func (s *Store) actionlogHook(ctx context.Context, key triggerKey, res *actionlog.Action) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *actionlog.Action) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

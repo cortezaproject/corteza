@@ -89,6 +89,7 @@ func (Schema) Users() *Table {
 		CUDTimestamps,
 
 		AddIndex("unique_email", IExpr("LOWER(email)"), IWhere("LENGTH(email) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
+		AddIndex("unique_username", IExpr("LOWER(username)"), IWhere("LENGTH(username) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
 		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL AND suspended_at IS NULL")),
 	)
 }
@@ -203,7 +204,7 @@ func (Schema) RbacRules() *Table {
 		ColumnDef("operation", ColumnTypeVarchar, ColumnTypeLength(50)),
 		ColumnDef("access", ColumnTypeInteger),
 
-		PrimaryKey(IColumn("rel_role", "resource", "operation", "access")),
+		PrimaryKey(IColumn("rel_role", "resource", "operation")),
 	)
 }
 

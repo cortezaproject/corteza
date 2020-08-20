@@ -28,7 +28,7 @@ type (
 		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
-		store         authServiceStore
+		store         store.Storable
 		settings      *types.AppSettings
 		notifications AuthNotificationService
 
@@ -41,15 +41,6 @@ type (
 
 	authSubscriptionChecker interface {
 		CanRegister(uint) error
-	}
-
-	authServiceStore interface {
-		usersStore
-		rolesStore
-		roleMembersStore
-		credentialsStore
-
-		CountUsers(context.Context, types.UserFilter) (uint, error)
 	}
 )
 
@@ -143,7 +134,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 					if errors.Is(err, store.ErrNotFound) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
-						if err = svc.store.RemoveCredentialsByID(ctx, c.ID); err != nil {
+						if err = svc.store.DeleteCredentialsByID(ctx, c.ID); err != nil {
 							return err
 						} else {
 							goto findByEmail
@@ -678,7 +669,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	})
 
 	// Do a partial update and soft-delete all
-	if err = svc.store.PartialUpdateCredentials(ctx, []string{"deleted_at"}, cc...); err != nil {
+	if err = svc.store.PartialCredentialsUpdate(ctx, []string{"deleted_at"}, cc...); err != nil {
 		return
 	}
 
@@ -933,7 +924,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 		return
 	}
 
-	if err = svc.store.RemoveCredentialsByID(ctx, c.ID); err != nil {
+	if err = svc.store.DeleteCredentialsByID(ctx, c.ID); err != nil {
 		return
 	}
 

@@ -1,15 +1,12 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
 
-interface:
-  - compose/service
-
 types:
   type: types.ModuleField
 
 fields:
   - { field: ID }
-  - { field: Name }
+  - { field: Name,         lookupFilterPreprocessor: lower, unique: true}
   - { field: ModuleID }
   - { field: Place,        type: int }
   - { field: Kind  }
@@ -24,6 +21,11 @@ fields:
   - { field: UpdatedAt }
   - { field: DeletedAt }
 
+lookups:
+  - fields: [ ModuleID, Name ]
+    uniqueConstraintCheck: true
+    description: |-
+      searches for compose module field by name (case-insensitive)
 
 rdbms:
   alias: cmf
@@ -32,4 +34,6 @@ rdbms:
 
 
 search:
-  disable: true
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false

@@ -27,14 +27,7 @@ func (s Store) multiDailyMetrics(ctx context.Context, q squirrel.SelectBuilder, 
 //
 // This function is copied from old repository and adapted to work under store,
 // might be good to refactor it to fit into this store pattern a bit more
-func (s Store) dailyMetrics(ctx context.Context, q squirrel.SelectBuilder, field string) (rval []uint, err error) {
-	var (
-		aux = make([]struct {
-			Timestamp uint
-			Value     uint
-		}, 0)
-	)
-
+func (s Store) dailyMetrics(ctx context.Context, q squirrel.SelectBuilder, field string) ([]uint, error) {
 	q = q.
 		Column(fmt.Sprintf("UNIX_TIMESTAMP(DATE(%s)) timestamp", field)).
 		Column("COUNT(*) AS value").
@@ -42,16 +35,27 @@ func (s Store) dailyMetrics(ctx context.Context, q squirrel.SelectBuilder, field
 		OrderBy("timestamp").
 		GroupBy("timestamp")
 
-	sql, args := q.MustSql()
+	var (
+		rval      = make([]uint, 0, 100)
+		ts, v, i  uint
+		rows, err = s.Query(ctx, q)
+	)
 
-	if err = s.db.SelectContext(ctx, &aux, sql, args...); err != nil {
+	if err != nil {
+		return nil, err
+	}
+
+	return rval, func() (err error) {
+		defer rows.Close()
+		for rows.Next() {
+			if err = rows.Scan(&ts, &v); err != nil {
+				return err
+			}
+
+			rval[2*i], rval[2*i+1] = ts, v
+			i++
+		}
+
 		return
-	}
-
-	rval = make([]uint, 2*len(aux))
-	for i := 0; i < len(aux); i++ {
-		rval[2*i], rval[2*i+1] = aux[i].Timestamp, aux[i].Value
-	}
-
-	return
+	}()
 }

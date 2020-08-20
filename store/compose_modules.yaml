@@ -1,16 +1,13 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
 
-interface:
-  - compose/service
-
 types:
   type: types.Module
 
 fields:
   - { field: ID }
   - { field: Handle, lookupFilterPreprocessor: lower, unique: true, sortable: true }
-  - { field: Name, sortable: true }
+  - { field: Name,   lookupFilterPreprocessor: lower,               sortable: true }
   - { field: Meta, type: "types.JSONText" }
   - { field: NamespaceID }
   - { field: CreatedAt,                              sortable: true }
@@ -19,9 +16,14 @@ fields:
 
 
 lookups:
-  - fields: [ Handle ]
+  - fields: [ NamespaceID, Handle ]
+    uniqueConstraintCheck: true
     description: |-
       searches for compose module by handle (case-insensitive)
+
+  - fields: [ NamespaceID, Name ]
+    description: |-
+      searches for compose module by name (case-insensitive)
 
   - fields: [ ID ]
     description: |-

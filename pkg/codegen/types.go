@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path"
-	"path/filepath"
 	"text/template"
 )
 
@@ -28,15 +27,8 @@ type (
 	}
 )
 
-func procTypes() ([]*typesDef, error) {
-	var (
-		dd = make([]*typesDef, 0)
-	)
-
-	mm, err := filepath.Glob(filepath.Join("*", "*", "types.yaml"))
-	if err != nil {
-		return nil, fmt.Errorf("glob failed: %w", err)
-	}
+func procTypes(mm ...string) (dd []*typesDef, err error) {
+	dd = make([]*typesDef, 0)
 
 	for _, m := range mm {
 		var (
@@ -69,7 +61,7 @@ func procTypes() ([]*typesDef, error) {
 // Generates all type set files & accompanying tests
 //
 // generates 2 files per type definition
-func genTypes(tpl *template.Template, dd []*typesDef) (err error) {
+func genTypes(tpl *template.Template, dd ...*typesDef) (err error) {
 	var (
 		typeGen     = tpl.Lookup("type_set.gen.go.tpl")
 		typeGenTest = tpl.Lookup("type_set.gen_test.go.tpl")

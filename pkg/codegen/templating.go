@@ -84,14 +84,14 @@ func camelCase(pp ...string) (out string) {
 // input, cammelcasing it and removing ident unfriendly characters
 var nonIdentChars = regexp.MustCompile(`[\s\\/]+`)
 
-func pubIdent(pp ...string) (out string) {
+func export(pp ...string) (out string) {
 	for _, p := range pp {
 		if len(p) > 1 {
 			p = strings.ToUpper(p[:1]) + p[1:]
 		}
 
 		if ss := nonIdentChars.Split(p, -1); len(ss) > 1 {
-			p = pubIdent(ss...)
+			p = export(ss...)
 		}
 
 		out = out + p
@@ -100,9 +100,17 @@ func pubIdent(pp ...string) (out string) {
 	return out
 }
 
-func unpubIdent(pp ...string) (out string) {
-	out = pubIdent(pp...)
+func unexport(pp ...string) (out string) {
+	out = export(pp...)
 	return strings.ToLower(out[:1]) + out[1:]
+}
+
+func toggleExport(e bool, pp ...string) (out string) {
+	if e {
+		return export(pp...)
+	}
+
+	return unexport(pp...)
 }
 
 // convets to underscore

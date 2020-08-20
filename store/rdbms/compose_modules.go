@@ -8,7 +8,7 @@ import (
 )
 
 func (s Store) convertComposeModuleFilter(f types.ModuleFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryComposeModules()
+	query = s.composeModulesSelectBuilder()
 
 	query = rh.FilterNullByState(query, "cmd.deleted_at", f.Deleted)
 

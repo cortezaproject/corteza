@@ -5,12 +5,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func testComposeNamespaces(t *testing.T, s composeNamespacesStore) {
+func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -47,16 +48,16 @@ func testComposeNamespaces(t *testing.T, s composeNamespacesStore) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("remove", func(t *testing.T) {
-		composeNamespace := makeNew("remove", "remove")
+	t.Run("Delete", func(t *testing.T) {
+		composeNamespace := makeNew("Delete", "Delete")
 		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
-		req.NoError(s.RemoveComposeNamespace(ctx))
+		req.NoError(s.DeleteComposeNamespace(ctx))
 	})
 
-	t.Run("remove by ID", func(t *testing.T) {
-		composeNamespace := makeNew("remove by id", "remove-by-id")
+	t.Run("Delete by ID", func(t *testing.T) {
+		composeNamespace := makeNew("Delete by id", "Delete-by-id")
 		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
-		req.NoError(s.RemoveComposeNamespace(ctx))
+		req.NoError(s.DeleteComposeNamespace(ctx))
 	})
 
 	t.Run("update", func(t *testing.T) {

@@ -20,40 +20,40 @@ import (
 
 type (
     // Internal API interface
-    {{ pubIdent $.Endpoint.Entrypoint }}API interface {
+    {{ export $.Endpoint.Entrypoint }}API interface {
     {{- range $a := $.Endpoint.Apis }}
-        {{ pubIdent $a.Name }}(context.Context, *request.{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) (interface{}, error)
+        {{ export $a.Name }}(context.Context, *request.{{ export $.Endpoint.Entrypoint $a.Name }}) (interface{}, error)
     {{- end }}
     }
 
     // HTTP API interface
-    {{ pubIdent .Endpoint.Entrypoint }} struct {
+    {{ export .Endpoint.Entrypoint }} struct {
     {{- range $a := .Endpoint.Apis }}
-        {{ pubIdent $a.Name }} func(http.ResponseWriter, *http.Request)
+        {{ export $a.Name }} func(http.ResponseWriter, *http.Request)
     {{- end }}
     }
 )
 
 
-func {{ pubIdent "New" $.Endpoint.Entrypoint }}(h {{ pubIdent $.Endpoint.Entrypoint }}API) *{{ pubIdent $.Endpoint.Entrypoint }} {
-	return &{{ pubIdent $.Endpoint.Entrypoint }}{
+func {{ export "New" $.Endpoint.Entrypoint }}(h {{ export $.Endpoint.Entrypoint }}API) *{{ export $.Endpoint.Entrypoint }} {
+	return &{{ export $.Endpoint.Entrypoint }}{
     {{- range $a := .Endpoint.Apis }}
-		{{ pubIdent $a.Name }}: func(w http.ResponseWriter, r *http.Request) {
+		{{ export $a.Name }}: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.New{{ pubIdent $.Endpoint.Entrypoint $a.Name }}()
+			params := request.New{{ export $.Endpoint.Entrypoint $a.Name }}()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("{{ pubIdent $.Endpoint.Entrypoint }}.{{ pubIdent $a.Name }}", r, err)
+				logger.LogParamError("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.{{ pubIdent $a.Name }}(r.Context(), params)
+			value, err := h.{{ export $a.Name }}(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("{{ pubIdent $.Endpoint.Entrypoint }}.{{ pubIdent $a.Name }}", r, err, params.Auditable())
+				logger.LogControllerError("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("{{ pubIdent $.Endpoint.Entrypoint }}.{{ pubIdent $a.Name }}", r, params.Auditable())
+			logger.LogControllerCall("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -62,12 +62,12 @@ func {{ pubIdent "New" $.Endpoint.Entrypoint }}(h {{ pubIdent $.Endpoint.Entrypo
 	}
 }
 
-func (h {{ pubIdent $.Endpoint.Entrypoint }}) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h {{ export $.Endpoint.Entrypoint }}) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 
 		{{- range $a := .Endpoint.Apis }}
-		r.{{ pubIdent ( toLower $a.Method ) }}("{{ $.Endpoint.Path }}{{ $a.Path }}", h.{{ pubIdent $a.Name }})
+		r.{{ export ( toLower $a.Method ) }}("{{ $.Endpoint.Path }}{{ $a.Path }}", h.{{ export $a.Name }})
 		{{- end }}
 	})
 }

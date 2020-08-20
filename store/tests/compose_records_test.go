@@ -5,41 +5,15 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-type (
-	// For
-	composeRecordsStore interface {
-		SearchComposeRecords(ctx context.Context, m *types.Module, f types.RecordFilter) (types.RecordSet, types.RecordFilter, error)
-		LookupComposeRecordByID(ctx context.Context, m *types.Module, id uint64) (*types.Record, error)
-		CreateComposeRecord(ctx context.Context, m *types.Module, rr ...*types.Record) error
-		//CreateComposeRecordValue(ctx context.Context, m *types.Module, rr ...*types.RecordValue) error
-		UpdateComposeRecord(ctx context.Context, m *types.Module, rr ...*types.Record) error
-		//UpdateComposeRecordValue(ctx context.Context, m *types.Module, rr ...*types.RecordValue) error
-		//PartialUpdateComposeRecord(ctx context.Context, m *types.Module, onlyColumns []string, rr ...*types.Record) error
-		//PartialUpdateComposeRecordValue(ctx context.Context, m *types.Module, rr ...*types.RecordValue) error
-		RemoveComposeRecord(ctx context.Context, m *types.Module, rr ...*types.Record) error
-		//RemoveComposeRecordValue(ctx context.Context, m *types.Module, rr ...*types.RecordValue) error
-		//RemoveComposeRecordByID(ctx context.Context, m *types.Module, ID uint64) error
-		//RemoveComposeRecordValueByRecordID(ctx context.Context, m *types.Module, recordID uint64, place int, name string) error
-		TruncateComposeRecords(ctx context.Context, m *types.Module) error
-		//TruncateComposeRecordValues(ctx context.Context, m *types.Module) error
-		//ExecUpdateComposeRecords(ctx context.Context, m *types.Module, cnd squirrel.Sqlizer, set store.Payload) error
-		//ExecUpdateComposeRecordValues(ctx context.Context, m *types.Module, cnd squirrel.Sqlizer, set store.Payload) error
-		//ComposeRecordLookup(ctx context.Context, m *types.Module, cnd squirrel.Sqlizer) (*types.Record, error)
-		//ComposeRecordValueLookup(ctx context.Context, m *types.Module, cnd squirrel.Sqlizer) (*types.RecordValue, error)
-		//QueryComposeRecords(m *types.Module) squirrel.SelectBuilder
-		//QueryComposeRecordValues(m *types.Module) squirrel.SelectBuilder
-	}
-)
-
-func testComposeRecords(t *testing.T, s composeRecordsStore) {
+func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 	var (
 		ctx = context.Background()
-		req = require.New(t)
 
 		mod = &types.Module{
 			ID:          id.Next(),
@@ -47,204 +21,234 @@ func testComposeRecords(t *testing.T, s composeRecordsStore) {
 			Handle:      "",
 			Name:        "testComposeRecords",
 			CreatedAt:   time.Now(),
+			Fields: types.ModuleFieldSet{
+				&types.ModuleField{Kind: "string", Name: "f1"},
+				&types.ModuleField{Kind: "string", Name: "f2"},
+				&types.ModuleField{Kind: "string", Name: "f3"},
+			},
 		}
 
-		makeNew = func() *types.Record {
+		makeNew = func(vv ...*types.RecordValue) *types.Record {
 			// minimum data set for new composeRecord
+			var recordID = id.Next()
+
+			for _, v := range vv {
+				v.RecordID = recordID
+			}
+
 			return &types.Record{
-				ID:          id.Next(),
+				ID:          recordID,
 				NamespaceID: mod.NamespaceID,
 				ModuleID:    mod.ID,
 				CreatedAt:   time.Now(),
+				Values:      vv,
 			}
+		}
+
+		truncAndCreate = func(t *testing.T, rr ...*types.Record) (*require.Assertions, types.RecordSet) {
+			req := require.New(t)
+			req.NoError(s.TruncateComposeRecords(ctx, mod))
+
+			if len(rr) == 0 {
+				rr = []*types.Record{makeNew()}
+			}
+
+			for _, rec := range rr {
+				req.NoError(s.CreateComposeRecord(ctx, mod, rec))
+			}
+
+			return req, rr
 		}
 	)
 
 	t.Run("create", func(t *testing.T) {
+		req := require.New(t)
 		composeRecord := makeNew()
 		req.NoError(s.CreateComposeRecord(ctx, mod, composeRecord))
-	})
-
-	t.Run("create with duplicate handle", func(t *testing.T) {
-		t.Skip("not implemented")
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		composeRecord := makeNew()
-		req.NoError(s.CreateComposeRecord(ctx, mod, composeRecord))
-		fetched, err := s.LookupComposeRecordByID(ctx, mod, composeRecord.ID)
+		req, rr := truncAndCreate(t, makeNew(
+			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
+			&types.RecordValue{Name: "f3", Value: "v3", Ref: 3},
+		))
+		rec := rr[0]
+
+		fetched, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
 		req.NoError(err)
-		req.Equal(composeRecord.ID, fetched.ID)
+		req.Equal(rec.ID, fetched.ID)
 		req.NotNil(fetched.CreatedAt)
 		req.Nil(fetched.UpdatedAt)
 		req.Nil(fetched.DeletedAt)
+		req.Len(fetched.Values, len(rec.Values))
+		req.Equal("f2", fetched.Values[1].Name)
+		req.Equal("v2", fetched.Values[1].Value)
+		req.Equal(uint64(2), fetched.Values[1].Ref)
 	})
 
-	t.Run("remove", func(t *testing.T) {
-		composeRecord := makeNew()
-		req.NoError(s.CreateComposeRecord(ctx, mod, composeRecord))
-		req.NoError(s.RemoveComposeRecord(ctx, mod))
+	t.Run("Delete", func(t *testing.T) {
+		req, rr := truncAndCreate(t)
+		rec := rr[0]
+
+		req.NoError(s.DeleteComposeRecord(ctx, mod, rec))
+		_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+		req.EqualError(err, store.ErrNotFound.Error())
 	})
 
-	t.Run("remove by ID", func(t *testing.T) {
-		composeRecord := makeNew()
-		req.NoError(s.CreateComposeRecord(ctx, mod, composeRecord))
-		req.NoError(s.RemoveComposeRecord(ctx, mod))
+	t.Run("Delete by ID", func(t *testing.T) {
+		req, rr := truncAndCreate(t)
+		rec := rr[0]
+
+		req.NoError(s.DeleteComposeRecordByID(ctx, mod, rec.ID))
+		_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+		req.EqualError(err, store.ErrNotFound.Error())
 	})
 
 	t.Run("update", func(t *testing.T) {
-		composeRecord := makeNew()
-		req.NoError(s.CreateComposeRecord(ctx, mod, composeRecord))
+		req, rr := truncAndCreate(t)
+		rec := rr[0]
 
-		composeRecord = &types.Record{
-			ID:        composeRecord.ID,
-			CreatedAt: composeRecord.CreatedAt,
-			OwnedBy:   1,
+		rec = &types.Record{
+			ID:          rec.ID,
+			CreatedAt:   rec.CreatedAt,
+			ModuleID:    mod.ID,
+			NamespaceID: mod.NamespaceID,
+			OwnedBy:     id.Next(),
 		}
-		req.NoError(s.UpdateComposeRecord(ctx, mod, composeRecord))
 
-		updated, err := s.LookupComposeRecordByID(ctx, mod, composeRecord.ID)
+		req.NoError(s.UpdateComposeRecord(ctx, mod, rec))
+
+		updated, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
 		req.NoError(err)
-		req.Equal(composeRecord.OwnedBy, updated.OwnedBy)
+		req.Equal(rec.OwnedBy, updated.OwnedBy)
+	})
+
+	t.Run("update values", func(t *testing.T) {
+		req, rr := truncAndCreate(t, makeNew(
+			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
+		))
+		rec := rr[0]
+
+		rec = &types.Record{
+			ID:          rec.ID,
+			CreatedAt:   rec.CreatedAt,
+			OwnedBy:     id.Next(),
+			Values:      rec.Values,
+			ModuleID:    mod.ID,
+			NamespaceID: mod.NamespaceID,
+		}
+
+		rec.Values[0].Value = "vv10"
+		rec.Values[1].Value = "vv20"
+		rec.Values = append(rec.Values, &types.RecordValue{Name: "f3", Value: "vv30", Ref: 3})
+		rec.Values.SetRecordID(rec.ID)
+
+		req.NoError(s.UpdateComposeRecord(ctx, mod, rec))
+
+		updated, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+		req.NoError(err)
+		req.Equal(rec.OwnedBy, updated.OwnedBy)
+		req.Len(updated.Values, len(rec.Values))
+		req.Equal("f2", updated.Values[1].Name)
+		req.Equal("vv20", updated.Values[1].Value)
+	})
+
+	t.Run("soft delete values", func(t *testing.T) {
+		req, rr := truncAndCreate(t, makeNew(
+			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
+		))
+		rec := rr[0]
+		rec.DeletedAt = &rec.CreatedAt
+
+		req.NoError(s.UpdateComposeRecord(ctx, mod, rec))
+
+		updated, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+
+		req.NoError(err)
+		req.NotNil(rec)
+		req.NotNil(rec.DeletedAt)
+		req.Len(updated.Values, len(rec.Values))
+		req.NotNil(updated.Values[0].DeletedAt)
+		req.NotNil(updated.Values[1].DeletedAt)
 	})
 
 	t.Run("search", func(t *testing.T) {
-		prefill := []*types.Record{
-			makeNew(),
-			makeNew(),
-			makeNew(),
-			makeNew(),
-			makeNew(),
-		}
+		t.Run("by record attributes", func(t *testing.T) {
+			prefill := []*types.Record{
+				makeNew(),
+				makeNew(),
+				makeNew(),
+				makeNew(),
+				makeNew(),
+			}
 
-		count := len(prefill)
+			count := len(prefill)
 
-		prefill[4].DeletedAt = &prefill[4].CreatedAt
-		valid := count - 1
+			prefill[4].DeletedAt = &prefill[4].CreatedAt
+			valid := count - 1
 
-		req.NoError(s.TruncateComposeRecords(ctx, mod))
-		req.NoError(s.CreateComposeRecord(ctx, mod, prefill...))
+			req, _ := truncAndCreate(t, prefill...)
 
-		// search for all valid
-		set, f, err := s.SearchComposeRecords(ctx, mod, types.RecordFilter{})
-		req.NoError(err)
-		req.Len(set, valid) // we've deleted one
+			// search for all valid
+			set, _, err := s.SearchComposeRecords(ctx, mod, types.RecordFilter{})
+			req.NoError(err)
+			req.Len(set, valid) // we've deleted one
 
-		// search for ALL
-		set, f, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateInclusive})
-		req.NoError(err)
-		req.Len(set, count) // we've deleted one
+			// search for ALL
+			set, _, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateInclusive})
+			req.NoError(err)
+			req.Len(set, count) // we've deleted one
 
-		// search for deleted only
-		set, f, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateExclusive})
-		req.NoError(err)
-		req.Len(set, 1) // we've deleted one
+			// search for deleted only
+			set, _, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{Deleted: rh.FilterStateExclusive})
+			req.NoError(err)
+			req.Len(set, 1) // we've deleted one
+		})
 
-		_ = f // dummy
-	})
+		t.Run("by values", func(t *testing.T) {
+			var (
+				err error
+				set types.RecordSet
 
-	t.Run("filtered search", func(t *testing.T) {
-		// testComposeRecordsSearch(t, s)
+				req, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "f1", Value: "v1"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "f1", Value: "v2"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "f1", Value: "v3"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "f1", Value: "v4"}, &types.RecordValue{Name: "f2", Value: "same"}),
+					makeNew(&types.RecordValue{Name: "f1", Value: "v5"}, &types.RecordValue{Name: "f2", Value: "same"}),
+
+					// Add one additional record with deleted values
+					makeNew(&types.RecordValue{Name: "f1", Value: "v6", DeletedAt: now()}, &types.RecordValue{Name: "f2", Value: "deleted", DeletedAt: now()}),
+				)
+
+				f = types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: mod.NamespaceID,
+				}
+			)
+
+			f.Query = `f1 = 'v1'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 1)
+
+			f.Query = `f2 = 'same'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 5)
+
+			f.Query = `f2 = 'different'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 0)
+
+			f.Query = `f3 = 'three' AND f1 = 'v1'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 1)
+		})
 	})
 }
-
-//func testComposeRecordsSearch(t *testing.T, s store.ComposeRecords) {
-//	m := &types.Module{
-//		ID:          123,
-//		NamespaceID: 456,
-//		Fields: types.ModuleFieldSet{
-//			&types.ModuleField{Name: "foo"},
-//			&types.ModuleField{Name: "bar"},
-//			&types.ModuleField{Name: "booly", Kind: "Bool"},
-//		},
-//	}
-//
-//	ttc := []struct {
-//		name    string
-//		f       types.RecordFilter
-//		match   []string
-//		noMatch []string
-//		args    []interface{}
-//		err     string
-//	}{
-//		{
-//			name: "default filter",
-//			match: []string{
-//				"SELECT r.id, r.module_id, r.rel_namespace, r.owned_by, r.created_at, " +
-//					"r.created_by, r.updated_at, r.updated_by, r.deleted_at, r.deleted_by " +
-//					"FROM compose_record AS r " +
-//					"WHERE r.module_id = ? AND r.rel_namespace = ? AND r.deleted_at IS NULL",
-//			},
-//		},
-//		{
-//			name: "simple query",
-//			f:    types.RecordFilter{Query: "id = 5 AND foo = 7"},
-//			match: []string{
-//				"r.id  = 5",
-//				"rv_foo.value  = 7"},
-//			args: []interface{}{"foo"},
-//		},
-//		{
-//			name: "sorting",
-//			f:    types.RecordFilter{Sort: "id ASC, bar DESC"},
-//			match: []string{
-//				" r.id ASC",
-//				" rv_bar.value DESC",
-//			},
-//			args: []interface{}{"bar"},
-//		},
-//		{
-//			name:  "exclude deleted records (def. behaviour)",
-//			f:     types.RecordFilter{Deleted: rh.FilterStateExcluded},
-//			match: []string{" r.deleted_at IS "},
-//		},
-//		{
-//			name:    "include deleted records",
-//			f:       types.RecordFilter{Deleted: rh.FilterStateInclusive},
-//			noMatch: []string{" r.deleted_at IS NULL "},
-//		},
-//		{
-//			name:  "only deleted record",
-//			f:     types.RecordFilter{Deleted: rh.FilterStateExclusive},
-//			match: []string{" r.deleted_at IS NOT NULL"},
-//		},
-//		{
-//			name:  "boolean",
-//			f:     types.RecordFilter{Query: "booly"},
-//			match: []string{"(rv_booly.value NOT IN ("},
-//			args:  []interface{}{"booly"},
-//		},
-//	}
-//
-//	for _, tc := range ttc {
-//		t.Run(tc.name, func(t *testing.T) {
-//			req := require.New(t)
-//			sb, err := s.query(m, tc.f)
-//
-//			if tc.err != nil {
-//				req.Error(err, tc.err, "buildQuery(%+v) did not return an expected error %q but %q", tc.f, tc.err, err)
-//			} else {
-//				req.NoError(err,"buildQuery(%+v) returned an unexpected error: %v", tc.f, err)
-//			}
-//
-//			sql, args, err := sb.ToSql()
-//
-//			for _, m := range tc.match {
-//				require.True(t, strings.Contains(sql, m),
-//					"assertion failed; query %q \n  "+
-//						"             did not contain  %q", sql, m)
-//			}
-//
-//			for _, m := range tc.noMatch {
-//				require.False(t, strings.Contains(sql, m),
-//					"assertion failed; query %q \n  "+
-//						"             must not contain  %q", sql, m)
-//			}
-//
-//			tc.args = append(tc.args, m.ID, m.NamespaceID)
-//			require.True(t, fmt.Sprintf("%+v", args) == fmt.Sprintf("%+v", tc.args),
-//				"assertion failed; args %+v \n  "+
-//					"     do not match expected %+v", args, tc.args)
-//		})
-//	}
-//}

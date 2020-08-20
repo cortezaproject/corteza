@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,7 +37,7 @@ type (
 		Check func(*Attachment) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		store.Paging
+		filter.Paging
 	}
 
 	attachmentImageMeta struct {

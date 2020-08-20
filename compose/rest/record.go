@@ -85,13 +85,15 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		rf = types.RecordFilter{
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
-			Sort:        r.Sort,
-
-			Deleted: rh.FilterState(r.Deleted),
-
-			PageFilter: rh.Paging(r),
+			Deleted:     rh.FilterState(r.Deleted),
 		}
 	)
+
+	if err = rf.Sort.Set(r.Sort); err != nil {
+		return nil, err
+	}
+
+	panic("refactor page filter")
 
 	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
@@ -121,7 +123,7 @@ func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{
 		return nil, err
 	}
 
-	record, err := ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID)
+	record, err := ctrl.record.With(ctx).FindByID(r.NamespaceID, r.ModuleID, r.RecordID)
 
 	// Temp workaround until we do proper by-module filtering for record findByID
 	if record != nil && record.ModuleID != r.ModuleID {
@@ -498,7 +500,7 @@ func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerS
 		namespace *types.Namespace
 	)
 
-	if oldRecord, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.RecordID); err != nil {
+	if oldRecord, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.ModuleID, r.RecordID); err != nil {
 		return
 	}
 

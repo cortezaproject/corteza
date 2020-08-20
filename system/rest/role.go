@@ -2,8 +2,7 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/store"
-
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/titpetric/factory/resputil"
 
@@ -68,11 +67,11 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 		}
 	)
 
-	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
 	}
 
-	if f.Sorting, err = store.NewSorting(r.Sort); err != nil {
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
 

@@ -1,10 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/pkg/actionlog
 
-interface:
-  - system/service
-  - compose/service
-  - messaging/service
 
 types:
   package: actionlog
@@ -33,5 +29,14 @@ rdbms:
   customEncoder: true
 
 search:
-  disableSorting: true
-  disableFilterCheckFunction: true
+  enableSorting: false
+  enableFilterCheckFunction: false
+
+update:
+  enable: false
+
+upsert:
+  enable: false
+
+Delete:
+  enable: false

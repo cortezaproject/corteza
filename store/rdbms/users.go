@@ -9,7 +9,7 @@ import (
 )
 
 func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryUsers()
+	query = s.usersSelectBuilder()
 
 	query = rh.FilterNullByState(query, "usr.deleted_at", f.Deleted)
 	query = rh.FilterNullByState(query, "usr.suspended_at", f.Suspended)
@@ -68,24 +68,24 @@ func (s Store) CountUsers(ctx context.Context, f types.UserFilter) (uint, error)
 	}
 }
 
-func (s Store) UserMetrics(ctx context.Context) (rval *types.UserMetrics, err error) {
+func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 	var (
 		counters = squirrel.
-			Select(
+				Select(
 				"COUNT(*) as total",
 				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
 				"SUM(IF(suspended_at IS NULL, 0, 1)) as suspended",
 				"SUM(IF(deleted_at IS NULL AND suspended_at IS NULL, 1, 0)) as valid",
 			).
-			From(s.UserTable("u"))
+			From(s.userTable("u"))
+
+		row, err = s.QueryRow(ctx, counters)
+		rval     = &types.UserMetrics{}
 	)
 
-	rval = &types.UserMetrics{}
-
-	var (
-		sql, args = counters.MustSql()
-		row       = s.db.QueryRowContext(ctx, sql, args...)
-	)
+	if err != nil {
+		return nil, err
+	}
 
 	err = row.Scan(&rval.Total, &rval.Deleted, &rval.Suspended, &rval.Valid)
 	if err != nil {
@@ -95,7 +95,7 @@ func (s Store) UserMetrics(ctx context.Context) (rval *types.UserMetrics, err er
 	// Fetch daily metrics for created, updated, deleted and suspended users
 	err = s.multiDailyMetrics(
 		ctx,
-		squirrel.Select().From(s.UserTable("u")),
+		squirrel.Select().From(s.userTable("u")),
 		[]string{
 			"created_at",
 			"updated_at",
@@ -109,8 +109,8 @@ func (s Store) UserMetrics(ctx context.Context) (rval *types.UserMetrics, err er
 	)
 
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	return
+	return rval, nil
 }

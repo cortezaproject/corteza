@@ -11,11 +11,22 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeComposeModuleCreate triggerKey = "composeModuleBeforeCreate"
+	TriggerBeforeComposeModuleUpdate triggerKey = "composeModuleBeforeUpdate"
+	TriggerBeforeComposeModuleUpsert triggerKey = "composeModuleBeforeUpsert"
+	TriggerBeforeComposeModuleDelete triggerKey = "composeModuleBeforeDelete"
 )
 
 // SearchComposeModules returns all matching rows
@@ -38,7 +49,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 	// This tells us to flip the descending flag on all used sort keys
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
-	if err = f.Sort.Validate(s.sortableComposeModuleColumns()...); err != nil {
+	if err := f.Sort.Validate(s.sortableComposeModuleColumns()...); err != nil {
 		return nil, f, fmt.Errorf("could not validate sort: %v", err)
 	}
 
@@ -68,7 +79,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 
 	var (
 		set = make([]*types.Module, 0, scap)
-		// fetches rows and scans them into Types.Module resource this is then passed to Check function on filter
+		// fetches rows and scans them into types.Module resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -77,7 +88,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *types.Module
 
@@ -108,7 +119,12 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalComposeModuleRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalComposeModuleRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -221,10 +237,19 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 	return set, f, s.config.ErrorHandler(fetch())
 }
 
-// LookupComposeModuleByHandle searches for compose module by handle (case-insensitive)
-func (s Store) LookupComposeModuleByHandle(ctx context.Context, handle string) (*types.Module, error) {
-	return s.ComposeModuleLookup(ctx, squirrel.Eq{
-		"cmd.handle": handle,
+// LookupComposeModuleByNamespaceIDHandle searches for compose module by handle (case-insensitive)
+func (s Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespace_id uint64, handle string) (*types.Module, error) {
+	return s.execLookupComposeModule(ctx, squirrel.Eq{
+		s.preprocessColumn("cmd.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
+		s.preprocessColumn("cmd.handle", "lower"):   s.preprocessValue(handle, "lower"),
+	})
+}
+
+// LookupComposeModuleByNamespaceIDName searches for compose module by name (case-insensitive)
+func (s Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespace_id uint64, name string) (*types.Module, error) {
+	return s.execLookupComposeModule(ctx, squirrel.Eq{
+		s.preprocessColumn("cmd.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
+		s.preprocessColumn("cmd.name", "lower"):     s.preprocessValue(name, "lower"),
 	})
 }
 
@@ -232,17 +257,27 @@ func (s Store) LookupComposeModuleByHandle(ctx context.Context, handle string) (
 //
 // It returns compose module even if deleted
 func (s Store) LookupComposeModuleByID(ctx context.Context, id uint64) (*types.Module, error) {
-	return s.ComposeModuleLookup(ctx, squirrel.Eq{
-		"cmd.id": id,
+	return s.execLookupComposeModule(ctx, squirrel.Eq{
+		s.preprocessColumn("cmd.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
 // CreateComposeModule creates one or more rows in compose_module table
 func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeModuleTable()).SetMap(s.internalComposeModuleEncoder(res)))
+		err = s.checkComposeModuleConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateComposeModules(ctx, s.internalComposeModuleEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -251,17 +286,27 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (er
 
 // UpdateComposeModule updates one or more existing rows in compose_module
 func (s Store) UpdateComposeModule(ctx context.Context, rr ...*types.Module) error {
-	return s.config.ErrorHandler(s.PartialUpdateComposeModule(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialComposeModuleUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateComposeModule updates one or more existing rows in compose_module
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposeModule(ctx context.Context, onlyColumns []string, rr ...*types.Module) (err error) {
+// PartialComposeModuleUpdate updates one or more existing rows in compose_module
+func (s Store) PartialComposeModuleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Module) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateComposeModules(
+		err = s.checkComposeModuleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateComposeModules(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")},
+			squirrel.Eq{
+				s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+			},
 			s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -271,10 +316,39 @@ func (s Store) PartialUpdateComposeModule(ctx context.Context, onlyColumns []str
 	return
 }
 
-// RemoveComposeModule removes one or more rows from compose_module table
-func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
+// UpsertComposeModule updates one or more existing rows in compose_module
+func (s Store) UpsertComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, "")}))
+		err = s.checkComposeModuleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertComposeModules(ctx, s.internalComposeModuleEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteComposeModule Deletes one or more rows from compose_module table
+func (s Store) DeleteComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
+	for _, res := range rr {
+		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteComposeModules(ctx, squirrel.Eq{
+			s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -283,35 +357,74 @@ func (s Store) RemoveComposeModule(ctx context.Context, rr ...*types.Module) (er
 	return nil
 }
 
-// RemoveComposeModuleByID removes row from the compose_module table
-func (s Store) RemoveComposeModuleByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeModuleTable("cmd")).Where(squirrel.Eq{s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, "")})))
+// DeleteComposeModuleByID Deletes row from the compose_module table
+func (s Store) DeleteComposeModuleByID(ctx context.Context, ID uint64) error {
+	return s.execDeleteComposeModules(ctx, squirrel.Eq{
+		s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, ""),
+	})
 }
 
-// TruncateComposeModules removes all rows from the compose_module table
+// TruncateComposeModules Deletes all rows from the compose_module table
 func (s Store) TruncateComposeModules(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeModuleTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.composeModuleTable()))
 }
 
-// ExecUpdateComposeModules updates all matched (by cnd) rows in compose_module with given data
-func (s Store) ExecUpdateComposeModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeModuleTable("cmd")).Where(cnd).SetMap(set)))
-}
-
-// ComposeModuleLookup prepares ComposeModule query and executes it,
+// execLookupComposeModule prepares ComposeModule query and executes it,
 // returning types.Module (or error)
-func (s Store) ComposeModuleLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.Module, error) {
-	return s.internalComposeModuleRowScanner(s.QueryRow(ctx, s.QueryComposeModules().Where(cnd)))
-}
+func (s Store) execLookupComposeModule(ctx context.Context, cnd squirrel.Sqlizer) (res *types.Module, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalComposeModuleRowScanner(row rowScanner, err error) (*types.Module, error) {
+	row, err = s.QueryRow(ctx, s.composeModulesSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.Module{}
+	res, err = s.internalComposeModuleRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateComposeModules updates all matched (by cnd) rows in compose_module with given data
+func (s Store) execCreateComposeModules(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeModuleTable()).SetMap(payload)))
+}
+
+// execUpdateComposeModules updates all matched (by cnd) rows in compose_module with given data
+func (s Store) execUpdateComposeModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeModuleTable("cmd")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertComposeModules inserts new or updates matching (by-primary-key) rows in compose_module with given data
+func (s Store) execUpsertComposeModules(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.composeModuleTable(),
+		set,
+		"id",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteComposeModules Deletes all matched (by cnd) rows in compose_module with given data
+func (s Store) execDeleteComposeModules(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeModuleTable("cmd")).Where(cnd)))
+}
+
+func (s Store) internalComposeModuleRowScanner(row rowScanner) (res *types.Module, err error) {
+	res = &types.Module{}
+
 	if _, has := s.config.RowScanners["composeModule"]; has {
-		scanner := s.config.RowScanners["composeModule"].(func(rowScanner, *types.Module) error)
+		scanner := s.config.RowScanners["composeModule"].(func(_ rowScanner, _ *types.Module) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -338,12 +451,12 @@ func (s Store) internalComposeModuleRowScanner(row rowScanner, err error) (*type
 }
 
 // QueryComposeModules returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryComposeModules() squirrel.SelectBuilder {
-	return s.Select(s.ComposeModuleTable("cmd"), s.ComposeModuleColumns("cmd")...)
+func (s Store) composeModulesSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.composeModuleTable("cmd"), s.composeModuleColumns("cmd")...)
 }
 
-// ComposeModuleTable name of the db table
-func (Store) ComposeModuleTable(aa ...string) string {
+// composeModuleTable name of the db table
+func (Store) composeModuleTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -355,7 +468,7 @@ func (Store) ComposeModuleTable(aa ...string) string {
 // ComposeModuleColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) ComposeModuleColumns(aa ...string) []string {
+func (Store) composeModuleColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -373,7 +486,7 @@ func (Store) ComposeModuleColumns(aa ...string) []string {
 	}
 }
 
-// {false false false false}
+// {true true true true true}
 
 // sortableComposeModuleColumns returns all ComposeModule columns flagged as sortable
 //
@@ -406,9 +519,9 @@ func (s Store) internalComposeModuleEncoder(res *types.Module) store.Payload {
 	}
 }
 
-func (s Store) collectComposeModuleCursorValues(res *types.Module, cc ...string) *store.PagingCursor {
+func (s Store) collectComposeModuleCursorValues(res *types.Module, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -443,3 +556,25 @@ func (s Store) collectComposeModuleCursorValues(res *types.Module, cc ...string)
 
 	return cursor
 }
+
+func (s *Store) checkComposeModuleConstraints(ctx context.Context, res *types.Module) error {
+
+	{
+		ex, err := s.LookupComposeModuleByNamespaceIDHandle(ctx, res.NamespaceID, res.Handle)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func (s *Store) composeModuleHook(ctx context.Context, key triggerKey, res *types.Module) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.Module) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

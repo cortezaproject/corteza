@@ -7,6 +7,7 @@ import (
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/store"
+	ngStore "github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
@@ -30,7 +31,7 @@ type (
 		actionlog actionlog.Recorder
 		files     store.Store
 		ac        attachmentAccessController
-		store     attachmentsStore
+		store     ngStore.Storable
 	}
 
 	attachmentAccessController interface {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -11,7 +12,7 @@ type (
 	statistics struct {
 		actionlog actionlog.Recorder
 		ac        statisticsAccessController
-		store     statisticsStore
+		store     store.Storable
 	}
 
 	statisticsAccessController interface {
@@ -22,12 +23,6 @@ type (
 		Users        *types.UserMetrics        `json:"users"`
 		Roles        *types.RoleMetrics        `json:"roles"`
 		Applications *types.ApplicationMetrics `json:"applications"`
-	}
-
-	statisticsStore interface {
-		UserMetrics(ctx context.Context) (rval *types.UserMetrics, err error)
-		RoleMetrics(ctx context.Context) (rval *types.RoleMetrics, err error)
-		ApplicationMetrics(ctx context.Context) (rval *types.ApplicationMetrics, err error)
 	}
 )
 

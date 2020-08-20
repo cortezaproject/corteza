@@ -3,9 +3,9 @@ package rest
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -49,7 +49,7 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 		}
 	)
 
-	if f.Paging, err = store.NewPaging(r.Limit, r.PageCursor); err != nil {
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
 	}
 

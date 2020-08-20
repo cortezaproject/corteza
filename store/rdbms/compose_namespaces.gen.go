@@ -11,11 +11,22 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeComposeNamespaceCreate triggerKey = "composeNamespaceBeforeCreate"
+	TriggerBeforeComposeNamespaceUpdate triggerKey = "composeNamespaceBeforeUpdate"
+	TriggerBeforeComposeNamespaceUpsert triggerKey = "composeNamespaceBeforeUpsert"
+	TriggerBeforeComposeNamespaceDelete triggerKey = "composeNamespaceBeforeDelete"
 )
 
 // SearchComposeNamespaces returns all matching rows
@@ -38,7 +49,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 	// This tells us to flip the descending flag on all used sort keys
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
-	if err = f.Sort.Validate(s.sortableComposeNamespaceColumns()...); err != nil {
+	if err := f.Sort.Validate(s.sortableComposeNamespaceColumns()...); err != nil {
 		return nil, f, fmt.Errorf("could not validate sort: %v", err)
 	}
 
@@ -68,7 +79,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 
 	var (
 		set = make([]*types.Namespace, 0, scap)
-		// fetches rows and scans them into Types.Namespace resource this is then passed to Check function on filter
+		// fetches rows and scans them into types.Namespace resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -77,7 +88,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *types.Namespace
 
@@ -108,7 +119,12 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalComposeNamespaceRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalComposeNamespaceRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -223,8 +239,8 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)
 func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (*types.Namespace, error) {
-	return s.ComposeNamespaceLookup(ctx, squirrel.Eq{
-		"cns.slug": slug,
+	return s.execLookupComposeNamespace(ctx, squirrel.Eq{
+		s.preprocessColumn("cns.slug", "lower"): s.preprocessValue(slug, "lower"),
 	})
 }
 
@@ -232,17 +248,27 @@ func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (*
 //
 // It returns compose namespace even if deleted
 func (s Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (*types.Namespace, error) {
-	return s.ComposeNamespaceLookup(ctx, squirrel.Eq{
-		"cns.id": id,
+	return s.execLookupComposeNamespace(ctx, squirrel.Eq{
+		s.preprocessColumn("cns.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
 // CreateComposeNamespace creates one or more rows in compose_namespace table
 func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespace) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeNamespaceTable()).SetMap(s.internalComposeNamespaceEncoder(res)))
+		err = s.checkComposeNamespaceConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -251,17 +277,27 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 
 // UpdateComposeNamespace updates one or more existing rows in compose_namespace
 func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error {
-	return s.config.ErrorHandler(s.PartialUpdateComposeNamespace(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialComposeNamespaceUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateComposeNamespace updates one or more existing rows in compose_namespace
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposeNamespace(ctx context.Context, onlyColumns []string, rr ...*types.Namespace) (err error) {
+// PartialComposeNamespaceUpdate updates one or more existing rows in compose_namespace
+func (s Store) PartialComposeNamespaceUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Namespace) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateComposeNamespaces(
+		err = s.checkComposeNamespaceConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateComposeNamespaces(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, "")},
+			squirrel.Eq{
+				s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, ""),
+			},
 			s.internalComposeNamespaceEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -271,10 +307,39 @@ func (s Store) PartialUpdateComposeNamespace(ctx context.Context, onlyColumns []
 	return
 }
 
-// RemoveComposeNamespace removes one or more rows from compose_namespace table
-func (s Store) RemoveComposeNamespace(ctx context.Context, rr ...*types.Namespace) (err error) {
+// UpsertComposeNamespace updates one or more existing rows in compose_namespace
+func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*types.Namespace) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeNamespaceTable("cns")).Where(squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, "")}))
+		err = s.checkComposeNamespaceConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteComposeNamespace Deletes one or more rows from compose_namespace table
+func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*types.Namespace) (err error) {
+	for _, res := range rr {
+		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteComposeNamespaces(ctx, squirrel.Eq{
+			s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -283,35 +348,74 @@ func (s Store) RemoveComposeNamespace(ctx context.Context, rr ...*types.Namespac
 	return nil
 }
 
-// RemoveComposeNamespaceByID removes row from the compose_namespace table
-func (s Store) RemoveComposeNamespaceByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeNamespaceTable("cns")).Where(squirrel.Eq{s.preprocessColumn("cns.id", ""): s.preprocessValue(ID, "")})))
+// DeleteComposeNamespaceByID Deletes row from the compose_namespace table
+func (s Store) DeleteComposeNamespaceByID(ctx context.Context, ID uint64) error {
+	return s.execDeleteComposeNamespaces(ctx, squirrel.Eq{
+		s.preprocessColumn("cns.id", ""): s.preprocessValue(ID, ""),
+	})
 }
 
-// TruncateComposeNamespaces removes all rows from the compose_namespace table
+// TruncateComposeNamespaces Deletes all rows from the compose_namespace table
 func (s Store) TruncateComposeNamespaces(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeNamespaceTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.composeNamespaceTable()))
 }
 
-// ExecUpdateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
-func (s Store) ExecUpdateComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeNamespaceTable("cns")).Where(cnd).SetMap(set)))
-}
-
-// ComposeNamespaceLookup prepares ComposeNamespace query and executes it,
+// execLookupComposeNamespace prepares ComposeNamespace query and executes it,
 // returning types.Namespace (or error)
-func (s Store) ComposeNamespaceLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.Namespace, error) {
-	return s.internalComposeNamespaceRowScanner(s.QueryRow(ctx, s.QueryComposeNamespaces().Where(cnd)))
-}
+func (s Store) execLookupComposeNamespace(ctx context.Context, cnd squirrel.Sqlizer) (res *types.Namespace, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalComposeNamespaceRowScanner(row rowScanner, err error) (*types.Namespace, error) {
+	row, err = s.QueryRow(ctx, s.composeNamespacesSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.Namespace{}
+	res, err = s.internalComposeNamespaceRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
+func (s Store) execCreateComposeNamespaces(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeNamespaceTable()).SetMap(payload)))
+}
+
+// execUpdateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
+func (s Store) execUpdateComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeNamespaceTable("cns")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertComposeNamespaces inserts new or updates matching (by-primary-key) rows in compose_namespace with given data
+func (s Store) execUpsertComposeNamespaces(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.composeNamespaceTable(),
+		set,
+		"id",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteComposeNamespaces Deletes all matched (by cnd) rows in compose_namespace with given data
+func (s Store) execDeleteComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeNamespaceTable("cns")).Where(cnd)))
+}
+
+func (s Store) internalComposeNamespaceRowScanner(row rowScanner) (res *types.Namespace, err error) {
+	res = &types.Namespace{}
+
 	if _, has := s.config.RowScanners["composeNamespace"]; has {
-		scanner := s.config.RowScanners["composeNamespace"].(func(rowScanner, *types.Namespace) error)
+		scanner := s.config.RowScanners["composeNamespace"].(func(_ rowScanner, _ *types.Namespace) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -338,12 +442,12 @@ func (s Store) internalComposeNamespaceRowScanner(row rowScanner, err error) (*t
 }
 
 // QueryComposeNamespaces returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryComposeNamespaces() squirrel.SelectBuilder {
-	return s.Select(s.ComposeNamespaceTable("cns"), s.ComposeNamespaceColumns("cns")...)
+func (s Store) composeNamespacesSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.composeNamespaceTable("cns"), s.composeNamespaceColumns("cns")...)
 }
 
-// ComposeNamespaceTable name of the db table
-func (Store) ComposeNamespaceTable(aa ...string) string {
+// composeNamespaceTable name of the db table
+func (Store) composeNamespaceTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -355,7 +459,7 @@ func (Store) ComposeNamespaceTable(aa ...string) string {
 // ComposeNamespaceColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) ComposeNamespaceColumns(aa ...string) []string {
+func (Store) composeNamespaceColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -373,7 +477,7 @@ func (Store) ComposeNamespaceColumns(aa ...string) []string {
 	}
 }
 
-// {false false false false}
+// {true true true true true}
 
 // sortableComposeNamespaceColumns returns all ComposeNamespace columns flagged as sortable
 //
@@ -406,9 +510,9 @@ func (s Store) internalComposeNamespaceEncoder(res *types.Namespace) store.Paylo
 	}
 }
 
-func (s Store) collectComposeNamespaceCursorValues(res *types.Namespace, cc ...string) *store.PagingCursor {
+func (s Store) collectComposeNamespaceCursorValues(res *types.Namespace, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -443,3 +547,25 @@ func (s Store) collectComposeNamespaceCursorValues(res *types.Namespace, cc ...s
 
 	return cursor
 }
+
+func (s *Store) checkComposeNamespaceConstraints(ctx context.Context, res *types.Namespace) error {
+
+	{
+		ex, err := s.LookupComposeNamespaceBySlug(ctx, res.Slug)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func (s *Store) composeNamespaceHook(ctx context.Context, key triggerKey, res *types.Namespace) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.Namespace) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

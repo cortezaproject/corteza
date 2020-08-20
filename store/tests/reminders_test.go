@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ import (
 	"time"
 )
 
-func testReminders(t *testing.T, s remindersStore) {
+func testReminders(t *testing.T, s store.Reminders) {
 	var (
 		ctx = context.Background()
 
@@ -21,8 +22,8 @@ func testReminders(t *testing.T, s remindersStore) {
 			name := strings.Join(nn, "")
 			thisID := id.Next()
 			return &types.Reminder{
-				ID:        thisID,
-				Resource:  "resource+" + name,
+				ID:         thisID,
+				Resource:   "resource+" + name,
 				AssignedTo: thisID,
 				CreatedAt:  time.Now(),
 				AssignedAt: time.Now(),
@@ -50,7 +51,6 @@ func testReminders(t *testing.T, s remindersStore) {
 			req.NoError(s.CreateReminder(ctx, set...))
 			return req, set
 		}
-
 	)
 
 	t.Run("create", func(t *testing.T) {

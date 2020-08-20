@@ -6,7 +6,7 @@ import (
 )
 
 func (s Store) convertCredentialsFilter(f types.CredentialsFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryCredentials()
+	query = s.credentialsSelectBuilder()
 
 	if f.Kind != "" {
 		query = query.Where(squirrel.Eq{"crd.kind": f.Kind})

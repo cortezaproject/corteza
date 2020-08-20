@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func testApplications(t *testing.T, s applicationsStore) {
+func testApplications(t *testing.T, s store.Applications) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -43,16 +44,16 @@ func testApplications(t *testing.T, s applicationsStore) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("remove", func(t *testing.T) {
-		application := makeNew("remove")
+	t.Run("Delete", func(t *testing.T) {
+		application := makeNew("Delete")
 		req.NoError(s.CreateApplication(ctx, application))
-		req.NoError(s.RemoveApplication(ctx))
+		req.NoError(s.DeleteApplication(ctx))
 	})
 
-	t.Run("remove by ID", func(t *testing.T) {
-		application := makeNew("remove by id")
+	t.Run("Delete by ID", func(t *testing.T) {
+		application := makeNew("Delete by id")
 		req.NoError(s.CreateApplication(ctx, application))
-		req.NoError(s.RemoveApplication(ctx))
+		req.NoError(s.DeleteApplication(ctx))
 	})
 
 	t.Run("update", func(t *testing.T) {

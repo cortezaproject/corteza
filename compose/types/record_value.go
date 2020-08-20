@@ -19,8 +19,12 @@ type (
 		Place     uint       `json:"-"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 
-		Updated  bool   `db:"-"      json:"-"`
-		OldValue string `db:"-"      json:"-"`
+		Updated  bool   `json:"-"`
+		OldValue string `json:"-"`
+	}
+
+	RecordValueFilter struct {
+		RecordID []uint64
 	}
 )
 
@@ -117,6 +121,12 @@ func (set RecordValueSet) Has(name string, place uint) bool {
 	}
 
 	return false
+}
+
+func (set RecordValueSet) SetRecordID(recordID uint64) {
+	for i := range set {
+		set[i].RecordID = recordID
+	}
 }
 
 func (set RecordValueSet) SetUpdatedFlag(updated bool) {

@@ -1,6 +1,8 @@
 package store
 
-import "github.com/cortezaproject/corteza-server/pkg/slice"
+import (
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+)
 
 type (
 	// Payload servers as a generic interface between incoming structs scheduled

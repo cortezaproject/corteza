@@ -3,20 +3,20 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
-	"go.uber.org/zap"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
+	ngStore "github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
+	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -34,15 +34,6 @@ type (
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
 	}
-
-	// storeInterface wraps generated interfaces to enable extensions
-	storeInterface interface {
-		// Include generated interfaces
-		storeGeneratedInterfaces
-
-		// And all additional required functions
-		// ...
-	}
 )
 
 var (
@@ -51,7 +42,7 @@ var (
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore storeInterface
+	DefaultNgStore ngStore.Storable
 
 	DefaultLogger *zap.Logger
 
@@ -82,16 +73,12 @@ var (
 )
 
 // Initializes compose-only services
-func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
-
-		cmpStore storeInterface
 	)
 
-	// we're doing conversion to avoid having
-	// store interface exposed or generated inside app package
-	cmpStore = s.(storeInterface)
+	DefaultNgStore = s
 
 	DefaultLogger = log.Named("service")
 
@@ -112,7 +99,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, cmpStore)
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, s)
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
@@ -186,12 +173,12 @@ func RegisterIteratorProviders() {
 	corredor.Service().RegisterIteratorProvider(
 		"compose:record",
 		func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) error {
-			rf := types.RecordFilter{
-				Query: f["query"],
-				Sort:  f["sort"],
-			}
+			rf := types.RecordFilter{Query: f["query"]}
+			rf.Sort.Set(f["sort"])
 
-			rf.ParsePagination(f)
+			panic("refactor")
+			//rf.Paging.Limit =
+			//rf.ParsePagination(f)
 
 			if nsLookup, has := f["namespace"]; !has {
 				return errors.New("namespace for record iteration filter not defined")
@@ -231,4 +218,9 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 func nowPtr() *time.Time {
 	now := time.Now()
 	return &now
+}
+
+// trim1st removes 1st param and returns only error
+func trim1st(_ interface{}, err error) error {
+	return err
 }

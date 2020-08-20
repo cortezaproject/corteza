@@ -3,8 +3,8 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"github.com/cortezaproject/corteza-server/store"
 	"time"
 
 	"github.com/pkg/errors"
@@ -56,8 +56,8 @@ type (
 		Check func(*Chart) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		store.Sorting
-		store.Paging
+		filter.Sorting
+		filter.Paging
 	}
 )
 

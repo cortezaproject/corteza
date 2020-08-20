@@ -6,7 +6,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -59,22 +58,14 @@ type (
 	}
 )
 
-func procEvents() ([]*eventsDef, error) {
+func procEvents(mm ...string) (dd []*eventsDef, err error) {
 	// <app>/service/event/events.yaml
 	const (
 		importTypePathTpl = "github.com/cortezaproject/corteza-server/%s/types"
 		importAuthPath    = "github.com/cortezaproject/corteza-server/pkg/auth"
 	)
 
-	var (
-		dd = make([]*eventsDef, 0)
-	)
-
-	mm, err := filepath.Glob(filepath.Join("*", "service", "event", "events.yaml"))
-	if err != nil {
-		return nil, fmt.Errorf("glob failed: %w", err)
-	}
-
+	dd = make([]*eventsDef, 0)
 	for _, m := range mm {
 		f, err := os.Open(m)
 		if err != nil {
@@ -156,7 +147,7 @@ func procEvents() ([]*eventsDef, error) {
 	return dd, nil
 }
 
-func genEvents(tpl *template.Template, dd []*eventsDef) (err error) {
+func genEvents(tpl *template.Template, dd ...*eventsDef) (err error) {
 	var (
 		// Will only be generated if file does not exist previously
 		tplEvents = tpl.Lookup("events.go.tpl")

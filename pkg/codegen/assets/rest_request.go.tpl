@@ -33,43 +33,43 @@ var (
 type (
     // Internal API interface
     {{- range $a := $.Endpoint.Apis }}
-    {{ pubIdent $.Endpoint.Entrypoint $a.Name }} struct {
+    {{ export $.Endpoint.Entrypoint $a.Name }} struct {
     {{- range $p := $a.Params.All }}
-        // {{ pubIdent $p.Name }} {{ $p.Origin }} parameter
+        // {{ export $p.Name }} {{ $p.Origin }} parameter
         //
         // {{ $p.Title }}
-        {{ pubIdent $p.Name }} {{ $p.Type }} {{ $p.FieldTag }}
+        {{ export $p.Name }} {{ $p.Type }} {{ $p.FieldTag }}
     {{ end }}
     }
     {{ end }}
 )
 
 {{- range $a := $.Endpoint.Apis }}
-// {{ pubIdent "New" $.Endpoint.Entrypoint $a.Name }} request
-func {{ pubIdent "New" $.Endpoint.Entrypoint $a.Name }}() *{{ pubIdent $.Endpoint.Entrypoint $a.Name }} {
-	return &{{ pubIdent $.Endpoint.Entrypoint $a.Name }}{}
+// {{ export "New" $.Endpoint.Entrypoint $a.Name }} request
+func {{ export "New" $.Endpoint.Entrypoint $a.Name }}() *{{ export $.Endpoint.Entrypoint $a.Name }} {
+	return &{{ export $.Endpoint.Entrypoint $a.Name }}{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r {{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Auditable() map[string]interface{} {
+func (r {{ export $.Endpoint.Entrypoint $a.Name }}) Auditable() map[string]interface{} {
 	return map[string]interface{}{
     {{- range $p := $a.Params.All }}
-    	"{{ $p.Name }}": r.{{ pubIdent $p.Name }},
+    	"{{ $p.Name }}": r.{{ export $p.Name }},
     {{- end }}
 	}
 }
 
 {{- range $p := $a.Params.All }}
 // Auditable returns all auditable/loggable parameters
-func (r {{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Get{{ pubIdent $p.Name }}() {{ $p.Type }} {
-	return r.{{ pubIdent $p.Name }}
+func (r {{ export $.Endpoint.Entrypoint $a.Name }}) Get{{ export $p.Name }}() {{ $p.Type }} {
+	return r.{{ export $p.Name }}
 }
 {{- end }}
 
 
 
 // Fill processes request and fills internal variables
-func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (err error) {
+func (r *{{ export $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -89,7 +89,7 @@ func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (
 	{{ range $p := $a.Params.Get }}
         {{- if not $p.IsSlice }}
         if val, ok := tmp["{{ $p.Name }}"]; ok && len(val) > 0  {
-            r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val[0]" }}
+            r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
             if err != nil {
                 return err
             }
@@ -97,12 +97,12 @@ func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (
         {{- end }}
         {{- if $p.IsSlice }}
         if val, ok := tmp["{{ $p.Name }}[]"]; ok   {
-            r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val" }}
+            r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
             if err != nil {
                 return err
             }
         } else if val, ok := tmp["{{ $p.Name }}"]; ok   {
-            r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val" }}
+            r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
             if err != nil {
                 return err
             }
@@ -121,13 +121,13 @@ func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (
         // POST params
         {{ range $p := $a.Params.Post }}
             {{ if $p.IsUpload }}
-            if _, r.{{ pubIdent $p.Name }}, err = req.FormFile("{{ $p.Name }}"); err != nil {
+            if _, r.{{ export $p.Name }}, err = req.FormFile("{{ $p.Name }}"); err != nil {
                 return fmt.Errorf("error processing uploaded file: %w", err)
             }
             {{ else }}
                 {{- if not $p.IsSlice }}
                 if val, ok := req.Form["{{ $p.Name }}"]; ok && len(val) > 0  {
-                    r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val[0]" }}
+                    r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
                     if err != nil {
                         return err
                     }
@@ -135,7 +135,7 @@ func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (
                 {{- end }}
                 {{- if $p.IsSlice }}
                 //if val, ok := req.Form["{{ $p.Name }}[]"]; ok && len(val) > 0  {
-                //    r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val" }}
+                //    r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
                 //    if err != nil {
                 //        return err
                 //    }
@@ -153,7 +153,7 @@ func (r *{{ pubIdent $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (
         // path params
 	{{ range $p := $a.Params.Path }}
         val = chi.URLParam(req, "{{ $p.Name }}")
-        r.{{ pubIdent $p.Name }}, err = {{ $p.Parser "val" }}
+        r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
         if err != nil {
             return err
         }

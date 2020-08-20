@@ -6,7 +6,7 @@ import (
 )
 
 func (s Store) convertAttachmentFilter(f types.AttachmentFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryAttachments()
+	query = s.attachmentsSelectBuilder()
 
 	if f.Kind != "" {
 		query = query.Where(squirrel.Eq{"att.kind": f.Kind})
