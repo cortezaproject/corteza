@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -31,7 +32,7 @@ type (
 		//
 		// Value will be type-casted when assigned to sys/msg/cmp services
 		// with warnings when incompatible
-		Store interface{}
+		Store store.Storable
 
 		// CLI Commands
 		Command *cobra.Command

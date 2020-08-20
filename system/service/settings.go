@@ -14,7 +14,7 @@ import (
 
 type (
 	settings struct {
-		store         settingsStore
+		store         store.Settings
 		accessControl accessController
 		logger        *zap.Logger
 
@@ -22,15 +22,6 @@ type (
 		// are used by the services
 		current interface{}
 	}
-
-	//Service interface {
-	//	FindByPrefix(ctx context.Context, pp ...string) (vv types.SettingValueSet, err error)
-	//	BulkSet(ctx context.Context, vv types.SettingValue) (err error)
-	//	Set(ctx context.Context, v *types.SettingValue) (err error)
-	//	Get(ctx context.Context, name string, ownedBy uint64) (out *types.SettingValue, err error)
-	//	Delete(ctx context.Context, name string, ownedBy uint64) error
-	//	UpdateCurrent(ctx context.Context) error
-	//}
 
 	accessController interface {
 		CanReadSettings(ctx context.Context) bool
@@ -43,7 +34,7 @@ var (
 	ErrNoManagePermission = fmt.Errorf("not allowed to manage settings")
 )
 
-func Settings(s settingsStore, log *zap.Logger, ac accessController, current interface{}) *settings {
+func Settings(s store.Settings, log *zap.Logger, ac accessController, current interface{}) *settings {
 	svc := &settings{
 		store:         s,
 		accessControl: ac,
@@ -192,7 +183,7 @@ func (svc settings) Delete(ctx context.Context, name string, ownedBy uint64) (er
 		return
 	}
 
-	err = svc.store.RemoveSetting(ctx, current)
+	err = svc.store.DeleteSetting(ctx, current)
 	if err != nil {
 		return
 	}

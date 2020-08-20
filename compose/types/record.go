@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"strconv"
 	"time"
 
@@ -35,7 +36,7 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
-		Values RecordValueSet `json:"values,omitempty" db:"-"`
+		Values RecordValueSet `json:"values,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -52,10 +53,11 @@ type (
 		ModuleID    uint64 `json:"moduleID,string"`
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Query       string `json:"query"`
-		Sort        string `json:"sort"`
 
-		// Standard helpers for paging and sorting
-		rh.PageFilter
+		// Preloaded set of additional modules that are used for record filtering
+		// Modules ModuleSet
+
+		Deleted rh.FilterState `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
@@ -63,7 +65,9 @@ type (
 		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*Record) (bool, error) `json:"-"`
 
-		Deleted rh.FilterState `json:"deleted"`
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
 	}
 )
 

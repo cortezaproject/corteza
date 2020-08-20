@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
 
-interface:
-  - compose/service
-
 types:
   type: types.Namespace
 
@@ -19,6 +16,7 @@ fields:
 
 lookups:
   - fields: [ Slug ]
+    uniqueConstraintCheck: true
     description: |-
       searches for namespace by slug (case-insensitive)
 

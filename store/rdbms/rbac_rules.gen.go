@@ -11,10 +11,20 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeRbacRuleCreate triggerKey = "rbacRuleBeforeCreate"
+	TriggerBeforeRbacRuleUpdate triggerKey = "rbacRuleBeforeUpdate"
+	TriggerBeforeRbacRuleUpsert triggerKey = "rbacRuleBeforeUpsert"
+	TriggerBeforeRbacRuleDelete triggerKey = "rbacRuleBeforeDelete"
 )
 
 // SearchRbacRules returns all matching rows
@@ -23,7 +33,7 @@ import (
 // permissions.RuleFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (permissions.RuleSet, permissions.RuleFilter, error) {
 	var scap uint
-	q := s.QueryRbacRules()
+	q := s.rbacRulesSelectBuilder()
 
 	if scap == 0 {
 		scap = DefaultSliceCapacity
@@ -32,7 +42,7 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 	var (
 		set = make([]*permissions.Rule, 0, scap)
 		// Paging is disabled in definition yaml file
-		// {search: {disablePaging:true}} and this allows
+		// {search: {enablePaging:false}} and this allows
 		// a much simpler row fetching logic
 		fetch = func() error {
 			var (
@@ -45,14 +55,19 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 			}
 
 			for rows.Next() {
-				if res, err = s.internalRbacRuleRowScanner(rows, rows.Err()); err != nil {
+				if rows.Err() == nil {
+					res, err = s.internalRbacRuleRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
-						return fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
+						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
 
 					return err
 				}
 
+				// If check function is set, call it and act accordingly
 				set = append(set, res)
 			}
 
@@ -66,9 +81,19 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 // CreateRbacRule creates one or more rows in rbac_rules table
 func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RbacRuleTable()).SetMap(s.internalRbacRuleEncoder(res)))
+		err = s.checkRbacRuleConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateRbacRules(ctx, s.internalRbacRuleEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -77,19 +102,26 @@ func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 
 // UpdateRbacRule updates one or more existing rows in rbac_rules
 func (s Store) UpdateRbacRule(ctx context.Context, rr ...*permissions.Rule) error {
-	return s.config.ErrorHandler(s.PartialUpdateRbacRule(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialRbacRuleUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateRbacRule updates one or more existing rows in rbac_rules
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateRbacRule(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) (err error) {
+// PartialRbacRuleUpdate updates one or more existing rows in rbac_rules
+func (s Store) PartialRbacRuleUpdate(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateRbacRules(
+		err = s.checkRbacRuleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateRbacRules(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-				s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
-				s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+			squirrel.Eq{
+				s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): s.preprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
 			},
 			s.internalRbacRuleEncoder(res).Skip("rel_role", "resource", "operation").Only(onlyColumns...))
 		if err != nil {
@@ -100,13 +132,39 @@ func (s Store) PartialUpdateRbacRule(ctx context.Context, onlyColumns []string, 
 	return
 }
 
-// RemoveRbacRule removes one or more rows from rbac_rules table
-func (s Store) RemoveRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
+// UpsertRbacRule updates one or more existing rows in rbac_rules
+func (s Store) UpsertRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RbacRuleTable("rls")).Where(squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""),
-			s.preprocessColumn("rls.resource", ""):  s.preprocessValue(res.Resource, ""),
-			s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
-		}))
+		err = s.checkRbacRuleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertRbacRules(ctx, s.internalRbacRuleEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteRbacRule Deletes one or more rows from rbac_rules table
+func (s Store) DeleteRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
+	for _, res := range rr {
+		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteRbacRules(ctx, squirrel.Eq{
+			s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): s.preprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -115,40 +173,78 @@ func (s Store) RemoveRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 	return nil
 }
 
-// RemoveRbacRuleByRoleIDResourceOperation removes row from the rbac_rules table
-func (s Store) RemoveRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RbacRuleTable("rls")).Where(squirrel.Eq{s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(roleID, ""),
-
-		s.preprocessColumn("rls.resource", ""): s.preprocessValue(resource, ""),
-
+// DeleteRbacRuleByRoleIDResourceOperation Deletes row from the rbac_rules table
+func (s Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
+	return s.execDeleteRbacRules(ctx, squirrel.Eq{
+		s.preprocessColumn("rls.rel_role", ""):  s.preprocessValue(roleID, ""),
+		s.preprocessColumn("rls.resource", ""):  s.preprocessValue(resource, ""),
 		s.preprocessColumn("rls.operation", ""): s.preprocessValue(operation, ""),
-	})))
+	})
 }
 
-// TruncateRbacRules removes all rows from the rbac_rules table
+// TruncateRbacRules Deletes all rows from the rbac_rules table
 func (s Store) TruncateRbacRules(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.RbacRuleTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.rbacRuleTable()))
 }
 
-// ExecUpdateRbacRules updates all matched (by cnd) rows in rbac_rules with given data
-func (s Store) ExecUpdateRbacRules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.RbacRuleTable("rls")).Where(cnd).SetMap(set)))
-}
-
-// RbacRuleLookup prepares RbacRule query and executes it,
+// execLookupRbacRule prepares RbacRule query and executes it,
 // returning permissions.Rule (or error)
-func (s Store) RbacRuleLookup(ctx context.Context, cnd squirrel.Sqlizer) (*permissions.Rule, error) {
-	return s.internalRbacRuleRowScanner(s.QueryRow(ctx, s.QueryRbacRules().Where(cnd)))
-}
+func (s Store) execLookupRbacRule(ctx context.Context, cnd squirrel.Sqlizer) (res *permissions.Rule, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalRbacRuleRowScanner(row rowScanner, err error) (*permissions.Rule, error) {
+	row, err = s.QueryRow(ctx, s.rbacRulesSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &permissions.Rule{}
+	res, err = s.internalRbacRuleRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateRbacRules updates all matched (by cnd) rows in rbac_rules with given data
+func (s Store) execCreateRbacRules(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.rbacRuleTable()).SetMap(payload)))
+}
+
+// execUpdateRbacRules updates all matched (by cnd) rows in rbac_rules with given data
+func (s Store) execUpdateRbacRules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.rbacRuleTable("rls")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertRbacRules inserts new or updates matching (by-primary-key) rows in rbac_rules with given data
+func (s Store) execUpsertRbacRules(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.rbacRuleTable(),
+		set,
+		"rel_role",
+		"resource",
+		"operation",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteRbacRules Deletes all matched (by cnd) rows in rbac_rules with given data
+func (s Store) execDeleteRbacRules(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.rbacRuleTable("rls")).Where(cnd)))
+}
+
+func (s Store) internalRbacRuleRowScanner(row rowScanner) (res *permissions.Rule, err error) {
+	res = &permissions.Rule{}
+
 	if _, has := s.config.RowScanners["rbacRule"]; has {
-		scanner := s.config.RowScanners["rbacRule"].(func(rowScanner, *permissions.Rule) error)
+		scanner := s.config.RowScanners["rbacRule"].(func(_ rowScanner, _ *permissions.Rule) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -171,12 +267,12 @@ func (s Store) internalRbacRuleRowScanner(row rowScanner, err error) (*permissio
 }
 
 // QueryRbacRules returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryRbacRules() squirrel.SelectBuilder {
-	return s.Select(s.RbacRuleTable("rls"), s.RbacRuleColumns("rls")...)
+func (s Store) rbacRulesSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.rbacRuleTable("rls"), s.rbacRuleColumns("rls")...)
 }
 
-// RbacRuleTable name of the db table
-func (Store) RbacRuleTable(aa ...string) string {
+// rbacRuleTable name of the db table
+func (Store) rbacRuleTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -188,7 +284,7 @@ func (Store) RbacRuleTable(aa ...string) string {
 // RbacRuleColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) RbacRuleColumns(aa ...string) []string {
+func (Store) rbacRuleColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -202,7 +298,7 @@ func (Store) RbacRuleColumns(aa ...string) []string {
 	}
 }
 
-// {false true true false}
+// {true true false false false}
 
 // internalRbacRuleEncoder encodes fields from permissions.Rule to store.Payload (map)
 //
@@ -216,3 +312,16 @@ func (s Store) internalRbacRuleEncoder(res *permissions.Rule) store.Payload {
 		"access":    res.Access,
 	}
 }
+
+func (s *Store) checkRbacRuleConstraints(ctx context.Context, res *permissions.Rule) error {
+
+	return nil
+}
+
+// func (s *Store) rbacRuleHook(ctx context.Context, key triggerKey, res *permissions.Rule) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *permissions.Rule) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

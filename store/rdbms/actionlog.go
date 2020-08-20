@@ -8,7 +8,7 @@ import (
 )
 
 func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryActionlogs()
+	query = s.actionlogsSelectBuilder()
 
 	if f.From != nil {
 		query = query.Where(squirrel.GtOrEq{"ts": f.From})

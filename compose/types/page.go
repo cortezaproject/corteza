@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 
 	"github.com/pkg/errors"
@@ -69,8 +69,8 @@ type (
 		Check func(*Page) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		store.Sorting
-		store.Paging
+		filter.Sorting
+		filter.Paging
 	}
 )
 
@@ -81,6 +81,11 @@ func (p Page) PermissionResource() permissions.Resource {
 
 func (p Page) DynamicRoles(userID uint64) []uint64 {
 	return nil
+}
+
+func (m Page) Clone() *Page {
+	c := &m
+	return c
 }
 
 // FindByHandle finds page by it's handle

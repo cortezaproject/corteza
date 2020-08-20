@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
@@ -25,7 +26,9 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	}
 
 	cfg.PlaceholderFormat = squirrel.Dollar
+	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
+	//cfg.TxDisabled = true
 
 	s = new(Store)
 	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
@@ -36,23 +39,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 }
 
 func NewInMemory(ctx context.Context) (s *Store, err error) {
-	var (
-		dsn = "sqlite3://file::memory:?cache=shared"
-		cfg *rdbms.Config
-	)
-
-	if cfg, err = ProcDataSourceName(dsn); err != nil {
-		return nil, err
-	}
-
-	cfg.PlaceholderFormat = squirrel.Dollar
-
-	s = new(Store)
-	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
-		return nil, err
-	}
-
-	return s, nil
+	return New(ctx, "sqlite3://file::memory:?cache=shared&mode=rwc")
 }
 
 func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
@@ -84,6 +71,25 @@ func ProcDataSourceName(in string) (*rdbms.Config, error) {
 	}
 
 	return c, nil
+}
+
+func txRetryErrHandler(try int, err error) bool {
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
+	}
+
+	var sqliteErr, ok = err.(sqlite3.Error)
+	if !ok {
+		return false
+	}
+
+	switch sqliteErr.Code {
+	case sqlite3.ErrLocked:
+		return true
+
+	}
+
+	return false
 }
 
 func errorHandler(err error) error {

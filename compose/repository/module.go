@@ -35,9 +35,9 @@ type (
 )
 
 const (
-	ErrModuleNotFound        = repositoryError("ModuleNotFound")
-	ErrModuleNameNotUnique   = repositoryError("ModuleNameNotUnique")
-	ErrModuleHandleNotUnique = repositoryError("ModuleHandleNotUnique")
+	ErrModuleNotFound = repositoryError("ModuleNotFound")
+	//ErrModuleNameNotUnique   = repositoryError("ModuleNameNotUnique")
+	//ErrModuleHandleNotUnique = repositoryError("ModuleHandleNotUnique")
 )
 
 func Module(ctx context.Context, db *factory.DB) ModuleRepository {
@@ -257,13 +257,13 @@ func (r module) FindFields(moduleIDs ...uint64) (ff types.ModuleFieldSet, err er
 	}
 
 	query := `SELECT id, rel_module, place, 
-                     kind, name, label, options, 
-                     is_private, is_required, is_visible, is_multi, default_value, 
-                     created_at, updated_at, deleted_at
-                FROM %s 
-               WHERE rel_module IN (?) 
-                 AND deleted_at IS NULL
-               ORDER BY rel_module, place`
+                    kind, name, label, options, 
+                    is_private, is_required, is_visible, is_multi, default_value, 
+                    created_at, updated_at, deleted_at
+               FROM %s 
+              WHERE rel_module IN (?) 
+                AND deleted_at IS NULL
+              ORDER BY rel_module, place`
 
 	query = fmt.Sprintf(query, r.tableFields())
 

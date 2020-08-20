@@ -2,9 +2,10 @@ package tests
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-func testRoles(t *testing.T, s rolesStore) {
+func testRoles(t *testing.T, s store.Roles) {
 	var (
 		ctx = context.Background()
 
@@ -152,7 +153,6 @@ func testRoles(t *testing.T, s rolesStore) {
 			req.Equal(prefill[0].ID, set[0].ID)
 		})
 	})
-
 
 	t.Run("ordered search", func(t *testing.T) {
 		t.Skip("not implemented")

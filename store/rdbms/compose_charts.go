@@ -8,7 +8,7 @@ import (
 )
 
 func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryComposeCharts()
+	query = s.composeChartsSelectBuilder()
 
 	query = rh.FilterNullByState(query, "cch.deleted_at", f.Deleted)
 

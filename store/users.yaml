@@ -1,16 +1,13 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 fields:
   - { field: ID }
-  - { field: Email,                                  sortable: true, unique: true, fts: true }
+  - { field: Email,                                  sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
   - { field: EmailConfirmed }
-  - { field: Username,                               sortable: true, unique: true, fts: true }
+  - { field: Username,                               sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
   - { field: Name,                                   sortable: true,               fts: true }
-  - { field: Handle,                                 sortable: true, unique: true, fts: true }
+  - { field: Handle,                                 sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
   - { field: Meta,           type: "*types.UserMeta" }
   - { field: Kind }
   - { field: CreatedAt,                              sortable: true }
@@ -26,22 +23,32 @@ lookups:
       It returns user even if deleted or suspended
   - fields: [ Email ]
     filter: { DeletedAt: nil, SuspendedAt: nil }
+    uniqueConstraintCheck: true
     description: |-
         searches for user by their email
 
         It returns only valid users (not deleted, not suspended)
   - fields: [ Handle ]
     filter: { DeletedAt: nil, SuspendedAt: nil }
+    uniqueConstraintCheck: true
     description: |-
       searches for user by their email
 
       It returns only valid users (not deleted, not suspended)
   - fields: [ Username ]
     filter: { DeletedAt: nil, SuspendedAt: nil }
+    uniqueConstraintCheck: true
     description: |-
       searches for user by their username
 
       It returns only valid users (not deleted, not suspended)
+
+functions:
+  - name: CountUsers
+    arguments: [ { name: f, type: types.UserFilter } ]
+    return: [ "uint", "error" ]
+  - name: UserMetrics
+    return: [ "*types.UserMetrics", "error" ]
 
 rdbms:
   alias: usr

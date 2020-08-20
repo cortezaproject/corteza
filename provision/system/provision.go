@@ -6,6 +6,7 @@ import (
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/importer"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -22,9 +23,8 @@ type (
 	}
 )
 
-func Provision(ctx context.Context, log *zap.Logger, s interface{}) (err error) {
+func Provision(ctx context.Context, log *zap.Logger, s store.Storable) (err error) {
 	var (
-		store       = s.(storeGeneratedInterfaces)
 		provisioned bool
 		readers     []io.Reader
 	)
@@ -55,7 +55,7 @@ func Provision(ctx context.Context, log *zap.Logger, s interface{}) (err error) 
 		}
 	}
 
-	if err = makeDefaultApplications(ctx, log, store); err != nil {
+	if err = makeDefaultApplications(ctx, log, s); err != nil {
 		return
 	}
 	if err = authSettingsAutoDiscovery(ctx, log, service.DefaultSettings); err != nil {
@@ -80,10 +80,10 @@ func notProvisioned(ctx context.Context) (bool, error) {
 }
 
 // Updates default application directly in the store
-func makeDefaultApplications(ctx context.Context, log *zap.Logger, store storeGeneratedInterfaces) error {
+func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Storable) error {
 	var (
 		now        = time.Now()
-		aa, _, err = store.SearchApplications(ctx, types.ApplicationFilter{})
+		aa, _, err = s.SearchApplications(ctx, types.ApplicationFilter{})
 	)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger, store storeGe
 
 		aa[a].UpdatedAt = &now
 
-		if err = store.UpdateApplication(ctx, aa[a]); err != nil {
+		if err = s.UpdateApplication(ctx, aa[a]); err != nil {
 			return err
 		}
 	}
@@ -167,7 +167,7 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger, store storeGe
 		defApp.ID = id.Next()
 		defApp.CreatedAt = time.Now()
 
-		err = store.CreateApplication(ctx, defApp)
+		err = s.CreateApplication(ctx, defApp)
 		log.Info(
 			"creating default application",
 			zap.String("name", defApp.Name),

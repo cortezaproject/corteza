@@ -11,11 +11,22 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeUserCreate triggerKey = "userBeforeCreate"
+	TriggerBeforeUserUpdate triggerKey = "userBeforeUpdate"
+	TriggerBeforeUserUpsert triggerKey = "userBeforeUpsert"
+	TriggerBeforeUserDelete triggerKey = "userBeforeDelete"
 )
 
 // SearchUsers returns all matching rows
@@ -38,7 +49,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 	// This tells us to flip the descending flag on all used sort keys
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
-	if err = f.Sort.Validate(s.sortableUserColumns()...); err != nil {
+	if err := f.Sort.Validate(s.sortableUserColumns()...); err != nil {
 		return nil, f, fmt.Errorf("could not validate sort: %v", err)
 	}
 
@@ -68,7 +79,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 
 	var (
 		set = make([]*types.User, 0, scap)
-		// fetches rows and scans them into Types.User resource this is then passed to Check function on filter
+		// fetches rows and scans them into types.User resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -77,7 +88,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *types.User
 
@@ -108,7 +119,12 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalUserRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalUserRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -225,8 +241,8 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 //
 // It returns user even if deleted or suspended
 func (s Store) LookupUserByID(ctx context.Context, id uint64) (*types.User, error) {
-	return s.UserLookup(ctx, squirrel.Eq{
-		"usr.id": id,
+	return s.execLookupUser(ctx, squirrel.Eq{
+		s.preprocessColumn("usr.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
@@ -234,8 +250,9 @@ func (s Store) LookupUserByID(ctx context.Context, id uint64) (*types.User, erro
 //
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByEmail(ctx context.Context, email string) (*types.User, error) {
-	return s.UserLookup(ctx, squirrel.Eq{
-		"usr.email":        email,
+	return s.execLookupUser(ctx, squirrel.Eq{
+		s.preprocessColumn("usr.email", "lower"): s.preprocessValue(email, "lower"),
+
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
 	})
@@ -245,8 +262,9 @@ func (s Store) LookupUserByEmail(ctx context.Context, email string) (*types.User
 //
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByHandle(ctx context.Context, handle string) (*types.User, error) {
-	return s.UserLookup(ctx, squirrel.Eq{
-		"usr.handle":       handle,
+	return s.execLookupUser(ctx, squirrel.Eq{
+		s.preprocessColumn("usr.handle", "lower"): s.preprocessValue(handle, "lower"),
+
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
 	})
@@ -256,8 +274,9 @@ func (s Store) LookupUserByHandle(ctx context.Context, handle string) (*types.Us
 //
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByUsername(ctx context.Context, username string) (*types.User, error) {
-	return s.UserLookup(ctx, squirrel.Eq{
-		"usr.username":     username,
+	return s.execLookupUser(ctx, squirrel.Eq{
+		s.preprocessColumn("usr.username", "lower"): s.preprocessValue(username, "lower"),
+
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
 	})
@@ -266,9 +285,19 @@ func (s Store) LookupUserByUsername(ctx context.Context, username string) (*type
 // CreateUser creates one or more rows in users table
 func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.UserTable()).SetMap(s.internalUserEncoder(res)))
+		err = s.checkUserConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.userHook(ctx, TriggerBeforeUserCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateUsers(ctx, s.internalUserEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -277,17 +306,27 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
 
 // UpdateUser updates one or more existing rows in users
 func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
-	return s.config.ErrorHandler(s.PartialUpdateUser(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialUserUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateUser updates one or more existing rows in users
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr ...*types.User) (err error) {
+// PartialUserUpdate updates one or more existing rows in users
+func (s Store) PartialUserUpdate(ctx context.Context, onlyColumns []string, rr ...*types.User) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateUsers(
+		err = s.checkUserConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.userHook(ctx, TriggerBeforeUserUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateUsers(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")},
+			squirrel.Eq{
+				s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, ""),
+			},
 			s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -297,10 +336,39 @@ func (s Store) PartialUpdateUser(ctx context.Context, onlyColumns []string, rr .
 	return
 }
 
-// RemoveUser removes one or more rows from users table
-func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) (err error) {
+// UpsertUser updates one or more existing rows in users
+func (s Store) UpsertUser(ctx context.Context, rr ...*types.User) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, "")}))
+		err = s.checkUserConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.userHook(ctx, TriggerBeforeUserUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertUsers(ctx, s.internalUserEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteUser Deletes one or more rows from users table
+func (s Store) DeleteUser(ctx context.Context, rr ...*types.User) (err error) {
+	for _, res := range rr {
+		// err = s.userHook(ctx, TriggerBeforeUserDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteUsers(ctx, squirrel.Eq{
+			s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -309,35 +377,74 @@ func (s Store) RemoveUser(ctx context.Context, rr ...*types.User) (err error) {
 	return nil
 }
 
-// RemoveUserByID removes row from the users table
-func (s Store) RemoveUserByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.UserTable("usr")).Where(squirrel.Eq{s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, "")})))
+// DeleteUserByID Deletes row from the users table
+func (s Store) DeleteUserByID(ctx context.Context, ID uint64) error {
+	return s.execDeleteUsers(ctx, squirrel.Eq{
+		s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, ""),
+	})
 }
 
-// TruncateUsers removes all rows from the users table
+// TruncateUsers Deletes all rows from the users table
 func (s Store) TruncateUsers(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.UserTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.userTable()))
 }
 
-// ExecUpdateUsers updates all matched (by cnd) rows in users with given data
-func (s Store) ExecUpdateUsers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.UserTable("usr")).Where(cnd).SetMap(set)))
-}
-
-// UserLookup prepares User query and executes it,
+// execLookupUser prepares User query and executes it,
 // returning types.User (or error)
-func (s Store) UserLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.User, error) {
-	return s.internalUserRowScanner(s.QueryRow(ctx, s.QueryUsers().Where(cnd)))
-}
+func (s Store) execLookupUser(ctx context.Context, cnd squirrel.Sqlizer) (res *types.User, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalUserRowScanner(row rowScanner, err error) (*types.User, error) {
+	row, err = s.QueryRow(ctx, s.usersSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.User{}
+	res, err = s.internalUserRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateUsers updates all matched (by cnd) rows in users with given data
+func (s Store) execCreateUsers(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.userTable()).SetMap(payload)))
+}
+
+// execUpdateUsers updates all matched (by cnd) rows in users with given data
+func (s Store) execUpdateUsers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.userTable("usr")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertUsers inserts new or updates matching (by-primary-key) rows in users with given data
+func (s Store) execUpsertUsers(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.userTable(),
+		set,
+		"id",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteUsers Deletes all matched (by cnd) rows in users with given data
+func (s Store) execDeleteUsers(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.userTable("usr")).Where(cnd)))
+}
+
+func (s Store) internalUserRowScanner(row rowScanner) (res *types.User, err error) {
+	res = &types.User{}
+
 	if _, has := s.config.RowScanners["user"]; has {
-		scanner := s.config.RowScanners["user"].(func(rowScanner, *types.User) error)
+		scanner := s.config.RowScanners["user"].(func(_ rowScanner, _ *types.User) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -368,12 +475,12 @@ func (s Store) internalUserRowScanner(row rowScanner, err error) (*types.User, e
 }
 
 // QueryUsers returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryUsers() squirrel.SelectBuilder {
-	return s.Select(s.UserTable("usr"), s.UserColumns("usr")...)
+func (s Store) usersSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.userTable("usr"), s.userColumns("usr")...)
 }
 
-// UserTable name of the db table
-func (Store) UserTable(aa ...string) string {
+// userTable name of the db table
+func (Store) userTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -385,7 +492,7 @@ func (Store) UserTable(aa ...string) string {
 // UserColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) UserColumns(aa ...string) []string {
+func (Store) userColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -407,7 +514,7 @@ func (Store) UserColumns(aa ...string) []string {
 	}
 }
 
-// {false false false false}
+// {true true true true true}
 
 // sortableUserColumns returns all User columns flagged as sortable
 //
@@ -447,9 +554,9 @@ func (s Store) internalUserEncoder(res *types.User) store.Payload {
 	}
 }
 
-func (s Store) collectUserCursorValues(res *types.User, cc ...string) *store.PagingCursor {
+func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -492,3 +599,43 @@ func (s Store) collectUserCursorValues(res *types.User, cc ...string) *store.Pag
 
 	return cursor
 }
+
+func (s *Store) checkUserConstraints(ctx context.Context, res *types.User) error {
+
+	{
+		ex, err := s.LookupUserByEmail(ctx, res.Email)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	{
+		ex, err := s.LookupUserByHandle(ctx, res.Handle)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	{
+		ex, err := s.LookupUserByUsername(ctx, res.Username)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func (s *Store) userHook(ctx context.Context, key triggerKey, res *types.User) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.User) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

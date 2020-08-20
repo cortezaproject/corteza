@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 types:
   type: types.SettingValue
   filterType: types.SettingsFilter
@@ -21,8 +18,8 @@ lookups:
       searches for settings by name and owner
 
 search:
-  disablePaging: true
-  disableSorting: true
+  enablePaging: false
+  enableSorting: false
 
 rdbms:
   alias: st

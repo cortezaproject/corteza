@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 fields:
   - { field: ID }
   - { field: Resource }

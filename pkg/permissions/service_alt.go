@@ -54,7 +54,7 @@ func (ServiceDenyAll) FindRulesByRoleID(uint64) (rr RuleSet) {
 }
 
 func (svc *TestService) ClearGrants() {
-	_ = svc.repository.TruncateRbacRules(context.Background())
+	_ = svc.store.TruncateRbacRules(context.Background())
 	svc.rules = RuleSet{}
 }
 
@@ -79,8 +79,8 @@ func NewTestService(ctx context.Context, logger *zap.Logger, s rbacRulesStore) (
 			l: &sync.Mutex{},
 			f: make(chan bool),
 
-			logger:     logger.Named("permissions"),
-			repository: s,
+			logger: logger.Named("permissions"),
+			store:  s,
 		},
 	}
 

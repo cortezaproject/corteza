@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
 
-interface:
-  - compose/service
-
 types:
   type: types.Page
 
@@ -23,15 +20,27 @@ fields:
   - { field: DeletedAt,                              sortable: true }
 
 lookups:
-  - fields: [ Handle ]
+  - fields: [ NamespaceID, Handle ]
     description: |-
-      searches for page chart by handle (case-insensitive)
+      searches for page by handle (case-insensitive)
+
+  - fields: [ NamespaceID, ModuleID ]
+    description: |-
+      searches for page by moduleID
 
   - fields: [ ID ]
     description: |-
       searches for compose page by ID
 
       It returns compose page even if deleted
+
+functions:
+  - name: ReorderComposePages
+    arguments:
+      - { name: namespaceID, type: "uint64" }
+      - { name: parentID, type: "uint64" }
+      - { name: pageIDs, type: "[]uint64" }
+    return: [ "error" ]
 
 rdbms:
   alias: cpg

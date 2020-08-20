@@ -2,17 +2,16 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
-	"time"
-
-	"go.uber.org/zap"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
+	ngStore "github.com/cortezaproject/corteza-server/store"
+	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -29,15 +28,6 @@ type (
 		ActionLog options.ActionLogOpt
 		Storage   options.StorageOpt
 	}
-
-	// storeInterface wraps generated interfaces to enable extensions
-	storeInterface interface {
-		// Include generated interfaces
-		storeGeneratedInterfaces
-
-		// And all additional required functions
-		// ...
-	}
 )
 
 var (
@@ -46,7 +36,7 @@ var (
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore storeInterface
+	DefaultNgStore ngStore.Storable
 
 	DefaultPermissions permissionServicer
 
@@ -63,16 +53,14 @@ var (
 	DefaultCommand    CommandService
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
-
-		msgStore storeInterface
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	msgStore = s.(storeInterface)
+	DefaultNgStore = s
 
 	DefaultLogger = log.Named("service")
 
@@ -93,7 +81,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, msgStore)
+		DefaultPermissions = permissions.Service(ctx, DefaultLogger, s)
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)

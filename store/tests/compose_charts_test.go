@@ -5,12 +5,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func testComposeCharts(t *testing.T, s composeChartsStore) {
+func testComposeCharts(t *testing.T, s store.Storable) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -28,6 +29,29 @@ func testComposeCharts(t *testing.T, s composeChartsStore) {
 			}
 		}
 	)
+
+	t.Run("tx", func(t *testing.T) {
+		req = require.New(t)
+		req.NoError(s.TruncateComposeCharts(ctx))
+		c := makeNew("foo", "foo")
+
+		err := store.Tx(ctx, s, func(ctx context.Context, s store.Storable) error {
+			req.NoError(store.CreateComposeChart(ctx, s, c))
+			fetched, err := store.LookupComposeChartByID(ctx, s, c.ID)
+			req.NoError(err)
+			req.Equal(c.Name, fetched.Name)
+			req.Equal(c.ID, fetched.ID)
+
+			// force tx to rollback
+			return store.ErrNotFound
+		})
+
+		req.Error(err)
+
+		_, err = store.LookupComposeChartByID(ctx, s, c.ID)
+		req.EqualError(err, store.ErrNotFound.Error())
+
+	})
 
 	t.Run("create", func(t *testing.T) {
 		composeChart := makeNew("ComposeChartCRUD", "compose-chart-crud")
@@ -50,16 +74,16 @@ func testComposeCharts(t *testing.T, s composeChartsStore) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("remove", func(t *testing.T) {
-		composeChart := makeNew("remove", "remove")
+	t.Run("Delete", func(t *testing.T) {
+		composeChart := makeNew("Delete", "Delete")
 		req.NoError(s.CreateComposeChart(ctx, composeChart))
-		req.NoError(s.RemoveComposeChart(ctx))
+		req.NoError(s.DeleteComposeChart(ctx))
 	})
 
-	t.Run("remove by ID", func(t *testing.T) {
-		composeChart := makeNew("remove by id", "remove-by-id")
+	t.Run("Delete by ID", func(t *testing.T) {
+		composeChart := makeNew("Delete by id", "Delete-by-id")
 		req.NoError(s.CreateComposeChart(ctx, composeChart))
-		req.NoError(s.RemoveComposeChart(ctx))
+		req.NoError(s.DeleteComposeChart(ctx))
 	})
 
 	t.Run("update", func(t *testing.T) {

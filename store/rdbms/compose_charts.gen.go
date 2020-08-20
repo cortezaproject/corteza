@@ -11,11 +11,22 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeComposeChartCreate triggerKey = "composeChartBeforeCreate"
+	TriggerBeforeComposeChartUpdate triggerKey = "composeChartBeforeUpdate"
+	TriggerBeforeComposeChartUpsert triggerKey = "composeChartBeforeUpsert"
+	TriggerBeforeComposeChartDelete triggerKey = "composeChartBeforeDelete"
 )
 
 // SearchComposeCharts returns all matching rows
@@ -38,7 +49,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 	// This tells us to flip the descending flag on all used sort keys
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
-	if err = f.Sort.Validate(s.sortableComposeChartColumns()...); err != nil {
+	if err := f.Sort.Validate(s.sortableComposeChartColumns()...); err != nil {
 		return nil, f, fmt.Errorf("could not validate sort: %v", err)
 	}
 
@@ -68,7 +79,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 
 	var (
 		set = make([]*types.Chart, 0, scap)
-		// fetches rows and scans them into Types.Chart resource this is then passed to Check function on filter
+		// fetches rows and scans them into types.Chart resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -77,7 +88,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *types.Chart
 
@@ -108,7 +119,12 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalComposeChartRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalComposeChartRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -225,24 +241,35 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 //
 // It returns compose chart even if deleted
 func (s Store) LookupComposeChartByID(ctx context.Context, id uint64) (*types.Chart, error) {
-	return s.ComposeChartLookup(ctx, squirrel.Eq{
-		"cch.id": id,
+	return s.execLookupComposeChart(ctx, squirrel.Eq{
+		s.preprocessColumn("cch.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
-// LookupComposeChartByHandle searches for compose chart by handle (case-insensitive)
-func (s Store) LookupComposeChartByHandle(ctx context.Context, handle string) (*types.Chart, error) {
-	return s.ComposeChartLookup(ctx, squirrel.Eq{
-		"cch.handle": handle,
+// LookupComposeChartByNamespaceIDHandle searches for compose chart by handle (case-insensitive)
+func (s Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, namespace_id uint64, handle string) (*types.Chart, error) {
+	return s.execLookupComposeChart(ctx, squirrel.Eq{
+		s.preprocessColumn("cch.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
+		s.preprocessColumn("cch.handle", "lower"):   s.preprocessValue(handle, "lower"),
 	})
 }
 
 // CreateComposeChart creates one or more rows in compose_chart table
 func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.ComposeChartTable()).SetMap(s.internalComposeChartEncoder(res)))
+		err = s.checkComposeChartConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateComposeCharts(ctx, s.internalComposeChartEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -251,17 +278,27 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 
 // UpdateComposeChart updates one or more existing rows in compose_chart
 func (s Store) UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	return s.config.ErrorHandler(s.PartialUpdateComposeChart(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialComposeChartUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateComposeChart updates one or more existing rows in compose_chart
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateComposeChart(ctx context.Context, onlyColumns []string, rr ...*types.Chart) (err error) {
+// PartialComposeChartUpdate updates one or more existing rows in compose_chart
+func (s Store) PartialComposeChartUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Chart) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateComposeCharts(
+		err = s.checkComposeChartConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateComposeCharts(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")},
+			squirrel.Eq{
+				s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, ""),
+			},
 			s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -271,10 +308,39 @@ func (s Store) PartialUpdateComposeChart(ctx context.Context, onlyColumns []stri
 	return
 }
 
-// RemoveComposeChart removes one or more rows from compose_chart table
-func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
+// UpsertComposeChart updates one or more existing rows in compose_chart
+func (s Store) UpsertComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, "")}))
+		err = s.checkComposeChartConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertComposeCharts(ctx, s.internalComposeChartEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteComposeChart Deletes one or more rows from compose_chart table
+func (s Store) DeleteComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
+	for _, res := range rr {
+		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteComposeCharts(ctx, squirrel.Eq{
+			s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -283,35 +349,74 @@ func (s Store) RemoveComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 	return nil
 }
 
-// RemoveComposeChartByID removes row from the compose_chart table
-func (s Store) RemoveComposeChartByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.ComposeChartTable("cch")).Where(squirrel.Eq{s.preprocessColumn("cch.id", ""): s.preprocessValue(ID, "")})))
+// DeleteComposeChartByID Deletes row from the compose_chart table
+func (s Store) DeleteComposeChartByID(ctx context.Context, ID uint64) error {
+	return s.execDeleteComposeCharts(ctx, squirrel.Eq{
+		s.preprocessColumn("cch.id", ""): s.preprocessValue(ID, ""),
+	})
 }
 
-// TruncateComposeCharts removes all rows from the compose_chart table
+// TruncateComposeCharts Deletes all rows from the compose_chart table
 func (s Store) TruncateComposeCharts(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.ComposeChartTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.composeChartTable()))
 }
 
-// ExecUpdateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
-func (s Store) ExecUpdateComposeCharts(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.ComposeChartTable("cch")).Where(cnd).SetMap(set)))
-}
-
-// ComposeChartLookup prepares ComposeChart query and executes it,
+// execLookupComposeChart prepares ComposeChart query and executes it,
 // returning types.Chart (or error)
-func (s Store) ComposeChartLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.Chart, error) {
-	return s.internalComposeChartRowScanner(s.QueryRow(ctx, s.QueryComposeCharts().Where(cnd)))
-}
+func (s Store) execLookupComposeChart(ctx context.Context, cnd squirrel.Sqlizer) (res *types.Chart, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalComposeChartRowScanner(row rowScanner, err error) (*types.Chart, error) {
+	row, err = s.QueryRow(ctx, s.composeChartsSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.Chart{}
+	res, err = s.internalComposeChartRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
+func (s Store) execCreateComposeCharts(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeChartTable()).SetMap(payload)))
+}
+
+// execUpdateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
+func (s Store) execUpdateComposeCharts(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeChartTable("cch")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertComposeCharts inserts new or updates matching (by-primary-key) rows in compose_chart with given data
+func (s Store) execUpsertComposeCharts(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.composeChartTable(),
+		set,
+		"id",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteComposeCharts Deletes all matched (by cnd) rows in compose_chart with given data
+func (s Store) execDeleteComposeCharts(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeChartTable("cch")).Where(cnd)))
+}
+
+func (s Store) internalComposeChartRowScanner(row rowScanner) (res *types.Chart, err error) {
+	res = &types.Chart{}
+
 	if _, has := s.config.RowScanners["composeChart"]; has {
-		scanner := s.config.RowScanners["composeChart"].(func(rowScanner, *types.Chart) error)
+		scanner := s.config.RowScanners["composeChart"].(func(_ rowScanner, _ *types.Chart) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -338,12 +443,12 @@ func (s Store) internalComposeChartRowScanner(row rowScanner, err error) (*types
 }
 
 // QueryComposeCharts returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryComposeCharts() squirrel.SelectBuilder {
-	return s.Select(s.ComposeChartTable("cch"), s.ComposeChartColumns("cch")...)
+func (s Store) composeChartsSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.composeChartTable("cch"), s.composeChartColumns("cch")...)
 }
 
-// ComposeChartTable name of the db table
-func (Store) ComposeChartTable(aa ...string) string {
+// composeChartTable name of the db table
+func (Store) composeChartTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -355,7 +460,7 @@ func (Store) ComposeChartTable(aa ...string) string {
 // ComposeChartColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) ComposeChartColumns(aa ...string) []string {
+func (Store) composeChartColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -373,7 +478,7 @@ func (Store) ComposeChartColumns(aa ...string) []string {
 	}
 }
 
-// {false false false false}
+// {true true true true true}
 
 // sortableComposeChartColumns returns all ComposeChart columns flagged as sortable
 //
@@ -406,9 +511,9 @@ func (s Store) internalComposeChartEncoder(res *types.Chart) store.Payload {
 	}
 }
 
-func (s Store) collectComposeChartCursorValues(res *types.Chart, cc ...string) *store.PagingCursor {
+func (s Store) collectComposeChartCursorValues(res *types.Chart, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -443,3 +548,16 @@ func (s Store) collectComposeChartCursorValues(res *types.Chart, cc ...string) *
 
 	return cursor
 }
+
+func (s *Store) checkComposeChartConstraints(ctx context.Context, res *types.Chart) error {
+
+	return nil
+}
+
+// func (s *Store) composeChartHook(ctx context.Context, key triggerKey, res *types.Chart) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.Chart) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

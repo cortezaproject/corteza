@@ -1,0 +1,54 @@
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+publish: false
+
+types:
+  type: types.RecordValue
+
+fields:
+  - { field: RecordID,          isPrimaryKey: true, column: record_id }
+  - { field: Name,              isPrimaryKey: true }
+  - { field: Place, type: uint, isPrimaryKey: true }
+  - { field: Value }
+  - { field: Ref,   type: uint64 }
+  - { field: DeletedAt }
+
+functions:
+  - name: ComposeRecordValueRefLookup
+    arguments:
+      - { name: mod, type: "*types.Module" }
+      - { name: field, type: string }
+      - { name: ref, type: uint64 }
+    return: [ uint64, error ]
+
+
+arguments:
+  - name: mod
+    type: "*types.Module"
+
+rdbms:
+  alias: crv
+  table: compose_record_value
+  customFilterConverter: true
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
+  export: false
+
+create:
+  export: false
+
+update:
+  export: false
+
+upsert:
+  export: false
+
+Delete:
+  export: false
+
+truncate:
+  export: false

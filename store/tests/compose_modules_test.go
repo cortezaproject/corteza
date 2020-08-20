@@ -5,12 +5,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
-func testComposeModules(t *testing.T, s composeModulesStore) {
+func testComposeModules(t *testing.T, s store.ComposeModules) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -50,16 +51,16 @@ func testComposeModules(t *testing.T, s composeModulesStore) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("remove", func(t *testing.T) {
-		composeModule := makeNew("remove", "remove")
+	t.Run("Delete", func(t *testing.T) {
+		composeModule := makeNew("Delete", "Delete")
 		req.NoError(s.CreateComposeModule(ctx, composeModule))
-		req.NoError(s.RemoveComposeModule(ctx))
+		req.NoError(s.DeleteComposeModule(ctx))
 	})
 
-	t.Run("remove by ID", func(t *testing.T) {
-		composeModule := makeNew("remove by id", "remove-by-id")
+	t.Run("Delete by ID", func(t *testing.T) {
+		composeModule := makeNew("Delete by id", "Delete-by-id")
 		req.NoError(s.CreateComposeModule(ctx, composeModule))
-		req.NoError(s.RemoveComposeModule(ctx))
+		req.NoError(s.DeleteComposeModule(ctx))
 	})
 
 	t.Run("update", func(t *testing.T) {

@@ -2,21 +2,20 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
-	"time"
-
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/compose/decoder"
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 const (
@@ -26,7 +25,6 @@ const (
 
 type (
 	record struct {
-		db  *factory.DB
 		ctx context.Context
 
 		actionlog actionlog.Recorder
@@ -34,9 +32,7 @@ type (
 		ac       recordAccessController
 		eventbus eventDispatcher
 
-		recordRepo repository.RecordRepository
-		moduleRepo repository.ModuleRepository
-		nsRepo     repository.NamespaceRepository
+		store store.Storable
 
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
@@ -74,7 +70,7 @@ type (
 	RecordService interface {
 		With(ctx context.Context) RecordService
 
-		FindByID(namespaceID, recordID uint64) (*types.Record, error)
+		FindByID(namespaceID, moduleID, recordID uint64) (*types.Record, error)
 
 		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
@@ -136,8 +132,6 @@ func Record() RecordService {
 }
 
 func (svc record) With(ctx context.Context) RecordService {
-	db := repository.DB(ctx)
-
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
@@ -146,7 +140,7 @@ func (svc record) With(ctx context.Context) RecordService {
 			return 0, nil
 		}
 
-		return repository.Record(ctx, db).RefValueLookup(m.ID, f.Name, v.Ref)
+		return store.ComposeRecordValueRefLookup(ctx, svc.store, m, f.Name, v.Ref)
 	})
 
 	validator.RecordRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
@@ -154,13 +148,13 @@ func (svc record) With(ctx context.Context) RecordService {
 			return false, nil
 		}
 
-		r, err := repository.Record(ctx, db).FindByID(m.NamespaceID, v.Ref)
+		r, err := store.LookupComposeRecordByID(ctx, svc.store, m, v.Ref)
 		return r != nil, err
 	})
 
 	validator.UserRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
-		// @todo cross service check
-		return true, nil
+		r, err := svc.store.LookupUserByID(ctx, v.Ref)
+		return r != nil, err
 	})
 
 	validator.FileRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
@@ -168,12 +162,13 @@ func (svc record) With(ctx context.Context) RecordService {
 			return false, nil
 		}
 
-		r, err := repository.Attachment(ctx, db).FindByID(m.NamespaceID, v.Ref)
-		return r != nil, err
+		// @todo refactor this
+		panic("refactor this")
+		//r, err := repository.Attachment(ctx, nil).FindByID(m.NamespaceID, v.Ref)
+		//return r != nil, err
 	})
 
 	return &record{
-		db:  db,
 		ctx: ctx,
 
 		actionlog: DefaultActionlog,
@@ -181,9 +176,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		ac:       svc.ac,
 		eventbus: svc.eventbus,
 
-		recordRepo: repository.Record(ctx, db),
-		moduleRepo: repository.Module(ctx, db),
-		nsRepo:     repository.Namespace(ctx, db),
+		store: svc.store,
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
@@ -198,7 +191,7 @@ func (svc *record) EventEmitting(enable bool) {
 }
 
 // lookup fn() orchestrates record lookup, namespace preload and check
-func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
+func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module, *recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
@@ -206,27 +199,20 @@ func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*t
 	)
 
 	err = func() error {
-		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+		if ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID); err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
+		aProps.setModule(m)
 
-		if r, err = lookup(aProps); err != nil {
-			if repository.ErrRecordNotFound.Eq(err) {
-				return RecordErrNotFound()
-			}
-
+		if r, err = lookup(m, aProps); errors.Is(err, store.ErrNotFound) {
+			return RecordErrNotFound()
+		} else if err != nil {
 			return err
 		}
 
 		aProps.setRecord(r)
-
-		if m, err = svc.loadModule(namespaceID, r.ModuleID); err != nil {
-			return err
-		}
-
-		aProps.setModule(m)
 
 		if !svc.ac.CanReadRecord(svc.ctx, m) {
 			return RecordErrNotAllowedToRead()
@@ -242,64 +228,64 @@ func (svc record) lookup(namespaceID uint64, lookup func(*recordActionProps) (*t
 	return r, svc.recordAction(svc.ctx, aProps, RecordActionLookup, err)
 }
 
-func (svc record) FindByID(namespaceID, recordID uint64) (r *types.Record, err error) {
-	return svc.lookup(namespaceID, func(props *recordActionProps) (*types.Record, error) {
+func (svc record) FindByID(namespaceID, moduleID, recordID uint64) (r *types.Record, err error) {
+	return svc.lookup(namespaceID, moduleID, func(m *types.Module, props *recordActionProps) (*types.Record, error) {
 		props.record.ID = recordID
-		return svc.recordRepo.FindByID(namespaceID, recordID)
+		return store.LookupComposeRecordByID(svc.ctx, svc.store, m, recordID)
 	})
 }
 
-func (svc record) loadModule(namespaceID, moduleID uint64) (m *types.Module, err error) {
-	return m, func() error {
-		if namespaceID == 0 {
-			return RecordErrInvalidNamespaceID()
-		}
-
-		if moduleID == 0 {
-			return RecordErrInvalidModuleID()
-		}
-
-		if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-			if repository.ErrModuleNotFound.Eq(err) {
-				return RecordErrModuleNotFoundModule()
-			}
-
-			return err
-		}
-
-		if !svc.ac.CanReadModule(svc.ctx, m) {
-			return RecordErrNotAllowedToReadModule()
-		}
-
-		if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-			return err
-		}
-
-		return nil
-	}()
-}
-
-func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
-	return ns, func() error {
-		if namespaceID == 0 {
-			return RecordErrInvalidNamespaceID()
-		}
-
-		if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
-			if repository.ErrNamespaceNotFound.Eq(err) {
-				return RecordErrNamespaceNotFound()
-			}
-
-			return err
-		}
-
-		if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-			return RecordErrNotAllowedToReadNamespace()
-		}
-
-		return err
-	}()
-}
+//func (svc record) loadModuleWithNamespace(namespaceID, moduleID uint64) (m *types.Module, err error) {
+//	return m, func() error {
+//		if namespaceID == 0 {
+//			return RecordErrInvalidNamespaceID()
+//		}
+//
+//		if moduleID == 0 {
+//			return RecordErrInvalidModuleID()
+//		}
+//
+//		if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
+//			if repository.ErrModuleNotFound.Eq(err) {
+//				return RecordErrModuleNotFoundModule()
+//			}
+//
+//			return err
+//		}
+//
+//		if !svc.ac.CanReadModule(svc.ctx, m) {
+//			return RecordErrNotAllowedToReadModule()
+//		}
+//
+//		if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
+//			return err
+//		}
+//
+//		return nil
+//	}()
+//}
+//
+//func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
+//	return ns, func() error {
+//		if namespaceID == 0 {
+//			return RecordErrInvalidNamespaceID()
+//		}
+//
+//		if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
+//			if repository.ErrNamespaceNotFound.Eq(err) {
+//				return RecordErrNamespaceNotFound()
+//			}
+//
+//			return err
+//		}
+//
+//		if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+//			return RecordErrNotAllowedToReadNamespace()
+//		}
+//
+//		return err
+//	}()
+//}
 
 // Report generates report for a given module using metrics, dimensions and filter
 func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
@@ -310,19 +296,15 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 	)
 
 	err = func() error {
-		if ns, err = svc.loadNamespace(namespaceID); err != nil {
+		if ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID); err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
-
-		if m, err = svc.loadModule(namespaceID, moduleID); err != nil {
-			return err
-		}
-
 		aProps.setModule(m)
 
-		out, err = svc.recordRepo.Report(m, metrics, dimensions, filter)
+		panic("refactor")
+		//out, err = store.ComposeRecordReport(m, svc.store, metrics, dimensions, filter)
 		return err
 	}()
 
@@ -336,11 +318,11 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 	)
 
 	err = func() error {
-		if m, err = svc.loadModule(filter.NamespaceID, filter.ModuleID); err != nil {
+		if m, err = loadModule(svc.ctx, svc.store, filter.ModuleID); err != nil {
 			return err
 		}
 
-		set, f, err = svc.recordRepo.Find(m, filter)
+		set, f, err = store.SearchComposeRecords(svc.ctx, svc.store, m, filter)
 		if err != nil {
 			return err
 		}
@@ -408,18 +390,21 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 // Export returns all records
 //
 // @todo better value handling
-func (svc record) Export(filter types.RecordFilter, enc Encoder) (err error) {
+func (svc record) Export(f types.RecordFilter, enc Encoder) (err error) {
 	var (
-		aProps = &recordActionProps{filter: &filter}
+		aProps = &recordActionProps{filter: &f}
+
+		m   *types.Module
+		set types.RecordSet
 	)
 
-	err = func() error {
-		m, err := svc.loadModule(filter.NamespaceID, filter.ModuleID)
+	err = func() (err error) {
+		m, err = loadModule(svc.ctx, svc.store, f.ModuleID)
 		if err != nil {
 			return err
 		}
 
-		set, err := svc.recordRepo.Export(m, filter)
+		set, _, err = store.SearchComposeRecords(svc.ctx, svc.store, m, f)
 		if err != nil {
 			return err
 		}
@@ -560,7 +545,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		m  *types.Module
 	)
 
-	ns, m, _, err = svc.loadCombo(new.NamespaceID, new.ModuleID, 0)
+	ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, new.NamespaceID, new.ModuleID)
 	if err != nil {
 		return
 	}
@@ -602,12 +587,8 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = svc.db.Transaction(func() error {
-		if new, err = svc.recordRepo.Create(new); err != nil {
-			return err
-		}
-
-		return svc.recordRepo.UpdateValues(new.ID, new.Values)
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+		return store.CreateComposeRecord(ctx, s, m, new)
 	})
 
 	if err != nil {
@@ -641,7 +622,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, old, err = svc.loadCombo(upd.NamespaceID, upd.ModuleID, upd.ID)
+	ns, m, old, err = svc.loadRecordCombo(svc.ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
@@ -706,12 +687,8 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = svc.db.Transaction(func() error {
-		if upd, err = svc.recordRepo.Update(upd); err != nil {
-			return nil
-		}
-
-		return svc.recordRepo.UpdateValues(upd.ID, upd.Values)
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+		return store.UpdateComposeRecord(ctx, s, m, upd)
 
 	})
 
@@ -766,6 +743,7 @@ func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Recor
 
 	// Reset values to new record
 	// to make sure nobody slips in something we do not want
+	new.ID = id.Next()
 	new.CreatedBy = invokerID
 	new.CreatedAt = *nowPtr()
 	new.UpdatedAt = nil
@@ -870,7 +848,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, del, err = svc.loadCombo(namespaceID, moduleID, recordID)
+	ns, m, del, err = svc.loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
 	if err != nil {
 		return nil, err
 	}
@@ -894,12 +872,8 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	del.DeletedAt = nowPtr()
 	del.DeletedBy = invokerID
 
-	err = svc.db.Transaction(func() error {
-		if err = svc.recordRepo.Delete(del); err != nil {
-			return err
-		}
-
-		return svc.recordRepo.DeleteValues(del)
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+		return store.UpdateComposeRecord(ctx, s, m, del)
 	})
 
 	if err != nil {
@@ -939,7 +913,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 			return RecordErrInvalidModuleID()
 		}
 
-		ns, m, _, err = svc.loadCombo(namespaceID, moduleID, 0)
+		ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID)
 		if err != nil {
 			return err
 		}
@@ -995,7 +969,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 	)
 
 	err = func() error {
-		ns, m, r, err = svc.loadCombo(namespaceID, moduleID, recordID)
+		ns, m, r, err = svc.loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
 		if err != nil {
 			return err
 		}
@@ -1067,16 +1041,17 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			})
 		}
 
-		return svc.db.Transaction(func() error {
+		return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
 			if len(recordValues) > 0 {
 				svc.recordInfoUpdate(r)
-				if _, err = svc.recordRepo.Update(r); err != nil {
+				if err = store.UpdateComposeRecord(ctx, s, m, r); err != nil {
 					return err
 				}
 
-				if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
-					return err
-				}
+				panic("refactor")
+				//if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
+				//	return err
+				//}
 			}
 
 			if reorderingRecords {
@@ -1098,11 +1073,13 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 				// We are interested only in records that have value of a sorting field greater than
 				// the place we're moving our record to.
 				// and sort the set with sorting field
-				set, _, err = svc.recordRepo.Find(m, types.RecordFilter{
-					Query: fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace),
-					Sort:  posField,
-				})
+				filter := types.RecordFilter{}
+				filter.Query = fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace)
+				if err = filter.Sort.Set(posField); err != nil {
+					return err
+				}
 
+				set, _, err = store.SearchComposeRecords(ctx, s, m, filter)
 				if err != nil {
 					return err
 				}
@@ -1112,11 +1089,12 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 					recordOrderPlace++
 
 					// Update each and every set
-					return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
-						RecordID: r.ID,
-						Name:     posField,
-						Value:    strconv.FormatUint(recordOrderPlace, 10),
-					})
+					panic("refactor")
+					//return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
+					//	RecordID: r.ID,
+					//	Name:     posField,
+					//	Value:    strconv.FormatUint(recordOrderPlace, 10),
+					//})
 				})
 			}
 
@@ -1178,7 +1156,8 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 	)
 
 	err = func() error {
-		if ns, m, _, err = svc.loadCombo(f.NamespaceID, f.ModuleID, 0); err != nil {
+		ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, f.NamespaceID, f.ModuleID)
+		if err != nil {
 			return err
 		}
 
@@ -1204,7 +1183,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 		}
 
 		// @todo might be good to split set into smaller chunks
-		set, f, err = svc.recordRepo.Find(m, f)
+		set, f, err = store.SearchComposeRecords(svc.ctx, svc.store, m, f)
 		if err != nil {
 			return err
 		}
@@ -1230,8 +1209,6 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 				case "clone":
 					recordableAction = RecordActionIteratorClone
 
-					var cln *types.Record
-
 					// Assign defaults (only on missing values)
 					rec.Values = svc.setDefaultValues(m, rec.Values)
 
@@ -1240,14 +1217,8 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return svc.db.Transaction(func() error {
-						if cln, err = svc.recordRepo.Create(rec); err != nil {
-							return err
-						} else if err = svc.recordRepo.UpdateValues(cln.ID, cln.Values); err != nil {
-							return err
-						}
-
-						return nil
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+						return store.CreateComposeRecord(ctx, s, m, rec)
 					})
 				case "update":
 					recordableAction = RecordActionIteratorUpdate
@@ -1257,26 +1228,16 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return svc.db.Transaction(func() error {
-						if rec, err = svc.recordRepo.Update(rec); err != nil {
-							return err
-						} else if err = svc.recordRepo.UpdateValues(rec.ID, rec.Values); err != nil {
-							return err
-						}
-
-						return nil
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+						return store.UpdateComposeRecord(ctx, s, m, rec)
 					})
 				case "delete":
 					recordableAction = RecordActionIteratorDelete
 
-					return svc.db.Transaction(func() error {
-						if err = svc.recordRepo.Delete(rec); err != nil {
-							return err
-						} else if err = svc.recordRepo.DeleteValues(rec); err != nil {
-							return err
-						}
-
-						return nil
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+						rec.DeletedAt = nowPtr()
+						rec.DeletedBy = invokerID
+						return store.UpdateComposeRecord(ctx, s, m, rec)
 					})
 				}
 
@@ -1296,36 +1257,6 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionIteratorInvoked, err)
 
-}
-
-// loadCombo Loads everything we need for record manipulation
-//
-// Loads namespace, module, record and set of triggers.
-func (svc record) loadCombo(namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
-	if namespaceID == 0 {
-		return nil, nil, nil, RecordErrInvalidNamespaceID()
-	}
-	if ns, err = svc.loadNamespace(namespaceID); err != nil {
-		return
-	}
-
-	if recordID > 0 {
-		if r, err = svc.recordRepo.FindByID(namespaceID, recordID); err != nil {
-			return
-		}
-
-		if r.ModuleID != moduleID && moduleID > 0 {
-			return nil, nil, nil, RecordErrInvalidModuleID()
-		}
-	}
-
-	if moduleID > 0 {
-		if m, err = svc.loadModule(ns.ID, moduleID); err != nil {
-			return
-		}
-	}
-
-	return
 }
 
 func (svc record) setDefaultValues(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
@@ -1410,14 +1341,15 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 }
 
 func (svc record) preloadValues(m *types.Module, rr ...*types.Record) error {
-	if rvs, err := svc.recordRepo.LoadValues(svc.readableFields(m), types.RecordSet(rr).IDs()); err != nil {
-		return err
-	} else {
-		return types.RecordSet(rr).Walk(func(r *types.Record) error {
-			r.Values = svc.formatter.Run(m, rvs.FilterByRecordID(r.ID))
-			return nil
-		})
-	}
+	panic("refactor")
+	//if rvs, err := svc.recordRepo.LoadValues(svc.readableFields(m), types.RecordSet(rr).IDs()); err != nil {
+	//	return err
+	//} else {
+	//	return types.RecordSet(rr).Walk(func(r *types.Record) error {
+	//		r.Values = svc.formatter.Run(m, rvs.FilterByRecordID(r.ID))
+	//		return nil
+	//	})
+	//}
 }
 
 // readableFields creates a slice of module fields that current user has permission to read
@@ -1433,4 +1365,21 @@ func (svc record) readableFields(m *types.Module) []string {
 	})
 
 	return ff
+}
+
+// loadRecordCombo Loads namespace, module and record
+func (svc record) loadRecordCombo(ctx context.Context, s store.Storable, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
+		return
+	}
+
+	if r, err = store.LookupComposeRecordByID(ctx, s, m, recordID); err != nil {
+		return
+	}
+
+	if r.ModuleID != moduleID {
+		return nil, nil, nil, RecordErrInvalidModuleID()
+	}
+
+	return
 }

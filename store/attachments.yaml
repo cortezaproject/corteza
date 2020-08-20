@@ -1,9 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 types:
   base: Attachment
 
@@ -27,8 +24,8 @@ lookups:
       It returns attachment even if deleted
 
 search:
-  disableSorting: true
-  disablePaging: true
+  enableSorting: false
+  enablePaging: false
 
 rdbms:
   alias: att

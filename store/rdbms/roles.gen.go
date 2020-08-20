@@ -11,11 +11,22 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
+)
+
+var _ = errors.Is
+
+const (
+	TriggerBeforeRoleCreate triggerKey = "roleBeforeCreate"
+	TriggerBeforeRoleUpdate triggerKey = "roleBeforeUpdate"
+	TriggerBeforeRoleUpsert triggerKey = "roleBeforeUpsert"
+	TriggerBeforeRoleDelete triggerKey = "roleBeforeDelete"
 )
 
 // SearchRoles returns all matching rows
@@ -38,7 +49,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 	// This tells us to flip the descending flag on all used sort keys
 	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
-	if err = f.Sort.Validate(s.sortableRoleColumns()...); err != nil {
+	if err := f.Sort.Validate(s.sortableRoleColumns()...); err != nil {
 		return nil, f, fmt.Errorf("could not validate sort: %v", err)
 	}
 
@@ -68,7 +79,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 
 	var (
 		set = make([]*types.Role, 0, scap)
-		// fetches rows and scans them into Types.Role resource this is then passed to Check function on filter
+		// fetches rows and scans them into types.Role resource this is then passed to Check function on filter
 		// to help determine if fetched resource fits or not
 		//
 		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
@@ -77,7 +88,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 		// The value for cursor is used and set directly from/to the filter!
 		//
 		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *store.PagingCursor, limit uint) (fetched uint, err error) {
+		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
 			var (
 				res *types.Role
 
@@ -108,7 +119,12 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 
 			for rows.Next() {
 				fetched++
-				if res, err = s.internalRoleRowScanner(rows, rows.Err()); err != nil {
+
+				if rows.Err() == nil {
+					res, err = s.internalRoleRowScanner(rows)
+				}
+
+				if err != nil {
 					if cerr := rows.Close(); cerr != nil {
 						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
 					}
@@ -225,8 +241,8 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 //
 // It returns role even if deleted or suspended
 func (s Store) LookupRoleByID(ctx context.Context, id uint64) (*types.Role, error) {
-	return s.RoleLookup(ctx, squirrel.Eq{
-		"rl.id": id,
+	return s.execLookupRole(ctx, squirrel.Eq{
+		s.preprocessColumn("rl.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
@@ -234,8 +250,9 @@ func (s Store) LookupRoleByID(ctx context.Context, id uint64) (*types.Role, erro
 //
 // It returns only valid roles (not deleted, not archived)
 func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (*types.Role, error) {
-	return s.RoleLookup(ctx, squirrel.Eq{
-		"rl.handle":      handle,
+	return s.execLookupRole(ctx, squirrel.Eq{
+		s.preprocessColumn("rl.handle", "lower"): s.preprocessValue(handle, "lower"),
+
 		"rl.archived_at": nil,
 		"rl.deleted_at":  nil,
 	})
@@ -245,8 +262,9 @@ func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (*types.Ro
 //
 // It returns only valid roles (not deleted, not archived)
 func (s Store) LookupRoleByName(ctx context.Context, name string) (*types.Role, error) {
-	return s.RoleLookup(ctx, squirrel.Eq{
-		"rl.name":        name,
+	return s.execLookupRole(ctx, squirrel.Eq{
+		s.preprocessColumn("rl.name", ""): s.preprocessValue(name, ""),
+
 		"rl.archived_at": nil,
 		"rl.deleted_at":  nil,
 	})
@@ -255,9 +273,19 @@ func (s Store) LookupRoleByName(ctx context.Context, name string) (*types.Role, 
 // CreateRole creates one or more rows in roles table
 func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Insert(s.RoleTable()).SetMap(s.internalRoleEncoder(res)))
+		err = s.checkRoleConstraints(ctx, res)
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
+		}
+
+		// err = s.roleHook(ctx, TriggerBeforeRoleCreate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execCreateRoles(ctx, s.internalRoleEncoder(res))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -266,17 +294,27 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) (err error) {
 
 // UpdateRole updates one or more existing rows in roles
 func (s Store) UpdateRole(ctx context.Context, rr ...*types.Role) error {
-	return s.config.ErrorHandler(s.PartialUpdateRole(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.PartialRoleUpdate(ctx, nil, rr...))
 }
 
-// PartialUpdateRole updates one or more existing rows in roles
-//
-// It wraps the update into transaction and can perform partial update by providing list of updatable columns
-func (s Store) PartialUpdateRole(ctx context.Context, onlyColumns []string, rr ...*types.Role) (err error) {
+// PartialRoleUpdate updates one or more existing rows in roles
+func (s Store) PartialRoleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Role) (err error) {
 	for _, res := range rr {
-		err = s.ExecUpdateRoles(
+		err = s.checkRoleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.roleHook(ctx, TriggerBeforeRoleUpdate, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execUpdateRoles(
 			ctx,
-			squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, "")},
+			squirrel.Eq{
+				s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, ""),
+			},
 			s.internalRoleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -286,10 +324,39 @@ func (s Store) PartialUpdateRole(ctx context.Context, onlyColumns []string, rr .
 	return
 }
 
-// RemoveRole removes one or more rows from roles table
-func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) (err error) {
+// UpsertRole updates one or more existing rows in roles
+func (s Store) UpsertRole(ctx context.Context, rr ...*types.Role) (err error) {
 	for _, res := range rr {
-		err = ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, "")}))
+		err = s.checkRoleConstraints(ctx, res)
+		if err != nil {
+			return err
+		}
+
+		// err = s.roleHook(ctx, TriggerBeforeRoleUpsert, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.config.ErrorHandler(s.execUpsertRoles(ctx, s.internalRoleEncoder(res)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteRole Deletes one or more rows from roles table
+func (s Store) DeleteRole(ctx context.Context, rr ...*types.Role) (err error) {
+	for _, res := range rr {
+		// err = s.roleHook(ctx, TriggerBeforeRoleDelete, res)
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.execDeleteRoles(ctx, squirrel.Eq{
+			s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -298,35 +365,74 @@ func (s Store) RemoveRole(ctx context.Context, rr ...*types.Role) (err error) {
 	return nil
 }
 
-// RemoveRoleByID removes row from the roles table
-func (s Store) RemoveRoleByID(ctx context.Context, ID uint64) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Delete(s.RoleTable("rl")).Where(squirrel.Eq{s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, "")})))
+// DeleteRoleByID Deletes row from the roles table
+func (s Store) DeleteRoleByID(ctx context.Context, ID uint64) error {
+	return s.execDeleteRoles(ctx, squirrel.Eq{
+		s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, ""),
+	})
 }
 
-// TruncateRoles removes all rows from the roles table
+// TruncateRoles Deletes all rows from the roles table
 func (s Store) TruncateRoles(ctx context.Context) error {
-	return s.config.ErrorHandler(Truncate(ctx, s.DB(), s.RoleTable()))
+	return s.config.ErrorHandler(s.Truncate(ctx, s.roleTable()))
 }
 
-// ExecUpdateRoles updates all matched (by cnd) rows in roles with given data
-func (s Store) ExecUpdateRoles(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(ExecuteSqlizer(ctx, s.DB(), s.Update(s.RoleTable("rl")).Where(cnd).SetMap(set)))
-}
-
-// RoleLookup prepares Role query and executes it,
+// execLookupRole prepares Role query and executes it,
 // returning types.Role (or error)
-func (s Store) RoleLookup(ctx context.Context, cnd squirrel.Sqlizer) (*types.Role, error) {
-	return s.internalRoleRowScanner(s.QueryRow(ctx, s.QueryRoles().Where(cnd)))
-}
+func (s Store) execLookupRole(ctx context.Context, cnd squirrel.Sqlizer) (res *types.Role, err error) {
+	var (
+		row rowScanner
+	)
 
-func (s Store) internalRoleRowScanner(row rowScanner, err error) (*types.Role, error) {
+	row, err = s.QueryRow(ctx, s.rolesSelectBuilder().Where(cnd))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	var res = &types.Role{}
+	res, err = s.internalRoleRowScanner(row)
+	if err != nil {
+		return
+	}
+
+	return res, nil
+}
+
+// execCreateRoles updates all matched (by cnd) rows in roles with given data
+func (s Store) execCreateRoles(ctx context.Context, payload store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.roleTable()).SetMap(payload)))
+}
+
+// execUpdateRoles updates all matched (by cnd) rows in roles with given data
+func (s Store) execUpdateRoles(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.roleTable("rl")).Where(cnd).SetMap(set)))
+}
+
+// execUpsertRoles inserts new or updates matching (by-primary-key) rows in roles with given data
+func (s Store) execUpsertRoles(ctx context.Context, set store.Payload) error {
+	upsert, err := s.config.UpsertBuilder(
+		s.config,
+		s.roleTable(),
+		set,
+		"id",
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+}
+
+// execDeleteRoles Deletes all matched (by cnd) rows in roles with given data
+func (s Store) execDeleteRoles(ctx context.Context, cnd squirrel.Sqlizer) error {
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.roleTable("rl")).Where(cnd)))
+}
+
+func (s Store) internalRoleRowScanner(row rowScanner) (res *types.Role, err error) {
+	res = &types.Role{}
+
 	if _, has := s.config.RowScanners["role"]; has {
-		scanner := s.config.RowScanners["role"].(func(rowScanner, *types.Role) error)
+		scanner := s.config.RowScanners["role"].(func(_ rowScanner, _ *types.Role) error)
 		err = scanner(row, res)
 	} else {
 		err = row.Scan(
@@ -352,12 +458,12 @@ func (s Store) internalRoleRowScanner(row rowScanner, err error) (*types.Role, e
 }
 
 // QueryRoles returns squirrel.SelectBuilder with set table and all columns
-func (s Store) QueryRoles() squirrel.SelectBuilder {
-	return s.Select(s.RoleTable("rl"), s.RoleColumns("rl")...)
+func (s Store) rolesSelectBuilder() squirrel.SelectBuilder {
+	return s.SelectBuilder(s.roleTable("rl"), s.roleColumns("rl")...)
 }
 
-// RoleTable name of the db table
-func (Store) RoleTable(aa ...string) string {
+// roleTable name of the db table
+func (Store) roleTable(aa ...string) string {
 	var alias string
 	if len(aa) > 0 {
 		alias = " AS " + aa[0]
@@ -369,7 +475,7 @@ func (Store) RoleTable(aa ...string) string {
 // RoleColumns returns all defined table columns
 //
 // With optional string arg, all columns are returned aliased
-func (Store) RoleColumns(aa ...string) []string {
+func (Store) roleColumns(aa ...string) []string {
 	var alias string
 	if len(aa) > 0 {
 		alias = aa[0] + "."
@@ -386,7 +492,7 @@ func (Store) RoleColumns(aa ...string) []string {
 	}
 }
 
-// {false false false false}
+// {true true true true true}
 
 // sortableRoleColumns returns all Role columns flagged as sortable
 //
@@ -419,9 +525,9 @@ func (s Store) internalRoleEncoder(res *types.Role) store.Payload {
 	}
 }
 
-func (s Store) collectRoleCursorValues(res *types.Role, cc ...string) *store.PagingCursor {
+func (s Store) collectRoleCursorValues(res *types.Role, cc ...string) *filter.PagingCursor {
 	var (
-		cursor = &store.PagingCursor{}
+		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
@@ -458,3 +564,25 @@ func (s Store) collectRoleCursorValues(res *types.Role, cc ...string) *store.Pag
 
 	return cursor
 }
+
+func (s *Store) checkRoleConstraints(ctx context.Context, res *types.Role) error {
+
+	{
+		ex, err := s.LookupRoleByHandle(ctx, res.Handle)
+		if err == nil && ex != nil && ex.ID != res.ID {
+			return store.ErrNotUnique
+		} else if !errors.Is(err, store.ErrNotFound) {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// func (s *Store) roleHook(ctx context.Context, key triggerKey, res *types.Role) error {
+// 	if fn, has := s.config.TriggerHandlers[key]; has {
+// 		return fn.(func (ctx context.Context, s *Store, res *types.Role) error)(ctx, s, res)
+// 	}
+//
+// 	return nil
+// }

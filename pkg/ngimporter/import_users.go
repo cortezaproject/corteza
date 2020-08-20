@@ -8,17 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/repository"
+	//"github.com/cortezaproject/corteza-server/compose/repository"
 	cct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
-	sysRepo "github.com/cortezaproject/corteza-server/system/repository"
+	//sysRepo "github.com/cortezaproject/corteza-server/system/repository"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 // imports system users based on the provided source
 func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace) (map[string]uint64, *types.ImportSource, error) {
-	db := repository.DB(ctx)
-	repoUser := sysRepo.User(ctx, db)
+	//db := repository.DB(ctx)
+	//repoUser := sysRepo.User(ctx, db)
 	// this provides a map between importSourceID -> CortezaID
 	mapping := make(map[string]uint64)
 
@@ -112,20 +112,20 @@ func importUsers(ctx context.Context, is *types.ImportSource, ns *cct.Namespace)
 			}
 		}
 
-		// this allows us to reuse existing users
-		uu, err := repoUser.FindByEmail(u.Email)
-		if err == nil {
-			u.ID = uu.ID
-			u, err = repoUser.Update(u)
-			if err != nil {
-				return nil, nil, err
-			}
-		} else {
-			u, err = repoUser.Create(u)
-			if err != nil {
-				return nil, nil, err
-			}
-		}
+		//// this allows us to reuse existing users
+		//uu, err := repoUser.FindByEmail(u.Email)
+		//if err == nil {
+		//	u.ID = uu.ID
+		//	u, err = repoUser.Update(u)
+		//	if err != nil {
+		//		return nil, nil, err
+		//	}
+		//} else {
+		//	u, err = repoUser.Create(u)
+		//	if err != nil {
+		//		return nil, nil, err
+		//	}
+		//}
 
 		mapping[record[0]] = u.ID
 	}

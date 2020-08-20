@@ -141,7 +141,10 @@ watch.test.%: $(NODEMON)
 
 # codegen: $(PROTOGEN)
 codegen: $(CODEGEN)
-	./build/codegen
+	$(CODEGEN)
+
+watch.codegen: $(CODEGEN)
+	$(CODEGEN) -w -v
 
 ########################################################################################################################
 # Quality Assurance

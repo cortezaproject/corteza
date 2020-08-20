@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
@@ -39,8 +39,8 @@ type (
 		Check func(*Role) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
-		store.Sorting
-		store.Paging
+		filter.Sorting
+		filter.Paging
 	}
 
 	RoleMetrics struct {

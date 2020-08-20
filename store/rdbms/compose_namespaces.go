@@ -8,7 +8,7 @@ import (
 )
 
 func (s Store) convertComposeNamespaceFilter(f types.NamespaceFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryComposeNamespaces()
+	query = s.composeNamespacesSelectBuilder()
 
 	query = rh.FilterNullByState(query, "cns.deleted_at", f.Deleted)
 

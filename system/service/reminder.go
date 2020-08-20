@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"time"
 )
@@ -14,7 +15,7 @@ type (
 		ac reminderAccessController
 
 		actionlog actionlog.Recorder
-		store     remindersStore
+		store     store.Reminders
 	}
 
 	reminderAccessController interface {

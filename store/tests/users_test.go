@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
@@ -14,18 +15,9 @@ import (
 	"time"
 )
 
-type (
-	usersStoreAdt interface {
-		usersStore
-		CountUsers(ctx context.Context, f types.UserFilter) (uint, error)
-	}
-)
-
-func testUsers(t *testing.T, tmp interface{}) {
+func testUsers(t *testing.T, s store.Users) {
 	var (
 		ctx = context.Background()
-
-		s = tmp.(usersStoreAdt)
 
 		makeNew = func(nn ...string) *types.User {
 			// minimum data set for new user
@@ -71,7 +63,8 @@ func testUsers(t *testing.T, tmp interface{}) {
 
 	t.Run("create", func(t *testing.T) {
 		req := require.New(t)
-		req.NoError(s.CreateUser(ctx, makeNew()))
+		req.NoError(s.TruncateUsers(ctx))
+		req.NoError(store.CreateUser(ctx, s, makeNew()))
 	})
 
 	t.Run("create with duplicate email", func(t *testing.T) {
@@ -93,7 +86,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, user := truncAndCreate(t)
 
-		fetched, err := s.LookupUserByID(ctx, user.ID)
+		fetched, err := store.LookupUserByID(ctx, s, user.ID)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
 		req.Equal(user.Username, fetched.Username)
@@ -113,7 +106,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	t.Run("lookup by email", func(t *testing.T) {
 		req, user := truncAndCreate(t)
 
-		fetched, err := s.LookupUserByEmail(ctx, user.Email)
+		fetched, err := store.LookupUserByEmail(ctx, s, user.Email)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
 	})
@@ -121,7 +114,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	t.Run("lookup by handle", func(t *testing.T) {
 		req, user := truncAndCreate(t)
 
-		fetched, err := s.LookupUserByHandle(ctx, user.Handle)
+		fetched, err := store.LookupUserByHandle(ctx, s, user.Handle)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
 	})
@@ -129,7 +122,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	t.Run("lookup by nonexisting handle", func(t *testing.T) {
 		req, _ := truncAndCreate(t)
 
-		fetched, err := s.LookupUserByHandle(ctx, "no such handle")
+		fetched, err := store.LookupUserByHandle(ctx, s, "no such handle")
 		req.EqualError(err, "not found")
 		req.Nil(fetched)
 	})
@@ -137,7 +130,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 	t.Run("lookup by username", func(t *testing.T) {
 		req, user := truncAndCreate(t)
 
-		fetched, err := s.LookupUserByUsername(ctx, user.Username)
+		fetched, err := store.LookupUserByUsername(ctx, s, user.Username)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
 	})
@@ -146,7 +139,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 		t.Run("by ID", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
 
-			set, f, err := s.SearchUsers(ctx, types.UserFilter{UserID: []uint64{prefill[0].ID}})
+			set, f, err := store.SearchUsers(ctx, s, types.UserFilter{UserID: []uint64{prefill[0].ID}})
 			req.NoError(err)
 			req.Equal([]uint64{prefill[0].ID}, f.UserID)
 			req.Len(set, 1)
@@ -156,35 +149,35 @@ func testUsers(t *testing.T, tmp interface{}) {
 		t.Run("by email", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
 
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{Email: prefill[0].Email})
+			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{Email: prefill[0].Email})
 			req.NoError(err)
 			req.Len(set, 1)
 		})
 
 		t.Run("by username", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{Username: prefill[0].Username})
+			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{Username: prefill[0].Username})
 			req.NoError(err)
 			req.Len(set, 1)
 		})
 
 		t.Run("by query", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{Query: prefill[0].Handle})
+			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{Query: prefill[0].Handle})
 			req.NoError(err)
 			req.Len(set, 1)
 		})
 
 		t.Run("by username", func(t *testing.T) {
 			req, _ := truncAndFill(t, 5)
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{Username: "no such username"})
+			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{Username: "no such username"})
 			req.NoError(err)
 			req.Len(set, 0)
 		})
 
 		t.Run("with check", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-			set, _, err := s.SearchUsers(ctx, types.UserFilter{
+			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{
 				Check: func(user *types.User) (bool, error) {
 					// simple check that matches with the first user from prefill
 					return user.ID == prefill[0].ID, nil
@@ -214,11 +207,11 @@ func testUsers(t *testing.T, tmp interface{}) {
 
 			req.NoError(s.CreateUser(ctx, set...))
 			f := types.UserFilter{}
-			f.Sort = store.SortExprSet{&store.SortExpr{Column: "email"}}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email"}}
 
 			// Fetch first page
 			f.Limit = 3
-			set, f, err := s.SearchUsers(ctx, f)
+			set, f, err := store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 3)
 			req.NotNil(f.NextPage)
@@ -229,7 +222,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			// 2nd page
 			f.Limit = 6
 			f.PageCursor = f.NextPage
-			set, f, err = s.SearchUsers(ctx, f)
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 6)
 			req.NotNil(f.NextPage)
@@ -240,7 +233,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			// 3rd, last page (1 item left)
 			f.Limit = 2
 			f.PageCursor = f.NextPage
-			set, f, err = s.SearchUsers(ctx, f)
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 1)
 			req.NotNil(f.NextPage)
@@ -249,14 +242,14 @@ func testUsers(t *testing.T, tmp interface{}) {
 
 			// try and go pass the last page
 			f.PageCursor = f.NextPage
-			set, _, err = s.SearchUsers(ctx, f)
+			set, _, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 0)
 
 			// now, in reverse, last 3 items
 			f.Limit = 3
 			f.PageCursor = f.PrevPage
-			set, f, err = s.SearchUsers(ctx, f)
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 3)
 			req.NotNil(f.NextPage)
@@ -267,7 +260,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			// still in reverse, next 6 items
 			f.Limit = 5
 			f.PageCursor = f.PrevPage
-			set, f, err = s.SearchUsers(ctx, f)
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 5)
 			req.NotNil(f.NextPage)
@@ -278,7 +271,7 @@ func testUsers(t *testing.T, tmp interface{}) {
 			// still in reverse, last 5 items (actually, we'll only get 1)
 			f.Limit = 5
 			f.PageCursor = f.PrevPage
-			set, f, err = s.SearchUsers(ctx, f)
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 1)
 			req.Nil(f.PrevPage)
@@ -300,11 +293,11 @@ func testUsers(t *testing.T, tmp interface{}) {
 
 			req.NoError(s.CreateUser(ctx, set...))
 			f := types.UserFilter{}
-			f.Sort = store.SortExprSet{&store.SortExpr{Column: "email", Descending: true}, &store.SortExpr{Column: "handle", Descending: true}}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}, &filter.SortExpr{Column: "handle", Descending: true}}
 
 			// Fetch first page
 			f.Limit = 3
-			set, f, err := s.SearchUsers(ctx, f)
+			set, f, err := store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 3)
 			req.NotNil(f.NextPage)
@@ -333,18 +326,18 @@ func testUsers(t *testing.T, tmp interface{}) {
 			user   = &types.User{ID: id.Next(), CreatedAt: time.Now(), Email: fmt.Sprintf("user-crud+%s@crust.test", time.Now().String())}
 		)
 
-		c1, err = s.CountUsers(ctx, f)
+		c1, err = store.CountUsers(ctx, s, f)
 		req.NoError(err)
 
 		req.NoError(s.CreateUser(ctx, user))
 
-		c2, err = s.CountUsers(ctx, f)
+		c2, err = store.CountUsers(ctx, s, f)
 		req.NoError(err)
 		req.Equal(c1+1, c2)
 
-		req.NoError(s.RemoveUserByID(ctx, user.ID))
+		req.NoError(s.DeleteUserByID(ctx, user.ID))
 
-		c2, err = s.CountUsers(ctx, f)
+		c2, err = store.CountUsers(ctx, s, f)
 		req.NoError(err)
 		req.Equal(c1, c2)
 	})

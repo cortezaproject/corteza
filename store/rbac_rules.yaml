@@ -1,14 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/pkg/permissions
 
-interface:
-  - system/service
-  - compose/service
-  - messaging/service
-  - tests/compose
-  - tests/messaging
-  - tests/system
-
 types:
   type: permissions.Rule
 
@@ -23,5 +15,10 @@ rdbms:
   table: rbac_rules
 
 search:
-  disablePaging: true
-  disableSorting: true
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
+
+upsert:
+  enable: true
+

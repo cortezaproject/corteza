@@ -39,12 +39,7 @@ type (
 		ac       userAccessController
 		eventbus eventDispatcher
 
-		store interface {
-			usersStore
-			rolesStore
-
-			CountUsers(context.Context, types.UserFilter) (uint, error)
-		}
+		store store.Storable
 	}
 
 	userAuth interface {
@@ -718,7 +713,7 @@ rangeLoop:
 	return uu.Walk(s)
 }
 
-func createHandle(ctx context.Context, s usersStore, u *types.User) {
+func createHandle(ctx context.Context, s store.Users, u *types.User) {
 	if u.Handle == "" {
 		u.Handle, _ = handle.Cast(
 			// Must not exist before

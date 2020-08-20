@@ -2,33 +2,27 @@ package service
 
 import (
 	"context"
-	"strconv"
-
-	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
+	"errors"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/store"
+	"sort"
+	"strconv"
 )
 
 type (
 	module struct {
-		db  *factory.DB
-		ctx context.Context
-
+		ctx       context.Context
 		actionlog actionlog.Recorder
-
-		ac       moduleAccessController
-		eventbus eventDispatcher
-
-		moduleRepo repository.ModuleRepository
-		recordRepo repository.RecordRepository
-		pageRepo   repository.PageRepository
-		nsRepo     repository.NamespaceRepository
+		ac        moduleAccessController
+		eventbus  eventDispatcher
+		store     store.Storable
 	}
 
 	moduleAccessController interface {
@@ -54,66 +48,57 @@ type (
 		Update(module *types.Module) (*types.Module, error)
 		DeleteByID(namespaceID, moduleID uint64) error
 	}
+
+	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (bool, bool, error)
 )
 
 func Module() ModuleService {
 	return (&module{
+		ctx:      context.Background(),
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
 	}).With(context.Background())
 }
 
 func (svc module) With(ctx context.Context) ModuleService {
-	db := repository.DB(ctx)
 	return &module{
-		db:  db,
-		ctx: ctx,
-
+		ctx:       ctx,
 		actionlog: DefaultActionlog,
-
-		ac:       svc.ac,
-		eventbus: svc.eventbus,
-
-		moduleRepo: repository.Module(ctx, db),
-		recordRepo: repository.Record(ctx, db),
-		pageRepo:   repository.Page(ctx, db),
-		nsRepo:     repository.Namespace(ctx, db),
+		ac:        svc.ac,
+		eventbus:  svc.eventbus,
+		store:     DefaultNgStore,
 	}
 }
 
-// lookup fn() orchestrates module lookup, namespace preload and check, module reading...
-func (svc module) lookup(namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
-	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
+func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+	var (
+		aProps = &moduleActionProps{filter: &filter}
+	)
 
-	err = svc.db.Transaction(func() error {
-		if ns, err := svc.loadNamespace(namespaceID); err != nil {
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Module) (bool, error) {
+		if !svc.ac.CanReadModule(svc.ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	err = func() error {
+		if ns, err := loadNamespace(svc.ctx, svc.store, f.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
 		}
 
-		if m, err = lookup(aProps); err != nil {
-			if repository.ErrModuleNotFound.Eq(err) {
-				return ModuleErrNotFound()
-			}
-
+		if set, f, err = store.SearchComposeModules(svc.ctx, svc.store, filter); err != nil {
 			return err
 		}
 
-		aProps.setModule(m)
+		return loadModuleFields(svc.ctx, svc.store, set...)
+	}()
 
-		if !svc.ac.CanReadModule(svc.ctx, m) {
-			return ModuleErrNotAllowedToRead()
-		}
-
-		if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return m, svc.recordAction(svc.ctx, aProps, ModuleActionLookup, err)
+	return set, f, svc.recordAction(svc.ctx, aProps, ModuleActionSearch, err)
 }
 
 // FindByID tries to find module by ID
@@ -124,7 +109,7 @@ func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err e
 		}
 
 		aProps.module.ID = moduleID
-		return svc.moduleRepo.FindByID(namespaceID, moduleID)
+		return store.LookupComposeModuleByID(svc.ctx, svc.store, moduleID)
 	})
 }
 
@@ -132,7 +117,7 @@ func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err e
 func (svc module) FindByName(namespaceID uint64, name string) (m *types.Module, err error) {
 	return svc.lookup(namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		aProps.module.Name = name
-		return svc.moduleRepo.FindByName(namespaceID, name)
+		return store.LookupComposeModuleByNamespaceIDName(svc.ctx, svc.store, namespaceID, name)
 	})
 }
 
@@ -144,7 +129,7 @@ func (svc module) FindByHandle(namespaceID uint64, h string) (m *types.Module, e
 		}
 
 		aProps.module.Handle = h
-		return svc.moduleRepo.FindByHandle(namespaceID, h)
+		return store.LookupComposeModuleByNamespaceIDHandle(svc.ctx, svc.store, namespaceID, h)
 	})
 }
 
@@ -174,214 +159,182 @@ func (svc module) FindByAny(namespaceID uint64, identifier interface{}) (m *type
 	return m, nil
 }
 
-func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
-	var (
-		aProps = &moduleActionProps{filter: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Module) (bool, error) {
-		if !svc.ac.CanReadModule(svc.ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	err = func() error {
-		set, f, err = svc.moduleRepo.Find(filter)
-		if err != nil {
-			return err
-		}
-
-		// Preload all fields and update all modules
-		var ff types.ModuleFieldSet
-		if ff, err = svc.moduleRepo.FindFields(set.IDs()...); err != nil {
-			return err
-		}
-
-		return set.Walk(func(m *types.Module) error {
-			m.Fields = ff.FilterByModule(m.ID)
-			return nil
-		})
-	}()
-
-	return set, f, svc.recordAction(svc.ctx, aProps, ModuleActionSearch, err)
-}
-
 func (svc module) Create(new *types.Module) (m *types.Module, err error) {
 	var (
 		ns     *types.Namespace
 		aProps = &moduleActionProps{changed: new}
 	)
 
-	err = svc.db.Transaction(func() error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
 		}
 
-		if ns, err = svc.loadNamespace(new.NamespaceID); err != nil {
+		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
 			return err
 		}
 
-		if !svc.ac.CanCreateModule(svc.ctx, ns) {
+		if !svc.ac.CanCreateModule(ctx, ns) {
 			return ModuleErrNotAllowedToCreate()
 		}
 
 		aProps.setNamespace(ns)
 
 		// Calling before-create scripts
-		if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeCreate(new, nil, ns)); err != nil {
 			return err
 		}
 
-		if err = svc.UniqueCheck(new); err != nil {
+		if err = svc.uniqueCheck(new); err != nil {
 			return err
 		}
 
-		if m, err = svc.moduleRepo.Create(new); err != nil {
-			return err
-		}
+		new.ID = id.Next()
+		new.CreatedAt = *nowPtr()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
+		m.Fields.Walk(func(f *types.ModuleField) error {
+			f.ModuleID = new.ID
+			f.CreatedAt = *nowPtr()
+			f.UpdatedAt = nil
+			f.DeletedAt = nil
+			return nil
+		})
 
 		aProps.setModule(m)
 
-		if err = svc.moduleRepo.UpdateFields(m.ID, m.Fields, false); err != nil {
+		if err = store.CreateComposeModule(ctx, s, new); err != nil {
 			return err
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterCreate(m, nil, ns))
+		if err = store.CreateComposeModuleField(ctx, s, m.Fields...); err != nil {
+			return err
+		}
+
+		_ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(m, nil, ns))
 		return nil
 	})
 
-	return m, svc.recordAction(svc.ctx, aProps, ModuleActionCreate, err)
+	return new, svc.recordAction(svc.ctx, aProps, ModuleActionCreate, err)
 }
 
-func (svc module) Update(upd *types.Module) (m *types.Module, err error) {
-	var (
-		ns     *types.Namespace
-		aProps = &moduleActionProps{changed: upd}
-	)
-
-	err = svc.db.Transaction(func() error {
-
-		if upd.ID == 0 {
-			return ModuleErrInvalidID()
-		}
-
-		if !handle.IsValid(upd.Handle) {
-			return ModuleErrInvalidHandle()
-		}
-
-		if ns, err = svc.loadNamespace(upd.NamespaceID); err != nil {
-			return err
-		}
-
-		aProps.setNamespace(ns)
-
-		if m, err = svc.moduleRepo.FindByID(upd.NamespaceID, upd.ID); err != nil {
-			return err
-		}
-
-		aProps.setModule(m)
-
-		if isStale(upd.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
-			return ModuleErrStaleData()
-		}
-
-		if !svc.ac.CanUpdateModule(svc.ctx, m) {
-			return ModuleErrNotAllowedToUpdate()
-		}
-
-		if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(upd, m, ns)); err != nil {
-			return err
-		}
-
-		if err = svc.UniqueCheck(upd); err != nil {
-			return err
-		}
-
-		m.Name = upd.Name
-		m.Handle = upd.Handle
-		m.Meta = upd.Meta
-		m.Fields = upd.Fields
-
-		if m, err = svc.moduleRepo.Update(m); err != nil {
-			return err
-		}
-
-		// select 1 record to see how fields can be updated
-		var rf = types.RecordFilter{}
-		rf.Limit = 1
-		if _, rf, err = svc.recordRepo.Find(m, rf); err != nil {
-			return err
-		}
-
-		if err = svc.moduleRepo.UpdateFields(m.ID, m.Fields, rf.Count > 0); err != nil {
-			return err
-		}
-
-		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterUpdate(upd, m, ns))
-		return nil
-	})
-
-	return m, svc.recordAction(svc.ctx, aProps, ModuleActionUpdate, err)
+func (svc module) Update(upd *types.Module) (c *types.Module, err error) {
+	return svc.updater(upd.NamespaceID, upd.ID, ModuleActionUpdate, svc.handleUpdate(upd))
 }
 
-func (svc module) DeleteByID(namespaceID, moduleID uint64) (err error) {
+func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
+	return trim1st(svc.updater(namespaceID, moduleID, ModuleActionDelete, svc.handleDelete))
+}
+
+func (svc module) UndeleteByID(namespaceID, moduleID uint64) error {
+	return trim1st(svc.updater(namespaceID, moduleID, ModuleActionUndelete, svc.handleUndelete))
+}
+
+func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
 	var (
-		m      *types.Module
+		moduleChanged, fieldsChanged bool
+
 		ns     *types.Namespace
+		m, old *types.Module
 		aProps = &moduleActionProps{module: &types.Module{ID: moduleID, NamespaceID: namespaceID}}
+		err    error
 	)
 
-	err = svc.db.Transaction(func() (err error) {
-		if moduleID == 0 {
-			return ModuleErrInvalidID()
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+		ns, m, err = loadModuleWithNamespace(svc.ctx, s, namespaceID, moduleID)
+		if err != nil {
+			return
 		}
 
-		if ns, err = svc.loadNamespace(namespaceID); err != nil {
-			return err
-		}
+		old = m.Clone()
 
 		aProps.setNamespace(ns)
-
-		if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-			if repository.ErrModuleNotFound.Eq(err) {
-				return ModuleErrNotFound()
-			}
-
-			return err
-		} else if !svc.ac.CanDeleteModule(svc.ctx, m) {
-			return ModuleErrNotAllowedToDelete()
-		}
-
 		aProps.setChanged(m)
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(nil, m, ns)); err != nil {
+		if m.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(m, old, ns))
+		} else {
+			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(m, old, ns))
+		}
+
+		if err != nil {
+			return
+		}
+
+		if moduleChanged, fieldsChanged, err = fn(svc.ctx, ns, m); err != nil {
 			return err
 		}
 
-		if err = svc.moduleRepo.DeleteByID(namespaceID, moduleID); err != nil {
-			return err
+		if moduleChanged {
+			if err = svc.store.UpdateComposeModule(svc.ctx, m); err != nil {
+				return err
+			}
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterDelete(nil, m, ns))
+		if fieldsChanged {
+			var (
+				hasRecords bool
+				// @todo
+				//store.SearchComposeRecords()
+			)
+
+			if err = updateModuleFields(ctx, s, m, m.Fields, hasRecords); err != nil {
+
+			}
+		}
+
+		if m.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterUpdate(m, old, ns))
+		} else {
+			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterDelete(nil, old, ns))
+		}
+
 		return err
 	})
 
-	return svc.recordAction(svc.ctx, aProps, ModuleActionDelete, err)
-
+	return m, svc.recordAction(svc.ctx, aProps, action, err)
 }
 
-func (svc module) UniqueCheck(m *types.Module) (err error) {
+// lookup fn() orchestrates module lookup, namespace preload and check, module reading...
+func (svc module) lookup(namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
+	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
+
+	err = func() error {
+		if ns, err := loadNamespace(svc.ctx, svc.store, namespaceID); err != nil {
+			return err
+		} else {
+			aProps.setNamespace(ns)
+		}
+
+		if m, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+			return ModuleErrNotFound()
+		} else if err != nil {
+			return err
+		}
+
+		aProps.setModule(m)
+
+		if !svc.ac.CanReadModule(svc.ctx, m) {
+			return ModuleErrNotAllowedToRead()
+		}
+
+		return loadModuleFields(svc.ctx, svc.store, m)
+
+	}()
+
+	return m, svc.recordAction(svc.ctx, aProps, ModuleActionLookup, err)
+}
+
+func (svc module) uniqueCheck(m *types.Module) (err error) {
 	if m.Handle != "" {
-		if e, _ := svc.moduleRepo.FindByHandle(m.NamespaceID, m.Handle); e != nil && e.ID > 0 && e.ID != m.ID {
+		if e, _ := store.LookupComposeModuleByNamespaceIDHandle(svc.ctx, svc.store, m.NamespaceID, m.Handle); e != nil && e.ID > 0 && e.ID != m.ID {
 			return ModuleErrHandleNotUnique()
 		}
 	}
 
 	if m.Name != "" {
-		if e, _ := svc.moduleRepo.FindByName(m.NamespaceID, m.Name); e != nil && e.ID > 0 && e.ID != m.ID {
+		if e, _ := store.LookupComposeModuleByNamespaceIDName(svc.ctx, svc.store, m.NamespaceID, m.Name); e != nil && e.ID > 0 && e.ID != m.ID {
 			return ModuleErrNameNotUnique()
 		}
 	}
@@ -389,29 +342,190 @@ func (svc module) UniqueCheck(m *types.Module) (err error) {
 	return nil
 }
 
-// Namespace loader
-//
-func (svc module) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
-	var (
-		moProps = &moduleActionProps{namespace: &types.Namespace{ID: namespaceID}}
-	)
-
-	if namespaceID == 0 {
-		return nil, ModuleErrInvalidID(moProps)
-	}
-
-	if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
-		if repository.ErrNamespaceNotFound.Eq(err) {
-			return nil, ModuleErrNamespaceNotFound()
+func (svc module) handleUpdate(upd *types.Module) moduleUpdateHandler {
+	return func(ctx context.Context, ns *types.Namespace, m *types.Module) (bool, bool, error) {
+		if isStale(upd.UpdatedAt, m.UpdatedAt, m.CreatedAt) {
+			return false, false, ModuleErrStaleData()
 		}
 
-		return nil, err
+		if upd.Handle != m.Handle && !handle.IsValid(upd.Handle) {
+			return false, false, ModuleErrInvalidHandle()
+		}
+
+		if err := svc.uniqueCheck(upd); err != nil {
+			return false, false, err
+		}
+
+		if !svc.ac.CanUpdateModule(svc.ctx, m) {
+			return false, false, ModuleErrNotAllowedToUpdate()
+		}
+
+		m.Name = upd.Name
+		m.Handle = upd.Handle
+		m.Meta = upd.Meta
+		m.Fields = upd.Fields
+		m.UpdatedAt = nowPtr()
+
+		// @todo
+		// select 1 record to see how fields can be updated
+		//var rf = types.RecordFilter{}
+		//rf.Limit = 1
+		//if _, rf, err = svc.recordRepo.Find(m, rf); err != nil {
+		//	return err
+		//}
+		//
+		//if err = svc.moduleRepo.UpdateFields(m.ID, m.Fields, rf.Count > 0); err != nil {
+		//	return err
+		//}
+
+		return true, false, nil
+	}
+}
+
+func (svc module) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Module) (bool, bool, error) {
+	if !svc.ac.CanDeleteModule(ctx, m) {
+		return false, false, ModuleErrNotAllowedToUndelete()
 	}
 
-	moProps.setNamespace(ns)
+	if m.DeletedAt != nil {
+		// module already deleted
+		return false, false, nil
+	}
 
-	if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-		return nil, ModuleErrNotAllowedToReadNamespace(moProps)
+	m.DeletedAt = nowPtr()
+	return true, false, nil
+}
+
+func (svc module) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Module) (bool, bool, error) {
+	if !svc.ac.CanDeleteModule(ctx, m) {
+		return false, false, ModuleErrNotAllowedToUndelete()
+	}
+
+	if m.DeletedAt == nil {
+		// module not deleted
+		return false, false, nil
+	}
+
+	m.DeletedAt = nil
+	return true, false, nil
+}
+
+// updates module fields
+// expecting to receive all module fields, as it deletes the rest
+// also, sort order of the fields is also important as this fn stores and updates field's place as send
+func updateModuleFields(ctx context.Context, s store.Storable, m *types.Module, ff types.ModuleFieldSet, hasRecords bool) error {
+	for _, f := range ff {
+		// Set module ID to all new fields
+		if f.ModuleID == 0 {
+			f.ModuleID = m.ID
+		}
+
+		// Make sure all updating fields belong here
+		if f.ModuleID != m.ID {
+			return fmt.Errorf("module id of field %q does not match the module", f.Name)
+		}
+	}
+
+	eff, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{m.ID}})
+	if err != nil {
+		return err
+	}
+
+	for _, ef := range eff {
+		f := ff.FindByID(ef.ID)
+		if f != nil || f.DeletedAt == nil {
+			continue
+		}
+
+		ef.DeletedAt = nowPtr()
+		err = store.PartialComposeModuleFieldUpdate(ctx, s, []string{"deleted_at"}, ef)
+		if err != nil {
+			return err
+		}
+	}
+
+	for idx, f := range ff {
+		f.Place = idx
+		f.DeletedAt = nil
+
+		if e := eff.FindByID(f.ID); e != nil {
+			f.CreatedAt = e.CreatedAt
+
+			// We do not have any other code in place that would handle changes of field name and kind, so we need
+			// to reset any changes made to the field.
+			// @todo remove when we are able to handle field rename & type change
+			if hasRecords {
+				f.Name = e.Name
+				f.Kind = e.Kind
+			}
+
+			f.UpdatedAt = nowPtr()
+
+			err = store.UpdateComposeModuleField(ctx, s, f)
+		} else {
+			f.ID = id.Next()
+			f.CreatedAt = *nowPtr()
+			err = store.CreateComposeModuleField(ctx, s, f)
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func loadModuleFields(ctx context.Context, s store.Storable, mm ...*types.Module) (err error) {
+	var (
+		ff  types.ModuleFieldSet
+		mff = types.ModuleFieldFilter{ModuleID: types.ModuleSet(mm).IDs()}
+	)
+
+	if ff, _, err = store.SearchComposeModuleFields(ctx, s, mff); err != nil {
+		return
+	}
+
+	for _, m := range mm {
+		m.Fields = ff.FilterByModule(m.ID)
+		sort.Sort(m.Fields)
+	}
+
+	return
+}
+
+func loadModuleWithNamespace(ctx context.Context, s store.Storable, namespaceID, moduleID uint64) (ns *types.Namespace, m *types.Module, err error) {
+	if moduleID == 0 {
+		return nil, nil, ModuleErrInvalidID()
+	}
+
+	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
+		m, err = loadModule(ctx, s, moduleID)
+	}
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if namespaceID != m.NamespaceID {
+		// Make sure chart belongs to the right namespace
+		return nil, nil, ModuleErrNotFound()
+	}
+
+	return
+}
+
+func loadModule(ctx context.Context, s store.Storable, moduleID uint64) (m *types.Module, err error) {
+	if moduleID == 0 {
+		return nil, ModuleErrInvalidID()
+	}
+
+	if m, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.Is(err, store.ErrNotFound) {
+		err = ModuleErrNotFound()
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return

@@ -21,7 +21,7 @@ props:
     fields: [ name, handle, ID, namespaceID, meta, fields ]
   - name: filter
     type: "*types.ModuleFilter"
-    fields: [ query, name, handle, name, namespaceID, sort, Limit ]
+    fields: [ query, name, handle, name, namespaceID, sort, limit ]
   - name: namespace
     type: "*types.Namespace"
     fields: [ name, slug, ID ]
@@ -55,7 +55,6 @@ errors:
   - error: namespaceNotFound
     message: "namespace does not exist"
     severity: warning
-
 
   - error: invalidID
     message: "invalid ID"

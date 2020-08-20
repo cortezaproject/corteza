@@ -1,0 +1,52 @@
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+types:
+  type: types.Record
+
+fields:
+  - { field: ID }
+  - { field: ModuleID,                                column: module_id }
+  - { field: NamespaceID }
+  - { field: OwnedBy }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt,                               sortable: true }
+  - { field: UpdatedAt,                               sortable: true }
+  - { field: DeletedAt,                               sortable: true }
+
+lookups:
+  - fields: [ ID ]
+    export: false
+    description: |-
+      searches for compose record by ID
+      It returns compose record even if deleted
+
+arguments:
+  - name: mod
+    type: "*types.Module"
+
+rdbms:
+  alias: crd
+  table: compose_record
+  customFilterConverter: true
+
+search:
+  export: false
+
+create:
+  export: false
+
+update:
+  export: false
+
+upsert:
+  export: false
+
+Delete:
+  export: false
+
+truncate:
+  export: false
+

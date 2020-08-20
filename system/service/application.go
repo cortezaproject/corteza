@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -14,7 +15,7 @@ type (
 		ac        applicationAccessController
 		eventbus  eventDispatcher
 		actionlog actionlog.Recorder
-		store     applicationsStore
+		store     store.Applications
 	}
 
 	applicationAccessController interface {
@@ -29,7 +30,7 @@ type (
 )
 
 // Application is a default application service initializer
-func Application(s applicationsStore, ac applicationAccessController, al actionlog.Recorder, eb eventDispatcher) *application {
+func Application(s store.Applications, ac applicationAccessController, al actionlog.Recorder, eb eventDispatcher) *application {
 	return &application{store: s, ac: ac, actionlog: al, eventbus: eb}
 }
 
@@ -189,7 +190,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 		}
 
 		app.DeletedAt = nowPtr()
-		if err = svc.store.PartialUpdateApplication(ctx, []string{"UpdatedAt"}, app); err != nil {
+		if err = svc.store.PartialApplicationUpdate(ctx, []string{"UpdatedAt"}, app); err != nil {
 			return
 		}
 
@@ -227,7 +228,7 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 		//       }
 
 		app.DeletedAt = nil
-		if err = svc.store.PartialUpdateApplication(ctx, []string{"UpdatedAt"}, app); err != nil {
+		if err = svc.store.PartialApplicationUpdate(ctx, []string{"UpdatedAt"}, app); err != nil {
 			return
 		}
 

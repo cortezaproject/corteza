@@ -156,7 +156,6 @@ func (svc accessControl) CanDeleteChart(ctx context.Context, r *types.Chart) boo
 }
 
 func (svc accessControl) CanCreatePage(ctx context.Context, r *types.Namespace) bool {
-	// @todo move to func args when namespaces are implemented
 	return svc.can(ctx, r, "page.create")
 }
 

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/store/bulk"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
 	"strings"
@@ -27,6 +27,7 @@ type (
 	columnPreprocFn     func(string, string) string
 	valuePreprocFn      func(interface{}, string) interface{}
 	errorHandler        func(error) error
+	triggerKey          string
 
 	schemaUpgradeGenerator interface {
 		TableExists(string) bool
@@ -38,12 +39,22 @@ type (
 		Scan(...interface{}) error
 	}
 
+	TriggerHandlers map[triggerKey]interface{}
+
 	Config struct {
 		DriverName     string
 		DataSourceName string
 		DBName         string
 
 		PlaceholderFormat squirrel.PlaceholderFormat
+
+		// These 3 are passed directly to connection
+		MaxOpenConns    int
+		ConnMaxLifetime time.Duration
+		MaxIdleConns    int
+
+		// Disable transactions
+		TxDisabled bool
 
 		// How many times should we retry failed transaction?
 		TxMaxRetries int
@@ -63,6 +74,19 @@ type (
 
 		// Implementations can override internal RDBMS row scanners
 		RowScanners map[string]interface{}
+
+		// Different store backend implementation might handle upsert differently...
+		UpsertBuilder func(*Config, string, store.Payload, ...string) (squirrel.InsertBuilder, error)
+
+		// TriggerHandlers handle various exceptions that can not be handled generally within RDBMS package.
+		// see triggerKey type and defined constants to see where the hooks are and how can they be called
+		TriggerHandlers TriggerHandlers
+
+		// UniqueConstraintCheck flag controls if unique constraints should be explicitly checked within
+		// store or is this handled inside the storage
+		//
+		//
+		UniqueConstraintCheck bool
 	}
 
 	Store struct {
@@ -72,7 +96,19 @@ type (
 		// to implementation specific SQL
 		sug schemaUpgradeGenerator
 
-		db *sqlx.DB
+		db dbLayer
+	}
+
+	dbLayer interface {
+		sqlx.ExecerContext
+		SelectContext(context.Context, interface{}, string, ...interface{}) error
+		GetContext(context.Context, interface{}, string, ...interface{}) error
+		QueryRowContext(context.Context, string, ...interface{}) *sql.Row
+		QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	}
+
+	dbTransactionMaker interface {
+		BeginTxx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error)
 	}
 )
 
@@ -85,27 +121,6 @@ const (
 	MinRefetchLimit = 10
 	MaxRefetches    = 100
 )
-
-var (
-	now = func() time.Time {
-		return time.Now()
-	}
-)
-
-//func Instrumentation(log *zap.Logger) {
-//	logger := instrumentedsql.LoggerFunc(func(ctx context.Context, msg string, keyvals ...interface{}) {
-//		//spew.Dump(msg, keyvals)
-//		log.With(zap.Any("kv", keyvals)).Info(msg)
-//	})
-//
-//	sql.Register(
-//		"mysql+instrumented",
-//		instrumentedsql.WrapDriver(&mysql.MySQLDriver{}, instrumentedsql.WithLogger(logger)))
-//
-//	sql.Register(
-//		"postgres+instrumented",
-//		instrumentedsql.WrapDriver(&pq.Driver{}, instrumentedsql.WithLogger(logger)))
-//}
 
 func New(ctx context.Context, cfg *Config) (*Store, error) {
 	var s = &Store{
@@ -129,6 +144,19 @@ func New(ctx context.Context, cfg *Config) (*Store, error) {
 		s.config.ErrorHandler = ErrHandlerFallthrough
 	}
 
+	if s.config.UpsertBuilder == nil {
+		s.config.UpsertBuilder = UpsertBuilder
+	}
+
+	if s.config.MaxIdleConns == 0 {
+		// Same as default in the db/sql
+		s.config.MaxIdleConns = 2
+	}
+
+	if s.config.TriggerHandlers == nil {
+		s.config.TriggerHandlers = TriggerHandlers{}
+	}
+
 	if err := s.Connect(ctx); err != nil {
 		return nil, err
 	}
@@ -136,16 +164,27 @@ func New(ctx context.Context, cfg *Config) (*Store, error) {
 	return s, nil
 }
 
-func (s *Store) Connect(ctx context.Context) (err error) {
-	s.db, err = sqlx.ConnectContext(ctx, s.config.DriverName, s.config.DataSourceName)
-	return err
+// WithTx spins up new store instance with transaction
+func (s *Store) withTx(tx dbLayer) *Store {
+	return &Store{
+		config: s.config,
+		sug:    s.sug,
+		db:     tx,
+	}
 }
 
-// Select is a shorthand for squirrel.SelectBuilder
-//
-// Sets passed table & columns and configured placeholder format
-func (s Store) Select(table string, cc ...string) squirrel.SelectBuilder {
-	return squirrel.Select(cc...).From(table).PlaceholderFormat(s.config.PlaceholderFormat)
+func (s *Store) Connect(ctx context.Context) error {
+	db, err := sqlx.ConnectContext(ctx, s.config.DriverName, s.config.DataSourceName)
+	if err != nil {
+		return err
+	}
+
+	db.SetMaxOpenConns(s.config.MaxOpenConns)
+	db.SetConnMaxLifetime(s.config.ConnMaxLifetime)
+	db.SetMaxIdleConns(s.config.MaxIdleConns)
+
+	s.db = db
+	return err
 }
 
 func (s Store) Query(ctx context.Context, q squirrel.SelectBuilder) (*sql.Rows, error) {
@@ -167,60 +206,62 @@ func (s Store) QueryRow(ctx context.Context, q squirrel.SelectBuilder) (*sql.Row
 	return s.db.QueryRowContext(ctx, query, args...), nil
 }
 
-// Insert is a shorthand for squirrel.InsertBuilder
+func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
+	query, args, err := sqlizer.ToSql()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.ExecContext(ctx, query, args...)
+	return err
+}
+
+func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storable) error) error {
+	return tx(ctx, s.db, s.config, nil, func(ctx context.Context, tx dbLayer) error {
+		return fn(ctx, s.withTx(tx))
+	})
+}
+
+func (s Store) Truncate(ctx context.Context, table string) error {
+	_, err := s.db.ExecContext(ctx, "DELETE FROM "+table)
+	return err
+}
+
+// SelectBuilder is a shorthand for squirrel.selectBuilder
+//
+// Sets passed table & columns and configured placeholder format
+func (s Store) SelectBuilder(table string, cc ...string) squirrel.SelectBuilder {
+	return squirrel.Select(cc...).From(table).PlaceholderFormat(s.config.PlaceholderFormat)
+}
+
+// InsertBuilder is a shorthand for squirrel.insertBuilder
 //
 // Sets passed table and configured placeholder format
-func (s Store) Insert(table string) squirrel.InsertBuilder {
+func (s Store) InsertBuilder(table string) squirrel.InsertBuilder {
 	return squirrel.Insert(table).PlaceholderFormat(s.config.PlaceholderFormat)
 }
 
-// Update is a shorthand for squirrel.UpdateBuilder
+// UpdateBuilder is a shorthand for squirrel.updateBuilder
 //
 // Sets passed table and configured placeholder format
-func (s Store) Update(table string) squirrel.UpdateBuilder {
+func (s Store) UpdateBuilder(table string) squirrel.UpdateBuilder {
 	return squirrel.Update(table).PlaceholderFormat(s.config.PlaceholderFormat)
 }
 
-// Delete is a shorthand for squirrel.DeleteBuilder
+// DeleteBuilder is a shorthand for squirrel.deleteBuilder
 //
 // Sets passed table and configured placeholder format
-func (s Store) Delete(table string) squirrel.DeleteBuilder {
+func (s Store) DeleteBuilder(table string) squirrel.DeleteBuilder {
 	return squirrel.Delete(table).PlaceholderFormat(s.config.PlaceholderFormat)
 }
 
-func (s Store) DB() *sqlx.DB {
+func (s Store) DB() dbLayer {
 	return s.db
 }
 
 func (s Store) Config() *Config {
 	return s.config
-}
-
-// Bulk returns channel that accepts jobs and executes them inside a transaction
-//
-// Note: This is experimental function!
-// Final version might not return channel directly
-//
-func (s Store) Bulk(ctx context.Context) chan bulk.Job {
-	jc := make(chan bulk.Job)
-
-	go Tx(ctx, s.db, s.config, nil, func(db *sqlx.Tx) (err error) {
-		var job bulk.Job
-
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-
-			case job = <-jc:
-				if err = job.Do(ctx, s); err != nil {
-					return
-				}
-			}
-		}
-	})
-
-	return jc
 }
 
 // column preprocessor logic to modify db value before using it in condition filter
@@ -269,33 +310,34 @@ func (s Store) preprocessValue(val interface{}, p string) interface{} {
 	}
 }
 
-func ExecuteSqlizer(ctx context.Context, db sqlx.ExecerContext, sqlizer squirrel.Sqlizer) error {
-	query, args, err := sqlizer.ToSql()
-
-	if err != nil {
-		return err
-	}
-
-	_, err = db.ExecContext(ctx, query, args...)
-	return err
-}
-
-func Truncate(ctx context.Context, db sqlx.ExecerContext, table string) error {
-	_, err := db.ExecContext(ctx, "DELETE FROM "+table)
-	return err
-}
-
-// Tx begins a new db transaction and handles it's retries when possible
+// tx begins a new db transaction and handles it's retries when possible
 //
 // It utilizes configured transaction error handlers and max-retry limits
 // to determine if and how many times transaction should be retried
-func Tx(ctx context.Context, db *sqlx.DB, cfg *Config, txOpt *sql.TxOptions, task func(*sqlx.Tx) error) error {
+//
+func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.TxOptions, task func(context.Context, dbLayer) error) error {
+	if cfg.TxDisabled {
+		return task(ctx, dbCandidate.(dbLayer))
+	}
+
 	var (
 		lastTaskErr error
 		err         error
+		db          *sqlx.DB
 		tx          *sqlx.Tx
 		try         = 1
 	)
+
+	switch dbCandidate.(type) {
+	case dbTransactionMaker:
+		// we can make a transaction, yay
+		db = dbCandidate.(*sqlx.DB)
+	case dbLayer:
+		// Already in a transaction, run the given task and finish
+		return task(ctx, dbCandidate.(dbLayer))
+	default:
+		return fmt.Errorf("could not use the db connection for transaction")
+	}
 
 	for {
 		try++
@@ -306,7 +348,7 @@ func Tx(ctx context.Context, db *sqlx.DB, cfg *Config, txOpt *sql.TxOptions, tas
 			return nil
 		}
 
-		if lastTaskErr = task(tx); lastTaskErr == nil {
+		if lastTaskErr = task(ctx, tx); lastTaskErr == nil {
 			// Task completed successfully
 			return tx.Commit()
 		}
@@ -325,7 +367,7 @@ func Tx(ctx context.Context, db *sqlx.DB, cfg *Config, txOpt *sql.TxOptions, tas
 			return fmt.Errorf("failed to complete transaction: %w", lastTaskErr)
 		}
 
-		// Tx error handlers can take current number of tries into account and
+		// tx error handlers can take current number of tries into account and
 		// break the retry-loop earlier, but that might not be always the case
 		//
 		// We'll check the configured and hard-limit maximums

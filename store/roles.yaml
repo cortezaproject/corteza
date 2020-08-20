@@ -1,13 +1,10 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-
 fields:
   - { field: ID }
   - { field: Name,                                   sortable: true }
-  - { field: Handle,                                 sortable: true, unique: true }
+  - { field: Handle,                                 sortable: true, unique: true, lookupFilterPreprocessor: lower }
   - { field: CreatedAt,                              sortable: true }
   - { field: UpdatedAt,                              sortable: true }
   - { field: ArchivedAt,                             sortable: true }
@@ -20,6 +17,7 @@ lookups:
 
       It returns role even if deleted or suspended
   - fields: [ Handle ]
+    uniqueConstraintCheck: true
     filter: { DeletedAt: nil, ArchivedAt: nil }
     description: |-
       searches for role by its handle
@@ -31,6 +29,10 @@ lookups:
       searches for role by its name
 
       It returns only valid roles (not deleted, not archived)
+
+functions:
+  - name: RoleMetrics
+    return: [ "*types.RoleMetrics", "error" ]
 
 rdbms:
   alias: rl

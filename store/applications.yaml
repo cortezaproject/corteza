@@ -1,10 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/system/types
 
-interface:
-  - system/service
-  - provision/system
-
 fields:
   - { field: ID }
   - { field: Name,      sortable: true }
@@ -21,6 +17,10 @@ lookups:
       searches for application by ID
 
       It returns application even if deleted
+
+functions:
+  - name: ApplicationMetrics
+    return: [ "*types.ApplicationMetrics", "error" ]
 
 rdbms:
   alias: app

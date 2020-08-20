@@ -7,7 +7,7 @@ import (
 )
 
 func (s Store) convertReminderFilter(f types.ReminderFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryReminders()
+	query = s.remindersSelectBuilder()
 
 	if len(f.ReminderID) > 0 {
 		query = query.Where(squirrel.Eq{"rmd.ID": f.ReminderID})

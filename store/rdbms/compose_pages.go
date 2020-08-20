@@ -1,14 +1,16 @@
 package rdbms
 
 import (
+	"context"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	"strings"
 )
 
 func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.QueryComposePages()
+	query = s.composePagesSelectBuilder()
 
 	query = rh.FilterNullByState(query, "cpg.deleted_at", f.Deleted)
 
@@ -33,6 +35,59 @@ func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.Sele
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cpg.handle)": strings.ToLower(f.Handle)})
+	}
+
+	return
+}
+
+func (s Store) ReorderComposePages(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
+	var (
+		pages   types.PageSet
+		pageMap = map[uint64]bool{}
+		weight  = 1
+
+		f = types.PageFilter{ParentID: parentID, NamespaceID: namespaceID}
+	)
+
+	if pages, _, err = s.SearchComposePages(ctx, f); err != nil {
+		return
+	}
+
+	for _, page := range pages {
+		pageMap[page.ID] = true
+	}
+
+	// honor parameter first
+	for _, pageID := range pageIDs {
+		if pageMap[pageID] {
+			pageMap[pageID] = false
+			err = s.execUpdateComposePages(ctx,
+				squirrel.Eq{"cpg.id": pageID, "cpg.self_id": parentID},
+				store.Payload{"weight": weight})
+
+			if err != nil {
+				return
+			}
+
+			weight++
+		}
+	}
+
+	for pageID, update := range pageMap {
+		if !update {
+			continue
+		}
+
+		err = s.execUpdateComposePages(ctx,
+			squirrel.Eq{"cpg.id": pageID, "cpg.self_id": parentID},
+			store.Payload{"weight": weight})
+
+		if err != nil {
+			return
+		}
+
+		weight++
+
 	}
 
 	return

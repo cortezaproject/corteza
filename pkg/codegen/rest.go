@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -59,17 +58,8 @@ type (
 	}
 )
 
-func procRest() ([]*restDef, error) {
-	// <app>/rest.yaml
-
-	var (
-		dd = make([]*restDef, 0)
-	)
-
-	mm, err := filepath.Glob(filepath.Join("*", "rest.yaml"))
-	if err != nil {
-		return nil, fmt.Errorf("glob failed: %w", err)
-	}
+func procRest(mm ...string) (dd []*restDef, err error) {
+	dd = make([]*restDef, 0)
 
 	for _, m := range mm {
 		err = func() error {
@@ -109,7 +99,7 @@ func procRest() ([]*restDef, error) {
 	return dd, nil
 }
 
-func genRest(tpl *template.Template, dd []*restDef) (err error) {
+func genRest(tpl *template.Template, dd ...*restDef) (err error) {
 	var (
 		// Will only be generated if file does not exist previously
 		tplHandler = tpl.Lookup("rest_handler.go.tpl")
@@ -212,7 +202,7 @@ func (d *restEndpointParamDef) Parser(arg string) string {
 	case "sqlxTypes.JSONText":
 		return fmt.Sprintf("payload.ParseJSONTextWithErr(%s)", arg)
 	case "int", "uint", "uint64", "int64", "float", "float64", "bool":
-		return fmt.Sprintf("payload.Parse%s(%s), nil", pubIdent(d.Type), arg)
+		return fmt.Sprintf("payload.Parse%s(%s), nil", export(d.Type), arg)
 	case "string", "[]string":
 		return fmt.Sprintf("%s, nil", arg)
 	default:

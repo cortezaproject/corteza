@@ -2,30 +2,24 @@ package service
 
 import (
 	"context"
-	"strconv"
-
-	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
+	"errors"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/store"
+	"strconv"
 )
 
 type (
 	namespace struct {
-		db  *factory.DB
-		ctx context.Context
-
+		ctx       context.Context
 		actionlog actionlog.Recorder
-
-		ac       namespaceAccessController
-		eventbus eventDispatcher
-
-		namespaceRepo repository.NamespaceRepository
+		ac        namespaceAccessController
+		eventbus  eventDispatcher
+		store     store.Storable
 	}
 
 	namespaceAccessController interface {
@@ -51,6 +45,8 @@ type (
 		Update(namespace *types.Namespace) (*types.Namespace, error)
 		DeleteByID(namespaceID uint64) error
 	}
+
+	namespaceUpdateHandler func(ctx context.Context, ns *types.Namespace) (bool, error)
 )
 
 func Namespace() NamespaceService {
@@ -61,43 +57,39 @@ func Namespace() NamespaceService {
 }
 
 func (svc namespace) With(ctx context.Context) NamespaceService {
-	db := repository.DB(ctx)
 	return &namespace{
-		db:  db,
-		ctx: ctx,
-
+		ctx:       ctx,
 		actionlog: DefaultActionlog,
-
-		ac:       svc.ac,
-		eventbus: svc.eventbus,
-
-		namespaceRepo: repository.Namespace(ctx, db),
+		ac:        svc.ac,
+		eventbus:  svc.eventbus,
+		store:     DefaultNgStore,
 	}
 }
 
-// lookup fn() orchestrates namespace lookup, and check
-func (svc namespace) lookup(lookup func(*namespaceActionProps) (*types.Namespace, error)) (m *types.Namespace, err error) {
-	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
+// search fn() orchestrates pages search, namespace preload and check
+func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
+	var (
+		aProps = &namespaceActionProps{filter: &filter}
+	)
 
-	err = svc.db.Transaction(func() error {
-		if m, err = lookup(aProps); err != nil {
-			if repository.ErrNamespaceNotFound.Eq(err) {
-				return NamespaceErrNotFound()
-			}
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Namespace) (bool, error) {
+		if !svc.ac.CanReadNamespace(svc.ctx, res) {
+			return false, nil
+		}
 
+		return true, nil
+	}
+
+	err = func() error {
+		if set, f, err = store.SearchComposeNamespaces(svc.ctx, svc.store, filter); err != nil {
 			return err
 		}
 
-		aProps.setNamespace(m)
-
-		if !svc.ac.CanReadNamespace(svc.ctx, m) {
-			return NamespaceErrNotAllowedToRead()
-		}
-
 		return nil
-	})
+	}()
 
-	return m, svc.recordAction(svc.ctx, aProps, NamespaceActionLookup, err)
+	return set, f, svc.recordAction(svc.ctx, aProps, NamespaceActionSearch, err)
 }
 
 func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
@@ -107,7 +99,7 @@ func (svc namespace) FindByID(ID uint64) (ns *types.Namespace, err error) {
 		}
 
 		aProps.namespace.ID = ID
-		return svc.namespaceRepo.FindByID(ID)
+		return store.LookupComposeNamespaceByID(svc.ctx, svc.store, ID)
 	})
 }
 
@@ -123,7 +115,7 @@ func (svc namespace) FindBySlug(slug string) (ns *types.Namespace, err error) {
 		}
 
 		aProps.namespace.Slug = slug
-		return svc.namespaceRepo.FindBySlug(slug)
+		return store.LookupComposeNamespaceBySlug(svc.ctx, svc.store, slug)
 	})
 }
 
@@ -151,43 +143,13 @@ func (svc namespace) FindByAny(identifier interface{}) (r *types.Namespace, err 
 	return
 }
 
-// search fn() orchestrates pages search, namespace preload and check
-func (svc namespace) search(filter types.NamespaceFilter) (set types.NamespaceSet, f types.NamespaceFilter, err error) {
-	var (
-		aProps = &namespaceActionProps{filter: &filter}
-	)
-
-	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Namespace) (bool, error) {
-		if !svc.ac.CanReadNamespace(svc.ctx, res) {
-			return false, nil
-		}
-
-		return true, nil
-	}
-
-	err = svc.db.Transaction(func() error {
-		if set, f, err = svc.namespaceRepo.Find(filter); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return set, f, svc.recordAction(svc.ctx, aProps, NamespaceActionSearch, err)
-}
-
-func (svc namespace) Find(filter types.NamespaceFilter) (types.NamespaceSet, types.NamespaceFilter, error) {
-	return svc.search(filter)
-}
-
 // Create adds namespace and presets access rules for role everyone
 func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err error) {
 	var (
 		aProps = &namespaceActionProps{changed: new}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
 		if !handle.IsValid(new.Slug) {
 			return NamespaceErrInvalidHandle()
 		}
@@ -197,123 +159,184 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 		}
 
 		if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeCreate(new, nil)); err != nil {
-			return
+			return err
 		}
 
-		if err = svc.UniqueCheck(new); err != nil {
-			return
+		if err = svc.uniqueCheck(new); err != nil {
+			return err
 		}
 
-		if ns, err = svc.namespaceRepo.Create(new); err != nil {
+		if err = store.CreateComposeNamespace(svc.ctx, svc.store, new); err != nil {
 			return err
 		}
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterCreate(ns, nil))
-		return
+		return nil
 	})
 
 	return ns, svc.recordAction(svc.ctx, aProps, NamespaceActionCreate, err)
 }
 
-func (svc namespace) Update(upd *types.Namespace) (ns *types.Namespace, err error) {
+func (svc namespace) Update(upd *types.Namespace) (c *types.Namespace, err error) {
+	return svc.updater(upd.ID, NamespaceActionUpdate, svc.handleUpdate(upd))
+}
+
+func (svc namespace) DeleteByID(namespaceID uint64) error {
+	return trim1st(svc.updater(namespaceID, NamespaceActionDelete, svc.handleDelete))
+}
+
+func (svc namespace) UndeleteByID(namespaceID uint64) error {
+	return trim1st(svc.updater(namespaceID, NamespaceActionUndelete, svc.handleUndelete))
+}
+
+func (svc namespace) updater(namespaceID uint64, action func(...*namespaceActionProps) *namespaceAction, fn namespaceUpdateHandler) (*types.Namespace, error) {
 	var (
-		aProps = &namespaceActionProps{changed: upd}
+		changed bool
+		ns, old *types.Namespace
+		aProps  = &namespaceActionProps{namespace: &types.Namespace{ID: namespaceID}}
+		err     error
 	)
 
-	err = svc.db.Transaction(func() (err error) {
-		if upd.ID == 0 {
-			return NamespaceErrInvalidID()
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+		ns, err = loadNamespace(svc.ctx, s, namespaceID)
+		if err != nil {
+			return
 		}
 
-		if !handle.IsValid(upd.Slug) {
-			return NamespaceErrInvalidHandle()
+		old = ns.Clone()
+
+		aProps.setNamespace(ns)
+		aProps.setChanged(ns)
+
+		if ns.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeUpdate(ns, old))
+		} else {
+			err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeDelete(ns, old))
 		}
 
-		if ns, err = svc.FindByID(upd.ID); err != nil {
+		if err != nil {
+			return
+		}
+
+		if changed, err = fn(svc.ctx, ns); err != nil {
+			return err
+		}
+
+		if changed {
+			if err = svc.store.UpdateComposeNamespace(svc.ctx, ns); err != nil {
+				return err
+			}
+		}
+
+		if ns.DeletedAt == nil {
+			err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterUpdate(ns, old))
+		} else {
+			err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterDelete(nil, old))
+		}
+
+		return err
+	})
+
+	return ns, svc.recordAction(svc.ctx, aProps, action, err)
+}
+
+// lookup fn() orchestrates namespace lookup, and check
+func (svc namespace) lookup(lookup func(*namespaceActionProps) (*types.Namespace, error)) (ns *types.Namespace, err error) {
+	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
+
+	err = func() error {
+		if ns, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+			return NamespaceErrNotFound()
+		} else if err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
 
-		if isStale(upd.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
-			return NamespaceErrStaleData()
+		if !svc.ac.CanReadNamespace(svc.ctx, ns) {
+			return NamespaceErrNotAllowedToRead()
 		}
 
-		if !svc.ac.CanUpdateNamespace(svc.ctx, ns) {
-			return NamespaceErrNotAllowedToUpdate()
-		}
+		return nil
+	}()
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeUpdate(upd, ns)); err != nil {
-			return
-		}
-
-		if err = svc.UniqueCheck(upd); err != nil {
-			return
-		}
-
-		// Copy changes
-		ns.Name = upd.Name
-		ns.Slug = upd.Slug
-		ns.Meta = upd.Meta
-		ns.Enabled = upd.Enabled
-
-		if ns, err = svc.namespaceRepo.Update(ns); err != nil {
-			return err
-		}
-
-		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterUpdate(upd, ns))
-		return
-	})
-
-	return ns, svc.recordAction(svc.ctx, aProps, NamespaceActionUpdate, err)
+	return ns, svc.recordAction(svc.ctx, aProps, NamespaceActionLookup, err)
 }
 
-func (svc namespace) DeleteByID(namespaceID uint64) (err error) {
-	var (
-		del    *types.Namespace
-		aProps = &namespaceActionProps{namespace: &types.Namespace{ID: namespaceID}}
-	)
-
-	err = svc.db.Transaction(func() (err error) {
-		if namespaceID == 0 {
-			return NamespaceErrInvalidID()
-		}
-
-		if del, err = svc.namespaceRepo.FindByID(namespaceID); err != nil {
-			if repository.ErrNamespaceNotFound.Eq(err) {
-				return NamespaceErrNotFound()
-			}
-
-			return
-		}
-
-		aProps.setChanged(del)
-
-		if !svc.ac.CanDeleteNamespace(svc.ctx, del) {
-			return NamespaceErrNotAllowedToDelete()
-		}
-
-		if err = svc.eventbus.WaitFor(svc.ctx, event.NamespaceBeforeDelete(nil, del)); err != nil {
-			return
-		}
-
-		if err = svc.namespaceRepo.DeleteByID(namespaceID); err != nil {
-			return
-		}
-
-		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterDelete(nil, del))
-		return
-	})
-
-	return svc.recordAction(svc.ctx, aProps, NamespaceActionDelete, err)
-}
-
-func (svc namespace) UniqueCheck(ns *types.Namespace) (err error) {
+func (svc namespace) uniqueCheck(ns *types.Namespace) (err error) {
 	if ns.Slug != "" {
-		if e, _ := svc.namespaceRepo.FindBySlug(ns.Slug); e != nil && e.ID != ns.ID {
+		if e, _ := store.LookupComposeNamespaceBySlug(svc.ctx, svc.store, ns.Slug); e != nil && e.ID != ns.ID {
 			return NamespaceErrHandleNotUnique()
 		}
 	}
 
 	return nil
+}
+
+func (svc namespace) handleUpdate(upd *types.Namespace) namespaceUpdateHandler {
+	return func(ctx context.Context, ns *types.Namespace) (bool, error) {
+		if isStale(upd.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
+			return false, NamespaceErrStaleData()
+		}
+
+		if upd.Slug != ns.Slug && !handle.IsValid(upd.Slug) {
+			return false, NamespaceErrInvalidHandle()
+		}
+
+		if err := svc.uniqueCheck(upd); err != nil {
+			return false, err
+		}
+
+		if !svc.ac.CanUpdateNamespace(svc.ctx, ns) {
+			return false, NamespaceErrNotAllowedToUpdate()
+		}
+
+		ns.Name = upd.Name
+		ns.Slug = upd.Slug
+		ns.Meta = upd.Meta
+		ns.Enabled = upd.Enabled
+		ns.UpdatedAt = nowPtr()
+
+		return true, nil
+	}
+}
+
+func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (bool, error) {
+	if !svc.ac.CanDeleteNamespace(ctx, ns) {
+		return false, NamespaceErrNotAllowedToUndelete()
+	}
+
+	if ns.DeletedAt != nil {
+		// namespace already deleted
+		return false, nil
+	}
+
+	ns.DeletedAt = nowPtr()
+	return true, nil
+}
+
+func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (bool, error) {
+	if !svc.ac.CanDeleteNamespace(ctx, ns) {
+		return false, NamespaceErrNotAllowedToUndelete()
+	}
+
+	if ns.DeletedAt == nil {
+		// namespace not deleted
+		return false, nil
+	}
+
+	ns.DeletedAt = nil
+	return true, nil
+}
+
+func loadNamespace(ctx context.Context, s store.Storable, namespaceID uint64) (ns *types.Namespace, err error) {
+	if namespaceID == 0 {
+		return nil, ChartErrInvalidNamespaceID()
+	}
+
+	if ns, err = store.LookupComposeNamespaceByID(ctx, s, namespaceID); errors.Is(err, store.ErrNotFound) {
+		return nil, NamespaceErrNotFound()
+	}
+
+	return
 }

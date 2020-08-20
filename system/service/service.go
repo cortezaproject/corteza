@@ -3,20 +3,20 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"go.uber.org/zap"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store"
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
+	ngStore "github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -40,16 +40,6 @@ type (
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
 	}
-
-	// storeInterface wraps generated interfaces to enable extensions
-	storeInterface interface {
-		// Include generated interfaces
-		storeGeneratedInterfaces
-
-		CountUsers(context.Context, types.UserFilter) (uint, error)
-
-		statisticsStore
-	}
 )
 
 var (
@@ -58,7 +48,7 @@ var (
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore storeInterface
+	DefaultNgStore ngStore.Storable
 
 	DefaultLogger *zap.Logger
 
@@ -117,14 +107,14 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s interface{}, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	DefaultNgStore = s.(storeInterface)
+	DefaultNgStore = s
 
 	DefaultLogger = log.Named("service")
 
