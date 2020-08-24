@@ -23,11 +23,9 @@ RELEASE_NAME           = $(BUILD_NAME).tar.gz
 RELEASE_EXTRA_FILES   ?= README.md LICENSE CONTRIBUTING.md DCO .env.example
 RELEASE_PKEY          ?= .upload-rsa
 
-
-LDFLAGS_BUILD_TIME     = -X github.com/cortezaproject/corteza-server/pkg/version.BuildTime=$(BUILD_TIME)
 LDFLAGS_VERSION        = -X github.com/cortezaproject/corteza-server/pkg/version.Version=$(BUILD_VERSION)
 LDFLAGS_EXTRA         ?=
-LDFLAGS                = -ldflags "$(LDFLAGS_BUILD_TIME) $(LDFLAGS_GIT_TAG) $(LDFLAGS_EXTRA)"
+LDFLAGS                = -ldflags "$(LDFLAGS_VERSION) $(LDFLAGS_EXTRA)"
 
 
 # Run watcher with a different event-trigger delay, eg:
