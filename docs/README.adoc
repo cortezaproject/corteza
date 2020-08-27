@@ -1,0 +1,17 @@
+# Corteza API documentation
+
+WARNING: Work in progress
+
+This is the first step in migration towards full OpenAPI standards support.`
+
+## Original/starting state (pre `2020.9`; deprecated):
+Home-brew API definition format in JSON, still available under `api/*/spec.json`.
+This is still needed for controller/request/handler codegens. Documentation generators are disabled.
+
+## Current state (`2020.9`)
+In branch `2020.12.x` we're experimenting with first step toward conversion to OpenAPI 3.0 YAML files for API
+definition. There is a converter available in https://github.com/cortezaproject/openapi3-converter[cortezaproject/openapi3-converter]
+that takes those custom YAML files and converts them to OpenAPI format.
+
+## Goal (target `2020.12`)
+Generate HTTP handlers and all auxilary code and documentation from YAML files in OpenAPI 3.0 format
