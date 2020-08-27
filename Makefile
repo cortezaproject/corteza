@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen provision
+.PHONY: pack build help qa critic vet codegen provision docs
 
 GO         = go
 GOGET      = $(GO) get -u
@@ -158,6 +158,9 @@ clean.codegen:
 
 provision:
 	$(MAKE) --directory=provision clean all
+
+docs: $(STATIK)
+	$(STATIK) -p docs -m -Z -f -src=./docs
 
 
 #######################################################################################################################
