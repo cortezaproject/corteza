@@ -49,6 +49,15 @@ func (v RecordValue) Clone() *RecordValue {
 	}
 }
 
+func (set RecordValueSet) Clone() (vv RecordValueSet) {
+	vv = make(RecordValueSet, len(vv))
+	for i := range set {
+		vv[i] = set[i].Clone()
+	}
+
+	return
+}
+
 func (set RecordValueSet) FilterByName(name string) (vv RecordValueSet) {
 	for i := range set {
 		if set[i].Name == name {

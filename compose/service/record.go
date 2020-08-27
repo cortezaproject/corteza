@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -50,7 +51,7 @@ type (
 	}
 
 	recordValuesValidator interface {
-		Run(*types.Module, *types.Record) *types.RecordValueErrorSet
+		Run(context.Context, store.Storable, *types.Module, *types.Record) *types.RecordValueErrorSet
 		UniqueChecker(fn values.UniqueChecker)
 		RecordRefChecker(fn values.ReferenceChecker)
 		UserRefChecker(fn values.ReferenceChecker)
@@ -86,6 +87,8 @@ type (
 		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
 
 		Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
+
+		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
 
 		EventEmitting(enable bool)
 	}
@@ -135,37 +138,35 @@ func (svc record) With(ctx context.Context) RecordService {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
-	validator.UniqueChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
+	validator.UniqueChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
 		if v.Ref == 0 {
 			return 0, nil
 		}
 
-		return store.ComposeRecordValueRefLookup(ctx, svc.store, m, f.Name, v.Ref)
+		return store.ComposeRecordValueRefLookup(ctx, s, m, f.Name, v.Ref)
 	})
 
-	validator.RecordRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+	validator.RecordRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {
 			return false, nil
 		}
 
-		r, err := store.LookupComposeRecordByID(ctx, svc.store, m, v.Ref)
+		r, err := store.LookupComposeRecordByID(ctx, s, m, v.Ref)
 		return r != nil, err
 	})
 
-	validator.UserRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
-		r, err := svc.store.LookupUserByID(ctx, v.Ref)
+	validator.UserRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+		r, err := store.LookupUserByID(ctx, s, v.Ref)
 		return r != nil, err
 	})
 
-	validator.FileRefChecker(func(v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+	validator.FileRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {
 			return false, nil
 		}
 
-		// @todo refactor this
-		panic("refactor this")
-		//r, err := repository.Attachment(ctx, nil).FindByID(m.NamespaceID, v.Ref)
-		//return r != nil, err
+		r, err := store.LookupComposeAttachmentByID(ctx, s, v.Ref)
+		return r != nil, err
 	})
 
 	return &record{
@@ -567,7 +568,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 
 	if svc.optEmitEvents {
 		// Handle input payload
-		if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
+		if rve = svc.procCreate(svc.ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -583,7 +584,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	new.Values = svc.setDefaultValues(m, new.Values)
 
 	// Handle payload from automation scripts
-	if rve = svc.procCreate(invokerID, m, new); !rve.IsValid() {
+	if rve = svc.procCreate(svc.ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -655,7 +656,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 
 	if svc.optEmitEvents {
 		// Handle input payload
-		if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(svc.ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -683,7 +684,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	}
 
 	// Handle payload from automation scripts
-	if rve = svc.procUpdate(invokerID, m, upd, old); !rve.IsValid() {
+	if rve = svc.procUpdate(svc.ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -732,7 +733,7 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+func (svc record) procCreate(ctx context.Context, s store.Storable, invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
 	// Mark all values as updated (new)
 	new.Values.SetUpdatedFlag(true)
 
@@ -758,7 +759,7 @@ func (svc record) procCreate(invokerID uint64, m *types.Module, new *types.Recor
 	}
 
 	// Run validation of the updated records
-	return svc.validator.Run(m, new)
+	return svc.validator.Run(ctx, s, m, new)
 }
 
 func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
@@ -782,7 +783,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 // of the update procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procUpdate(invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
+func (svc record) procUpdate(ctx context.Context, s store.Storable, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
 
@@ -821,7 +822,7 @@ func (svc record) procUpdate(invokerID uint64, m *types.Module, upd *types.Recor
 	}
 
 	// Run validation of the updated records
-	return svc.validator.Run(m, upd)
+	return svc.validator.Run(ctx, s, m, upd)
 }
 
 func (svc record) recordInfoUpdate(r *types.Record) {
@@ -1103,7 +1104,30 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 	}()
 
 	return svc.recordAction(svc.ctx, aProps, RecordActionOrganize, err)
+}
 
+// TriggerScript loads requested record sanitizes and validates values and passes all to the automation script
+//
+// For backward compatibility (of controllers), it returns module+record
+func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error) {
+	var (
+		ns, m, r, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
+	)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	original := r.Clone()
+	r.Values = values.Sanitizer().Run(m, rvs)
+	validated := values.Validator().Run(ctx, svc.store, m, r)
+
+	err = corredor.Service().Exec(ctx, script, event.RecordOnManual(r, original, m, ns, validated))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return m, r, nil
 }
 
 // Iterator loads and iterates through list of records
@@ -1213,7 +1237,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 					rec.Values = svc.setDefaultValues(m, rec.Values)
 
 					// Handle payload from automation scripts
-					if rve := svc.procCreate(invokerID, m, rec); !rve.IsValid() {
+					if rve := svc.procCreate(svc.ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
@@ -1224,7 +1248,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 					recordableAction = RecordActionIteratorUpdate
 
 					// Handle input payload
-					if rve := svc.procUpdate(invokerID, m, rec, rec); !rve.IsValid() {
+					if rve := svc.procUpdate(svc.ctx, svc.store, invokerID, m, rec, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
