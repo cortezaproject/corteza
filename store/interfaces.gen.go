@@ -7,6 +7,7 @@ package store
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
 //  - store/compose_modules.yaml
@@ -42,6 +43,7 @@ type (
 		Actionlogs
 		Applications
 		Attachments
+		ComposeAttachments
 		ComposeCharts
 		ComposeModuleFields
 		ComposeModules

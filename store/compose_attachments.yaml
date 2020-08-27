@@ -1,0 +1,34 @@
+import:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+types:
+  type: types.Attachment
+
+fields:
+  - { field: ID }
+  - { field: NamespaceID }
+  - { field: Kind }
+  - { field: Url }
+  - { field: PreviewUrl }
+  - { field: Name }
+  - { field: Meta }
+  - { field: OwnerID }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for attachment by its ID
+
+      It returns attachment even if deleted
+
+search:
+  enableSorting: false
+  enablePaging: false
+
+rdbms:
+  alias: att
+  table: compose_attachment
+  customFilterConverter: true
