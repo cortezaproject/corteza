@@ -7,6 +7,7 @@ package tests
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
 //  - store/compose_modules.yaml
@@ -44,6 +45,11 @@ func testAllGenerated(t *testing.T, s store.Storable) {
 	// Run generated tests for Attachment
 	t.Run("Attachment", func(t *testing.T) {
 		testAttachment(t, s)
+	})
+
+	// Run generated tests for ComposeAttachments
+	t.Run("ComposeAttachments", func(t *testing.T) {
+		testComposeAttachments(t, s)
 	})
 
 	// Run generated tests for ComposeCharts

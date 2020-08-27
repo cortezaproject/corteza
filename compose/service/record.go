@@ -622,7 +622,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, old, err = svc.loadRecordCombo(svc.ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
+	ns, m, old, err = loadRecordCombo(svc.ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
@@ -848,7 +848,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, del, err = svc.loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
+	ns, m, del, err = loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
 	if err != nil {
 		return nil, err
 	}
@@ -969,7 +969,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 	)
 
 	err = func() error {
-		ns, m, r, err = svc.loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
+		ns, m, r, err = loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
 		if err != nil {
 			return err
 		}
@@ -1368,7 +1368,7 @@ func (svc record) readableFields(m *types.Module) []string {
 }
 
 // loadRecordCombo Loads namespace, module and record
-func (svc record) loadRecordCombo(ctx context.Context, s store.Storable, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+func loadRecordCombo(ctx context.Context, s store.Storable, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
 		return
 	}

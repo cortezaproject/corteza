@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -38,9 +36,6 @@ type (
 		Filter      string `json:"filter"`
 
 		Sort string `json:"sort"`
-
-		// Standard helpers for paging and sorting
-		rh.PageFilter
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
