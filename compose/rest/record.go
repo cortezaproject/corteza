@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/store"
 	"net/http"
 	"path"
 	"strconv"
@@ -14,11 +15,8 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/encoder"
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/service/event"
-	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
@@ -127,7 +125,7 @@ func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{
 
 	// Temp workaround until we do proper by-module filtering for record findByID
 	if record != nil && record.ModuleID != r.ModuleID {
-		return nil, repository.ErrRecordNotFound
+		return nil, store.ErrNotFound
 	}
 
 	return ctrl.makePayload(ctx, m, record, err)
@@ -492,35 +490,8 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 	return nil, nil
 }
 
-func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerScript) (rsp interface{}, err error) {
-	var (
-		record    *types.Record
-		oldRecord *types.Record
-		module    *types.Module
-		namespace *types.Namespace
-	)
-
-	if oldRecord, err = ctrl.record.With(ctx).FindByID(r.NamespaceID, r.ModuleID, r.RecordID); err != nil {
-		return
-	}
-
-	if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
-		return
-	}
-
-	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
-		return
-	}
-
-	record = oldRecord
-	record.Values = values.Sanitizer().Run(module, r.Values)
-	validated := values.Validator().Run(module, record)
-
-	err = corredor.Service().Exec(
-		ctx,
-		r.Script,
-		event.RecordOnManual(record, oldRecord, module, namespace, validated),
-	)
+func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerScript) (interface{}, error) {
+	module, record, err := ctrl.record.TriggerScript(ctx, r.NamespaceID, r.ModuleID, r.RecordID, r.Values, r.Script)
 
 	// Script can return modified record and we'll pass it on to the caller
 	return ctrl.makePayload(ctx, module, record, err)

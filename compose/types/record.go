@@ -95,6 +95,12 @@ loop:
 	return
 }
 
+func (r Record) Clone() *Record {
+	c := &r
+	c.Values = r.Values.Clone()
+	return c
+}
+
 // Resource returns a system resource ID for this type
 func (r Record) PermissionResource() permissions.Resource {
 	return ModulePermissionResource.AppendID(r.ModuleID)
