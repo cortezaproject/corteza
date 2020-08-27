@@ -38,7 +38,7 @@ foreach ($apis as $k => $api) {
 	$apis[$k] = $api;
 }
 
-$tpl->load("README.tpl");
-$tpl->assign("apis", $apis);
-file_put_contents($dirname . "README.md", $cleanUp($tpl->get()));
-echo $dirname . "README.md\n";
+// $tpl->load("README.tpl");
+// $tpl->assign("apis", $apis);
+// file_put_contents($dirname . "README.md", $cleanUp($tpl->get()));
+// echo $dirname . "README.md\n";

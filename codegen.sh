@@ -131,6 +131,13 @@ function provision {
 	green "OK"
 }
 
+function openapidocs {
+	yellow "> openapidocs"
+	rm -f docs/static.go
+  $GOPATH/bin/statik -p docs -m -Z -f -src=./docs
+	green "OK"
+}
+
 
 function events {
   if [ ! -f "build/event-gen" ]; then
