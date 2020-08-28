@@ -2,7 +2,7 @@ package tests
 
 // This file is auto-generated.
 //
-// Template:	pkg/codegen/assets/store_test_all.gen.go
+// Template:	pkg/codegen/assets/store_test_all.gen.go.tpl
 // Definitions:
 //  - store/actionlog.yaml
 //  - store/applications.yaml
@@ -75,6 +75,16 @@ func testAllGenerated(t *testing.T, s store.Storable) {
 	// Run generated tests for ComposePages
 	t.Run("ComposePages", func(t *testing.T) {
 		testComposePages(t, s)
+	})
+
+	// Run generated tests for ComposeRecordValues
+	t.Run("ComposeRecordValues", func(t *testing.T) {
+		testComposeRecordValues(t, s)
+	})
+
+	// Run generated tests for ComposeRecords
+	t.Run("ComposeRecords", func(t *testing.T) {
+		testComposeRecords(t, s)
 	})
 
 	// Run generated tests for Credentials
