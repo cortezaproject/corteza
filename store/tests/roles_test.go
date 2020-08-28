@@ -101,7 +101,7 @@ func testRoles(t *testing.T, s store.Roles) {
 		})
 
 		t.Run("by state", func(t *testing.T) {
-			t.Run("by deleted", func(t *testing.T) {
+			t.Run("deleted", func(t *testing.T) {
 				req, prefill := truncAndFill(t, 5)
 
 				prefill[0].DeletedAt = &(prefill[0].CreatedAt)
@@ -120,7 +120,7 @@ func testRoles(t *testing.T, s store.Roles) {
 				req.Len(set, 1)
 			})
 
-			t.Run("by archived", func(t *testing.T) {
+			t.Run("archived", func(t *testing.T) {
 				req, prefill := truncAndFill(t, 5)
 
 				prefill[0].ArchivedAt = &(prefill[0].CreatedAt)
