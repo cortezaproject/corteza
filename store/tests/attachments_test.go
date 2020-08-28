@@ -5,10 +5,12 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+	"time"
 )
 
 func testAttachment(t *testing.T, s store.Attachments) {
@@ -16,31 +18,41 @@ func testAttachment(t *testing.T, s store.Attachments) {
 		ctx = context.Background()
 
 		makeNew = func(nn ...string) *types.Attachment {
-			// minimum data set for new attachment
 			name := strings.Join(nn, "")
 			return &types.Attachment{
 				ID:        id.Next(),
-				CreatedAt: *now(),
 				Name:      "handle_" + name,
+				Kind:      "test-kind" + name,
+				CreatedAt: time.Now(),
 			}
 		}
 
 		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Attachment) {
 			req := require.New(t)
 			req.NoError(s.TruncateAttachments(ctx))
-			res := makeNew()
-			req.NoError(s.CreateAttachment(ctx, res))
-			return req, res
+			attachment := makeNew()
+			req.NoError(s.CreateAttachment(ctx, attachment))
+			return req, attachment
+		}
+
+		truncAndFill = func(t *testing.T, l int) (*require.Assertions, types.AttachmentSet) {
+			req := require.New(t)
+			req.NoError(s.TruncateAttachments(ctx))
+
+			set := make([]*types.Attachment, l)
+
+			for i := 0; i < l; i++ {
+				set[i] = makeNew(string(rand.Bytes(10)))
+			}
+
+			req.NoError(s.CreateAttachment(ctx, set...))
+			return req, set
 		}
 	)
 
 	t.Run("create", func(t *testing.T) {
 		req := require.New(t)
-		attachment := &types.Attachment{
-			ID:        id.Next(),
-			CreatedAt: *now(),
-		}
-		req.NoError(s.CreateAttachment(ctx, attachment))
+		req.NoError(s.CreateAttachment(ctx, makeNew()))
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
@@ -66,11 +78,28 @@ func testAttachment(t *testing.T, s store.Attachments) {
 	})
 
 	t.Run("search", func(t *testing.T) {
-		t.Skip("not implemented")
-	})
+		t.Run("by kind", func(t *testing.T) {
+			req, prefill := truncAndFill(t, 5)
 
-	t.Run("search by *", func(t *testing.T) {
-		t.Skip("not implemented")
+			set, f, err := s.SearchAttachments(ctx, types.AttachmentFilter{Kind: prefill[0].Kind})
+			req.NoError(err)
+			req.Equal(prefill[0].Kind, f.Kind)
+			req.Len(set, 1)
+		})
+
+		// t.Run("with check", func(t *testing.T) {
+		// 	req, prefill := truncAndFill(t, 5)
+
+		// 	set, _, err := s.SearchAttachments(ctx, types.AttachmentFilter{
+		// 		Check: func(attachment *types.Attachment) (bool, error) {
+		// 			return attachment.Kind == prefill[0].Kind, nil
+		// 		},
+		// 	})
+
+		// 	req.NoError(err)
+		// 	req.Len(set, 1)
+		// 	req.Equal(prefill[0].Kind, set[0].Kind)
+		// })
 	})
 
 	t.Run("ordered search", func(t *testing.T) {
