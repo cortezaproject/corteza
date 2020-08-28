@@ -2,38 +2,119 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 )
 
 func testSettings(t *testing.T, s store.Settings) {
 	var (
 		ctx = context.Background()
-		_   = ctx
+
+		makeNew = func(nn ...string) *types.SettingValue {
+			name := strings.Join(nn, "")
+			return &types.SettingValue{
+				Name:      name,
+				OwnedBy:   id.Next(),
+				UpdatedAt: *now(),
+			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.SettingValue) {
+			req := require.New(t)
+			req.NoError(s.TruncateSettings(ctx))
+			settings := makeNew(string(rand.Bytes(10)))
+			req.NoError(s.CreateSetting(ctx, settings))
+			return req, settings
+		}
+
+		truncAndFill = func(t *testing.T, l int) (*require.Assertions, types.SettingValueSet) {
+			req := require.New(t)
+			req.NoError(s.TruncateSettings(ctx))
+
+			set := make([]*types.SettingValue, l)
+
+			for i := 0; i < l; i++ {
+				set[i] = makeNew(string(rand.Bytes(10)))
+			}
+
+			req.NoError(s.CreateSetting(ctx, set...))
+			return req, set
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
-		t.Skip("not implemented")
+		req := require.New(t)
+		req.NoError(s.CreateSetting(ctx, makeNew()))
 	})
 
-	t.Run("lookup by ID", func(t *testing.T) {
-		t.Skip("not implemented")
+	t.Run("lookup by name and ownedBy", func(t *testing.T) {
+		req, setting := truncAndCreate(t)
+
+		fetched, err := s.LookupSettingByNameOwnedBy(ctx, setting.Name, setting.OwnedBy)
+		req.NoError(err)
+		req.Equal(setting.Name, fetched.Name)
+		req.Equal(setting.OwnedBy, fetched.OwnedBy)
 	})
 
 	t.Run("update", func(t *testing.T) {
-		t.Skip("not implemented")
+		t.Skip("Should pass(afaik) but doesn't")
+
+		req, setting := truncAndCreate(t)
+		setting.Name = "new-name"
+		req.NoError(s.UpdateSetting(ctx, setting))
+
+		fetched, err := s.LookupSettingByNameOwnedBy(ctx, setting.Name, setting.OwnedBy)
+		req.NoError(err)
+		req.Equal("new-name", fetched.Name)
 	})
 
-	t.Run("delete/undelete", func(t *testing.T) {
-		t.Skip("not implemented")
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by settings", func(t *testing.T) {
+			req, setting := truncAndCreate(t)
+			req.NoError(s.DeleteSetting(ctx, setting))
+			set, _, err := s.SearchSettings(ctx, types.SettingsFilter{OwnedBy: setting.OwnedBy})
+			req.NoError(err)
+			req.Len(set, 0)
+		})
+
+		t.Run("by name and ownedBy", func(t *testing.T) {
+			req, setting := truncAndCreate(t)
+			req.NoError(s.DeleteSettingByNameOwnedBy(ctx, setting.Name, setting.OwnedBy))
+			set, _, err := s.SearchSettings(ctx, types.SettingsFilter{OwnedBy: setting.OwnedBy})
+			req.NoError(err)
+			req.Len(set, 0)
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {
-		t.Skip("not implemented")
-	})
+		t.Run("by ownedBy", func(t *testing.T) {
+			req, prefill := truncAndFill(t, 5)
 
-	t.Run("search by *", func(t *testing.T) {
-		t.Skip("not implemented")
+			set, f, err := s.SearchSettings(ctx, types.SettingsFilter{OwnedBy: prefill[0].OwnedBy})
+			req.NoError(err)
+			req.Equal(uint64(prefill[0].OwnedBy), f.OwnedBy)
+			req.Len(set, 1)
+		})
+
+		t.Run("with check", func(t *testing.T) {
+			t.Skip("Should pass(afaik) but doesn't")
+
+			req, prefill := truncAndFill(t, 5)
+
+			set, _, err := s.SearchSettings(ctx, types.SettingsFilter{
+				Check: func(setting *types.SettingValue) (bool, error) {
+					return (setting.Name == prefill[0].Name), nil
+				},
+			})
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(prefill[0].Name, set[0].Name)
+		})
 	})
 
 	t.Run("ordered search", func(t *testing.T) {
