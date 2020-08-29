@@ -58,7 +58,7 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalSettingRowScanner(rows)
 				}
 
