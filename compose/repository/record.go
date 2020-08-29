@@ -116,8 +116,13 @@ func (r record) Report(module *types.Module, metrics, dimensions, filter string)
 	} else if rows, err := r.db().Query(query, args...); err != nil {
 		return nil, errors.Wrapf(err, "can not execute report query (%s)", query)
 	} else {
+		defer rows.Close()
 		for rows.Next() {
 			result = append(result, crb.Cast(rows))
+		}
+
+		if err = rows.Err(); err != nil {
+			return nil, err
 		}
 
 		return result, nil
