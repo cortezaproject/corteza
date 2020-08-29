@@ -143,7 +143,7 @@ func (s Store) UpsertComposeRecord(ctx context.Context, m *types.Module, rr ...*
 
 // DeleteComposeRecordByID Deletes ComposeRecord from store
 func (s Store) DeleteComposeRecordByID(ctx context.Context, _ *types.Module, ID uint64) (err error) {
-	err = s.DeleteComposeRecordByID(ctx, nil, ID)
+	err = s.deleteComposeRecordByID(ctx, nil, ID)
 	if err != nil {
 		return
 	}
@@ -169,6 +169,10 @@ func (s Store) TruncateComposeRecords(ctx context.Context, _ *types.Module) (err
 	}
 
 	return
+}
+
+func (s Store) ComposeRecordReport(ctx context.Context, m *types.Module, metrics, dimensions, filter string) ([]map[string]interface{}, error) {
+	return ComposeRecordReportBuilder(&s, m, metrics, dimensions, filter).Run(ctx)
 }
 
 func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter) (query squirrel.SelectBuilder, err error) {
@@ -224,22 +228,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 				), i.Value)
 			}
 
-			field := m.Fields.FindByName(i.Value)
-
-			switch true {
-			case field.IsBoolean():
-				i.Value = fmt.Sprintf("(rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false))", i.Value)
-			case field.IsNumeric():
-				i.Value = fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", i.Value)
-			case field.IsDateTime():
-				i.Value = fmt.Sprintf("CAST(rv_%s.value AS DATETIME)", i.Value)
-			case field.IsRef():
-				i.Value = fmt.Sprintf("rv_%s.ref ", i.Value)
-			default:
-				i.Value = fmt.Sprintf("rv_%s.value ", i.Value)
-			}
-
-			return i, nil
+			return s.FieldToColumnTypeCaster(m.Fields.FindByName(i.Value), i)
 		}
 	)
 

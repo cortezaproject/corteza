@@ -95,6 +95,18 @@ func TestAstParser_Parser(t *testing.T) {
 				LNumber{Value: "2010"},
 			},
 		},
+		//{
+		//	parser: NewParser().ParseExpression,
+		//	in:     `EXTRACT(QUARTER FROM created_at)`,
+		//	tree: Function{
+		//		Name: "EXTRACT",
+		//		Arguments: ASTSet{
+		//			Keyword{Keyword: "QUARTER"},
+		//			Keyword{Keyword: "FROM"},
+		//			Ident{Value: "created_at"},
+		//		},
+		//	},
+		//},
 		{
 			parser: NewParser().ParseExpression,
 			in:     `year(created_at) != 2010 AND month(created_at) = 6`,

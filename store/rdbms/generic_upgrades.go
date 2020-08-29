@@ -63,6 +63,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 			g.AlterUsersDropOrganisation,
 			g.AlterUsersDropRelatedUser,
 		)
+		//case "compose_attachment_binds":
+		//	return g.all(ctx,
+		//		g.MigrateComposeAttachmentsToBindsTable,
+		//	)
 	}
 
 	return nil
@@ -264,3 +268,71 @@ func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error
 
 	return nil
 }
+
+//func (g genericUpgrades) MigrateComposeAttachmentsToLinksTable(ctx context.Context) error {
+//	var (
+//		err error
+//		tt  = []struct {
+//			tbl string
+//		}{
+//			{tbl: "sys_permission_rules"},
+//			{tbl: "compose_permission_rules"},
+//			{tbl: "messaging_permission_rules"},
+//		}
+//
+//		// Are there entries in the attachment_binds table?
+//		check = `SELECT COUNT(*) > 0 FROM compose_attachment_links LIMIT 1`
+//
+//		splitRecordAttachments = `
+//			INSERT INTO compose_attachment_links (
+//				   rel_namespace, rel_attachment, kind,
+//                   ref,
+//				   owned_by
+//				   created_by, updated_by, deleted_by,
+//				   created_at, updated_at, deleted_at
+//			)
+//			SELECT rel_namespace, rel_attachment, kind,
+//				   CASE WHEN kind = 'page'   THEN
+//(SELECT
+//                        WHEN kind = 'record' THEN 2
+//                        ELSE 0 END,
+//				   owned_by, 0, 0,
+//				   created_at, updated_at, deleted_at
+//			  FROM compose_attachment
+//                   INNER JOIN compose_record_Value`
+//
+//		splitPageAttachments = `
+//			INSERT INTO compose_attachment_links (
+//				   rel_namespace, rel_attachment, kind,
+//                   ref,
+//				   owned_by
+//				   created_by, updated_by, deleted_by,
+//				   created_at, updated_at, deleted_at
+//			)
+//			SELECT rel_namespace, rel_attachment, kind,
+//				   CASE WHEN kind = 'page'   THEN
+//(SELECT
+//                        WHEN kind = 'record' THEN 2
+//                        ELSE 0 END,
+//				   owned_by, 0, 0,
+//				   created_at, updated_at, deleted_at
+//			  FROM compose_attachment`
+//	)
+//
+//	g.log.Debug("splitting parts of compose_attachment to compose_attachment_links")
+//	err = g.u.Exec(ctx, split)
+//	if err != nil {
+//		return fmt.Errorf("failed to split compose_attachment: %w", err)
+//	}
+//
+//	for _, col := range []string{"rel_namespace", "kind"} {
+//		_, err = g.u.DropColumn(ctx, "compose_attachment", col)
+//		if err != nil {
+//			return fmt.Errorf("could not drop column compose_attachment.%s: %w", col, err)
+//		}
+//	}
+//
+//	g.log.Debug("compose_attachment split to compose_attachment_links")
+//
+//	return nil
+//}

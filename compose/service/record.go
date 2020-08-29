@@ -304,8 +304,7 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
-		panic("refactor")
-		//out, err = store.ComposeRecordReport(m, svc.store, metrics, dimensions, filter)
+		out, err = store.ComposeRecordReport(svc.ctx, svc.store, m, metrics, dimensions, filter)
 		return err
 	}()
 

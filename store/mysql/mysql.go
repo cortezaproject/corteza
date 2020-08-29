@@ -29,6 +29,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
 	cfg.UpsertBuilder = UpsertBuilder
+	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
 	s = new(Store)
 	if s.Store, err = rdbms.New(ctx, cfg); err != nil {

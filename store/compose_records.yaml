@@ -16,6 +16,15 @@ fields:
   - { field: UpdatedAt,                               sortable: true }
   - { field: DeletedAt,                               sortable: true }
 
+functions:
+  - name: ComposeRecordReport
+    arguments:
+      - { name: mod,        type: "*types.Module" }
+      - { name: metrics,    type: string }
+      - { name: dimensions, type: string }
+      - { name: filters,    type: string }
+    return: [ ComposeRecordsReport, error ]
+
 lookups:
   - fields: [ ID ]
     export: false

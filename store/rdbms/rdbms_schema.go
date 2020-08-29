@@ -238,6 +238,34 @@ func (Schema) ComposeAttachment() *Table {
 	)
 }
 
+//func (Schema) ComposeRecordAttachment() *Table {
+//	return TableDef("compose_record_attachments",
+//		ColumnDef("rel_attachment", ColumnTypeIdentifier),
+//		ColumnDef("rel_namespace", ColumnTypeIdentifier),
+//		ColumnDef("rel_module", ColumnTypeIdentifier),
+//		ColumnDef("rel_record", ColumnTypeIdentifier),
+//		ColumnDef("field", ColumnTypeIdentifier),
+//		ColumnDef("owned_by", ColumnTypeIdentifier),
+//		CUDTimestamps,
+//		CUDUsers,
+//
+//		PrimaryKey(IColumn("rel_attachment", "rel_namespace", "rel_module", "field")),
+//	)
+//}
+
+//func (Schema) ComposePageAttachment() *Table {
+//	return TableDef("compose_record_attachments",
+//		ColumnDef("rel_attachment", ColumnTypeIdentifier),
+//		ColumnDef("rel_namespace", ColumnTypeIdentifier),
+//		ColumnDef("rel_page", ColumnTypeIdentifier),
+//		ColumnDef("owned_by", ColumnTypeIdentifier),
+//		CUDTimestamps,
+//		CUDUsers,
+//
+//		PrimaryKey(IColumn("rel_attachment", "rel_namespace", "rel_page")),
+//	)
+//}
+
 func (Schema) ComposeChart() *Table {
 	return TableDef("compose_chart",
 		ID,
@@ -423,7 +451,6 @@ func (Schema) MessagingMessageAttachment() *Table {
 		ColumnDef("rel_attachment", ColumnTypeIdentifier),
 		PrimaryKey(IColumn("rel_message")),
 	)
-
 }
 
 func (Schema) MessagingMessageFlag() *Table {
