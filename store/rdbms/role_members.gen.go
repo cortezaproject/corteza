@@ -55,7 +55,7 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalRoleMemberRowScanner(rows)
 				}
 

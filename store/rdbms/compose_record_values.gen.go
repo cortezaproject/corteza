@@ -58,7 +58,7 @@ func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalComposeRecordValueRowScanner(_mod, rows)
 				}
 

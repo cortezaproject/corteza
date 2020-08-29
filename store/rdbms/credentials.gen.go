@@ -58,7 +58,7 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalCredentialsRowScanner(rows)
 				}
 

@@ -58,7 +58,7 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f types.ModuleFiel
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalComposeModuleFieldRowScanner(rows)
 				}
 

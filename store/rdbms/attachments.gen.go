@@ -58,7 +58,7 @@ func (s Store) SearchAttachments(ctx context.Context, f types.AttachmentFilter) 
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalAttachmentRowScanner(rows)
 				}
 

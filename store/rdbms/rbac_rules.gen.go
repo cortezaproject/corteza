@@ -55,7 +55,7 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 			}
 
 			for rows.Next() {
-				if rows.Err() == nil {
+				if err = rows.Err(); err == nil {
 					res, err = s.internalRbacRuleRowScanner(rows)
 				}
 
