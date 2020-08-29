@@ -278,11 +278,6 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) (err error) {
 			return err
 		}
 
-		// err = s.roleHook(ctx, TriggerBeforeRoleCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateRoles(ctx, s.internalRoleEncoder(res))
 		if err != nil {
 			return err
@@ -304,11 +299,6 @@ func (s Store) PartialRoleUpdate(ctx context.Context, onlyColumns []string, rr .
 		if err != nil {
 			return err
 		}
-
-		// err = s.roleHook(ctx, TriggerBeforeRoleUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateRoles(
 			ctx,
@@ -332,11 +322,6 @@ func (s Store) UpsertRole(ctx context.Context, rr ...*types.Role) (err error) {
 			return err
 		}
 
-		// err = s.roleHook(ctx, TriggerBeforeRoleUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertRoles(ctx, s.internalRoleEncoder(res)))
 		if err != nil {
 			return err
@@ -349,10 +334,6 @@ func (s Store) UpsertRole(ctx context.Context, rr ...*types.Role) (err error) {
 // DeleteRole Deletes one or more rows from roles table
 func (s Store) DeleteRole(ctx context.Context, rr ...*types.Role) (err error) {
 	for _, res := range rr {
-		// err = s.roleHook(ctx, TriggerBeforeRoleDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteRoles(ctx, squirrel.Eq{
 			s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, ""),
@@ -578,11 +559,3 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *types.Role) error
 
 	return nil
 }
-
-// func (s *Store) roleHook(ctx context.Context, key triggerKey, res *types.Role) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Role) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

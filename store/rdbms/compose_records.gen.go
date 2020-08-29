@@ -253,11 +253,6 @@ func (s Store) createComposeRecord(ctx context.Context, _mod *types.Module, rr .
 			return err
 		}
 
-		// err = s.composeRecordHook(ctx, TriggerBeforeComposeRecordCreate, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeRecords(ctx, s.internalComposeRecordEncoder(res))
 		if err != nil {
 			return err
@@ -279,11 +274,6 @@ func (s Store) partialComposeRecordUpdate(ctx context.Context, _mod *types.Modul
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeRecordHook(ctx, TriggerBeforeComposeRecordUpdate, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeRecords(
 			ctx,
@@ -307,11 +297,6 @@ func (s Store) upsertComposeRecord(ctx context.Context, _mod *types.Module, rr .
 			return err
 		}
 
-		// err = s.composeRecordHook(ctx, TriggerBeforeComposeRecordUpsert, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeRecords(ctx, s.internalComposeRecordEncoder(res)))
 		if err != nil {
 			return err
@@ -324,10 +309,6 @@ func (s Store) upsertComposeRecord(ctx context.Context, _mod *types.Module, rr .
 // deleteComposeRecord Deletes one or more rows from compose_record table
 func (s Store) deleteComposeRecord(ctx context.Context, _mod *types.Module, rr ...*types.Record) (err error) {
 	for _, res := range rr {
-		// err = s.composeRecordHook(ctx, TriggerBeforeComposeRecordDelete, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeRecords(ctx, squirrel.Eq{
 			s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
@@ -543,11 +524,3 @@ func (s *Store) checkComposeRecordConstraints(ctx context.Context, _mod *types.M
 
 	return nil
 }
-
-// func (s *Store) composeRecordHook(ctx context.Context, key triggerKey, _mod  *types.Module, res *types.Record) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, _mod  *types.Module, res *types.Record) error)(ctx, s, _mod, res)
-// 	}
-//
-// 	return nil
-// }

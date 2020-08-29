@@ -351,10 +351,12 @@ func (s Store) {{ toggleExport .Create.Export "Create" $.Types.Singular }}(ctx c
 			return err
 		}
 
-		// err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Create{{ template "extraArgsCall" . }}, res)
-		// if err != nil {
-		// 	return err
-		// }
+{{/*
+		err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Create{{ template "extraArgsCall" . }}, res)
+		if err != nil {
+			return err
+		}
+*/}}
 
 		err = s.execCreate{{ export $.Types.Plural }}(ctx, s.internal{{ export $.Types.Singular }}Encoder(res))
 		if err != nil {
@@ -380,11 +382,12 @@ func (s Store) {{ toggleExport .Update.Export "Partial" $.Types.Singular "Update
 			return err
 		}
 
-		// err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Update{{ template "extraArgsCall" . }}, res)
-		// if err != nil {
-		// 	return err
-		// }
-
+{{/*
+		err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Update{{ template "extraArgsCall" . }}, res)
+		if err != nil {
+			return err
+		}
+*/}}
 		err = s.execUpdate{{ export $.Types.Plural }}(
 			ctx,
 			{{ template "filterByPrimaryKeys" $.Fields.PrimaryKeyFields }},
@@ -411,10 +414,12 @@ func (s Store) {{ toggleExport .Delete.Export "Upsert" $.Types.Singular }}(ctx c
 			return err
 		}
 
-		// err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Upsert{{ template "extraArgsCall" . }}, res)
-		// if err != nil {
-		// 	return err
-		// }
+{{/*
+		err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Upsert{{ template "extraArgsCall" . }}, res)
+		if err != nil {
+			return err
+		}
+*/}}
 
 		err = s.config.ErrorHandler(s.execUpsert{{ export $.Types.Plural }}(ctx, s.internal{{ export $.Types.Singular }}Encoder(res)))
 		if err != nil {
@@ -430,11 +435,12 @@ func (s Store) {{ toggleExport .Delete.Export "Upsert" $.Types.Singular }}(ctx c
 // {{ toggleExport .Delete.Export "Delete" $.Types.Singular }} Deletes one or more rows from {{ $.RDBMS.Table }} table
 func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $.Types.GoType }}) (err error) {
 	for _, res := range rr {
-		// err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Delete{{ template "extraArgsCall" . }}, res)
-		// if err != nil {
-		// 	return err
-		// }
-
+{{/*
+		err = s.{{ unexport $.Types.Singular }}Hook(ctx, TriggerBefore{{ export $.Types.Singular }}Delete{{ template "extraArgsCall" . }}, res)
+		if err != nil {
+			return err
+		}
+*/}}
 		err = s.execDelete{{ export $.Types.Plural }}(ctx,{{ template "filterByPrimaryKeys" $.Fields.PrimaryKeyFields }})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -666,13 +672,15 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	return nil
 }
 
-// func (s *Store) {{ unexport $.Types.Singular }}Hook(ctx context.Context, key triggerKey{{ template "extraArgsDef" . }}, res *{{ $.Types.GoType }}) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store{{ template "extraArgsDef" . }}, res *{{ $.Types.GoType }}) error)(ctx, s{{ template "extraArgsCall" . }}, res)
-// 	}
-//
-// 	return nil
-// }
+{{/*
+func (s *Store) {{ unexport $.Types.Singular }}Hook(ctx context.Context, key triggerKey{{ template "extraArgsDef" . }}, res *{{ $.Types.GoType }}) error {
+	if fn, has := s.config.TriggerHandlers[key]; has {
+		return fn.(func (ctx context.Context, s *Store{{ template "extraArgsDef" . }}, res *{{ $.Types.GoType }}) error)(ctx, s{{ template "extraArgsCall" . }}, res)
+	}
+
+	return nil
+}
+*/}}
 
 
 {{/* ************************************************************ */}}

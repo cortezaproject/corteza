@@ -97,11 +97,6 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*types.Module
 			return err
 		}
 
-		// err = s.composeModuleFieldHook(ctx, TriggerBeforeComposeModuleFieldCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeModuleFields(ctx, s.internalComposeModuleFieldEncoder(res))
 		if err != nil {
 			return err
@@ -123,11 +118,6 @@ func (s Store) PartialComposeModuleFieldUpdate(ctx context.Context, onlyColumns 
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeModuleFieldHook(ctx, TriggerBeforeComposeModuleFieldUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeModuleFields(
 			ctx,
@@ -151,11 +141,6 @@ func (s Store) UpsertComposeModuleField(ctx context.Context, rr ...*types.Module
 			return err
 		}
 
-		// err = s.composeModuleFieldHook(ctx, TriggerBeforeComposeModuleFieldUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeModuleFields(ctx, s.internalComposeModuleFieldEncoder(res)))
 		if err != nil {
 			return err
@@ -168,10 +153,6 @@ func (s Store) UpsertComposeModuleField(ctx context.Context, rr ...*types.Module
 // DeleteComposeModuleField Deletes one or more rows from compose_module_field table
 func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*types.ModuleField) (err error) {
 	for _, res := range rr {
-		// err = s.composeModuleFieldHook(ctx, TriggerBeforeComposeModuleFieldDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeModuleFields(ctx, squirrel.Eq{
 			s.preprocessColumn("cmf.id", ""): s.preprocessValue(res.ID, ""),
@@ -366,11 +347,3 @@ func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *typ
 
 	return nil
 }
-
-// func (s *Store) composeModuleFieldHook(ctx context.Context, key triggerKey, res *types.ModuleField) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.ModuleField) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

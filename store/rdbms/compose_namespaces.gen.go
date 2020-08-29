@@ -261,11 +261,6 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 			return err
 		}
 
-		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res))
 		if err != nil {
 			return err
@@ -287,11 +282,6 @@ func (s Store) PartialComposeNamespaceUpdate(ctx context.Context, onlyColumns []
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeNamespaces(
 			ctx,
@@ -315,11 +305,6 @@ func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*types.Namespac
 			return err
 		}
 
-		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res)))
 		if err != nil {
 			return err
@@ -332,10 +317,6 @@ func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*types.Namespac
 // DeleteComposeNamespace Deletes one or more rows from compose_namespace table
 func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*types.Namespace) (err error) {
 	for _, res := range rr {
-		// err = s.composeNamespaceHook(ctx, TriggerBeforeComposeNamespaceDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeNamespaces(ctx, squirrel.Eq{
 			s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, ""),
@@ -561,11 +542,3 @@ func (s *Store) checkComposeNamespaceConstraints(ctx context.Context, res *types
 
 	return nil
 }
-
-// func (s *Store) composeNamespaceHook(ctx context.Context, key triggerKey, res *types.Namespace) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Namespace) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

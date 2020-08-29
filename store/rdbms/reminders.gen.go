@@ -254,11 +254,6 @@ func (s Store) CreateReminder(ctx context.Context, rr ...*types.Reminder) (err e
 			return err
 		}
 
-		// err = s.reminderHook(ctx, TriggerBeforeReminderCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateReminders(ctx, s.internalReminderEncoder(res))
 		if err != nil {
 			return err
@@ -280,11 +275,6 @@ func (s Store) PartialReminderUpdate(ctx context.Context, onlyColumns []string, 
 		if err != nil {
 			return err
 		}
-
-		// err = s.reminderHook(ctx, TriggerBeforeReminderUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateReminders(
 			ctx,
@@ -308,11 +298,6 @@ func (s Store) UpsertReminder(ctx context.Context, rr ...*types.Reminder) (err e
 			return err
 		}
 
-		// err = s.reminderHook(ctx, TriggerBeforeReminderUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertReminders(ctx, s.internalReminderEncoder(res)))
 		if err != nil {
 			return err
@@ -325,10 +310,6 @@ func (s Store) UpsertReminder(ctx context.Context, rr ...*types.Reminder) (err e
 // DeleteReminder Deletes one or more rows from reminders table
 func (s Store) DeleteReminder(ctx context.Context, rr ...*types.Reminder) (err error) {
 	for _, res := range rr {
-		// err = s.reminderHook(ctx, TriggerBeforeReminderDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteReminders(ctx, squirrel.Eq{
 			s.preprocessColumn("rmd.id", ""): s.preprocessValue(res.ID, ""),
@@ -556,11 +537,3 @@ func (s *Store) checkReminderConstraints(ctx context.Context, res *types.Reminde
 
 	return nil
 }
-
-// func (s *Store) reminderHook(ctx context.Context, key triggerKey, res *types.Reminder) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Reminder) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

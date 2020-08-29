@@ -254,11 +254,6 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 			return err
 		}
 
-		// err = s.applicationHook(ctx, TriggerBeforeApplicationCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateApplications(ctx, s.internalApplicationEncoder(res))
 		if err != nil {
 			return err
@@ -280,11 +275,6 @@ func (s Store) PartialApplicationUpdate(ctx context.Context, onlyColumns []strin
 		if err != nil {
 			return err
 		}
-
-		// err = s.applicationHook(ctx, TriggerBeforeApplicationUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateApplications(
 			ctx,
@@ -308,11 +298,6 @@ func (s Store) UpsertApplication(ctx context.Context, rr ...*types.Application) 
 			return err
 		}
 
-		// err = s.applicationHook(ctx, TriggerBeforeApplicationUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertApplications(ctx, s.internalApplicationEncoder(res)))
 		if err != nil {
 			return err
@@ -325,10 +310,6 @@ func (s Store) UpsertApplication(ctx context.Context, rr ...*types.Application) 
 // DeleteApplication Deletes one or more rows from applications table
 func (s Store) DeleteApplication(ctx context.Context, rr ...*types.Application) (err error) {
 	for _, res := range rr {
-		// err = s.applicationHook(ctx, TriggerBeforeApplicationDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteApplications(ctx, squirrel.Eq{
 			s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, ""),
@@ -541,11 +522,3 @@ func (s *Store) checkApplicationConstraints(ctx context.Context, res *types.Appl
 
 	return nil
 }
-
-// func (s *Store) applicationHook(ctx context.Context, key triggerKey, res *types.Application) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Application) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

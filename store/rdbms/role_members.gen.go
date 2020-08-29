@@ -86,11 +86,6 @@ func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 			return err
 		}
 
-		// err = s.roleMemberHook(ctx, TriggerBeforeRoleMemberCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateRoleMembers(ctx, s.internalRoleMemberEncoder(res))
 		if err != nil {
 			return err
@@ -112,11 +107,6 @@ func (s Store) PartialRoleMemberUpdate(ctx context.Context, onlyColumns []string
 		if err != nil {
 			return err
 		}
-
-		// err = s.roleMemberHook(ctx, TriggerBeforeRoleMemberUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateRoleMembers(
 			ctx,
@@ -140,11 +130,6 @@ func (s Store) UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 			return err
 		}
 
-		// err = s.roleMemberHook(ctx, TriggerBeforeRoleMemberUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertRoleMembers(ctx, s.internalRoleMemberEncoder(res)))
 		if err != nil {
 			return err
@@ -157,10 +142,6 @@ func (s Store) UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 // DeleteRoleMember Deletes one or more rows from role_members table
 func (s Store) DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) (err error) {
 	for _, res := range rr {
-		// err = s.roleMemberHook(ctx, TriggerBeforeRoleMemberDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteRoleMembers(ctx, squirrel.Eq{
 			s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
@@ -309,11 +290,3 @@ func (s *Store) checkRoleMemberConstraints(ctx context.Context, res *types.RoleM
 
 	return nil
 }
-
-// func (s *Store) roleMemberHook(ctx context.Context, key triggerKey, res *types.RoleMember) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.RoleMember) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

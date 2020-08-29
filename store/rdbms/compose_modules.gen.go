@@ -270,11 +270,6 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (er
 			return err
 		}
 
-		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeModules(ctx, s.internalComposeModuleEncoder(res))
 		if err != nil {
 			return err
@@ -296,11 +291,6 @@ func (s Store) PartialComposeModuleUpdate(ctx context.Context, onlyColumns []str
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeModules(
 			ctx,
@@ -324,11 +314,6 @@ func (s Store) UpsertComposeModule(ctx context.Context, rr ...*types.Module) (er
 			return err
 		}
 
-		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeModules(ctx, s.internalComposeModuleEncoder(res)))
 		if err != nil {
 			return err
@@ -341,10 +326,6 @@ func (s Store) UpsertComposeModule(ctx context.Context, rr ...*types.Module) (er
 // DeleteComposeModule Deletes one or more rows from compose_module table
 func (s Store) DeleteComposeModule(ctx context.Context, rr ...*types.Module) (err error) {
 	for _, res := range rr {
-		// err = s.composeModuleHook(ctx, TriggerBeforeComposeModuleDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeModules(ctx, squirrel.Eq{
 			s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
@@ -570,11 +551,3 @@ func (s *Store) checkComposeModuleConstraints(ctx context.Context, res *types.Mo
 
 	return nil
 }
-
-// func (s *Store) composeModuleHook(ctx context.Context, key triggerKey, res *types.Module) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Module) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

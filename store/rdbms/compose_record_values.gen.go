@@ -89,11 +89,6 @@ func (s Store) createComposeRecordValue(ctx context.Context, _mod *types.Module,
 			return err
 		}
 
-		// err = s.composeRecordValueHook(ctx, TriggerBeforeComposeRecordValueCreate, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeRecordValues(ctx, s.internalComposeRecordValueEncoder(res))
 		if err != nil {
 			return err
@@ -115,11 +110,6 @@ func (s Store) partialComposeRecordValueUpdate(ctx context.Context, _mod *types.
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeRecordValueHook(ctx, TriggerBeforeComposeRecordValueUpdate, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeRecordValues(
 			ctx,
@@ -143,11 +133,6 @@ func (s Store) upsertComposeRecordValue(ctx context.Context, _mod *types.Module,
 			return err
 		}
 
-		// err = s.composeRecordValueHook(ctx, TriggerBeforeComposeRecordValueUpsert, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeRecordValues(ctx, s.internalComposeRecordValueEncoder(res)))
 		if err != nil {
 			return err
@@ -160,10 +145,6 @@ func (s Store) upsertComposeRecordValue(ctx context.Context, _mod *types.Module,
 // deleteComposeRecordValue Deletes one or more rows from compose_record_value table
 func (s Store) deleteComposeRecordValue(ctx context.Context, _mod *types.Module, rr ...*types.RecordValue) (err error) {
 	for _, res := range rr {
-		// err = s.composeRecordValueHook(ctx, TriggerBeforeComposeRecordValueDelete, _mod, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeRecordValues(ctx, squirrel.Eq{
 			s.preprocessColumn("crv.record_id", ""): s.preprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): s.preprocessValue(res.Place, ""),
@@ -326,11 +307,3 @@ func (s *Store) checkComposeRecordValueConstraints(ctx context.Context, _mod *ty
 
 	return nil
 }
-
-// func (s *Store) composeRecordValueHook(ctx context.Context, key triggerKey, _mod  *types.Module, res *types.RecordValue) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, _mod  *types.Module, res *types.RecordValue) error)(ctx, s, _mod, res)
-// 	}
-//
-// 	return nil
-// }

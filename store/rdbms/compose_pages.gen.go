@@ -270,11 +270,6 @@ func (s Store) CreateComposePage(ctx context.Context, rr ...*types.Page) (err er
 			return err
 		}
 
-		// err = s.composePageHook(ctx, TriggerBeforeComposePageCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposePages(ctx, s.internalComposePageEncoder(res))
 		if err != nil {
 			return err
@@ -296,11 +291,6 @@ func (s Store) PartialComposePageUpdate(ctx context.Context, onlyColumns []strin
 		if err != nil {
 			return err
 		}
-
-		// err = s.composePageHook(ctx, TriggerBeforeComposePageUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposePages(
 			ctx,
@@ -324,11 +314,6 @@ func (s Store) UpsertComposePage(ctx context.Context, rr ...*types.Page) (err er
 			return err
 		}
 
-		// err = s.composePageHook(ctx, TriggerBeforeComposePageUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposePages(ctx, s.internalComposePageEncoder(res)))
 		if err != nil {
 			return err
@@ -341,10 +326,6 @@ func (s Store) UpsertComposePage(ctx context.Context, rr ...*types.Page) (err er
 // DeleteComposePage Deletes one or more rows from compose_page table
 func (s Store) DeleteComposePage(ctx context.Context, rr ...*types.Page) (err error) {
 	for _, res := range rr {
-		// err = s.composePageHook(ctx, TriggerBeforeComposePageDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposePages(ctx, squirrel.Eq{
 			s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, ""),
@@ -569,11 +550,3 @@ func (s *Store) checkComposePageConstraints(ctx context.Context, res *types.Page
 
 	return nil
 }
-
-// func (s *Store) composePageHook(ctx context.Context, key triggerKey, res *types.Page) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Page) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

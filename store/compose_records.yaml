@@ -23,7 +23,7 @@ functions:
       - { name: metrics,    type: string }
       - { name: dimensions, type: string }
       - { name: filters,    type: string }
-    return: [ ComposeRecordsReport, error ]
+    return: [ "[]map[string]interface{}", error ]
 
 lookups:
   - fields: [ ID ]

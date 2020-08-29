@@ -98,11 +98,6 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 			return err
 		}
 
-		// err = s.credentialsHook(ctx, TriggerBeforeCredentialsCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateCredentials(ctx, s.internalCredentialsEncoder(res))
 		if err != nil {
 			return err
@@ -124,11 +119,6 @@ func (s Store) PartialCredentialsUpdate(ctx context.Context, onlyColumns []strin
 		if err != nil {
 			return err
 		}
-
-		// err = s.credentialsHook(ctx, TriggerBeforeCredentialsUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateCredentials(
 			ctx,
@@ -152,11 +142,6 @@ func (s Store) UpsertCredentials(ctx context.Context, rr ...*types.Credentials) 
 			return err
 		}
 
-		// err = s.credentialsHook(ctx, TriggerBeforeCredentialsUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertCredentials(ctx, s.internalCredentialsEncoder(res)))
 		if err != nil {
 			return err
@@ -169,10 +154,6 @@ func (s Store) UpsertCredentials(ctx context.Context, rr ...*types.Credentials) 
 // DeleteCredentials Deletes one or more rows from credentials table
 func (s Store) DeleteCredentials(ctx context.Context, rr ...*types.Credentials) (err error) {
 	for _, res := range rr {
-		// err = s.credentialsHook(ctx, TriggerBeforeCredentialsDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteCredentials(ctx, squirrel.Eq{
 			s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
@@ -346,11 +327,3 @@ func (s *Store) checkCredentialsConstraints(ctx context.Context, res *types.Cred
 
 	return nil
 }
-
-// func (s *Store) credentialsHook(ctx context.Context, key triggerKey, res *types.Credentials) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Credentials) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }
