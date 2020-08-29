@@ -112,11 +112,6 @@ func (s Store) CreateComposeAttachment(ctx context.Context, rr ...*types.Attachm
 			return err
 		}
 
-		// err = s.composeAttachmentHook(ctx, TriggerBeforeComposeAttachmentCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeAttachments(ctx, s.internalComposeAttachmentEncoder(res))
 		if err != nil {
 			return err
@@ -138,11 +133,6 @@ func (s Store) PartialComposeAttachmentUpdate(ctx context.Context, onlyColumns [
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeAttachmentHook(ctx, TriggerBeforeComposeAttachmentUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeAttachments(
 			ctx,
@@ -166,11 +156,6 @@ func (s Store) UpsertComposeAttachment(ctx context.Context, rr ...*types.Attachm
 			return err
 		}
 
-		// err = s.composeAttachmentHook(ctx, TriggerBeforeComposeAttachmentUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeAttachments(ctx, s.internalComposeAttachmentEncoder(res)))
 		if err != nil {
 			return err
@@ -183,10 +168,6 @@ func (s Store) UpsertComposeAttachment(ctx context.Context, rr ...*types.Attachm
 // DeleteComposeAttachment Deletes one or more rows from compose_attachment table
 func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*types.Attachment) (err error) {
 	for _, res := range rr {
-		// err = s.composeAttachmentHook(ctx, TriggerBeforeComposeAttachmentDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeAttachments(ctx, squirrel.Eq{
 			s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
@@ -360,11 +341,3 @@ func (s *Store) checkComposeAttachmentConstraints(ctx context.Context, res *type
 
 	return nil
 }
-
-// func (s *Store) composeAttachmentHook(ctx context.Context, key triggerKey, res *types.Attachment) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Attachment) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

@@ -262,11 +262,6 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 			return err
 		}
 
-		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateComposeCharts(ctx, s.internalComposeChartEncoder(res))
 		if err != nil {
 			return err
@@ -288,11 +283,6 @@ func (s Store) PartialComposeChartUpdate(ctx context.Context, onlyColumns []stri
 		if err != nil {
 			return err
 		}
-
-		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateComposeCharts(
 			ctx,
@@ -316,11 +306,6 @@ func (s Store) UpsertComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 			return err
 		}
 
-		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertComposeCharts(ctx, s.internalComposeChartEncoder(res)))
 		if err != nil {
 			return err
@@ -333,10 +318,6 @@ func (s Store) UpsertComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 // DeleteComposeChart Deletes one or more rows from compose_chart table
 func (s Store) DeleteComposeChart(ctx context.Context, rr ...*types.Chart) (err error) {
 	for _, res := range rr {
-		// err = s.composeChartHook(ctx, TriggerBeforeComposeChartDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteComposeCharts(ctx, squirrel.Eq{
 			s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, ""),
@@ -553,11 +534,3 @@ func (s *Store) checkComposeChartConstraints(ctx context.Context, res *types.Cha
 
 	return nil
 }
-
-// func (s *Store) composeChartHook(ctx context.Context, key triggerKey, res *types.Chart) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Chart) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

@@ -112,11 +112,6 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) (e
 			return err
 		}
 
-		// err = s.attachmentHook(ctx, TriggerBeforeAttachmentCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateAttachments(ctx, s.internalAttachmentEncoder(res))
 		if err != nil {
 			return err
@@ -138,11 +133,6 @@ func (s Store) PartialAttachmentUpdate(ctx context.Context, onlyColumns []string
 		if err != nil {
 			return err
 		}
-
-		// err = s.attachmentHook(ctx, TriggerBeforeAttachmentUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateAttachments(
 			ctx,
@@ -166,11 +156,6 @@ func (s Store) UpsertAttachment(ctx context.Context, rr ...*types.Attachment) (e
 			return err
 		}
 
-		// err = s.attachmentHook(ctx, TriggerBeforeAttachmentUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertAttachments(ctx, s.internalAttachmentEncoder(res)))
 		if err != nil {
 			return err
@@ -183,10 +168,6 @@ func (s Store) UpsertAttachment(ctx context.Context, rr ...*types.Attachment) (e
 // DeleteAttachment Deletes one or more rows from attachments table
 func (s Store) DeleteAttachment(ctx context.Context, rr ...*types.Attachment) (err error) {
 	for _, res := range rr {
-		// err = s.attachmentHook(ctx, TriggerBeforeAttachmentDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteAttachments(ctx, squirrel.Eq{
 			s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
@@ -357,11 +338,3 @@ func (s *Store) checkAttachmentConstraints(ctx context.Context, res *types.Attac
 
 	return nil
 }
-
-// func (s *Store) attachmentHook(ctx context.Context, key triggerKey, res *types.Attachment) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.Attachment) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

@@ -211,11 +211,6 @@ func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) (er
 			return err
 		}
 
-		// err = s.actionlogHook(ctx, TriggerBeforeActionlogCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateActionlogs(ctx, s.internalActionlogEncoder(res))
 		if err != nil {
 			return err
@@ -357,11 +352,3 @@ func (s *Store) checkActionlogConstraints(ctx context.Context, res *actionlog.Ac
 
 	return nil
 }
-
-// func (s *Store) actionlogHook(ctx context.Context, key triggerKey, res *actionlog.Action) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *actionlog.Action) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

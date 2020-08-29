@@ -111,11 +111,6 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (er
 			return err
 		}
 
-		// err = s.settingHook(ctx, TriggerBeforeSettingCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateSettings(ctx, s.internalSettingEncoder(res))
 		if err != nil {
 			return err
@@ -137,11 +132,6 @@ func (s Store) PartialSettingUpdate(ctx context.Context, onlyColumns []string, r
 		if err != nil {
 			return err
 		}
-
-		// err = s.settingHook(ctx, TriggerBeforeSettingUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateSettings(
 			ctx,
@@ -165,11 +155,6 @@ func (s Store) UpsertSetting(ctx context.Context, rr ...*types.SettingValue) (er
 			return err
 		}
 
-		// err = s.settingHook(ctx, TriggerBeforeSettingUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertSettings(ctx, s.internalSettingEncoder(res)))
 		if err != nil {
 			return err
@@ -182,10 +167,6 @@ func (s Store) UpsertSetting(ctx context.Context, rr ...*types.SettingValue) (er
 // DeleteSetting Deletes one or more rows from settings table
 func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (err error) {
 	for _, res := range rr {
-		// err = s.settingHook(ctx, TriggerBeforeSettingDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteSettings(ctx, squirrel.Eq{
 			s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
@@ -343,11 +324,3 @@ func (s *Store) checkSettingConstraints(ctx context.Context, res *types.SettingV
 
 	return nil
 }
-
-// func (s *Store) settingHook(ctx context.Context, key triggerKey, res *types.SettingValue) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.SettingValue) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

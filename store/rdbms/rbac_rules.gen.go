@@ -86,11 +86,6 @@ func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 			return err
 		}
 
-		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateRbacRules(ctx, s.internalRbacRuleEncoder(res))
 		if err != nil {
 			return err
@@ -112,11 +107,6 @@ func (s Store) PartialRbacRuleUpdate(ctx context.Context, onlyColumns []string, 
 		if err != nil {
 			return err
 		}
-
-		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateRbacRules(
 			ctx,
@@ -140,11 +130,6 @@ func (s Store) UpsertRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 			return err
 		}
 
-		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertRbacRules(ctx, s.internalRbacRuleEncoder(res)))
 		if err != nil {
 			return err
@@ -157,10 +142,6 @@ func (s Store) UpsertRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 // DeleteRbacRule Deletes one or more rows from rbac_rules table
 func (s Store) DeleteRbacRule(ctx context.Context, rr ...*permissions.Rule) (err error) {
 	for _, res := range rr {
-		// err = s.rbacRuleHook(ctx, TriggerBeforeRbacRuleDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteRbacRules(ctx, squirrel.Eq{
 			s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): s.preprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
@@ -317,11 +298,3 @@ func (s *Store) checkRbacRuleConstraints(ctx context.Context, res *permissions.R
 
 	return nil
 }
-
-// func (s *Store) rbacRuleHook(ctx context.Context, key triggerKey, res *permissions.Rule) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *permissions.Rule) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

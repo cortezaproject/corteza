@@ -290,11 +290,6 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
 			return err
 		}
 
-		// err = s.userHook(ctx, TriggerBeforeUserCreate, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.execCreateUsers(ctx, s.internalUserEncoder(res))
 		if err != nil {
 			return err
@@ -316,11 +311,6 @@ func (s Store) PartialUserUpdate(ctx context.Context, onlyColumns []string, rr .
 		if err != nil {
 			return err
 		}
-
-		// err = s.userHook(ctx, TriggerBeforeUserUpdate, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execUpdateUsers(
 			ctx,
@@ -344,11 +334,6 @@ func (s Store) UpsertUser(ctx context.Context, rr ...*types.User) (err error) {
 			return err
 		}
 
-		// err = s.userHook(ctx, TriggerBeforeUserUpsert, res)
-		// if err != nil {
-		// 	return err
-		// }
-
 		err = s.config.ErrorHandler(s.execUpsertUsers(ctx, s.internalUserEncoder(res)))
 		if err != nil {
 			return err
@@ -361,10 +346,6 @@ func (s Store) UpsertUser(ctx context.Context, rr ...*types.User) (err error) {
 // DeleteUser Deletes one or more rows from users table
 func (s Store) DeleteUser(ctx context.Context, rr ...*types.User) (err error) {
 	for _, res := range rr {
-		// err = s.userHook(ctx, TriggerBeforeUserDelete, res)
-		// if err != nil {
-		// 	return err
-		// }
 
 		err = s.execDeleteUsers(ctx, squirrel.Eq{
 			s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, ""),
@@ -631,11 +612,3 @@ func (s *Store) checkUserConstraints(ctx context.Context, res *types.User) error
 
 	return nil
 }
-
-// func (s *Store) userHook(ctx context.Context, key triggerKey, res *types.User) error {
-// 	if fn, has := s.config.TriggerHandlers[key]; has {
-// 		return fn.(func (ctx context.Context, s *Store, res *types.User) error)(ctx, s, res)
-// 	}
-//
-// 	return nil
-// }

@@ -33,7 +33,7 @@ type (
 		// Additional custom functions
 
 		// ComposeRecordReport (custom function)
-		ComposeRecordReport(ctx context.Context, _mod *types.Module, _metrics string, _dimensions string, _filters string) (ComposeRecordsReport, error)
+		ComposeRecordReport(ctx context.Context, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error)
 	}
 )
 
@@ -86,6 +86,6 @@ func TruncateComposeRecords(ctx context.Context, s ComposeRecords, _mod *types.M
 	return s.TruncateComposeRecords(ctx, _mod)
 }
 
-func ComposeRecordReport(ctx context.Context, s ComposeRecords, _mod *types.Module, _metrics string, _dimensions string, _filters string) (ComposeRecordsReport, error) {
+func ComposeRecordReport(ctx context.Context, s ComposeRecords, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error) {
 	return s.ComposeRecordReport(ctx, _mod, _metrics, _dimensions, _filters)
 }
