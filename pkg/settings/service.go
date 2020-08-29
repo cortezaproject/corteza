@@ -130,7 +130,6 @@ func (svc service) BulkSet(ctx context.Context, vv ValueSet) (err error) {
 	} else {
 		vv = current.Changed(vv)
 	}
-
 	err = svc.repository.With(ctx).BulkSet(vv)
 	if err != nil {
 		return
