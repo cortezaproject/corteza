@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/pkg/errors"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -143,8 +144,18 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 		// Native type
 		if val, ok := kv[key]; ok {
 			// Always use pointer to value
-			if err = val.Unmarshal(structField.Addr().Interface()); err != nil {
-				return errors.Wrapf(err, "cannot decode settings for %q", key)
+			if val.Unmarshal(structField.Addr().Interface()) != nil {
+				// Try to get numbers encoded as strings...
+				var tmp interface{}
+				if val.Unmarshal(&tmp) != nil {
+					return err
+				}
+
+				switch cnv := tmp.(type) {
+				case string:
+					num, _ := strconv.ParseUint(cnv, 10, 64)
+					structField.SetUint(num)
+				}
 			}
 		}
 	}
