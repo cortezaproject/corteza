@@ -19,14 +19,14 @@ type (
 	}
 
 	IdentHandler    func(ident Ident) (Ident, error)
-	FunctionHandler func(ident Function) (Function, error)
+	FunctionHandler func(ident Function) (ASTNode, error)
 )
 
 // NewParser returns a new instance of Parser.
 func NewParser() *Parser {
 	p := &Parser{
 		OnIdent:    func(ident Ident) (Ident, error) { return ident, nil },
-		OnFunction: func(ident Function) (Function, error) { return ident, nil },
+		OnFunction: func(ident Function) (ASTNode, error) { return ident, nil },
 	}
 
 	return p

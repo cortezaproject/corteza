@@ -116,3 +116,25 @@ func (n LString) ToSql() (string, []interface{}, error) {
 func (n LNumber) ToSql() (string, []interface{}, error) {
 	return n.Value, nil, nil
 }
+
+func (n NodeF) ToSql() (string, []interface{}, error) {
+	var (
+		// used for sprintf to complete the base expression
+		fArgs []interface{}
+
+		// collection of al args from ToSql() that
+		// are passed on to the caller
+		adtArgs []interface{}
+	)
+
+	for _, s := range n.Arguments {
+		if fa, aa, err := s.ToSql(); err != nil {
+			return "", nil, err
+		} else {
+			fArgs = append(fArgs, fa)
+			adtArgs = append(adtArgs, aa...)
+		}
+	}
+
+	return fmt.Sprintf(n.Expr, fArgs...), adtArgs, nil
+}

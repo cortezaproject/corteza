@@ -29,6 +29,11 @@ type (
 		DeleteComposeRecordByID(ctx context.Context, _mod *types.Module, ID uint64) error
 
 		TruncateComposeRecords(ctx context.Context, _mod *types.Module) error
+
+		// Additional custom functions
+
+		// ComposeRecordReport (custom function)
+		ComposeRecordReport(ctx context.Context, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error)
 	}
 )
 
@@ -79,4 +84,8 @@ func DeleteComposeRecordByID(ctx context.Context, s ComposeRecords, _mod *types.
 // TruncateComposeRecords Deletes all ComposeRecords from store
 func TruncateComposeRecords(ctx context.Context, s ComposeRecords, _mod *types.Module) error {
 	return s.TruncateComposeRecords(ctx, _mod)
+}
+
+func ComposeRecordReport(ctx context.Context, s ComposeRecords, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error) {
+	return s.ComposeRecordReport(ctx, _mod, _metrics, _dimensions, _filters)
 }

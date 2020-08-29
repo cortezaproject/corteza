@@ -2,7 +2,6 @@ package ql
 
 import (
 	"fmt"
-
 	"github.com/Masterminds/squirrel"
 )
 
@@ -16,7 +15,7 @@ type (
 	}
 
 	ASTSet   []ASTNode // Stream of comma delimited nodes
-	ASTNodes []ASTNode // Stream of un-delimited nodes
+	ASTNodes []ASTNode // Stream of space delimited nodes
 
 	Columns []Column
 
@@ -58,6 +57,11 @@ type (
 	Function struct {
 		Name      string
 		Arguments ASTSet
+	}
+
+	NodeF struct {
+		Expr      string
+		Arguments []ASTNode
 	}
 )
 
@@ -128,7 +132,11 @@ func (nn ASTNodes) Validate() (err error) {
 }
 
 func (nn ASTNodes) String() (out string) {
-	for _, n := range nn {
+	for i, n := range nn {
+		if i > 0 {
+			out = out + "  "
+		}
+
 		out = out + n.String()
 	}
 
@@ -170,6 +178,13 @@ func (nn Columns) Strings() (out []string) {
 
 	return
 }
+
+func MakeFormattedNode(expr string, nn ...ASTNode) *NodeF {
+	return &NodeF{Expr: expr, Arguments: nn}
+}
+
+func (n NodeF) Validate() (err error) { return }
+func (n NodeF) String() string        { return n.Expr }
 
 func validate(nn []ASTNode) (err error) {
 	if len(nn) == 0 {

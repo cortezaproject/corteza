@@ -22,9 +22,13 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			Name:        "testComposeRecords",
 			CreatedAt:   time.Now(),
 			Fields: types.ModuleFieldSet{
-				&types.ModuleField{Kind: "string", Name: "f1"},
-				&types.ModuleField{Kind: "string", Name: "f2"},
-				&types.ModuleField{Kind: "string", Name: "f3"},
+				&types.ModuleField{Kind: "String", Name: "str1"},
+				&types.ModuleField{Kind: "String", Name: "str2"},
+				&types.ModuleField{Kind: "String", Name: "str3"},
+				&types.ModuleField{Kind: "Number", Name: "num1"},
+				&types.ModuleField{Kind: "Number", Name: "num2"},
+				&types.ModuleField{Kind: "Number", Name: "num3"},
+				&types.ModuleField{Kind: "DateTime", Name: "dt1"},
 			},
 		}
 
@@ -69,9 +73,9 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, rr := truncAndCreate(t, makeNew(
-			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
-			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
-			&types.RecordValue{Name: "f3", Value: "v3", Ref: 3},
+			&types.RecordValue{Name: "str1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "str2", Value: "v2", Ref: 2},
+			&types.RecordValue{Name: "str3", Value: "v3", Ref: 3},
 		))
 		rec := rr[0]
 
@@ -82,7 +86,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.Nil(fetched.UpdatedAt)
 		req.Nil(fetched.DeletedAt)
 		req.Len(fetched.Values, len(rec.Values))
-		req.Equal("f2", fetched.Values[1].Name)
+		req.Equal("str2", fetched.Values[1].Name)
 		req.Equal("v2", fetched.Values[1].Value)
 		req.Equal(uint64(2), fetched.Values[1].Ref)
 	})
@@ -126,8 +130,8 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 
 	t.Run("update values", func(t *testing.T) {
 		req, rr := truncAndCreate(t, makeNew(
-			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
-			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
+			&types.RecordValue{Name: "str1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "str2", Value: "v2", Ref: 2},
 		))
 		rec := rr[0]
 
@@ -142,7 +146,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 
 		rec.Values[0].Value = "vv10"
 		rec.Values[1].Value = "vv20"
-		rec.Values = append(rec.Values, &types.RecordValue{Name: "f3", Value: "vv30", Ref: 3})
+		rec.Values = append(rec.Values, &types.RecordValue{Name: "str3", Value: "vv30", Ref: 3})
 		rec.Values.SetRecordID(rec.ID)
 
 		req.NoError(s.UpdateComposeRecord(ctx, mod, rec))
@@ -151,14 +155,14 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.NoError(err)
 		req.Equal(rec.OwnedBy, updated.OwnedBy)
 		req.Len(updated.Values, len(rec.Values))
-		req.Equal("f2", updated.Values[1].Name)
+		req.Equal("str2", updated.Values[1].Name)
 		req.Equal("vv20", updated.Values[1].Value)
 	})
 
 	t.Run("soft delete values", func(t *testing.T) {
 		req, rr := truncAndCreate(t, makeNew(
-			&types.RecordValue{Name: "f1", Value: "v1", Ref: 1},
-			&types.RecordValue{Name: "f2", Value: "v2", Ref: 2},
+			&types.RecordValue{Name: "str1", Value: "v1", Ref: 1},
+			&types.RecordValue{Name: "str2", Value: "v2", Ref: 2},
 		))
 		rec := rr[0]
 		rec.DeletedAt = &rec.CreatedAt
@@ -214,14 +218,14 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				set types.RecordSet
 
 				req, _ = truncAndCreate(t,
-					makeNew(&types.RecordValue{Name: "f1", Value: "v1"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "f1", Value: "v2"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "f1", Value: "v3"}, &types.RecordValue{Name: "f2", Value: "same"}, &types.RecordValue{Name: "f3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "f1", Value: "v4"}, &types.RecordValue{Name: "f2", Value: "same"}),
-					makeNew(&types.RecordValue{Name: "f1", Value: "v5"}, &types.RecordValue{Name: "f2", Value: "same"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str2", Value: "same"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str2", Value: "same"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str2", Value: "same"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v4"}, &types.RecordValue{Name: "str2", Value: "same"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v5"}, &types.RecordValue{Name: "str2", Value: "same"}),
 
 					// Add one additional record with deleted values
-					makeNew(&types.RecordValue{Name: "f1", Value: "v6", DeletedAt: now()}, &types.RecordValue{Name: "f2", Value: "deleted", DeletedAt: now()}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v6", DeletedAt: now()}, &types.RecordValue{Name: "str2", Value: "deleted", DeletedAt: now()}),
 				)
 
 				f = types.RecordFilter{
@@ -230,25 +234,77 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				}
 			)
 
-			f.Query = `f1 = 'v1'`
+			f.Query = `str1 = 'v1'`
 			set, _, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
 			req.Len(set, 1)
 
-			f.Query = `f2 = 'same'`
+			f.Query = `str2 = 'same'`
 			set, _, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
 			req.Len(set, 5)
 
-			f.Query = `f2 = 'different'`
+			f.Query = `str2 = 'different'`
 			set, _, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
 			req.Len(set, 0)
 
-			f.Query = `f3 = 'three' AND f1 = 'v1'`
+			f.Query = `str3 = 'three' AND str1 = 'v1'`
 			set, _, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
 			req.Len(set, 1)
 		})
 	})
+
+	t.Run("report", func(t *testing.T) {
+		var (
+			err error
+
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-01-01"}, &types.RecordValue{Name: "num1", Value: "1"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-01-01"}, &types.RecordValue{Name: "num1", Value: "2"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-01-01"}, &types.RecordValue{Name: "num1", Value: "3"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-05-01"}, &types.RecordValue{Name: "num1", Value: "4"}),
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-05-01"}, &types.RecordValue{Name: "num1", Value: "5"}),
+
+				// Add one additional record with deleted values
+				makeNew(&types.RecordValue{Name: "dt1", Value: "2020-05-01", DeletedAt: now()}, &types.RecordValue{Name: "num1", Value: "6", DeletedAt: now()}, &types.RecordValue{Name: "str2", Value: "deleted", DeletedAt: now()}),
+			)
+
+			report []map[string]interface{}
+		)
+
+		report, err = s.ComposeRecordReport(ctx, mod, "MAX(num1)", "QUARTER(dt1)", "")
+		req.NoError(err)
+		req.Len(report, 3)
+
+		// @todo find a way to compare the results
+
+		//expected := []map[string]interface{}{
+		//	{"count": 3, "dimension_0": 1, "metric_0": 3},
+		//	{"count": 2, "dimension_0": 2, "metric_0": 5},
+		//	{"count": 1, "dimension_0": nil, "metric_0": nil},
+		//}
+		//
+		////spew.Dump(report, expected)
+		//req.True(
+		//	reflect.DeepEqual(report, expected),
+		//	"report does not match expected results:\n%#v\n%#v", report, expected)
+
+		report, err = s.ComposeRecordReport(ctx, mod, "COUNT(num1)", "YEAR(dt1)", "")
+		req.NoError(err)
+
+		report, err = s.ComposeRecordReport(ctx, mod, "SUM(num1)", "DATE(dt1)", "")
+		req.NoError(err)
+
+		report, err = s.ComposeRecordReport(ctx, mod, "MIN(num1)", "DATE(NOW())", "")
+		req.NoError(err)
+
+		report, err = s.ComposeRecordReport(ctx, mod, "AVG(num1)", "DATE(NOW())", "")
+		req.NoError(err)
+
+		// Note that not all functions are compatible across all backends
+
+	})
+
 }

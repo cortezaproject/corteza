@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
@@ -87,6 +88,14 @@ type (
 		//
 		//
 		UniqueConstraintCheck bool
+
+		// FunctionHandler takes care of translation & transformation of (sql) functions
+		// and their parameters
+		//
+		// Functions are used in filters and aggregations
+		SqlFunctionHandler func(f ql.Function) (ql.ASTNode, error)
+
+		CastModuleFieldToColumnType func(field ModuleFieldTypeDetector, ident ql.Ident) (ql.Ident, error)
 	}
 
 	Store struct {
@@ -105,6 +114,13 @@ type (
 		GetContext(context.Context, interface{}, string, ...interface{}) error
 		QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 		QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	}
+
+	ModuleFieldTypeDetector interface {
+		IsBoolean() bool
+		IsNumeric() bool
+		IsDateTime() bool
+		IsRef() bool
 	}
 
 	dbTransactionMaker interface {
@@ -308,6 +324,22 @@ func (s Store) preprocessValue(val interface{}, p string) interface{} {
 	default:
 		panic(fmt.Sprintf("unknown preprocessor %q used for value %v", p, val))
 	}
+}
+
+// SqlFunctionHandler calls configured sql function handler if set
+// otherwise returns passed arguments directly
+func (s Store) SqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
+	if s.config.SqlFunctionHandler == nil {
+		return f, nil
+	}
+
+	return s.config.SqlFunctionHandler(f)
+}
+
+// FieldToColumnTypeCaster calls configured field type caster if set
+// otherwise returns passed arguments directly
+func (s Store) FieldToColumnTypeCaster(f ModuleFieldTypeDetector, i ql.Ident) (ql.Ident, error) {
+	return s.config.CastModuleFieldToColumnType(f, i)
 }
 
 // tx begins a new db transaction and handles it's retries when possible
