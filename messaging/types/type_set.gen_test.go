@@ -14,6 +14,96 @@ import (
 	"testing"
 )
 
+func TestAttachmentSetWalk(t *testing.T) {
+	var (
+		value = make(AttachmentSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Attachment) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Attachment) error { return fmt.Errorf("walk error") }))
+}
+
+func TestAttachmentSetFilter(t *testing.T) {
+	var (
+		value = make(AttachmentSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Attachment) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Attachment) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Attachment) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestAttachmentSetIDs(t *testing.T) {
+	var (
+		value = make(AttachmentSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(Attachment)
+	value[1] = new(Attachment)
+	value[2] = new(Attachment)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestChannelSetWalk(t *testing.T) {
 	var (
 		value = make(ChannelSet, 3)
@@ -428,96 +518,6 @@ func TestMessageSetIDs(t *testing.T) {
 	value[0] = new(Message)
 	value[1] = new(Message)
 	value[2] = new(Message)
-	// set ids
-	value[0].ID = 1
-	value[1].ID = 2
-	value[2].ID = 3
-
-	// Find existing
-	{
-		val := value.FindByID(2)
-		req.Equal(uint64(2), val.ID)
-	}
-
-	// Find non-existing
-	{
-		val := value.FindByID(4)
-		req.Nil(val)
-	}
-
-	// List IDs from set
-	{
-		val := value.IDs()
-		req.Equal(len(val), len(value))
-	}
-}
-
-func TestMessageAttachmentSetWalk(t *testing.T) {
-	var (
-		value = make(MessageAttachmentSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*MessageAttachment) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*MessageAttachment) error { return fmt.Errorf("walk error") }))
-}
-
-func TestMessageAttachmentSetFilter(t *testing.T) {
-	var (
-		value = make(MessageAttachmentSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*MessageAttachment) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*MessageAttachment) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*MessageAttachment) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
-func TestMessageAttachmentSetIDs(t *testing.T) {
-	var (
-		value = make(MessageAttachmentSet, 3)
-		req   = require.New(t)
-	)
-
-	// construct objects
-	value[0] = new(MessageAttachment)
-	value[1] = new(MessageAttachment)
-	value[2] = new(MessageAttachment)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2

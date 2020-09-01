@@ -17,8 +17,8 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 		makeNew = func(nn ...string) *types.RoleMember {
 			// minimum data set for new RoleMember
 			return &types.RoleMember{
-				RoleID:        id.Next(),
-				UserID:        id.Next(),
+				RoleID: id.Next(),
+				UserID: id.Next(),
 			}
 		}
 
@@ -62,7 +62,7 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 			req.Len(roleMembers, 0)
 		})
 
-		t.Run("by RoleID and UserID", func(t *testing.T) {
+		t.Run("by RoleID and OwnerID", func(t *testing.T) {
 			req, roleMember := truncAndCreate(t)
 			req.NoError(s.DeleteRoleMemberByUserIDRoleID(ctx, roleMember.UserID, roleMember.RoleID))
 			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
@@ -75,14 +75,14 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 
 	// 	newID := id.Next()
 	// 	roleMember = &types.RoleMember{
-	// 		UserID:        roleMember.UserID,
+	// 		OwnerID:        roleMember.OwnerID,
 	// 		RoleID:        newID,
 	// 	}
 	// 	req.NoError(s.UpdateRoleMember(ctx, roleMember))
 
-	// 	updated, f, err := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID})
+	// 	updated, f, err := s.SearchRoleMembers(ctx, types.RoleMemberFilter{OwnerID: roleMember.OwnerID})
 	// 	req.NoError(err)
-	// 	req.Equal(updated[0].UserID, f.UserID)
+	// 	req.Equal(updated[0].OwnerID, f.OwnerID)
 	// })
 
 	// t.Run("search", func(t *testing.T) {

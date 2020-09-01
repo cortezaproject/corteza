@@ -126,9 +126,9 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		}
 
 		att = &types.Attachment{
-			ID:     factory.Sonyflake.NextID(),
-			UserID: currentUserID,
-			Name:   strings.TrimSpace(name),
+			ID:      factory.Sonyflake.NextID(),
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
 		}
 
 		err = svc.create(name, size, fh, att)

@@ -64,6 +64,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 			g.AlterUsersDropOrganisation,
 			g.AlterUsersDropRelatedUser,
 		)
+	case "messaging_attachment":
+		return g.all(ctx,
+			g.AlterMessageAttachmentsRenameOwner,
+		)
 		//case "compose_attachment_binds":
 		//	return g.all(ctx,
 		//		g.MigrateComposeAttachmentsToBindsTable,
@@ -337,3 +341,8 @@ func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error
 //
 //	return nil
 //}
+
+func (g genericUpgrades) AlterMessageAttachmentsRenameOwner(ctx context.Context) error {
+	_, err := g.u.RenameColumn(ctx, "messaging_attachment", "rel_user", "rel_owner")
+	return err
+}

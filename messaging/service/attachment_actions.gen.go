@@ -175,7 +175,7 @@ func (p attachmentActionProps) serialize() actionlog.Meta {
 		m.Set("attachment.url", p.attachment.Url, true)
 		m.Set("attachment.previewUrl", p.attachment.PreviewUrl, true)
 		m.Set("attachment.meta", p.attachment.Meta, true)
-		m.Set("attachment.userID", p.attachment.UserID, true)
+		m.Set("attachment.ownerID", p.attachment.OwnerID, true)
 		m.Set("attachment.ID", p.attachment.ID, true)
 	}
 	if p.channel != nil {
@@ -239,7 +239,7 @@ func (p attachmentActionProps) tr(in string, err error) string {
 				p.attachment.Url,
 				p.attachment.PreviewUrl,
 				p.attachment.Meta,
-				p.attachment.UserID,
+				p.attachment.OwnerID,
 				p.attachment.ID,
 			),
 		)
@@ -247,7 +247,7 @@ func (p attachmentActionProps) tr(in string, err error) string {
 		pairs = append(pairs, "{attachment.url}", fns(p.attachment.Url))
 		pairs = append(pairs, "{attachment.previewUrl}", fns(p.attachment.PreviewUrl))
 		pairs = append(pairs, "{attachment.meta}", fns(p.attachment.Meta))
-		pairs = append(pairs, "{attachment.userID}", fns(p.attachment.UserID))
+		pairs = append(pairs, "{attachment.ownerID}", fns(p.attachment.OwnerID))
 		pairs = append(pairs, "{attachment.ID}", fns(p.attachment.ID))
 	}
 

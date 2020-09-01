@@ -1,5 +1,5 @@
 types:
-  MessageAttachment:
+  Attachment:
   Mention:
   MessageFlag:
   Message:

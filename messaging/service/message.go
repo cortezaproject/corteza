@@ -655,7 +655,7 @@ func (svc message) preloadMentions(mm types.MessageSet) (err error) {
 func (svc message) preloadAttachments(mm types.MessageSet) (err error) {
 	var (
 		ids []uint64
-		aa  types.MessageAttachmentSet
+		aa  types.AttachmentSet
 	)
 
 	err = mm.Walk(func(m *types.Message) error {
@@ -672,15 +672,17 @@ func (svc message) preloadAttachments(mm types.MessageSet) (err error) {
 	if aa, err = svc.attachment.FindAttachmentByMessageID(ids...); err != nil {
 		return
 	} else {
-		return aa.Walk(func(a *types.MessageAttachment) error {
-			if a.MessageID > 0 {
-				if m := mm.FindByID(a.MessageID); m != nil {
-					m.Attachment = &a.Attachment
-				}
-			}
-
-			return nil
-		})
+		_ = aa
+		//return aa.Walk(func(a *types.Attachment) error {
+		//	if a.MessageID > 0 {
+		//		if m := mm.FindByID(a.MessageID); m != nil {
+		//			m.Attachment = &a.Attachment
+		//		}
+		//	}
+		//
+		//	return nil
+		//})
+		return
 	}
 }
 

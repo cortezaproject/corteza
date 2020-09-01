@@ -16,7 +16,7 @@ type (
 		With(ctx context.Context, db *factory.DB) AttachmentRepository
 
 		FindAttachmentByID(id uint64) (*types.Attachment, error)
-		FindAttachmentByMessageID(IDs ...uint64) (types.MessageAttachmentSet, error)
+		FindAttachmentByMessageID(IDs ...uint64) (types.AttachmentSet, error)
 
 		CreateAttachment(mod *types.Attachment) (*types.Attachment, error)
 		DeleteAttachmentByID(id uint64) error
@@ -96,8 +96,8 @@ func (r attachment) findOneBy(field string, value interface{}) (*types.Attachmen
 	return p, nil
 }
 
-func (r attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.MessageAttachmentSet, err error) {
-	rval = types.MessageAttachmentSet{}
+func (r attachment) FindAttachmentByMessageID(IDs ...uint64) (rval types.AttachmentSet, err error) {
+	rval = types.AttachmentSet{}
 
 	if len(IDs) == 0 {
 		return

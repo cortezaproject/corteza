@@ -24,7 +24,7 @@ props:
   - name: url
   - name: attachment
     type: "*types.Attachment"
-    fields: [ name, url, previewUrl, meta, userID, ID ]
+    fields: [ name, url, previewUrl, meta, ownerID, ID ]
   - name: channel
     type: "*types.Channel"
     fields: [ name, topic, type, ID ]

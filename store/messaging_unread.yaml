@@ -1,0 +1,19 @@
+import:
+  - github.com/cortezaproject/corteza-server/messaging/types
+
+types:
+  type: types.Unread
+
+fields:
+  - { field: ChannelID,     type: uint64, isPrimaryKey: true }
+  - { field: ReplyTo,       type: uint64, isPrimaryKey: true }
+  - { field: UserID,        type: uint64, isPrimaryKey: true }
+  - { field: LastMessageID, type: uint64 }
+  - { field: Count,         type: uint32 }
+
+rdbms:
+  alias: mur
+  table: messaging_unread
+
+search:
+  enable: false

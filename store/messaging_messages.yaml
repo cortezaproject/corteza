@@ -1,0 +1,34 @@
+import:
+  - github.com/cortezaproject/corteza-server/messaging/types
+
+types:
+  type: types.Message
+
+fields:
+  - { field: ID }
+  - { field: Type }
+  - { field: Message }
+  - { field: Meta }
+  - { field: UserID }
+  - { field: ChannelID }
+  - { field: ReplyTo }
+  - { field: Replies }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for attachment by its ID
+
+      It returns attachment even if deleted
+
+rdbms:
+  alias: msg
+  table: messaging_messages
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
