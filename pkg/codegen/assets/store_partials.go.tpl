@@ -44,6 +44,6 @@
 
 {{ define "extraArgsCall" }}
     {{- range .Arguments -}}
-	   , _{{ .Name }}
+	   , _{{ .Name }}{{ if (hasPrefix "..." .Type) }}...{{ end }}
     {{- end -}}
 {{ end }}
