@@ -46,7 +46,7 @@ func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (p
 // for next page of results
 func (s Store) QueryRbacRules(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*permissions.Rule) (bool, error),
 ) ([]*permissions.Rule, uint, *permissions.Rule, error) {
 	var (

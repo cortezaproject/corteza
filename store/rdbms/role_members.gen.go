@@ -46,7 +46,7 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 // for next page of results
 func (s Store) QueryRoleMembers(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.RoleMember) (bool, error),
 ) ([]*types.RoleMember, uint, *types.RoleMember, error) {
 	var (

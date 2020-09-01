@@ -27,7 +27,7 @@ var _ = errors.Is
 // for next page of results
 func (s Store) QueryMessagingUnreads(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Unread) (bool, error),
 ) ([]*types.Unread, uint, *types.Unread, error) {
 	var (

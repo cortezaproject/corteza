@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfReminders(
 // for next page of results
 func (s Store) QueryReminders(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Reminder) (bool, error),
 ) ([]*types.Reminder, uint, *types.Reminder, error) {
 	var (

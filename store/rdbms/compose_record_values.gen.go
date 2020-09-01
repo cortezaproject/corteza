@@ -49,7 +49,7 @@ func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module
 // for next page of results
 func (s Store) QueryComposeRecordValues(
 	ctx context.Context, _mod *types.Module,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.RecordValue) (bool, error),
 ) ([]*types.RecordValue, uint, *types.RecordValue, error) {
 	var (

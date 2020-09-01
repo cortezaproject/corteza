@@ -37,7 +37,7 @@ type (
 
 	recordReportBuilderStoreQuerier interface {
 		SelectBuilder(string, ...string) squirrel.SelectBuilder
-		Query(context.Context, squirrel.SelectBuilder) (*sql.Rows, error)
+		Query(context.Context, squirrel.Sqlizer) (*sql.Rows, error)
 		SqlFunctionHandler(f ql.Function) (ql.ASTNode, error)
 		FieldToColumnTypeCaster(f ModuleFieldTypeDetector, i ql.Ident) (ql.Ident, error)
 	}

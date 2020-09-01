@@ -49,7 +49,7 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 // for next page of results
 func (s Store) QuerySettings(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.SettingValue) (bool, error),
 ) ([]*types.SettingValue, uint, *types.SettingValue, error) {
 	var (

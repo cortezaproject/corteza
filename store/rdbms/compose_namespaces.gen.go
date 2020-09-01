@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfComposeNamespaces(
 // for next page of results
 func (s Store) QueryComposeNamespaces(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Namespace) (bool, error),
 ) ([]*types.Namespace, uint, *types.Namespace, error) {
 	var (

@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfUsers(
 // for next page of results
 func (s Store) QueryUsers(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.User) (bool, error),
 ) ([]*types.User, uint, *types.User, error) {
 	var (

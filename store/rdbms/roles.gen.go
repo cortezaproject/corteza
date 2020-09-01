@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfRoles(
 // for next page of results
 func (s Store) QueryRoles(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Role) (bool, error),
 ) ([]*types.Role, uint, *types.Role, error) {
 	var (
