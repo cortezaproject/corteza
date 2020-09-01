@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
@@ -134,8 +136,8 @@ const (
 
 	DefaultSliceCapacity = 1000
 
-	MinRefetchLimit = 10
-	MaxRefetches    = 100
+	MinEnsureFetchLimit = 10
+	MaxRefetches        = 100
 )
 
 func New(ctx context.Context, cfg *Config) (*Store, error) {
@@ -209,6 +211,12 @@ func (s Store) Query(ctx context.Context, q squirrel.SelectBuilder) (*sql.Rows, 
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
 
+	//println("############################################################")
+	//println(query)
+	//println("############################################################")
+	//fmt.Printf("%v\n", args)
+	//println("############################################################")
+
 	return s.db.QueryContext(ctx, query, args...)
 }
 
@@ -228,6 +236,12 @@ func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
 	if err != nil {
 		return err
 	}
+
+	//println("############################################################")
+	//println(query)
+	//println("############################################################")
+	//fmt.Printf("%v\n", args)
+	//println("############################################################")
 
 	_, err = s.db.ExecContext(ctx, query, args...)
 	return err
@@ -410,6 +424,41 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// Sleep (with a bit of kickback) before doing next retry
 		time.Sleep(50 * time.Duration(try*50))
 	}
+}
+
+func setCursorCond(q squirrel.SelectBuilder, cursor *filter.PagingCursor) squirrel.SelectBuilder {
+	if cursor != nil && len(cursor.Keys()) > 0 {
+		const cursorTpl = `(%s) %s (?%s)`
+		op := ">"
+		if cursor.Reverse {
+			op = "<"
+		}
+
+		pred := fmt.Sprintf(cursorTpl, strings.Join(cursor.Keys(), ", "), op, strings.Repeat(", ?", len(cursor.Keys())-1))
+		q = q.Where(pred, cursor.Values()...)
+	}
+
+	return q
+}
+
+func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, ss ...string) (squirrel.SelectBuilder, error) {
+	var (
+		sortable = slice.ToStringBoolMap(ss)
+		sqlSort  = make([]string, len(sort))
+	)
+	for i, c := range sort {
+		if sortable[c.Column] {
+			sqlSort[i] = sort[i].Column
+		} else {
+			return q, fmt.Errorf("could not sort by unknown column: %s", c.Column)
+		}
+
+		if sort[i].Descending {
+			sqlSort[i] += " DESC"
+		}
+	}
+
+	return q.OrderBy(sqlSort...), nil
 }
 
 // TxNoRetry - Transaction retry handler

@@ -20,62 +20,64 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeRbacRuleCreate triggerKey = "rbacRuleBeforeCreate"
-	TriggerBeforeRbacRuleUpdate triggerKey = "rbacRuleBeforeUpdate"
-	TriggerBeforeRbacRuleUpsert triggerKey = "rbacRuleBeforeUpsert"
-	TriggerBeforeRbacRuleDelete triggerKey = "rbacRuleBeforeDelete"
-)
-
 // SearchRbacRules returns all matching rows
 //
 // This function calls convertRbacRuleFilter with the given
 // permissions.RuleFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (permissions.RuleSet, permissions.RuleFilter, error) {
-	var scap uint
-	q := s.rbacRulesSelectBuilder()
-
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
-
 	var (
-		set = make([]*permissions.Rule, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *permissions.Rule
-				rows, err = s.Query(ctx, q)
-			)
+		err error
+		set []*permissions.Rule
+		q   squirrel.SelectBuilder
+	)
+	q = s.rbacRulesSelectBuilder()
 
-			if err != nil {
-				return err
-			}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QueryRbacRules(ctx, q, nil)
+		return err
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalRbacRuleRowScanner(rows)
-				}
+	}())
+}
 
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
+// QueryRbacRules queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryRbacRules(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*permissions.Rule) (bool, error),
+) ([]*permissions.Rule, uint, *permissions.Rule, error) {
+	var (
+		set = make([]*permissions.Rule, 0, DefaultSliceCapacity)
+		res *permissions.Rule
 
-					return err
-				}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-				// If check function is set, call it and act accordingly
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalRbacRuleRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // CreateRbacRule creates one or more rows in rbac_rules table

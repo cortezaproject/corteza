@@ -81,9 +81,12 @@ type (
 		Alias string `yaml:"alias,omitempty"`
 		Table string `yaml:"table,omitempty"`
 
-		CustomRowScanner      bool `yaml:"customRowScanner"`
-		CustomFilterConverter bool `yaml:"customFilterConverter"`
-		CustomEncoder         bool `yaml:"customEncoder"`
+		CustomRowScanner        bool `yaml:"customRowScanner"`
+		CustomFilterConverter   bool `yaml:"customFilterConverter"`
+		CustomSortConverter     bool `yaml:"customSortConverter"`
+		CustomCursorCollector   bool `yaml:"customCursorCollector"`
+		CustomPostLoadProcessor bool `yaml:"customPostLoadProcessor"`
+		CustomEncoder           bool `yaml:"customEncoder"`
 	}
 
 	storeTypeFunctionsDef struct {

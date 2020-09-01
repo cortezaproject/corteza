@@ -96,6 +96,17 @@ func (set SortExprSet) Validate(cc ...string) error {
 	return nil
 }
 
+// Get returns sort expression from set if exists
+func (set SortExprSet) Get(col string) *SortExpr {
+	for _, e := range set {
+		if e.Column == col {
+			return e
+		}
+	}
+
+	return nil
+}
+
 // Clone returns cloned sort expression set
 func (set SortExprSet) Clone() (out SortExprSet) {
 	out = make([]*SortExpr, len(set))

@@ -17,224 +17,205 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"strings"
 )
 
 var _ = errors.Is
-
-const (
-	TriggerBeforeUserCreate triggerKey = "userBeforeCreate"
-	TriggerBeforeUserUpdate triggerKey = "userBeforeUpdate"
-	TriggerBeforeUserUpsert triggerKey = "userBeforeUpsert"
-	TriggerBeforeUserDelete triggerKey = "userBeforeDelete"
-)
 
 // SearchUsers returns all matching rows
 //
 // This function calls convertUserFilter with the given
 // types.UserFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserSet, types.UserFilter, error) {
-	var scap uint
-	q, err := s.convertUserFilter(f)
+	var (
+		err error
+		set []*types.User
+		q   squirrel.SelectBuilder
+	)
+	q, err = s.convertUserFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
-
-	scap = f.Limit
 
 	// Cleanup anything we've accidentally received...
 	f.PrevPage, f.NextPage = nil, nil
 
 	// When cursor for a previous page is used it's marked as reversed
 	// This tells us to flip the descending flag on all used sort keys
-	reverseCursor := f.PageCursor != nil && f.PageCursor.Reverse
-
-	if err := f.Sort.Validate(s.sortableUserColumns()...); err != nil {
-		return nil, f, fmt.Errorf("could not validate sort: %v", err)
-	}
+	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
 	// If paging with reverse cursor, change the sorting
 	// direction for all columns we're sorting by
-	sort := f.Sort.Clone()
-	if reverseCursor {
-		sort.Reverse()
+	curSort := f.Sort.Clone()
+	if reversedCursor {
+		curSort.Reverse()
+	}
+
+	return set, f, s.config.ErrorHandler(func() error {
+		set, err = s.fetchFullPageOfUsers(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
+
+		if err != nil {
+			return err
+		}
+
+		if f.Limit > 0 && len(set) > 0 {
+			if f.PageCursor != nil && (!f.PageCursor.Reverse || uint(len(set)) == f.Limit) {
+				f.PrevPage = s.collectUserCursorValues(set[0], curSort.Columns()...)
+				f.PrevPage.Reverse = true
+			}
+
+			// Less items fetched then requested by page-limit
+			// not very likely there's another page
+			f.NextPage = s.collectUserCursorValues(set[len(set)-1], curSort.Columns()...)
+		}
+
+		f.PageCursor = nil
+		return nil
+	}())
+}
+
+// fetchFullPageOfUsers collects all requested results.
+//
+// Function applies:
+//  - cursor conditions (where ...)
+//  - sorting rules (order by ...)
+//  - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn). Function then moves cursor to the last item fetched
+func (s Store) fetchFullPageOfUsers(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	sort filter.SortExprSet,
+	cursor *filter.PagingCursor,
+	limit uint,
+	check func(*types.User) (bool, error),
+) ([]*types.User, error) {
+	var (
+		set  = make([]*types.User, 0, DefaultSliceCapacity)
+		aux  []*types.User
+		last *types.User
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedCursor = cursor != nil && cursor.Reverse
+
+		// copy of the select builder
+		tryQuery squirrel.SelectBuilder
+
+		fetched uint
+		err     error
+	)
+
+	// Make sure we always end our sort by primary keys
+	if sort.Get("id") == nil {
+		sort = append(sort, &filter.SortExpr{Column: "id"})
 	}
 
 	// Apply sorting expr from filter to query
-	if len(sort) > 0 {
-		sqlSort := make([]string, len(sort))
-		for i := range sort {
-			sqlSort[i] = sort[i].Column
-			if sort[i].Descending {
-				sqlSort[i] += " DESC"
-			}
+	if q, err = setOrderBy(q, sort, s.sortableUserColumns()...); err != nil {
+		return nil, err
+	}
+
+	for try := 0; try < MaxRefetches; try++ {
+		tryQuery = setCursorCond(q, cursor)
+		if limit > 0 {
+			tryQuery = tryQuery.Limit(uint64(limit))
 		}
 
-		q = q.OrderBy(sqlSort...)
+		if aux, fetched, last, err = s.QueryUsers(ctx, tryQuery, check); err != nil {
+			return nil, err
+		}
+
+		if limit > 0 && uint(len(aux)) >= limit {
+			// we should use only as much as requested
+			set = append(set, aux[0:limit]...)
+			break
+		} else {
+			set = append(set, aux...)
+		}
+
+		// if limit is not set or we've already collected enough items
+		// we can break the loop right away
+		if limit == 0 || fetched == 0 || fetched < limit {
+			break
+		}
+
+		// In case limit is set very low and we've missed records in the first fetch,
+		// make sure next fetch limit is a bit higher
+		if limit < MinEnsureFetchLimit {
+			limit = MinEnsureFetchLimit
+		}
+
+		// @todo improve strategy for collecting next page with lower limit
+
+		// Point cursor to the last fetched element
+		if cursor = s.collectUserCursorValues(last, sort.Columns()...); cursor == nil {
+			break
+		}
 	}
 
-	if scap == 0 {
-		scap = DefaultSliceCapacity
+	if reversedCursor {
+		// Cursor for previous page was used
+		// Fetched set needs to be reverseCursor because we've forced a descending order to
+		// get the previous page
+		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
 	}
 
+	return set, nil
+}
+
+// QueryUsers queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryUsers(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*types.User) (bool, error),
+) ([]*types.User, uint, *types.User, error) {
 	var (
-		set = make([]*types.User, 0, scap)
-		// fetches rows and scans them into types.User resource this is then passed to Check function on filter
-		// to help determine if fetched resource fits or not
-		//
-		// Note that limit is passed explicitly and is not necessarily equal to filter's limit. We want
-		// to keep that value intact.
-		//
-		// The value for cursor is used and set directly from/to the filter!
-		//
-		// It returns total number of fetched pages and modifies PageCursor value for paging
-		fetchPage = func(cursor *filter.PagingCursor, limit uint) (fetched uint, err error) {
-			var (
-				res *types.User
+		set = make([]*types.User, 0, DefaultSliceCapacity)
+		res *types.User
 
-				// Make a copy of the select query builder so that we don't change
-				// the original query
-				slct = q.Options()
-			)
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-			if limit > 0 {
-				slct = slct.Limit(uint64(limit))
-
-				if cursor != nil && len(cursor.Keys()) > 0 {
-					const cursorTpl = `(%s) %s (?%s)`
-					op := ">"
-					if cursor.Reverse {
-						op = "<"
-					}
-
-					pred := fmt.Sprintf(cursorTpl, strings.Join(cursor.Keys(), ", "), op, strings.Repeat(", ?", len(cursor.Keys())-1))
-					slct = slct.Where(pred, cursor.Values()...)
-				}
-			}
-
-			rows, err := s.Query(ctx, slct)
-			if err != nil {
-				return
-			}
-
-			for rows.Next() {
-				fetched++
-
-				if rows.Err() == nil {
-					res, err = s.internalUserRowScanner(rows)
-				}
-
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
-
-					return
-				}
-
-				// If check function is set, call it and act accordingly
-
-				if f.Check != nil {
-					var chk bool
-					if chk, err = f.Check(res); err != nil {
-						if cerr := rows.Close(); cerr != nil {
-							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
-						}
-
-						return
-					} else if !chk {
-						// did not pass the check
-						// go with the next row
-						continue
-					}
-				}
-				set = append(set, res)
-
-				if f.Limit > 0 {
-					if uint(len(set)) >= f.Limit {
-						// make sure we do not fetch more than requested!
-						break
-					}
-				}
-			}
-
-			err = rows.Close()
-			return
-		}
-
-		fetch = func() error {
-			var (
-				// how many items were actually fetched
-				fetched uint
-
-				// starting offset & limit are from filter arg
-				// note that this will have to be improved with key-based pagination
-				limit = f.Limit
-
-				// Copy cursor value
-				//
-				// This is where we'll start fetching and this value will be overwritten when
-				// results come back
-				cursor = f.PageCursor
-
-				lastSetFull bool
-			)
-
-			for refetch := 0; refetch < MaxRefetches; refetch++ {
-				if fetched, err = fetchPage(cursor, limit); err != nil {
-					return err
-				}
-
-				// if limit is not set or we've already collected enough items
-				// we can break the loop right away
-				if limit == 0 || fetched == 0 || fetched < limit {
-					break
-				}
-
-				if uint(len(set)) >= f.Limit {
-					// we should return as much as requested
-					set = set[0:f.Limit]
-					lastSetFull = true
-					break
-				}
-
-				// In case limit is set very low and we've missed records in the first fetch,
-				// make sure next fetch limit is a bit higher
-				if limit < MinRefetchLimit {
-					limit = MinRefetchLimit
-				}
-
-				// @todo it might be good to implement different kind of strategies
-				//       (beyond min-refetch-limit above) that can adjust limit on
-				//       retry to more optimal number
-			}
-
-			if reverseCursor {
-				// Cursor for previous page was used
-				// Fetched set needs to be reverseCursor because we've forced a descending order to
-				// get the previus page
-				for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
-					set[i], set[j] = set[j], set[i]
-				}
-			}
-
-			if f.Limit > 0 && len(set) > 0 {
-				if f.PageCursor != nil && (!f.PageCursor.Reverse || lastSetFull) {
-					f.PrevPage = s.collectUserCursorValues(set[0], sort.Columns()...)
-					f.PrevPage.Reverse = true
-				}
-
-				// Less items fetched then requested by page-limit
-				// not very likely there's another page
-				f.NextPage = s.collectUserCursorValues(set[len(set)-1], sort.Columns()...)
-			}
-
-			f.PageCursor = nil
-			return nil
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalUserRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		// If check function is set, call it and act accordingly
+		if check != nil {
+			if chk, err := check(res); err != nil {
+				return nil, 0, nil, err
+			} else if !chk {
+				// did not pass the check
+				// go with the next row
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // LookupUserByID searches for user by ID
@@ -535,34 +516,56 @@ func (s Store) internalUserEncoder(res *types.User) store.Payload {
 	}
 }
 
+// collectUserCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// Known issue:
+//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+//   undeleted items)
 func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.PagingCursor {
 	var (
 		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 
+		// All known primary key columns
+
+		pkId bool
+
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
 				case "id":
 					cursor.Set(c, res.ID, false)
+
+					pkId = true
 				case "email":
 					cursor.Set(c, res.Email, false)
 					hasUnique = true
+
 				case "username":
 					cursor.Set(c, res.Username, false)
 					hasUnique = true
+
 				case "name":
 					cursor.Set(c, res.Name, false)
+
 				case "handle":
 					cursor.Set(c, res.Handle, false)
 					hasUnique = true
+
 				case "created_at":
 					cursor.Set(c, res.CreatedAt, false)
+
 				case "updated_at":
 					cursor.Set(c, res.UpdatedAt, false)
+
 				case "suspended_at":
 					cursor.Set(c, res.SuspendedAt, false)
+
 				case "deleted_at":
 					cursor.Set(c, res.DeletedAt, false)
 
@@ -572,10 +575,8 @@ func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.Pa
 	)
 
 	collect(cc...)
-	if !hasUnique {
-		collect(
-			"id",
-		)
+	if !hasUnique || !(pkId && true) {
+		collect("id")
 	}
 
 	return cursor

@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -62,6 +63,32 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			}
 
 			return req, rr
+		}
+
+		stringifyValues = func(set types.RecordSet, fields ...string) string {
+			var out string
+			for r := range set {
+				if r > 0 {
+					out += ";"
+				}
+
+				for f := range fields {
+					if f > 0 {
+						out += ","
+					}
+
+					v := set[r].Values.Get(fields[f], 0)
+					if v != nil {
+						out += v.Value
+					} else {
+						out += "<NULL>"
+					}
+
+				}
+
+			}
+
+			return out
 		}
 	)
 
@@ -253,6 +280,92 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			set, _, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
 			req.Len(set, 1)
+		})
+
+		t.Run("sorted", func(t *testing.T) {
+			var (
+				err error
+				set types.RecordSet
+
+				req, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
+				)
+
+				f = types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: mod.NamespaceID,
+				}
+			)
+
+			req.NoError(f.Sort.Set("str1"))
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Equal("v1,three;v2,three;v3,three;v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
+
+			req.NoError(f.Sort.Set("str1 DESC"))
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Equal("v5,<NULL>;v4,<NULL>;v3,three;v2,three;v1,three", stringifyValues(set, "str1", "str3"))
+
+			req.NoError(f.Sort.Set("str3"))
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Equal("<NULL>,v4;<NULL>,v5;three,v1;three,v2;three,v3", stringifyValues(set, "str3", "str1"))
+
+			req.NoError(f.Sort.Set("str3 DESC"))
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Equal("three,v1;three,v2;three,v3;<NULL>,v4;<NULL>,v5", stringifyValues(set, "str3", "str1"))
+
+			req.NoError(f.Sort.Set("str3 DESC, str1 DESC"))
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Equal("three,v3;three,v2;three,v1;<NULL>,v5;<NULL>,v4", stringifyValues(set, "str3", "str1"))
+		})
+
+		t.Run("paged", func(t *testing.T) {
+			var (
+				err error
+				set types.RecordSet
+
+				req, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
+				)
+
+				f = types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: mod.NamespaceID,
+				}
+			)
+
+			req.NoError(f.Sort.Set("str1"))
+			f.Limit = 3
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+			req.Equal("v1,three;v2,three;v3,three", stringifyValues(set, "str1", "str3"))
+
+			f.PageCursor = f.NextPage
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.Equal("v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
+			req.NoError(err)
+
+			req.NoError(f.Sort.Set("str3 DESC"))
+			f.PageCursor = nil
+			f.Limit = 1
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			spew.Dump(f)
+			req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
+			req.NoError(err)
 		})
 	})
 

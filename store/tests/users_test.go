@@ -53,6 +53,20 @@ func testUsers(t *testing.T, s store.Users) {
 			return req, set
 		}
 
+		stringifySetRange = func(set types.UserSet) string {
+			if len(set) == 0 {
+				return ""
+			}
+
+			var out = set[0].Handle[7:]
+
+			if len(set) > 1 {
+				out += ".." + set[len(set)-1].Handle[7:]
+			}
+
+			return out
+		}
+
 		// in case we need some quick old-school debugging
 		//dbg := func(uu ...*types.User) {
 		//	for i, u := range uu {
@@ -216,8 +230,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 3)
 			req.NotNil(f.NextPage)
 			req.Nil(f.PrevPage)
-			req.Equal("handle_01", set[0].Handle)
-			req.Equal("handle_03", set[2].Handle)
+			req.Equal("01..03", stringifySetRange(set))
 
 			// 2nd page
 			f.Limit = 6
@@ -227,8 +240,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 6)
 			req.NotNil(f.NextPage)
 			req.NotNil(f.PrevPage)
-			req.Equal("handle_04", set[0].Handle)
-			req.Equal("handle_09", set[5].Handle)
+			req.Equal("04..09", stringifySetRange(set))
 
 			// 3rd, last page (1 item left)
 			f.Limit = 2
@@ -238,7 +250,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 1)
 			req.NotNil(f.NextPage)
 			req.NotNil(f.PrevPage)
-			req.Equal("handle_10", set[0].Handle)
+			req.Equal("10", stringifySetRange(set))
 
 			// try and go pass the last page
 			f.PageCursor = f.NextPage
@@ -254,8 +266,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 3)
 			req.NotNil(f.NextPage)
 			req.NotNil(f.PrevPage)
-			req.Equal("handle_07", set[0].Handle)
-			req.Equal("handle_09", set[2].Handle)
+			req.Equal("07..09", stringifySetRange(set))
 
 			// still in reverse, next 6 items
 			f.Limit = 5
@@ -265,8 +276,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 5)
 			req.NotNil(f.NextPage)
 			req.NotNil(f.PrevPage)
-			req.Equal("handle_02", set[0].Handle)
-			req.Equal("handle_06", set[4].Handle)
+			req.Equal("02..06", stringifySetRange(set))
 
 			// still in reverse, last 5 items (actually, we'll only get 1)
 			f.Limit = 5
@@ -276,7 +286,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 1)
 			req.Nil(f.PrevPage)
 			req.NotNil(f.NextPage)
-			req.Equal("handle_01", set[0].Handle)
+			req.Equal("01", stringifySetRange(set))
 		})
 
 		t.Run("with keyed paging and multi-key sorting", func(t *testing.T) {

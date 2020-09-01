@@ -72,7 +72,7 @@ func (p *PagingCursor) String() string {
 	var o = "<"
 
 	for i, key := range p.keys {
-		o += fmt.Sprintf("%s: %s, ", key, p.values[i])
+		o += fmt.Sprintf("%s: %v, ", key, p.values[i])
 	}
 
 	if p.Reverse {
