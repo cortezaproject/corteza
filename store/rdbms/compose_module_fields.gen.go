@@ -49,7 +49,7 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f types.ModuleFiel
 // for next page of results
 func (s Store) QueryComposeModuleFields(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.ModuleField) (bool, error),
 ) ([]*types.ModuleField, uint, *types.ModuleField, error) {
 	var (

@@ -242,7 +242,7 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 // for next page of results
 func (s Store) {{ export "query" $.Types.Plural }} (
 	ctx context.Context{{ template "extraArgsDef" . }},
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*{{ $.Types.GoType }}) (bool, error),
 ) ([]*{{ $.Types.GoType }}, uint, *{{ $.Types.GoType }}, error) {
 	var (

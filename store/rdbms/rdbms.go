@@ -205,7 +205,7 @@ func (s *Store) Connect(ctx context.Context) error {
 	return err
 }
 
-func (s Store) Query(ctx context.Context, q squirrel.SelectBuilder) (*sql.Rows, error) {
+func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error) {
 	query, args, err := q.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("could not build query: %w", err)

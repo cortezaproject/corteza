@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfComposeCharts(
 // for next page of results
 func (s Store) QueryComposeCharts(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Chart) (bool, error),
 ) ([]*types.Chart, uint, *types.Chart, error) {
 	var (

@@ -174,7 +174,7 @@ func (s Store) fetchFullPageOfActionlogs(
 // for next page of results
 func (s Store) QueryActionlogs(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*actionlog.Action) (bool, error),
 ) ([]*actionlog.Action, uint, *actionlog.Action, error) {
 	var (

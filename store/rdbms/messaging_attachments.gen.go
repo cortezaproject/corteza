@@ -49,7 +49,7 @@ func (s Store) SearchMessagingAttachments(ctx context.Context, f types.Attachmen
 // for next page of results
 func (s Store) QueryMessagingAttachments(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Attachment) (bool, error),
 ) ([]*types.Attachment, uint, *types.Attachment, error) {
 	var (

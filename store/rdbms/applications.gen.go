@@ -173,7 +173,7 @@ func (s Store) fetchFullPageOfApplications(
 // for next page of results
 func (s Store) QueryApplications(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Application) (bool, error),
 ) ([]*types.Application, uint, *types.Application, error) {
 	var (

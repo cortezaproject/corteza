@@ -49,7 +49,7 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 // for next page of results
 func (s Store) QueryCredentials(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Credentials) (bool, error),
 ) ([]*types.Credentials, uint, *types.Credentials, error) {
 	var (

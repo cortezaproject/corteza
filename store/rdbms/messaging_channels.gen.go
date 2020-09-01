@@ -170,7 +170,7 @@ func (s Store) fetchFullPageOfMessagingChannels(
 // for next page of results
 func (s Store) QueryMessagingChannels(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Channel) (bool, error),
 ) ([]*types.Channel, uint, *types.Channel, error) {
 	var (

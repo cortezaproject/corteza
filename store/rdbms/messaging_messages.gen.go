@@ -46,7 +46,7 @@ func (s Store) SearchMessagingMessages(ctx context.Context, f types.MessageFilte
 // for next page of results
 func (s Store) QueryMessagingMessages(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Message) (bool, error),
 ) ([]*types.Message, uint, *types.Message, error) {
 	var (

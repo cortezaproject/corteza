@@ -172,7 +172,7 @@ func (s Store) fetchFullPageOfComposeRecords(
 // for next page of results
 func (s Store) QueryComposeRecords(
 	ctx context.Context, _mod *types.Module,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.Record) (bool, error),
 ) ([]*types.Record, uint, *types.Record, error) {
 	var (

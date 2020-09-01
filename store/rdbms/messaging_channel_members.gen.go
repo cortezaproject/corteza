@@ -46,7 +46,7 @@ func (s Store) SearchMessagingChannelMembers(ctx context.Context, f types.Channe
 // for next page of results
 func (s Store) QueryMessagingChannelMembers(
 	ctx context.Context,
-	q squirrel.SelectBuilder,
+	q squirrel.Sqlizer,
 	check func(*types.ChannelMember) (bool, error),
 ) ([]*types.ChannelMember, uint, *types.ChannelMember, error) {
 	var (
