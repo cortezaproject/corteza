@@ -20,79 +20,78 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeComposeAttachmentCreate triggerKey = "composeAttachmentBeforeCreate"
-	TriggerBeforeComposeAttachmentUpdate triggerKey = "composeAttachmentBeforeUpdate"
-	TriggerBeforeComposeAttachmentUpsert triggerKey = "composeAttachmentBeforeUpsert"
-	TriggerBeforeComposeAttachmentDelete triggerKey = "composeAttachmentBeforeDelete"
-)
-
 // SearchComposeAttachments returns all matching rows
 //
 // This function calls convertComposeAttachmentFilter with the given
 // types.AttachmentFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchComposeAttachments(ctx context.Context, f types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error) {
-	var scap uint
-	q, err := s.convertComposeAttachmentFilter(f)
+	var (
+		err error
+		set []*types.Attachment
+		q   squirrel.SelectBuilder
+	)
+	q, err = s.convertComposeAttachmentFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QueryComposeAttachments(ctx, q, f.Check)
+		return err
 
+	}())
+}
+
+// QueryComposeAttachments queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryComposeAttachments(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*types.Attachment) (bool, error),
+) ([]*types.Attachment, uint, *types.Attachment, error) {
 	var (
-		set = make([]*types.Attachment, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *types.Attachment
-				rows, err = s.Query(ctx, q)
-			)
+		set = make([]*types.Attachment, 0, DefaultSliceCapacity)
+		res *types.Attachment
 
-			if err != nil {
-				return err
-			}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalComposeAttachmentRowScanner(rows)
-				}
-
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
-
-					return err
-				}
-
-				// If check function is set, call it and act accordingly
-
-				if f.Check != nil {
-					if chk, err := f.Check(res); err != nil {
-						if cerr := rows.Close(); cerr != nil {
-							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
-						}
-
-						return err
-					} else if !chk {
-						// did not pass the check
-						// go with the next row
-						continue
-					}
-				}
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalComposeAttachmentRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		// If check function is set, call it and act accordingly
+		if check != nil {
+			if chk, err := check(res); err != nil {
+				return nil, 0, nil, err
+			} else if !chk {
+				// did not pass the check
+				// go with the next row
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // LookupComposeAttachmentByID searches for attachment by its ID

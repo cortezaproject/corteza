@@ -20,79 +20,78 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeSettingCreate triggerKey = "settingBeforeCreate"
-	TriggerBeforeSettingUpdate triggerKey = "settingBeforeUpdate"
-	TriggerBeforeSettingUpsert triggerKey = "settingBeforeUpsert"
-	TriggerBeforeSettingDelete triggerKey = "settingBeforeDelete"
-)
-
 // SearchSettings returns all matching rows
 //
 // This function calls convertSettingFilter with the given
 // types.SettingsFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (types.SettingValueSet, types.SettingsFilter, error) {
-	var scap uint
-	q, err := s.convertSettingFilter(f)
+	var (
+		err error
+		set []*types.SettingValue
+		q   squirrel.SelectBuilder
+	)
+	q, err = s.convertSettingFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QuerySettings(ctx, q, f.Check)
+		return err
 
+	}())
+}
+
+// QuerySettings queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QuerySettings(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*types.SettingValue) (bool, error),
+) ([]*types.SettingValue, uint, *types.SettingValue, error) {
 	var (
-		set = make([]*types.SettingValue, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *types.SettingValue
-				rows, err = s.Query(ctx, q)
-			)
+		set = make([]*types.SettingValue, 0, DefaultSliceCapacity)
+		res *types.SettingValue
 
-			if err != nil {
-				return err
-			}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalSettingRowScanner(rows)
-				}
-
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
-
-					return err
-				}
-
-				// If check function is set, call it and act accordingly
-
-				if f.Check != nil {
-					if chk, err := f.Check(res); err != nil {
-						if cerr := rows.Close(); cerr != nil {
-							err = fmt.Errorf("could not close rows (%v) after check error: %w", cerr, err)
-						}
-
-						return err
-					} else if !chk {
-						// did not pass the check
-						// go with the next row
-						continue
-					}
-				}
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalSettingRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		// If check function is set, call it and act accordingly
+		if check != nil {
+			if chk, err := check(res); err != nil {
+				return nil, 0, nil, err
+			} else if !chk {
+				// did not pass the check
+				// go with the next row
+				continue
+			}
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // LookupSettingByNameOwnedBy searches for settings by name and owner

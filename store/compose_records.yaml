@@ -40,6 +40,9 @@ rdbms:
   alias: crd
   table: compose_record
   customFilterConverter: true
+  customSortConverter: true
+  customCursorCollector: true
+  customPostLoadProcessor: true
 
 search:
   export: false

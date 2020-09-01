@@ -20,65 +20,67 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeCredentialsCreate triggerKey = "credentialsBeforeCreate"
-	TriggerBeforeCredentialsUpdate triggerKey = "credentialsBeforeUpdate"
-	TriggerBeforeCredentialsUpsert triggerKey = "credentialsBeforeUpsert"
-	TriggerBeforeCredentialsDelete triggerKey = "credentialsBeforeDelete"
-)
-
 // SearchCredentials returns all matching rows
 //
 // This function calls convertCredentialsFilter with the given
 // types.CredentialsFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter) (types.CredentialsSet, types.CredentialsFilter, error) {
-	var scap uint
-	q, err := s.convertCredentialsFilter(f)
+	var (
+		err error
+		set []*types.Credentials
+		q   squirrel.SelectBuilder
+	)
+	q, err = s.convertCredentialsFilter(f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QueryCredentials(ctx, q, nil)
+		return err
 
+	}())
+}
+
+// QueryCredentials queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryCredentials(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*types.Credentials) (bool, error),
+) ([]*types.Credentials, uint, *types.Credentials, error) {
 	var (
-		set = make([]*types.Credentials, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *types.Credentials
-				rows, err = s.Query(ctx, q)
-			)
+		set = make([]*types.Credentials, 0, DefaultSliceCapacity)
+		res *types.Credentials
 
-			if err != nil {
-				return err
-			}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalCredentialsRowScanner(rows)
-				}
-
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
-
-					return err
-				}
-
-				// If check function is set, call it and act accordingly
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalCredentialsRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // LookupCredentialsByID searches for credentials by ID

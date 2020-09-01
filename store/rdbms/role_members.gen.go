@@ -20,62 +20,64 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeRoleMemberCreate triggerKey = "roleMemberBeforeCreate"
-	TriggerBeforeRoleMemberUpdate triggerKey = "roleMemberBeforeUpdate"
-	TriggerBeforeRoleMemberUpsert triggerKey = "roleMemberBeforeUpsert"
-	TriggerBeforeRoleMemberDelete triggerKey = "roleMemberBeforeDelete"
-)
-
 // SearchRoleMembers returns all matching rows
 //
 // This function calls convertRoleMemberFilter with the given
 // types.RoleMemberFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error) {
-	var scap uint
-	q := s.roleMembersSelectBuilder()
-
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
-
 	var (
-		set = make([]*types.RoleMember, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *types.RoleMember
-				rows, err = s.Query(ctx, q)
-			)
+		err error
+		set []*types.RoleMember
+		q   squirrel.SelectBuilder
+	)
+	q = s.roleMembersSelectBuilder()
 
-			if err != nil {
-				return err
-			}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QueryRoleMembers(ctx, q, nil)
+		return err
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalRoleMemberRowScanner(rows)
-				}
+	}())
+}
 
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
+// QueryRoleMembers queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryRoleMembers(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	check func(*types.RoleMember) (bool, error),
+) ([]*types.RoleMember, uint, *types.RoleMember, error) {
+	var (
+		set = make([]*types.RoleMember, 0, DefaultSliceCapacity)
+		res *types.RoleMember
 
-					return err
-				}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-				// If check function is set, call it and act accordingly
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalRoleMemberRowScanner(rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // CreateRoleMember creates one or more rows in role_members table

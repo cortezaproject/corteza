@@ -5,10 +5,17 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
+)
+
+const (
+	composeRecordValueAliasPfx = "rv_"
+	composeRecordValueJoinTpl  = "compose_record_value AS {alias} ON ({alias}.record_id = crd.id AND {alias}.name = '{field}' AND {alias}.deleted_at IS NULL)"
 )
 
 // @todo support for partitioned records (records are partitioned into multiple record tables
@@ -33,11 +40,6 @@ func (s Store) LookupComposeRecordByID(ctx context.Context, _ *types.Module, id 
 	res, err = s.lookupComposeRecordByID(ctx, nil, id)
 	if err != nil {
 		return
-	}
-
-	res.Values, _, err = s.searchComposeRecordValues(ctx, nil, types.RecordValueFilter{RecordID: []uint64{id}})
-	if err != nil {
-		return nil, err
 	}
 
 	return
@@ -222,10 +224,10 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 			}
 
 			if !alreadyJoined(i.Value) {
-				query = query.LeftJoin(fmt.Sprintf(
-					"compose_record_value AS rv_%s ON (rv_%s.record_id = crd.id AND rv_%s.name = ? AND rv_%s.deleted_at IS NULL)",
-					i.Value, i.Value, i.Value, i.Value,
-				), i.Value)
+				join := composeRecordValueJoinTpl
+				join = strings.ReplaceAll(join, "{alias}", composeRecordValueAliasPfx+i.Value)
+				join = strings.ReplaceAll(join, "{field}", i.Value)
+				query = query.LeftJoin(join)
 			}
 
 			return s.FieldToColumnTypeCaster(m.Fields.FindByName(i.Value), i)
@@ -263,28 +265,111 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 		}
 	}
 
-	// @todo refactor
-	//if f.Sort != "" {
-	//	var (
-	//		// Sort parser
-	//		sp = ql.NewParser()
-	//
-	//		// Sort columns
-	//		sc ql.Columns
-	//	)
-	//
-	//	// Resolve all identifiers found in sort
-	//	// into their table/column counterparts
-	//	sp.OnIdent = identResolver
-	//
-	//	if sc, err = sp.ParseColumns(f.Sort); err != nil {
-	//		return
-	//	}
-	//
-	//	query = query.OrderBy(sc.Strings()...)
-	//}
+	if len(f.Sort) > 0 {
+		var (
+			// Sort parser
+			sp = ql.NewParser()
+		)
+
+		// Resolve all identifiers found in sort
+		// into their table/column counterparts
+		sp.OnIdent = identResolver
+
+		if _, err = sp.ParseColumns(f.Sort.String()); err != nil {
+			return
+		}
+	}
 
 	return
+}
+
+func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Module, set ...*types.Record) (err error) {
+	if len(set) > 0 {
+		// Load all related record values and append them to each record
+		var (
+			rvs types.RecordValueSet
+		)
+		rvs, _, err = s.searchComposeRecordValues(ctx, nil, types.RecordValueFilter{
+			RecordID: types.RecordSet(set).IDs(),
+			Deleted:  rh.FilterStateInclusive,
+		})
+		if err != nil {
+			return
+		}
+
+		for r := range set {
+			set[r].Values = rvs.FilterByRecordID(set[r].ID)
+		}
+	}
+
+	return nil
+}
+
+func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, sort filter.SortExprSet) (squirrel.SelectBuilder, error) {
+	var (
+		sortable = slice.ToStringBoolMap(s.sortableComposeRecordColumns())
+		sqlSort  = make([]string, len(sort))
+	)
+
+	for i, c := range sort {
+		if sortable[c.Column] {
+			sqlSort[i] = sort[i].Column
+		} else if m.Fields.HasName(c.Column) {
+			//sqlSort[i] = fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, sort[i].Column)
+			sqlSort[i] = fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx, sort[i].Column)
+		} else {
+			return q, fmt.Errorf("could not sort by unknown column: %s", c.Column)
+		}
+
+		if sort[i].Descending {
+			sqlSort[i] += " DESC"
+		}
+	}
+
+	return q.OrderBy(sqlSort...), nil
+}
+
+// Custom implementation for collecting cursor values from compose records AND it's values!
+func (s Store) collectComposeRecordCursorValues(res *types.Record, cc ...string) *filter.PagingCursor {
+	var (
+		cursor = &filter.PagingCursor{}
+
+		hasUnique bool
+		pkID      bool
+
+		collect = func(cc ...string) {
+			for _, c := range cc {
+				switch c {
+				case "crd.id":
+					cursor.Set(c, res.ID, false)
+					pkID = true
+				case "crd.created_at":
+					cursor.Set(c, res.CreatedAt, false)
+				case "crd.updated_at":
+					cursor.Set(c, res.UpdatedAt, false)
+				case "crd.deleted_at":
+					cursor.Set(c, res.DeletedAt, false)
+				default:
+					if rv := res.Values.Get(c, 0); rv != nil {
+						cursor.Set(fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, c), rv.Value, false)
+					} else {
+						cursor.Set(fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, c), nil, false)
+					}
+
+					//cursor.Set(fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx, c), value, false)
+				}
+			}
+		}
+	)
+
+	collect(cc...)
+	if !hasUnique || !pkID {
+		collect(
+			"crd.id",
+		)
+	}
+
+	return cursor
 }
 
 //// Checks if field name is "real column", reformats it and returns

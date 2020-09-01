@@ -20,65 +20,67 @@ import (
 
 var _ = errors.Is
 
-const (
-	TriggerBeforeComposeRecordValueCreate triggerKey = "composeRecordValueBeforeCreate"
-	TriggerBeforeComposeRecordValueUpdate triggerKey = "composeRecordValueBeforeUpdate"
-	TriggerBeforeComposeRecordValueUpsert triggerKey = "composeRecordValueBeforeUpsert"
-	TriggerBeforeComposeRecordValueDelete triggerKey = "composeRecordValueBeforeDelete"
-)
-
 // searchComposeRecordValues returns all matching rows
 //
 // This function calls convertComposeRecordValueFilter with the given
 // types.RecordValueFilter and expects to receive a working squirrel.SelectBuilder
 func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module, f types.RecordValueFilter) (types.RecordValueSet, types.RecordValueFilter, error) {
-	var scap uint
-	q, err := s.convertComposeRecordValueFilter(_mod, f)
+	var (
+		err error
+		set []*types.RecordValue
+		q   squirrel.SelectBuilder
+	)
+	q, err = s.convertComposeRecordValueFilter(_mod, f)
 	if err != nil {
 		return nil, f, err
 	}
 
-	if scap == 0 {
-		scap = DefaultSliceCapacity
-	}
+	return set, f, s.config.ErrorHandler(func() error {
+		set, _, _, err = s.QueryComposeRecordValues(ctx, _mod, q, nil)
+		return err
 
+	}())
+}
+
+// QueryComposeRecordValues queries the database, converts and checks each row and
+// returns collected set
+//
+// Fn also returns total number of fetched items and last fetched item so that the caller can construct cursor
+// for next page of results
+func (s Store) QueryComposeRecordValues(
+	ctx context.Context, _mod *types.Module,
+	q squirrel.SelectBuilder,
+	check func(*types.RecordValue) (bool, error),
+) ([]*types.RecordValue, uint, *types.RecordValue, error) {
 	var (
-		set = make([]*types.RecordValue, 0, scap)
-		// Paging is disabled in definition yaml file
-		// {search: {enablePaging:false}} and this allows
-		// a much simpler row fetching logic
-		fetch = func() error {
-			var (
-				res       *types.RecordValue
-				rows, err = s.Query(ctx, q)
-			)
+		set = make([]*types.RecordValue, 0, DefaultSliceCapacity)
+		res *types.RecordValue
 
-			if err != nil {
-				return err
-			}
+		// Query rows with
+		rows, err = s.Query(ctx, q)
 
-			for rows.Next() {
-				if err = rows.Err(); err == nil {
-					res, err = s.internalComposeRecordValueRowScanner(_mod, rows)
-				}
-
-				if err != nil {
-					if cerr := rows.Close(); cerr != nil {
-						err = fmt.Errorf("could not close rows (%v) after scan error: %w", cerr, err)
-					}
-
-					return err
-				}
-
-				// If check function is set, call it and act accordingly
-				set = append(set, res)
-			}
-
-			return rows.Close()
-		}
+		fetched uint
 	)
 
-	return set, f, s.config.ErrorHandler(fetch())
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		fetched++
+		if err = rows.Err(); err == nil {
+			res, err = s.internalComposeRecordValueRowScanner(_mod, rows)
+		}
+
+		if err != nil {
+			return nil, 0, nil, err
+		}
+
+		set = append(set, res)
+	}
+
+	return set, fetched, res, rows.Err()
 }
 
 // createComposeRecordValue creates one or more rows in compose_record_value table
