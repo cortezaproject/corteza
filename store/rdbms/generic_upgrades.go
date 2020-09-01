@@ -18,6 +18,7 @@ type (
 		AddColumn(context.Context, string, *ddl.Column) (bool, error)
 		DropTable(context.Context, string) (bool, error)
 		DropColumn(context.Context, string, string) (bool, error)
+		RenameColumn(context.Context, string, string, string) (bool, error)
 		AddPrimaryKey(context.Context, string, *ddl.Index) (bool, error)
 		Exec(context.Context, string, ...interface{}) error
 	}

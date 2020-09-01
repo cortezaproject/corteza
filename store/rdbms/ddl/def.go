@@ -219,3 +219,13 @@ func IWhere(cnd string) indexManipulator {
 		i.Condition = cnd
 	}
 }
+
+func (cc Columns) Get(name string) *Column {
+	for c := range cc {
+		if cc[c].Name == name {
+			return cc[c]
+		}
+	}
+
+	return nil
+}
