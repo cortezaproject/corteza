@@ -15,6 +15,9 @@ type (
 	}
 )
 
+// @todo all DDL operations (altering, droping, adding...) from all *sql* implementations should be moved here
+//       logic is more or less the same with a differet approach on how to read schema specs (tables, columns)
+
 const (
 	// table creation
 	genericCreateTable = `
@@ -38,6 +41,7 @@ CREATE TABLE {{ .Name }} (
 	genericAddColumn     = `ALTER TABLE {{ .Table }} ADD {{ template "create-table-column" .Column }}`
 	genericAddPrimaryKey = `ALTER TABLE {{ .Table }} ADD CONSTRAINT PRIMARY KEY {{ template "index-fields" .PrimaryKey.Fields }}`
 	genericDropColumn    = `ALTER TABLE {{ .Table }} DROP {{ .Column }}`
+	genericRenameColumn  = `ALTER TABLE {{ .Table }} RENAME COLUMN {{ .OldName }} TO {{ .NewName }}`
 
 	// index creation
 	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
@@ -66,6 +70,7 @@ func NewGenerator(log *zap.Logger) *Generator {
 	g.AddTemplate("add-column", genericAddColumn)
 	g.AddTemplate("add-primary-key", genericAddPrimaryKey)
 	g.AddTemplate("drop-column", genericDropColumn)
+	g.AddTemplate("rename-column", genericRenameColumn)
 	g.AddTemplate("create-index", genericCreateIndex)
 	g.AddTemplate("index-condition", genericIndexCondition)
 	g.AddTemplate("index-name", genericIndexName)
@@ -110,6 +115,14 @@ func (g *Generator) DropColumn(table, column string) string {
 	return g.executeTemplate("drop-column", map[string]interface{}{
 		"Table":  table,
 		"Column": column,
+	})
+}
+
+func (g *Generator) RenameColumn(table, oldName, newName string) string {
+	return g.executeTemplate("rename-column", map[string]interface{}{
+		"Table":   table,
+		"OldName": oldName,
+		"NewName": newName,
 	})
 }
 

@@ -27,7 +27,6 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 
 	// All modifications we need for the DDL generator
 	// to properly support MySQL dialect:
-
 	u.ddl.AddTemplate("create-table-suffix", "ENGINE=InnoDB DEFAULT CHARSET=utf8")
 
 	// Sadly, MySQL does not support partial indexes
@@ -166,63 +165,99 @@ func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, e
 }
 
 // AddColumn adds column to table
-// @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
-	var (
-		lookup = `SELECT IS_NULLABLE = 'YES' AS IS_NULLABLE,
-                         DATA_TYPE
-                    FROM INFORMATION_SCHEMA.COLUMNS 
-                   WHERE TABLE_SCHEMA = ? 
-                     AND TABLE_NAME = ?
-                     AND COLUMN_NAME = ?`
-
-		tmp struct {
-			IsNullable bool   `db:"IS_NULLABLE"`
-			DataType   string `db:"DATA_TYPE"`
+	err = func() error {
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
 		}
-	)
 
-	if err = u.s.DB().GetContext(ctx, &tmp, lookup, u.s.Config().DBName, table, col.Name); err == sql.ErrNoRows {
+		if columns.Get(col.Name) != nil {
+			return nil
+		}
+
 		if err = u.Exec(ctx, u.ddl.AddColumn(table, col)); err != nil {
-			return false, fmt.Errorf("could not add column %s to table %s: %w", table, col.Name, err)
+			return err
 		}
 
-		return true, nil
-	} else if err != nil {
-		return false, fmt.Errorf("could not check if column exists: %w", err)
+		added = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not add column %q to %q: %w", col.Name, table, err)
 	}
 
-	return false, nil
+	return
 }
 
 // DropColumn drops column from table
-// @todo extract column lookup
 func (u upgrader) DropColumn(ctx context.Context, table, column string) (dropped bool, err error) {
-	var (
-		lookup = `SELECT IS_NULLABLE = 'YES' AS IS_NULLABLE,
-                         DATA_TYPE
-                    FROM INFORMATION_SCHEMA.COLUMNS 
-                   WHERE TABLE_SCHEMA = ? 
-                     AND TABLE_NAME = ?
-                     AND COLUMN_NAME = ?`
-
-		tmp struct {
-			IsNullable bool   `db:"IS_NULLABLE"`
-			DataType   string `db:"DATA_TYPE"`
+	err = func() error {
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
 		}
-	)
 
-	if err = u.s.DB().GetContext(ctx, &tmp, lookup, u.s.Config().DBName, table, column); err == nil {
+		if columns.Get(column) == nil {
+			return nil
+		}
+
 		if err = u.Exec(ctx, u.ddl.DropColumn(table, column)); err != nil {
-			return false, fmt.Errorf("could not add column %s to table %s: %w", table, column, err)
+			return err
 		}
 
-		return true, nil
-	} else if err != sql.ErrNoRows {
-		return false, fmt.Errorf("could not check if column exists: %w", err)
+		dropped = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not drop column %q from %q: %w", column, table, err)
 	}
 
-	return false, nil
+	return
+}
+
+// RenameColumn renames column on a table
+func (u upgrader) RenameColumn(ctx context.Context, table, oldName, newName string) (changed bool, err error) {
+	err = func() error {
+		if oldName == newName {
+			return nil
+		}
+
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
+		}
+
+		if columns.Get(oldName) == nil {
+			// Old column does not exist anymore
+
+			if columns.Get(newName) == nil {
+				return fmt.Errorf("old and new columns are missing")
+			}
+
+			return nil
+		}
+
+		if columns.Get(newName) != nil {
+			return fmt.Errorf("new column already exists")
+
+		}
+
+		if err = u.Exec(ctx, u.ddl.RenameColumn(table, oldName, newName)); err != nil {
+			return err
+		}
+
+		changed = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not rename column %q on table %q to %q: %w", oldName, table, newName, err)
+	}
+
+	return
 }
 
 func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Index) (added bool, err error) {
@@ -231,4 +266,42 @@ func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Inde
 	}
 
 	return true, nil
+}
+
+// loads and returns all tables columns
+func (u upgrader) getColumns(ctx context.Context, table string) (out ddl.Columns, err error) {
+	type (
+		col struct {
+			Name       string `db:"COLUMN_NAME"`
+			IsNullable bool   `db:"IS_NULLABLE"`
+			DataType   string `db:"DATA_TYPE"`
+		}
+	)
+
+	var (
+		lookup = `SELECT COLUMN_NAME,
+                         IS_NULLABLE = 'YES' AS IS_NULLABLE,
+                         DATA_TYPE
+                    FROM INFORMATION_SCHEMA.COLUMNS 
+                   WHERE TABLE_SCHEMA = ? 
+                     AND TABLE_NAME = ?`
+
+		cols []*col
+	)
+
+	if err = u.s.DB().SelectContext(ctx, &cols, lookup, u.s.Config().DBName, table); err != nil {
+		return nil, err
+	}
+
+	out = make([]*ddl.Column, len(cols))
+	for i := range cols {
+		out[i] = &ddl.Column{
+			Name: cols[i].Name,
+			//Type:         ddl.ColumnType{},
+			IsNull: cols[i].IsNullable,
+			//DefaultValue: "",
+		}
+	}
+
+	return out, nil
 }

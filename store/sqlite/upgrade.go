@@ -102,10 +102,6 @@ func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	return exists, nil
 }
 
-func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
-	return nil, fmt.Errorf("pending implementation")
-}
-
 func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, err error) {
 	var exists bool
 	exists, err = u.TableExists(ctx, table)
@@ -121,64 +117,141 @@ func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, er
 	return true, nil
 }
 
+func (u upgrader) TableSchema(ctx context.Context, table string) (ddl.Columns, error) {
+	return nil, fmt.Errorf("pending implementation")
+}
+
 // AddColumn adds column to table
-// @todo extract column lookup
 func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) (added bool, err error) {
-	var (
-		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
-
-		tmp []struct {
-			CID          int            `db:"cid"`
-			Name         string         `db:"name"`
-			NotNull      bool           `db:"notnull"`
-			PrimaryKey   bool           `db:"pk"`
-			DefaultValue sql.NullString `db:"dflt_value"`
-			Type         string         `db:"type"`
+	err = func() error {
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
 		}
-	)
 
-	if err = u.s.DB().SelectContext(ctx, &tmp, lookup); err == sql.ErrNoRows {
+		if columns.Get(col.Name) != nil {
+			return nil
+		}
+
 		if err = u.Exec(ctx, u.ddl.AddColumn(table, col)); err != nil {
-			return false, fmt.Errorf("could not add column %s to table %s: %w", table, col.Name, err)
+			return err
 		}
 
-		return true, nil
-	} else if err != nil {
-		return false, fmt.Errorf("could not check if column exists: %w", err)
+		added = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not add column %q to %q: %w", col.Name, table, err)
 	}
 
-	return false, nil
+	return
 }
 
 // DropColumn drops column from table
-// @todo extract column lookup
 func (u upgrader) DropColumn(ctx context.Context, table, column string) (dropped bool, err error) {
-	var (
-		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
-
-		tmp []struct {
-			CID          int            `db:"cid"`
-			Name         string         `db:"name"`
-			NotNull      bool           `db:"notnull"`
-			PrimaryKey   bool           `db:"pk"`
-			DefaultValue sql.NullString `db:"dflt_value"`
-			Type         string         `db:"type"`
+	err = func() error {
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
 		}
-	)
 
-	if err = u.s.DB().SelectContext(ctx, &tmp, lookup); err == sql.ErrNoRows {
+		if columns.Get(column) == nil {
+			return nil
+		}
+
 		if err = u.Exec(ctx, u.ddl.DropColumn(table, column)); err != nil {
-			return false, fmt.Errorf("could not add column %s to table %s: %w", table, column, err)
+			return err
 		}
 
-		return true, nil
-	} else if err != nil {
-		return false, fmt.Errorf("could not check if column exists: %w", err)
+		dropped = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not drop column %q from %q: %w", column, table, err)
 	}
 
-	return false, nil
+	return
+}
+
+// RenameColumn renames column on a table
+func (u upgrader) RenameColumn(ctx context.Context, table, oldName, newName string) (changed bool, err error) {
+	err = func() error {
+		if oldName == newName {
+			return nil
+		}
+
+		var columns ddl.Columns
+		if columns, err = u.getColumns(ctx, table); err != nil {
+			return err
+		}
+
+		if columns.Get(oldName) == nil {
+			// Old column does not exist anymore
+
+			if columns.Get(newName) == nil {
+				return fmt.Errorf("old and new columns are missing")
+			}
+
+			return nil
+		}
+
+		if columns.Get(newName) != nil {
+			return fmt.Errorf("new column already exists")
+
+		}
+
+		if err = u.Exec(ctx, u.ddl.RenameColumn(table, oldName, newName)); err != nil {
+			return err
+		}
+
+		changed = true
+		return nil
+	}()
+
+	if err != nil {
+		return false, fmt.Errorf("could not rename column %q on table %q to %q: %w", oldName, table, newName, err)
+	}
+
+	return
 }
 
 func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Index) (added bool, err error) {
 	return false, fmt.Errorf("adding primary keys on sqlite tables is not implemented")
+}
+
+// loads and returns all tables columns
+func (u upgrader) getColumns(ctx context.Context, table string) (out ddl.Columns, err error) {
+	type (
+		col struct {
+			CID          int            `db:"cid"`
+			Name         string         `db:"name"`
+			NotNull      bool           `db:"notnull"`
+			PrimaryKey   bool           `db:"pk"`
+			DefaultValue sql.NullString `db:"dflt_value"`
+			Type         string         `db:"type"`
+		}
+	)
+
+	var (
+		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
+		cols   []*col
+	)
+
+	if err = u.s.DB().SelectContext(ctx, &cols, lookup, u.s.Config().DBName, table); err != nil {
+		return nil, err
+	}
+
+	out = make([]*ddl.Column, len(cols))
+	for i := range cols {
+		out[i] = &ddl.Column{
+			Name: cols[i].Name,
+			//Type:         ddl.ColumnType{},
+			IsNull: !cols[i].NotNull,
+			//DefaultValue: "",
+		}
+	}
+
+	return out, nil
 }
