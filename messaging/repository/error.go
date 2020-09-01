@@ -9,9 +9,6 @@ type (
 )
 
 const (
-	ErrDatabaseError    = repositoryError("DatabaseError")
-	ErrNotImplemented   = repositoryError("NotImplemented")
-	ErrConfigError      = repositoryError("ConfigError")
 	ErrEventsPullClosed = repositoryError("EventsPullClosed")
 )
 

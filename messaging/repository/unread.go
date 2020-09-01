@@ -32,25 +32,25 @@ type (
 
 const (
 	sqlResetThreads = `UPDATE messaging_unread
-                          SET count = 0
-                        WHERE rel_reply_to > 0 AND rel_channel = ? AND rel_user = ?`
+                         SET count = 0
+                       WHERE rel_reply_to > 0 AND rel_channel = ? AND rel_user = ?`
 
-	sqlUnreadIncCount = `UPDATE messaging_unread 
-                                  SET count = count + 1
-                                WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
+	sqlUnreadIncCount = `UPDATE messaging_unread
+                                 SET count = count + 1
+                               WHERE rel_channel = ? AND rel_reply_to = ? AND rel_user <> ?`
 
-	sqlUnreadDecCount = `UPDATE messaging_unread 
-                                  SET count = count - 1
-                                WHERE rel_channel = ? AND rel_reply_to = ? AND count > 0`
+	sqlUnreadDecCount = `UPDATE messaging_unread
+                                 SET count = count - 1
+                               WHERE rel_channel = ? AND rel_reply_to = ? AND count > 0`
 
 	sqlResetCount = `REPLACE INTO messaging_unread (rel_channel, rel_reply_to, rel_user, count) VALUES (?, ?, ?, 0)`
 
 	sqlUnreadPresetChannel = `INSERT IGNORE INTO messaging_unread (rel_channel, rel_reply_to, rel_user) VALUES (?, ?, ?)`
-	sqlUnreadPresetThreads = `INSERT IGNORE INTO messaging_unread (rel_channel, rel_reply_to, rel_user) 
-                     SELECT rel_channel, id, ? 
-                       FROM messaging_message 
-                      WHERE rel_channel = ?
-                        AND replies > 0`
+	sqlUnreadPresetThreads = `INSERT IGNORE INTO messaging_unread (rel_channel, rel_reply_to, rel_user)
+                    SELECT rel_channel, id, ?
+                      FROM messaging_message
+                     WHERE rel_channel = ?
+                       AND replies > 0`
 )
 
 // Unread creates new instance of channel member repository

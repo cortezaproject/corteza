@@ -26,6 +26,23 @@ type (
 		DeleteMessagingUnreadByChannelIDReplyToUserID(ctx context.Context, channelID uint64, replyTo uint64, userID uint64) error
 
 		TruncateMessagingUnreads(ctx context.Context) error
+
+		// Additional custom functions
+
+		// CountMessagingUnreadThreads (custom function)
+		CountMessagingUnreadThreads(ctx context.Context, _userID uint64, _channelID uint64) (types.UnreadSet, error)
+
+		// CountMessagingUnread (custom function)
+		CountMessagingUnread(ctx context.Context, _userID uint64, _channelID uint64, _threadIDs ...uint64) (types.UnreadSet, error)
+
+		// ResetMessagingUnreadThreads (custom function)
+		ResetMessagingUnreadThreads(ctx context.Context, _userID uint64, _channelID uint64) error
+
+		// IncMessagingUnreadCount (custom function)
+		IncMessagingUnreadCount(ctx context.Context, _channelID uint64, _threadIDs uint64, _userID uint64) error
+
+		// DecMessagingUnreadCount (custom function)
+		DecMessagingUnreadCount(ctx context.Context, _channelID uint64, _threadIDs uint64, _userID uint64) error
 	}
 )
 
@@ -65,4 +82,24 @@ func DeleteMessagingUnreadByChannelIDReplyToUserID(ctx context.Context, s Messag
 // TruncateMessagingUnreads Deletes all MessagingUnreads from store
 func TruncateMessagingUnreads(ctx context.Context, s MessagingUnreads) error {
 	return s.TruncateMessagingUnreads(ctx)
+}
+
+func CountMessagingUnreadThreads(ctx context.Context, s MessagingUnreads, _userID uint64, _channelID uint64) (types.UnreadSet, error) {
+	return s.CountMessagingUnreadThreads(ctx, _userID, _channelID)
+}
+
+func CountMessagingUnread(ctx context.Context, s MessagingUnreads, _userID uint64, _channelID uint64, _threadIDs ...uint64) (types.UnreadSet, error) {
+	return s.CountMessagingUnread(ctx, _userID, _channelID, _threadIDs...)
+}
+
+func ResetMessagingUnreadThreads(ctx context.Context, s MessagingUnreads, _userID uint64, _channelID uint64) error {
+	return s.ResetMessagingUnreadThreads(ctx, _userID, _channelID)
+}
+
+func IncMessagingUnreadCount(ctx context.Context, s MessagingUnreads, _channelID uint64, _threadIDs uint64, _userID uint64) error {
+	return s.IncMessagingUnreadCount(ctx, _channelID, _threadIDs, _userID)
+}
+
+func DecMessagingUnreadCount(ctx context.Context, s MessagingUnreads, _channelID uint64, _threadIDs uint64, _userID uint64) error {
+	return s.DecMessagingUnreadCount(ctx, _channelID, _threadIDs, _userID)
 }
