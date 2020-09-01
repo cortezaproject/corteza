@@ -1,6 +1,8 @@
 package types
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -59,9 +61,20 @@ type (
 		CurrentUserID uint64
 
 		// Do not filter out deleted channels
+		// @deprecated
 		IncludeDeleted bool
 
-		Sort string `json:"sort"`
+		Deleted rh.FilterState `json:"deleted"`
+
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(channel *Channel) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
 	}
 
 	ChannelMembershipPolicy string

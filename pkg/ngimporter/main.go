@@ -222,7 +222,7 @@ func Import(ctx context.Context, iss []types.ImportSource, ns *cct.Namespace, cf
 
 		rr.Walk(func(r *cct.Record) error {
 			vr := r.Values.Get("sys_legacy_ref_id", 0)
-			vu := r.Values.Get("UserID", 0)
+			vu := r.Values.Get("OwnerID", 0)
 			u, err := strconv.ParseUint(vu.Value, 10, 64)
 			if err != nil {
 				return err

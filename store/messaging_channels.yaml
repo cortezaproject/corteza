@@ -1,0 +1,32 @@
+import:
+  - github.com/cortezaproject/corteza-server/messaging/types
+
+types:
+  type: types.Channel
+
+fields:
+  - { field: ID }
+  - { field: Name }
+  - { field: Topic }
+  - { field: Type }
+  - { field: Meta }
+  - { field: MembershipPolicy }
+  - { field: CreatorID }
+  - { field: OrganisationID }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: ArchivedAt }
+  - { field: DeletedAt }
+  - { field: LastMessageID }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for attachment by its ID
+
+      It returns attachment even if deleted
+
+
+rdbms:
+  alias: mch
+  table: messaging_channel

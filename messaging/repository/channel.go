@@ -111,9 +111,9 @@ func (r channel) findOneBy(cnd squirrel.Sqlizer) (*types.Channel, error) {
 func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
 	f = filter
 
-	if f.Sort == "" {
-		f.Sort = "c.name ASC"
-	}
+	//if f.Sort == "" {
+	//	f.Sort = "c.name ASC"
+	//}
 
 	query := r.query()
 
@@ -139,13 +139,13 @@ func (r channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types
 		})
 	}
 
-	var orderBy []string
-
-	if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
-		return
-	} else {
-		query = query.OrderBy(orderBy...)
-	}
+	//var orderBy []string
+	//
+	//if orderBy, err = rh.ParseOrder(f.Sort, r.columns()...); err != nil {
+	//	return
+	//} else {
+	//	query = query.OrderBy(orderBy...)
+	//}
 
 	return set, f, rh.FetchAll(r.db(), query, &set)
 }

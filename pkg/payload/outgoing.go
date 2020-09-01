@@ -281,7 +281,7 @@ func Attachment(in *messagingTypes.Attachment, userID uint64) *outgoing.Attachme
 
 	return &outgoing.Attachment{
 		ID:         Uint64toa(in.ID),
-		UserID:     Uint64toa(in.UserID),
+		UserID:     Uint64toa(in.OwnerID),
 		Url:        fmt.Sprintf(attachmentURL, in.ID, url.PathEscape(in.Name)) + signParams,
 		PreviewUrl: preview + signParams,
 		Meta:       in.Meta,

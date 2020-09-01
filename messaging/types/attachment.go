@@ -10,15 +10,28 @@ import (
 
 type (
 	Attachment struct {
-		ID         uint64         `db:"id"         json:"ID,omitempty"`
-		UserID     uint64         `db:"rel_user"   json:"userID,omitempty"`
-		Url        string         `db:"url"        json:"url,omitempty"`
-		PreviewUrl string         `db:"preview_url"json:"previewUrl,omitempty"`
-		Name       string         `db:"name"       json:"name,omitempty"`
-		Meta       attachmentMeta `db:"meta"       json:"meta"`
-		CreatedAt  time.Time      `db:"created_at" json:"createdAt,omitempty"`
-		UpdatedAt  *time.Time     `db:"updated_at" json:"updatedAt,omitempty"`
-		DeletedAt  *time.Time     `db:"deleted_at" json:"deletedAt,omitempty"`
+		ID         uint64         `json:"ID,omitempty"`
+		OwnerID    uint64         `json:"userID,omitempty"`
+		Url        string         `json:"url,omitempty"`
+		PreviewUrl string         `json:"previewUrl,omitempty"`
+		Name       string         `json:"name,omitempty"`
+		Meta       attachmentMeta `json:"meta"`
+		CreatedAt  time.Time      `json:"createdAt,omitempty"`
+		UpdatedAt  *time.Time     `json:"updatedAt,omitempty"`
+		DeletedAt  *time.Time     `json:"deletedAt,omitempty"`
+
+		MessageID uint64 `json:"-"`
+	}
+
+	// AttachmentFilter is used for filtering and as a return value from Find
+	AttachmentFilter struct {
+		MessageID []uint64
+
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(*Attachment) (bool, error)
 	}
 
 	attachmentImageMeta struct {
@@ -37,11 +50,6 @@ type (
 	attachmentMeta struct {
 		Original attachmentFileMeta  `json:"original"`
 		Preview  *attachmentFileMeta `json:"preview,omitempty"`
-	}
-
-	MessageAttachment struct {
-		Attachment
-		MessageID uint64 `db:"rel_message" json:"-"`
 	}
 )
 

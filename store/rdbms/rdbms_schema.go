@@ -384,7 +384,7 @@ func (Schema) MessagingAttachment() *Table {
 	// @todo merge with general attachment table
 	return TableDef("messaging_attachment",
 		ID,
-		ColumnDef("rel_user", ColumnTypeIdentifier), // @todo rename => rel_owner
+		ColumnDef("rel_owner", ColumnTypeIdentifier),
 		ColumnDef("url", ColumnTypeText),
 		ColumnDef("preview_url", ColumnTypeText),
 		ColumnDef("name", ColumnTypeText),
