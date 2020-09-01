@@ -19,6 +19,8 @@ package store
 //  - store/messaging_attachments.yaml
 //  - store/messaging_channel_members.yaml
 //  - store/messaging_channels.yaml
+//  - store/messaging_flags.yaml
+//  - store/messaging_mentions.yaml
 //  - store/messaging_messages.yaml
 //  - store/messaging_unread.yaml
 //  - store/rbac_rules.yaml
@@ -60,6 +62,8 @@ type (
 		MessagingAttachments
 		MessagingChannelMembers
 		MessagingChannels
+		MessagingFlags
+		MessagingMentions
 		MessagingMessages
 		MessagingUnreads
 		RbacRules

@@ -141,7 +141,7 @@ func Watchers(ctx context.Context) {
 	DefaultPermissions.Watch(ctx)
 }
 
-func timeNowPtr() *time.Time {
+func now() *time.Time {
 	now := time.Now()
 	return &now
 }

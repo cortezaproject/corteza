@@ -521,7 +521,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 			return
 		} else {
 			// Set deletedAt timestamp so that our clients can react properly...
-			ch.DeletedAt = timeNowPtr()
+			ch.DeletedAt = now()
 		}
 
 		_ = svc.sendChannelEvent(ch)
@@ -648,7 +648,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 			return
 		} else {
 			// Set archivedAt timestamp so that our clients can react properly...
-			ch.ArchivedAt = timeNowPtr()
+			ch.ArchivedAt = now()
 		}
 
 		_ = svc.flushSystemMessages()

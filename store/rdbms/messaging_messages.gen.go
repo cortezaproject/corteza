@@ -30,7 +30,10 @@ func (s Store) SearchMessagingMessages(ctx context.Context, f types.MessageFilte
 		set []*types.Message
 		q   squirrel.SelectBuilder
 	)
-	q = s.messagingMessagesSelectBuilder()
+	q, err = s.convertMessagingMessageFilter(f)
+	if err != nil {
+		return nil, f, err
+	}
 
 	return set, f, s.config.ErrorHandler(func() error {
 		set, _, _, err = s.QueryMessagingMessages(ctx, q, nil)
@@ -80,9 +83,9 @@ func (s Store) QueryMessagingMessages(
 	return set, fetched, res, rows.Err()
 }
 
-// LookupMessagingMessageByID searches for attachment by its ID
+// LookupMessagingMessageByID searches for message by its ID
 //
-// It returns attachment even if deleted
+// It returns message even if deleted
 func (s Store) LookupMessagingMessageByID(ctx context.Context, id uint64) (*types.Message, error) {
 	return s.execLookupMessagingMessage(ctx, squirrel.Eq{
 		s.preprocessColumn("msg.id", ""): s.preprocessValue(id, ""),

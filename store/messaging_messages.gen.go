@@ -29,6 +29,17 @@ type (
 		DeleteMessagingMessageByID(ctx context.Context, ID uint64) error
 
 		TruncateMessagingMessages(ctx context.Context) error
+
+		// Additional custom functions
+
+		// SearchMessagingThreads (custom function)
+		SearchMessagingThreads(ctx context.Context, _filter types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
+
+		// CountMessagingMessagesFromID (custom function)
+		CountMessagingMessagesFromID(ctx context.Context, _channelID uint64, _threadID uint64, _lastReadMessageID uint64) (uint32, error)
+
+		// LastMessagingMessageID (custom function)
+		LastMessagingMessageID(ctx context.Context, _channelID uint64, _threadID uint64) (uint64, error)
 	}
 )
 
@@ -40,9 +51,9 @@ func SearchMessagingMessages(ctx context.Context, s MessagingMessages, f types.M
 	return s.SearchMessagingMessages(ctx, f)
 }
 
-// LookupMessagingMessageByID searches for attachment by its ID
+// LookupMessagingMessageByID searches for message by its ID
 //
-// It returns attachment even if deleted
+// It returns message even if deleted
 func LookupMessagingMessageByID(ctx context.Context, s MessagingMessages, id uint64) (*types.Message, error) {
 	return s.LookupMessagingMessageByID(ctx, id)
 }
@@ -80,4 +91,16 @@ func DeleteMessagingMessageByID(ctx context.Context, s MessagingMessages, ID uin
 // TruncateMessagingMessages Deletes all MessagingMessages from store
 func TruncateMessagingMessages(ctx context.Context, s MessagingMessages) error {
 	return s.TruncateMessagingMessages(ctx)
+}
+
+func SearchMessagingThreads(ctx context.Context, s MessagingMessages, _filter types.MessageFilter) (types.MessageSet, types.MessageFilter, error) {
+	return s.SearchMessagingThreads(ctx, _filter)
+}
+
+func CountMessagingMessagesFromID(ctx context.Context, s MessagingMessages, _channelID uint64, _threadID uint64, _lastReadMessageID uint64) (uint32, error) {
+	return s.CountMessagingMessagesFromID(ctx, _channelID, _threadID, _lastReadMessageID)
+}
+
+func LastMessagingMessageID(ctx context.Context, s MessagingMessages, _channelID uint64, _threadID uint64) (uint64, error) {
+	return s.LastMessagingMessageID(ctx, _channelID, _threadID)
 }

@@ -20,13 +20,32 @@ fields:
 lookups:
   - fields: [ ID ]
     description: |-
-      searches for attachment by its ID
+      searches for message by its ID
 
-      It returns attachment even if deleted
+      It returns message even if deleted
+
+functions:
+  - name: SearchMessagingThreads
+    arguments:
+      - { name: filter,
+          type: "types.MessageFilter" }
+    return: [ types.MessageSet, types.MessageFilter, error ]
+  - name: CountMessagingMessagesFromID
+    arguments:
+      - { name: channelID,         type: uint64 }
+      - { name: threadID,          type: uint64 }
+      - { name: lastReadMessageID, type: uint64 }
+    return: [ uint32, error ]
+  - name: LastMessagingMessageID
+    arguments:
+      - { name: channelID,         type: uint64 }
+      - { name: threadID,          type: uint64 }
+    return: [ uint64, error ]
 
 rdbms:
   alias: msg
   table: messaging_messages
+  customFilterConverter: true
 
 search:
   enablePaging: false

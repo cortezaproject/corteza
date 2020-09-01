@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
-	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/store"
+	"io"
+	"net/http"
+	"net/url"
 )
 
 type (
@@ -44,7 +43,7 @@ func (ctrl *Attachment) Preview(ctx context.Context, r *request.AttachmentPrevie
 
 func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature string) error {
 	if signature == "" {
-		return fmt.Errorf("Unauthorized")
+		return fmt.Errorf("unauthorized")
 	}
 
 	if userID == 0 {
@@ -66,7 +65,7 @@ func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download b
 	return func(w http.ResponseWriter, req *http.Request) {
 		att, err := ctrl.att.With(ctx).FindByID(ID)
 		if err != nil {
-			if errors.Is(err, repository.ErrAttachmentNotFound) {
+			if errors.Is(err, store.ErrNotFound) {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				http.Error(w, err.Error(), http.StatusInternalServerError)

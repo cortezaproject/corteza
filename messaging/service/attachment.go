@@ -3,24 +3,22 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	files "github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/disintegration/imaging"
+	"github.com/edwvee/exiffix"
 	"image"
 	"image/gif"
 	"io"
 	"net/http"
 	"path"
 	"strings"
-
-	"github.com/disintegration/imaging"
-	"github.com/edwvee/exiffix"
-
-	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/messaging/repository"
-	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/store"
 )
 
 const (
@@ -30,19 +28,15 @@ const (
 
 type (
 	attachment struct {
-		db  *factory.DB
 		ctx context.Context
 
 		actionlog actionlog.Recorder
 
 		ac attachmentAccessController
 
-		store store.Store
+		files files.Store
+		store store.Storable
 		event EventService
-
-		attachment repository.AttachmentRepository
-		message    repository.MessageRepository
-		channel    repository.ChannelRepository
 	}
 
 	attachmentAccessController interface {
@@ -59,33 +53,29 @@ type (
 	}
 )
 
-func Attachment(ctx context.Context, store store.Store) AttachmentService {
+func Attachment(ctx context.Context, store files.Store) AttachmentService {
 	return (&attachment{
 		ac:    DefaultAccessControl,
-		store: store,
+		files: store,
+		store: DefaultNgStore,
 	}).With(ctx)
 }
 
 func (svc attachment) With(ctx context.Context) AttachmentService {
-	db := repository.DB(ctx)
 	return &attachment{
 		ctx: ctx,
-		db:  db,
 		ac:  svc.ac,
 
 		actionlog: DefaultActionlog,
 
+		files: svc.files,
 		store: svc.store,
 		event: Event(ctx),
-
-		attachment: repository.Attachment(ctx, db),
-		message:    repository.Message(ctx, db),
-		channel:    repository.Channel(ctx, db),
 	}
 }
 
 func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
-	return svc.attachment.FindAttachmentByID(id)
+	return store.LookupMessagingAttachmentByID(svc.ctx, svc.store, id)
 }
 
 func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
@@ -93,7 +83,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		return nil, nil
 	}
 
-	return svc.store.Open(att.Url)
+	return svc.files.Open(att.Url)
 }
 
 func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
@@ -101,7 +91,7 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 		return nil, nil
 	}
 
-	return svc.store.Open(att.PreviewUrl)
+	return svc.files.Open(att.PreviewUrl)
 }
 
 func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.ReadSeeker, channelID, replyTo uint64) (att *types.Attachment, err error) {
@@ -112,9 +102,10 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		ch            *types.Channel
 	)
 
-	err = svc.db.Transaction(func() (err error) {
-		if ch, err = svc.channel.FindByID(channelID); err != nil {
-			if repository.ErrChannelNotFound.Eq(err) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+
+		if ch, err = store.LookupMessagingChannelByID(ctx, s, channelID); err != nil {
+			if errors.Is(err, store.ErrNotFound) {
 				return AttachmentErrChannelNotFound()
 			}
 		}
@@ -126,9 +117,10 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		}
 
 		att = &types.Attachment{
-			ID:      factory.Sonyflake.NextID(),
-			OwnerID: currentUserID,
-			Name:    strings.TrimSpace(name),
+			ID:        id.Next(),
+			OwnerID:   currentUserID,
+			Name:      strings.TrimSpace(name),
+			CreatedAt: *now(),
 		}
 
 		err = svc.create(name, size, fh, att)
@@ -136,11 +128,12 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 			return err
 		}
 
-		if att, err = svc.attachment.CreateAttachment(att); err != nil {
+		if err = store.CreateMessagingAttachment(ctx, s, att); err != nil {
 			return err
 		}
 
 		msg := &types.Message{
+			ID:         id.Next(),
 			Attachment: att,
 			Message:    name,
 			Type:       types.MessageTypeAttachment,
@@ -155,15 +148,17 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
-		if msg, err = svc.message.Create(msg); err != nil {
+		if err = store.CreateMessagingMessage(ctx, s, msg); err != nil {
 			return
 		}
 
 		aProps.setMessageID(msg.ID)
 
-		if err = svc.attachment.BindAttachment(att.ID, msg.ID); err != nil {
-			return
-		}
+		panic("re-implement this")
+		panic("@todo should we sendEvent?")
+		//if err = svc.attachment.BindAttachment(att.ID, msg.ID); err != nil {
+		//	return
+		//}
 
 		return svc.sendEvent(msg)
 	})
@@ -176,7 +171,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		aProps = &attachmentActionProps{}
 	)
 
-	if svc.store == nil {
+	if svc.files == nil {
 		return fmt.Errorf("can not create attachment: store handler not set")
 	}
 
@@ -191,10 +186,10 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToExtractMimeType(aProps).Wrap(err)
 	}
 
-	att.Url = svc.store.Original(att.ID, att.Meta.Original.Extension)
+	att.Url = svc.files.Original(att.ID, att.Meta.Original.Extension)
 	aProps.setUrl(att.Url)
 
-	if err = svc.store.Save(att.Url, fh); err != nil {
+	if err = svc.files.Save(att.Url, fh); err != nil {
 		return AttachmentErrFailedToStoreFile(aProps).Wrap(err)
 	}
 
@@ -317,9 +312,9 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	meta.Extension = f2e[previewFormat]
 
 	// Can and how we make a preview of this attachment?
-	att.PreviewUrl = svc.store.Preview(att.ID, meta.Extension)
+	att.PreviewUrl = svc.files.Preview(att.ID, meta.Extension)
 
-	return svc.store.Save(att.PreviewUrl, buf)
+	return svc.files.Save(att.PreviewUrl, buf)
 }
 
 // Sends message to event loop
