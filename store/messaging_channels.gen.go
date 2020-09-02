@@ -29,6 +29,11 @@ type (
 		DeleteMessagingChannelByID(ctx context.Context, ID uint64) error
 
 		TruncateMessagingChannels(ctx context.Context) error
+
+		// Additional custom functions
+
+		// LookupMessagingChannelByMemberSet (custom function)
+		LookupMessagingChannelByMemberSet(ctx context.Context, _memberIDs ...uint64) (*types.Channel, error)
 	}
 )
 
@@ -80,4 +85,8 @@ func DeleteMessagingChannelByID(ctx context.Context, s MessagingChannels, ID uin
 // TruncateMessagingChannels Deletes all MessagingChannels from store
 func TruncateMessagingChannels(ctx context.Context, s MessagingChannels) error {
 	return s.TruncateMessagingChannels(ctx)
+}
+
+func LookupMessagingChannelByMemberSet(ctx context.Context, s MessagingChannels, _memberIDs ...uint64) (*types.Channel, error) {
+	return s.LookupMessagingChannelByMemberSet(ctx, _memberIDs...)
 }

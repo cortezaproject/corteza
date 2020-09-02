@@ -2,31 +2,25 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"time"
-
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"time"
 )
 
 type (
 	channel struct {
-		db  db
-		ctx context.Context
-
+		ctx   context.Context
 		event EventService
 		ac    applicationAccessController
 
 		actionlog actionlog.Recorder
-
-		channel repository.ChannelRepository
-		cmember repository.ChannelMemberRepository
-		unread  repository.UnreadRepository
-		message repository.MessageRepository
+		store     store.Storable
 
 		sysmsgs types.MessageSet
 	}
@@ -82,24 +76,22 @@ const (
 )
 
 func Channel(ctx context.Context) ChannelService {
-	return (&channel{}).With(ctx)
+	return (&channel{
+		store:     DefaultNgStore,
+		ac:        DefaultAccessControl,
+		actionlog: DefaultActionlog,
+	}).With(ctx)
 }
 
 func (svc *channel) With(ctx context.Context) ChannelService {
-	db := repository.DB(ctx)
 	return &channel{
-		db:  db,
 		ctx: ctx,
 
 		event: Event(ctx),
 		ac:    DefaultAccessControl,
 
 		actionlog: DefaultActionlog,
-
-		channel: repository.Channel(ctx, db),
-		cmember: repository.ChannelMember(ctx, db),
-		unread:  repository.Unread(ctx, db),
-		message: repository.Message(ctx, db),
+		store:     svc.store,
 
 		// System messages should be flushed at the end of each session
 		sysmsgs: types.MessageSet{},
@@ -119,16 +111,16 @@ func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
 }
 
 func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
-	ch, err = svc.channel.FindByID(ID)
-	if err != nil {
-		if repository.ErrChannelNotFound.Eq(err) {
+
+	if ch, err = store.LookupMessagingChannelByID(svc.ctx, svc.store, ID); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
 			return nil, ChannelErrNotFound()
 		}
 
 		return nil, err
 	}
 
-	if err = svc.preloadExtras(types.ChannelSet{ch}); err != nil {
+	if err = svc.preloadExtras(svc.ctx, svc.store, ch); err != nil {
 		return nil, err
 	}
 
@@ -137,47 +129,60 @@ func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
 
 func (svc *channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
 	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	set, f, err = svc.channel.Find(filter)
-	if err == nil {
-		err = svc.preloadExtras(set)
+	filter.Check = func(c *types.Channel) (b bool, e error) {
+		return svc.ac.CanReadChannel(svc.ctx, c), nil
 	}
 
-	set, err = set.Filter(func(c *types.Channel) (b bool, e error) {
-		return svc.ac.CanReadChannel(svc.ctx, c), nil
-	})
+	set, f, err = store.SearchMessagingChannels(svc.ctx, svc.store, filter)
+	if err != nil {
+		return
+	}
+
+	err = svc.preloadExtras(svc.ctx, svc.store, set...)
+	if err != nil {
+		return
+	}
 
 	return
 }
 
 // preloadExtras pre-loads channel's members, views
-func (svc *channel) preloadExtras(cc types.ChannelSet) (err error) {
-	if err = svc.preloadMembers(cc); err != nil {
+func (svc *channel) preloadExtras(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+	if len(cc) == 0 {
+		return nil
+	}
+
+	if err = svc.preloadMembers(svc.ctx, svc.store, cc...); err != nil {
 		return
 	}
 
-	if err = cc.Walk(svc.setPermissionFlags); err != nil {
+	if err = types.ChannelSet(cc).Walk(svc.setPermissionFlags); err != nil {
 		return err
 	}
 
-	if err = svc.preloadUnreads(cc); err != nil {
+	if err = svc.preloadUnreads(svc.ctx, svc.store, cc...); err != nil {
 		return
 	}
 
 	return
 }
 
-func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
+func (channel) preloadMembers(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+	if len(cc) == 0 {
+		return nil
+	}
+
 	var (
-		userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		userID = auth.GetIdentityFromContext(ctx).Identity()
 		mm     types.ChannelMemberSet
+		f      = types.ChannelMemberFilterChannels(types.ChannelSet(cc).IDs()...)
 	)
 
 	// Load membership info of all channels
-	if mm, err = svc.cmember.Find(types.ChannelMemberFilterChannels(cc.IDs()...)); err != nil {
+	if mm, _, err = store.SearchMessagingChannelMembers(nil, nil, f); err != nil {
 		return
 	} else {
-		err = cc.Walk(func(ch *types.Channel) error {
+		err = types.ChannelSet(cc).Walk(func(ch *types.Channel) error {
 			ch.Members = mm.MembersOf(ch.ID)
 			ch.Member = mm.FindByChannelID(ch.ID).FindByUserID(userID)
 			return nil
@@ -187,57 +192,63 @@ func (svc *channel) preloadMembers(cc types.ChannelSet) (err error) {
 	return
 }
 
-// preload channel unread info for a single user
-func (svc *channel) preloadUnreads(cc types.ChannelSet) error {
-	var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
-
-	if uu, err := svc.unread.Count(userID, 0); err != nil {
-		return err
-	} else {
-		_ = cc.Walk(func(ch *types.Channel) error {
-			ch.Unread = uu.FindByChannelId(ch.ID)
-			return nil
-		})
+func (channel) preloadUnreads(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+	if len(cc) == 0 {
+		return nil
 	}
 
-	if uu, err := svc.unread.CountThreads(userID, 0); err != nil {
-		return err
-	} else {
-		_ = cc.Walk(func(ch *types.Channel) error {
-			var u = uu.FindByChannelId(ch.ID)
+	var (
+		unread types.UnreadSet
+		userID = auth.GetIdentityFromContext(ctx).Identity()
+	)
 
-			if u == nil {
-				return nil
-			}
-
-			if ch.Unread == nil {
-				ch.Unread = &types.Unread{}
-			}
-
-			ch.Unread.ThreadCount = u.ThreadCount
-			ch.Unread.ThreadTotal = u.ThreadTotal
-
-			return nil
-		})
+	unread, err = store.CountMessagingUnread(ctx, s, userID, 0)
+	if err != nil {
+		return
 	}
+
+	_ = types.ChannelSet(cc).Walk(func(ch *types.Channel) error {
+		ch.Unread = unread.FindByChannelId(ch.ID)
+		return nil
+	})
+
+	unread, err = store.CountMessagingUnreadThreads(ctx, s, userID, 0)
+	if err != nil {
+		return
+	}
+
+	_ = types.ChannelSet(cc).Walk(func(ch *types.Channel) error {
+		var u = unread.FindByChannelId(ch.ID)
+
+		if u == nil {
+			return nil
+		}
+
+		if ch.Unread == nil {
+			ch.Unread = &types.Unread{}
+		}
+
+		ch.Unread.ThreadCount = u.ThreadCount
+		ch.Unread.ThreadTotal = u.ThreadTotal
+
+		return nil
+	})
 
 	return nil
 }
 
 // FindMembers loads all members (and full users) for a specific channel
 func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, err error) {
-	return out, svc.db.Transaction(func() (err error) {
-		if _, err = svc.FindByID(channelID); err != nil {
-			return
-		}
-
-		out, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID))
-		if err != nil {
-			return err
-		}
-
+	if _, err = svc.FindByID(channelID); err != nil {
 		return
-	})
+	}
+
+	out, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(channelID))
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
@@ -245,7 +256,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{changed: new}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if !new.Type.IsValid() {
 			return ChannelErrInvalidType()
 		}
@@ -267,12 +278,20 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 		mm := svc.buildMemberSet(chCreatorID, new.Members...)
 
 		if new.Type == types.ChannelTypeGroup {
-			if ch, err = svc.checkGroupExistance(mm); err != nil {
-				return err
-			} else if ch != nil && ch.CanObserve {
+			if ch, err = store.LookupMessagingChannelByMemberSet(ctx, s, mm.AllMemberIDs()...); err != nil {
+				return
+			}
+
+			if err = svc.preloadExtras(ctx, s, ch); err != nil {
+				return
+			}
+
+			if ch != nil && ch.CanObserve {
 				// Group already exists so let's just return it
 				return nil
-			} else if ch != nil && !ch.CanObserve {
+			}
+
+			if ch != nil && !ch.CanObserve {
 				return ChannelErrNotAllowedToRead()
 			}
 		}
@@ -300,15 +319,17 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 
 		// This is a fresh channel, just copy values
 		ch = &types.Channel{
+			ID:               id.Next(),
 			Name:             new.Name,
 			Topic:            new.Topic,
 			Type:             new.Type,
 			MembershipPolicy: new.MembershipPolicy,
 			CreatorID:        chCreatorID,
+			CreatedAt:        *now(),
 		}
 
 		// Save the channel
-		if ch, err = svc.channel.Create(ch); err != nil {
+		if err = store.CreateMessagingChannel(ctx, s, ch); err != nil {
 			return
 		}
 
@@ -317,7 +338,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			m.ChannelID = ch.ID
 
 			// Create member
-			if m, err = svc.createMember(m); err != nil {
+			if m, err = svc.createMember(ctx, s, m); err != nil {
 				return err
 			}
 
@@ -371,22 +392,12 @@ func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.Ch
 	return mm
 }
 
-func (svc *channel) checkGroupExistance(mm types.ChannelMemberSet) (out *types.Channel, err error) {
-	if out, err = svc.channel.FindByMemberSet(mm.AllMemberIDs()...); err == repository.ErrChannelNotFound {
-		return nil, nil
-	} else if out != nil && err == nil {
-		err = svc.preloadExtras(types.ChannelSet{out})
-	}
-
-	return
-}
-
 func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{changed: upd}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if upd.ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -438,7 +449,7 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 
 		if len(upd.Name) > 0 && ch.Name != upd.Name {
 			if settingsChannelNameLength > 0 && len(upd.Name) > settingsChannelNameLength {
-				return errors.Errorf("channel name (%d characters) too long (max: %d)", len(upd.Name), settingsChannelNameLength)
+				return fmt.Errorf("channel name (%d characters) too long (max: %d)", len(upd.Name), settingsChannelNameLength)
 			} else if ch.Name != "" {
 				svc.scheduleSystemMessage(upd, "<@%d> renamed channel **%s** (was: %s)", chUpdatorId, upd.Name, ch.Name)
 			} else {
@@ -451,7 +462,7 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 
 		if len(upd.Topic) > 0 && ch.Topic != upd.Topic {
 			if settingsChannelTopicLength > 0 && len(upd.Topic) > settingsChannelTopicLength {
-				return errors.Errorf("channel topic (%d characters) too long (max: %d)", len(upd.Topic), settingsChannelTopicLength)
+				return fmt.Errorf("channel topic (%d characters) too long (max: %d)", len(upd.Topic), settingsChannelTopicLength)
 			} else if ch.Topic != "" {
 				svc.scheduleSystemMessage(upd, "<@%d> changed channel topic: %s (was: %s)", chUpdatorId, upd.Topic, ch.Topic)
 			} else {
@@ -491,7 +502,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -537,7 +548,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -579,7 +590,7 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 		aProps = &channelActionProps{flag: string(flag)}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -622,7 +633,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -663,7 +674,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -704,7 +715,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -774,7 +785,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -866,7 +877,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 }
 
 // createMember orchestrates member creation
-func (svc channel) createMember(member *types.ChannelMember) (m *types.ChannelMember, err error) {
+func (svc channel) createMember(ctx context.Context, s store.Storable, member *types.ChannelMember) (m *types.ChannelMember, err error) {
 	if m, err = svc.cmember.Create(member); err != nil {
 		return
 	}
@@ -884,7 +895,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		aProps = &channelActionProps{}
 	)
 
-	err = svc.db.Transaction(func() (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
 		var (
 			userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
 			ch       *types.Channel
