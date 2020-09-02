@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"time"
+
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	msgService "github.com/cortezaproject/corteza-server/messaging/service"
@@ -30,7 +32,6 @@ import (
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
-	"time"
 )
 
 type (
