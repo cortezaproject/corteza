@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
+	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
@@ -69,5 +70,9 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			zap.String("baseDir", app.Opt.HTTPServer.WebappBaseDir),
 		)
 		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer))
+	}
+
+	if app.Opt.Federation.Enabled {
+		r.Route("/federation", federationRest.MountRoutes)
 	}
 }

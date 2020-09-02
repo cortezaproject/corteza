@@ -1,0 +1,17 @@
+---
+# This is direct conversion from old api/*/spec.json files
+# using https://www.json2yaml.com/
+#
+# Next step: swagger.
+
+endpoints:
+  - title: Foobar
+    entrypoint: foobar
+    path: "/foobar"
+    authentication: []
+    imports:
+    apis:
+      - name: foobar
+        method: GET
+        title: Foo bar
+        path: "/"
