@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
@@ -28,6 +29,7 @@ import (
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"go.uber.org/zap"
+	gomail "gopkg.in/mail.v2"
 	"time"
 )
 
@@ -70,7 +72,29 @@ func (app *CortezaApp) Setup() (err error) {
 	defer sentry.Recover()
 
 	auth.SetupDefault(app.Opt.Auth.Secret, int(app.Opt.Auth.Expiry/time.Minute))
-	mail.SetupDialer(app.Opt.SMTP.Host, app.Opt.SMTP.Port, app.Opt.SMTP.User, app.Opt.SMTP.Pass, app.Opt.SMTP.From)
+
+	mail.SetupDialer(
+		app.Opt.SMTP.Host,
+		app.Opt.SMTP.Port,
+		app.Opt.SMTP.User,
+		app.Opt.SMTP.Pass,
+		app.Opt.SMTP.From,
+
+		// Apply TLS configuration
+		func(d *gomail.Dialer) {
+			if d.TLSConfig == nil {
+				d.TLSConfig = &tls.Config{ServerName: d.Host}
+			}
+
+			if app.Opt.SMTP.TlsInsecure {
+				d.TLSConfig.InsecureSkipVerify = true
+			}
+
+			if app.Opt.SMTP.TlsServerName != "" {
+				d.TLSConfig.ServerName = app.Opt.SMTP.TlsServerName
+			}
+		},
+	)
 
 	http.SetupDefaults(
 		app.Opt.HTTPClient.HttpClientTimeout,
