@@ -20,6 +20,7 @@ type (
 		WaitFor    options.WaitForOpt
 		HTTPServer options.HTTPServerOpt
 		Websocket  options.WebsocketOpt
+		Federation options.FederationOpt
 	}
 )
 
@@ -44,5 +45,6 @@ func NewOptions(prefix ...string) *Options {
 		WaitFor:    *options.WaitFor(p),
 		HTTPServer: *options.HTTP(p),
 		Websocket:  *options.Websocket(p),
+		Federation: *options.Federation(),
 	}
 }
