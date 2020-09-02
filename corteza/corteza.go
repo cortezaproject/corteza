@@ -2,7 +2,9 @@ package corteza
 
 import (
 	"context"
+	"crypto/tls"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	gomail "gopkg.in/mail.v2"
 	"time"
 
 	"github.com/pkg/errors"
@@ -51,7 +53,27 @@ func (app *App) Setup(log *zap.Logger, opts *app.Options) (err error) {
 	defer sentry.Recover()
 
 	auth.SetupDefault(opts.Auth.Secret, int(opts.Auth.Expiry/time.Minute))
-	mail.SetupDialer(opts.SMTP.Host, opts.SMTP.Port, opts.SMTP.User, opts.SMTP.Pass, opts.SMTP.From)
+	mail.SetupDialer(
+		opts.SMTP.Host,
+		opts.SMTP.Port,
+		opts.SMTP.User,
+		opts.SMTP.Pass,
+		opts.SMTP.From,
+
+		// Apply TLS configuration
+		func(d *gomail.Dialer) {
+			if d.TLSConfig == nil {
+				d.TLSConfig = &tls.Config{ServerName: d.Host}
+			}
+
+			if opts.SMTP.TlsInsecure {
+				d.TLSConfig.InsecureSkipVerify = true
+			}
+
+			if opts.SMTP.TlsServerName != "" {
+				d.TLSConfig.ServerName = opts.SMTP.TlsServerName
+			}
+		})
 
 	http.SetupDefaults(
 		opts.HTTPClient.HttpClientTimeout,

@@ -13,6 +13,8 @@ type (
 	Dialer interface {
 		DialAndSend(...*gomail.Message) error
 	}
+
+	applyCfg func(*gomail.Dialer)
 )
 
 const (
@@ -33,7 +35,7 @@ func init() {
 // SetupDialer setups SMTP dialer
 //
 // Host variable can contain "<host>:<port>" that will override port value
-func SetupDialer(host string, port int, user, pass, from string) {
+func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg) {
 	if host == "" {
 		defaultDialerError = errors.New("No hostname provided for SMTP")
 		return
@@ -59,12 +61,19 @@ func SetupDialer(host string, port int, user, pass, from string) {
 	}
 
 	defaultFrom = from
-	defaultDialer = gomail.NewDialer(
+	dialer := gomail.NewDialer(
 		host,
 		port,
 		user,
 		pass,
 	)
+
+	dialer.SSL = true
+	for _, fn := range ff {
+		fn(dialer)
+	}
+
+	defaultDialer = dialer
 }
 
 func New() *gomail.Message {
