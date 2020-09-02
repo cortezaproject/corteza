@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	msgService "github.com/cortezaproject/corteza-server/messaging/service"
@@ -28,7 +30,6 @@ import (
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -234,11 +235,11 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		ctx = auth.SetSuperUserContext(ctx)
 
 		if err = system.Provision(ctx, app.Log, app.Store); err != nil {
-			return fmt.Errorf("could not provision messaging: %w", err)
+			return fmt.Errorf("could not provision system: %w", err)
 		}
 
 		if err = compose.Provision(ctx, app.Log); err != nil {
-			return fmt.Errorf("could not provision messaging: %w", err)
+			return fmt.Errorf("could not provision compose: %w", err)
 		}
 
 		if err = messaging.Provision(ctx, app.Log); err != nil {
