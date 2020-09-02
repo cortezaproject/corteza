@@ -26,6 +26,11 @@ lookups:
 
       It returns attachment even if deleted
 
+functions:
+  - name: LookupMessagingChannelByMemberSet
+    arguments:
+      - { name: memberIDs, type: ...uint64 }
+    return: [ "*types.Channel", error ]
 
 rdbms:
   alias: mch
