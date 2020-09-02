@@ -2,15 +2,17 @@ package app
 
 import (
 	"context"
+	"strings"
+	"sync"
+
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
+	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/go-chi/chi"
-	"strings"
-	"sync"
 )
 
 func (app *CortezaApp) Serve(ctx context.Context) (err error) {
@@ -58,5 +60,9 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 
 	if app.Opt.HTTPServer.WebappEnabled {
 		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer))
+	}
+
+	if app.Opt.Federation.Enabled {
+		r.Route("/federation", federationRest.MountRoutes)
 	}
 }
