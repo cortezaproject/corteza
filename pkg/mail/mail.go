@@ -49,9 +49,9 @@ func SetupDialer(host string, port int, user, pass, from string) {
 		defaultDialerError = errors.New("No port provided for SMTP")
 		return
 	}
+
 	if from == "" {
-		defaultDialerError = errors.New("Sender for SMTP is not set")
-		return
+		from = "placeholder@example.net"
 	}
 
 	if defaultDialerError != nil {

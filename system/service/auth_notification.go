@@ -64,8 +64,16 @@ func (svc authNotification) PasswordReset(ctx context.Context, lang string, emai
 }
 
 func (svc authNotification) newMail() *gomail.Message {
-	m := gomail.NewMessage()
-	m.SetAddressHeader("From", svc.settings.Auth.Mail.FromAddress, svc.settings.Auth.Mail.FromName)
+	var (
+		m    = mail.New()
+		addr = svc.settings.Auth.Mail.FromAddress
+		name = svc.settings.Auth.Mail.FromName
+	)
+
+	if addr != "" {
+		m.SetAddressHeader("From", addr, name)
+	}
+
 	return m
 }
 
