@@ -121,6 +121,9 @@ func Auth() *cobra.Command {
 				ntf = service.DefaultAuthNotification.With(ctx)
 			)
 
+			// Update current settings to be sure that we do not have outdated values
+			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
+
 			err = ntf.EmailConfirmation("en", args[0], "notification-testing-token")
 			cli.HandleError(err)
 
