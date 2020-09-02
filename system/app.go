@@ -3,7 +3,6 @@ package system
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/automation"
-
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/spf13/cobra"
@@ -71,8 +70,6 @@ func (app *App) Initialize(ctx context.Context) (err error) {
 		return
 	}
 
-	// Initialize external authentication (from default settings)
-	external.Init()
 	return
 }
 
@@ -82,6 +79,12 @@ func (app *App) Activate(ctx context.Context) (err error) {
 	}
 
 	service.Watchers(ctx)
+
+	// Initialize external authentication
+	//
+	// We're relying on current settings to be loaded at this point so
+	// we need to run init AFTER service activation
+	external.Init()
 
 	return
 }
