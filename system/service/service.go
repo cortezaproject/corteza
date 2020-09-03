@@ -131,7 +131,7 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	)
 
 	if DefaultStore == nil {
-		const svcPath = "compose"
+		const svcPath = "system"
 		if c.Storage.MinioEndpoint != "" {
 			var bucket = svcPath
 			if c.Storage.MinioBucket != "" {
