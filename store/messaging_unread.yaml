@@ -6,7 +6,7 @@ types:
 
 fields:
   - { field: ChannelID,     type: uint64, isPrimaryKey: true }
-  - { field: ReplyTo,       type: uint64, isPrimaryKey: true }
+  - { field: ReplyTo,       type: uint64, isPrimaryKey: true, column: rel_reply_to }
   - { field: UserID,        type: uint64, isPrimaryKey: true }
   - { field: LastMessageID, type: uint64 }
   - { field: Count,         type: uint32 }
@@ -32,6 +32,13 @@ functions:
       - { name: channelID, type: uint64 }
     return: [ error ]
 
+  - name: PresetMessagingUnread
+    arguments:
+      - { name: channelID, type: uint64 }
+      - { name: threadIDs, type: uint64 }
+      - { name: userID,    type: ...uint64 }
+    return: [ error ]
+
   - name: IncMessagingUnreadCount
     arguments:
       - { name: channelID, type: uint64 }
@@ -45,6 +52,7 @@ functions:
       - { name: threadIDs, type: uint64 }
       - { name: userID,    type: uint64 }
     return: [ error ]
+
 rdbms:
   alias: mur
   table: messaging_unread

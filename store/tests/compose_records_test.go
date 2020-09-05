@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -363,7 +362,6 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			f.PageCursor = nil
 			f.Limit = 1
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
-			spew.Dump(f)
 			req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
 			req.NoError(err)
 		})

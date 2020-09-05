@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
-	"time"
 )
 
 type (
@@ -338,7 +336,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			m.ChannelID = ch.ID
 
 			// Create member
-			if m, err = svc.createMember(ctx, s, m); err != nil {
+			if err = svc.createMember(ctx, s, m); err != nil {
 				return err
 			}
 
@@ -483,8 +481,11 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 		if !changed {
 			return nil
 		}
+
+		ch.UpdatedAt = now()
+
 		// Save the updated channel
-		if ch, err = svc.channel.Update(upd); err != nil {
+		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
 		}
 
@@ -521,18 +522,15 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 
 		if ch.DeletedAt != nil {
 			return ChannelErrAlreadyDeleted()
-		} else {
-			now := time.Now()
-			ch.DeletedAt = &now
 		}
+
+		// Set deletedAt timestamp so that our clients can react properly...
+		ch.DeletedAt = now()
 
 		svc.scheduleSystemMessage(ch, "<@%d> deleted this channel", userID)
 
-		if err = svc.channel.DeleteByID(ID); err != nil {
+		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
-		} else {
-			// Set deletedAt timestamp so that our clients can react properly...
-			ch.DeletedAt = now()
 		}
 
 		_ = svc.sendChannelEvent(ch)
@@ -569,16 +567,15 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 			return ChannelErrNotDeleted()
 		}
 
+		ch.DeletedAt = nil
+
 		svc.scheduleSystemMessage(ch, "<@%d> undeleted this channel", userID)
 
-		if err = svc.channel.UndeleteByID(ID); err != nil {
+		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
-		} else {
-			// Remove deletedAt timestamp so that our clients can react properly...
-			ch.DeletedAt = nil
 		}
 
-		svc.flushSystemMessages()
+		_ = svc.flushSystemMessages()
 		return svc.sendChannelEvent(ch)
 	})
 
@@ -603,7 +600,8 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 
 		aProps.setChannel(ch)
 
-		if members, err := svc.cmember.Find(types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}, MemberID: []uint64{userID}}); err != nil {
+		f := types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}, MemberID: []uint64{userID}}
+		if members, _, err := store.SearchMessagingChannelMembers(ctx, s, f); err != nil {
 			return err
 		} else if len(members) == 1 {
 			membership = members[0]
@@ -614,7 +612,9 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 			return ChannelErrNotMember()
 		}
 
-		if ch.Member, err = svc.cmember.Update(membership); err != nil {
+		ch.Member = membership
+		ch.Member.UpdatedAt = now()
+		if err = store.UpdateMessagingChannelMember(ctx, s, membership); err != nil {
 			return
 		}
 
@@ -653,13 +653,12 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 			return ChannelErrAlreadyArchived()
 		}
 
+		ch.ArchivedAt = now()
+
 		svc.scheduleSystemMessage(ch, "<@%d> archived this channel", userID)
 
-		if err = svc.channel.ArchiveByID(ID); err != nil {
+		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
-		} else {
-			// Set archivedAt timestamp so that our clients can react properly...
-			ch.ArchivedAt = now()
 		}
 
 		_ = svc.flushSystemMessages()
@@ -694,11 +693,10 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 			return ChannelErrNotArchived()
 		}
 
-		if err = svc.channel.UnarchiveByID(ID); err != nil {
+		ch.ArchivedAt = nil
+
+		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
-		} else {
-			// Unset archivedAt timestamp so that our clients can react properly...
-			ch.ArchivedAt = nil
 		}
 
 		svc.scheduleSystemMessage(ch, "<@%d> unarchived this channel", userID)
@@ -748,7 +746,8 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 			return ChannelErrNotAllowedToManageMembers()
 		}
 
-		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
+		f := types.ChannelMemberFilterChannels(channelID)
+		if existing, _, err = store.SearchMessagingChannelMembers(ctx, s, f); err != nil {
 			return
 		}
 
@@ -762,12 +761,13 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 			svc.scheduleSystemMessage(ch, "<@%d> invited <@%d> to the channel", userID, memberID)
 
 			member := &types.ChannelMember{
+				CreatedAt: *now(),
 				ChannelID: channelID,
 				UserID:    memberID,
 				Type:      types.ChannelMembershipTypeInvitee,
 			}
 
-			if member, err = svc.createMember(member); err != nil {
+			if err = store.CreateMessagingChannelMember(ctx, s, member); err != nil {
 				return err
 			}
 
@@ -814,7 +814,8 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			return ChannelErrUnableToManageGroupMembers()
 		}
 
-		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
+		f := types.ChannelMemberFilterChannels(channelID)
+		if existing, _, err = store.SearchMessagingChannelMembers(ctx, s, f); err != nil {
 			return
 		}
 
@@ -851,9 +852,10 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			}
 
 			if exists {
-				member, err = svc.cmember.Update(member)
+				member.UpdatedAt = now()
+				err = store.UpdateMessagingChannelMember(ctx, s, member)
 			} else {
-				member, err = svc.createMember(member)
+				err = svc.createMember(ctx, s, member)
 			}
 
 			if err != nil {
@@ -877,13 +879,15 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 }
 
 // createMember orchestrates member creation
-func (svc channel) createMember(ctx context.Context, s store.Storable, member *types.ChannelMember) (m *types.ChannelMember, err error) {
-	if m, err = svc.cmember.Create(member); err != nil {
+func (svc channel) createMember(ctx context.Context, s store.Storable, m *types.ChannelMember) (err error) {
+	m.CreatedAt = *now()
+
+	if err = store.CreateMessagingChannelMember(ctx, s, m); err != nil {
 		return
 	}
 
 	// Create zero-count unread record
-	if err = svc.unread.Preset(m.ChannelID, 0, m.UserID); err != nil {
+	if err = store.PresetMessagingUnread(ctx, s, m.ChannelID, 0, m.UserID); err != nil {
 		return
 	}
 
@@ -912,7 +916,8 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 			return ChannelErrUnableToManageGroupMembers()
 		}
 
-		if existing, err = svc.cmember.Find(types.ChannelMemberFilterChannels(channelID)); err != nil {
+		f := types.ChannelMemberFilterChannels(channelID)
+		if existing, _, err = store.SearchMessagingChannelMembers(ctx, s, f); err != nil {
 			return
 		}
 
@@ -934,7 +939,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				svc.scheduleSystemMessage(ch, "<@%d> removed from the channel", memberID)
 			}
 
-			if err = svc.cmember.Delete(channelID, memberID); err != nil {
+			if err = store.DeleteMessagingChannelMemberByChannelIDUserID(ctx, s, channelID, memberID); err != nil {
 				return err
 			}
 
@@ -963,7 +968,10 @@ func (svc *channel) flushSystemMessages() (err error) {
 	}()
 
 	return svc.sysmsgs.Walk(func(msg *types.Message) error {
-		if msg, err = svc.message.Create(msg); err != nil {
+		msg.ID = id.Next()
+		msg.CreatedAt = *now()
+
+		if err = store.CreateMessagingMessage(svc.ctx, svc.store, msg); err != nil {
 			return err
 		} else {
 			return svc.event.Message(msg)
@@ -978,7 +986,8 @@ func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
 
 		// Preload members, if needed
 		if len(ch.Members) == 0 || ch.Member == nil {
-			if mm, err := svc.cmember.Find(types.ChannelMemberFilterChannels(ch.ID)); err != nil {
+			f := types.ChannelMemberFilterChannels(ch.ID)
+			if mm, _, err := store.SearchMessagingChannelMembers(svc.ctx, svc.store, f); err != nil {
 				return err
 			} else {
 				ch.Members = mm.AllMemberIDs()

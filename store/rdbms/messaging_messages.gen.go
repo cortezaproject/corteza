@@ -92,7 +92,7 @@ func (s Store) LookupMessagingMessageByID(ctx context.Context, id uint64) (*type
 	})
 }
 
-// CreateMessagingMessage creates one or more rows in messaging_messages table
+// CreateMessagingMessage creates one or more rows in messaging_message table
 func (s Store) CreateMessagingMessage(ctx context.Context, rr ...*types.Message) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingMessageConstraints(ctx, res)
@@ -109,12 +109,12 @@ func (s Store) CreateMessagingMessage(ctx context.Context, rr ...*types.Message)
 	return
 }
 
-// UpdateMessagingMessage updates one or more existing rows in messaging_messages
+// UpdateMessagingMessage updates one or more existing rows in messaging_message
 func (s Store) UpdateMessagingMessage(ctx context.Context, rr ...*types.Message) error {
 	return s.config.ErrorHandler(s.PartialMessagingMessageUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingMessageUpdate updates one or more existing rows in messaging_messages
+// PartialMessagingMessageUpdate updates one or more existing rows in messaging_message
 func (s Store) PartialMessagingMessageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Message) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingMessageConstraints(ctx, res)
@@ -136,7 +136,7 @@ func (s Store) PartialMessagingMessageUpdate(ctx context.Context, onlyColumns []
 	return
 }
 
-// UpsertMessagingMessage updates one or more existing rows in messaging_messages
+// UpsertMessagingMessage updates one or more existing rows in messaging_message
 func (s Store) UpsertMessagingMessage(ctx context.Context, rr ...*types.Message) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingMessageConstraints(ctx, res)
@@ -153,7 +153,7 @@ func (s Store) UpsertMessagingMessage(ctx context.Context, rr ...*types.Message)
 	return nil
 }
 
-// DeleteMessagingMessage Deletes one or more rows from messaging_messages table
+// DeleteMessagingMessage Deletes one or more rows from messaging_message table
 func (s Store) DeleteMessagingMessage(ctx context.Context, rr ...*types.Message) (err error) {
 	for _, res := range rr {
 
@@ -168,14 +168,14 @@ func (s Store) DeleteMessagingMessage(ctx context.Context, rr ...*types.Message)
 	return nil
 }
 
-// DeleteMessagingMessageByID Deletes row from the messaging_messages table
+// DeleteMessagingMessageByID Deletes row from the messaging_message table
 func (s Store) DeleteMessagingMessageByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteMessagingMessages(ctx, squirrel.Eq{
 		s.preprocessColumn("msg.id", ""): s.preprocessValue(ID, ""),
 	})
 }
 
-// TruncateMessagingMessages Deletes all rows from the messaging_messages table
+// TruncateMessagingMessages Deletes all rows from the messaging_message table
 func (s Store) TruncateMessagingMessages(ctx context.Context) error {
 	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingMessageTable()))
 }
@@ -200,17 +200,17 @@ func (s Store) execLookupMessagingMessage(ctx context.Context, cnd squirrel.Sqli
 	return res, nil
 }
 
-// execCreateMessagingMessages updates all matched (by cnd) rows in messaging_messages with given data
+// execCreateMessagingMessages updates all matched (by cnd) rows in messaging_message with given data
 func (s Store) execCreateMessagingMessages(ctx context.Context, payload store.Payload) error {
 	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingMessageTable()).SetMap(payload)))
 }
 
-// execUpdateMessagingMessages updates all matched (by cnd) rows in messaging_messages with given data
+// execUpdateMessagingMessages updates all matched (by cnd) rows in messaging_message with given data
 func (s Store) execUpdateMessagingMessages(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
 	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingMessageTable("msg")).Where(cnd).SetMap(set)))
 }
 
-// execUpsertMessagingMessages inserts new or updates matching (by-primary-key) rows in messaging_messages with given data
+// execUpsertMessagingMessages inserts new or updates matching (by-primary-key) rows in messaging_message with given data
 func (s Store) execUpsertMessagingMessages(ctx context.Context, set store.Payload) error {
 	upsert, err := s.config.UpsertBuilder(
 		s.config,
@@ -226,7 +226,7 @@ func (s Store) execUpsertMessagingMessages(ctx context.Context, set store.Payloa
 	return s.config.ErrorHandler(s.Exec(ctx, upsert))
 }
 
-// execDeleteMessagingMessages Deletes all matched (by cnd) rows in messaging_messages with given data
+// execDeleteMessagingMessages Deletes all matched (by cnd) rows in messaging_message with given data
 func (s Store) execDeleteMessagingMessages(ctx context.Context, cnd squirrel.Sqlizer) error {
 	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingMessageTable("msg")).Where(cnd)))
 }
@@ -276,7 +276,7 @@ func (Store) messagingMessageTable(aa ...string) string {
 		alias = " AS " + aa[0]
 	}
 
-	return "messaging_messages" + alias
+	return "messaging_message" + alias
 }
 
 // MessagingMessageColumns returns all defined table columns
@@ -310,19 +310,7 @@ func (Store) messagingMessageColumns(aa ...string) []string {
 // Encoding is done by using generic approach or by calling encodeMessagingMessage
 // func when rdbms.customEncoder=true
 func (s Store) internalMessagingMessageEncoder(res *types.Message) store.Payload {
-	return store.Payload{
-		"id":          res.ID,
-		"type":        res.Type,
-		"message":     res.Message,
-		"meta":        res.Meta,
-		"rel_user":    res.UserID,
-		"rel_channel": res.ChannelID,
-		"reply_to":    res.ReplyTo,
-		"replies":     res.Replies,
-		"created_at":  res.CreatedAt,
-		"updated_at":  res.UpdatedAt,
-		"deleted_at":  res.DeletedAt,
-	}
+	return s.encodeMessagingMessage(res)
 }
 
 func (s *Store) checkMessagingMessageConstraints(ctx context.Context, res *types.Message) error {

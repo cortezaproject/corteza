@@ -15,6 +15,7 @@ fields:
 rdbms:
   alias: mcm
   table: messaging_channel_member
+  customFilterConverter: true
 
 search:
   enableSorting: false

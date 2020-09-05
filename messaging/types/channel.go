@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"time"
 
 	"github.com/jmoiron/sqlx/types"
@@ -12,44 +11,44 @@ import (
 
 type (
 	Channel struct {
-		ID    uint64         `json:"channelID" db:"id"`
-		Name  string         `json:"name" db:"name"`
-		Topic string         `json:"topic" db:"topic"`
-		Type  ChannelType    `json:"type" db:"type"`
-		Meta  types.JSONText `json:"-" db:"meta"`
+		ID    uint64         `json:"channelID"`
+		Name  string         `json:"name"`
+		Topic string         `json:"topic"`
+		Type  ChannelType    `json:"type"`
+		Meta  types.JSONText `json:"-"`
 
-		MembershipPolicy ChannelMembershipPolicy `json:"membershipPolicy" db:"membership_policy""`
+		MembershipPolicy ChannelMembershipPolicy `json:"membershipPolicy"`
 
-		CreatorID      uint64 `json:"creatorId" db:"rel_creator"`
-		OrganisationID uint64 `json:"organisationId" db:"rel_organisation"`
+		CreatorID      uint64 `json:"creatorId"`
+		OrganisationID uint64 `json:"organisationId"`
 
-		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 
-		ArchivedAt *time.Time `json:"archivedAt,omitempty" db:"archived_at"`
-		DeletedAt  *time.Time `json:"deletedAt,omitempty" db:"deleted_at"`
+		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
+		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
 
-		LastMessageID uint64 `json:",omitempty" db:"rel_last_message"`
+		LastMessageID uint64 `json:",omitempty"`
 
-		CanJoin                   bool `json:"-" db:"-"`
-		CanPart                   bool `json:"-" db:"-"`
-		CanObserve                bool `json:"-" db:"-"`
-		CanSendMessages           bool `json:"-" db:"-"`
-		CanDeleteMessages         bool `json:"-" db:"-"`
-		CanDeleteOwnMessages      bool `json:"-" db:"-"`
-		CanUpdateMessages         bool `json:"-" db:"-"`
-		CanUpdateOwnMessages      bool `json:"-" db:"-"`
-		CanChangeMembers          bool `json:"-" db:"-"`
-		CanChangeMembershipPolicy bool `json:"-" db:"-"`
-		CanUpdate                 bool `json:"-" db:"-"`
-		CanArchive                bool `json:"-" db:"-"`
-		CanUnarchive              bool `json:"-" db:"-"`
-		CanDelete                 bool `json:"-" db:"-"`
-		CanUndelete               bool `json:"-" db:"-"`
+		CanJoin                   bool `json:"-"`
+		CanPart                   bool `json:"-"`
+		CanObserve                bool `json:"-"`
+		CanSendMessages           bool `json:"-"`
+		CanDeleteMessages         bool `json:"-"`
+		CanDeleteOwnMessages      bool `json:"-"`
+		CanUpdateMessages         bool `json:"-"`
+		CanUpdateOwnMessages      bool `json:"-"`
+		CanChangeMembers          bool `json:"-"`
+		CanChangeMembershipPolicy bool `json:"-"`
+		CanUpdate                 bool `json:"-"`
+		CanArchive                bool `json:"-"`
+		CanUnarchive              bool `json:"-"`
+		CanDelete                 bool `json:"-"`
+		CanUndelete               bool `json:"-"`
 
-		Member  *ChannelMember `json:"-" db:"-"`
-		Members []uint64       `json:"-" db:"-"`
-		Unread  *Unread        `json:"-" db:"-"`
+		Member  *ChannelMember `json:"-"`
+		Members []uint64       `json:"-"`
+		Unread  *Unread        `json:"-"`
 	}
 
 	ChannelFilter struct {
@@ -63,8 +62,6 @@ type (
 		// Do not filter out deleted channels
 		// @deprecated
 		IncludeDeleted bool
-
-		Deleted rh.FilterState `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

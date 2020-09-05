@@ -191,17 +191,15 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 				// First reply,
 				//
 				// reset unreads for all members
-				//var mm types.ChannelMemberSet
-				//mm, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(original.ChannelID))
-				//if err != nil {
-				//	return err
-				//}
+				var mm types.ChannelMemberSet
+				mm, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(original.ChannelID))
+				if err != nil {
+					return err
+				}
 
-				panic("reimplement this")
-				//err = svc.unread.Preset(original.ChannelID, original.ID, mm.AllMemberIDs()...)
-				//if err != nil {
-				//	return err
-				//}
+				if err = store.PresetMessagingUnread(ctx, s, original.ChannelID, original.ID, mm.AllMemberIDs()...); err != nil {
+					return err
+				}
 			}
 
 			// Increment counter, on struct and in store.

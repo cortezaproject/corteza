@@ -38,6 +38,9 @@ type (
 		// ResetMessagingUnreadThreads (custom function)
 		ResetMessagingUnreadThreads(ctx context.Context, _userID uint64, _channelID uint64) error
 
+		// PresetMessagingUnread (custom function)
+		PresetMessagingUnread(ctx context.Context, _channelID uint64, _threadIDs uint64, _userID ...uint64) error
+
 		// IncMessagingUnreadCount (custom function)
 		IncMessagingUnreadCount(ctx context.Context, _channelID uint64, _threadIDs uint64, _userID uint64) error
 
@@ -94,6 +97,10 @@ func CountMessagingUnread(ctx context.Context, s MessagingUnreads, _userID uint6
 
 func ResetMessagingUnreadThreads(ctx context.Context, s MessagingUnreads, _userID uint64, _channelID uint64) error {
 	return s.ResetMessagingUnreadThreads(ctx, _userID, _channelID)
+}
+
+func PresetMessagingUnread(ctx context.Context, s MessagingUnreads, _channelID uint64, _threadIDs uint64, _userID ...uint64) error {
+	return s.PresetMessagingUnread(ctx, _channelID, _threadIDs, _userID...)
 }
 
 func IncMessagingUnreadCount(ctx context.Context, s MessagingUnreads, _channelID uint64, _threadIDs uint64, _userID uint64) error {

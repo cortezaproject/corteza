@@ -19,7 +19,7 @@ type (
 		Name   string      `json:"name"`
 		Config ChartConfig `json:"config"`
 
-		NamespaceID uint64 `json:"namespaceID,string" db:"rel_namespace,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`

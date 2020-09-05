@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/titpetric/factory"
 
@@ -29,6 +30,7 @@ The reading of the event queue table is triggered by pubsub.
   clients, while the websocket API (currently), performs a local
   broadcast, triggering the event poll only on other servers
 
+
 */
 
 type (
@@ -55,7 +57,7 @@ func (r *events) Pull(ctx context.Context) (*types.EventQueueItem, error) {
 	select {
 	case res, ok := <-r.pipe:
 		if !ok {
-			return res, ErrEventsPullClosed.New()
+			return res, fmt.Errorf("event pull closed")
 		}
 		return res, nil
 	case <-ctx.Done():

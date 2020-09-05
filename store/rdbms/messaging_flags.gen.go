@@ -252,7 +252,6 @@ func (s Store) internalMessagingFlagRowScanner(row rowScanner) (res *types.Messa
 			&res.ChannelID,
 			&res.Flag,
 			&res.CreatedAt,
-			&res.DeletedAt,
 		)
 	}
 
@@ -298,7 +297,6 @@ func (Store) messagingFlagColumns(aa ...string) []string {
 		alias + "rel_channel",
 		alias + "flag",
 		alias + "created_at",
-		alias + "deleted_at",
 	}
 }
 
@@ -316,7 +314,6 @@ func (s Store) internalMessagingFlagEncoder(res *types.MessageFlag) store.Payloa
 		"rel_channel": res.ChannelID,
 		"flag":        res.Flag,
 		"created_at":  res.CreatedAt,
-		"deleted_at":  res.DeletedAt,
 	}
 }
 
