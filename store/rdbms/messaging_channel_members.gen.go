@@ -30,7 +30,10 @@ func (s Store) SearchMessagingChannelMembers(ctx context.Context, f types.Channe
 		set []*types.ChannelMember
 		q   squirrel.SelectBuilder
 	)
-	q = s.messagingChannelMembersSelectBuilder()
+	q, err = s.convertMessagingChannelMemberFilter(f)
+	if err != nil {
+		return nil, f, err
+	}
 
 	return set, f, s.config.ErrorHandler(func() error {
 		set, _, _, err = s.QueryMessagingChannelMembers(ctx, q, nil)

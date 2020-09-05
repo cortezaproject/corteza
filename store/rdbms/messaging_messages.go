@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/davecgh/go-spew/spew"
 	"strings"
 )
 
@@ -18,24 +20,25 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 	}
 
 	query = s.messagingMessagesSelectBuilder()
+	query = query.Where(squirrel.Eq{"msg.deleted_at": nil})
 
 	if f.Query != "" {
 		q := "%" + strings.ToLower(f.Query) + "%"
-		query = query.Where(squirrel.Like{"LOWER(m.message)": q})
+		query = query.Where(squirrel.Like{"LOWER(msg.message)": q})
 	}
 
 	if len(f.ChannelID) > 0 {
-		query = query.Where(squirrel.Eq{"m.rel_channel": f.ChannelID})
+		query = query.Where(squirrel.Eq{"msg.rel_channel": f.ChannelID})
 	}
 
 	if len(f.UserID) > 0 {
-		query = query.Where(squirrel.Eq{"m.rel_user": f.UserID})
+		query = query.Where(squirrel.Eq{"msg.rel_user": f.UserID})
 	}
 
 	if len(f.ThreadID) > 0 {
-		query = query.Where(squirrel.Eq{"m.reply_to": f.ThreadID})
+		query = query.Where(squirrel.Eq{"msg.reply_to": f.ThreadID})
 	} else {
-		query = query.Where(squirrel.Eq{"m.reply_to": 0})
+		query = query.Where(squirrel.Eq{"msg.reply_to": 0})
 	}
 
 	if f.AttachmentsOnly {
@@ -47,31 +50,31 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 	}
 
 	if len(f.Type) > 0 {
-		query = query.Where(squirrel.Eq{"m.type": f.Type})
+		query = query.Where(squirrel.Eq{"msg.type": f.Type})
 	}
 
 	// first, exclusive
 	if f.AfterID > 0 {
-		query = query.OrderBy("m.id ASC")
-		query = query.Where(squirrel.Gt{"m.id": f.AfterID})
+		query = query.OrderBy("msg.id ASC")
+		query = query.Where(squirrel.Gt{"msg.id": f.AfterID})
 	}
 
 	// from, inclusive
 	if f.FromID > 0 {
-		query = query.OrderBy("m.id ASC")
-		query = query.Where(squirrel.GtOrEq{"m.id": f.FromID})
+		query = query.OrderBy("msg.id ASC")
+		query = query.Where(squirrel.GtOrEq{"msg.id": f.FromID})
 	}
 
 	// last, exclusive
 	if f.BeforeID > 0 {
-		query = query.OrderBy("m.id DESC")
-		query = query.Where(squirrel.Lt{"m.id": f.BeforeID})
+		query = query.OrderBy("msg.id DESC")
+		query = query.Where(squirrel.Lt{"msg.id": f.BeforeID})
 	}
 
 	// to, inclusive
 	if f.ToID > 0 {
-		query = query.OrderBy("m.id DESC")
-		query = query.Where(squirrel.LtOrEq{"m.id": f.ToID})
+		query = query.OrderBy("msg.id DESC")
+		query = query.Where(squirrel.LtOrEq{"msg.id": f.ToID})
 	}
 
 	if f.BookmarkedOnly || f.PinnedOnly {
@@ -87,10 +90,13 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 			return
 		} else {
 			query = query.
-				Where(squirrel.Eq{"m.id": flagQuery})
+				Where(squirrel.Eq{"msg.id": flagQuery})
 		}
 	}
 
+	spew.Dump(query.ToSql())
+
+	// Manually sorting & limiting for BC
 	query = query.
 		OrderBy("id DESC").
 		Limit(uint64(f.Limit))
@@ -126,12 +132,12 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 
 	// Prepare the actual message selector
 	base := s.messagingMessagesSelectBuilder().
-		Where(squirrel.Eq{"m.deleted_at": nil}).
+		Where(squirrel.Eq{"msg.deleted_at": nil}).
 		Join("originals ON (original_id IN (id, reply_to))")
 
 	if f.Query != "" {
 		q := "%" + strings.ToLower(f.Query) + "%"
-		base = base.Where(squirrel.Like{"LOWER(m.message)": q})
+		base = base.Where(squirrel.Like{"LOWER(msg.message)": q})
 	}
 
 	// Create CTE with originals & base
@@ -198,4 +204,22 @@ func (s Store) LastMessagingMessageID(ctx context.Context, channelID, threadID u
 	}
 
 	return
+}
+
+func (s Store) encodeMessagingMessage(res *types.Message) store.Payload {
+	// Custom message encoder to make sure that type is not converted to
+	// NULL when empty string is used (MessageTypeSimpleMessage)
+	return store.Payload{
+		"id":          res.ID,
+		"type":        sql.NullString{String: string(res.Type), Valid: true},
+		"message":     res.Message,
+		"meta":        res.Meta,
+		"rel_user":    res.UserID,
+		"rel_channel": res.ChannelID,
+		"reply_to":    res.ReplyTo,
+		"replies":     res.Replies,
+		"created_at":  res.CreatedAt,
+		"updated_at":  res.UpdatedAt,
+		"deleted_at":  res.DeletedAt,
+	}
 }

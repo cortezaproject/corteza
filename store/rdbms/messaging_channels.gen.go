@@ -31,7 +31,10 @@ func (s Store) SearchMessagingChannels(ctx context.Context, f types.ChannelFilte
 		set []*types.Channel
 		q   squirrel.SelectBuilder
 	)
-	q = s.messagingChannelsSelectBuilder()
+	q, err = s.convertMessagingChannelFilter(f)
+	if err != nil {
+		return nil, f, err
+	}
 
 	// Cleanup anything we've accidentally received...
 	f.PrevPage, f.NextPage = nil, nil

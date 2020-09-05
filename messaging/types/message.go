@@ -12,22 +12,22 @@ import (
 
 type (
 	Message struct {
-		ID        uint64       `json:"id" db:"id"`
-		Type      MessageType  `json:"type" db:"type"`
-		Message   string       `json:"message" db:"message"`
-		Meta      *MessageMeta `json:"meta" db:"meta"`
-		UserID    uint64       `json:"userId" db:"rel_user"`
-		ChannelID uint64       `json:"channelId" db:"rel_channel"`
-		ReplyTo   uint64       `json:"replyTo" db:"reply_to"`
-		Replies   uint         `json:"replies" db:"replies"`
-		CreatedAt time.Time    `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time   `json:"updatedAt,omitempty" db:"updated_at"`
-		DeletedAt *time.Time   `json:"deletedAt,omitempty" db:"deleted_at"`
+		ID        uint64       `json:"id"`
+		Type      MessageType  `json:"type"`
+		Message   string       `json:"message"`
+		Meta      *MessageMeta `json:"meta"`
+		UserID    uint64       `json:"userId"`
+		ChannelID uint64       `json:"channelId"`
+		ReplyTo   uint64       `json:"replyTo"`
+		Replies   uint         `json:"replies"`
+		CreatedAt time.Time    `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time   `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time   `json:"deletedAt,omitempty"`
 
 		Attachment *Attachment    `json:"attachment,omitempty"`
 		Flags      MessageFlagSet `json:"flags,omitempty"`
 
-		Unread *Unread `json:"-" db:"-"`
+		Unread *Unread `json:"-"`
 
 		Mentions    MentionSet
 		RepliesFrom []uint64

@@ -2,14 +2,14 @@ package types
 
 type (
 	Unread struct {
-		ChannelID     uint64 `db:"rel_channel"`
-		ReplyTo       uint64 `db:"rel_reply_to"`
-		UserID        uint64 `db:"rel_user"`
-		LastMessageID uint64 `db:"rel_last_message"`
+		ChannelID     uint64
+		ReplyTo       uint64
+		UserID        uint64
+		LastMessageID uint64
 
-		Count       uint32 `db:"count"`
-		ThreadCount uint32 `db:"-"`
-		ThreadTotal uint32 `db:"-"`
+		Count       uint32
+		ThreadCount uint32
+		ThreadTotal uint32
 	}
 )
 

@@ -6,15 +6,15 @@ import (
 
 type (
 	ChannelMember struct {
-		ChannelID uint64 `db:"rel_channel"`
+		ChannelID uint64
 
-		UserID uint64 `db:"rel_user"`
+		UserID uint64
 
-		Type ChannelMembershipType `db:"type"`
-		Flag ChannelMembershipFlag `db:"flag"`
+		Type ChannelMembershipType
+		Flag ChannelMembershipFlag
 
-		CreatedAt time.Time  `json:"createdAt,omitempty" db:"created_at"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" db:"updated_at"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 	}
 
 	ChannelMemberFilter struct {

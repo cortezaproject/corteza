@@ -422,6 +422,7 @@ func (Schema) MessagingChannelMember() *Table {
 
 func (Schema) MessagingMention() *Table {
 	return TableDef("messaging_mention",
+		ID,
 		ColumnDef("rel_channel", ColumnTypeIdentifier),
 		ColumnDef("rel_message", ColumnTypeIdentifier),
 		ColumnDef("rel_user", ColumnTypeIdentifier),

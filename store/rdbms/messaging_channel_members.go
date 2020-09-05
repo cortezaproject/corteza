@@ -2,9 +2,24 @@ package rdbms
 
 import (
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 	"sort"
 	"strconv"
 )
+
+func (s Store) convertMessagingChannelMemberFilter(f types.ChannelMemberFilter) (query squirrel.SelectBuilder, err error) {
+	query = s.messagingFlagsSelectBuilder()
+
+	if len(f.ChannelID) > 0 {
+		query = query.Where(squirrel.Eq{"rel_channel": f.ChannelID})
+	}
+
+	if len(f.MemberID) > 0 {
+		query = query.Where(squirrel.Eq{"rel_member": f.MemberID})
+	}
+
+	return query, nil
+}
 
 func (s Store) getMessagingChannelMembersQuery(memberIDs ...uint64) squirrel.SelectBuilder {
 	if len(memberIDs) == 0 {

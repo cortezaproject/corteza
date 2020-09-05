@@ -6,10 +6,10 @@ import (
 
 type (
 	Rule struct {
-		RoleID    uint64    `json:"roleID,string" db:"rel_role"`
-		Resource  Resource  `json:"resource"      db:"resource"`
-		Operation Operation `json:"operation"     db:"operation"`
-		Access    Access    `json:"access,string" db:"access"`
+		RoleID    uint64    `json:"roleID,string"`
+		Resource  Resource  `json:"resource"`
+		Operation Operation `json:"operation"`
+		Access    Access    `json:"access,string"`
 
 		// Do we need to flush it to storage?
 		dirty bool

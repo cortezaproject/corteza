@@ -44,8 +44,9 @@ functions:
 
 rdbms:
   alias: msg
-  table: messaging_messages
+  table: messaging_message
   customFilterConverter: true
+  customEncoder: true
 
 search:
   enablePaging: false

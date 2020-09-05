@@ -28,7 +28,7 @@ type (
 
 		Blocks PageBlocks `json:"blocks"`
 
-		Children PageSet `json:"children,omitempty" db:"-"`
+		Children PageSet `json:"children,omitempty"`
 
 		Visible bool `json:"visible"`
 		Weight  int  `json:"weight"`

@@ -2,8 +2,8 @@ package types
 
 type (
 	Command struct {
-		Name        string          `db:"name"        json:"name"`
-		Params      CommandParamSet `db:"params"      json:"params"`
-		Description string          `db:"description" json:"description"`
+		Name        string          `json:"name"`
+		Params      CommandParamSet `json:"params"`
+		Description string          `json:"description"`
 	}
 )

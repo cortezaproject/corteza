@@ -16,7 +16,7 @@ type (
 		Handle string         `json:"handle"`
 		Name   string         `json:"name"`
 		Meta   types.JSONText `json:"meta"`
-		Fields ModuleFieldSet `json:"fields" db:"-"`
+		Fields ModuleFieldSet `json:"fields"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 

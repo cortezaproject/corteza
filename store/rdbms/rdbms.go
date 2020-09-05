@@ -240,7 +240,7 @@ func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
 	//println("############################################################")
 	//println(query)
 	//println("############################################################")
-	//fmt.Printf("%v\n", args)
+	//fmt.Printf("%#v\n", args)
 	//println("############################################################")
 
 	_, err = s.db.ExecContext(ctx, query, args...)

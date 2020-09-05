@@ -94,9 +94,9 @@ func (s Store) PartialMessagingUnreadUpdate(ctx context.Context, onlyColumns []s
 		err = s.execUpdateMessagingUnreads(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
+				s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
 			},
-			s.internalMessagingUnreadEncoder(res).Skip("rel_channel", "reply_to", "rel_user").Only(onlyColumns...))
+			s.internalMessagingUnreadEncoder(res).Skip("rel_channel", "rel_reply_to", "rel_user").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -127,7 +127,7 @@ func (s Store) DeleteMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingUnreads(ctx, squirrel.Eq{
-			s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
+			s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -140,9 +140,9 @@ func (s Store) DeleteMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 // DeleteMessagingUnreadByChannelIDReplyToUserID Deletes row from the messaging_unread table
 func (s Store) DeleteMessagingUnreadByChannelIDReplyToUserID(ctx context.Context, channelID uint64, replyTo uint64, userID uint64) error {
 	return s.execDeleteMessagingUnreads(ctx, squirrel.Eq{
-		s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(channelID, ""),
-		s.preprocessColumn("mur.reply_to", ""):    s.preprocessValue(replyTo, ""),
-		s.preprocessColumn("mur.rel_user", ""):    s.preprocessValue(userID, ""),
+		s.preprocessColumn("mur.rel_channel", ""):  s.preprocessValue(channelID, ""),
+		s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(replyTo, ""),
+		s.preprocessColumn("mur.rel_user", ""):     s.preprocessValue(userID, ""),
 	})
 }
 
@@ -188,7 +188,7 @@ func (s Store) execUpsertMessagingUnreads(ctx context.Context, set store.Payload
 		s.messagingUnreadTable(),
 		set,
 		"rel_channel",
-		"reply_to",
+		"rel_reply_to",
 		"rel_user",
 	)
 
@@ -257,7 +257,7 @@ func (Store) messagingUnreadColumns(aa ...string) []string {
 
 	return []string{
 		alias + "rel_channel",
-		alias + "reply_to",
+		alias + "rel_reply_to",
 		alias + "rel_user",
 		alias + "rel_last_message",
 		alias + "count",
@@ -273,7 +273,7 @@ func (Store) messagingUnreadColumns(aa ...string) []string {
 func (s Store) internalMessagingUnreadEncoder(res *types.Unread) store.Payload {
 	return store.Payload{
 		"rel_channel":      res.ChannelID,
-		"reply_to":         res.ReplyTo,
+		"rel_reply_to":     res.ReplyTo,
 		"rel_user":         res.UserID,
 		"rel_last_message": res.LastMessageID,
 		"count":            res.Count,

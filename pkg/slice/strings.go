@@ -24,6 +24,15 @@ func ToStringBoolMap(s []string) (h map[string]bool) {
 	return
 }
 
+func ToUint64BoolMap(u []uint64) (h map[uint64]bool) {
+	h = make(map[uint64]bool)
+	for i := 0; i < len(u); i++ {
+		h[u[i]] = true
+	}
+
+	return
+}
+
 func HasString(ss []string, s string) bool {
 	for i := range ss {
 		if ss[i] == s {
