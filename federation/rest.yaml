@@ -78,14 +78,19 @@ endpoints:
               type: string
               required: true
               title: Auth token of the origin node
-
-  - title: Foobar
-    entrypoint: foobar
-    path: "/foobar"
+  - title: Modules
+    description: Federation module definitions
+    entrypoint: module
+    path: "/structure/module"
     authentication: []
-    imports:
     apis:
-      - name: foobar
+      - name: read
         method: GET
-        title: Foo bar
-        path: "/"
+        title: Read federated module
+        path: "/{moduleID}"
+        parameters:
+          path:
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID

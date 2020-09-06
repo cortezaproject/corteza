@@ -29,22 +29,33 @@ var (
 
 type (
 	// Internal API interface
-	FoobarFoobar struct {
+	ModuleRead struct {
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
 	}
 )
 
-// NewFoobarFoobar request
-func NewFoobarFoobar() *FoobarFoobar {
-	return &FoobarFoobar{}
+// NewModuleRead request
+func NewModuleRead() *ModuleRead {
+	return &ModuleRead{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r FoobarFoobar) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
+func (r ModuleRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"moduleID": r.ModuleID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleRead) GetModuleID() uint64 {
+	return r.ModuleID
 }
 
 // Fill processes request and fills internal variables
-func (r *FoobarFoobar) Fill(req *http.Request) (err error) {
+func (r *ModuleRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -54,6 +65,18 @@ func (r *FoobarFoobar) Fill(req *http.Request) (err error) {
 		case err != nil:
 			return fmt.Errorf("error parsing http request body: %w", err)
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err
