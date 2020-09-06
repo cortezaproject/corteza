@@ -8,6 +8,7 @@ import (
 
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
+	fdrService "github.com/cortezaproject/corteza-server/federation/service"
 	msgService "github.com/cortezaproject/corteza-server/messaging/service"
 	msgEvent "github.com/cortezaproject/corteza-server/messaging/service/event"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -200,6 +201,19 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = msgService.Initialize(ctx, app.Log, app.Store, msgService.Config{
+		ActionLog: app.Opt.ActionLog,
+		Storage:   app.Opt.Storage,
+	})
+
+	if err != nil {
+		return
+	}
+
+	// Initializes federation services
+	//
+	// Note: this is a legacy approach, all services from all 3 apps
+	// will most likely be merged in the future
+	err = fdrService.Initialize(ctx, app.Log, app.Store, fdrService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Storage:   app.Opt.Storage,
 	})
