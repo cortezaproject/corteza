@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -30,7 +29,7 @@ type (
 		Slug  string `json:"slug"`
 		Name  string `json:"name"`
 
-		Deleted rh.FilterState `json:"deleted"`
+		Deleted filter.State `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

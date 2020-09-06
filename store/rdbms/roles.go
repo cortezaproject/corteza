@@ -3,15 +3,15 @@ package rdbms
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.rolesSelectBuilder()
 
-	query = rh.FilterNullByState(query, "rl.deleted_at", f.Deleted)
-	query = rh.FilterNullByState(query, "rl.archived_at", f.Archived)
+	query = filter.StateCondition(query, "rl.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "rl.archived_at", f.Archived)
 
 	if len(f.RoleID) > 0 {
 		query = query.Where(squirrel.Eq{"rl.ID": f.RoleID})

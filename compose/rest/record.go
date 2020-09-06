@@ -5,25 +5,23 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/store"
-	"net/http"
-	"path"
-	"strconv"
-	"strings"
-
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/encoder"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/titpetric/factory/resputil"
+	"net/http"
+	"path"
+	"strconv"
+	"strings"
 )
 
 type (
@@ -83,7 +81,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		rf = types.RecordFilter{
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
-			Deleted:     rh.FilterState(r.Deleted),
+			Deleted:     filter.State(r.Deleted),
 		}
 	)
 

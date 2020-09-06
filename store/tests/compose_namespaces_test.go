@@ -3,8 +3,8 @@ package tests
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -103,12 +103,12 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 		req.Len(set, valid) // we've deleted one
 
 		// search for ALL
-		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Deleted: rh.FilterStateInclusive})
+		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Deleted: filter.StateInclusive})
 		req.NoError(err)
 		req.Len(set, count) // we've deleted one
 
 		// search for deleted only
-		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Deleted: rh.FilterStateExclusive})
+		set, f, err = s.SearchComposeNamespaces(ctx, types.NamespaceFilter{Deleted: filter.StateExclusive})
 		req.NoError(err)
 		req.Len(set, 1) // we've deleted one
 

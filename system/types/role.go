@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -29,8 +28,8 @@ type (
 		Handle string `json:"handle"`
 		Name   string `json:"name"`
 
-		Deleted  rh.FilterState `json:"deleted"`
-		Archived rh.FilterState `json:"archived"`
+		Deleted  filter.State `json:"deleted"`
+		Archived filter.State `json:"archived"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

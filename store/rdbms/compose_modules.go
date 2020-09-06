@@ -3,14 +3,14 @@ package rdbms
 import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"strings"
 )
 
 func (s Store) convertComposeModuleFilter(f types.ModuleFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.composeModulesSelectBuilder()
 
-	query = rh.FilterNullByState(query, "cmd.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "cmd.deleted_at", f.Deleted)
 
 	if f.NamespaceID > 0 {
 		query = query.Where("cmd.rel_namespace = ?", f.NamespaceID)

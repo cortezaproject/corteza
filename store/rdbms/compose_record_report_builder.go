@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/jmoiron/sqlx"
 	"strconv"
@@ -190,7 +189,7 @@ func (b *recordReportBuilder) Build() (sb squirrel.SelectBuilder, err error) {
 		}
 
 		// Wrap to cast func to ensure numeric output
-		col := squirrel.Alias(rh.SquirrelConcatExpr("CAST(", m.Expr, " AS DECIMAL(14,2))"), m.Alias)
+		col := squirrel.Alias(SquirrelConcatExpr("CAST(", m.Expr, " AS DECIMAL(14,2))"), m.Alias)
 		report = report.Column(col)
 
 		b.numerics = append(b.numerics, m.Alias)

@@ -3,14 +3,14 @@ package rdbms
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (s Store) convertApplicationFilter(f types.ApplicationFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.applicationsSelectBuilder()
 
-	query = rh.FilterNullByState(query, "app.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "app.deleted_at", f.Deleted)
 
 	if f.Query != "" {
 		qs := f.Query + "%"

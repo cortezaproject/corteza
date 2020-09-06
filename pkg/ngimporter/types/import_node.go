@@ -15,8 +15,7 @@ package types
 //	"github.com/cortezaproject/corteza-server/compose/repository"
 //	cv "github.com/cortezaproject/corteza-server/compose/service/values"
 //	"github.com/cortezaproject/corteza-server/compose/types"
-//	"github.com/cortezaproject/corteza-server/pkg/rh"
-//	"github.com/schollz/progressbar/v2"
+////	"github.com/schollz/progressbar/v2"
 //)
 //
 //type (
@@ -164,7 +163,7 @@ package types
 //	fl := types.RecordFilter{
 //		ModuleID:    refModU,
 //		NamespaceID: n.Namespace.ID,
-//		Deleted:     rh.FilterStateInclusive,
+//		Deleted:     filter.StateInclusive,
 //		Query:       fmt.Sprintf("%s='%s'", LegacyRefIDField, ref),
 //		PageFilter: rh.PageFilter{
 //			Page:    1,
@@ -196,7 +195,7 @@ package types
 //		// fetch all records, ordered by the ID for this module before the specified timestamp (if provided)
 //		f := types.RecordFilter{
 //			Sort:        "id ASC",
-//			Deleted:     rh.FilterStateInclusive,
+//			Deleted:     filter.StateInclusive,
 //			ModuleID:    n.Module.ID,
 //			NamespaceID: n.Namespace.ID,
 //			PageFilter: rh.PageFilter{

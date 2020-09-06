@@ -1,11 +1,10 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"time"
-
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type (
@@ -24,10 +23,10 @@ type (
 	}
 
 	CredentialsFilter struct {
-		OwnerID     uint64         `json:"ownerID"`
-		Kind        string         `json:"kind"`
-		Credentials string         `json:"credentials"`
-		Deleted     rh.FilterState `json:"deleted"`
+		OwnerID     uint64       `json:"ownerID"`
+		Kind        string       `json:"kind"`
+		Credentials string       `json:"credentials"`
+		Deleted     filter.State `json:"deleted"`
 	}
 )
 

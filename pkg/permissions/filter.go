@@ -2,10 +2,7 @@ package permissions
 
 import (
 	"fmt"
-
 	"github.com/Masterminds/squirrel"
-
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -86,7 +83,9 @@ func (rf ResourceFilter) ToSql() (sql string, args []interface{}, err error) {
 		}
 
 		build = func(ss ...squirrel.Sqlizer) (sql string, args []interface{}, err error) {
-			return rh.SquirrelFunction("COALESCE", append(checks, ss...)...).ToSql()
+			return squirrel.Expr("FALSE").ToSql()
+			// @obsolete
+			//return rh.SquirrelFunction("COALESCE", append(checks, ss...)...).ToSql()
 		}
 	)
 

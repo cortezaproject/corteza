@@ -6,13 +6,13 @@ import (
 	"errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 func (s Store) convertComposeRecordValueFilter(_ *types.Module, f types.RecordValueFilter) (query squirrel.SelectBuilder, err error) {
 	// Always filter by record IDs
 	query = s.composeRecordValuesSelectBuilder().Where(squirrel.Eq{"crv.record_id": f.RecordID})
-	query = rh.FilterNullByState(query, "crv.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "crv.deleted_at", f.Deleted)
 
 	return query, nil
 }

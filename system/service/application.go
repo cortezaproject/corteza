@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -60,13 +60,13 @@ func (svc *application) LookupByID(ctx context.Context, ID uint64) (app *types.A
 	return app, svc.recordAction(ctx, aaProps, ApplicationActionLookup, err)
 }
 
-func (svc *application) Search(ctx context.Context, filter types.ApplicationFilter) (aa types.ApplicationSet, f types.ApplicationFilter, err error) {
+func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) (aa types.ApplicationSet, f types.ApplicationFilter, err error) {
 	var (
-		aaProps = &applicationActionProps{filter: &filter}
+		aaProps = &applicationActionProps{filter: &af}
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *types.Application) (bool, error) {
+	af.Check = func(res *types.Application) (bool, error) {
 		if !svc.ac.CanReadApplication(ctx, res) {
 			return false, nil
 		}
@@ -75,7 +75,7 @@ func (svc *application) Search(ctx context.Context, filter types.ApplicationFilt
 	}
 
 	err = func() error {
-		if filter.Deleted > rh.FilterStateExcluded {
+		if af.Deleted > filter.StateExcluded {
 			// If list with deleted applications is requested
 			// user must have access permissions to system (ie: is admin)
 			//
@@ -86,7 +86,7 @@ func (svc *application) Search(ctx context.Context, filter types.ApplicationFilt
 			}
 		}
 
-		aa, f, err = svc.store.SearchApplications(ctx, filter)
+		aa, f, err = svc.store.SearchApplications(ctx, af)
 		return err
 	}()
 

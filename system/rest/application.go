@@ -6,7 +6,6 @@ import (
 	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -67,7 +66,7 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 			Name:  r.Name,
 			Query: r.Query,
 
-			Deleted: rh.FilterState(r.Deleted),
+			Deleted: filter.State(r.Deleted),
 		}
 	)
 

@@ -4,10 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
-	"time"
-
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type (
@@ -26,7 +25,7 @@ type (
 
 	RecordValueFilter struct {
 		RecordID []uint64
-		Deleted  rh.FilterState `json:"deleted"`
+		Deleted  filter.State `json:"deleted"`
 	}
 )
 

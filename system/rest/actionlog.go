@@ -5,7 +5,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -81,8 +80,8 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 			close(c)
 		},
 		types.UserFilter{
-			Deleted:   rh.FilterStateInclusive,
-			Suspended: rh.FilterStateInclusive,
+			Deleted:   filter.StateInclusive,
+			Suspended: filter.StateInclusive,
 		},
 		func(u *types.User) error {
 			for p := range pp {
