@@ -11,8 +11,7 @@ package ngimporter
 //	"github.com/cortezaproject/corteza-server/compose/repository"
 //	cct "github.com/cortezaproject/corteza-server/compose/types"
 //	"github.com/cortezaproject/corteza-server/pkg/ngimporter/types"
-//	"github.com/cortezaproject/corteza-server/pkg/rh"
-//	"github.com/schollz/progressbar/v2"
+////	"github.com/schollz/progressbar/v2"
 //)
 //
 //type (
@@ -195,7 +194,7 @@ package ngimporter
 //		}
 //		rr, _, err := recRepo.Find(uMod, cct.RecordFilter{
 //			ModuleID:    uMod.ID,
-//			Deleted:     rh.FilterStateInclusive,
+//			Deleted:     filter.StateInclusive,
 //			NamespaceID: ns.ID,
 //			Query:       "sys_legacy_ref_id IS NOT NULL",
 //			PageFilter: rh.PageFilter{

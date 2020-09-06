@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -50,8 +49,8 @@ type (
 		Handle   string   `json:"handle"`
 		Kind     UserKind `json:"kind"`
 
-		Deleted   rh.FilterState `json:"deleted"`
-		Suspended rh.FilterState `json:"suspended"`
+		Deleted   filter.State `json:"deleted"`
+		Suspended filter.State `json:"suspended"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

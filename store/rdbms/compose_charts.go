@@ -3,14 +3,14 @@ package rdbms
 import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"strings"
 )
 
 func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.composeChartsSelectBuilder()
 
-	query = rh.FilterNullByState(query, "cch.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "cch.deleted_at", f.Deleted)
 
 	if f.NamespaceID > 0 {
 		query = query.Where("cch.rel_namespace = ?", f.NamespaceID)

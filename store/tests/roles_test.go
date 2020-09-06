@@ -2,9 +2,9 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
@@ -107,15 +107,15 @@ func testRoles(t *testing.T, s store.Roles) {
 				prefill[0].DeletedAt = &(prefill[0].CreatedAt)
 				s.UpdateRole(ctx, prefill[0])
 
-				set, _, err := s.SearchRoles(ctx, types.RoleFilter{Deleted: rh.FilterStateExcluded})
+				set, _, err := s.SearchRoles(ctx, types.RoleFilter{Deleted: filter.StateExcluded})
 				req.NoError(err)
 				req.Len(set, 4)
 
-				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Deleted: rh.FilterStateInclusive})
+				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Deleted: filter.StateInclusive})
 				req.NoError(err)
 				req.Len(set, 5)
 
-				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Deleted: rh.FilterStateExclusive})
+				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Deleted: filter.StateExclusive})
 				req.NoError(err)
 				req.Len(set, 1)
 			})
@@ -126,15 +126,15 @@ func testRoles(t *testing.T, s store.Roles) {
 				prefill[0].ArchivedAt = &(prefill[0].CreatedAt)
 				s.UpdateRole(ctx, prefill[0])
 
-				set, _, err := s.SearchRoles(ctx, types.RoleFilter{Archived: rh.FilterStateExcluded})
+				set, _, err := s.SearchRoles(ctx, types.RoleFilter{Archived: filter.StateExcluded})
 				req.NoError(err)
 				req.Len(set, 4)
 
-				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Archived: rh.FilterStateInclusive})
+				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Archived: filter.StateInclusive})
 				req.NoError(err)
 				req.Len(set, 5)
 
-				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Archived: rh.FilterStateExclusive})
+				set, _, err = s.SearchRoles(ctx, types.RoleFilter{Archived: filter.StateExclusive})
 				req.NoError(err)
 				req.Len(set, 1)
 			})

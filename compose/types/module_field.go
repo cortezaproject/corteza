@@ -3,11 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"sort"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 )
 
 type (
@@ -36,7 +35,7 @@ type (
 
 	ModuleFieldFilter struct {
 		ModuleID []uint64
-		Deleted  rh.FilterState
+		Deleted  filter.State
 	}
 )
 

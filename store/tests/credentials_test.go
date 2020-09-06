@@ -3,8 +3,8 @@ package tests
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/store"
 	// "github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/types"
 	_ "github.com/joho/godotenv/autoload"
@@ -21,12 +21,12 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		makeNew = func(nn ...string) *types.Credentials {
 			name := strings.Join(nn, "")
 			return &types.Credentials{
-				ID:        id.Next(),
-				OwnerID:   id.Next(),
-				Kind:      "test-kind" + name,
+				ID:          id.Next(),
+				OwnerID:     id.Next(),
+				Kind:        "test-kind" + name,
 				Credentials: name,
-				Label:     "CredentialsCRUD" + name,
-				CreatedAt: time.Now(),
+				Label:       "CredentialsCRUD" + name,
+				CreatedAt:   time.Now(),
 			}
 		}
 
@@ -105,7 +105,6 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		})
 	})
 
-
 	t.Run("search", func(t *testing.T) {
 		t.Run("by owner", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
@@ -131,15 +130,15 @@ func testCredentials(t *testing.T, s store.Credentials) {
 		// 		prefill[0].DeletedAt = &time
 		// 		req.NoError(s.DeleteCredentialsByID(ctx, prefill[0].ID))
 
-		// 		set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: rh.FilterStateExcluded})
+		// 		set, _, err := s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateExcluded})
 		// 		req.NoError(err)
 		// 		req.Len(set, 4)
 
-		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: rh.FilterStateInclusive})
+		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateInclusive})
 		// 		req.NoError(err)
 		// 		req.Len(set, 5)
 
-		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: rh.FilterStateExclusive})
+		// 		set, _, err = s.SearchCredentials(ctx, types.CredentialsFilter{Deleted: filter.StateExclusive})
 		// 		req.NoError(err)
 		// 		req.Len(set, 1)
 		// 	})

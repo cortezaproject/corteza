@@ -3,8 +3,8 @@ package tests
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -106,12 +106,12 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 		req.Len(set, valid) // we've deleted one
 
 		// search for ALL
-		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: rh.FilterStateInclusive})
+		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: filter.StateInclusive})
 		req.NoError(err)
 		req.Len(set, count) // we've deleted one
 
 		// search for deleted only
-		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: rh.FilterStateExclusive})
+		set, f, err = s.SearchComposeModules(ctx, types.ModuleFilter{Deleted: filter.StateExclusive})
 		req.NoError(err)
 		req.Len(set, 1) // we've deleted one
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
 )
@@ -12,7 +12,7 @@ import (
 func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.composePagesSelectBuilder()
 
-	query = rh.FilterNullByState(query, "cpg.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "cpg.deleted_at", f.Deleted)
 
 	if f.NamespaceID > 0 {
 		query = query.Where("cpg.rel_namespace = ?", f.NamespaceID)

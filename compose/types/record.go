@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 )
 
 type (
@@ -57,7 +56,7 @@ type (
 		// Preloaded set of additional modules that are used for record filtering
 		// Modules ModuleSet
 
-		Deleted rh.FilterState `json:"deleted"`
+		Deleted filter.State `json:"deleted"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

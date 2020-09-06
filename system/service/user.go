@@ -6,10 +6,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -423,10 +423,10 @@ func (svc user) UniqueCheck(u *types.User) (err error) {
 	isUnique := func(field string) bool {
 		f := types.UserFilter{
 			// If user exists and is deleted -- not a dup
-			Deleted: rh.FilterStateExcluded,
+			Deleted: filter.StateExcluded,
 
 			// If user exists and is suspended -- duplicate
-			Suspended: rh.FilterStateInclusive,
+			Suspended: filter.StateInclusive,
 		}
 
 		switch field {

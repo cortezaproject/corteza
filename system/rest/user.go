@@ -8,7 +8,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -47,8 +46,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 			Username:  r.Username,
 			Handle:    r.Handle,
 			Kind:      r.Kind,
-			Suspended: rh.FilterState(r.Suspended),
-			Deleted:   rh.FilterState(r.Deleted),
+			Suspended: filter.State(r.Suspended),
+			Deleted:   filter.State(r.Deleted),
 		}
 	)
 
@@ -61,11 +60,11 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 	}
 
 	if r.IncSuspended && f.Suspended == 0 {
-		f.Suspended = rh.FilterStateInclusive
+		f.Suspended = filter.StateInclusive
 	}
 
 	if r.IncDeleted && f.Deleted == 0 {
-		f.Deleted = rh.FilterStateInclusive
+		f.Deleted = filter.StateInclusive
 	}
 
 	set, filter, err := ctrl.user.With(ctx).Find(f)

@@ -3,6 +3,7 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"net/http"
 	"strconv"
 	"testing"
@@ -12,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
@@ -62,11 +62,11 @@ func TestRecordExec(t *testing.T) {
 
 	assertSort := func(expectedHandles, expectedCats string) {
 		// Using record service for fetching to avoid value pre-fetching etc..
+		sorting, _ := filter.NewSorting("position ASC")
 		set, _, err := service.DefaultRecord.With(h.secCtx()).Find(types.RecordFilter{
 			ModuleID:    module.ID,
 			NamespaceID: module.NamespaceID,
-			Sort:        "position ASC",
-			PageFilter:  rh.PageFilter{},
+			Sorting:     sorting,
 		})
 
 		h.a.NoError(err)

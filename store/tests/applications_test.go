@@ -2,8 +2,8 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
@@ -96,12 +96,12 @@ func testApplications(t *testing.T, s store.Applications) {
 		req.Len(set, valid) // we've deleted one
 
 		// search for ALL
-		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Deleted: rh.FilterStateInclusive})
+		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Deleted: filter.StateInclusive})
 		req.NoError(err)
 		req.Len(set, count) // we've deleted one
 
 		// search for deleted only
-		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Deleted: rh.FilterStateExclusive})
+		set, f, err = s.SearchApplications(ctx, types.ApplicationFilter{Deleted: filter.StateExclusive})
 		req.NoError(err)
 		req.Len(set, 1) // we've deleted one
 

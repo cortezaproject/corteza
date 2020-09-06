@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
@@ -240,7 +239,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 		Where("crd.rel_namespace = ?", m.NamespaceID)
 
 	// Inc/exclude deleted records according to filter settings
-	query = rh.FilterNullByState(query, "crd.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "crd.deleted_at", f.Deleted)
 
 	// Parse filters.
 	if f.Query != "" {
@@ -291,7 +290,7 @@ func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Modu
 		)
 		rvs, _, err = s.searchComposeRecordValues(ctx, nil, types.RecordValueFilter{
 			RecordID: types.RecordSet(set).IDs(),
-			Deleted:  rh.FilterStateInclusive,
+			Deleted:  filter.StateInclusive,
 		})
 		if err != nil {
 			return

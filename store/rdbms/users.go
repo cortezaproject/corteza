@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.usersSelectBuilder()
 
-	query = rh.FilterNullByState(query, "usr.deleted_at", f.Deleted)
-	query = rh.FilterNullByState(query, "usr.suspended_at", f.Suspended)
+	query = filter.StateCondition(query, "usr.deleted_at", f.Deleted)
+	query = filter.StateCondition(query, "usr.suspended_at", f.Suspended)
 
 	if len(f.UserID) > 0 {
 		query = query.Where(squirrel.Eq{"usr.ID": f.UserID})

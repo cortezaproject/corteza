@@ -3,8 +3,8 @@ package tests
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/rh"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -106,12 +106,12 @@ func testComposeCharts(t *testing.T, s store.Storable) {
 		req.Len(set, valid) // we've deleted one
 
 		// search for ALL
-		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Deleted: rh.FilterStateInclusive})
+		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Deleted: filter.StateInclusive})
 		req.NoError(err)
 		req.Len(set, count) // we've deleted one
 
 		// search for deleted only
-		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Deleted: rh.FilterStateExclusive})
+		set, f, err = s.SearchComposeCharts(ctx, types.ChartFilter{Deleted: filter.StateExclusive})
 		req.NoError(err)
 		req.Len(set, 1) // we've deleted one
 
