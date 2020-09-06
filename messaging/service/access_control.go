@@ -19,7 +19,6 @@ type (
 		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
-		ResourceFilter([]uint64, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 )
 
@@ -218,22 +217,6 @@ func (svc accessControl) can(ctx context.Context, res permissions.Resource, op p
 	}
 
 	return svc.permissions.Can(roles, res, op, ff...)
-}
-
-func (svc accessControl) filter(ctx context.Context, res permissions.Resource, op permissions.Operation, a permissions.Access) *permissions.ResourceFilter {
-	var (
-		u     = auth.GetIdentityFromContext(ctx)
-		roles = u.Roles()
-	)
-
-	if auth.IsSuperUser(u) {
-		// Temp solution to allow migration from passing context to ResourceFilter
-		// and checking "superuser" privileges there to more sustainable solution
-		// (eg: creating super-role with allow-all)
-		return permissions.NewSuperuserFilter()
-	}
-
-	return svc.permissions.ResourceFilter(roles, res, op, a)
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {

@@ -35,8 +35,6 @@ type (
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
 		CanManageRoleMembers(context.Context, *types.Role) bool
-
-		FilterReadableRoles(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	RoleService interface {

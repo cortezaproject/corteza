@@ -33,10 +33,6 @@ func (ServiceAllowAll) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	return
 }
 
-func (ServiceAllowAll) ResourceFilter([]uint64, Resource, Operation, Access) *ResourceFilter {
-	return &ResourceFilter{superuser: true}
-}
-
 func (ServiceDenyAll) Can([]uint64, Resource, Operation, ...CheckAccessFunc) bool {
 	return false
 }
