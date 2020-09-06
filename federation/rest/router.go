@@ -8,15 +8,17 @@ import (
 )
 
 func MountRoutes(r chi.Router) {
-	var (
-		foobar = Foobar{}.New()
-	)
+	r.Group(func(r chi.Router) {
+		handlers.NewPairRequest(NodePairRequest{}.New()).MountRoutes(r)
+	})
 
 	// Protect all _private_ routes
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 		r.Use(middlewareAllowedAccess)
 
-		handlers.NewFoobar(foobar).MountRoutes(r)
+		handlers.NewIdentity(NodeIdentity{}.New()).MountRoutes(r)
+		handlers.NewPair(NodePair{}.New()).MountRoutes(r)
+		handlers.NewFoobar(Foobar{}.New()).MountRoutes(r)
 	})
 }
