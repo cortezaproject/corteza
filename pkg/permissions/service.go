@@ -171,23 +171,6 @@ func (svc *service) Reload(ctx context.Context) {
 	}
 }
 
-// ResourceFilter is store helper that we use to filter resources directly in the database
-//
-// See ResourceFilter struct documentation for details
-//
-// @deprecated
-func (svc *service) ResourceFilter(roles []uint64, r Resource, op Operation, fallback Access) *ResourceFilter {
-	return &ResourceFilter{
-		roles:     roles,
-		resource:  r,
-		operation: op,
-		dbTable:   "rbac_rules",
-		chk:       svc,
-		fallback:  fallback,
-		pkColName: "id",
-	}
-}
-
 func (svc service) flush(ctx context.Context) (err error) {
 	d, u := svc.rules.dirty()
 

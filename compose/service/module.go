@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 	"sort"
 	"strconv"
@@ -31,8 +30,6 @@ type (
 		CanReadModule(context.Context, *types.Module) bool
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
-
-		FilterReadableModules(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	ModuleService interface {

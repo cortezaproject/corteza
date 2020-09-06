@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -61,10 +60,6 @@ type (
 		CanUnsuspendUser(context.Context, *types.User) bool
 		CanUnmaskEmail(context.Context, *types.User) bool
 		CanUnmaskName(context.Context, *types.User) bool
-
-		FilterReadableUsers(ctx context.Context) *permissions.ResourceFilter
-		FilterUsersWithUnmaskableEmail(ctx context.Context) *permissions.ResourceFilter
-		FilterUsersWithUnmaskableName(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	// Temp types to support user.Preloader

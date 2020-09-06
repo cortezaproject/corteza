@@ -20,7 +20,6 @@ type (
 		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
 		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
 		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
-		ResourceFilter([]uint64, permissions.Resource, permissions.Operation, permissions.Access) *permissions.ResourceFilter
 	}
 
 	permissionResource interface {
@@ -85,10 +84,6 @@ func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl.PermissionResource(), "read", permissions.Allowed)
 }
 
-func (svc accessControl) FilterReadableRoles(ctx context.Context) *permissions.ResourceFilter {
-	return svc.filter(ctx, types.RolePermissionResource, "read", permissions.Allow)
-}
-
 func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool {
 	if rl.ID == permissions.EveryoneRoleID {
 		return false
@@ -116,28 +111,12 @@ func (svc accessControl) CanReadApplication(ctx context.Context, app *types.Appl
 	return svc.can(ctx, app.PermissionResource(), "read", permissions.Allowed)
 }
 
-func (svc accessControl) FilterReadableApplications(ctx context.Context) *permissions.ResourceFilter {
-	return svc.filter(ctx, types.ApplicationPermissionResource, "read", permissions.Deny)
-}
-
 func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Application) bool {
 	return svc.can(ctx, app.PermissionResource(), "update")
 }
 
 func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Application) bool {
 	return svc.can(ctx, app.PermissionResource(), "delete")
-}
-
-func (svc accessControl) FilterReadableUsers(ctx context.Context) *permissions.ResourceFilter {
-	return svc.filter(ctx, types.UserPermissionResource, "read", permissions.Deny)
-}
-
-func (svc accessControl) FilterUsersWithUnmaskableEmail(ctx context.Context) *permissions.ResourceFilter {
-	return svc.filter(ctx, types.UserPermissionResource, "unmask.email", permissions.Deny)
-}
-
-func (svc accessControl) FilterUsersWithUnmaskableName(ctx context.Context) *permissions.ResourceFilter {
-	return svc.filter(ctx, types.UserPermissionResource, "unmask.name", permissions.Deny)
 }
 
 func (svc accessControl) CanReadUser(ctx context.Context, u *types.User) bool {
@@ -196,22 +175,6 @@ func (svc accessControl) can(ctx context.Context, res permissions.Resource, op p
 	}
 
 	return svc.permissions.Can(roles, res.PermissionResource(), op, ff...)
-}
-
-func (svc accessControl) filter(ctx context.Context, res permissions.Resource, op permissions.Operation, a permissions.Access) *permissions.ResourceFilter {
-	var (
-		u     = internalAuth.GetIdentityFromContext(ctx)
-		roles = u.Roles()
-	)
-
-	if internalAuth.IsSuperUser(u) {
-		// Temp solution to allow migration from passing context to ResourceFilter
-		//and checking "superuser" privileges there
-		// to more sustainable solution (eg: creating super-role with allow-all)
-		return permissions.NewSuperuserFilter()
-	}
-
-	return svc.permissions.ResourceFilter(roles, res, op, a)
 }
 
 func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {

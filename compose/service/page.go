@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -27,8 +26,6 @@ type (
 		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
 		CanDeletePage(context.Context, *types.Page) bool
-
-		FilterReadablePages(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	PageService interface {

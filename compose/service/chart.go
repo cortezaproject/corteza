@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -25,8 +24,6 @@ type (
 		CanReadChart(context.Context, *types.Chart) bool
 		CanUpdateChart(context.Context, *types.Chart) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
-
-		FilterReadableCharts(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	ChartService interface {

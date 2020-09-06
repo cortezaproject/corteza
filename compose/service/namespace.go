@@ -29,8 +29,6 @@ type (
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 
 		Grant(ctx context.Context, rr ...*permissions.Rule) error
-
-		FilterReadableNamespaces(ctx context.Context) *permissions.ResourceFilter
 	}
 
 	NamespaceService interface {
