@@ -300,9 +300,12 @@ func (mImp *Module) resolveRefs(module *types.Module) (uint, error) {
 						refHandle, module.Handle, field.Name)
 				}
 
-				if refmod, err := mImp.Get(refHandle); err != nil || refmod == nil {
+				if refmod, err := mImp.Get(refHandle); err != nil {
 					return fmt.Errorf("could not load module %q on module %q, field %q options: %w",
 						refHandle, module.Handle, field.Name, err)
+				} else if refmod == nil {
+					return fmt.Errorf("could not load module %q: not found",
+						refHandle)
 				} else {
 					refs++
 					field.Options["moduleID"] = strconv.FormatUint(refmod.ID, 10)

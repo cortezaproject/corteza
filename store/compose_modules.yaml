@@ -18,10 +18,12 @@ fields:
 lookups:
   - fields: [ NamespaceID, Handle ]
     uniqueConstraintCheck: true
+    filter: { DeletedAt: nil }
     description: |-
       searches for compose module by handle (case-insensitive)
 
   - fields: [ NamespaceID, Name ]
+    filter: { DeletedAt: nil }
     description: |-
       searches for compose module by name (case-insensitive)
 

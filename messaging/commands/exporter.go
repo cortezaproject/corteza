@@ -2,18 +2,17 @@ package commands
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
+	"errors"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
+	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 func Exporter() *cobra.Command {
@@ -71,7 +70,7 @@ func settingExporter(ctx context.Context, out *Messaging) {
 		err error
 	)
 
-	ss, err := service.DefaultSettings.FindByPrefix(ctx)
+	ss, err := sysService.DefaultSettings.FindByPrefix(ctx)
 	cli.HandleError(err)
 
 	out.Settings = settings.Export(ss)

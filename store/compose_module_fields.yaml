@@ -24,6 +24,7 @@ fields:
 lookups:
   - fields: [ ModuleID, Name ]
     uniqueConstraintCheck: true
+    filter: { DeletedAt: nil }
     description: |-
       searches for compose module field by name (case-insensitive)
 

@@ -2,6 +2,7 @@ package settings
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/jmoiron/sqlx/types"
@@ -37,7 +38,7 @@ func TestSettingImport_CastSet(t *testing.T) {
 			v := imp.settings.First(k)
 			vv, _ := types.JSONText(test).MarshalJSON()
 			ee, _ := v.Value.MarshalJSON()
-			req.Equal(ee, vv)
+			req.Equal(strings.TrimSpace(string(ee)), strings.TrimSpace(string(vv)))
 		})
 	}
 }

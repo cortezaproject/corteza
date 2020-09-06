@@ -70,7 +70,6 @@ func (svc event) MessageFlag(f *types.MessageFlag) error {
 	}
 
 	return svc.push(p, types.EventQueueItemSubTypeChannel, f.ChannelID)
-	return nil
 }
 
 func (svc event) UnreadCounters(uu types.UnreadSet) error {

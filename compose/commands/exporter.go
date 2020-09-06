@@ -3,17 +3,8 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
-	"strings"
-
-	sqlTypes "github.com/jmoiron/sqlx/types"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -22,9 +13,16 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
-	intSettings "github.com/cortezaproject/corteza-server/pkg/settings"
+	"github.com/cortezaproject/corteza-server/store"
 	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
+	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	sqlTypes "github.com/jmoiron/sqlx/types"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 func Exporter() *cobra.Command {
@@ -46,7 +44,7 @@ func Exporter() *cobra.Command {
 				}
 			)
 			if nsFlag == "" && !sFlag && !pFlag {
-				cli.HandleError(errors.New("Specify namespace or setting or permissions flag"))
+				cli.HandleError(fmt.Errorf("Specify namespace or setting or permissions flag"))
 			}
 
 			if nsFlag != "" {
@@ -83,11 +81,11 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 
 	if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
 		ns, err = service.DefaultNamespace.FindByID(namespaceID)
-		if err != repository.ErrNamespaceNotFound {
+		if errors.Is(err, store.ErrNotFound) {
 			cli.HandleError(err)
 		}
 	} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
-		if err != repository.ErrNamespaceNotFound {
+		if errors.Is(err, store.ErrNotFound) {
 			cli.HandleError(err)
 		}
 	}
@@ -140,7 +138,7 @@ func settingExporter(ctx context.Context, out *Compose) {
 		err error
 	)
 
-	ss, err := service.DefaultSettings.FindByPrefix(ctx)
+	ss, err := sysService.DefaultSettings.FindByPrefix(ctx)
 	cli.HandleError(err)
 
 	out.Settings = settings.Export(ss)
@@ -268,7 +266,7 @@ var (
 	pagesHandles = make(map[string]bool)
 )
 
-func expSettings(ss intSettings.ValueSet) (o yaml.MapSlice) {
+func expSettings(ss sysTypes.SettingValueSet) (o yaml.MapSlice) {
 	o = yaml.MapSlice{}
 	for _, s := range ss {
 		setting := yaml.MapItem{

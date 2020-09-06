@@ -88,6 +88,8 @@ func (s Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, modul
 	return s.execLookupComposeModuleField(ctx, squirrel.Eq{
 		s.preprocessColumn("cmf.rel_module", ""): s.preprocessValue(module_id, ""),
 		s.preprocessColumn("cmf.name", "lower"):  s.preprocessValue(name, "lower"),
+
+		"cmf.deleted_at": nil,
 	})
 }
 
@@ -336,7 +338,26 @@ func (s Store) internalComposeModuleFieldEncoder(res *types.ModuleField) store.P
 	}
 }
 
+// checkComposeModuleFieldConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *types.ModuleField) error {
+	// Consider resource valid when all fields in unique constraint check lookups
+	// have valid (non-empty) value
+	//
+	// Only string and uint64 are supported for now
+	// feel free to add additional types if needed
+	var valid = true
+
+	valid = valid && res.ModuleID > 0
+
+	valid = valid && len(res.Name) > 0
+
+	if !valid {
+		return nil
+	}
 
 	{
 		ex, err := s.LookupComposeModuleFieldByModuleIDName(ctx, res.ModuleID, res.Name)

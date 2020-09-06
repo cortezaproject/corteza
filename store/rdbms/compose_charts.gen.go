@@ -232,6 +232,8 @@ func (s Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, namesp
 	return s.execLookupComposeChart(ctx, squirrel.Eq{
 		s.preprocessColumn("cch.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
 		s.preprocessColumn("cch.handle", "lower"):   s.preprocessValue(handle, "lower"),
+
+		"cch.deleted_at": nil,
 	})
 }
 
@@ -528,7 +530,22 @@ func (s Store) collectComposeChartCursorValues(res *types.Chart, cc ...string) *
 	return cursor
 }
 
+// checkComposeChartConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkComposeChartConstraints(ctx context.Context, res *types.Chart) error {
+	// Consider resource valid when all fields in unique constraint check lookups
+	// have valid (non-empty) value
+	//
+	// Only string and uint64 are supported for now
+	// feel free to add additional types if needed
+	var valid = true
+
+	if !valid {
+		return nil
+	}
 
 	return nil
 }

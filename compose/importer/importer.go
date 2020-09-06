@@ -109,6 +109,11 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 				return imp.namespaces.CastSet([]interface{}{val})
 			}
 
+		case "settings":
+			if imp.settings != nil {
+				return imp.settings.CastSet(val)
+			}
+
 		case "allow", "deny":
 			if imp.permissions != nil {
 				return imp.permissions.CastResourcesSet(key, val)

@@ -643,7 +643,37 @@ func (s Store) collect{{ export $.Types.Singular }}CursorValues(res *{{ $.Types.
 }
 {{ end }}
 
+// check{{ export $.Types.Singular }}Constraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// on the full support (MySQL does not support conditional indexes)
 func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Context{{ template "extraArgsDef" $ }}, res *{{ $.Types.GoType }}) error {
+	// Consider resource valid when all fields in unique constraint check lookups
+	// have valid (non-empty) value
+	//
+	// Only string and uint64 are supported for now
+	// feel free to add additional types if needed
+	var valid = true
+{{- range $lookup := $.Lookups }}
+	{{ if $lookup.UniqueConstraintCheck }}
+	{{- range $field := $lookup.Fields }}
+		{{ if eq ($field | $.Fields.Find).Type "uint64" }}
+		valid = valid && res.{{ $field }} > 0
+		{{ else if eq ($field | $.Fields.Find).Type "string" }}
+		valid = valid && len(res.{{ $field }}) > 0
+		{{ else }}
+		// can not check field {{ $field }} with unsupported type: {{ ($field | $.Fields.Find).Type }}
+		{{ end }}
+	{{- end }}
+	{{- end }}
+{{- end }}
+
+	if !valid {
+		return nil
+	}
+
+
 {{- range $lookup := $.Lookups }}
 	{{ if $lookup.UniqueConstraintCheck }}
 	{

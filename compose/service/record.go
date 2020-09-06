@@ -1073,13 +1073,13 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 				// We are interested only in records that have value of a sorting field greater than
 				// the place we're moving our record to.
 				// and sort the set with sorting field
-				filter := types.RecordFilter{}
-				filter.Query = fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace)
-				if err = filter.Sort.Set(posField); err != nil {
+				reorderFilter := types.RecordFilter{}
+				reorderFilter.Query = fmt.Sprintf("%s(%s >= %d)", filter, posField, recordOrderPlace)
+				if err = reorderFilter.Sort.Set(posField); err != nil {
 					return err
 				}
 
-				set, _, err = store.SearchComposeRecords(ctx, s, m, filter)
+				set, _, err = store.SearchComposeRecords(ctx, s, m, reorderFilter)
 				if err != nil {
 					return err
 				}

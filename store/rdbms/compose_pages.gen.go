@@ -223,6 +223,8 @@ func (s Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespa
 	return s.execLookupComposePage(ctx, squirrel.Eq{
 		s.preprocessColumn("cpg.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
 		s.preprocessColumn("cpg.handle", "lower"):   s.preprocessValue(handle, "lower"),
+
+		"cpg.deleted_at": nil,
 	})
 }
 
@@ -231,6 +233,8 @@ func (s Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, names
 	return s.execLookupComposePage(ctx, squirrel.Eq{
 		s.preprocessColumn("cpg.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
 		s.preprocessColumn("cpg.rel_module", ""):    s.preprocessValue(module_id, ""),
+
+		"cpg.deleted_at": nil,
 	})
 }
 
@@ -542,7 +546,22 @@ func (s Store) collectComposePageCursorValues(res *types.Page, cc ...string) *fi
 	return cursor
 }
 
+// checkComposePageConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkComposePageConstraints(ctx context.Context, res *types.Page) error {
+	// Consider resource valid when all fields in unique constraint check lookups
+	// have valid (non-empty) value
+	//
+	// Only string and uint64 are supported for now
+	// feel free to add additional types if needed
+	var valid = true
+
+	if !valid {
+		return nil
+	}
 
 	return nil
 }

@@ -85,9 +85,9 @@ func newHelper(t *testing.T) helper {
 	h := helper{
 		t:      t,
 		a:      require.New(t),
-		roleID: factory.Sonyflake.NextID(),
+		roleID: id.Next(),
 		cUser: &sysTypes.User{
-			ID: factory.Sonyflake.NextID(),
+			ID: id.Next(),
 		},
 	}
 
