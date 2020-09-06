@@ -21,10 +21,12 @@ fields:
 
 lookups:
   - fields: [ NamespaceID, Handle ]
+    filter: { DeletedAt: nil }
     description: |-
       searches for page by handle (case-insensitive)
 
   - fields: [ NamespaceID, ModuleID ]
+    filter: { DeletedAt: nil }
     description: |-
       searches for page by moduleID
 

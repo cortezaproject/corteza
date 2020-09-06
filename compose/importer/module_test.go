@@ -104,7 +104,7 @@ func TestModuleImport_CastSet(t *testing.T) {
 				_, err = module.resolveRefs(m)
 				return err
 			}),
-			`could not load module "modFoo" on module "modA", field "ref2" options (err: <nil>)`)
+			`could not load module "modFoo": not found`)
 
 	})
 }

@@ -2,14 +2,12 @@ package messaging
 
 import (
 	"fmt"
-	"net/http"
-	"testing"
-
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	sysType "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestChannelMemberList(t *testing.T) {
@@ -63,7 +61,7 @@ func TestChannelMemberInvite(t *testing.T) {
 	ch := h.repoMakePublicCh()
 	h.allow(ch.PermissionResource(), "members.manage")
 
-	invitee := &sysType.User{ID: factory.Sonyflake.NextID()}
+	invitee := &sysType.User{ID: id.Next()}
 
 	h.apiInit().
 		Put(fmt.Sprintf("/channels/%d/members/%d", ch.ID, invitee.ID)).

@@ -21,6 +21,7 @@ lookups:
 
       It returns compose chart even if deleted
   - fields: [ NamespaceID, Handle ]
+    filter: { DeletedAt: nil }
     description: |-
       searches for compose chart by handle (case-insensitive)
 

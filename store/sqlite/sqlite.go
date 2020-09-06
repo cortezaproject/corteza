@@ -28,7 +28,10 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	cfg.PlaceholderFormat = squirrel.Dollar
 	cfg.TxRetryErrHandler = txRetryErrHandler
 	cfg.ErrorHandler = errorHandler
-	//cfg.TxDisabled = true
+
+	// Using transactions in SQLite causes table locking
+	// @todo there must be a better way to go around this
+	cfg.TxDisabled = true
 	cfg.SqlFunctionHandler = sqlFunctionHandler
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
@@ -41,7 +44,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 }
 
 func NewInMemory(ctx context.Context) (s *Store, err error) {
-	return New(ctx, "sqlite3://file::memory:?cache=shared&mode=rwc")
+	return New(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
 }
 
 func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {

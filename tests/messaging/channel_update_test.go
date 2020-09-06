@@ -43,7 +43,7 @@ func TestChannelUpdateNonexistent(t *testing.T) {
 	h := newHelper(t)
 
 	req := &request.ChannelUpdate{
-		ChannelID: factory.Sonyflake.NextID(),
+		ChannelID: id.Next(),
 		Name:      "some name",
 		Type:      "public",
 	}

@@ -305,7 +305,22 @@ func (s Store) internalComposeRecordValueEncoder(res *types.RecordValue) store.P
 	}
 }
 
+// checkComposeRecordValueConstraints performs lookups (on valid) resource to check if any of the values on unique fields
+// already exists in the store
+//
+// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkComposeRecordValueConstraints(ctx context.Context, _mod *types.Module, res *types.RecordValue) error {
+	// Consider resource valid when all fields in unique constraint check lookups
+	// have valid (non-empty) value
+	//
+	// Only string and uint64 are supported for now
+	// feel free to add additional types if needed
+	var valid = true
+
+	if !valid {
+		return nil
+	}
 
 	return nil
 }

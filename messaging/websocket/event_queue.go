@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
@@ -32,7 +30,7 @@ const (
 var eq *eventQueue
 
 func init() {
-	eq = EventQueue(factory.Sonyflake.NextID())
+	eq = EventQueue(id.Next())
 }
 
 func EventQueue(origin uint64) *eventQueue {

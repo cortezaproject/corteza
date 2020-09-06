@@ -2,14 +2,13 @@ package service
 
 import (
 	"context"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestGeneralValueSetValidation(t *testing.T) {
@@ -95,6 +94,9 @@ func TestDefaultValueSetting(t *testing.T) {
 
 func TestProcUpdateOwnerPreservation(t *testing.T) {
 	var (
+		ctx   = context.Background()
+		store store.Storable
+
 		a = assert.New(t)
 
 		svc = record{
@@ -116,14 +118,17 @@ func TestProcUpdateOwnerPreservation(t *testing.T) {
 		}
 	)
 
-	svc.procUpdate(10, mod, newRec, oldRec)
+	svc.procUpdate(ctx, store, 10, mod, newRec, oldRec)
 	a.Equal(newRec.OwnedBy, uint64(1))
-	svc.procUpdate(10, mod, newRec, oldRec)
+	svc.procUpdate(ctx, store, 10, mod, newRec, oldRec)
 	a.Equal(newRec.OwnedBy, uint64(1))
 }
 
 func TestProcUpdateOwnerChanged(t *testing.T) {
 	var (
+		ctx   = context.Background()
+		store store.Storable
+
 		a = assert.New(t)
 
 		svc = record{
@@ -145,8 +150,8 @@ func TestProcUpdateOwnerChanged(t *testing.T) {
 		}
 	)
 
-	svc.procUpdate(10, mod, newRec, oldRec)
+	svc.procUpdate(ctx, store, 10, mod, newRec, oldRec)
 	a.Equal(newRec.OwnedBy, uint64(9))
-	svc.procUpdate(10, mod, newRec, oldRec)
+	svc.procUpdate(ctx, store, 10, mod, newRec, oldRec)
 	a.Equal(newRec.OwnedBy, uint64(9))
 }

@@ -3,12 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"sync"
 	"time"
-
-	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
@@ -66,7 +64,7 @@ func (svc *importSession) SetByID(ctx context.Context, sessionID, namespaceID, m
 		ris = svc.records[i]
 	} else {
 		ris = &RecordImportSession{
-			SessionID: factory.Sonyflake.NextID(),
+			SessionID: id.Next(),
 			CreatedAt: time.Now(),
 		}
 		svc.records = append(svc.records, ris)

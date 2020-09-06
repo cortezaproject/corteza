@@ -19,12 +19,10 @@ func TestImporter_Cast(t *testing.T) {
 		req.Len(i.namespaces.modules["foo"].set, 1)
 		req.NotNil(i.namespaces.modules["foo"].set.FindByHandle("m1"))
 		req.Equal("Module1", i.namespaces.modules["foo"].set.FindByHandle("m1").Name)
-
 	})
 
 	impFixTester(t, "importer_with_settings", func(t *testing.T, i *Importer) {
 		req := require.New(t)
-
 		req.NotNil(i)
 	})
 }

@@ -3,10 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/types"
 	"testing"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/messaging/types"
 )
 
 func TestEvents(t *testing.T) {

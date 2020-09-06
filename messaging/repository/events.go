@@ -3,10 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
-
-	"github.com/titpetric/factory"
-
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 )
 
 /*
@@ -66,7 +64,7 @@ func (r *events) Pull(ctx context.Context) (*types.EventQueueItem, error) {
 }
 
 func (r *events) Push(ctx context.Context, item *types.EventQueueItem) error {
-	item.ID = factory.Sonyflake.NextID()
+	item.ID = id.Next()
 	select {
 	case r.pipe <- item:
 	case <-ctx.Done():

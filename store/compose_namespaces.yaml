@@ -17,6 +17,7 @@ fields:
 lookups:
   - fields: [ Slug ]
     uniqueConstraintCheck: true
+    filter: { DeletedAt: nil }
     description: |-
       searches for namespace by slug (case-insensitive)
 

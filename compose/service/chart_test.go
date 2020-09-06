@@ -56,36 +56,36 @@ func TestCharts(t *testing.T) {
 			ac:    AccessControl(&permissions.ServiceAllowAll{}),
 		}
 		res, err := svc.Create(&types.Chart{Name: "My first chart", NamespaceID: namespaceID})
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		res, err = svc.FindByID(namespaceID, res.ID)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		res, err = svc.FindByHandle(namespaceID, res.Handle)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		res.Name = "Changed"
 		res, err = svc.Update(res)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.NotNil(res.UpdatedAt)
 		req.Equal(res.Name, "Changed")
 
 		res, err = svc.FindByID(namespaceID, res.ID)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.Equal(res.Name, "Changed")
 
 		err = svc.DeleteByID(namespaceID, res.ID)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		// this works because we're allowed to do everything
 		res, err = svc.FindByID(namespaceID, res.ID)
-		req.NoError(err)
+		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.NotNil(res.DeletedAt)
 

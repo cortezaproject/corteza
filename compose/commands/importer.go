@@ -1,18 +1,17 @@
 package commands
 
 import (
-	"io"
-	"os"
-	"strconv"
-
-	"github.com/spf13/cobra"
-
+	"errors"
 	"github.com/cortezaproject/corteza-server/compose/importer"
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/spf13/cobra"
+	"io"
+	"os"
+	"strconv"
 )
 
 func Importer() *cobra.Command {
@@ -32,11 +31,11 @@ func Importer() *cobra.Command {
 			if nsFlag != "" {
 				if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
 					ns, err = service.DefaultNamespace.FindByID(namespaceID)
-					if err != repository.ErrNamespaceNotFound {
+					if errors.Is(err, store.ErrNotFound) {
 						cli.HandleError(err)
 					}
 				} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
-					if err != repository.ErrNamespaceNotFound {
+					if errors.Is(err, store.ErrNotFound) {
 						cli.HandleError(err)
 					}
 				}

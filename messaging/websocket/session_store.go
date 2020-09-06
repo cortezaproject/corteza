@@ -1,9 +1,8 @@
 package websocket
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"sync"
-
-	"github.com/titpetric/factory"
 )
 
 type (
@@ -25,7 +24,7 @@ func init() {
 }
 
 func (s *Store) Save(session *Session) *Session {
-	session.id = factory.Sonyflake.NextID()
+	session.id = id.Next()
 	s.Lock()
 	defer s.Unlock()
 	s.Sessions[session.id] = session
