@@ -5,6 +5,80 @@
 # Next step: swagger.
 
 endpoints:
+  - title: Node identity
+    path: "/node/identity"
+    entrypoint: identity
+    authentication: []
+    apis:
+      - name: generate node identity
+        method: POST
+        title: Generate an origin node identity
+        path: "/generate"
+        parameters:
+          post:
+            - name: domain
+              type: string
+              required: true
+              title: Domain of the destination node
+
+      - name: register origin node
+        method: POST
+        title: Register a new origin node
+        path: "/register"
+        parameters:
+          post:
+            - name: identifier
+              type: string
+              required: true
+              title: Origin node identifier
+
+  - title: Federation node pair request
+    path: "/node/pair/request"
+    entrypoint: pairRequest
+    authentication: []
+    apis:
+      - name: request pairing
+        method: POST
+        title: Handle destination node pair request
+        path: "/"
+        parameters:
+          post:
+            - name: identifier
+              type: string
+              required: true
+              title: Origin node identifier
+            - name: token
+              type: string
+              required: true
+              title: Destination node token
+
+  - title: Federation node pairing
+    path: "/node/pair"
+    entrypoint: pair
+    authentication: []
+    apis:
+      - name: approve pairing
+        method: POST
+        title: Approve the destination node pair request
+        path: "/approve"
+        parameters:
+          get:
+            - name: requestID
+              type: uint64
+              required: true
+              title: Pair requestID
+
+      - name: complete pairing
+        method: POST
+        title: Complete pairing with the origin
+        path: "/complete"
+        parameters:
+          post:
+            - name: token
+              type: string
+              required: true
+              title: Auth token of the origin node
+
   - title: Foobar
     entrypoint: foobar
     path: "/foobar"
