@@ -17,8 +17,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
-{{- range $i, $import := $.Imports }}
-    {{ normalizeImport $import }}
+{{- range .Imports }}
+    {{ normalizeImport . }}
 {{- end }}
 )
 

@@ -10,8 +10,8 @@ package {{ .Package }}
 
 import (
 	"encoding/json"
-{{- range $i, $import := .Imports }}
-  {{ normalizeImport $import }}
+{{- range .Imports }}
+  {{ normalizeImport . }}
 {{- end }}
 )
 
@@ -25,8 +25,8 @@ type (
 // This type is auto-generated.
 {{ camelCase $r.ResourceIdent "base" }} struct {
 	immutable bool
-{{- range $p := $r.Properties }}
-	{{ $p.Name }} {{ $p.Type }}
+{{- range $r.Properties }}
+	{{ .Name }} {{ .Type }}
 {{- end }}
 }
 
@@ -65,18 +65,18 @@ func ({{ camelCase $r.ResourceIdent $event }}) EventType() string {
 //
 // This function is auto-generated.
 func {{ camelCase "" $r.ResourceIdent $event }}(
-{{- range $p := $r.Properties }}
-	{{- if not $p.Internal }}
-		{{ camelCase "arg" $p.Name }} {{ $p.Type }},
+{{- range $r.Properties }}
+	{{- if not .Internal }}
+		{{ camelCase "arg" .Name }} {{ .Type }},
 	{{- end -}}
 {{- end}}
 ) *{{ camelCase $r.ResourceIdent $event }} {
 	return &{{ camelCase $r.ResourceIdent $event }}{
 		{{ camelCase $r.ResourceIdent "base" }}: &{{ camelCase $r.ResourceIdent "base" }}{
 			immutable: false,
-		{{- range $p := $r.Properties }}
-			{{- if not $p.Internal }}
-				{{ $p.Name }}: {{ camelCase "arg" $p.Name }},
+		{{- range $r.Properties }}
+			{{- if not .Internal }}
+				{{ .Name }}: {{ camelCase "arg" .Name }},
 			{{- end -}}
 		{{- end}}
 		},
@@ -89,18 +89,18 @@ func {{ camelCase "" $r.ResourceIdent $event }}(
 //
 // This function is auto-generated.
 func {{ camelCase "" $r.ResourceIdent $event "Immutable" }}(
-{{- range $p := $r.Properties }}
-	{{- if not $p.Internal }}
-		{{ camelCase "arg" $p.Name }} {{ $p.Type }},
+{{- range $r.Properties }}
+	{{- if not .Internal }}
+		{{ camelCase "arg" .Name }} {{ .Type }},
 	{{- end -}}
 {{- end}}
 ) *{{ camelCase $r.ResourceIdent $event }} {
 	return &{{ camelCase $r.ResourceIdent $event }}{
 		{{ camelCase $r.ResourceIdent "base" }}: &{{ camelCase $r.ResourceIdent "base" }}{
 			immutable: true,
-		{{- range $p := $r.Properties }}
-			{{- if not $p.Internal }}
-				{{ $p.Name }}: {{ camelCase "arg" $p.Name }},
+		{{- range $r.Properties }}
+			{{- if not .Internal }}
+				{{ .Name }}: {{ camelCase "arg" .Name }},
 			{{- end -}}
 		{{- end}}
 		},
@@ -110,21 +110,21 @@ func {{ camelCase "" $r.ResourceIdent $event "Immutable" }}(
 
 
 
-{{ range $p := $r.Properties }}
-{{ if not $p.Immutable }}
-// {{ camelCase "Set" $p.Name }} sets new {{ $p.Name }} value
+{{ range $r.Properties }}
+{{ if not .Immutable }}
+// {{ camelCase "Set" .Name }} sets new {{ .Name }} value
 //
 // This function is auto-generated.
-func (res *{{ camelCase $r.ResourceIdent "base" }}) {{ camelCase "Set" $p.Name }}({{ camelCase "arg" $p.Name }} {{ $p.Type }}) {
-	res.{{ $p.Name }} = {{ camelCase "arg" $p.Name }}
+func (res *{{ camelCase $r.ResourceIdent "base" }}) {{ camelCase "Set" .Name }}({{ camelCase "arg" .Name }} {{ .Type }}) {
+	res.{{ .Name }} = {{ camelCase "arg" .Name }}
 }
 {{ end }}
 
-// {{ camelCase "" $p.Name }} returns {{ $p.Name }}
+// {{ camelCase "" .Name }} returns {{ .Name }}
 //
 // This function is auto-generated.
-func (res {{ camelCase $r.ResourceIdent "base" }}) {{ camelCase "" $p.Name }}() {{ $p.Type }} {
-	return res.{{ $p.Name }}
+func (res {{ camelCase $r.ResourceIdent "base" }}) {{ camelCase "" .Name }}() {{ .Type }} {
+	return res.{{ .Name }}
 }
 {{ end }}
 
