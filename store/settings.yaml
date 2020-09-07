@@ -6,8 +6,8 @@ types:
   filterType: types.SettingsFilter
 
 fields:
-  - { field: Name, isPrimaryKey: true }
-  - { field: OwnedBy, isPrimaryKey: true, column: rel_owner }
+  - { field: Name,    isPrimaryKey: true }
+  - { field: OwnedBy, isPrimaryKey: true }
   - { field: Value }
   - { field: UpdatedBy }
   - { field: UpdatedAt }
@@ -25,4 +25,6 @@ rdbms:
   alias: st
   table: settings
   customFilterConverter: true
+  mapFields:
+    OwnedBy: { column: rel_owner }
 

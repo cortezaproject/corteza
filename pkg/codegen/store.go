@@ -87,6 +87,11 @@ type (
 		CustomCursorCollector   bool `yaml:"customCursorCollector"`
 		CustomPostLoadProcessor bool `yaml:"customPostLoadProcessor"`
 		CustomEncoder           bool `yaml:"customEncoder"`
+
+		Columns storeTypeRdbmsColumnSetDef
+
+		// map fields to columns
+		FieldMap map[string]*storeTypeRdbmsColumnDef `yaml:"mapFields"`
 	}
 
 	storeTypeFunctionsDef struct {
@@ -112,12 +117,6 @@ type (
 		//   string: 		default
 		Type string `yaml:"type"`
 
-		// When not explicitly set, defaults to snake-cased value from field
-		//
-		// Exceptions:
-		//  If field name ends with ID (<base>ID), it converts that to rel_<snake-cased-base>
-		Column string `yaml:"column"`
-
 		// If field is flagged as PK it is used in update & Delete conditions
 		// Note: if no other field is set as primary and field with ID name
 		//       exists, that field is auto-set as primary.
@@ -141,6 +140,18 @@ type (
 
 		// @todo implementation
 		FullTextSearch bool `yaml:"fts"`
+	}
+
+	storeTypeRdbmsColumnSetDef []*storeTypeRdbmsColumnDef
+
+	storeTypeRdbmsColumnDef struct {
+		storeTypeFieldDef
+
+		// When not explicitly set, defaults to snake-cased value from field
+		//
+		// Exceptions:
+		//  If field name ends with ID (<base>ID), it converts that to rel_<snake-cased-base>
+		Column string `yaml:"column"`
 
 		alias string
 	}
@@ -313,38 +324,55 @@ func procStore(mm ...string) ([]*storeDef, error) {
 			def.RDBMS.Alias = def.Types.Base[0:1]
 		}
 
-		var hasPrimaryKey = def.Fields.HasPrimaryKey()
-		for _, field := range def.Fields {
-			if !hasPrimaryKey && field.Field == "ID" {
-				field.IsPrimaryKey = true
-				field.IsSortable = true
+		for field := range def.RDBMS.FieldMap {
+			if nil == def.Fields.Find(field) {
+				return nil, fmt.Errorf("invalid RDBMS field map: unknown field %q used", field)
 			}
+		}
 
-			// copy alias from global spec so we can
-			// generate aliased columsn
-			field.alias = def.RDBMS.Alias
-
-			if field.Column == "" {
-				switch {
-				case field.Field != "ID" && strings.HasSuffix(field.Field, "ID"):
-					field.Column = "rel_" + cc2underscore(field.Field[:len(field.Field)-2])
-				default:
-					field.Column = cc2underscore(field.Field)
-				}
+		var hasPrimaryKey = def.Fields.HasPrimaryKey()
+		for _, fld := range def.Fields {
+			if !hasPrimaryKey && fld.Field == "ID" {
+				fld.IsPrimaryKey = true
+				fld.IsSortable = true
 			}
 
 			switch {
-			case field.Type != "":
+			case fld.Type != "":
 				// type set
-			case strings.HasSuffix(field.Field, "ID") || strings.HasSuffix(field.Field, "By"):
-				field.Type = "uint64"
-			case field.Field == "CreatedAt":
-				field.Type = "time.Time"
-			case strings.HasSuffix(field.Field, "At"):
-				field.Type = "uint64"
+			case strings.HasSuffix(fld.Field, "ID") || strings.HasSuffix(fld.Field, "By"):
+				fld.Type = "uint64"
+			case fld.Field == "CreatedAt":
+				fld.Type = "time.Time"
+			case strings.HasSuffix(fld.Field, "At"):
+				fld.Type = "uint64"
 			default:
-				field.Type = "string"
+				fld.Type = "string"
 			}
+
+			col, ok := def.RDBMS.FieldMap[fld.Field]
+			if ok {
+				col.storeTypeFieldDef = *fld
+			} else {
+				// In the most common case when field is NOT mapped,
+				// just create new column def struct and split it in
+				col = &storeTypeRdbmsColumnDef{storeTypeFieldDef: *fld}
+			}
+
+			// Make a copy for RDBMS columns
+			col.alias = def.RDBMS.Alias
+
+			if col.Column == "" {
+				// Map common naming if needed
+				switch {
+				case fld.Field != "ID" && strings.HasSuffix(fld.Field, "ID"):
+					col.Column = "rel_" + cc2underscore(fld.Field[:len(fld.Field)-2])
+				default:
+					col.Column = cc2underscore(fld.Field)
+				}
+			}
+
+			def.RDBMS.Columns = append(def.RDBMS.Columns, col)
 		}
 
 		for i, l := range def.Lookups {
@@ -522,8 +550,39 @@ func (f storeTypeFieldDef) Arg() string {
 	return strings.ToLower(f.Field[:1]) + f.Field[1:]
 }
 
-func (f storeTypeFieldDef) AliasedColumn() string {
+func (f storeTypeRdbmsColumnDef) AliasedColumn() string {
 	return fmt.Sprintf("%s.%s", f.alias, f.Column)
+}
+
+func (ff storeTypeRdbmsColumnSetDef) Find(name string) *storeTypeRdbmsColumnDef {
+	for _, f := range ff {
+		if f.Field == name {
+			return f
+		}
+	}
+
+	return nil
+}
+
+func (ff storeTypeRdbmsColumnSetDef) HasPrimaryKey() bool {
+	for _, f := range ff {
+		if f.IsPrimaryKey {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (ff storeTypeRdbmsColumnSetDef) PrimaryKeyFields() storeTypeRdbmsColumnSetDef {
+	pkSet := storeTypeRdbmsColumnSetDef{}
+	for _, f := range ff {
+		if f.IsPrimaryKey {
+			pkSet = append(pkSet, f)
+		}
+	}
+
+	return pkSet
 }
 
 // UnmarshalYAML makes sure that export flag is set to true when not explicity disabled

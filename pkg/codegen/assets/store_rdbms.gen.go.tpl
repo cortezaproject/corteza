@@ -86,7 +86,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 	//
 	// We still need to sort the results by primary key for paging purposes
 	curSort := filter.SortExprSet{
-	{{- range $.Fields.PrimaryKeyFields }}
+	{{- range $.RDBMS.Columns.PrimaryKeyFields }}
 		&filter.SortExpr{Column: {{ printf "%q" .Column  }}, {{ if .SortDescending }}Descending: !reversedCursor, {{ end }}},
 	{{- end }}
 	}
@@ -157,9 +157,9 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 	)
 
 
-{{ if .Fields.PrimaryKeyFields }}
+{{ if .RDBMS.Columns.PrimaryKeyFields }}
 	// Make sure we always end our sort by primary keys
-	{{- range .Fields.PrimaryKeyFields }}
+	{{- range .RDBMS.Columns.PrimaryKeyFields }}
 	if sort.Get({{ printf "%q" .Column }}) == nil {
 		sort = append(sort, &filter.SortExpr{Column: {{ printf "%q" .Column }}})
 	}
@@ -175,9 +175,9 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 	if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()...); err != nil {
 		return nil, err
 	}
-{{ else if .Fields.PrimaryKeyFields }}
+{{ else if .RDBMS.Columns.PrimaryKeyFields }}
 	// Sort by primary keys by default
-	if q, err = setOrderBy(q, sort, {{ range .Fields.PrimaryKeyFields }}"{{ .Column }}",{{ end }}); err != nil {
+	if q, err = setOrderBy(q, sort, {{ range .RDBMS.Columns.PrimaryKeyFields }}"{{ .Column }}",{{ end }}); err != nil {
 		return nil, err
 	}
 {{ end }}
@@ -299,14 +299,14 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 
 {{- range $lookup := $.Lookups }}
 // {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }} {{ comment $lookup.Description true -}}
-func (s Store) {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $field := $lookup.Fields }}, {{ cc2underscore $field }} {{ ($field | $.Fields.Find).Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
+func (s Store) {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $field := $lookup.Fields }}, {{ cc2underscore $field }} {{ ($field | $.RDBMS.Columns.Find).Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
 	return s.execLookup{{ $.Types.Singular }}(ctx{{ template "extraArgsCall" $ }}, squirrel.Eq{
     {{- range $field := $lookup.Fields }}
-		s.preprocessColumn({{ printf "%q" ($field | $.Fields.Find).AliasedColumn }}, {{ printf "%q" ($field | $.Fields.Find).LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore $field }}, {{ printf "%q" ($field | $.Fields.Find).LookupFilterPreprocess }}),
+		s.preprocessColumn({{ printf "%q" ($field | $.RDBMS.Columns.Find).AliasedColumn }}, {{ printf "%q" ($field | $.RDBMS.Columns.Find).LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore $field }}, {{ printf "%q" ($field | $.RDBMS.Columns.Find).LookupFilterPreprocess }}),
     {{- end }}
 
     {{ range $field, $value := $lookup.Filter }}
-       "{{ ($field | $.Fields.Find).AliasedColumn }}": {{ $value }},
+       "{{ ($field | $.RDBMS.Columns.Find).AliasedColumn }}": {{ $value }},
     {{- end }}
     })
 }
@@ -360,9 +360,9 @@ func (s Store) {{ toggleExport .Update.Export "Partial" $.Types.Singular "Update
 */}}
 		err = s.execUpdate{{ export $.Types.Plural }}(
 			ctx,
-			{{ template "filterByPrimaryKeys" $.Fields.PrimaryKeyFields }},
+			{{ template "filterByPrimaryKeys" $.RDBMS.Columns.PrimaryKeyFields }},
 			s.internal{{ export $.Types.Singular }}Encoder(res).Skip(
-				{{- range $field := $.Fields.PrimaryKeyFields -}}
+				{{- range $field := $.RDBMS.Columns.PrimaryKeyFields -}}
 					{{ printf "%q" $field.Column  }},
 				{{- end -}}
 		).Only(onlyColumns...))
@@ -411,7 +411,7 @@ func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular }}(ctx c
 			return err
 		}
 */}}
-		err = s.execDelete{{ export $.Types.Plural }}(ctx,{{ template "filterByPrimaryKeys" $.Fields.PrimaryKeyFields }})
+		err = s.execDelete{{ export $.Types.Plural }}(ctx,{{ template "filterByPrimaryKeys" $.RDBMS.Columns.PrimaryKeyFields }})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -420,9 +420,9 @@ func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular }}(ctx c
 	return nil
 }
 
-// {{ toggleExport .Delete.Export "Delete" $.Types.Singular "By" }}{{ template "primaryKeySuffix" $.Fields }} Deletes row from the {{ $.RDBMS.Table }} table
-func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular "By" }}{{ template "primaryKeySuffix" $.Fields }}(ctx context.Context{{ template "extraArgsDef" . }}{{ template "primaryKeyArgsDef" $.Fields }}) error {
-	return s.execDelete{{ export $.Types.Plural }}(ctx, {{ template "filterByPrimaryKeysWithArgs" $.Fields.PrimaryKeyFields }})
+// {{ toggleExport .Delete.Export "Delete" $.Types.Singular "By" }}{{ template "primaryKeySuffix" $.RDBMS.Columns }} Deletes row from the {{ $.RDBMS.Table }} table
+func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular "By" }}{{ template "primaryKeySuffix" $.RDBMS.Columns }}(ctx context.Context{{ template "extraArgsDef" . }}{{ template "primaryKeyArgsDef" $.RDBMS.Columns }}) error {
+	return s.execDelete{{ export $.Types.Plural }}(ctx, {{ template "filterByPrimaryKeysWithArgs" $.RDBMS.Columns.PrimaryKeyFields }})
 }
 {{ end }}
 
@@ -478,7 +478,7 @@ func (s Store) execUpsert{{ export $.Types.Plural }}(ctx context.Context, set st
 		s.config,
 		s.{{ unexport $.Types.Singular }}Table(),
 		set,
-{{ range $.Fields }}
+{{ range $.RDBMS.Columns }}
 	{{- if or .IsPrimaryKey -}}
 		{{ printf "%q" .Column }},
 	{{ end }}
@@ -500,7 +500,7 @@ func (s Store) execDelete{{ export $.Types.Plural }}(ctx context.Context, cnd sq
 }
 {{ end }}
 
-func (s Store) internal{{ $.Types.Singular }}RowScanner({{ template "extraArgsDefFirst" . }}row rowScanner) (res *{{ $.Types.GoType }}, err error) {
+func (s Store) internal{{ export $.Types.Singular }}RowScanner({{ template "extraArgsDefFirst" . }}row rowScanner) (res *{{ $.Types.GoType }}, err error) {
 	res = &{{ $.Types.GoType }}{}
 
 	if _, has := s.config.RowScanners[{{ printf "%q" (unexport $.Types.Singular) }}]; has {
@@ -511,7 +511,7 @@ func (s Store) internal{{ $.Types.Singular }}RowScanner({{ template "extraArgsDe
 		err = s.scan{{ $.Types.Singular }}Row({{ template "extraArgsCallFirst" . }}row, res)
 	{{- else }}
 		err = row.Scan(
-		{{- range $.Fields }}
+		{{- range $.RDBMS.Columns }}
 			&res.{{ .Field }},
 		{{- end }}
 		)
@@ -554,7 +554,7 @@ func (Store) {{ unexport $.Types.Singular }}Columns(aa ... string) []string {
 	}
 
 	return []string{
-	{{- range $.Fields }}
+	{{- range $.RDBMS.Columns }}
 		alias + "{{ .Column }}",
     {{- end }}
 	}
@@ -568,7 +568,7 @@ func (Store) {{ unexport $.Types.Singular }}Columns(aa ... string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortable{{ $.Types.Singular }}Columns() []string {
 	return []string{
-	{{ range $.Fields }}
+	{{ range $.RDBMS.Columns }}
 		{{- if .IsSortable -}}
 		"{{ .Column }}",
 		{{ end -}}
@@ -586,7 +586,7 @@ func (s Store) internal{{ export $.Types.Singular }}Encoder(res *{{ $.Types.GoTy
 	return s.encode{{ export $.Types.Singular }}(res)
 {{- else }}
 	return store.Payload{
-    {{- range $.Fields }}
+    {{- range $.RDBMS.Columns }}
 		"{{ .Column }}": res.{{ .Field }},
     {{- end }}
 	}
@@ -610,14 +610,14 @@ func (s Store) collect{{ export $.Types.Singular }}CursorValues(res *{{ $.Types.
 		hasUnique bool
 
 		// All known primary key columns
-		{{ range $.Fields.PrimaryKeyFields }}
+		{{ range $.RDBMS.Columns.PrimaryKeyFields }}
 		pk{{ export .Column }} bool
 		{{ end }}
 
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
-			{{- range $.Fields }}
+			{{- range $.RDBMS.Columns }}
 		        {{- if or .IsSortable .IsUnique .IsPrimaryKey -}}
 				case "{{ .Column }}":
 					cursor.Set(c, res.{{ .Field }}, false)
@@ -635,8 +635,8 @@ func (s Store) collect{{ export $.Types.Singular }}CursorValues(res *{{ $.Types.
 	)
 
 	collect(cc...)
-	if !hasUnique || !({{ range $.Fields.PrimaryKeyFields }}pk{{ export .Column }} && {{ end }} true) {
-		collect({{ range $.Fields.PrimaryKeyFields }}"{{ .Column }}",{{ end }})
+	if !hasUnique || !({{ range $.RDBMS.Columns.PrimaryKeyFields }}pk{{ export .Column }} && {{ end }} true) {
+		collect({{ range $.RDBMS.Columns.PrimaryKeyFields }}"{{ .Column }}",{{ end }})
 	}
 
 	return cursor
@@ -658,12 +658,12 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 {{- range $lookup := $.Lookups }}
 	{{ if $lookup.UniqueConstraintCheck }}
 	{{- range $field := $lookup.Fields }}
-		{{ if eq ($field | $.Fields.Find).Type "uint64" }}
+		{{ if eq ($field | $.RDBMS.Columns.Find).Type "uint64" }}
 		valid = valid && res.{{ $field }} > 0
-		{{ else if eq ($field | $.Fields.Find).Type "string" }}
+		{{ else if eq ($field | $.RDBMS.Columns.Find).Type "string" }}
 		valid = valid && len(res.{{ $field }}) > 0
 		{{ else }}
-		// can not check field {{ $field }} with unsupported type: {{ ($field | $.Fields.Find).Type }}
+		// can not check field {{ $field }} with unsupported type: {{ ($field | $.RDBMS.Columns.Find).Type }}
 		{{ end }}
 	{{- end }}
 	{{- end }}
