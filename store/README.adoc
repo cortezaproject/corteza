@@ -3,6 +3,14 @@
 Provides unified storage for Corteza with composable and interchangable backends.
 Backends can be any RDBMS, Key-Value, NoSQL, FS, Memory.
 
+== Development
+
+====
+@todo definition (YAML) structure
+@todo how to add definitions
+@todo how to add stores
+====
+
 == FAQ:
 
 Why are we changing create/update function signature (input struct is no longer returned)?::
@@ -18,6 +26,20 @@ Why do we use custom mapping (and not db:... tag on struct)?::
 Separation of concerns
  + consistency with store backends that do not support db tags
  + de-cluttering types* namespace
+
+== Testing
+
+Running store tests:
+====
+make test.store
+====
+
+Running store tests with code coverage:
+====
+make test.store
+====
+
+See Makefile for details
 
 == Known issues
 

@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/db"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
@@ -23,7 +22,7 @@ import (
 	"github.com/cortezaproject/corteza-server/provision/compose"
 	"github.com/cortezaproject/corteza-server/provision/messaging"
 	"github.com/cortezaproject/corteza-server/provision/system"
-	"github.com/cortezaproject/corteza-server/store/mysql"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
@@ -60,7 +59,6 @@ func (app *CortezaApp) Setup() (err error) {
 	hcd.Add(scheduler.Healthcheck, "Scheduler")
 	hcd.Add(mail.Healthcheck, "Mail")
 	hcd.Add(corredor.Healthcheck, "Corredor")
-	hcd.Add(db.Healthcheck(), "Database")
 
 	if err = sentry.Init(app.Opt.Sentry); err != nil {
 		return fmt.Errorf("could not initialize Sentry: %w", err)
@@ -108,12 +106,15 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		return err
 	}
 
-	defer sentry.Recover()
+	// Do not re-initialize store
+	// This will make integration test setup a bit more painless
+	if app.Store == nil {
+		defer sentry.Recover()
 
-	// @todo this should be configurable
-	app.Store, err = mysql.New(ctx, app.Opt.DB.DSN)
-	if err != nil {
-		return err
+		app.Store, err = store.Connect(ctx, app.Opt.DB.DSN)
+		if err != nil {
+			return err
+		}
 	}
 
 	if upgradableStore, ok := app.Store.(storeUpgrader); !ok {
@@ -136,13 +137,6 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		if err = upgradableStore.Upgrade(ctx, log); err != nil {
 			return err
 		}
-	}
-
-	// deprecated connector
-	// current state of Corteza (repos...) still requires it
-	_, err = db.TryToConnect(ctx, app.Log, app.Opt.DB)
-	if err != nil {
-		return fmt.Errorf("could not connect to database: %w", err)
 	}
 
 	app.lvl = bootLevelStoreInitialized

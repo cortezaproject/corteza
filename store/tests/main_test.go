@@ -30,7 +30,7 @@ func Test_Store(t *testing.T) {
 		suite struct {
 			name      string
 			dsnEnvKey string
-			init      func(ctx context.Context, dsn string) (store.Storable, error)
+			init      store.ConnectorFn
 		}
 
 		upgrader interface {
@@ -45,12 +45,12 @@ func Test_Store(t *testing.T) {
 			{
 				name:      "MySQL",
 				dsnEnvKey: "RDBMS_MYSQL_DSN",
-				init:      func(ctx context.Context, dsn string) (store.Storable, error) { return mysql.New(ctx, dsn) },
+				init:      mysql.Connect,
 			},
 			{
 				name:      "PostgreSQL",
 				dsnEnvKey: "RDBMS_PGSQL_DSN",
-				init:      func(ctx context.Context, dsn string) (store.Storable, error) { return pgsql.New(ctx, dsn) },
+				init:      pgsql.Connect,
 			},
 			{
 				name:      "CockroachDB",
@@ -60,7 +60,7 @@ func Test_Store(t *testing.T) {
 			{
 				name:      "SQLite",
 				dsnEnvKey: "RDBMS_SQLITE_DSN",
-				init:      func(ctx context.Context, dsn string) (store.Storable, error) { return sqlite.New(ctx, dsn) },
+				init:      sqlite.Connect,
 			},
 			{
 				name:      "InMemory",

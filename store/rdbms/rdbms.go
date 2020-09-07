@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 )
@@ -26,78 +30,10 @@ import (
 //
 
 type (
-	txRetryOnErrHandler func(int, error) bool
-	columnPreprocFn     func(string, string) string
-	valuePreprocFn      func(interface{}, string) interface{}
-	errorHandler        func(error) error
-	triggerKey          string
-
 	schemaUpgradeGenerator interface {
 		TableExists(string) bool
 		CreateTable(t *ddl.Table) string
 		CreateIndexes(ii ...*ddl.Index) []string
-	}
-
-	rowScanner interface {
-		Scan(...interface{}) error
-	}
-
-	TriggerHandlers map[triggerKey]interface{}
-
-	Config struct {
-		DriverName     string
-		DataSourceName string
-		DBName         string
-
-		PlaceholderFormat squirrel.PlaceholderFormat
-
-		// These 3 are passed directly to connection
-		MaxOpenConns    int
-		ConnMaxLifetime time.Duration
-		MaxIdleConns    int
-
-		// Disable transactions
-		TxDisabled bool
-
-		// How many times should we retry failed transaction?
-		TxMaxRetries int
-
-		// TxRetryErrHandler should return true if transaction should be retried
-		//
-		// Because retry algorithm varies between concrete rdbms implementations
-		//
-		// Handler must return true if failed transaction should be replied
-		// and false if we're safe to terminate it
-		TxRetryErrHandler txRetryOnErrHandler
-
-		ColumnPreprocessors map[string]columnPreprocFn
-		ValuePreprocessors  map[string]valuePreprocFn
-
-		ErrorHandler errorHandler
-
-		// Implementations can override internal RDBMS row scanners
-		RowScanners map[string]interface{}
-
-		// Different store backend implementation might handle upsert differently...
-		UpsertBuilder func(*Config, string, store.Payload, ...string) (squirrel.InsertBuilder, error)
-
-		// TriggerHandlers handle various exceptions that can not be handled generally within RDBMS package.
-		// see triggerKey type and defined constants to see where the hooks are and how can they be called
-		TriggerHandlers TriggerHandlers
-
-		// UniqueConstraintCheck flag controls if unique constraints should be explicitly checked within
-		// store or is this handled inside the storage
-		//
-		//
-		UniqueConstraintCheck bool
-
-		// FunctionHandler takes care of translation & transformation of (sql) functions
-		// and their parameters
-		//
-		// Functions are used in filters and aggregations
-		SqlFunctionHandler func(f ql.Function) (ql.ASTNode, error)
-
-		CastModuleFieldToColumnType func(field ModuleFieldTypeDetector, ident ql.Ident) (ql.Ident, error)
 	}
 
 	Store struct {
@@ -131,7 +67,7 @@ type (
 )
 
 const (
-	// This is the absolute maximum retries we'll allow
+	// TxRetryHardLimit is the absolute maximum retries we'll allow
 	TxRetryHardLimit = 100
 
 	DefaultSliceCapacity = 1000
@@ -140,42 +76,17 @@ const (
 	MaxRefetches        = 100
 )
 
-func New(ctx context.Context, cfg *Config) (*Store, error) {
-	var s = &Store{
+func Connect(ctx context.Context, cfg *Config) (s *Store, err error) {
+	if err = cfg.ParseExtra(); err != nil {
+		return nil, err
+	}
+
+	cfg.SetDefaults()
+	s = &Store{
 		config: cfg,
 	}
 
-	if s.config.PlaceholderFormat == nil {
-		s.config.PlaceholderFormat = squirrel.Question
-	}
-
-	if s.config.TxMaxRetries == 0 {
-		s.config.TxMaxRetries = TxRetryHardLimit
-	}
-
-	if s.config.TxRetryErrHandler == nil {
-		// Default transaction retry handler
-		s.config.TxRetryErrHandler = TxNoRetry
-	}
-
-	if s.config.ErrorHandler == nil {
-		s.config.ErrorHandler = ErrHandlerFallthrough
-	}
-
-	if s.config.UpsertBuilder == nil {
-		s.config.UpsertBuilder = UpsertBuilder
-	}
-
-	if s.config.MaxIdleConns == 0 {
-		// Same as default in the db/sql
-		s.config.MaxIdleConns = 2
-	}
-
-	if s.config.TriggerHandlers == nil {
-		s.config.TriggerHandlers = TriggerHandlers{}
-	}
-
-	if err := s.Connect(ctx); err != nil {
+	if err = s.Connect(ctx); err != nil {
 		return nil, err
 	}
 
@@ -191,18 +102,109 @@ func (s *Store) withTx(tx dbLayer) *Store {
 	}
 }
 
+// Temporary solution for logging
+func (s *Store) log(ctx context.Context) *zap.Logger {
+	// @todo extract logger from context
+	return logger.Default().
+		Named("store.rdbms").
+		WithOptions(zap.AddStacktrace(zap.FatalLevel))
+}
+
 func (s *Store) Connect(ctx context.Context) error {
-	db, err := sqlx.ConnectContext(ctx, s.config.DriverName, s.config.DataSourceName)
+	s.log(ctx).Debug("opening connection", zap.String("driver", s.config.DriverName), zap.String("dsn", s.config.MaskedDSN()))
+	db, err := sqlx.Open(s.config.DriverName, s.config.DataSourceName)
+	healthcheck.Defaults().Add(dbHealthcheck(db), "Store/RDBMS/"+s.config.DriverName)
 	if err != nil {
 		return err
 	}
+
+	s.log(ctx).Debug(
+		"setting connection parameters",
+		zap.Int("MaxOpenConns", s.config.MaxOpenConns),
+		zap.Duration("MaxLifetime", s.config.ConnMaxLifetime),
+		zap.Int("MaxIdleConns", s.config.MaxIdleConns),
+	)
 
 	db.SetMaxOpenConns(s.config.MaxOpenConns)
 	db.SetConnMaxLifetime(s.config.ConnMaxLifetime)
 	db.SetMaxIdleConns(s.config.MaxIdleConns)
 
+	if err = s.tryToConnect(ctx, db); err != nil {
+		return err
+	}
+
 	s.db = db
 	return err
+}
+
+func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
+	var (
+		connErrCh = make(chan error, 1)
+		patience  = time.Now().Add(s.config.ConnTryPatience)
+	)
+
+	//defer close(connErrCh)
+
+	go func() {
+		defer sentry.Recover()
+
+		var (
+			err error
+			try = 0
+		)
+
+		for {
+			try++
+
+			if s.config.ConnTryMax <= try {
+				connErrCh <- fmt.Errorf("could not connect in %d tries", try)
+				return
+			}
+
+			if err = db.PingContext(ctx); err != nil {
+
+				if time.Now().After(patience) {
+					// don't make too much fuss
+					// if we're in patience mode
+					s.log(ctx).Warn(
+						"could not connect to the database",
+						zap.Error(err),
+						zap.Int("try", try),
+						zap.Float64("delay", s.config.ConnTryBackoffDelay.Seconds()),
+					)
+				}
+
+				select {
+				case <-ctx.Done():
+					// Forced break
+					break
+				case <-time.After(s.config.ConnTryBackoffDelay):
+					//	Wait before next try
+					continue
+				}
+			}
+
+			s.log(ctx).Debug("connected to the database")
+			break
+		}
+
+		connErrCh <- err
+	}()
+
+	to := s.config.ConnTryTimeout * time.Duration(s.config.ConnTryMax*2)
+	select {
+	case err := <-connErrCh:
+		return err
+	case <-time.After(to):
+		// Wait before next try
+		return fmt.Errorf("timedout after %ds", to.Seconds())
+	case <-ctx.Done():
+		return fmt.Errorf("connection cancelled")
+	}
+}
+
+func dbHealthcheck(db *sqlx.DB) func(ctx context.Context) error {
+	return db.PingContext
 }
 
 func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error) {

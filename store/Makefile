@@ -7,7 +7,22 @@ COVER_MODE    ?= count
 COVER_PROFILE ?= .cover.out
 COVER_FLAGS   ?= -covermode=$(COVER_MODE)  -coverprofile=$(COVER_PROFILE)
 
+# Run go test cmd with flags, eg:
+# $> TEST_FLAGS="-v" make test
+# $> TEST_FLAGS="-v -run 'Test_Store/.+/ComposeCharts'" make test
+TEST_FLAGS ?=
 
-cover:
-	$(GOTEST) -coverprofile=$(COVER_PROFILE) -coverpkg=./... ./tests/...
-	$(GOTOOL) cover -html=$(COVER_PROFILE)
+test.store:
+	$(GOTEST) $(TEST_FLAGS) ./tests/...
+
+test.cover.store:
+	@ $(GOTEST) $(TEST_FLAGS) -coverprofile=$(COVER_PROFILE) -coverpkg=./... ./tests/...
+	@ $(GOTOOL) cover -html=$(COVER_PROFILE)
+	@ $(GOTOOL) cover
+	@ rm $(COVER_PROFILE)
+
+watch.codegen:
+	@ make -C ../ $@
+
+codegen:
+	@ make -C ../ $@
