@@ -299,10 +299,10 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 
 {{- range $lookup := $.Lookups }}
 // {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }} {{ comment $lookup.Description true -}}
-func (s Store) {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $field := $lookup.Fields }}, {{ cc2underscore $field }} {{ ($field | $.RDBMS.Columns.Find).Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
+func (s Store) {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $lookup.RDBMSColumns }}, {{ cc2underscore .Field }} {{ .Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
 	return s.execLookup{{ $.Types.Singular }}(ctx{{ template "extraArgsCall" $ }}, squirrel.Eq{
-    {{- range $field := $lookup.Fields }}
-		s.preprocessColumn({{ printf "%q" ($field | $.RDBMS.Columns.Find).AliasedColumn }}, {{ printf "%q" ($field | $.RDBMS.Columns.Find).LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore $field }}, {{ printf "%q" ($field | $.RDBMS.Columns.Find).LookupFilterPreprocess }}),
+    {{- range $lookup.RDBMSColumns }}
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{- end }}
 
     {{ range $field, $value := $lookup.Filter }}
@@ -657,13 +657,13 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	var valid = true
 {{- range $lookup := $.Lookups }}
 	{{ if $lookup.UniqueConstraintCheck }}
-	{{- range $field := $lookup.Fields }}
-		{{ if eq ($field | $.RDBMS.Columns.Find).Type "uint64" }}
-		valid = valid && res.{{ $field }} > 0
-		{{ else if eq ($field | $.RDBMS.Columns.Find).Type "string" }}
-		valid = valid && len(res.{{ $field }}) > 0
+	{{- range $lookup.RDBMSColumns }}
+		{{ if eq .Type "uint64" }}
+		valid = valid && res.{{ .Field }} > 0
+		{{ else if eq .Type "string" }}
+		valid = valid && len(res.{{ .Field }}) > 0
 		{{ else }}
-		// can not check field {{ $field }} with unsupported type: {{ ($field | $.RDBMS.Columns.Find).Type }}
+		// can not check field {{ .Field }} with unsupported type: {{ .Type }}
 		{{ end }}
 	{{- end }}
 	{{- end }}
@@ -677,7 +677,7 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 {{- range $lookup := $.Lookups }}
 	{{ if $lookup.UniqueConstraintCheck }}
 	{
-		ex, err := s.{{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range $field := $lookup.Fields }}, res.{{ $field }} {{- end }})
+		ex, err := s.{{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range $lookup.RDBMSColumns }}, res.{{ .Field }} {{- end }})
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique
 		} else if !errors.Is(err, store.ErrNotFound) {
