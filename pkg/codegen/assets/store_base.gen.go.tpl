@@ -26,7 +26,7 @@ type (
 		Search{{ export $Types.Plural }}(ctx context.Context{{ template "extraArgsDef" . }}, f {{ $Types.GoFilterType }}) ({{ $Types.GoSetType }}, {{ $Types.GoFilterType }}, error)
 	{{- end }}
 {{- range .Lookups }}
-		Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $field := .Fields }}, {{ cc2underscore $field }} {{ ($field | $Fields.Find).Type  }}{{- end }}) (*{{ $Types.GoType }}, error)
+		Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range .Fields }}, {{ cc2underscore .Field }} {{ .Type  }}{{- end }}) (*{{ $Types.GoType }}, error)
 {{- end }}
 	{{ if .Create.Enable }}
 		Create{{ export $Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $Types.GoType }}) error
@@ -73,8 +73,8 @@ func Search{{ export $Types.Plural }}(ctx context.Context, s {{ export $Types.Pl
 {{ range .Lookups }}
 
 // Lookup{{ export $.Types.Singular }}By{{ export .Suffix }} {{ comment .Description true -}}
-func Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx context.Context, s {{ export $Types.Plural }}{{ template "extraArgsDef" $ }}{{- range $field := .Fields }}, {{ cc2underscore $field }} {{ ($field | $Fields.Find).Type  }}{{- end }}) (*{{ $Types.GoType }}, error) {
-    return s.Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range $field := .Fields }}, {{ cc2underscore $field }}{{- end }})
+func Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx context.Context, s {{ export $Types.Plural }}{{ template "extraArgsDef" $ }}{{- range .Fields }}, {{ cc2underscore .Field }} {{ .Type }}{{- end }}) (*{{ $Types.GoType }}, error) {
+    return s.Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range .Fields }}, {{ cc2underscore .Field }}{{- end }})
 }
 {{- end }}
 

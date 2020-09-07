@@ -137,9 +137,6 @@ type (
 
 		// Is field unique
 		IsUnique bool `yaml:"unique"`
-
-		// @todo implementation
-		FullTextSearch bool `yaml:"fts"`
 	}
 
 	storeTypeRdbmsColumnSetDef []*storeTypeRdbmsColumnDef
@@ -163,9 +160,16 @@ type (
 		Suffix                string            `yaml:"suffix"`
 		Description           string            `yaml:"description"`
 		UniqueConstraintCheck bool              `yaml:"uniqueConstraintCheck"`
-		Fields                []string          `yaml:"fields"`
 		Filter                map[string]string `yaml:"filter"`
-		fields                storeTypeFieldSetDef
+
+		// maps all defined fields, will be filtered & exposed via Fields() fn
+		fields storeTypeFieldSetDef
+
+		// maps all defined columns, will be filtered & exposed via RDBMSColumns() fn
+		columns storeTypeRdbmsColumnSetDef
+
+		// lookup fields, as defined
+		YamlFields []string `yaml:"fields"`
 	}
 
 	storeTypeSearchDef struct {
@@ -376,12 +380,12 @@ func procStore(mm ...string) ([]*storeDef, error) {
 		}
 
 		for i, l := range def.Lookups {
-			if len(l.Fields) == 0 {
+			if len(l.YamlFields) == 0 {
 				return nil, fmt.Errorf("define at least one lookup field in lookup #%d", i)
 			}
 
 			// Checking if fields exist in the fields
-			for _, f := range l.Fields {
+			for _, f := range l.YamlFields {
 				if def.Fields.Find(f) == nil {
 					return nil, fmt.Errorf("undefined lookup field %q used", f)
 
@@ -402,10 +406,11 @@ func procStore(mm ...string) ([]*storeDef, error) {
 			}
 
 			if l.Suffix == "" {
-				l.Suffix = strings.Join(l.Fields, "")
+				l.Suffix = strings.Join(l.YamlFields, "")
 			}
 
 			l.fields = def.Fields
+			l.columns = def.RDBMS.Columns
 		}
 
 		return def, nil
@@ -591,4 +596,22 @@ func (d *storeTypeLookups) UnmarshalYAML(unmarshal func(interface{}) error) erro
 	var aux = (*dAux)(d)
 	aux.Export = true
 	return unmarshal(aux)
+}
+
+func (d *storeTypeLookups) Fields() storeTypeFieldSetDef {
+	var cc = make([]*storeTypeFieldDef, 0, len(d.columns))
+	for _, field := range d.YamlFields {
+		cc = append(cc, d.fields.Find(field))
+	}
+
+	return cc
+}
+
+func (d *storeTypeLookups) RDBMSColumns() storeTypeRdbmsColumnSetDef {
+	var cc = make([]*storeTypeRdbmsColumnDef, 0, len(d.columns))
+	for _, field := range d.YamlFields {
+		cc = append(cc, d.columns.Find(field))
+	}
+
+	return cc
 }
