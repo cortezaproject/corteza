@@ -78,10 +78,6 @@ endpoints:
               type: string
               required: true
               title: Auth token of the origin node
-
-  - title: Foobar
-    entrypoint: foobar
-    path: "/foobar"
   - title: Modules
     description: Federation module definitions
     entrypoint: module
