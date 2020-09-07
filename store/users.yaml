@@ -3,11 +3,11 @@ import:
 
 fields:
   - { field: ID }
-  - { field: Email,                                  sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
+  - { field: Email,                                  sortable: true, unique: true, lookupFilterPreprocessor: lower }
   - { field: EmailConfirmed }
-  - { field: Username,                               sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
-  - { field: Name,                                   sortable: true,               fts: true }
-  - { field: Handle,                                 sortable: true, unique: true, fts: true, lookupFilterPreprocessor: lower }
+  - { field: Username,                               sortable: true, unique: true, lookupFilterPreprocessor: lower }
+  - { field: Name,                                   sortable: true,               }
+  - { field: Handle,                                 sortable: true, unique: true, lookupFilterPreprocessor: lower }
   - { field: Meta,           type: "*types.UserMeta" }
   - { field: Kind }
   - { field: CreatedAt,                              sortable: true }

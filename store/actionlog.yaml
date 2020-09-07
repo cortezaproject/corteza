@@ -9,11 +9,11 @@ types:
 
 fields:
   - { field: ID,           sortDescending: true }
-  - { field: Timestamp,    column: "ts", type: "time.Time" }
+  - { field: Timestamp,    type: "time.Time" }
   - { field: RequestOrigin }
-  - { field: RequestID,    column: "request_id" }
+  - { field: RequestID }
   - { field: ActorIPAddr }
-  - { field: ActorID,      column: "actor_id" }
+  - { field: ActorID }
   - { field: Resource }
   - { field: Action }
   - { field: Error }
@@ -27,6 +27,10 @@ rdbms:
   customFilterConverter: true
   customRowScanner: true
   customEncoder: true
+  mapFields:
+    Timestamp: { column: ts }
+    RequestID: { column: request_id }
+    ActorID:   { column: actor_id }
 
 search:
   enableSorting: false

@@ -6,7 +6,7 @@ types:
 
 fields:
   - { field: ChannelID,     type: uint64, isPrimaryKey: true }
-  - { field: ReplyTo,       type: uint64, isPrimaryKey: true, column: rel_reply_to }
+  - { field: ReplyTo,       type: uint64, isPrimaryKey: true }
   - { field: UserID,        type: uint64, isPrimaryKey: true }
   - { field: LastMessageID, type: uint64 }
   - { field: Count,         type: uint32 }
@@ -56,6 +56,8 @@ functions:
 rdbms:
   alias: mur
   table: messaging_unread
+  mapFields:
+    ReplyTo: { column: rel_reply_to }
 
 search:
   enable: false

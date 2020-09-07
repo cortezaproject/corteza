@@ -12,10 +12,10 @@ fields:
   - { field: Kind  }
   - { field: Label }
   - { field: Options,      type: "types.ModuleFieldOptions" }
-  - { field: Private,      type: bool, column: is_private }
-  - { field: Required,     type: bool, column: is_required }
-  - { field: Visible,      type: bool, column: is_visible }
-  - { field: Multi,        type: bool, column: is_multi }
+  - { field: Private,      type: bool }
+  - { field: Required,     type: bool }
+  - { field: Visible,      type: bool }
+  - { field: Multi,        type: bool }
   - { field: DefaultValue, type: "types.RecordValueSet" }
   - { field: CreatedAt }
   - { field: UpdatedAt }
@@ -32,6 +32,11 @@ rdbms:
   alias: cmf
   table: compose_module_field
   customFilterConverter: true
+  mapFields:
+    Private:  { column: is_private }
+    Required: { column: is_required }
+    Visible:  { column: is_visible }
+    Multi:    { column: is_multi }
 
 
 search:

@@ -6,7 +6,7 @@ types:
 
 fields:
   - { field: ID }
-  - { field: ModuleID,                                column: module_id }
+  - { field: ModuleID }
   - { field: NamespaceID }
   - { field: OwnedBy }
   - { field: CreatedBy }
@@ -43,6 +43,8 @@ rdbms:
   customSortConverter: true
   customCursorCollector: true
   customPostLoadProcessor: true
+  mapFields:
+    ModuleID:  { column: module_id }
 
 search:
   export: false
