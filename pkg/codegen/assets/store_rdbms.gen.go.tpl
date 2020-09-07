@@ -18,8 +18,8 @@ import (
 {{- if $.Search.EnablePaging }}
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 {{- end }}
-{{- range $import := $.Import }}
-    {{ normalizeImport $import }}
+{{- range .Import }}
+    {{ normalizeImport . }}
 {{- end }}
 )
 
@@ -297,15 +297,15 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 
 
 
-{{- range $lookup := $.Lookups }}
-// {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }} {{ comment $lookup.Description true -}}
-func (s Store) {{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range $lookup.RDBMSColumns }}, {{ cc2underscore .Field }} {{ .Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
+{{- range $.Lookups }}
+// {{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }} {{ comment .Description true -}}
+func (s Store) {{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range .RDBMSColumns }}, {{ cc2underscore .Field }} {{ .Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
 	return s.execLookup{{ $.Types.Singular }}(ctx{{ template "extraArgsCall" $ }}, squirrel.Eq{
-    {{- range $lookup.RDBMSColumns }}
+    {{- range .RDBMSColumns }}
 		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{- end }}
 
-    {{ range $field, $value := $lookup.Filter }}
+    {{ range $field, $value := .Filter }}
        "{{ ($field | $.RDBMS.Columns.Find).AliasedColumn }}": {{ $value }},
     {{- end }}
     })
@@ -362,8 +362,8 @@ func (s Store) {{ toggleExport .Update.Export "Partial" $.Types.Singular "Update
 			ctx,
 			{{ template "filterByPrimaryKeys" $.RDBMS.Columns.PrimaryKeyFields }},
 			s.internal{{ export $.Types.Singular }}Encoder(res).Skip(
-				{{- range $field := $.RDBMS.Columns.PrimaryKeyFields -}}
-					{{ printf "%q" $field.Column  }},
+				{{- range $.RDBMS.Columns.PrimaryKeyFields -}}
+					{{ printf "%q" .Column  }},
 				{{- end -}}
 		).Only(onlyColumns...))
 		if err != nil {
@@ -655,9 +655,9 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	// Only string and uint64 are supported for now
 	// feel free to add additional types if needed
 	var valid = true
-{{- range $lookup := $.Lookups }}
-	{{ if $lookup.UniqueConstraintCheck }}
-	{{- range $lookup.RDBMSColumns }}
+{{- range $.Lookups }}
+	{{ if .UniqueConstraintCheck }}
+	{{- range .RDBMSColumns }}
 		{{ if eq .Type "uint64" }}
 		valid = valid && res.{{ .Field }} > 0
 		{{ else if eq .Type "string" }}
@@ -674,10 +674,10 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	}
 
 
-{{- range $lookup := $.Lookups }}
-	{{ if $lookup.UniqueConstraintCheck }}
+{{- range $.Lookups }}
+	{{ if .UniqueConstraintCheck }}
 	{
-		ex, err := s.{{ toggleExport $lookup.Export "Lookup" $.Types.Singular "By" $lookup.Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range $lookup.RDBMSColumns }}, res.{{ .Field }} {{- end }})
+		ex, err := s.{{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range .RDBMSColumns }}, res.{{ .Field }} {{- end }})
 		if err == nil && ex != nil && ex.ID != res.ID {
 			return store.ErrNotUnique
 		} else if !errors.Is(err, store.ErrNotFound) {
@@ -705,16 +705,16 @@ func (s *Store) {{ unexport $.Types.Singular }}Hook(ctx context.Context, key tri
 
 {{- define "filterByPrimaryKeys" -}}
     squirrel.Eq{
-    {{ range $field := . -}}
-		s.preprocessColumn({{ printf "%q" $field.AliasedColumn }}, {{ printf "%q" $field.LookupFilterPreprocess }}): s.preprocessValue(res.{{ $field.Field }}, {{ printf "%q" $field.LookupFilterPreprocess }}),
+    {{ range . -}}
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue(res.{{ .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{- end }}
     }
 {{- end -}}
 
 {{- define "filterByPrimaryKeysWithArgs" -}}
     squirrel.Eq{
-    {{ range $field := . -}}
-		s.preprocessColumn({{ printf "%q" $field.AliasedColumn }}, {{ printf "%q" $field.LookupFilterPreprocess }}): s.preprocessValue({{ $field.Arg }}, {{ printf "%q" $field.LookupFilterPreprocess }}),
+    {{ range . -}}
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue({{ .Arg }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{ end }}
     }
 {{- end -}}

@@ -19,8 +19,8 @@ import (
 {{- end }}
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-{{- range $import := $.Import }}
-    {{ normalizeImport $import }}
+{{- range .Import }}
+    {{ normalizeImport . }}
 {{- end }}
 )
 
