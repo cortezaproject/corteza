@@ -18,8 +18,17 @@ type (
 	}
 )
 
-func New(ctx context.Context, dsn string) (s *Store, err error) {
-	var cfg *rdbms.Config
+func init() {
+	store.Register(Connect, "mysql")
+}
+
+func Connect(ctx context.Context, dsn string) (store.Storable, error) {
+	var (
+		err error
+		cfg *rdbms.Config
+
+		s = new(Store)
+	)
 
 	if cfg, err = ProcDataSourceName(dsn); err != nil {
 		return nil, err
@@ -31,8 +40,7 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	cfg.UpsertBuilder = UpsertBuilder
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
-	s = new(Store)
-	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
+	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
 		return nil, err
 	}
 

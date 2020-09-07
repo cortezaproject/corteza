@@ -18,9 +18,13 @@ type (
 	}
 )
 
-func New(ctx context.Context, dsn string) (s *Store, err error) {
-	var cfg *rdbms.Config
+func Connect(ctx context.Context, dsn string) (store.Storable, error) {
+	var (
+		err error
+		cfg *rdbms.Config
 
+		s = new(Store)
+	)
 	if cfg, err = ProcDataSourceName(dsn); err != nil {
 		return nil, err
 	}
@@ -35,16 +39,15 @@ func New(ctx context.Context, dsn string) (s *Store, err error) {
 	cfg.SqlFunctionHandler = sqlFunctionHandler
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
-	s = new(Store)
-	if s.Store, err = rdbms.New(ctx, cfg); err != nil {
+	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
 		return nil, err
 	}
 
 	return s, nil
 }
 
-func NewInMemory(ctx context.Context) (s *Store, err error) {
-	return New(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
+func ConnectInMemory(ctx context.Context) (s store.Storable, err error) {
+	return Connect(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
 }
 
 func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
