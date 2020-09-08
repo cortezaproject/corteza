@@ -96,7 +96,7 @@ func (imp *Importer) Store(
 		}
 
 		if err != nil {
-			return
+			return fmt.Errorf("could not provision permissions: %w", err)
 		}
 
 	}

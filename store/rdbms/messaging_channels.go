@@ -38,11 +38,20 @@ func (s Store) convertMessagingChannelFilter(f types.ChannelFilter) (query squir
 
 	if f.CurrentUserID > 0 {
 		qcm := s.SelectBuilder(s.messagingChannelMemberTable("mcm"), "mcm.rel_channel").
-			Where(squirrel.Eq{"cmc.rel_user:": f.CurrentUserID})
+			// minor squirrel quirk: change placeholder format to question
+			// on sub-queries. This will be reset to the right format internally
+			// when merged with main query
+			PlaceholderFormat(squirrel.Question).
+			Where(squirrel.Eq{"mcm.rel_user": f.CurrentUserID})
+
+		qcmSql, qcmArgs, err := qcm.ToSql()
+		if err != nil {
+			return query, err
+		}
 
 		query = query.Where(squirrel.Or{
-			squirrel.Eq{"c.type": types.ChannelTypePublic},
-			squirrel.Eq{"c.id": qcm},
+			squirrel.Eq{"mch.type": types.ChannelTypePublic},
+			squirrel.Expr("mch.id IN ("+qcmSql+")", qcmArgs...),
 		})
 	}
 
