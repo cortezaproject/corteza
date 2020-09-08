@@ -143,7 +143,7 @@ func (svc user) FindByID(userID uint64) (u *types.User, err error) {
 			return nil
 		}
 
-		u, err = svc.proc(svc.store.LookupUserByID(svc.ctx, userID))
+		u, err = svc.proc(store.LookupUserByID(svc.ctx, svc.store, userID))
 		return err
 	}()
 
@@ -156,7 +156,7 @@ func (svc user) FindByEmail(email string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(svc.store.LookupUserByEmail(svc.ctx, email))
+		u, err = svc.proc(store.LookupUserByEmail(svc.ctx, svc.store, email))
 		return err
 	}()
 
@@ -169,7 +169,7 @@ func (svc user) FindByUsername(username string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(svc.store.LookupUserByUsername(svc.ctx, username))
+		u, err = svc.proc(store.LookupUserByUsername(svc.ctx, svc.store, username))
 		return err
 	}()
 
@@ -182,7 +182,7 @@ func (svc user) FindByHandle(handle string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(svc.store.LookupUserByHandle(svc.ctx, handle))
+		u, err = svc.proc(store.LookupUserByHandle(svc.ctx, svc.store, handle))
 		return err
 	}()
 
@@ -221,7 +221,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return
 	}
 
-	rr, _, err := svc.store.SearchRoles(svc.ctx, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(svc.ctx, svc.store, types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +274,7 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			}
 		}
 
-		uu, f, err = svc.store.SearchUsers(svc.ctx, filter)
+		uu, f, err = store.SearchUsers(svc.ctx, svc.store, filter)
 		if err != nil {
 			return err
 		}
@@ -308,7 +308,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 
 		if svc.subscription != nil {
 			var c uint
-			if c, err = svc.store.CountUsers(svc.ctx, types.UserFilter{}); err != nil {
+			if c, err = store.CountUsers(svc.ctx, svc.store, types.UserFilter{}); err != nil {
 				return err
 			}
 
@@ -340,7 +340,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		// when creating user like this
 		new.EmailConfirmed = true
 
-		if err = svc.store.CreateUser(svc.ctx, new); err != nil {
+		if err = store.CreateUser(svc.ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -374,7 +374,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return UserErrInvalidEmail()
 		}
 
-		if u, err = svc.store.LookupUserByID(svc.ctx, upd.ID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -402,7 +402,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return
 		}
 
-		if err = svc.store.UpdateUser(svc.ctx, u); err != nil {
+		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 
@@ -446,7 +446,7 @@ func (svc user) UniqueCheck(u *types.User) (err error) {
 			f.Handle = u.Handle
 		}
 
-		set, _, err := svc.store.SearchUsers(svc.ctx, f)
+		set, _, err := store.SearchUsers(svc.ctx, svc.store, f)
 		if err != nil || len(set) > 1 {
 			// In case of error or multiple users returned
 			return false
@@ -486,7 +486,7 @@ func (svc user) Delete(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = svc.store.LookupUserByID(svc.ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -499,7 +499,7 @@ func (svc user) Delete(userID uint64) (err error) {
 		}
 
 		u.DeletedAt = nowPtr()
-		if err = svc.store.UpdateUser(svc.ctx, u); err != nil {
+		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 
@@ -521,7 +521,7 @@ func (svc user) Undelete(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = svc.store.LookupUserByID(svc.ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -536,7 +536,7 @@ func (svc user) Undelete(userID uint64) (err error) {
 		}
 
 		u.DeletedAt = nil
-		if err = svc.store.UpdateUser(svc.ctx, u); err != nil {
+		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 
@@ -558,7 +558,7 @@ func (svc user) Suspend(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = svc.store.LookupUserByID(svc.ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -569,7 +569,7 @@ func (svc user) Suspend(userID uint64) (err error) {
 		}
 
 		u.SuspendedAt = nowPtr()
-		if err = svc.store.UpdateUser(svc.ctx, u); err != nil {
+		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 
@@ -591,7 +591,7 @@ func (svc user) Unsuspend(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = svc.store.LookupUserByID(svc.ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
 			return
 		}
 
@@ -602,7 +602,7 @@ func (svc user) Unsuspend(userID uint64) (err error) {
 		}
 
 		u.SuspendedAt = nil
-		if err = svc.store.UpdateUser(svc.ctx, u); err != nil {
+		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 		return nil
@@ -622,7 +622,7 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 	)
 
 	err = func() error {
-		if u, err = svc.store.LookupUserByID(svc.ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
 			return err
 		}
 

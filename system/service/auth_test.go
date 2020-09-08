@@ -108,8 +108,8 @@ func TestAuth_External(t *testing.T) {
 	svc.settings.Auth.External.Enabled = true
 	req.NoError(svc.store.TruncateUsers(ctx))
 	req.NoError(svc.store.TruncateCredentials(ctx))
-	req.NoError(svc.store.CreateUser(ctx, validUser, suspendedUser))
-	req.NoError(svc.store.CreateCredentials(ctx, fooCredentials, barCredentials))
+	req.NoError(store.CreateUser(ctx, svc.store, validUser, suspendedUser))
+	req.NoError(store.CreateCredentials(ctx, svc.store, fooCredentials, barCredentials))
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -192,7 +192,7 @@ func TestAuth_InternalLogin(t *testing.T) {
 	svc.settings.Auth.Internal.Enabled = true
 	req.NoError(svc.store.TruncateUsers(ctx))
 	req.NoError(svc.store.TruncateCredentials(ctx))
-	req.NoError(svc.store.CreateUser(ctx, validUser, suspendedUser))
+	req.NoError(store.CreateUser(ctx, svc.store, validUser, suspendedUser))
 	req.NoError(svc.SetPasswordCredentials(ctx, validUser.ID, validPass))
 
 	for _, tt := range tests {
