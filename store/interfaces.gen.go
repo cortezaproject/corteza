@@ -1,5 +1,7 @@
 package store
 
+import "context"
+
 // This file is auto-generated.
 //
 // Template:	pkg/codegen/assets/store_interfaces_joined.gen.go.tpl
@@ -37,8 +39,14 @@ package store
 //
 
 type (
-	// Sortable interface combines interfaces of all supported store interfaces
-	storerGenerated interface {
+	Transactioner interface {
+		Tx(context.Context, func(context.Context, Storer) error) error
+	}
+
+	// Storer interface combines interfaces of all supported store interfaces
+	Storer interface {
+		Transactioner
+
 		Actionlogs
 		Applications
 		Attachments
