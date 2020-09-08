@@ -301,7 +301,7 @@ func (svc namespace) handleUpdate(upd *types.Namespace) namespaceUpdateHandler {
 
 func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (bool, error) {
 	if !svc.ac.CanDeleteNamespace(ctx, ns) {
-		return false, NamespaceErrNotAllowedToUndelete()
+		return false, NamespaceErrNotAllowedToDelete()
 	}
 
 	if ns.DeletedAt != nil {

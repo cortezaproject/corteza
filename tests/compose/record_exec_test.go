@@ -3,22 +3,20 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"net/http"
-	"strconv"
-	"testing"
-
-	"github.com/steinfletcher/apitest"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest"
+	"net/http"
+	"strconv"
+	"testing"
 )
 
 func (h helper) apiSendRecordExec(nsID, modID uint64, proc string, args []request.ProcedureArg) *apitest.Response {
 	payload, err := json.Marshal(request.RecordExec{Args: args})
-	h.a.NoError(err)
+	h.noError(err)
 
 	return h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/exec/%s", nsID, modID, proc)).
@@ -53,7 +51,7 @@ func TestRecordExec(t *testing.T) {
 	)
 
 	makeRecord := func(position int, handle, cat string) *types.Record {
-		return h.repoMakeRecord(module,
+		return h.makeRecord(module,
 			&types.RecordValue{Name: "position", Value: strconv.Itoa(position)},
 			&types.RecordValue{Name: "handle", Value: handle},
 			&types.RecordValue{Name: "category", Value: cat},
@@ -69,7 +67,7 @@ func TestRecordExec(t *testing.T) {
 			Sorting:     sorting,
 		})
 
-		h.a.NoError(err)
+		h.noError(err)
 		h.a.NotNil(set)
 
 		actualHandles := ""
@@ -174,9 +172,11 @@ func TestRecordExec(t *testing.T) {
 	//                                ^
 	assertSort("icdebfagh", "312222133")
 
-	rsv, err := h.repoRecord().LoadValues([]string{"category"}, []uint64{bRec.ID})
-	h.a.NoError(err)
-	h.a.NotNil(rsv)
-	h.a.Len(rsv.FilterByName("category"), 1)
-	h.a.Equal("CAT2", rsv.FilterByName("category")[0].Value)
+	lRec := h.lookupRecordByID(module, bRec.ID)
+
+	//rsv, err := h.repoRecord().LoadValues([]string{"category"}, []uint64{bRec.ID})
+	//h.noError(err)
+	h.a.NotNil(lRec.Values)
+	h.a.Len(lRec.Values.FilterByName("category"), 1)
+	h.a.Equal("CAT2", lRec.Values.FilterByName("category")[0].Value)
 }

@@ -14,7 +14,7 @@ fields:
   - { field: Description, type: "string" }
   - { field: Blocks,      type: "types.PageBlocks" }
   - { field: Visible,     type: bool }
-  - { field: Weight,      type: int  }
+  - { field: Weight,      type: int,                 sortable: true }
   - { field: CreatedAt,                              sortable: true }
   - { field: UpdatedAt,                              sortable: true }
   - { field: DeletedAt,                              sortable: true }

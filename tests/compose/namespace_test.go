@@ -3,35 +3,41 @@ package compose
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"testing"
-
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+	"net/http"
+	"testing"
+	"time"
 )
 
-func (h helper) repoNamespace() repository.NamespaceRepository {
-	return repository.Namespace(context.Background(), db())
+func (h helper) clearNamespaces() {
+	h.noError(store.TruncateComposeNamespaces(context.Background(), service.DefaultNgStore))
 }
 
-func (h helper) repoMakeNamespace(name string) *types.Namespace {
-	ns, err := h.
-		repoNamespace().
-		Create(&types.Namespace{Name: name, Slug: name})
-	h.a.NoError(err)
+func (h helper) makeNamespace(name string) *types.Namespace {
+	ns := &types.Namespace{Name: name, Slug: name}
+	ns.ID = id.Next()
+	ns.CreatedAt = time.Now()
+	h.noError(store.CreateComposeNamespace(context.Background(), service.DefaultNgStore, ns))
+	return ns
+}
 
+func (h helper) lookupNamespaceByID(ID uint64) *types.Namespace {
+	ns, err := store.LookupComposeNamespaceByID(context.Background(), service.DefaultNgStore, ID)
+	h.noError(err)
 	return ns
 }
 
 func TestNamespaceRead(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
 
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -45,14 +51,15 @@ func TestNamespaceRead(t *testing.T) {
 
 func TestNamespaceReadByHandle(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace-" + string(rand.Bytes(20)))
+	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
 	nsbh, err := service.DefaultNamespace.With(h.secCtx()).FindByHandle(ns.Slug)
 
-	h.a.NoError(err)
+	h.noError(err)
 	h.a.NotNil(nsbh)
 	h.a.Equal(nsbh.ID, ns.ID)
 	h.a.Equal(nsbh.Slug, ns.Slug)
@@ -60,9 +67,10 @@ func TestNamespaceReadByHandle(t *testing.T) {
 
 func TestNamespaceList(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
 
-	h.repoMakeNamespace("app")
-	h.repoMakeNamespace("app")
+	h.makeNamespace("ns1")
+	h.makeNamespace("ns2")
 
 	h.apiInit().
 		Get("/namespace/").
@@ -74,9 +82,10 @@ func TestNamespaceList(t *testing.T) {
 
 func TestNamespaceList_filterForbiden(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
 
-	h.repoMakeNamespace("namespace")
-	f := h.repoMakeNamespace("namespace_forbiden")
+	h.makeNamespace("namespace")
+	f := h.makeNamespace("namespace_forbiden")
 
 	h.deny(types.NamespacePermissionResource.AppendID(f.ID), "read")
 
@@ -91,6 +100,7 @@ func TestNamespaceList_filterForbiden(t *testing.T) {
 
 func TestNamespaceCreateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
 
 	h.apiInit().
 		Post("/namespace/").
@@ -103,6 +113,8 @@ func TestNamespaceCreateForbidden(t *testing.T) {
 
 func TestNamespaceCreate(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
+
 	h.allow(types.ComposePermissionResource, "namespace.create")
 
 	h.apiInit().
@@ -116,7 +128,9 @@ func TestNamespaceCreate(t *testing.T) {
 
 func TestNamespaceUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
-	ns := h.repoMakeNamespace("some-namespace")
+	h.clearNamespaces()
+
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -129,7 +143,9 @@ func TestNamespaceUpdateForbidden(t *testing.T) {
 
 func TestNamespaceUpdate(t *testing.T) {
 	h := newHelper(t)
-	ns := h.repoMakeNamespace("some-namespace")
+	h.clearNamespaces()
+
+	ns := h.makeNamespace("some-namespace")
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "update")
 
 	h.apiInit().
@@ -140,15 +156,16 @@ func TestNamespaceUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	ns, err := h.repoNamespace().FindByID(ns.ID)
-	h.a.NoError(err)
+	ns = h.lookupNamespaceByID(ns.ID)
 	h.a.NotNil(ns)
 	h.a.Equal("changed-name", ns.Name)
 }
 
 func TestNamespaceDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
-	ns := h.repoMakeNamespace("some-namespace")
+	h.clearNamespaces()
+
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -160,9 +177,11 @@ func TestNamespaceDeleteForbidden(t *testing.T) {
 
 func TestNamespaceDelete(t *testing.T) {
 	h := newHelper(t)
+	h.clearNamespaces()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "delete")
 
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -171,6 +190,6 @@ func TestNamespaceDelete(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	ns, err := h.repoNamespace().FindByID(ns.ID)
-	h.a.Error(err, "compose.repository.NamespaceNotFound")
+	ns = h.lookupNamespaceByID(ns.ID)
+	h.a.NotNil(ns.DeletedAt)
 }

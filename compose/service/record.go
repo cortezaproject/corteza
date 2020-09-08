@@ -57,6 +57,11 @@ type (
 		UserRefChecker(fn values.ReferenceChecker)
 	}
 
+	recordValueAccessController interface {
+		CanReadRecordValue(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+	}
+
 	recordAccessController interface {
 		CanCreateRecord(context.Context, *types.Module) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
@@ -64,8 +69,8 @@ type (
 		CanReadRecord(context.Context, *types.Module) bool
 		CanUpdateRecord(context.Context, *types.Module) bool
 		CanDeleteRecord(context.Context, *types.Module) bool
-		CanReadRecordValue(context.Context, *types.ModuleField) bool
-		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+
+		recordValueAccessController
 	}
 
 	RecordService interface {
@@ -131,6 +136,7 @@ func Record() RecordService {
 		ac:            DefaultAccessControl,
 		eventbus:      eventbus.Service(),
 		optEmitEvents: true,
+		store:         DefaultNgStore,
 	}).With(context.Background())
 }
 
@@ -219,9 +225,7 @@ func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module
 			return RecordErrNotAllowedToRead()
 		}
 
-		if err = svc.preloadValues(m, r); err != nil {
-			return err
-		}
+		trimUnreadableRecordFields(svc.ctx, svc.ac, m, r)
 
 		return nil
 	}()
@@ -235,58 +239,6 @@ func (svc record) FindByID(namespaceID, moduleID, recordID uint64) (r *types.Rec
 		return store.LookupComposeRecordByID(svc.ctx, svc.store, m, recordID)
 	})
 }
-
-//func (svc record) loadModuleWithNamespace(namespaceID, moduleID uint64) (m *types.Module, err error) {
-//	return m, func() error {
-//		if namespaceID == 0 {
-//			return RecordErrInvalidNamespaceID()
-//		}
-//
-//		if moduleID == 0 {
-//			return RecordErrInvalidModuleID()
-//		}
-//
-//		if m, err = svc.moduleRepo.FindByID(namespaceID, moduleID); err != nil {
-//			if repository.ErrModuleNotFound.Eq(err) {
-//				return RecordErrModuleNotFoundModule()
-//			}
-//
-//			return err
-//		}
-//
-//		if !svc.ac.CanReadModule(svc.ctx, m) {
-//			return RecordErrNotAllowedToReadModule()
-//		}
-//
-//		if m.Fields, err = svc.moduleRepo.FindFields(m.ID); err != nil {
-//			return err
-//		}
-//
-//		return nil
-//	}()
-//}
-//
-//func (svc record) loadNamespace(namespaceID uint64) (ns *types.Namespace, err error) {
-//	return ns, func() error {
-//		if namespaceID == 0 {
-//			return RecordErrInvalidNamespaceID()
-//		}
-//
-//		if ns, err = svc.nsRepo.FindByID(namespaceID); err != nil {
-//			if repository.ErrNamespaceNotFound.Eq(err) {
-//				return RecordErrNamespaceNotFound()
-//			}
-//
-//			return err
-//		}
-//
-//		if !svc.ac.CanReadNamespace(svc.ctx, ns) {
-//			return RecordErrNotAllowedToReadNamespace()
-//		}
-//
-//		return err
-//	}()
-//}
 
 // Report generates report for a given module using metrics, dimensions and filter
 func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
@@ -327,9 +279,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 			return err
 		}
 
-		if err = svc.preloadValues(m, set...); err != nil {
-			return err
-		}
+		trimUnreadableRecordFields(svc.ctx, svc.ac, m, set...)
 
 		return nil
 	}()
@@ -406,10 +356,6 @@ func (svc record) Export(f types.RecordFilter, enc Encoder) (err error) {
 
 		set, _, err = store.SearchComposeRecords(svc.ctx, svc.store, m, f)
 		if err != nil {
-			return err
-		}
-
-		if err = svc.preloadValues(m, set...); err != nil {
 			return err
 		}
 
@@ -644,11 +590,6 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return
 	}
 
-	// Preload old record values so we can send it together with event
-	if err = svc.preloadValues(m, old); err != nil {
-		return
-	}
-
 	var (
 		rve *types.RecordValueErrorSet
 	)
@@ -858,11 +799,6 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	}
 
 	if svc.optEmitEvents {
-		// Preload old record values so we can send it together with event
-		if err = svc.preloadValues(m, del); err != nil {
-			return nil, err
-		}
-
 		// Calling before-record-delete scripts
 		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
 			return nil, err
@@ -1211,10 +1147,6 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 			return err
 		}
 
-		if err = svc.preloadValues(m, set...); err != nil {
-			return err
-		}
-
 		for _, rec := range set {
 			recordableAction := RecordActionIteratorIteration
 
@@ -1363,31 +1295,21 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 	return
 }
 
-func (svc record) preloadValues(m *types.Module, rr ...*types.Record) error {
-	panic("refactor")
-	//if rvs, err := svc.recordRepo.LoadValues(svc.readableFields(m), types.RecordSet(rr).IDs()); err != nil {
-	//	return err
-	//} else {
-	//	return types.RecordSet(rr).Walk(func(r *types.Record) error {
-	//		r.Values = svc.formatter.Run(m, rvs.FilterByRecordID(r.ID))
-	//		return nil
-	//	})
-	//}
-}
+// checks record-value-read access permissions for all module fields and removes unreadable fields from all records
+func trimUnreadableRecordFields(ctx context.Context, ac recordValueAccessController, m *types.Module, rr ...*types.Record) {
+	var (
+		readableFields = map[string]bool{}
+	)
 
-// readableFields creates a slice of module fields that current user has permission to read
-func (svc record) readableFields(m *types.Module) []string {
-	ff := make([]string, 0)
+	for _, f := range m.Fields {
+		readableFields[f.Name] = ac.CanReadRecordValue(ctx, f)
+	}
 
-	_ = m.Fields.Walk(func(f *types.ModuleField) error {
-		if svc.ac.CanReadRecordValue(svc.ctx, f) {
-			ff = append(ff, f.Name)
-		}
-
-		return nil
-	})
-
-	return ff
+	for _, r := range rr {
+		r.Values, _ = r.Values.Filter(func(v *types.RecordValue) (bool, error) {
+			return readableFields[v.Name], nil
+		})
+	}
 }
 
 // loadRecordCombo Loads namespace, module and record

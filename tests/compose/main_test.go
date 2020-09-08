@@ -2,6 +2,7 @@ package compose
 
 import (
 	"context"
+	"errors"
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -10,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
@@ -20,7 +22,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
-	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 	"os"
 	"testing"
@@ -47,16 +48,13 @@ func init() {
 	helpers.RecursiveDotEnvLoad()
 }
 
-func db() *factory.DB {
-	return factory.Database.MustGet().With(context.Background())
-}
-
 func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store.(rbacRulesStore))
+			service.DefaultNgStore = app.Store
+			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store)
 			service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
@@ -117,7 +115,7 @@ func (h helper) apiInit() *apitest.APITest {
 }
 
 func (h helper) mockPermissions(rules ...*permissions.Rule) {
-	h.a.NoError(service.DefaultPermissions.(*permissions.TestService).Grant(
+	h.noError(service.DefaultPermissions.(*permissions.TestService).Grant(
 		// TestService we use does not have any backend storage,
 		context.Background(),
 		// We want to make sure we did not make a mistake with any of the mocked resources or actions
@@ -144,4 +142,13 @@ func (h helper) allow(r permissions.Resource, o permissions.Operation) {
 // set deny permission for test role
 func (h helper) deny(r permissions.Resource, o permissions.Operation) {
 	h.mockPermissions(permissions.DenyRule(h.roleID, r, o))
+}
+
+// Unwraps error before it passes it to the tester
+func (h helper) noError(err error) {
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
+	}
+
+	h.a.NoError(err)
 }

@@ -2,13 +2,12 @@ package compose
 
 import (
 	"fmt"
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestPermissionsDelete(t *testing.T) {

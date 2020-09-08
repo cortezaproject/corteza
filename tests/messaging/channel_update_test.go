@@ -3,17 +3,15 @@ package messaging
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/rest/request"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest"
+	"github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"strconv"
 	"testing"
-
-	"github.com/steinfletcher/apitest"
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"github.com/titpetric/factory"
-
-	"github.com/cortezaproject/corteza-server/messaging/rest/request"
-	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func (h helper) chUpdate(ch *request.ChannelUpdate) *apitest.Response {

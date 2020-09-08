@@ -6,7 +6,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/davecgh/go-spew/spew"
 	"strings"
 )
 
@@ -93,8 +92,6 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 				Where(squirrel.Eq{"msg.id": flagQuery})
 		}
 	}
-
-	spew.Dump(query.ToSql())
 
 	// Manually sorting & limiting for BC
 	query = query.

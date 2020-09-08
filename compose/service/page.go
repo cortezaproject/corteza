@@ -52,6 +52,7 @@ func Page() PageService {
 	return (&page{
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
+		store:    DefaultNgStore,
 	}).With(context.Background())
 }
 
@@ -61,7 +62,7 @@ func (svc page) With(ctx context.Context) PageService {
 		actionlog: DefaultActionlog,
 		ac:        svc.ac,
 		eventbus:  svc.eventbus,
-		store:     DefaultNgStore,
+		store:     svc.store,
 	}
 }
 
@@ -118,7 +119,7 @@ func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.Page
 	filter.Check = checkPage(svc.ctx, svc.ac)
 
 	err = func() error {
-		if ns, err := loadNamespace(svc.ctx, svc.store, f.NamespaceID); err != nil {
+		if ns, err := loadNamespace(svc.ctx, svc.store, filter.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -416,7 +417,7 @@ func (svc page) handleUpdate(upd *types.Page) pageUpdateHandler {
 
 func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Page) (bool, error) {
 	if !svc.ac.CanDeletePage(ctx, m) {
-		return false, PageErrNotAllowedToUndelete()
+		return false, PageErrNotAllowedToDelete()
 	}
 
 	if m.DeletedAt != nil {

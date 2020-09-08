@@ -2,17 +2,16 @@ package compose
 
 import (
 	"encoding/json"
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"github.com/steinfletcher/apitest"
+	"net/http"
+	"testing"
 )
 
 func (h helper) apiSendEmailNotification(req request.NotificationEmailSend) *apitest.Response {
 	payload, err := json.Marshal(req)
-	h.a.NoError(err)
+	h.noError(err)
 
 	return h.apiInit().
 		Post("/notification/email").

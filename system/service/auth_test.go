@@ -22,7 +22,7 @@ func makeMockAuthService() *auth {
 	var (
 		ctx = context.Background()
 
-		mem, err = sqlite.NewInMemory(ctx)
+		mem, err = sqlite.ConnectInMemory(ctx)
 
 		svc = &auth{
 			providerValidator: func(s string) error {
@@ -39,7 +39,9 @@ func makeMockAuthService() *auth {
 		panic(err)
 	}
 
-	if err = mem.Upgrade(ctx, zap.NewNop()); err != nil {
+	if err = mem.(interface {
+		Upgrade(context.Context, *zap.Logger) error
+	}).Upgrade(ctx, zap.NewNop()); err != nil {
 		panic(err)
 	}
 

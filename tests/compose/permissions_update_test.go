@@ -2,10 +2,9 @@ package compose
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"net/http"
 	"testing"
-
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func TestPermissionsUpdate(t *testing.T) {
