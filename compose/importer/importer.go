@@ -3,8 +3,6 @@ package importer
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
@@ -87,6 +85,7 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 	var nsHandle string
 	// Solving a special case where namespace is defined as string
 	// and we're treating value as namespace's handle
+	println("provisioning namespaces")
 	deinterfacer.KVsetString(&nsHandle, "namespace", def)
 	if nsHandle != "" {
 		delete(def.(map[interface{}]interface{}), "namespace")
@@ -140,7 +139,7 @@ func (imp *Importer) Store(
 	if imp.namespaces != nil {
 		err = imp.namespaces.Store(ctx, nsStore, mStore, cStore, pStore, rStore)
 		if err != nil {
-			return errors.Wrap(err, "could not import namespaces")
+			return fmt.Errorf("could not import namespaces: %w", err)
 		}
 
 	}
@@ -154,7 +153,7 @@ func (imp *Importer) Store(
 
 		err = imp.permissions.Store(ctx, pk)
 		if err != nil {
-			return errors.Wrap(err, "could not import permissions")
+			return fmt.Errorf("could not import permissions: %w", err)
 		}
 	}
 

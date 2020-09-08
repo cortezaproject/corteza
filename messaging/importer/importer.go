@@ -80,14 +80,14 @@ func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions
 
 		err = imp.permissions.Store(ctx, pk)
 		if err != nil {
-			return
+			return fmt.Errorf("could not provision permissions: %w", err)
 		}
 	}
 
 	if imp.settings != nil {
 		err = imp.settings.Store(ctx, sk)
 		if err != nil {
-			return
+			return fmt.Errorf("could not provision settings: %w", err)
 		}
 	}
 
