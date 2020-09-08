@@ -77,7 +77,7 @@ func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "store.assign")
+	return svc.can(ctx, types.SystemPermissionResource, "reminder.assign")
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
@@ -225,7 +225,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 		"role.create",
 		"user.create",
 		"application.create",
-		"store.assign",
+		"reminder.assign",
 	)
 
 	wl.Set(
