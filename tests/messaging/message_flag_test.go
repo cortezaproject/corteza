@@ -20,9 +20,9 @@ func (h helper) apiMessageSetFlag(msg *types.Message, method, flag string) *apit
 
 func TestMessageFlag(t *testing.T) {
 	h := newHelper(t)
-	msg := h.repoMakeMessage("flag target", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("flag target", h.repoMakePublicCh(), h.cUser)
 
-	initialState := h.repoMsgFlagLoad(msg.ID)
+	initialState := h.lookupFlagByMessageID(msg.ID)
 	h.a.Len(initialState, 0)
 	h.a.False(initialState.IsPinned())
 	h.a.False(initialState.IsBookmarked(h.cUser.ID))
@@ -31,25 +31,25 @@ func TestMessageFlag(t *testing.T) {
 
 	h.apiMessageSetFlag(msg, "POST", "pin").
 		End()
-	h.a.True(h.repoMsgFlagLoad(msg.ID).IsPinned())
+	h.a.True(h.lookupFlagByMessageID(msg.ID).IsPinned())
 
 	h.apiMessageSetFlag(msg, "DELETE", "pin").
 		End()
-	h.a.False(h.repoMsgFlagLoad(msg.ID).IsPinned())
+	h.a.False(h.lookupFlagByMessageID(msg.ID).IsPinned())
 
 	// Bookmark flag (per user)
 
 	h.apiMessageSetFlag(msg, "POST", "bookmark").
 		End()
-	h.a.True(h.repoMsgFlagLoad(msg.ID).IsBookmarked(h.cUser.ID))
+	h.a.True(h.lookupFlagByMessageID(msg.ID).IsBookmarked(h.cUser.ID))
 
 	h.apiMessageSetFlag(msg, "DELETE", "bookmark").
 		End()
-	h.a.False(h.repoMsgFlagLoad(msg.ID).IsBookmarked(h.cUser.ID))
+	h.a.False(h.lookupFlagByMessageID(msg.ID).IsBookmarked(h.cUser.ID))
 
 	// Custom flags (aka reactions)
 	hasReaction := func(flag string) bool {
-		ff, _ := h.repoMsgFlagLoad(msg.ID).Filter(func(f *types.MessageFlag) (b bool, e error) {
+		ff, _ := h.lookupFlagByMessageID(msg.ID).Filter(func(f *types.MessageFlag) (b bool, e error) {
 			return f.Flag == flag && f.UserID == h.cUser.ID && f.DeletedAt == nil, nil
 		})
 

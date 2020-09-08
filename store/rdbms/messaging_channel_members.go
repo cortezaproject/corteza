@@ -8,14 +8,14 @@ import (
 )
 
 func (s Store) convertMessagingChannelMemberFilter(f types.ChannelMemberFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.messagingFlagsSelectBuilder()
+	query = s.messagingChannelMembersSelectBuilder()
 
 	if len(f.ChannelID) > 0 {
 		query = query.Where(squirrel.Eq{"rel_channel": f.ChannelID})
 	}
 
 	if len(f.MemberID) > 0 {
-		query = query.Where(squirrel.Eq{"rel_member": f.MemberID})
+		query = query.Where(squirrel.Eq{"rel_user": f.MemberID})
 	}
 
 	return query, nil

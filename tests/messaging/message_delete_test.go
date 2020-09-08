@@ -12,7 +12,7 @@ import (
 
 func TestMessagesDelete(t *testing.T) {
 	h := newHelper(t)
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, msg.ID)).
@@ -21,14 +21,15 @@ func TestMessagesDelete(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	_, err := h.repoMessage().FindByID(msg.ID)
-	h.a.EqualError(err, "messaging.repository.MessageNotFound")
+	m, err := h.lookupMessageByID(msg.ID)
+	h.a.NoError(err)
+	h.a.NotNil(m.DeletedAt)
 }
 
-func TestMessagesDelete_forbiden(t *testing.T) {
+func TestMessagesDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 	h.deny(types.ChannelPermissionResource.AppendWildcard(), "message.update.own")
 
 	h.apiInit().
@@ -38,7 +39,7 @@ func TestMessagesDelete_forbiden(t *testing.T) {
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).
 		End()
 
-	_, err := h.repoMessage().FindByID(msg.ID)
+	_, err := h.lookupMessageByID(msg.ID)
 	h.a.Nil(err)
 }
 
@@ -46,7 +47,7 @@ func TestMessagesDeleteOwnThreadMessage(t *testing.T) {
 	// Covers deleting messages that reply to my own thread
 	h := newHelper(t)
 
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 	thrMsg := h.apiMessageCreateReply("thr1", msg)
 
 	h.apiInit().
@@ -56,15 +57,16 @@ func TestMessagesDeleteOwnThreadMessage(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	_, err := h.repoMessage().FindByID(thrMsg.ID)
-	h.a.EqualError(err, "messaging.repository.MessageNotFound")
+	m, err := h.lookupMessageByID(thrMsg.ID)
+	h.a.NoError(err)
+	h.a.NotNil(m.DeletedAt)
 }
 
-func TestMessagesDeleteOwnThreadMessage_forbidenNotOwner(t *testing.T) {
+func TestMessagesDeleteOwnThreadMessage_forbiddenNotOwner(t *testing.T) {
 	// Covers deleting someone elses messages that reply to my own thread
 	h := newHelper(t)
 
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 
 	nh := newHelper(t)
 	thrMsg := nh.apiMessageCreateReply("thr1", msg)
@@ -76,7 +78,7 @@ func TestMessagesDeleteOwnThreadMessage_forbidenNotOwner(t *testing.T) {
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).
 		End()
 
-	_, err := h.repoMessage().FindByID(thrMsg.ID)
+	_, err := h.lookupMessageByID(thrMsg.ID)
 	h.a.Nil(err)
 }
 
@@ -85,7 +87,7 @@ func TestMessagesDeleteThreadMessage(t *testing.T) {
 	h := newHelper(t)
 
 	u := &sysTypes.User{ID: 10}
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), u)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), u)
 	thrMsg := h.apiMessageCreateReply("thr1", msg)
 
 	h.apiInit().
@@ -95,16 +97,17 @@ func TestMessagesDeleteThreadMessage(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	_, err := h.repoMessage().FindByID(thrMsg.ID)
-	h.a.EqualError(err, "messaging.repository.MessageNotFound")
+	m, err := h.lookupMessageByID(thrMsg.ID)
+	h.a.NoError(err)
+	h.a.NotNil(m.DeletedAt)
 }
 
-func TestMessagesDeleteThreadMessage_forbidenNotOwner(t *testing.T) {
-	// Covers deleting someone elses messages that reply to someone elses thread
+func TestMessagesDeleteThreadMessage_forbiddenNotOwner(t *testing.T) {
+	// Covers deleting someone else messages that reply to someone else thread
 	h := newHelper(t)
 
 	u := &sysTypes.User{ID: 10}
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), u)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), u)
 
 	nh := newHelper(t)
 	thrMsg := nh.apiMessageCreateReply("thr1", msg)
@@ -116,6 +119,6 @@ func TestMessagesDeleteThreadMessage_forbidenNotOwner(t *testing.T) {
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).
 		End()
 
-	_, err := h.repoMessage().FindByID(thrMsg.ID)
+	_, err := h.lookupMessageByID(thrMsg.ID)
 	h.a.Nil(err)
 }

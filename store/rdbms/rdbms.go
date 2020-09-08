@@ -69,6 +69,7 @@ type (
 var log = logger.MakeDebugLogger().
 	//return logger.Default().
 	Named("store.rdbms").
+	WithOptions(zap.AddCallerSkip(2)).
 	WithOptions(zap.AddStacktrace(zap.FatalLevel))
 
 const (

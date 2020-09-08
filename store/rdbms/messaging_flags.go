@@ -9,11 +9,15 @@ func (s Store) convertMessagingFlagFilter(f types.MessageFlagFilter) (query squi
 	query = s.messagingFlagsSelectBuilder()
 
 	if f.Flag != "" {
-		query = query.Where(squirrel.Eq{"flag": f.Flag})
+		query = query.Where(squirrel.Eq{"mmf.flag": f.Flag})
 	}
 
 	if len(f.MessageID) > 0 {
-		query = query.Where(squirrel.Eq{"rel_message": f.MessageID})
+		query = query.Where(squirrel.Eq{"mmf.rel_message": f.MessageID})
+	}
+
+	if f.OwnerID > 0 {
+		query = query.Where(squirrel.Eq{"mmf.rel_user": f.OwnerID})
 	}
 
 	return query, nil

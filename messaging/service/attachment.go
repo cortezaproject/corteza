@@ -154,11 +154,10 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 
 		aProps.setMessageID(msg.ID)
 
-		panic("re-implement this")
-		panic("@todo should we sendEvent?")
-		//if err = svc.attachment.BindAttachment(att.ID, msg.ID); err != nil {
-		//	return
-		//}
+		ma := &types.MessageAttachment{AttachmentID: att.ID, MessageID: msg.ID}
+		if err = store.CreateMessagingMessageAttachment(ctx, s, ma); err != nil {
+			return
+		}
 
 		return svc.sendEvent(msg)
 	})

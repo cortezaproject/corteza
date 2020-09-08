@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/service"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"net/http"
 	"strconv"
-
-	"github.com/cortezaproject/corteza-server/messaging/repository"
-	"github.com/cortezaproject/corteza-server/messaging/types"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -20,19 +21,14 @@ type (
 	}
 )
 
-func (h helper) repoMessage() repository.MessageRepository {
-	return repository.Message(context.Background(), db())
-}
-func (h helper) repoMessageFlag() repository.MessageFlagRepository {
-	return repository.MessageFlag(context.Background(), db())
-}
-
-func (h helper) repoMakeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
-	m, err := h.repoMessage().Create(&types.Message{
+func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
+	m := &types.Message{
+		ID:        id.Next(),
 		Message:   msg,
 		ChannelID: ch.ID,
 		UserID:    u.ID,
-	})
+	}
+	err := store.CreateMessagingMessage(context.Background(), service.DefaultNgStore, m)
 
 	h.a.NoError(err)
 	return m
@@ -59,15 +55,12 @@ func (h helper) apiMessageCreateReply(msg string, o *types.Message) *types.Messa
 	}
 }
 
-func (h helper) repoMsgExistingLoad(ID uint64) *types.Message {
-	m, err := h.repoMessage().FindByID(ID)
-	h.a.NoError(err)
-	h.a.NotNil(m)
-	return m
+func (h helper) lookupMessageByID(ID uint64) (*types.Message, error) {
+	return store.LookupMessagingMessageByID(context.Background(), service.DefaultNgStore, ID)
 }
 
-func (h helper) repoMsgFlagLoad(ID uint64) types.MessageFlagSet {
-	ff, err := h.repoMessageFlag().FindByMessageIDs(ID)
+func (h helper) lookupFlagByMessageID(ID uint64) types.MessageFlagSet {
+	ff, _, err := store.SearchMessagingFlags(context.Background(), service.DefaultNgStore, types.MessageFlagFilter{MessageID: []uint64{ID}})
 	h.a.NoError(err)
 	return ff
 }

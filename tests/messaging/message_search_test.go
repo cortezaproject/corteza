@@ -16,8 +16,8 @@ func TestMessageSearch(t *testing.T) {
 
 	pf := time.Now().String()
 
-	h.repoMakeMessage(pf+"searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage(pf+"searchTestMessageB", ch, h.cUser)
+	h.makeMessage(pf+"searchTestMessageA", ch, h.cUser)
+	h.makeMessage(pf+"searchTestMessageB", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
@@ -33,11 +33,11 @@ func TestMessageSearchAfterID(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.repoMakeMessage("searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageB", ch, h.cUser)
-	m := h.repoMakeMessage("searchTestMessageC", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageD", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageE", ch, h.cUser)
+	h.makeMessage("searchTestMessageA", ch, h.cUser)
+	h.makeMessage("searchTestMessageB", ch, h.cUser)
+	m := h.makeMessage("searchTestMessageC", ch, h.cUser)
+	h.makeMessage("searchTestMessageD", ch, h.cUser)
+	h.makeMessage("searchTestMessageE", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
@@ -55,11 +55,11 @@ func TestMessageSearchFromID(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.repoMakeMessage("searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageB", ch, h.cUser)
-	m := h.repoMakeMessage("searchTestMessageC", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageD", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageE", ch, h.cUser)
+	h.makeMessage("searchTestMessageA", ch, h.cUser)
+	h.makeMessage("searchTestMessageB", ch, h.cUser)
+	m := h.makeMessage("searchTestMessageC", ch, h.cUser)
+	h.makeMessage("searchTestMessageD", ch, h.cUser)
+	h.makeMessage("searchTestMessageE", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
@@ -78,11 +78,11 @@ func TestMessageSearchBeforeID(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.repoMakeMessage("searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageB", ch, h.cUser)
-	m := h.repoMakeMessage("searchTestMessageC", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageD", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageE", ch, h.cUser)
+	h.makeMessage("searchTestMessageA", ch, h.cUser)
+	h.makeMessage("searchTestMessageB", ch, h.cUser)
+	m := h.makeMessage("searchTestMessageC", ch, h.cUser)
+	h.makeMessage("searchTestMessageD", ch, h.cUser)
+	h.makeMessage("searchTestMessageE", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
@@ -99,11 +99,11 @@ func TestMessageSearchToID(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.repoMakeMessage("searchTestMessageA", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageB", ch, h.cUser)
-	m := h.repoMakeMessage("searchTestMessageC", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageD", ch, h.cUser)
-	h.repoMakeMessage("searchTestMessageE", ch, h.cUser)
+	h.makeMessage("searchTestMessageA", ch, h.cUser)
+	h.makeMessage("searchTestMessageB", ch, h.cUser)
+	m := h.makeMessage("searchTestMessageC", ch, h.cUser)
+	h.makeMessage("searchTestMessageD", ch, h.cUser)
+	h.makeMessage("searchTestMessageE", ch, h.cUser)
 
 	h.apiInit().
 		Get("/search/messages").
@@ -121,10 +121,10 @@ func TestMessageThreadSearch(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	msgA := h.repoMakeMessage("searchTestMessageThreadA", ch, h.cUser)
+	msgA := h.makeMessage("searchTestMessageThreadA", ch, h.cUser)
 	h.apiMessageCreateReply("thrA", msgA)
 
-	msgB := h.repoMakeMessage("searchTestMessageThreadB", ch, h.cUser)
+	msgB := h.makeMessage("searchTestMessageThreadB", ch, h.cUser)
 	h.apiMessageCreateReply("thrB", msgB)
 
 	h.apiInit().

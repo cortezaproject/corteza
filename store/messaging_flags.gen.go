@@ -17,7 +17,6 @@ type (
 	MessagingFlags interface {
 		SearchMessagingFlags(ctx context.Context, f types.MessageFlagFilter) (types.MessageFlagSet, types.MessageFlagFilter, error)
 		LookupMessagingFlagByID(ctx context.Context, id uint64) (*types.MessageFlag, error)
-		LookupMessagingFlagByMessageIDUserIDFlag(ctx context.Context, message_id uint64, user_id uint64, flag string) (*types.MessageFlag, error)
 
 		CreateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error
 
@@ -44,11 +43,6 @@ func SearchMessagingFlags(ctx context.Context, s MessagingFlags, f types.Message
 // LookupMessagingFlagByID searches for flags by ID
 func LookupMessagingFlagByID(ctx context.Context, s MessagingFlags, id uint64) (*types.MessageFlag, error) {
 	return s.LookupMessagingFlagByID(ctx, id)
-}
-
-// LookupMessagingFlagByMessageIDUserIDFlag searches for flags by ID
-func LookupMessagingFlagByMessageIDUserIDFlag(ctx context.Context, s MessagingFlags, message_id uint64, user_id uint64, flag string) (*types.MessageFlag, error) {
-	return s.LookupMessagingFlagByMessageIDUserIDFlag(ctx, message_id, user_id, flag)
 }
 
 // CreateMessagingFlag creates one or more MessagingFlags in store

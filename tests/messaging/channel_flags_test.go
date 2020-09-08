@@ -17,51 +17,47 @@ func TestChannelSetFlag(t *testing.T) {
 	ch := h.repoMakePublicCh()
 	h.repoMakeMember(ch, h.cUser)
 
-	flagCheck := func(ID uint64, flag string) {
-		mm, err := h.repoChMember().Find(types.ChannelMemberFilter{
-			ChannelID: []uint64{ID},
-			MemberID:  []uint64{h.cUser.ID},
-		})
-		h.a.NoError(err)
+	flagCheck := func(ch *types.Channel, flag string) {
+		mm := h.lookupChMembership(ch)
 		h.a.Len(mm, 1, "expecting 1 member")
 		h.a.Equal(flag, string(mm[0].Flag), "expecting flags to match")
 	}
 
-	flagChannel := func(ID uint64, flag string) *apitest.Response {
+	flagChannel := func(ch *types.Channel, flag string) *apitest.Response {
 		return h.apiInit().
-			Put(fmt.Sprintf("/channels/%d/flag", ID)).
+			Put(fmt.Sprintf("/channels/%d/flag", ch.ID)).
 			FormData("flag", flag).
 			Expect(t).
 			Status(http.StatusOK)
 	}
 
-	flagChannelOK := func(ID uint64, flag string) {
-		flagChannel(ID, flag).
+	flagChannelOK := func(ch *types.Channel, flag string) {
+		flagChannel(ch, flag).
 			Assert(helpers.AssertNoErrors).
 			End()
 
-		flagCheck(ID, flag)
+		flagCheck(ch, flag)
 	}
 
-	unflagChannel := func(ID uint64) {
+	unflagChannel := func(ch *types.Channel) {
 		h.apiInit().
-			Delete(fmt.Sprintf("/channels/%d/flag", ID)).
+			Delete(fmt.Sprintf("/channels/%d/flag", ch.ID)).
 			Expect(t).
 			Status(http.StatusOK).
 			End()
 
-		flagCheck(ID, string(types.ChannelMembershipFlagNone))
+		flagCheck(ch, string(types.ChannelMembershipFlagNone))
 	}
 
-	flagCheck(ch.ID, string(types.ChannelMembershipFlagNone))
+	flagCheck(ch, string(types.ChannelMembershipFlagNone))
 
-	flagChannelOK(ch.ID, string(types.ChannelMembershipFlagPinned))
-	flagChannelOK(ch.ID, string(types.ChannelMembershipFlagHidden))
-	flagChannelOK(ch.ID, string(types.ChannelMembershipFlagIgnored))
+	flagChannelOK(ch, string(types.ChannelMembershipFlagPinned))
+	flagChannelOK(ch, string(types.ChannelMembershipFlagHidden))
+	flagChannelOK(ch, string(types.ChannelMembershipFlagIgnored))
 
-	flagChannel(ch.ID, "foo").
+	flagChannel(ch, "foo").
 		Assert(helpers.AssertError("invalid flag"))
-	flagCheck(ch.ID, string(types.ChannelMembershipFlagIgnored))
+	flagCheck(ch, string(types.ChannelMembershipFlagIgnored))
 
-	unflagChannel(ch.ID)
+	unflagChannel(ch)
 }

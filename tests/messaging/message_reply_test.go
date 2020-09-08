@@ -12,7 +12,7 @@ import (
 
 func TestMessagesReply(t *testing.T) {
 	h := newHelper(t)
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 
 	reply := func() uint64 {
 		rval := struct {
@@ -32,7 +32,7 @@ func TestMessagesReply(t *testing.T) {
 			End().
 			JSON(&rval)
 
-		r := h.repoMsgExistingLoad(rval.Response.ID)
+		r, _ := h.lookupMessageByID(rval.Response.ID)
 		h.a.Equal(`new reply`, r.Message)
 		h.a.Equal(msg.ID, r.ReplyTo)
 		return rval.Response.ID
@@ -44,7 +44,7 @@ func TestMessagesReply(t *testing.T) {
 
 	_, _, _ = reply1ID, reply2ID, reply3ID
 
-	msg = h.repoMsgExistingLoad(msg.ID)
+	msg, _ = h.lookupMessageByID(msg.ID)
 	h.a.Equal(msg.Replies, uint(3))
 
 	h.apiInit().
@@ -64,7 +64,7 @@ func TestMessagesReply(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	msg = h.repoMsgExistingLoad(msg.ID)
+	msg, _ = h.lookupMessageByID(msg.ID)
 	h.a.Equal(msg.Replies, uint(2))
 
 }

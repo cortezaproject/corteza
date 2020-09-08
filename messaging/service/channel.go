@@ -177,7 +177,7 @@ func (channel) preloadMembers(ctx context.Context, s store.Storable, cc ...*type
 	)
 
 	// Load membership info of all channels
-	if mm, _, err = store.SearchMessagingChannelMembers(nil, nil, f); err != nil {
+	if mm, _, err = store.SearchMessagingChannelMembers(ctx, s, f); err != nil {
 		return
 	} else {
 		err = types.ChannelSet(cc).Walk(func(ch *types.Channel) error {
