@@ -2,6 +2,7 @@ package system
 
 import (
 	"context"
+	"errors"
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -155,4 +156,13 @@ func (h helper) allow(r permissions.Resource, o permissions.Operation) {
 // set deny permission for test role
 func (h helper) deny(r permissions.Resource, o permissions.Operation) {
 	h.mockPermissions(permissions.DenyRule(h.roleID, r, o))
+}
+
+// Unwraps error before it passes it to the tester
+func (h helper) noError(err error) {
+	for errors.Unwrap(err) != nil {
+		err = errors.Unwrap(err)
+	}
+
+	h.a.NoError(err)
 }

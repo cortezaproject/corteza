@@ -1,162 +1,185 @@
 package system
 
-//
-//import (
-//	"context"
-//	"fmt"
-//	"net/http"
-//	"testing"
-//
-//	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-//
-//	"github.com/cortezaproject/corteza-server/system/repository"
-//	"github.com/cortezaproject/corteza-server/system/types"
-//	"github.com/cortezaproject/corteza-server/tests/helpers"
-//)
-//
-//func (h helper) repoApplication() repository.ApplicationRepository {
-//	return repository.Application(context.Background(), db())
-//}
-//
-//func (h helper) repoMakeApplication(name string) *types.Application {
-//	a, err := h.
-//		repoApplication().
-//		Create(&types.Application{Name: name})
-//	h.a.NoError(err)
-//
-//	return a
-//}
-//
-//func TestApplicationRead(t *testing.T) {
-//	h := newHelper(t)
-//
-//	a := h.repoMakeApplication("one-app")
-//
-//	h.apiInit().
-//		Get(fmt.Sprintf("/application/%d", a.ID)).
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		Assert(jsonpath.Equal(`$.response.name`, a.Name)).
-//		Assert(jsonpath.Equal(`$.response.applicationID`, fmt.Sprintf("%d", a.ID))).
-//		End()
-//}
-//
-//func TestApplicationList(t *testing.T) {
-//	h := newHelper(t)
-//
-//	h.repoMakeApplication("app")
-//	h.repoMakeApplication("app")
-//
-//	h.apiInit().
-//		Get("/application/").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		End()
-//}
-//
-//func TestApplicationList_filterForbiden(t *testing.T) {
-//	h := newHelper(t)
-//
-//	h.repoMakeApplication("app")
-//	f := h.repoMakeApplication("app_forbiden")
-//
-//	h.deny(types.ApplicationPermissionResource.AppendID(f.ID), "read")
-//
-//	h.apiInit().
-//		Get("/application/").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="app_forbiden"]`)).
-//		End()
-//}
-//
-//func TestApplicationCreateForbidden(t *testing.T) {
-//	h := newHelper(t)
-//
-//	h.apiInit().
-//		Post("/application/").
-//		FormData("name", "my-app").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertError("not allowed to create applications")).
-//		End()
-//}
-//
-//func TestApplicationCreate(t *testing.T) {
-//	h := newHelper(t)
-//	h.allow(types.SystemPermissionResource, "application.create")
-//
-//	h.apiInit().
-//		Post("/application/").
-//		FormData("name", "my-app").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		End()
-//}
-//
-//func TestApplicationUpdateForbidden(t *testing.T) {
-//	h := newHelper(t)
-//	a := h.repoMakeApplication("one-app")
-//
-//	h.apiInit().
-//		Put(fmt.Sprintf("/application/%d", a.ID)).
-//		FormData("name", "changed-name").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertError("not allowed to update this application")).
-//		End()
-//}
-//
-//func TestApplicationUpdate(t *testing.T) {
-//	h := newHelper(t)
-//	a := h.repoMakeApplication("one-app")
-//	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "update")
-//
-//	h.apiInit().
-//		Put(fmt.Sprintf("/application/%d", a.ID)).
-//		FormData("name", "changed-name").
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		End()
-//
-//	a, err := h.repoApplication().FindByID(a.ID)
-//	h.a.NoError(err)
-//	h.a.NotNil(a)
-//	h.a.Equal("changed-name", a.Name)
-//}
-//
-//func TestApplicationDeleteForbidden(t *testing.T) {
-//	h := newHelper(t)
-//	a := h.repoMakeApplication("one-app")
-//
-//	h.apiInit().
-//		Delete(fmt.Sprintf("/application/%d", a.ID)).
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertError("not allowed to delete this application")).
-//		End()
-//}
-//
-//func TestApplicationDelete(t *testing.T) {
-//	h := newHelper(t)
-//	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "delete")
-//
-//	a := h.repoMakeApplication("one-app")
-//
-//	h.apiInit().
-//		Delete(fmt.Sprintf("/application/%d", a.ID)).
-//		Expect(t).
-//		Status(http.StatusOK).
-//		Assert(helpers.AssertNoErrors).
-//		End()
-//
-//	a, err := h.repoApplication().FindByID(a.ID)
-//	h.a.NoError(err)
-//	h.a.NotNil(a)
-//	h.a.NotNil(a.DeletedAt)
-//}
+import (
+	"context"
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest-jsonpath"
+	"net/http"
+	"testing"
+	"time"
+)
+
+func (h helper) clearApplications() {
+	h.noError(store.TruncateApplications(context.Background(), service.DefaultNgStore))
+}
+
+func (h helper) repoMakeApplication(ss ...string) *types.Application {
+	var res = &types.Application{
+		ID:        id.Next(),
+		CreatedAt: time.Now(),
+		Unify:     &types.ApplicationUnify{},
+	}
+
+	if len(ss) > 0 {
+		res.Name = ss[0]
+	} else {
+		res.Name = "n_" + rs()
+	}
+
+	h.a.NoError(store.CreateApplication(context.Background(), service.DefaultNgStore, res))
+
+	return res
+}
+
+func (h helper) lookupApplicationByID(ID uint64) *types.Application {
+	res, err := store.LookupApplicationByID(context.Background(), service.DefaultNgStore, ID)
+	h.noError(err)
+	return res
+}
+
+func TestApplicationRead(t *testing.T) {
+	h := newHelper(t)
+
+	u := h.repoMakeApplication()
+
+	h.apiInit().
+		Get(fmt.Sprintf("/application/%d", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.name`, u.Name)).
+		Assert(jsonpath.Equal(`$.response.applicationID`, fmt.Sprintf("%d", u.ID))).
+		End()
+}
+
+func TestApplicationList(t *testing.T) {
+	h := newHelper(t)
+
+	h.repoMakeApplication(h.randEmail())
+	h.repoMakeApplication(h.randEmail())
+
+	h.apiInit().
+		Get("/application/").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestApplicationList_filterForbidden(t *testing.T) {
+	h := newHelper(t)
+
+	// @todo this can be a problematic test because it leaves
+	//       behind applications that are not denied this context
+	//       db purge might be needed
+
+	h.repoMakeApplication("application")
+	f := h.repoMakeApplication()
+
+	h.deny(types.ApplicationPermissionResource.AppendID(f.ID), "read")
+
+	h.apiInit().
+		Get("/application/").
+		Query("name", f.Name).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.NotPresent(fmt.Sprintf(`$.response.set[? @.name=="%s"]`, f.Name))).
+		End()
+}
+
+func TestApplicationCreateForbidden(t *testing.T) {
+	h := newHelper(t)
+
+	h.apiInit().
+		Post("/application/").
+		FormData("name", rs()).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to create applications")).
+		End()
+}
+
+func TestApplicationCreate(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.SystemPermissionResource, "application.create")
+
+	h.apiInit().
+		Post("/application/").
+		FormData("name", rs()).
+		FormData("handle", "handle_"+rs()).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestApplicationUpdateForbidden(t *testing.T) {
+	h := newHelper(t)
+	u := h.repoMakeApplication()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d", u.ID)).
+		FormData("email", h.randEmail()).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to update this application")).
+		End()
+}
+
+func TestApplicationUpdate(t *testing.T) {
+	h := newHelper(t)
+	res := h.repoMakeApplication()
+	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "update")
+
+	newName := "updated-" + rs()
+	newHandle := "updated-" + rs()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d", res.ID)).
+		FormData("name", newName).
+		FormData("handle", newHandle).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupApplicationByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Equal(newName, res.Name)
+}
+
+func TestApplicationDeleteForbidden(t *testing.T) {
+	h := newHelper(t)
+	u := h.repoMakeApplication()
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/application/%d", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to delete this application")).
+		End()
+}
+
+func TestApplicationDelete(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "delete")
+
+	res := h.repoMakeApplication()
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/application/%d", res.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupApplicationByID(res.ID)
+	h.a.NotNil(res)
+	h.a.NotNil(res.DeletedAt)
+}

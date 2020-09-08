@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store/sqlite"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/markbates/goth"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -104,8 +103,6 @@ func TestAuth_External(t *testing.T) {
 				nil},
 		}
 	)
-
-	_ = spew.Dump
 
 	svc := makeMockAuthService()
 	svc.settings.Auth.External.Enabled = true

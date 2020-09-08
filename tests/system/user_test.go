@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+	"github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"testing"
 	"time"
@@ -34,8 +35,13 @@ func (h helper) createUser(user *types.User) *types.User {
 	return user
 }
 
+func (h helper) clearUsers() {
+	h.noError(store.TruncateUsers(context.Background(), service.DefaultNgStore))
+}
+
 func TestUserRead(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
 
@@ -62,6 +68,7 @@ func TestUserRead(t *testing.T) {
 
 func TestUserListAll(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 
@@ -72,27 +79,21 @@ func TestUserListAll(t *testing.T) {
 
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
-	aux := struct {
-		Response *struct{ Filter *types.UserFilter }
-	}{}
-
 	h.apiInit().
 		Get("/users/").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		End().
-		JSON(&aux)
-
-	h.a.NotNil(aux.Response)
-	h.a.NotNil(aux.Response.Filter)
-
-	// we need to test with >= because we're not running this inside a transaction.
-	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), seedCount)
+		Assert(jsonpath.Present(`$.response.filter`)).
+		Assert(jsonpath.Present(`$.response.set`)).
+		Assert(jsonpath.Len(`$.response.set`, seedCount)).
+		End()
 }
 
 func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
 	h.createUserWithEmail("usr")
@@ -111,17 +112,13 @@ func TestUserList_filterForbidden(t *testing.T) {
 
 func TestUserListQuery(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
 
-	aux := struct {
-		Response *struct{ Filter *types.UserFilter }
-	}{}
-
 	h.apiInit().
-		Debug().
 		Get("/users/").
 		Query("query", h.randEmail()).
 		Query("email", h.randEmail()).
@@ -131,16 +128,14 @@ func TestUserListQuery(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		End().
-		JSON(&aux)
-
-	h.a.NotNil(aux.Response)
-	h.a.NotNil(aux.Response.Filter)
-	h.a.GreaterOrEqual(int(aux.Response.Filter.Count), 0)
+		Assert(jsonpath.Present(`$.response.filter`)).
+		Assert(jsonpath.Len(`$.response.set`, 0)).
+		End()
 }
 
 func TestUserListQueryEmail(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
@@ -150,7 +145,6 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.createUserWithEmail(ee)
 
 	h.apiInit().
-		Debug().
 		Get("/users/").
 		Query("email", ee).
 		Expect(t).
@@ -162,6 +156,7 @@ func TestUserListQueryEmail(t *testing.T) {
 
 func TestUserListQueryUsername(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
@@ -173,7 +168,6 @@ func TestUserListQueryUsername(t *testing.T) {
 	})
 
 	h.apiInit().
-		Debug().
 		Get("/users/").
 		Query("username", ee).
 		Expect(t).
@@ -185,6 +179,7 @@ func TestUserListQueryUsername(t *testing.T) {
 
 func TestUserListQueryHandle(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
@@ -195,7 +190,6 @@ func TestUserListQueryHandle(t *testing.T) {
 	})
 
 	h.apiInit().
-		Debug().
 		Get("/users/").
 		Query("handle", "johnDoe").
 		Expect(t).
@@ -207,6 +201,7 @@ func TestUserListQueryHandle(t *testing.T) {
 
 func TestUserListWithOneAllowed(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.secCtx()
 
@@ -227,18 +222,16 @@ func TestUserListWithOneAllowed(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.filter`)).
+		Assert(jsonpath.Present(`$.response.set`)).
+		Assert(jsonpath.Len(`$.response.set`, 1)).
 		End().
 		JSON(&aux)
-
-	h.a.NotNil(aux.Response)
-	h.a.NotNil(aux.Response.Filter)
-
-	// we need to test with >= because we're not running this inside a transaction.
-	h.a.Equal(1, int(aux.Response.Filter.Count))
 }
 
 func TestUserCreateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
 
 	h.apiInit().
 		Post("/users/").
@@ -251,6 +244,8 @@ func TestUserCreateForbidden(t *testing.T) {
 
 func TestUserCreate(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	h.allow(types.SystemPermissionResource, "user.create")
 
 	email := h.randEmail()
@@ -266,6 +261,8 @@ func TestUserCreate(t *testing.T) {
 
 func TestUserUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
@@ -279,6 +276,8 @@ func TestUserUpdateForbidden(t *testing.T) {
 
 func TestUserUpdate(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	u := h.createUserWithEmail(h.randEmail())
 	h.allow(types.UserPermissionResource.AppendWildcard(), "update")
 
@@ -295,6 +294,8 @@ func TestUserUpdate(t *testing.T) {
 
 func TestUserDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
@@ -307,6 +308,8 @@ func TestUserDeleteForbidden(t *testing.T) {
 
 func TestUserDelete(t *testing.T) {
 	h := newHelper(t)
+	h.clearUsers()
+
 	h.allow(types.UserPermissionResource.AppendWildcard(), "delete")
 
 	u := h.createUserWithEmail(h.randEmail())

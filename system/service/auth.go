@@ -669,7 +669,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	})
 
 	// Do a partial update and soft-delete all
-	if err = svc.store.PartialCredentialsUpdate(ctx, []string{"deleted_at"}, cc...); err != nil {
+	if err = svc.store.UpdateCredentials(ctx, cc...); err != nil {
 		return
 	}
 
