@@ -1,11 +1,10 @@
 package compose
 
 import (
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestPermissionsEffective(t *testing.T) {

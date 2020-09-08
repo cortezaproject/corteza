@@ -57,6 +57,9 @@ func (s Store) CreateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 			return
 		}
 
+		// Make sure all record-values are linked to the record
+		res.Values.SetRecordID(res.ID)
+
 		err = s.createComposeRecordValue(ctx, nil, res.Values...)
 		if err != nil {
 			return
@@ -93,6 +96,9 @@ func (s Store) UpdateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 			if err != nil {
 				return
 			}
+
+			// Make sure all record-values are linked to the record
+			res.Values.SetRecordID(res.ID)
 
 			err = s.createComposeRecordValue(ctx, nil, res.Values...)
 		}

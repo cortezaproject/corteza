@@ -72,7 +72,7 @@ func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Cha
 	}
 
 	err = func() error {
-		if ns, err := loadNamespace(svc.ctx, svc.store, f.NamespaceID); err != nil {
+		if ns, err := loadNamespace(svc.ctx, svc.store, filter.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -256,7 +256,7 @@ func (svc chart) handleUpdate(upd *types.Chart) chartUpdateHandler {
 
 func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (bool, error) {
 	if !svc.ac.CanDeleteChart(ctx, c) {
-		return false, ChartErrNotAllowedToUndelete()
+		return false, ChartErrNotAllowedToDelete()
 	}
 
 	if c.DeletedAt != nil {

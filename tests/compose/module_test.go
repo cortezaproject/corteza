@@ -3,44 +3,61 @@ package compose
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"testing"
-
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest-jsonpath"
+	"net/http"
+	"testing"
+	"time"
 )
 
-func (h helper) repoModule() repository.ModuleRepository {
-	return repository.Module(context.Background(), db())
+func (h helper) clearModules() {
+	h.clearNamespaces()
+	h.noError(store.TruncateComposeModules(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateComposeModuleFields(context.Background(), service.DefaultNgStore))
 }
 
-func (h helper) repoMakeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
-	return h.repoSaveModule(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
+func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
+	return h.createModule(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
 }
 
-func (h helper) repoSaveModule(mod *types.Module) *types.Module {
-	m, err := h.
-		repoModule().
-		Create(mod)
-	h.a.NoError(err)
+func (h helper) createModule(res *types.Module) *types.Module {
+	res.ID = id.Next()
+	res.CreatedAt = time.Now()
+	h.noError(store.CreateComposeModule(context.Background(), service.DefaultNgStore, res))
 
-	err = h.repoModule().UpdateFields(m.ID, m.Fields, false)
-	h.a.NoError(err)
+	_ = res.Fields.Walk(func(f *types.ModuleField) error {
+		f.ID = id.Next()
+		f.ModuleID = res.ID
+		return nil
+	})
 
-	return m
+	h.noError(store.CreateComposeModuleField(context.Background(), service.DefaultNgStore, res.Fields...))
+
+	return res
+}
+
+func (h helper) lookupModuleByID(ID uint64) *types.Module {
+	res, err := store.LookupComposeModuleByID(context.Background(), service.DefaultNgStore, ID)
+	h.noError(err)
+
+	res.Fields, _, err = store.SearchComposeModuleFields(context.Background(), service.DefaultNgStore, types.ModuleFieldFilter{ModuleID: []uint64{ID}})
+	h.noError(err)
+
+	return res
 }
 
 func TestModuleRead(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
@@ -54,15 +71,16 @@ func TestModuleRead(t *testing.T) {
 
 func TestModuleReadByHandle(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	c := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	c := h.makeModule(ns, "some-module")
 
 	cbh, err := service.DefaultModule.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
 
-	h.a.NoError(err)
+	h.noError(err)
 	h.a.NotNil(cbh)
 	h.a.Equal(cbh.ID, c.ID)
 	h.a.Equal(cbh.Handle, c.Handle)
@@ -70,12 +88,13 @@ func TestModuleReadByHandle(t *testing.T) {
 
 func TestModuleList(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
-	h.repoMakeModule(ns, "app")
-	h.repoMakeModule(ns, "app")
+	h.makeModule(ns, "app")
+	h.makeModule(ns, "app")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
@@ -87,11 +106,12 @@ func TestModuleList(t *testing.T) {
 
 func TestModuleListQuery(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
-	h.repoSaveModule(&types.Module{
+	h.createModule(&types.Module{
 		Name:        "name",
 		Handle:      "handle",
 		NamespaceID: ns.ID,
@@ -109,12 +129,13 @@ func TestModuleListQuery(t *testing.T) {
 
 func TestModuleList_filterForbiden(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
-	h.repoMakeModule(ns, "module")
-	f := h.repoMakeModule(ns, "module_forbiden")
+	h.makeModule(ns, "module")
+	f := h.makeModule(ns, "module_forbiden")
 
 	h.deny(types.ModulePermissionResource.AppendID(f.ID), "read")
 
@@ -129,8 +150,9 @@ func TestModuleList_filterForbiden(t *testing.T) {
 
 func TestModuleCreateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
@@ -143,10 +165,12 @@ func TestModuleCreateForbidden(t *testing.T) {
 
 func TestModuleCreate(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "module.create")
 
-	ns := h.repoMakeNamespace("some-namespace")
+	ns := h.makeNamespace("some-namespace")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
@@ -159,9 +183,11 @@ func TestModuleCreate(t *testing.T) {
 
 func TestModuleUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
@@ -174,9 +200,11 @@ func TestModuleUpdateForbidden(t *testing.T) {
 
 func TestModuleUpdate(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
 
 	h.apiInit().
@@ -188,17 +216,19 @@ func TestModuleUpdate(t *testing.T) {
 		Assert(jsonpath.Present("$.response.updatedAt")).
 		End()
 
-	m, err := h.repoModule().FindByID(ns.ID, m.ID)
-	h.a.NoError(err)
+	m, err := store.LookupComposeModuleByID(context.Background(), service.DefaultNgStore, m.ID)
+	h.noError(err)
 	h.a.NotNil(m)
 	h.a.Equal("changed-name", m.Name)
 }
 
 func TestModuleFieldsUpdate(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "existing"})
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
 
 	f := m.Fields[0]
@@ -211,25 +241,27 @@ func TestModuleFieldsUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	ff, err := h.repoModule().FindFields(m.ID)
-	h.a.NoError(err)
-	h.a.NotNil(ff)
-	h.a.Len(ff, 2)
+	m = h.lookupModuleByID(m.ID)
+	h.a.NotNil(m)
+	h.a.NotNil(m.Fields)
+	h.a.Len(m.Fields, 2)
 
-	h.a.NotNil(ff[0].UpdatedAt)
-	h.a.Equal(ff[0].Name, "existing_edited")
-	h.a.Equal(ff[0].Kind, "Number")
-	h.a.Nil(ff[1].UpdatedAt)
-	h.a.Equal(ff[1].Name, "new")
-	h.a.Equal(ff[1].Kind, "DateTime")
+	h.a.NotNil(m.Fields[0].UpdatedAt)
+	h.a.Equal(m.Fields[0].Name, "existing_edited")
+	h.a.Equal(m.Fields[0].Kind, "Number")
+	h.a.Nil(m.Fields[1].UpdatedAt)
+	h.a.Equal(m.Fields[1].Name, "new")
+	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
 func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "existing"})
-	h.repoMakeRecord(m, &types.RecordValue{Name: "existing", Value: "value"})
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
+	h.makeRecord(m, &types.RecordValue{Name: "existing", Value: "value"})
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
 
 	f := m.Fields[0]
@@ -242,26 +274,27 @@ func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	ff, err := h.repoModule().FindFields(m.ID)
-	h.a.NoError(err)
-	h.a.NotNil(ff)
-	h.a.Len(ff, 2)
+	m = h.lookupModuleByID(m.ID)
+	h.a.NotNil(m)
+	h.a.NotNil(m.Fields)
+	h.a.Len(m.Fields, 2)
 
-	h.a.Nil(ff[0].UpdatedAt)
-	h.a.Equal(ff[0].Name, "existing")
-	h.a.Equal(ff[0].Kind, "String")
-	h.a.Nil(ff[1].UpdatedAt)
-	h.a.Equal(ff[1].Name, "new")
-	h.a.Equal(ff[1].Kind, "DateTime")
+	h.a.NotNil(m.Fields[0].UpdatedAt)
+	h.a.Equal(m.Fields[0].Name, "existing")
+	h.a.Equal(m.Fields[0].Kind, "String")
+	h.a.Nil(m.Fields[1].UpdatedAt)
+	h.a.Equal(m.Fields[1].Name, "new")
+	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
 func TestModuleDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
@@ -273,20 +306,22 @@ func TestModuleDeleteForbidden(t *testing.T) {
 
 func TestModuleDelete(t *testing.T) {
 	h := newHelper(t)
+	h.clearModules()
+
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "delete")
 
-	ns := h.repoMakeNamespace("some-namespace")
-	m := h.repoMakeModule(ns, "some-module")
+	ns := h.makeNamespace("some-namespace")
+	res := h.makeModule(ns, "some-module")
 
 	h.apiInit().
-		Delete(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Delete(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, res.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	m, err := h.repoModule().FindByID(ns.ID, m.ID)
-	h.a.Error(err, "compose.repository.ModuleNotFound")
+	res = h.lookupModuleByID(res.ID)
+	h.a.NotNil(res.DeletedAt)
 }

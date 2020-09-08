@@ -2,11 +2,10 @@ package compose
 
 import (
 	"fmt"
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestPermissionsRead(t *testing.T) {

@@ -89,8 +89,6 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		return nil, err
 	}
 
-	panic("refactor page filter")
-
 	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}

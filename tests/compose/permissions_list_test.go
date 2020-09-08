@@ -1,12 +1,10 @@
 package compose
 
 import (
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"testing"
-
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func TestPermissionsList(t *testing.T) {

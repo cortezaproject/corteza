@@ -470,6 +470,7 @@ func (Store) composePageColumns(aa ...string) []string {
 func (Store) sortableComposePageColumns() []string {
 	return []string{
 		"id",
+		"weight",
 		"created_at",
 		"updated_at",
 		"deleted_at",
@@ -524,6 +525,9 @@ func (s Store) collectComposePageCursorValues(res *types.Page, cc ...string) *fi
 					cursor.Set(c, res.ID, false)
 
 					pkId = true
+				case "weight":
+					cursor.Set(c, res.Weight, false)
+
 				case "created_at":
 					cursor.Set(c, res.CreatedAt, false)
 

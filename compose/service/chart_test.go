@@ -16,7 +16,7 @@ import (
 func TestCharts(t *testing.T) {
 	var (
 		ctx    = context.Background()
-		s, err = sqlite.NewInMemory(ctx)
+		s, err = sqlite.ConnectInMemory(ctx)
 
 		namespaceID = id.Next()
 		ns          *types.Namespace

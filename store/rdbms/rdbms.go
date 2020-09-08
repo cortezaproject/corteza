@@ -66,6 +66,11 @@ type (
 	}
 )
 
+var log = logger.MakeDebugLogger().
+	//return logger.Default().
+	Named("store.rdbms").
+	WithOptions(zap.AddStacktrace(zap.FatalLevel))
+
 const (
 	// TxRetryHardLimit is the absolute maximum retries we'll allow
 	TxRetryHardLimit = 100
@@ -105,9 +110,7 @@ func (s *Store) withTx(tx dbLayer) *Store {
 // Temporary solution for logging
 func (s *Store) log(ctx context.Context) *zap.Logger {
 	// @todo extract logger from context
-	return logger.Default().
-		Named("store.rdbms").
-		WithOptions(zap.AddStacktrace(zap.FatalLevel))
+	return log
 }
 
 func (s *Store) Connect(ctx context.Context) error {
@@ -208,42 +211,47 @@ func dbHealthcheck(db *sqlx.DB) func(ctx context.Context) error {
 }
 
 func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error) {
-	query, args, err := q.ToSql()
+	var (
+		start            = time.Now()
+		query, args, err = q.ToSql()
+	)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
 
-	//println("############################################################")
-	//println(query)
-	//println("############################################################")
-	//fmt.Printf("%v\n", args)
-	//println("############################################################")
+	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
 
 	return s.db.QueryContext(ctx, query, args...)
 }
 
 // QueryRow returns row instead of filling in the passed struct
 func (s Store) QueryRow(ctx context.Context, q squirrel.SelectBuilder) (*sql.Row, error) {
-	query, args, err := q.ToSql()
+	var (
+		start            = time.Now()
+		query, args, err = q.ToSql()
+	)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
+
+	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
 
 	return s.db.QueryRowContext(ctx, query, args...), nil
 }
 
 func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
-	query, args, err := sqlizer.ToSql()
+	var (
+		start            = time.Now()
+		query, args, err = sqlizer.ToSql()
+	)
 
 	if err != nil {
 		return err
 	}
 
-	//println("############################################################")
-	//println(query)
-	//println("############################################################")
-	//fmt.Printf("%#v\n", args)
-	//println("############################################################")
+	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
 
 	_, err = s.db.ExecContext(ctx, query, args...)
 	return err
@@ -452,7 +460,7 @@ func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, ss ...string)
 		if sortable[c.Column] {
 			sqlSort[i] = sort[i].Column
 		} else {
-			return q, fmt.Errorf("could not sort by unknown column: %s", c.Column)
+			return q, fmt.Errorf("column %q is not sortable", c.Column)
 		}
 
 		if sort[i].Descending {

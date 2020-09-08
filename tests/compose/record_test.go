@@ -4,19 +4,25 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest"
+	"github.com/steinfletcher/apitest-jsonpath"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"testing"
 	"time"
-
-	"github.com/steinfletcher/apitest"
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-
-	"github.com/cortezaproject/corteza-server/compose/repository"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
+
+func (h helper) clearRecords() {
+	h.clearNamespaces()
+	h.clearModules()
+	h.noError(store.TruncateComposeRecords(context.Background(), service.DefaultNgStore, nil))
+}
 
 type (
 	rImportSession struct {
@@ -26,11 +32,7 @@ type (
 	}
 )
 
-func (h helper) repoRecord() repository.RecordRepository {
-	return repository.Record(context.Background(), db())
-}
-
-func (h helper) repoMakeRecordModuleWithFieldsOnNs(name string, namespace *types.Namespace, ff ...*types.ModuleField) *types.Module {
+func (h helper) makeRecordModuleWithFieldsOnNs(name string, namespace *types.Namespace, ff ...*types.ModuleField) *types.Module {
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.read")
@@ -58,11 +60,11 @@ func (h helper) repoMakeRecordModuleWithFieldsOnNs(name string, namespace *types
 		}
 	}
 
-	return h.repoMakeModule(namespace, name, ff...)
+	return h.makeModule(namespace, name, ff...)
 }
 
 func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleField) *types.Module {
-	namespace := h.repoMakeNamespace("record testing namespace")
+	namespace := h.makeNamespace("record testing namespace")
 
 	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
@@ -91,32 +93,35 @@ func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleF
 		}
 	}
 
-	return h.repoMakeModule(namespace, name, ff...)
+	return h.makeModule(namespace, name, ff...)
 }
 
-func (h helper) repoMakeRecord(module *types.Module, rvs ...*types.RecordValue) *types.Record {
-	record, err := h.
-		repoRecord().
-		Create(&types.Record{
-			ModuleID:    module.ID,
-			NamespaceID: module.NamespaceID,
-			// @todo createdAt should be auto-populated by record repo!
-			//       (same as we do everywhere else)
-			CreatedAt: time.Now(),
-		})
-	h.a.NoError(err)
+func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *types.Record {
+	rec := &types.Record{
+		ID:          id.Next(),
+		CreatedAt:   time.Now(),
+		ModuleID:    module.ID,
+		NamespaceID: module.NamespaceID,
+		Values:      rvs,
+	}
 
-	err = h.repoRecord().UpdateValues(record.ID, rvs)
-	h.a.NoError(err)
+	h.noError(store.CreateComposeRecord(context.Background(), service.DefaultNgStore, module, rec))
 
-	return record
+	return rec
+}
+
+func (h helper) lookupRecordByID(module *types.Module, ID uint64) *types.Record {
+	res, err := store.LookupComposeRecordByID(context.Background(), service.DefaultNgStore, module, ID)
+	h.noError(err)
+	return res
 }
 
 func TestRecordRead(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module)
+	record := h.makeRecord(module)
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -129,11 +134,12 @@ func TestRecordRead(t *testing.T) {
 
 func TestRecordList(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 
-	h.repoMakeRecord(module)
-	h.repoMakeRecord(module)
+	h.makeRecord(module)
+	h.makeRecord(module)
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -145,6 +151,7 @@ func TestRecordList(t *testing.T) {
 
 func TestRecordCreateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 
@@ -159,6 +166,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 
 func TestRecordCreate(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
@@ -174,12 +182,15 @@ func TestRecordCreate(t *testing.T) {
 
 func TestRecordCreateWithErrors(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	fields := types.ModuleFieldSet{
 		&types.ModuleField{
+			ID:   id.Next(),
 			Name: "name",
 		},
 		&types.ModuleField{
+			ID:       id.Next(),
 			Name:     "required",
 			Required: true,
 		},
@@ -203,9 +214,10 @@ func TestRecordCreateWithErrors(t *testing.T) {
 
 func TestRecordUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module)
+	record := h.makeRecord(module)
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -218,9 +230,10 @@ func TestRecordUpdateForbidden(t *testing.T) {
 
 func TestRecordUpdate(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module)
+	record := h.makeRecord(module)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 
 	h.apiInit().
@@ -231,17 +244,16 @@ func TestRecordUpdate(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	r, err := h.repoRecord().FindByID(module.NamespaceID, record.ID)
-	h.a.NoError(err)
+	r := h.lookupRecordByID(module, record.ID)
 	h.a.NotNil(r)
-	// h.a.Equal(5, r.OwnedBy)
 }
 
 func TestRecordDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module)
+	record := h.makeRecord(module)
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -253,9 +265,10 @@ func TestRecordDeleteForbidden(t *testing.T) {
 
 func TestRecordDelete(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	record := h.repoMakeRecord(module)
+	record := h.makeRecord(module)
 
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.delete")
 
@@ -266,16 +279,17 @@ func TestRecordDelete(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	_, err := h.repoRecord().FindByID(module.NamespaceID, record.ID)
-	h.a.Error(err, "record does not exist")
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r.DeletedAt)
 }
 
 func TestRecordExport(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record export module")
 	for i := 0; i < 10; i++ {
-		h.repoMakeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("d%d", i)})
+		h.makeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("d%d", i), Place: uint(i)})
 	}
 
 	// we'll not use standard asserts (AssertNoErrors) here,
@@ -288,7 +302,7 @@ func TestRecordExport(t *testing.T) {
 		End()
 
 	b, err := ioutil.ReadAll(r.Response.Body)
-	h.a.NoError(err)
+	h.noError(err)
 	h.a.Equal("name\nd0\nd1\nd2\nd3\nd4\nd5\nd6\nd7\nd8\nd9\n", string(b))
 }
 
@@ -296,11 +310,11 @@ func (h helper) apiInitRecordImport(api *apitest.APITest, url, f string, file []
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("upload", f)
-	h.a.NoError(err)
+	h.noError(err)
 
 	_, err = part.Write(file)
-	h.a.NoError(err)
-	h.a.NoError(writer.Close())
+	h.noError(err)
+	h.noError(writer.Close())
 
 	return api.
 		Post(url).
@@ -320,6 +334,7 @@ func (h helper) apiRunRecordImport(api *apitest.APITest, url, b string) *apitest
 
 func TestRecordImportInit(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import init module")
 	tests := []struct {
@@ -352,6 +367,7 @@ func TestRecordImportInit(t *testing.T) {
 
 func TestRecordImportInit_invalidFileFormat(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import init module")
 	url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
@@ -362,6 +378,7 @@ func TestRecordImportInit_invalidFileFormat(t *testing.T) {
 
 func TestRecordImportRun(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 	tests := []struct {
@@ -395,6 +412,7 @@ func TestRecordImportRun(t *testing.T) {
 
 func TestRecordImportRun_sessionNotFound(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 	h.apiRunRecordImport(h.apiInit(), fmt.Sprintf("/namespace/%d/module/%d/record/import/123", module.NamespaceID, module.ID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
@@ -404,6 +422,7 @@ func TestRecordImportRun_sessionNotFound(t *testing.T) {
 
 func TestRecordImportImportProgress(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import session module")
 	tests := []struct {
@@ -437,6 +456,7 @@ func TestRecordImportImportProgress(t *testing.T) {
 
 func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record import module")
 	h.apiInit().
@@ -449,8 +469,9 @@ func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
 
 func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
-	// make a standad module, and prevent current user to
+	// make a standard module, and prevent current user to
 	// read from "name" and update "email" fields
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	h.deny(module.Fields.FindByName("name").PermissionResource(), "record.value.read")
@@ -458,7 +479,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 
-	record := h.repoMakeRecord(
+	record := h.makeRecord(
 		module,
 		&types.RecordValue{Name: "name", Value: "should not be readable"},
 		&types.RecordValue{Name: "email", Value: "should not be writable"},
@@ -474,6 +495,18 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 		Assert(jsonpath.NotPresent(`$.response.values[? @.name=="name"]`)).
 		// should return email
 		Assert(jsonpath.Present(`$.response.values[? @.name=="email"]`)).
+		End()
+
+		// Searching records should work as before but without read-protected fields
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		// should not return name
+		Assert(jsonpath.NotPresent(`$.response.set[0].values[? @.name=="name"]`)).
+		// should return email
+		Assert(jsonpath.Present(`$.response.set[0].values[? @.name=="email"]`)).
 		End()
 
 	bb := map[string]func() *apitest.Request{

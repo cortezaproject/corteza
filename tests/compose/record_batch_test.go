@@ -2,21 +2,21 @@ package compose
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
 	"strconv"
 	"testing"
-
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
-	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
 
 func TestRecordCreate_batch(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
-	ns := h.repoMakeNamespace("batch testing namespace")
-	module := h.repoMakeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.repoMakeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	ns := h.makeNamespace("batch testing namespace")
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
 
 	h.apiInit().
@@ -33,14 +33,15 @@ func TestRecordCreate_batch(t *testing.T) {
 
 func TestRecordUpdate_batch(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
-	ns := h.repoMakeNamespace("batch testing namespace")
-	module := h.repoMakeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.repoMakeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	ns := h.makeNamespace("batch testing namespace")
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 
-	record := h.repoMakeRecord(module)
-	childRecord := h.repoMakeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
+	record := h.makeRecord(module)
+	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -56,15 +57,16 @@ func TestRecordUpdate_batch(t *testing.T) {
 
 func TestRecordDelete_batch(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
-	ns := h.repoMakeNamespace("batch testing namespace")
-	module := h.repoMakeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.repoMakeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	ns := h.makeNamespace("batch testing namespace")
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.delete")
 
-	record := h.repoMakeRecord(module)
-	childRecord := h.repoMakeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
+	record := h.makeRecord(module)
+	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -77,21 +79,22 @@ func TestRecordDelete_batch(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.records[0].recordID`, strconv.FormatUint(childRecord.ID, 10))).
 		End()
 
-	_, err := h.repoRecord().FindByID(module.NamespaceID, childRecord.ID)
-	h.a.Error(err, "compose.repository.RecordNotFound")
+	record = h.lookupRecordByID(module, childRecord.ID)
+	h.a.NotNil(record.DeletedAt)
 }
 
 func TestRecordMixed_batch(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
-	ns := h.repoMakeNamespace("batch testing namespace")
-	module := h.repoMakeRecordModuleWithFieldsOnNs("record testing module", ns)
-	childModule := h.repoMakeRecordModuleWithFieldsOnNs("record testing module child", ns)
+	ns := h.makeNamespace("batch testing namespace")
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
+	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
 
-	record := h.repoMakeRecord(module)
-	childRecord := h.repoMakeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
+	record := h.makeRecord(module)
+	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
