@@ -113,7 +113,7 @@ func (svc role) Find(filter types.RoleFilter) (rr types.RoleSet, f types.RoleFil
 			}
 		}
 
-		rr, f, err = svc.store.SearchRoles(svc.ctx, filter)
+		rr, f, err = store.SearchRoles(svc.ctx, svc.store, filter)
 		return err
 	}()
 
@@ -139,7 +139,7 @@ func (svc role) findByID(roleID uint64) (*types.Role, error) {
 		return nil, RoleErrInvalidID()
 	}
 
-	return svc.store.LookupRoleByID(svc.ctx, roleID)
+	return store.LookupRoleByID(svc.ctx, svc.store, roleID)
 }
 
 func (svc role) FindByName(name string) (r *types.Role, err error) {
@@ -148,7 +148,7 @@ func (svc role) FindByName(name string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		r, err = svc.store.LookupRoleByName(svc.ctx, name)
+		r, err = store.LookupRoleByName(svc.ctx, svc.store, name)
 		raProps.setRole(r)
 		return err
 	}()
@@ -162,7 +162,7 @@ func (svc role) FindByHandle(h string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		r, err = svc.store.LookupRoleByName(svc.ctx, h)
+		r, err = store.LookupRoleByName(svc.ctx, svc.store, h)
 		raProps.setRole(r)
 		return err
 	}()
@@ -215,7 +215,7 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 		new.ID = id.Next()
 		new.CreatedAt = now()
 
-		if err = svc.store.CreateRole(svc.ctx, new); err != nil {
+		if err = store.CreateRole(svc.ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -247,7 +247,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 			return RoleErrNotAllowedToUpdate()
 		}
 
-		if r, err = svc.store.LookupRoleByID(svc.ctx, upd.ID); err != nil {
+		if r, err = store.LookupRoleByID(svc.ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -266,7 +266,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 		r.UpdatedAt = nowPtr()
 
 		// Assign changed values
-		if err = svc.store.UpdateRole(svc.ctx, r); err != nil {
+		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return err
 		}
 
@@ -284,14 +284,14 @@ func (svc role) UniqueCheck(r *types.Role) (err error) {
 	)
 
 	if r.Handle != "" {
-		if ex, _ := svc.store.LookupRoleByHandle(svc.ctx, r.Handle); ex != nil && ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := store.LookupRoleByHandle(svc.ctx, svc.store, r.Handle); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			raProps.setExisting(ex)
 			return RoleErrHandleNotUnique()
 		}
 	}
 
 	if r.Name != "" {
-		if ex, _ := svc.store.LookupRoleByName(svc.ctx, r.Name); ex != nil && ex.ID > 0 && ex.ID != r.ID {
+		if ex, _ := store.LookupRoleByName(svc.ctx, svc.store, r.Name); ex != nil && ex.ID > 0 && ex.ID != r.ID {
 			raProps.setExisting(ex)
 			return RoleErrNameNotUnique()
 		}
@@ -323,7 +323,7 @@ func (svc role) Delete(roleID uint64) (err error) {
 
 		r.DeletedAt = nowPtr()
 
-		if err = svc.store.UpdateRole(svc.ctx, r); err != nil {
+		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
 		}
 
@@ -354,7 +354,7 @@ func (svc role) Undelete(roleID uint64) (err error) {
 
 		r.DeletedAt = nil
 
-		if err = svc.store.UpdateRole(svc.ctx, r); err != nil {
+		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
 		}
 
@@ -382,7 +382,7 @@ func (svc role) Archive(roleID uint64) (err error) {
 		}
 
 		r.ArchivedAt = nowPtr()
-		if err = svc.store.UpdateRole(svc.ctx, r); err != nil {
+		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
 		}
 
@@ -410,7 +410,7 @@ func (svc role) Unarchive(roleID uint64) (err error) {
 		}
 
 		r.ArchivedAt = nil
-		if err = svc.store.UpdateRole(svc.ctx, r); err != nil {
+		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
 		}
 
@@ -421,7 +421,7 @@ func (svc role) Unarchive(roleID uint64) (err error) {
 }
 
 func (svc role) Membership(userID uint64) (types.RoleMemberSet, error) {
-	mm, _, err := svc.store.SearchRoleMembers(svc.ctx, types.RoleMemberFilter{UserID: userID})
+	mm, _, err := store.SearchRoleMembers(svc.ctx, svc.store, types.RoleMemberFilter{UserID: userID})
 	return mm, err
 }
 
@@ -447,7 +447,7 @@ func (svc role) MemberList(roleID uint64) (mm types.RoleMemberSet, err error) {
 			return RoleErrNotAllowedToRead()
 		}
 
-		mm, _, err = svc.store.SearchRoleMembers(svc.ctx, types.RoleMemberFilter{RoleID: roleID})
+		mm, _, err = store.SearchRoleMembers(svc.ctx, svc.store, types.RoleMemberFilter{RoleID: roleID})
 		return err
 	}()
 
@@ -491,7 +491,7 @@ func (svc role) MemberAdd(roleID, memberID uint64) (err error) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
-		if err = svc.store.CreateRoleMember(svc.ctx, &types.RoleMember{RoleID: r.ID, UserID: m.ID}); err != nil {
+		if err = store.CreateRoleMember(svc.ctx, svc.store, &types.RoleMember{RoleID: r.ID, UserID: m.ID}); err != nil {
 			return
 		}
 
@@ -538,7 +538,7 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
-		if err = svc.store.DeleteRoleMember(svc.ctx, &types.RoleMember{RoleID: r.ID, UserID: m.ID}); err != nil {
+		if err = store.DeleteRoleMember(svc.ctx, svc.store, &types.RoleMember{RoleID: r.ID, UserID: m.ID}); err != nil {
 			return
 		}
 

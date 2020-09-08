@@ -65,7 +65,7 @@ func (svc settings) findByPrefix(ctx context.Context, pp ...string) (types.Setti
 		}
 	)
 
-	vv, _, err := svc.store.SearchSettings(ctx, f)
+	vv, _, err := store.SearchSettings(ctx, svc.store, f)
 	return vv, err
 }
 
@@ -74,7 +74,7 @@ func (svc settings) Get(ctx context.Context, name string, ownedBy uint64) (out *
 		return nil, ErrNoReadPermission
 	}
 
-	out, err = svc.store.LookupSettingByNameOwnedBy(ctx, name, ownedBy)
+	out, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy)
 	if err != nil && err != store.ErrNotFound {
 		return nil, err
 	}
@@ -105,17 +105,17 @@ func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) 
 	}
 
 	var current *types.SettingValue
-	current, err = svc.store.LookupSettingByNameOwnedBy(ctx, v.Name, v.OwnedBy)
+	current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, v.Name, v.OwnedBy)
 	if err == store.ErrNotFound {
 		v.UpdatedAt = time.Now()
-		err = svc.store.CreateSetting(ctx, v)
+		err = store.CreateSetting(ctx, svc.store, v)
 	} else if err != nil {
 		return err
 	}
 
 	if !current.Eq(v) {
 		v.UpdatedAt = time.Now()
-		err = svc.store.UpdateSetting(ctx, v)
+		err = store.UpdateSetting(ctx, svc.store, v)
 	}
 
 	if err != nil || current.Eq(v) {
@@ -147,11 +147,11 @@ func (svc settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err 
 		new = current.New(vv)
 	}
 
-	if err = svc.store.UpdateSetting(ctx, old...); err != nil {
+	if err = store.UpdateSetting(ctx, svc.store, old...); err != nil {
 		return
 	}
 
-	if err = svc.store.CreateSetting(ctx, new...); err != nil {
+	if err = store.CreateSetting(ctx, svc.store, new...); err != nil {
 		return
 	}
 
@@ -177,13 +177,13 @@ func (svc settings) Delete(ctx context.Context, name string, ownedBy uint64) (er
 	}
 
 	var current *types.SettingValue
-	if current, err = svc.store.LookupSettingByNameOwnedBy(ctx, name, ownedBy); err == store.ErrNotFound {
+	if current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy); err == store.ErrNotFound {
 		return nil
 	} else if err != nil {
 		return
 	}
 
-	err = svc.store.DeleteSetting(ctx, current)
+	err = store.DeleteSetting(ctx, svc.store, current)
 	if err != nil {
 		return
 	}

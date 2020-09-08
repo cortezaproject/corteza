@@ -120,7 +120,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		}
 
 		f := types.CredentialsFilter{Kind: profile.Provider, Credentials: profile.UserID}
-		if cc, _, err := svc.store.SearchCredentials(ctx, f); err == nil {
+		if cc, _, err := store.SearchCredentials(ctx, svc.store, f); err == nil {
 			// Credentials found, load user
 			for _, c := range cc {
 				if !c.Valid() {
@@ -130,11 +130,11 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 				// Add credentials ID for audit log
 				aam.setCredentials(c)
 
-				if u, err = svc.store.LookupUserByID(ctx, c.OwnerID); err != nil {
+				if u, err = store.LookupUserByID(ctx, svc.store, c.OwnerID); err != nil {
 					if errors.Is(err, store.ErrNotFound) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
-						if err = svc.store.DeleteCredentialsByID(ctx, c.ID); err != nil {
+						if err = store.DeleteCredentialsByID(ctx, svc.store, c.ID); err != nil {
 							return err
 						} else {
 							goto findByEmail
@@ -155,7 +155,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 				if u.Valid() {
 					// Valid user, Bingo!
 					c.LastUsedAt = nowPtr()
-					if err = svc.store.UpdateCredentials(ctx, c); err != nil {
+					if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
 						return err
 					}
 
@@ -189,7 +189,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 			setUser(nil)
 
 		// Find user via his email
-		if u, err = svc.store.LookupUserByEmail(ctx, profile.Email); errors.Is(err, store.ErrNotFound) {
+		if u, err = store.LookupUserByEmail(ctx, svc.store, profile.Email); errors.Is(err, store.ErrNotFound) {
 			// @todo check if it is ok to auto-create a user here
 			if err = svc.CanRegister(ctx); err != nil {
 				return AuthErrSubscription(aam).Wrap(err)
@@ -216,7 +216,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 
 			u.ID = id.Next()
 			u.CreatedAt = now()
-			if err = svc.store.CreateUser(ctx, u); err != nil {
+			if err = store.CreateUser(ctx, svc.store, u); err != nil {
 				return err
 			}
 
@@ -263,7 +263,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 			LastUsedAt:  nowPtr(),
 		}
 
-		if err = svc.store.CreateCredentials(ctx, c); err != nil {
+		if err = store.CreateCredentials(ctx, svc.store, c); err != nil {
 			return err
 		}
 
@@ -316,13 +316,13 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		}
 
 		var eUser *types.User
-		eUser, err = svc.store.LookupUserByEmail(ctx, input.Email)
+		eUser, err = store.LookupUserByEmail(ctx, svc.store, input.Email)
 		if err == nil && eUser.Valid() {
 			var (
 				cc types.CredentialsSet
 				f  = types.CredentialsFilter{OwnerID: eUser.ID, Kind: credentialsTypePassword}
 			)
-			cc, _, err = svc.store.SearchCredentials(ctx, f)
+			cc, _, err = store.SearchCredentials(ctx, svc.store, f)
 			if err != nil {
 				return err
 			}
@@ -335,7 +335,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 				c.UpdatedAt = nowPtr()
 				aam.setCredentials(c)
 
-				if err = svc.store.UpdateCredentials(ctx, c); err != nil {
+				if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
 					return err
 				}
 			}
@@ -396,7 +396,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		}
 
 		// Whitelisted user data to copy
-		err = svc.store.CreateUser(ctx, nUser)
+		err = store.CreateUser(ctx, svc.store, nUser)
 
 		if err != nil {
 			return err
@@ -462,7 +462,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 			cc types.CredentialsSet
 		)
 
-		u, err = svc.store.LookupUserByEmail(ctx, email)
+		u, err = store.LookupUserByEmail(ctx, svc.store, email)
 		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrFailedForUnknownUser()
 		}
@@ -474,7 +474,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		// Update audit meta with found user
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		cc, _, err = svc.store.SearchCredentials(ctx, types.CredentialsFilter{OwnerID: u.ID, Kind: credentialsTypePassword})
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{OwnerID: u.ID, Kind: credentialsTypePassword})
 		if err != nil {
 			return err
 		}
@@ -487,7 +487,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 			c.LastUsedAt = nowPtr()
 			aam.setCredentials(c)
 
-			if err = svc.store.UpdateCredentials(ctx, c); err != nil {
+			if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
 				return err
 			}
 		}
@@ -542,7 +542,7 @@ func (svc auth) SetPassword(ctx context.Context, userID uint64, password string)
 			return AuthErrPasswordNotSecure(aam)
 		}
 
-		u, err = svc.store.LookupUserByID(ctx, userID)
+		u, err = store.LookupUserByID(ctx, svc.store, userID)
 		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
@@ -566,7 +566,7 @@ func (svc auth) Impersonate(ctx context.Context, userID uint64) (u *types.User, 
 	)
 
 	err = func() error {
-		if u, err = svc.store.LookupUserByID(ctx, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return err
 		}
 
@@ -605,12 +605,12 @@ func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, 
 			return AuthErrPasswordNotSecure(aam)
 		}
 
-		u, err = svc.store.LookupUserByID(ctx, userID)
+		u, err = store.LookupUserByID(ctx, svc.store, userID)
 		if errors.Is(err, store.ErrNotFound) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
 
-		cc, _, err = svc.store.SearchCredentials(ctx, types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID})
+		cc, _, err = store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID})
 		if err != nil {
 			return err
 		}
@@ -658,7 +658,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 		return
 	}
 
-	if cc, _, err = svc.store.SearchCredentials(ctx, f); err != nil {
+	if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
 		return nil
 	}
 
@@ -669,7 +669,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	})
 
 	// Do a partial update and soft-delete all
-	if err = svc.store.UpdateCredentials(ctx, cc...); err != nil {
+	if err = store.UpdateCredentials(ctx, svc.store, cc...); err != nil {
 		return
 	}
 
@@ -682,7 +682,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 		Credentials: string(hash),
 	}
 
-	return svc.store.CreateCredentials(ctx, c)
+	return store.CreateCredentials(ctx, svc.store, c)
 }
 
 // IssueAuthRequestToken returns token that can be used for authentication
@@ -748,7 +748,7 @@ func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenTy
 
 		u.EmailConfirmed = true
 		u.UpdatedAt = nowPtr()
-		if err = svc.store.UpdateUser(ctx, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return err
 		}
 
@@ -806,7 +806,7 @@ func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, email str
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
 
-		u, err := svc.store.LookupUserByEmail(ctx, email)
+		u, err := store.LookupUserByEmail(ctx, svc.store, email)
 		if err != nil {
 			return AuthErrInvalidToken(aam)
 		}
@@ -855,7 +855,7 @@ func (svc auth) SendPasswordResetToken(ctx context.Context, email string) (err e
 			return AuthErrPasswordResetDisabledByConfig(aam)
 		}
 
-		if u, err = svc.store.LookupUserByEmail(ctx, email); err != nil {
+		if u, err = store.LookupUserByEmail(ctx, svc.store, email); err != nil {
 			return err
 		}
 
@@ -874,7 +874,7 @@ func (svc auth) SendPasswordResetToken(ctx context.Context, email string) (err e
 // CanRegister verifies if user can register
 func (svc auth) CanRegister(ctx context.Context) error {
 	if svc.subscription != nil {
-		c, err := svc.store.CountUsers(ctx, types.UserFilter{})
+		c, err := store.CountUsers(ctx, svc.store, types.UserFilter{})
 		if err != nil {
 			return fmt.Errorf("can not check if user can register: %w", err)
 		}
@@ -913,7 +913,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 		return nil, AuthErrInvalidToken(aam)
 	}
 
-	c, err := svc.store.LookupCredentialsByID(ctx, credentialsID)
+	c, err := store.LookupCredentialsByID(ctx, svc.store, credentialsID)
 	if errors.Is(err, store.ErrNotFound) {
 		return nil, AuthErrInvalidToken(aam)
 	}
@@ -924,7 +924,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 		return
 	}
 
-	if err = svc.store.DeleteCredentialsByID(ctx, c.ID); err != nil {
+	if err = store.DeleteCredentialsByID(ctx, svc.store, c.ID); err != nil {
 		return
 	}
 
@@ -932,7 +932,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 		return nil, AuthErrInvalidToken(aam)
 	}
 
-	u, err = svc.store.LookupUserByID(ctx, c.OwnerID)
+	u, err = store.LookupUserByID(ctx, svc.store, c.OwnerID)
 	if err != nil {
 		return nil, err
 	}
@@ -994,7 +994,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 			ExpiresAt:   &expiresAt,
 		}
 
-		err := svc.store.CreateCredentials(ctx, c)
+		err := store.CreateCredentials(ctx, svc.store, c)
 
 		if err != nil {
 			return err
@@ -1016,7 +1016,7 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	)
 
 	err = func() error {
-		if c, err = svc.store.CountUsers(ctx, types.UserFilter{}); err != nil {
+		if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{}); err != nil {
 			return err
 		}
 
@@ -1024,7 +1024,7 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 			return nil
 		}
 
-		return svc.store.CreateRoleMember(ctx, &types.RoleMember{roleID, u.ID})
+		return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{roleID, u.ID})
 	}()
 
 	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)
@@ -1034,7 +1034,7 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 //
 // @todo move this to role service
 func (svc auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
-	rr, _, err := svc.store.SearchRoles(ctx, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return err
 	}

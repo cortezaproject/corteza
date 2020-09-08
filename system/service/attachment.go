@@ -6,8 +6,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	ngStore "github.com/cortezaproject/corteza-server/store"
+	files "github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
@@ -29,9 +29,9 @@ type (
 	attachment struct {
 		ctx       context.Context
 		actionlog actionlog.Recorder
-		files     store.Store
+		files     files.Store
 		ac        attachmentAccessController
-		store     ngStore.Storable
+		store     store.Storable
 	}
 
 	attachmentAccessController interface {
@@ -50,7 +50,7 @@ type (
 	}
 )
 
-func Attachment(store store.Store) AttachmentService {
+func Attachment(store files.Store) AttachmentService {
 	return (&attachment{
 		files:     store,
 		actionlog: DefaultActionlog,
@@ -82,7 +82,7 @@ func (svc attachment) FindByID(ID uint64) (att *types.Attachment, err error) {
 			return AttachmentErrInvalidID()
 		}
 
-		if att, err = svc.store.LookupAttachmentByID(svc.ctx, ID); err != nil {
+		if att, err = store.LookupAttachmentByID(svc.ctx, svc.store, ID); err != nil {
 			return err
 		}
 
@@ -104,14 +104,14 @@ func (svc attachment) DeleteByID(ID uint64) (err error) {
 			return AttachmentErrInvalidID()
 		}
 
-		if att, err = svc.store.LookupAttachmentByID(svc.ctx, ID); err != nil {
+		if att, err = store.LookupAttachmentByID(svc.ctx, svc.store, ID); err != nil {
 			return err
 		}
 
 		att.DeletedAt = nowPtr()
 		aaProps.setAttachment(att)
 
-		return svc.store.UpdateAttachment(svc.ctx, att)
+		return store.UpdateAttachment(svc.ctx, svc.store, att)
 	}()
 
 	return svc.recordAction(svc.ctx, aaProps, AttachmentActionDelete, err)
@@ -123,7 +123,7 @@ func (svc attachment) Find(filter types.AttachmentFilter) (aa types.AttachmentSe
 	)
 
 	err = func() (err error) {
-		aa, f, err = svc.store.SearchAttachments(svc.ctx, filter)
+		aa, f, err = store.SearchAttachments(svc.ctx, svc.store, filter)
 		return err
 	}()
 
@@ -213,7 +213,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToProcessImage(aaProps).Wrap(err)
 	}
 
-	if err = svc.store.CreateAttachment(svc.ctx, att); err != nil {
+	if err = store.CreateAttachment(svc.ctx, svc.store, att); err != nil {
 		return
 	}
 

@@ -41,7 +41,7 @@ func (svc *application) LookupByID(ctx context.Context, ID uint64) (app *types.A
 			return ApplicationErrInvalidID()
 		}
 
-		if app, err = svc.store.LookupApplicationByID(ctx, ID); err != nil {
+		if app, err = store.LookupApplicationByID(ctx, svc.store, ID); err != nil {
 			return ApplicationErrInvalidID().Wrap(err)
 		}
 
@@ -83,7 +83,7 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 			}
 		}
 
-		aa, f, err = svc.store.SearchApplications(ctx, af)
+		aa, f, err = store.SearchApplications(ctx, svc.store, af)
 		return err
 	}()
 
@@ -112,7 +112,7 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (app
 			new.Unify = &types.ApplicationUnify{}
 		}
 
-		if err = svc.store.CreateApplication(ctx, new); err != nil {
+		if err = store.CreateApplication(ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -135,7 +135,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 			return ApplicationErrInvalidID()
 		}
 
-		if app, err = svc.store.LookupApplicationByID(ctx, upd.ID); err != nil {
+		if app, err = store.LookupApplicationByID(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -158,7 +158,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 			app.Unify = upd.Unify
 		}
 
-		if err = svc.store.UpdateApplication(ctx, app); err != nil {
+		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
 			return err
 		}
 
@@ -180,7 +180,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 			return ApplicationErrInvalidID()
 		}
 
-		if app, err = svc.store.LookupApplicationByID(ctx, ID); err != nil {
+		if app, err = store.LookupApplicationByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -195,7 +195,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 		}
 
 		app.DeletedAt = nowPtr()
-		if err = svc.store.UpdateApplication(ctx, app); err != nil {
+		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
 			return
 		}
 
@@ -217,7 +217,7 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 			return ApplicationErrInvalidID()
 		}
 
-		if app, err = svc.store.LookupApplicationByID(ctx, ID); err != nil {
+		if app, err = store.LookupApplicationByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -233,7 +233,7 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 		//       }
 
 		app.DeletedAt = nil
-		if err = svc.store.UpdateApplication(ctx, app); err != nil {
+		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
 			return
 		}
 

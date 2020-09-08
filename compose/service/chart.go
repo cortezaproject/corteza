@@ -95,7 +95,7 @@ func (svc chart) FindByID(namespaceID, chartID uint64) (c *types.Chart, err erro
 		}
 
 		aProps.chart.ID = chartID
-		return svc.store.LookupComposeChartByID(svc.ctx, chartID)
+		return store.LookupComposeChartByID(svc.ctx, svc.store, chartID)
 	})
 }
 
@@ -106,7 +106,7 @@ func (svc chart) FindByHandle(namespaceID uint64, h string) (c *types.Chart, err
 		}
 
 		aProps.chart.Handle = h
-		return svc.store.LookupComposeChartByNamespaceIDHandle(svc.ctx, namespaceID, h)
+		return store.LookupComposeChartByNamespaceIDHandle(svc.ctx, svc.store, namespaceID, h)
 	})
 }
 
@@ -141,7 +141,7 @@ func (svc chart) Create(new *types.Chart) (*types.Chart, error) {
 			return err
 		}
 
-		return svc.store.CreateComposeChart(svc.ctx, new)
+		return store.CreateComposeChart(svc.ctx, svc.store, new)
 	}()
 
 	return new, svc.recordAction(svc.ctx, aProps, ChartActionCreate, err)
@@ -198,7 +198,7 @@ func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActio
 	)
 
 	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
-		ns, c, err = loadChart(svc.ctx, s, namespaceID, chartID)
+		ns, c, err = loadChart(ctx, s, namespaceID, chartID)
 		if err != nil {
 			return
 		}
@@ -206,13 +206,13 @@ func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActio
 		aProps.setNamespace(ns)
 		aProps.setChanged(c)
 
-		if changed, err = fn(svc.ctx, ns, c); err != nil {
+		if changed, err = fn(ctx, ns, c); err != nil {
 			return err
 		} else if !changed {
 			return
 		}
 
-		return svc.store.UpdateComposeChart(svc.ctx, c)
+		return store.UpdateComposeChart(ctx, s, c)
 	})
 
 	return c, svc.recordAction(svc.ctx, aProps, action, err)
@@ -220,7 +220,7 @@ func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActio
 
 func (svc chart) uniqueCheck(c *types.Chart) (err error) {
 	if c.Handle != "" {
-		if e, _ := svc.store.LookupComposeChartByNamespaceIDHandle(svc.ctx, c.NamespaceID, c.Handle); e != nil && e.ID != c.ID {
+		if e, _ := store.LookupComposeChartByNamespaceIDHandle(svc.ctx, svc.store, c.NamespaceID, c.Handle); e != nil && e.ID != c.ID {
 			return ChartErrHandleNotUnique()
 		}
 	}

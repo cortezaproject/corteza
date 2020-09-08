@@ -50,7 +50,7 @@ func (svc reminder) Find(ctx context.Context, filter types.ReminderFilter) (rr t
 	)
 
 	err = func() (err error) {
-		rr, f, err = svc.store.SearchReminders(ctx, filter)
+		rr, f, err = store.SearchReminders(ctx, svc.store, filter)
 		if err != nil {
 			return err
 		}
@@ -71,7 +71,7 @@ func (svc reminder) FindByID(ctx context.Context, ID uint64) (r *types.Reminder,
 			return ReminderErrInvalidID()
 		}
 
-		r, err = svc.store.LookupReminderByID(ctx, ID)
+		r, err = store.LookupReminderByID(ctx, svc.store, ID)
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.R
 		r.ID = id.Next()
 		r.CreatedAt = now()
 
-		if err = svc.store.CreateReminder(ctx, new); err != nil {
+		if err = store.CreateReminder(ctx, svc.store, new); err != nil {
 			return err
 		}
 
@@ -143,7 +143,7 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 			return ReminderErrInvalidID()
 		}
 
-		if r, err = svc.store.LookupReminderByID(ctx, upd.ID); err != nil {
+		if r, err = store.LookupReminderByID(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -163,7 +163,7 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 		r.Resource = upd.Resource
 		r.UpdatedAt = nowPtr()
 
-		if err = svc.store.UpdateReminder(ctx, r); err != nil {
+		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
 
@@ -185,7 +185,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 			return ReminderErrInvalidID()
 		}
 
-		if r, err = svc.store.LookupReminderByID(ctx, ID); err != nil {
+		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
 		}
 
@@ -196,7 +196,7 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		r.DismissedAt = &n
 		r.DismissedBy = svc.currentUser(ctx)
 
-		if err = svc.store.UpdateReminder(ctx, r); err != nil {
+		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
 
@@ -218,7 +218,7 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) 
 			return ReminderErrInvalidID()
 		}
 
-		if r, err = svc.store.LookupReminderByID(ctx, ID); err != nil {
+		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
 		}
 
@@ -228,7 +228,7 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) 
 		r.SnoozeCount++
 		r.RemindAt = remindAt
 
-		if err = svc.store.UpdateReminder(ctx, r); err != nil {
+		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
 
@@ -258,7 +258,7 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 
 		raProps.setReminder(r)
 
-		return svc.store.UpdateReminder(ctx, r)
+		return store.UpdateReminder(ctx, svc.store, r)
 	}()
 
 	return svc.recordAction(ctx, raProps, ReminderActionDelete, err)

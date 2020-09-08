@@ -221,7 +221,7 @@ func (svc namespace) updater(namespaceID uint64, action func(...*namespaceAction
 		}
 
 		if changed {
-			if err = svc.store.UpdateComposeNamespace(svc.ctx, ns); err != nil {
+			if err = store.UpdateComposeNamespace(svc.ctx, svc.store, ns); err != nil {
 				return err
 			}
 		}

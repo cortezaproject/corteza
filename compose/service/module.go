@@ -267,7 +267,7 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 		}
 
 		if moduleChanged {
-			if err = svc.store.UpdateComposeModule(svc.ctx, m); err != nil {
+			if err = store.UpdateComposeModule(svc.ctx, svc.store, m); err != nil {
 				return err
 			}
 		}

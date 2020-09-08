@@ -321,7 +321,7 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		}
 
 		if changed {
-			if err = svc.store.UpdateComposePage(svc.ctx, p); err != nil {
+			if err = store.UpdateComposePage(svc.ctx, svc.store, p); err != nil {
 				return err
 			}
 		}
