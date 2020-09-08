@@ -1,4 +1,4 @@
-namespace: service-cloud
+namespace: service-solution
 pages:
   - handle: Home
     title: Home
@@ -227,11 +227,11 @@ pages:
             - enabled: true
               label: Add Update to this Case
               resourceType: compose:record
-              script: /client-scripts/compose/service-cloud/Case/AddUpdate.js:default
+              script: /client-scripts/compose/service-solution/Case/AddUpdate.js:default
             - enabled: true
               label: Create email for this Case
               resourceType: compose:record
-              script: /client-scripts/compose/service-cloud/Case/CreateEmail.js:default
+              script: /client-scripts/compose/service-solution/Case/CreateEmail.js:default
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
