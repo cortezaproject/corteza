@@ -22,7 +22,7 @@ type (
 		actionlog actionlog.Recorder
 		ac        moduleAccessController
 		eventbus  eventDispatcher
-		store     store.Storable
+		store     store.Storer
 	}
 
 	moduleAccessController interface {
@@ -163,7 +163,7 @@ func (svc module) Create(new *types.Module) (*types.Module, error) {
 		aProps = &moduleActionProps{changed: new}
 	)
 
-	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
 		}
@@ -241,7 +241,7 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 		err    error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, m, err = loadModuleWithNamespace(svc.ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return
@@ -426,7 +426,7 @@ func (svc module) handleUndelete(ctx context.Context, ns *types.Namespace, m *ty
 // updates module fields
 // expecting to receive all module fields, as it deletes the rest
 // also, sort order of the fields is also important as this fn stores and updates field's place as send
-func updateModuleFields(ctx context.Context, s store.Storable, m *types.Module, newFields types.ModuleFieldSet, hasRecords bool) (err error) {
+func updateModuleFields(ctx context.Context, s store.Storer, m *types.Module, newFields types.ModuleFieldSet, hasRecords bool) (err error) {
 	for _, f := range newFields {
 		// Set module ID to all new fields
 		if f.ModuleID == 0 {
@@ -488,7 +488,7 @@ func updateModuleFields(ctx context.Context, s store.Storable, m *types.Module, 
 	return nil
 }
 
-func loadModuleFields(ctx context.Context, s store.Storable, mm ...*types.Module) (err error) {
+func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) (err error) {
 	if len(mm) == 0 {
 		return nil
 	}
@@ -511,7 +511,7 @@ func loadModuleFields(ctx context.Context, s store.Storable, mm ...*types.Module
 }
 
 // loads record module with fields and namespace
-func loadModuleWithNamespace(ctx context.Context, s store.Storable, namespaceID, moduleID uint64) (ns *types.Namespace, m *types.Module, err error) {
+func loadModuleWithNamespace(ctx context.Context, s store.Storer, namespaceID, moduleID uint64) (ns *types.Namespace, m *types.Module, err error) {
 	if moduleID == 0 {
 		return nil, nil, ModuleErrInvalidID()
 	}
@@ -532,7 +532,7 @@ func loadModuleWithNamespace(ctx context.Context, s store.Storable, namespaceID,
 	return
 }
 
-func loadModule(ctx context.Context, s store.Storable, moduleID uint64) (m *types.Module, err error) {
+func loadModule(ctx context.Context, s store.Storer, moduleID uint64) (m *types.Module, err error) {
 	if moduleID == 0 {
 		return nil, ModuleErrInvalidID()
 	}

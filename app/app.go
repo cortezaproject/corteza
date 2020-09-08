@@ -32,7 +32,7 @@ type (
 		//
 		// Value will be type-casted when assigned to sys/msg/cmp services
 		// with warnings when incompatible
-		Store store.Storable
+		Store store.Storer
 
 		// CLI Commands
 		Command *cobra.Command

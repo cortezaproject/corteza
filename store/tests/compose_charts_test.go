@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func testComposeCharts(t *testing.T, s store.Storable) {
+func testComposeCharts(t *testing.T, s store.Storer) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)

@@ -18,7 +18,7 @@ type (
 		ac    applicationAccessController
 
 		actionlog actionlog.Recorder
-		store     store.Storable
+		store     store.Storer
 
 		sysmsgs types.MessageSet
 	}
@@ -145,7 +145,7 @@ func (svc *channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f ty
 }
 
 // preloadExtras pre-loads channel's members, views
-func (svc *channel) preloadExtras(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+func (svc *channel) preloadExtras(ctx context.Context, s store.Storer, cc ...*types.Channel) (err error) {
 	if len(cc) == 0 {
 		return nil
 	}
@@ -165,7 +165,7 @@ func (svc *channel) preloadExtras(ctx context.Context, s store.Storable, cc ...*
 	return
 }
 
-func (channel) preloadMembers(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+func (channel) preloadMembers(ctx context.Context, s store.Storer, cc ...*types.Channel) (err error) {
 	if len(cc) == 0 {
 		return nil
 	}
@@ -190,7 +190,7 @@ func (channel) preloadMembers(ctx context.Context, s store.Storable, cc ...*type
 	return
 }
 
-func (channel) preloadUnreads(ctx context.Context, s store.Storable, cc ...*types.Channel) (err error) {
+func (channel) preloadUnreads(ctx context.Context, s store.Storer, cc ...*types.Channel) (err error) {
 	if len(cc) == 0 {
 		return nil
 	}
@@ -254,7 +254,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{changed: new}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !new.Type.IsValid() {
 			return ChannelErrInvalidType()
 		}
@@ -395,7 +395,7 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{changed: upd}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if upd.ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -503,7 +503,7 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -546,7 +546,7 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -587,7 +587,7 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 		aProps = &channelActionProps{flag: string(flag)}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -633,7 +633,7 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -673,7 +673,7 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -713,7 +713,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -785,7 +785,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -879,7 +879,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 }
 
 // createMember orchestrates member creation
-func (svc channel) createMember(ctx context.Context, s store.Storable, m *types.ChannelMember) (err error) {
+func (svc channel) createMember(ctx context.Context, s store.Storer, m *types.ChannelMember) (err error) {
 	m.CreatedAt = *now()
 
 	if err = store.CreateMessagingChannelMember(ctx, s, m); err != nil {
@@ -899,7 +899,7 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
 			ch       *types.Channel

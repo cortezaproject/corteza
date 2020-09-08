@@ -258,7 +258,7 @@ func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
 	return err
 }
 
-func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storable) error) error {
+func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storer) error) error {
 	return tx(ctx, s.db, s.config, nil, func(ctx context.Context, tx dbLayer) error {
 		return fn(ctx, s.withTx(tx))
 	})

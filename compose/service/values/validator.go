@@ -21,8 +21,8 @@ import (
 // is no need for such level of interaction and dynamic we require on the frontend
 
 type (
-	UniqueChecker    func(context.Context, store.Storable, *types.RecordValue, *types.ModuleField, *types.Module) (uint64, error)
-	ReferenceChecker func(context.Context, store.Storable, *types.RecordValue, *types.ModuleField, *types.Module) (bool, error)
+	UniqueChecker    func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (uint64, error)
+	ReferenceChecker func(context.Context, store.Storer, *types.RecordValue, *types.ModuleField, *types.Module) (bool, error)
 
 	validator struct {
 		uniqueCheckerFn    UniqueChecker
@@ -93,7 +93,7 @@ func (vldtr *validator) FileRefChecker(fn ReferenceChecker) {
 //   - check for unique-multi-value in multi value fields
 //   - field-kind specific validation on all values
 //   - unique check on all all values
-func (vldtr validator) Run(ctx context.Context, s store.Storable, m *types.Module, r *types.Record) (out *types.RecordValueErrorSet) {
+func (vldtr validator) Run(ctx context.Context, s store.Storer, m *types.Module, r *types.Record) (out *types.RecordValueErrorSet) {
 	var (
 		f *types.ModuleField
 	)
@@ -262,7 +262,7 @@ func (vldtr validator) vEmail(v *types.RecordValue, f *types.ModuleField, r *typ
 	return nil
 }
 
-func (vldtr validator) vFile(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vFile(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if ok, err := vldtr.fileRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
@@ -284,7 +284,7 @@ func (vldtr validator) vNumber(v *types.RecordValue, f *types.ModuleField, r *ty
 	return nil
 }
 
-func (vldtr validator) vRecord(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vRecord(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if ok, err := vldtr.recordRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
@@ -337,7 +337,7 @@ func (vldtr validator) vUrl(v *types.RecordValue, f *types.ModuleField, r *types
 	return nil
 }
 
-func (vldtr validator) vUser(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+func (vldtr validator) vUser(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
 	if ok, err := vldtr.userRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {

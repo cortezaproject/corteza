@@ -17,13 +17,13 @@ import (
 )
 
 type (
-	Transactionable interface {
-		Tx(context.Context, func(context.Context, Storable) error) error
+	Transactioner interface {
+		Tx(context.Context, func(context.Context, Storer) error) error
 	}
 
 	// Sortable interface combines interfaces of all supported store interfaces
-	Storable interface {
-		Transactionable
+	Storer interface {
+		Transactioner
 
 	{{ range .Definitions -}}
 		{{ export .Types.Plural }}

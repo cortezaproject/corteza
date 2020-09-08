@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func Connect(ctx context.Context, dsn string) (store.Storable, error) {
+func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	var (
 		err error
 		cfg *rdbms.Config
@@ -46,7 +46,7 @@ func Connect(ctx context.Context, dsn string) (store.Storable, error) {
 	return s, nil
 }
 
-func ConnectInMemory(ctx context.Context) (s store.Storable, err error) {
+func ConnectInMemory(ctx context.Context) (s store.Storer, err error) {
 	return Connect(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
 }
 

@@ -19,7 +19,7 @@ type (
 		actionlog actionlog.Recorder
 		ac        namespaceAccessController
 		eventbus  eventDispatcher
-		store     store.Storable
+		store     store.Storer
 	}
 
 	namespaceAccessController interface {
@@ -147,7 +147,7 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 		aProps = &namespaceActionProps{changed: new}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !handle.IsValid(new.Slug) {
 			return NamespaceErrInvalidHandle()
 		}
@@ -195,7 +195,7 @@ func (svc namespace) updater(namespaceID uint64, action func(...*namespaceAction
 		err     error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, err = loadNamespace(svc.ctx, s, namespaceID)
 		if err != nil {
 			return
@@ -327,7 +327,7 @@ func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (b
 	return true, nil
 }
 
-func loadNamespace(ctx context.Context, s store.Storable, namespaceID uint64) (ns *types.Namespace, err error) {
+func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns *types.Namespace, err error) {
 	if namespaceID == 0 {
 		return nil, ChartErrInvalidNamespaceID()
 	}

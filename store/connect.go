@@ -7,14 +7,14 @@ import (
 )
 
 type (
-	ConnectorFn func(ctx context.Context, dsn string) (s Storable, err error)
+	ConnectorFn func(ctx context.Context, dsn string) (s Storer, err error)
 )
 
 var (
 	registered = make(map[string]ConnectorFn)
 )
 
-func Connect(ctx context.Context, dsn string) (s Storable, err error) {
+func Connect(ctx context.Context, dsn string) (s Storer, err error) {
 	var storeType = strings.SplitN(dsn, "://", 2)[0]
 	if storeType == "" {
 		// Backward compatibility

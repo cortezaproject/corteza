@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-func testAllGenerated(t *testing.T, s store.Storable) {
+func testAllGenerated(t *testing.T, s store.Storer) {
 {{- range . }}
 	// Run generated tests for {{ .Types.Base }}
 	t.Run({{ printf "%q" .Types.Base }}, func(t *testing.T) {

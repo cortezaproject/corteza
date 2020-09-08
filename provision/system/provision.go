@@ -23,7 +23,7 @@ type (
 	}
 )
 
-func Provision(ctx context.Context, log *zap.Logger, s store.Storable) (err error) {
+func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	var (
 		provisioned bool
 		readers     []io.Reader
@@ -80,7 +80,7 @@ func notProvisioned(ctx context.Context) (bool, error) {
 }
 
 // Updates default application directly in the store
-func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Storable) error {
+func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Storer) error {
 	var (
 		now        = time.Now()
 		aa, _, err = s.SearchApplications(ctx, types.ApplicationFilter{})

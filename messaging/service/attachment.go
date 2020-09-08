@@ -35,7 +35,7 @@ type (
 		ac attachmentAccessController
 
 		files files.Store
-		store store.Storable
+		store store.Storer
 		event EventService
 	}
 
@@ -102,7 +102,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		ch            *types.Channel
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 
 		if ch, err = store.LookupMessagingChannelByID(ctx, s, channelID); err != nil {
 			if errors.Is(err, store.ErrNotFound) {

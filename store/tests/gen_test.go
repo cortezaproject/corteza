@@ -39,7 +39,7 @@ import (
 	"testing"
 )
 
-func testAllGenerated(t *testing.T, s store.Storable) {
+func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Actionlog
 	t.Run("Actionlog", func(t *testing.T) {
 		testActionlog(t, s)

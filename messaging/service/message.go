@@ -18,7 +18,7 @@ type (
 		ctx     context.Context
 		ac      messageAccessController
 		channel ChannelService
-		store   store.Storable
+		store   store.Storer
 		event   EventService
 	}
 
@@ -157,7 +157,7 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 		msg.UserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	}
 
-	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// Broadcast queue
 		var bq = types.MessageSet{}
 		var ch *types.Channel
@@ -265,7 +265,7 @@ func (svc message) Update(upd *types.Message) (msg *types.Message, err error) {
 
 	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var ch *types.Channel
 
 		if ch, err = svc.findChannelByID(upd.ChannelID); err != nil {
@@ -318,7 +318,7 @@ func (svc message) Delete(messageID uint64) (err error) {
 
 	_ = currentUserID
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// Broadcast queue
 		var bq = types.MessageSet{}
 		var deletedMsg, original *types.Message
@@ -397,7 +397,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 		err         error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var ch *types.Channel
 		var thread *types.Message
 		var lastMessage *types.Message
@@ -540,7 +540,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 		flagOwnerID = 0
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			ff  types.MessageFlagSet
 			f   *types.MessageFlag
@@ -620,7 +620,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 	return nil
 }
 
-func (svc message) preload(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (svc message) preload(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	if err = svc.preloadAttachments(ctx, s, mm); err != nil {
 		return
 	}
@@ -645,7 +645,7 @@ func (svc message) preload(ctx context.Context, s store.Storable, mm types.Messa
 }
 
 // Preload for all messages
-func (message) preloadFlags(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (message) preloadFlags(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	if len(mm) == 0 {
 		return
 	}
@@ -663,7 +663,7 @@ func (message) preloadFlags(ctx context.Context, s store.Storable, mm types.Mess
 }
 
 // Preload for all messages
-func (message) preloadMentions(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (message) preloadMentions(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	if len(mm) == 0 {
 		return
 	}
@@ -680,7 +680,7 @@ func (message) preloadMentions(ctx context.Context, s store.Storable, mm types.M
 	})
 }
 
-func (message) preloadAttachments(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (message) preloadAttachments(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	var (
 		aa types.AttachmentSet
 	)
@@ -706,7 +706,7 @@ func (message) preloadAttachments(ctx context.Context, s store.Storable, mm type
 	}
 }
 
-func (message) preloadUnreads(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (message) preloadUnreads(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	if len(mm) == 0 {
 		return nil
 	}
@@ -732,7 +732,7 @@ func (message) preloadUnreads(ctx context.Context, s store.Storable, mm types.Me
 	})
 }
 
-func (message) preloadThreadParticipants(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
+func (message) preloadThreadParticipants(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	if len(mm) == 0 {
 		return nil
 	}
@@ -785,7 +785,7 @@ func (svc message) sendNotifications(message *types.Message, mentions types.Ment
 // 1. increases/decreases unread counters for channel or thread
 // 2. collects all counters for channel or thread
 // 3. sends unread events to subscribers
-func (svc message) countUnreads(ctx context.Context, s store.Storable, ch *types.Channel, m *types.Message, userID uint64) (err error) {
+func (svc message) countUnreads(ctx context.Context, s store.Storer, ch *types.Channel, m *types.Message, userID uint64) (err error) {
 	var (
 		uuBase, uuThreads, uuChannels types.UnreadSet
 		// mm  types.ChannelMemberSet
@@ -888,7 +888,7 @@ func (svc message) extractMentions(m *types.Message) (mm types.MentionSet) {
 	return
 }
 
-func (svc message) updateMentions(ctx context.Context, s store.Storable, messageID uint64, mm types.MentionSet) error {
+func (svc message) updateMentions(ctx context.Context, s store.Storer, messageID uint64, mm types.MentionSet) error {
 	if existing, _, err := store.SearchMessagingMentions(ctx, s, types.MentionFilter{MessageID: []uint64{messageID}}); err != nil {
 		return fmt.Errorf("could not update mentions: %w", err)
 	} else if len(mm) > 0 {

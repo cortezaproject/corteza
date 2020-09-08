@@ -48,7 +48,7 @@ var (
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore ngStore.Storable
+	DefaultNgStore ngStore.Storer
 
 	DefaultLogger *zap.Logger
 
@@ -107,7 +107,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
