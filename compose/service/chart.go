@@ -15,7 +15,7 @@ type (
 		ctx       context.Context
 		actionlog actionlog.Recorder
 		ac        chartAccessController
-		store     store.Storable
+		store     store.Storer
 	}
 
 	chartAccessController interface {
@@ -197,7 +197,7 @@ func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActio
 		err     error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, c, err = loadChart(ctx, s, namespaceID, chartID)
 		if err != nil {
 			return
@@ -282,7 +282,7 @@ func (svc chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *typ
 	return true, nil
 }
 
-func loadChart(ctx context.Context, s store.Storable, namespaceID, chartID uint64) (ns *types.Namespace, c *types.Chart, err error) {
+func loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (ns *types.Namespace, c *types.Chart, err error) {
 	if chartID == 0 {
 		return nil, nil, ChartErrInvalidID()
 	}

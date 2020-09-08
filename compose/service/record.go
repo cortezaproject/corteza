@@ -33,7 +33,7 @@ type (
 		ac       recordAccessController
 		eventbus eventDispatcher
 
-		store store.Storable
+		store store.Storer
 
 		formatter recordValuesFormatter
 		sanitizer recordValuesSanitizer
@@ -51,7 +51,7 @@ type (
 	}
 
 	recordValuesValidator interface {
-		Run(context.Context, store.Storable, *types.Module, *types.Record) *types.RecordValueErrorSet
+		Run(context.Context, store.Storer, *types.Module, *types.Record) *types.RecordValueErrorSet
 		UniqueChecker(fn values.UniqueChecker)
 		RecordRefChecker(fn values.ReferenceChecker)
 		UserRefChecker(fn values.ReferenceChecker)
@@ -144,7 +144,7 @@ func (svc record) With(ctx context.Context) RecordService {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
-	validator.UniqueChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
+	validator.UniqueChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (uint64, error) {
 		if v.Ref == 0 {
 			return 0, nil
 		}
@@ -152,7 +152,7 @@ func (svc record) With(ctx context.Context) RecordService {
 		return store.ComposeRecordValueRefLookup(ctx, s, m, f.Name, v.Ref)
 	})
 
-	validator.RecordRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {
 			return false, nil
 		}
@@ -161,12 +161,12 @@ func (svc record) With(ctx context.Context) RecordService {
 		return r != nil, err
 	})
 
-	validator.UserRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+	validator.UserRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		r, err := store.LookupUserByID(ctx, s, v.Ref)
 		return r != nil, err
 	})
 
-	validator.FileRefChecker(func(ctx context.Context, s store.Storable, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
+	validator.FileRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
 		if v.Ref == 0 {
 			return false, nil
 		}
@@ -533,7 +533,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		return store.CreateComposeRecord(ctx, s, m, new)
 	})
 
@@ -628,7 +628,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		return store.UpdateComposeRecord(ctx, s, m, upd)
 
 	})
@@ -673,7 +673,7 @@ func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(ctx context.Context, s store.Storable, invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
 	// Mark all values as updated (new)
 	new.Values.SetUpdatedFlag(true)
 
@@ -723,7 +723,7 @@ func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
 // of the update procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procUpdate(ctx context.Context, s store.Storable, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
+func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
 
@@ -808,7 +808,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	del.DeletedAt = nowPtr()
 	del.DeletedBy = invokerID
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		return store.UpdateComposeRecord(ctx, s, m, del)
 	})
 
@@ -977,7 +977,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			})
 		}
 
-		return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+		return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 			if len(recordValues) > 0 {
 				svc.recordInfoUpdate(r)
 				if err = store.UpdateComposeRecord(ctx, s, m, r); err != nil {
@@ -1172,7 +1172,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						return store.CreateComposeRecord(ctx, s, m, rec)
 					})
 				case "update":
@@ -1183,13 +1183,13 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						return store.UpdateComposeRecord(ctx, s, m, rec)
 					})
 				case "delete":
 					recordableAction = RecordActionIteratorDelete
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						rec.DeletedAt = nowPtr()
 						rec.DeletedBy = invokerID
 						return store.UpdateComposeRecord(ctx, s, m, rec)
@@ -1313,7 +1313,7 @@ func trimUnreadableRecordFields(ctx context.Context, ac recordValueAccessControl
 }
 
 // loadRecordCombo Loads namespace, module and record
-func loadRecordCombo(ctx context.Context, s store.Storable, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
+func loadRecordCombo(ctx context.Context, s store.Storer, namespaceID, moduleID, recordID uint64) (ns *types.Namespace, m *types.Module, r *types.Record, err error) {
 	if ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID); err != nil {
 		return
 	}

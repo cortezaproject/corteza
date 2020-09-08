@@ -38,7 +38,7 @@ type (
 		ac       userAccessController
 		eventbus eventDispatcher
 
-		store store.Storable
+		store store.Storer
 	}
 
 	userAuth interface {

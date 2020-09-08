@@ -95,7 +95,7 @@ func TestDefaultValueSetting(t *testing.T) {
 func TestProcUpdateOwnerPreservation(t *testing.T) {
 	var (
 		ctx   = context.Background()
-		store store.Storable
+		store store.Storer
 
 		a = assert.New(t)
 
@@ -127,7 +127,7 @@ func TestProcUpdateOwnerPreservation(t *testing.T) {
 func TestProcUpdateOwnerChanged(t *testing.T) {
 	var (
 		ctx   = context.Background()
-		store store.Storable
+		store store.Storer
 
 		a = assert.New(t)
 

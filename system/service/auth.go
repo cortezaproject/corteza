@@ -28,7 +28,7 @@ type (
 		eventbus  eventDispatcher
 
 		subscription  authSubscriptionChecker
-		store         store.Storable
+		store         store.Storer
 		settings      *types.AppSettings
 		notifications AuthNotificationService
 

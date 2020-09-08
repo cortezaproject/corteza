@@ -31,7 +31,7 @@ type (
 		actionlog actionlog.Recorder
 		files     files.Store
 		ac        attachmentAccessController
-		store     store.Storable
+		store     store.Storer
 	}
 
 	attachmentAccessController interface {
@@ -144,7 +144,7 @@ func (svc attachment) DeleteByID(namespaceID, attachmentID uint64) (err error) {
 		aProps = &attachmentActionProps{attachment: &types.Attachment{ID: attachmentID}}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if attachmentID == 0 {
 			return AttachmentErrInvalidID()
 		}
@@ -295,7 +295,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 		}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return err

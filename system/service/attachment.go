@@ -31,7 +31,7 @@ type (
 		actionlog actionlog.Recorder
 		files     files.Store
 		ac        attachmentAccessController
-		store     store.Storable
+		store     store.Storer
 	}
 
 	attachmentAccessController interface {

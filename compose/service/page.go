@@ -17,7 +17,7 @@ type (
 		actionlog actionlog.Recorder
 		ac        pageAccessController
 		eventbus  eventDispatcher
-		store     store.Storable
+		store     store.Storer
 	}
 
 	pageAccessController interface {
@@ -199,7 +199,7 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 		p      *types.Page
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if ns, err = loadNamespace(ctx, s, namespaceID); err != nil {
 			return err
 		}
@@ -239,7 +239,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 
 	new.ID = 0
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if !handle.IsValid(new.Handle) {
 			return PageErrInvalidID()
 		}
@@ -295,7 +295,7 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		err    error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, p, err = loadPage(svc.ctx, s, namespaceID, pageID)
 		if err != nil {
 			return
@@ -443,7 +443,7 @@ func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *type
 	return true, nil
 }
 
-func loadPage(ctx context.Context, s store.Storable, namespaceID, pageID uint64) (ns *types.Namespace, m *types.Page, err error) {
+func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (ns *types.Namespace, m *types.Page, err error) {
 	if pageID == 0 {
 		return nil, nil, PageErrInvalidID()
 	}

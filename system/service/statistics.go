@@ -12,7 +12,7 @@ type (
 	statistics struct {
 		actionlog actionlog.Recorder
 		ac        statisticsAccessController
-		store     store.Storable
+		store     store.Storer
 	}
 
 	statisticsAccessController interface {

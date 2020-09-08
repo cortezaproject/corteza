@@ -22,7 +22,7 @@ func init() {
 	store.Register(Connect, "postgresql", "postgres", "pgsql")
 }
 
-func Connect(ctx context.Context, dsn string) (store.Storable, error) {
+func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	var (
 		err error
 		cfg *rdbms.Config

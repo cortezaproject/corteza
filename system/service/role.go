@@ -24,7 +24,7 @@ type (
 
 		user UserService
 
-		store store.Storable
+		store store.Storer
 	}
 
 	roleAccessController interface {
