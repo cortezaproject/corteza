@@ -37,11 +37,11 @@ copyExtConfig crm 1200_charts
 copyExtConfig crm 1400_pages
 copyExtConfig crm 1500_record_settings
 
-copyExtConfig service-cloud 1000_namespace
-copyExtConfig service-cloud 1100_modules
-copyExtConfig service-cloud 1200_charts
-copyExtConfig service-cloud 1400_pages
-copyExtConfig service-cloud 1500_record_settings
+copyExtConfig service-solution 1000_namespace
+copyExtConfig service-solution 1100_modules
+copyExtConfig service-solution 1200_charts
+copyExtConfig service-solution 1400_pages
+copyExtConfig service-solution 1500_record_settings
 
 cleanup
 

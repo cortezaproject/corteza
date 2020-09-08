@@ -126,7 +126,7 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 				Listed: true,
 				Icon:   newIconUrl,
 				Logo:   newLogoUrl,
-				Url:    "/compose/ns/service-cloud/pages",
+				Url:    "/compose/ns/service-solution/pages",
 			},
 		},
 	}
