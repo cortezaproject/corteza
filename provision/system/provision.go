@@ -176,14 +176,14 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Store
 		},
 
 		&types.Application{
-			Name:    "Service Cloud",
+			Name:    "Service Solution",
 			Enabled: true,
 			Unify: &types.ApplicationUnify{
-				Name:   "Service Cloud",
+				Name:   "Service Solution",
 				Listed: true,
 				Icon:   newIconUrl,
 				Logo:   newLogoUrl,
-				Url:    "/compose/ns/service-cloud/pages",
+				Url:    "/compose/ns/service-solution/pages",
 			},
 		},
 	}

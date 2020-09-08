@@ -1,4 +1,4 @@
-namespace: service-cloud
+namespace: service-solution
 modules:
   Account:
     name: Account

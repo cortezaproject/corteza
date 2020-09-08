@@ -1,4 +1,4 @@
-namespace: service-cloud
+namespace: service-solution
 charts:
   ActiveEntitlements:
     name: Number of active entitlements
