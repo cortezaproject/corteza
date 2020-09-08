@@ -12,7 +12,7 @@ import (
 
 func TestMessagesUpdate(t *testing.T) {
 	h := newHelper(t)
-	msg := h.repoMakeMessage("old", h.repoMakePublicCh(), h.cUser)
+	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
 
 	h.apiInit().
 		Put(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, msg.ID)).
@@ -23,6 +23,6 @@ func TestMessagesUpdate(t *testing.T) {
 		Assert(jsonpath.Equal(`$.response.message`, `new`)).
 		End()
 
-	m := h.repoMsgExistingLoad(msg.ID)
+	m, _ := h.lookupMessageByID(msg.ID)
 	h.a.Equal(`new`, m.Message)
 }

@@ -101,8 +101,8 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 }
 
 func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageFilter) (set types.MessageSet, f types.MessageFilter, err error) {
-	if f.Limit == 0 || f.Limit > messagingMessagesMaxLimit {
-		f.Limit = messagingMessagesMaxLimit
+	if filter.Limit == 0 || filter.Limit > messagingMessagesMaxLimit {
+		filter.Limit = messagingMessagesMaxLimit
 	}
 
 	// Selecting first valid (deleted_at IS NULL) messages in threads (replies > 0 && reply_to = 0)
@@ -113,7 +113,7 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 		Where(squirrel.And{
 			squirrel.Eq{
 				"deleted_at":  nil,
-				"rel_channel": f.ChannelID,
+				"rel_channel": filter.ChannelID,
 				"reply_to":    0,
 			},
 			squirrel.Gt{"replies": 0},
@@ -125,15 +125,15 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 			},
 		}).
 		OrderBy("id DESC").
-		Limit(uint64(f.Limit))
+		Limit(uint64(filter.Limit))
 
 	// Prepare the actual message selector
 	base := s.messagingMessagesSelectBuilder().
 		Where(squirrel.Eq{"msg.deleted_at": nil}).
 		Join("originals ON (original_id IN (id, reply_to))")
 
-	if f.Query != "" {
-		q := "%" + strings.ToLower(f.Query) + "%"
+	if filter.Query != "" {
+		q := "%" + strings.ToLower(filter.Query) + "%"
 		base = base.Where(squirrel.Like{"LOWER(msg.message)": q})
 	}
 
@@ -141,10 +141,10 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 	cte := squirrel.ConcatExpr("WITH originals AS (", originals, ") ", base)
 
 	if set, _, _, err = s.QueryMessagingMessages(ctx, cte, nil); err != nil {
-		return nil, f, err
+		return nil, filter, err
 	}
 
-	return set, f, nil
+	return set, filter, nil
 }
 
 // CountMessagingMessagesFromID returns number of messages from last message on

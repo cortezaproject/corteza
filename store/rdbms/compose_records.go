@@ -23,9 +23,9 @@ const (
 //       physical columns are part of module-field configuration
 
 // SearchComposeRecords returns all matching ComposeRecords from store
-func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f types.RecordFilter) (set types.RecordSet, filter types.RecordFilter, err error) {
+func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	// In when module requires this,
-	set, filter, err = s.searchComposeRecords(ctx, m, f)
+	set, f, err = s.searchComposeRecords(ctx, m, filter)
 	if err != nil {
 		return
 	}

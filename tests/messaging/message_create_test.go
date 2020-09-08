@@ -31,7 +31,7 @@ func TestMessagesCreate(t *testing.T) {
 		End().
 		JSON(&rval)
 
-	m := h.repoMsgExistingLoad(rval.Response.ID)
+	m, _ := h.lookupMessageByID(rval.Response.ID)
 	h.a.Equal(`new message`, m.Message)
 
 }

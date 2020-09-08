@@ -19,8 +19,11 @@ type (
 		CreatedAt  time.Time      `json:"createdAt,omitempty"`
 		UpdatedAt  *time.Time     `json:"updatedAt,omitempty"`
 		DeletedAt  *time.Time     `json:"deletedAt,omitempty"`
+	}
 
-		MessageID uint64 `json:"-"`
+	MessageAttachment struct {
+		AttachmentID uint64
+		MessageID    uint64
 	}
 
 	// AttachmentFilter is used for filtering and as a return value from Find

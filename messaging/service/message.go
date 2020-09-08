@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -521,42 +520,52 @@ func (svc message) RemoveBookmark(messageID uint64) error {
 
 // React on a message with an emoji
 func (svc message) flag(messageID uint64, flag string, remove bool) (err error) {
-	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	var (
+		currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		flagOwnerID   = currentUserID
+	)
 
-	_ = currentUserID
+	if currentUserID == 0 {
+		return fmt.Errorf("unable to flag with unknown user")
+	}
 
 	if strings.TrimSpace(flag) == "" {
 		// Sanitize
 		flag = types.MessageFlagPinnedToChannel
 	}
-
 	// @todo validate flags more strictly
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
-		var flagOwnerID = currentUserID
-		var f *types.MessageFlag
-		var msg *types.Message
-		var ch *types.Channel
+	if flag == types.MessageFlagPinnedToChannel {
+		// It does not matter how is the owner of the pin,
+		flagOwnerID = 0
+	}
 
-		if flag == types.MessageFlagPinnedToChannel {
-			// It does not matter how is the owner of the pin,
-			flagOwnerID = 0
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storable) (err error) {
+		var (
+			ff  types.MessageFlagSet
+			f   *types.MessageFlag
+			msg *types.Message
+			ch  *types.Channel
+
+			filter = types.MessageFlagFilter{
+				Flag:      flag,
+				MessageID: []uint64{messageID},
+				OwnerID:   flagOwnerID,
+			}
+		)
+
+		if ff, _, err = store.SearchMessagingFlags(ctx, s, filter); err != nil {
+			return
 		}
 
-		f, err = store.LookupMessagingFlagByMessageIDUserIDFlag(ctx, s, messageID, flagOwnerID, flag)
-		if f == nil && remove {
+		if len(ff) == 0 && remove {
 			// Skip removing, flag does not exists
 			return nil
 		}
 
-		if f != nil && f.ID > 0 && !remove {
+		if len(ff) > 0 && !remove {
 			// Skip adding, flag already exists
 			return nil
-		}
-
-		if err != nil && errors.Is(err, store.ErrNotFound) {
-			// Other errors, exit
-			return
 		}
 
 		if msg, err = store.LookupMessagingMessageByID(svc.ctx, svc.store, messageID); err != nil {
@@ -576,29 +585,39 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 		}
 
 		if remove {
-			f.DeletedAt = now()
-			err = store.UpdateMessagingFlag(ctx, s, f)
+			// setting deleted to inform clients about removed flag
+			_ = ff.Walk(func(f *types.MessageFlag) error {
+				f.DeletedAt = now()
+				return nil
+			})
+			err = store.DeleteMessagingFlag(ctx, s, ff...)
 		} else {
-			f = &types.MessageFlag{
-				ID:        id.Next(),
-				UserID:    currentUserID,
-				CreatedAt: *now(),
-				ChannelID: msg.ChannelID,
-				MessageID: msg.ID,
-				Flag:      flag,
+			ff = []*types.MessageFlag{
+				{
+					ID:        id.Next(),
+					UserID:    currentUserID,
+					CreatedAt: *now(),
+					ChannelID: msg.ChannelID,
+					MessageID: msg.ID,
+					Flag:      flag,
+				},
 			}
-			err = store.CreateMessagingFlag(ctx, s, f)
+			err = store.CreateMessagingFlag(ctx, s, ff...)
 		}
 
 		if err != nil {
 			return
 		}
 
-		_ = svc.sendFlagEvent(f)
+		_ = svc.sendFlagEvent(ff...)
 		return
 	})
 
-	return fmt.Errorf("can not flag: %w/un-flag message", err)
+	if err != nil {
+		return fmt.Errorf("can not flag/un-flag message: %w", err)
+	}
+
+	return nil
 }
 
 func (svc message) preload(ctx context.Context, s store.Storable, mm types.MessageSet) (err error) {
@@ -898,7 +917,7 @@ func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err err
 
 	if ch, err = svc.channel.With(svc.ctx).FindByID(channelID); err != nil {
 		return nil, err
-	} else if mm, _, err = store.SearchMessagingChannelMembers(nil, nil, types.ChannelMemberFilterChannels(ch.ID)); err != nil {
+	} else if mm, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 		return nil, err
 	} else {
 		ch.Members = mm.AllMemberIDs()

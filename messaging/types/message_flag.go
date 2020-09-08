@@ -20,6 +20,7 @@ type (
 	MessageFlagFilter struct {
 		Flag      string
 		MessageID []uint64
+		OwnerID   uint64
 	}
 )
 

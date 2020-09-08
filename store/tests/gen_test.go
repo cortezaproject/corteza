@@ -19,6 +19,7 @@ package tests
 //  - store/messaging_channels.yaml
 //  - store/messaging_flags.yaml
 //  - store/messaging_mentions.yaml
+//  - store/messaging_message_attachments.yaml
 //  - store/messaging_messages.yaml
 //  - store/messaging_unread.yaml
 //  - store/rbac_rules.yaml
@@ -122,6 +123,11 @@ func testAllGenerated(t *testing.T, s store.Storable) {
 	// Run generated tests for MessagingMentions
 	t.Run("MessagingMentions", func(t *testing.T) {
 		testMessagingMentions(t, s)
+	})
+
+	// Run generated tests for MessagingMessageAttachments
+	t.Run("MessagingMessageAttachments", func(t *testing.T) {
+		testMessagingMessageAttachments(t, s)
 	})
 
 	// Run generated tests for MessagingMessages

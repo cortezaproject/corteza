@@ -17,12 +17,8 @@ lookups:
     description: |-
       searches for flags by ID
 
-  - fields: [ MessageID, UserID, Flag ]
-    description: |-
-      searches for flags by ID
-
 rdbms:
-  alias: msg
+  alias: mmf
   table: messaging_message_flag
   customFilterConverter: true
 

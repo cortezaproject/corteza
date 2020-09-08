@@ -86,16 +86,7 @@ func (s Store) QueryMessagingFlags(
 // LookupMessagingFlagByID searches for flags by ID
 func (s Store) LookupMessagingFlagByID(ctx context.Context, id uint64) (*types.MessageFlag, error) {
 	return s.execLookupMessagingFlag(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(id, ""),
-	})
-}
-
-// LookupMessagingFlagByMessageIDUserIDFlag searches for flags by ID
-func (s Store) LookupMessagingFlagByMessageIDUserIDFlag(ctx context.Context, message_id uint64, user_id uint64, flag string) (*types.MessageFlag, error) {
-	return s.execLookupMessagingFlag(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.rel_message", ""): s.preprocessValue(message_id, ""),
-		s.preprocessColumn("msg.rel_user", ""):    s.preprocessValue(user_id, ""),
-		s.preprocessColumn("msg.flag", ""):        s.preprocessValue(flag, ""),
+		s.preprocessColumn("mmf.id", ""): s.preprocessValue(id, ""),
 	})
 }
 
@@ -132,7 +123,7 @@ func (s Store) PartialMessagingFlagUpdate(ctx context.Context, onlyColumns []str
 		err = s.execUpdateMessagingFlags(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("mmf.id", ""): s.preprocessValue(res.ID, ""),
 			},
 			s.internalMessagingFlagEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -165,7 +156,7 @@ func (s Store) DeleteMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingFlags(ctx, squirrel.Eq{
-			s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("mmf.id", ""): s.preprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -178,7 +169,7 @@ func (s Store) DeleteMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 // DeleteMessagingFlagByID Deletes row from the messaging_message_flag table
 func (s Store) DeleteMessagingFlagByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteMessagingFlags(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("mmf.id", ""): s.preprocessValue(ID, ""),
 	})
 }
 
@@ -214,7 +205,7 @@ func (s Store) execCreateMessagingFlags(ctx context.Context, payload store.Paylo
 
 // execUpdateMessagingFlags updates all matched (by cnd) rows in messaging_message_flag with given data
 func (s Store) execUpdateMessagingFlags(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingFlagTable("msg")).Where(cnd).SetMap(set)))
+	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingFlagTable("mmf")).Where(cnd).SetMap(set)))
 }
 
 // execUpsertMessagingFlags inserts new or updates matching (by-primary-key) rows in messaging_message_flag with given data
@@ -235,7 +226,7 @@ func (s Store) execUpsertMessagingFlags(ctx context.Context, set store.Payload) 
 
 // execDeleteMessagingFlags Deletes all matched (by cnd) rows in messaging_message_flag with given data
 func (s Store) execDeleteMessagingFlags(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingFlagTable("msg")).Where(cnd)))
+	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingFlagTable("mmf")).Where(cnd)))
 }
 
 func (s Store) internalMessagingFlagRowScanner(row rowScanner) (res *types.MessageFlag, err error) {
@@ -268,7 +259,7 @@ func (s Store) internalMessagingFlagRowScanner(row rowScanner) (res *types.Messa
 
 // QueryMessagingFlags returns squirrel.SelectBuilder with set table and all columns
 func (s Store) messagingFlagsSelectBuilder() squirrel.SelectBuilder {
-	return s.SelectBuilder(s.messagingFlagTable("msg"), s.messagingFlagColumns("msg")...)
+	return s.SelectBuilder(s.messagingFlagTable("mmf"), s.messagingFlagColumns("mmf")...)
 }
 
 // messagingFlagTable name of the db table

@@ -1,0 +1,21 @@
+import:
+  - github.com/cortezaproject/corteza-server/messaging/types
+
+types:
+  type: types.MessageAttachment
+
+fields:
+  - { field: MessageID, isPrimaryKey: true }
+  - { field: AttachmentID }
+
+lookups:
+  - fields: [ MessageID ]
+    description: |-
+      searches for message attachment by message ID
+
+search:
+  enable: false
+
+rdbms:
+  alias: mma
+  table: messaging_message_attachment
