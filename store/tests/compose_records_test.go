@@ -415,7 +415,30 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.NoError(err)
 
 		// Note that not all functions are compatible across all backends
-
 	})
 
+	t.Run("partial value update", func(t *testing.T) {
+		var (
+			err error
+			set types.RecordSet
+
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "str1", Value: "1st"}, &types.RecordValue{Name: "num1", Value: "1"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "2nd"}, &types.RecordValue{Name: "num1", Value: "2"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "3rd"}, &types.RecordValue{Name: "num1", Value: "3"}),
+			)
+		)
+
+		set, _, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{})
+		req.NoError(err)
+		req.Equal("1st,1;2nd,2;3rd,3", stringifyValues(set, "str1", "num1"))
+
+		ups := &types.RecordValue{RecordID: set[1].ID, Name: "num1", Value: "22"}
+		req.NoError(s.PartialComposeRecordValueUpdate(ctx, mod, ups))
+
+		set, _, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter{})
+		req.NoError(err)
+		req.Equal("1st,1;2nd,22;3rd,3", stringifyValues(set, "str1", "num1"))
+
+	})
 }

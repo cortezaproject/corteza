@@ -364,7 +364,9 @@ func (s Store) SqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 // FieldToColumnTypeCaster calls configured field type caster if set
 // otherwise returns passed arguments directly
 func (s Store) FieldToColumnTypeCaster(f ModuleFieldTypeDetector, i ql.Ident) (ql.Ident, error) {
-	return s.config.CastModuleFieldToColumnType(f, i)
+	var err error
+	i.Value, err = s.config.CastModuleFieldToColumnType(f, i.Value)
+	return i, err
 }
 
 // tx begins a new db transaction and handles it's retries when possible

@@ -107,7 +107,7 @@ type (
 		// Functions are used in filters and aggregations
 		SqlFunctionHandler func(f ql.Function) (ql.ASTNode, error)
 
-		CastModuleFieldToColumnType func(field ModuleFieldTypeDetector, ident ql.Ident) (ql.Ident, error)
+		CastModuleFieldToColumnType func(ModuleFieldTypeDetector, string) (string, error)
 	}
 )
 

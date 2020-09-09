@@ -25,6 +25,12 @@ functions:
       - { name: filters,    type: string }
     return: [ "[]map[string]interface{}", error ]
 
+  - name: PartialComposeRecordValueUpdate
+    arguments:
+      - { name: mod,        type: "*types.Module" }
+      - { name: values,     type: ...*types.RecordValue }
+    return: [ error ]
+
 lookups:
   - fields: [ ID ]
     export: false

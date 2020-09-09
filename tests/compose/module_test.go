@@ -21,7 +21,12 @@ func (h helper) clearModules() {
 }
 
 func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
-	return h.createModule(&types.Module{Name: name, NamespaceID: ns.ID, Fields: ff})
+	return h.createModule(&types.Module{
+		Name:        name,
+		NamespaceID: ns.ID,
+		Fields:      ff,
+		CreatedAt:   time.Now(),
+	})
 }
 
 func (h helper) createModule(res *types.Module) *types.Module {
@@ -32,6 +37,7 @@ func (h helper) createModule(res *types.Module) *types.Module {
 	_ = res.Fields.Walk(func(f *types.ModuleField) error {
 		f.ID = id.Next()
 		f.ModuleID = res.ID
+		f.CreatedAt = time.Now()
 		return nil
 	})
 

@@ -6,19 +6,16 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/store/sqlite"
 	"time"
+
+	// Explicitly register SQLite (not done in the app as for testing only)
+	_ "github.com/cortezaproject/corteza-server/store/sqlite"
 )
 
 func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.CortezaApp) error) *app.CortezaApp {
 	var (
-		a   = app.New()
-		err error
+		a = app.New()
 	)
-
-	// Make sure SQLite is registered
-	a.Store, err = sqlite.ConnectInMemory(ctx)
-	cli.HandleError(err)
 
 	// When running integration tests, we want to upgrade the db. Always.
 	a.Opt.Upgrade.Always = true

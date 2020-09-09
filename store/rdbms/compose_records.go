@@ -317,13 +317,19 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 	)
 
 	for i, c := range sort {
+		var err error
 		if sortable[c.Column] {
-			sqlSort[i] = sort[i].Column
-		} else if m.Fields.HasName(c.Column) {
+			sqlSort[i] = c.Column
+		} else if f := m.Fields.FindByName(c.Column); f != nil {
 			//sqlSort[i] = fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, sort[i].Column)
-			sqlSort[i] = fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx, sort[i].Column)
+			// sqlSort[i] = fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx + sort[i].Column)
+			sqlSort[i], err = s.config.CastModuleFieldToColumnType(f, c.Column)
 		} else {
-			return q, fmt.Errorf("could not sort by unknown column: %s", c.Column)
+			err = fmt.Errorf("could not sort by unknown column: %s", c.Column)
+		}
+
+		if err != nil {
+			return q, err
 		}
 
 		if sort[i].Descending {
@@ -360,8 +366,6 @@ func (s Store) collectComposeRecordCursorValues(res *types.Record, cc ...string)
 					} else {
 						cursor.Set(fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, c), nil, false)
 					}
-
-					//cursor.Set(fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx, c), value, false)
 				}
 			}
 		}
