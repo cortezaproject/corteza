@@ -122,11 +122,11 @@ func (s Store) CreateComposeAttachment(ctx context.Context, rr ...*types.Attachm
 
 // UpdateComposeAttachment updates one or more existing rows in compose_attachment
 func (s Store) UpdateComposeAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.PartialComposeAttachmentUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposeAttachmentUpdate(ctx, nil, rr...))
 }
 
-// PartialComposeAttachmentUpdate updates one or more existing rows in compose_attachment
-func (s Store) PartialComposeAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
+// partialComposeAttachmentUpdate updates one or more existing rows in compose_attachment
+func (s Store) partialComposeAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
 	for _, res := range rr {
 		err = s.checkComposeAttachmentConstraints(ctx, res)
 		if err != nil {

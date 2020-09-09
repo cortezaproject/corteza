@@ -21,7 +21,6 @@ type (
 		CreateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error
 
 		UpdateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error
-		PartialMessagingFlagUpdate(ctx context.Context, onlyColumns []string, rr ...*types.MessageFlag) error
 
 		UpsertMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error
 
@@ -53,11 +52,6 @@ func CreateMessagingFlag(ctx context.Context, s MessagingFlags, rr ...*types.Mes
 // UpdateMessagingFlag updates one or more (existing) MessagingFlags in store
 func UpdateMessagingFlag(ctx context.Context, s MessagingFlags, rr ...*types.MessageFlag) error {
 	return s.UpdateMessagingFlag(ctx, rr...)
-}
-
-// PartialMessagingFlagUpdate updates one or more existing MessagingFlags in store
-func PartialMessagingFlagUpdate(ctx context.Context, s MessagingFlags, onlyColumns []string, rr ...*types.MessageFlag) error {
-	return s.PartialMessagingFlagUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingFlag creates new or updates existing one or more MessagingFlags in store

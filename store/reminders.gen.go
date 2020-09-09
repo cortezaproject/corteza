@@ -21,7 +21,6 @@ type (
 		CreateReminder(ctx context.Context, rr ...*types.Reminder) error
 
 		UpdateReminder(ctx context.Context, rr ...*types.Reminder) error
-		PartialReminderUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Reminder) error
 
 		UpsertReminder(ctx context.Context, rr ...*types.Reminder) error
 
@@ -55,11 +54,6 @@ func CreateReminder(ctx context.Context, s Reminders, rr ...*types.Reminder) err
 // UpdateReminder updates one or more (existing) Reminders in store
 func UpdateReminder(ctx context.Context, s Reminders, rr ...*types.Reminder) error {
 	return s.UpdateReminder(ctx, rr...)
-}
-
-// PartialReminderUpdate updates one or more existing Reminders in store
-func PartialReminderUpdate(ctx context.Context, s Reminders, onlyColumns []string, rr ...*types.Reminder) error {
-	return s.PartialReminderUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertReminder creates new or updates existing one or more Reminders in store

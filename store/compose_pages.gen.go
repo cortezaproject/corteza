@@ -23,7 +23,6 @@ type (
 		CreateComposePage(ctx context.Context, rr ...*types.Page) error
 
 		UpdateComposePage(ctx context.Context, rr ...*types.Page) error
-		PartialComposePageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Page) error
 
 		UpsertComposePage(ctx context.Context, rr ...*types.Page) error
 
@@ -72,11 +71,6 @@ func CreateComposePage(ctx context.Context, s ComposePages, rr ...*types.Page) e
 // UpdateComposePage updates one or more (existing) ComposePages in store
 func UpdateComposePage(ctx context.Context, s ComposePages, rr ...*types.Page) error {
 	return s.UpdateComposePage(ctx, rr...)
-}
-
-// PartialComposePageUpdate updates one or more existing ComposePages in store
-func PartialComposePageUpdate(ctx context.Context, s ComposePages, onlyColumns []string, rr ...*types.Page) error {
-	return s.PartialComposePageUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposePage creates new or updates existing one or more ComposePages in store

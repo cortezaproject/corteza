@@ -122,11 +122,11 @@ func (s Store) CreateMessagingAttachment(ctx context.Context, rr ...*types.Attac
 
 // UpdateMessagingAttachment updates one or more existing rows in messaging_attachment
 func (s Store) UpdateMessagingAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.PartialMessagingAttachmentUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingAttachmentUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingAttachmentUpdate updates one or more existing rows in messaging_attachment
-func (s Store) PartialMessagingAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
+// partialMessagingAttachmentUpdate updates one or more existing rows in messaging_attachment
+func (s Store) partialMessagingAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingAttachmentConstraints(ctx, res)
 		if err != nil {

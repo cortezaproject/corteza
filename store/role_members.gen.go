@@ -20,7 +20,6 @@ type (
 		CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) error
 
 		UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) error
-		PartialRoleMemberUpdate(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) error
 
 		UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) error
 
@@ -47,11 +46,6 @@ func CreateRoleMember(ctx context.Context, s RoleMembers, rr ...*types.RoleMembe
 // UpdateRoleMember updates one or more (existing) RoleMembers in store
 func UpdateRoleMember(ctx context.Context, s RoleMembers, rr ...*types.RoleMember) error {
 	return s.UpdateRoleMember(ctx, rr...)
-}
-
-// PartialRoleMemberUpdate updates one or more existing RoleMembers in store
-func PartialRoleMemberUpdate(ctx context.Context, s RoleMembers, onlyColumns []string, rr ...*types.RoleMember) error {
-	return s.PartialRoleMemberUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertRoleMember creates new or updates existing one or more RoleMembers in store

@@ -341,11 +341,11 @@ func (s Store) {{ toggleExport .Create.Export "Create" $.Types.Singular }}(ctx c
 {{ if .Update.Enable }}
 // {{ toggleExport .Update.Export "Update" $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
 func (s Store) {{ toggleExport .Update.Export "Update" $.Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $.Types.GoType }}) error {
-	return s.config.ErrorHandler(s.{{ toggleExport .Update.Export "Partial" $.Types.Singular "Update" }}(ctx{{ template "extraArgsCall" . }}, nil, rr...))
+	return s.config.ErrorHandler(s.partial{{ export $.Types.Singular "Update" }}(ctx{{ template "extraArgsCall" . }}, nil, rr...))
 }
 
-// {{ toggleExport .Update.Export "Partial" $.Types.Singular "Update" }} updates one or more existing rows in {{ $.RDBMS.Table }}
-func (s Store) {{ toggleExport .Update.Export "Partial" $.Types.Singular "Update" }}(ctx context.Context{{ template "extraArgsDef" . }}, onlyColumns []string, rr ... *{{ $.Types.GoType }}) (err error) {
+// partial{{ export $.Types.Singular "Update" }} updates one or more existing rows in {{ $.RDBMS.Table }}
+func (s Store) partial{{ export $.Types.Singular "Update" }}(ctx context.Context{{ template "extraArgsDef" . }}, onlyColumns []string, rr ... *{{ $.Types.GoType }}) (err error) {
 	for _, res := range rr {
 		err = s.check{{ export $.Types.Singular }}Constraints(ctx {{ template "extraArgsCall" $ }}, res)
 		if err != nil {

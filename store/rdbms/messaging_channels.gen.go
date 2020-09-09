@@ -246,11 +246,11 @@ func (s Store) CreateMessagingChannel(ctx context.Context, rr ...*types.Channel)
 
 // UpdateMessagingChannel updates one or more existing rows in messaging_channel
 func (s Store) UpdateMessagingChannel(ctx context.Context, rr ...*types.Channel) error {
-	return s.config.ErrorHandler(s.PartialMessagingChannelUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingChannelUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingChannelUpdate updates one or more existing rows in messaging_channel
-func (s Store) PartialMessagingChannelUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Channel) (err error) {
+// partialMessagingChannelUpdate updates one or more existing rows in messaging_channel
+func (s Store) partialMessagingChannelUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Channel) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingChannelConstraints(ctx, res)
 		if err != nil {

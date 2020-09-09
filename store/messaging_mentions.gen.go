@@ -21,7 +21,6 @@ type (
 		CreateMessagingMention(ctx context.Context, rr ...*types.Mention) error
 
 		UpdateMessagingMention(ctx context.Context, rr ...*types.Mention) error
-		PartialMessagingMentionUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Mention) error
 
 		UpsertMessagingMention(ctx context.Context, rr ...*types.Mention) error
 
@@ -55,11 +54,6 @@ func CreateMessagingMention(ctx context.Context, s MessagingMentions, rr ...*typ
 // UpdateMessagingMention updates one or more (existing) MessagingMentions in store
 func UpdateMessagingMention(ctx context.Context, s MessagingMentions, rr ...*types.Mention) error {
 	return s.UpdateMessagingMention(ctx, rr...)
-}
-
-// PartialMessagingMentionUpdate updates one or more existing MessagingMentions in store
-func PartialMessagingMentionUpdate(ctx context.Context, s MessagingMentions, onlyColumns []string, rr ...*types.Mention) error {
-	return s.PartialMessagingMentionUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingMention creates new or updates existing one or more MessagingMentions in store

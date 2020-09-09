@@ -112,11 +112,11 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*types.Module
 
 // UpdateComposeModuleField updates one or more existing rows in compose_module_field
 func (s Store) UpdateComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error {
-	return s.config.ErrorHandler(s.PartialComposeModuleFieldUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposeModuleFieldUpdate(ctx, nil, rr...))
 }
 
-// PartialComposeModuleFieldUpdate updates one or more existing rows in compose_module_field
-func (s Store) PartialComposeModuleFieldUpdate(ctx context.Context, onlyColumns []string, rr ...*types.ModuleField) (err error) {
+// partialComposeModuleFieldUpdate updates one or more existing rows in compose_module_field
+func (s Store) partialComposeModuleFieldUpdate(ctx context.Context, onlyColumns []string, rr ...*types.ModuleField) (err error) {
 	for _, res := range rr {
 		err = s.checkComposeModuleFieldConstraints(ctx, res)
 		if err != nil {

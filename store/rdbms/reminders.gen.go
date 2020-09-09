@@ -246,11 +246,11 @@ func (s Store) CreateReminder(ctx context.Context, rr ...*types.Reminder) (err e
 
 // UpdateReminder updates one or more existing rows in reminders
 func (s Store) UpdateReminder(ctx context.Context, rr ...*types.Reminder) error {
-	return s.config.ErrorHandler(s.PartialReminderUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialReminderUpdate(ctx, nil, rr...))
 }
 
-// PartialReminderUpdate updates one or more existing rows in reminders
-func (s Store) PartialReminderUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Reminder) (err error) {
+// partialReminderUpdate updates one or more existing rows in reminders
+func (s Store) partialReminderUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Reminder) (err error) {
 	for _, res := range rr {
 		err = s.checkReminderConstraints(ctx, res)
 		if err != nil {

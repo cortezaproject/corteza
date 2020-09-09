@@ -23,7 +23,6 @@ type (
 		CreateRole(ctx context.Context, rr ...*types.Role) error
 
 		UpdateRole(ctx context.Context, rr ...*types.Role) error
-		PartialRoleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Role) error
 
 		UpsertRole(ctx context.Context, rr ...*types.Role) error
 
@@ -76,11 +75,6 @@ func CreateRole(ctx context.Context, s Roles, rr ...*types.Role) error {
 // UpdateRole updates one or more (existing) Roles in store
 func UpdateRole(ctx context.Context, s Roles, rr ...*types.Role) error {
 	return s.UpdateRole(ctx, rr...)
-}
-
-// PartialRoleUpdate updates one or more existing Roles in store
-func PartialRoleUpdate(ctx context.Context, s Roles, onlyColumns []string, rr ...*types.Role) error {
-	return s.PartialRoleUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertRole creates new or updates existing one or more Roles in store

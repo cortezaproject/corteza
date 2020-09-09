@@ -99,11 +99,11 @@ func (s Store) CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) (err
 
 // UpdateRbacRule updates one or more existing rows in rbac_rules
 func (s Store) UpdateRbacRule(ctx context.Context, rr ...*permissions.Rule) error {
-	return s.config.ErrorHandler(s.PartialRbacRuleUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialRbacRuleUpdate(ctx, nil, rr...))
 }
 
-// PartialRbacRuleUpdate updates one or more existing rows in rbac_rules
-func (s Store) PartialRbacRuleUpdate(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) (err error) {
+// partialRbacRuleUpdate updates one or more existing rows in rbac_rules
+func (s Store) partialRbacRuleUpdate(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) (err error) {
 	for _, res := range rr {
 		err = s.checkRbacRuleConstraints(ctx, res)
 		if err != nil {

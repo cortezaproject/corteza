@@ -41,6 +41,11 @@ functions:
       - { name: channelID,         type: uint64 }
       - { name: threadID,          type: uint64 }
     return: [ uint64, error ]
+  - name: UpdateMessagingMessageReplyCount
+    arguments:
+      - { name: messageID, type: uint64 }
+      - { name: replies,   type: uint }
+    return: [ error ]
 
 rdbms:
   alias: msg

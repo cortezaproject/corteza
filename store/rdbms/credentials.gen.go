@@ -111,11 +111,11 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 
 // UpdateCredentials updates one or more existing rows in credentials
 func (s Store) UpdateCredentials(ctx context.Context, rr ...*types.Credentials) error {
-	return s.config.ErrorHandler(s.PartialCredentialsUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialCredentialsUpdate(ctx, nil, rr...))
 }
 
-// PartialCredentialsUpdate updates one or more existing rows in credentials
-func (s Store) PartialCredentialsUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Credentials) (err error) {
+// partialCredentialsUpdate updates one or more existing rows in credentials
+func (s Store) partialCredentialsUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Credentials) (err error) {
 	for _, res := range rr {
 		err = s.checkCredentialsConstraints(ctx, res)
 		if err != nil {

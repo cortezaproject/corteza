@@ -20,7 +20,6 @@ type (
 		CreateMessagingMessageAttachment(ctx context.Context, rr ...*types.MessageAttachment) error
 
 		UpdateMessagingMessageAttachment(ctx context.Context, rr ...*types.MessageAttachment) error
-		PartialMessagingMessageAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.MessageAttachment) error
 
 		UpsertMessagingMessageAttachment(ctx context.Context, rr ...*types.MessageAttachment) error
 
@@ -47,11 +46,6 @@ func CreateMessagingMessageAttachment(ctx context.Context, s MessagingMessageAtt
 // UpdateMessagingMessageAttachment updates one or more (existing) MessagingMessageAttachments in store
 func UpdateMessagingMessageAttachment(ctx context.Context, s MessagingMessageAttachments, rr ...*types.MessageAttachment) error {
 	return s.UpdateMessagingMessageAttachment(ctx, rr...)
-}
-
-// PartialMessagingMessageAttachmentUpdate updates one or more existing MessagingMessageAttachments in store
-func PartialMessagingMessageAttachmentUpdate(ctx context.Context, s MessagingMessageAttachments, onlyColumns []string, rr ...*types.MessageAttachment) error {
-	return s.PartialMessagingMessageAttachmentUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingMessageAttachment creates new or updates existing one or more MessagingMessageAttachments in store

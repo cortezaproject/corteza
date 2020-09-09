@@ -24,7 +24,6 @@ type (
 		CreateUser(ctx context.Context, rr ...*types.User) error
 
 		UpdateUser(ctx context.Context, rr ...*types.User) error
-		PartialUserUpdate(ctx context.Context, onlyColumns []string, rr ...*types.User) error
 
 		UpsertUser(ctx context.Context, rr ...*types.User) error
 
@@ -87,11 +86,6 @@ func CreateUser(ctx context.Context, s Users, rr ...*types.User) error {
 // UpdateUser updates one or more (existing) Users in store
 func UpdateUser(ctx context.Context, s Users, rr ...*types.User) error {
 	return s.UpdateUser(ctx, rr...)
-}
-
-// PartialUserUpdate updates one or more existing Users in store
-func PartialUserUpdate(ctx context.Context, s Users, onlyColumns []string, rr ...*types.User) error {
-	return s.PartialUserUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertUser creates new or updates existing one or more Users in store

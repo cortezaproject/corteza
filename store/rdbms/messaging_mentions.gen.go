@@ -111,11 +111,11 @@ func (s Store) CreateMessagingMention(ctx context.Context, rr ...*types.Mention)
 
 // UpdateMessagingMention updates one or more existing rows in messaging_mention
 func (s Store) UpdateMessagingMention(ctx context.Context, rr ...*types.Mention) error {
-	return s.config.ErrorHandler(s.PartialMessagingMentionUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingMentionUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingMentionUpdate updates one or more existing rows in messaging_mention
-func (s Store) PartialMessagingMentionUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Mention) (err error) {
+// partialMessagingMentionUpdate updates one or more existing rows in messaging_mention
+func (s Store) partialMessagingMentionUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Mention) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingMentionConstraints(ctx, res)
 		if err != nil {

@@ -109,11 +109,11 @@ func (s Store) CreateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 
 // UpdateMessagingFlag updates one or more existing rows in messaging_message_flag
 func (s Store) UpdateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error {
-	return s.config.ErrorHandler(s.PartialMessagingFlagUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingFlagUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingFlagUpdate updates one or more existing rows in messaging_message_flag
-func (s Store) PartialMessagingFlagUpdate(ctx context.Context, onlyColumns []string, rr ...*types.MessageFlag) (err error) {
+// partialMessagingFlagUpdate updates one or more existing rows in messaging_message_flag
+func (s Store) partialMessagingFlagUpdate(ctx context.Context, onlyColumns []string, rr ...*types.MessageFlag) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingFlagConstraints(ctx, res)
 		if err != nil {

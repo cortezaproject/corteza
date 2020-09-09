@@ -21,7 +21,6 @@ type (
 		CreateAttachment(ctx context.Context, rr ...*types.Attachment) error
 
 		UpdateAttachment(ctx context.Context, rr ...*types.Attachment) error
-		PartialAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) error
 
 		UpsertAttachment(ctx context.Context, rr ...*types.Attachment) error
 
@@ -55,11 +54,6 @@ func CreateAttachment(ctx context.Context, s Attachments, rr ...*types.Attachmen
 // UpdateAttachment updates one or more (existing) Attachments in store
 func UpdateAttachment(ctx context.Context, s Attachments, rr ...*types.Attachment) error {
 	return s.UpdateAttachment(ctx, rr...)
-}
-
-// PartialAttachmentUpdate updates one or more existing Attachments in store
-func PartialAttachmentUpdate(ctx context.Context, s Attachments, onlyColumns []string, rr ...*types.Attachment) error {
-	return s.PartialAttachmentUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertAttachment creates new or updates existing one or more Attachments in store

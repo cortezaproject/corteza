@@ -111,11 +111,11 @@ func (s Store) CreateMessagingMessage(ctx context.Context, rr ...*types.Message)
 
 // UpdateMessagingMessage updates one or more existing rows in messaging_message
 func (s Store) UpdateMessagingMessage(ctx context.Context, rr ...*types.Message) error {
-	return s.config.ErrorHandler(s.PartialMessagingMessageUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingMessageUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingMessageUpdate updates one or more existing rows in messaging_message
-func (s Store) PartialMessagingMessageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Message) (err error) {
+// partialMessagingMessageUpdate updates one or more existing rows in messaging_message
+func (s Store) partialMessagingMessageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Message) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingMessageConstraints(ctx, res)
 		if err != nil {

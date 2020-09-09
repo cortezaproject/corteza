@@ -21,7 +21,6 @@ type (
 		CreateSetting(ctx context.Context, rr ...*types.SettingValue) error
 
 		UpdateSetting(ctx context.Context, rr ...*types.SettingValue) error
-		PartialSettingUpdate(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) error
 
 		UpsertSetting(ctx context.Context, rr ...*types.SettingValue) error
 
@@ -53,11 +52,6 @@ func CreateSetting(ctx context.Context, s Settings, rr ...*types.SettingValue) e
 // UpdateSetting updates one or more (existing) Settings in store
 func UpdateSetting(ctx context.Context, s Settings, rr ...*types.SettingValue) error {
 	return s.UpdateSetting(ctx, rr...)
-}
-
-// PartialSettingUpdate updates one or more existing Settings in store
-func PartialSettingUpdate(ctx context.Context, s Settings, onlyColumns []string, rr ...*types.SettingValue) error {
-	return s.PartialSettingUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertSetting creates new or updates existing one or more Settings in store

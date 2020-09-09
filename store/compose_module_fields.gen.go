@@ -21,7 +21,6 @@ type (
 		CreateComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error
 
 		UpdateComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error
-		PartialComposeModuleFieldUpdate(ctx context.Context, onlyColumns []string, rr ...*types.ModuleField) error
 
 		UpsertComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error
 
@@ -53,11 +52,6 @@ func CreateComposeModuleField(ctx context.Context, s ComposeModuleFields, rr ...
 // UpdateComposeModuleField updates one or more (existing) ComposeModuleFields in store
 func UpdateComposeModuleField(ctx context.Context, s ComposeModuleFields, rr ...*types.ModuleField) error {
 	return s.UpdateComposeModuleField(ctx, rr...)
-}
-
-// PartialComposeModuleFieldUpdate updates one or more existing ComposeModuleFields in store
-func PartialComposeModuleFieldUpdate(ctx context.Context, s ComposeModuleFields, onlyColumns []string, rr ...*types.ModuleField) error {
-	return s.PartialComposeModuleFieldUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposeModuleField creates new or updates existing one or more ComposeModuleFields in store

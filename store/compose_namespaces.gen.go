@@ -22,7 +22,6 @@ type (
 		CreateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error
 
 		UpdateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error
-		PartialComposeNamespaceUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Namespace) error
 
 		UpsertComposeNamespace(ctx context.Context, rr ...*types.Namespace) error
 
@@ -61,11 +60,6 @@ func CreateComposeNamespace(ctx context.Context, s ComposeNamespaces, rr ...*typ
 // UpdateComposeNamespace updates one or more (existing) ComposeNamespaces in store
 func UpdateComposeNamespace(ctx context.Context, s ComposeNamespaces, rr ...*types.Namespace) error {
 	return s.UpdateComposeNamespace(ctx, rr...)
-}
-
-// PartialComposeNamespaceUpdate updates one or more existing ComposeNamespaces in store
-func PartialComposeNamespaceUpdate(ctx context.Context, s ComposeNamespaces, onlyColumns []string, rr ...*types.Namespace) error {
-	return s.PartialComposeNamespaceUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposeNamespace creates new or updates existing one or more ComposeNamespaces in store

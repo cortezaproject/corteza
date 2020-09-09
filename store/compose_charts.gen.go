@@ -22,7 +22,6 @@ type (
 		CreateComposeChart(ctx context.Context, rr ...*types.Chart) error
 
 		UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error
-		PartialComposeChartUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Chart) error
 
 		UpsertComposeChart(ctx context.Context, rr ...*types.Chart) error
 
@@ -61,11 +60,6 @@ func CreateComposeChart(ctx context.Context, s ComposeCharts, rr ...*types.Chart
 // UpdateComposeChart updates one or more (existing) ComposeCharts in store
 func UpdateComposeChart(ctx context.Context, s ComposeCharts, rr ...*types.Chart) error {
 	return s.UpdateComposeChart(ctx, rr...)
-}
-
-// PartialComposeChartUpdate updates one or more existing ComposeCharts in store
-func PartialComposeChartUpdate(ctx context.Context, s ComposeCharts, onlyColumns []string, rr ...*types.Chart) error {
-	return s.PartialComposeChartUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposeChart creates new or updates existing one or more ComposeCharts in store

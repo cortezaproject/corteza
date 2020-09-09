@@ -21,7 +21,6 @@ type (
 		CreateMessagingMessage(ctx context.Context, rr ...*types.Message) error
 
 		UpdateMessagingMessage(ctx context.Context, rr ...*types.Message) error
-		PartialMessagingMessageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Message) error
 
 		UpsertMessagingMessage(ctx context.Context, rr ...*types.Message) error
 
@@ -40,6 +39,9 @@ type (
 
 		// LastMessagingMessageID (custom function)
 		LastMessagingMessageID(ctx context.Context, _channelID uint64, _threadID uint64) (uint64, error)
+
+		// UpdateMessagingMessageReplyCount (custom function)
+		UpdateMessagingMessageReplyCount(ctx context.Context, _messageID uint64, _replies uint) error
 	}
 )
 
@@ -66,11 +68,6 @@ func CreateMessagingMessage(ctx context.Context, s MessagingMessages, rr ...*typ
 // UpdateMessagingMessage updates one or more (existing) MessagingMessages in store
 func UpdateMessagingMessage(ctx context.Context, s MessagingMessages, rr ...*types.Message) error {
 	return s.UpdateMessagingMessage(ctx, rr...)
-}
-
-// PartialMessagingMessageUpdate updates one or more existing MessagingMessages in store
-func PartialMessagingMessageUpdate(ctx context.Context, s MessagingMessages, onlyColumns []string, rr ...*types.Message) error {
-	return s.PartialMessagingMessageUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingMessage creates new or updates existing one or more MessagingMessages in store
@@ -103,4 +100,8 @@ func CountMessagingMessagesFromID(ctx context.Context, s MessagingMessages, _cha
 
 func LastMessagingMessageID(ctx context.Context, s MessagingMessages, _channelID uint64, _threadID uint64) (uint64, error) {
 	return s.LastMessagingMessageID(ctx, _channelID, _threadID)
+}
+
+func UpdateMessagingMessageReplyCount(ctx context.Context, s MessagingMessages, _messageID uint64, _replies uint) error {
+	return s.UpdateMessagingMessageReplyCount(ctx, _messageID, _replies)
 }

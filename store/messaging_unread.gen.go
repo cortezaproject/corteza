@@ -18,7 +18,6 @@ type (
 		CreateMessagingUnread(ctx context.Context, rr ...*types.Unread) error
 
 		UpdateMessagingUnread(ctx context.Context, rr ...*types.Unread) error
-		PartialMessagingUnreadUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Unread) error
 
 		UpsertMessagingUnread(ctx context.Context, rr ...*types.Unread) error
 
@@ -60,11 +59,6 @@ func CreateMessagingUnread(ctx context.Context, s MessagingUnreads, rr ...*types
 // UpdateMessagingUnread updates one or more (existing) MessagingUnreads in store
 func UpdateMessagingUnread(ctx context.Context, s MessagingUnreads, rr ...*types.Unread) error {
 	return s.UpdateMessagingUnread(ctx, rr...)
-}
-
-// PartialMessagingUnreadUpdate updates one or more existing MessagingUnreads in store
-func PartialMessagingUnreadUpdate(ctx context.Context, s MessagingUnreads, onlyColumns []string, rr ...*types.Unread) error {
-	return s.PartialMessagingUnreadUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingUnread creates new or updates existing one or more MessagingUnreads in store

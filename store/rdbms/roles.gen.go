@@ -270,11 +270,11 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) (err error) {
 
 // UpdateRole updates one or more existing rows in roles
 func (s Store) UpdateRole(ctx context.Context, rr ...*types.Role) error {
-	return s.config.ErrorHandler(s.PartialRoleUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialRoleUpdate(ctx, nil, rr...))
 }
 
-// PartialRoleUpdate updates one or more existing rows in roles
-func (s Store) PartialRoleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Role) (err error) {
+// partialRoleUpdate updates one or more existing rows in roles
+func (s Store) partialRoleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Role) (err error) {
 	for _, res := range rr {
 		err = s.checkRoleConstraints(ctx, res)
 		if err != nil {

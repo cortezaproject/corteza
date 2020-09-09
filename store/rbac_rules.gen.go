@@ -20,7 +20,6 @@ type (
 		CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) error
 
 		UpdateRbacRule(ctx context.Context, rr ...*permissions.Rule) error
-		PartialRbacRuleUpdate(ctx context.Context, onlyColumns []string, rr ...*permissions.Rule) error
 
 		UpsertRbacRule(ctx context.Context, rr ...*permissions.Rule) error
 
@@ -47,11 +46,6 @@ func CreateRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) e
 // UpdateRbacRule updates one or more (existing) RbacRules in store
 func UpdateRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) error {
 	return s.UpdateRbacRule(ctx, rr...)
-}
-
-// PartialRbacRuleUpdate updates one or more existing RbacRules in store
-func PartialRbacRuleUpdate(ctx context.Context, s RbacRules, onlyColumns []string, rr ...*permissions.Rule) error {
-	return s.PartialRbacRuleUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertRbacRule creates new or updates existing one or more RbacRules in store

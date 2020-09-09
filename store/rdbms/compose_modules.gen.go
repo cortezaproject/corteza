@@ -266,11 +266,11 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (er
 
 // UpdateComposeModule updates one or more existing rows in compose_module
 func (s Store) UpdateComposeModule(ctx context.Context, rr ...*types.Module) error {
-	return s.config.ErrorHandler(s.PartialComposeModuleUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposeModuleUpdate(ctx, nil, rr...))
 }
 
-// PartialComposeModuleUpdate updates one or more existing rows in compose_module
-func (s Store) PartialComposeModuleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Module) (err error) {
+// partialComposeModuleUpdate updates one or more existing rows in compose_module
+func (s Store) partialComposeModuleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Module) (err error) {
 	for _, res := range rr {
 		err = s.checkComposeModuleConstraints(ctx, res)
 		if err != nil {
