@@ -255,11 +255,11 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 
 // UpdateComposeNamespace updates one or more existing rows in compose_namespace
 func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error {
-	return s.config.ErrorHandler(s.PartialComposeNamespaceUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposeNamespaceUpdate(ctx, nil, rr...))
 }
 
-// PartialComposeNamespaceUpdate updates one or more existing rows in compose_namespace
-func (s Store) PartialComposeNamespaceUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Namespace) (err error) {
+// partialComposeNamespaceUpdate updates one or more existing rows in compose_namespace
+func (s Store) partialComposeNamespaceUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Namespace) (err error) {
 	for _, res := range rr {
 		err = s.checkComposeNamespaceConstraints(ctx, res)
 		if err != nil {

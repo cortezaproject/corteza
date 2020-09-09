@@ -203,6 +203,10 @@ func (s Store) LastMessagingMessageID(ctx context.Context, channelID, threadID u
 	return
 }
 
+func (s Store) UpdateMessagingMessageReplyCount(ctx context.Context, messageID uint64, replies uint) error {
+	return s.partialMessagingMessageUpdate(ctx, []string{"replies"}, &types.Message{ID: messageID, Replies: replies})
+}
+
 func (s Store) encodeMessagingMessage(res *types.Message) store.Payload {
 	// Custom message encoder to make sure that type is not converted to
 	// NULL when empty string is used (MessageTypeSimpleMessage)

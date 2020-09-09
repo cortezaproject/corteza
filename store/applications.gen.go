@@ -21,7 +21,6 @@ type (
 		CreateApplication(ctx context.Context, rr ...*types.Application) error
 
 		UpdateApplication(ctx context.Context, rr ...*types.Application) error
-		PartialApplicationUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Application) error
 
 		UpsertApplication(ctx context.Context, rr ...*types.Application) error
 
@@ -60,11 +59,6 @@ func CreateApplication(ctx context.Context, s Applications, rr ...*types.Applica
 // UpdateApplication updates one or more (existing) Applications in store
 func UpdateApplication(ctx context.Context, s Applications, rr ...*types.Application) error {
 	return s.UpdateApplication(ctx, rr...)
-}
-
-// PartialApplicationUpdate updates one or more existing Applications in store
-func PartialApplicationUpdate(ctx context.Context, s Applications, onlyColumns []string, rr ...*types.Application) error {
-	return s.PartialApplicationUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertApplication creates new or updates existing one or more Applications in store

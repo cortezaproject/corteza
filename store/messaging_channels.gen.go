@@ -21,7 +21,6 @@ type (
 		CreateMessagingChannel(ctx context.Context, rr ...*types.Channel) error
 
 		UpdateMessagingChannel(ctx context.Context, rr ...*types.Channel) error
-		PartialMessagingChannelUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Channel) error
 
 		UpsertMessagingChannel(ctx context.Context, rr ...*types.Channel) error
 
@@ -60,11 +59,6 @@ func CreateMessagingChannel(ctx context.Context, s MessagingChannels, rr ...*typ
 // UpdateMessagingChannel updates one or more (existing) MessagingChannels in store
 func UpdateMessagingChannel(ctx context.Context, s MessagingChannels, rr ...*types.Channel) error {
 	return s.UpdateMessagingChannel(ctx, rr...)
-}
-
-// PartialMessagingChannelUpdate updates one or more existing MessagingChannels in store
-func PartialMessagingChannelUpdate(ctx context.Context, s MessagingChannels, onlyColumns []string, rr ...*types.Channel) error {
-	return s.PartialMessagingChannelUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertMessagingChannel creates new or updates existing one or more MessagingChannels in store

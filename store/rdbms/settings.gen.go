@@ -121,11 +121,11 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (er
 
 // UpdateSetting updates one or more existing rows in settings
 func (s Store) UpdateSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	return s.config.ErrorHandler(s.PartialSettingUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialSettingUpdate(ctx, nil, rr...))
 }
 
-// PartialSettingUpdate updates one or more existing rows in settings
-func (s Store) PartialSettingUpdate(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) (err error) {
+// partialSettingUpdate updates one or more existing rows in settings
+func (s Store) partialSettingUpdate(ctx context.Context, onlyColumns []string, rr ...*types.SettingValue) (err error) {
 	for _, res := range rr {
 		err = s.checkSettingConstraints(ctx, res)
 		if err != nil {

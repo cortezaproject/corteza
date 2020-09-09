@@ -33,7 +33,6 @@ type (
 	{{- end }}
 	{{ if .Update.Enable }}
 		Update{{ export $Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $Types.GoType }}) error
-		Partial{{ export $Types.Singular }}Update(ctx context.Context{{ template "extraArgsDef" . }}, onlyColumns []string, rr ... *{{ $Types.GoType }}) error
 	{{- end }}
 	{{ if .Upsert.Enable }}
 		Upsert{{ export $Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $Types.GoType }}) error
@@ -87,11 +86,6 @@ func Create{{ export $Types.Singular }}(ctx context.Context, s {{ export $Types.
 // Update{{ export $.Types.Singular }} updates one or more (existing) {{ $.Types.Plural }} in store
 func Update{{ export $Types.Singular }}(ctx context.Context, s {{ export $Types.Plural }}{{ template "extraArgsDef" . }}, rr ... *{{ $Types.GoType }}) error {
 	return s.Update{{ export $Types.Singular }}(ctx{{ template "extraArgsCall" . }}, rr... )
-}
-
-// Partial{{ export $.Types.Singular }}Update updates one or more existing {{ $.Types.Plural }} in store
-func Partial{{ export $Types.Singular }}Update(ctx context.Context, s {{ export $Types.Plural }}{{ template "extraArgsDef" . }}, onlyColumns []string, rr ... *{{ $Types.GoType }}) error {
-	return s.Partial{{ export $Types.Singular }}Update(ctx{{ template "extraArgsCall" . }}, onlyColumns, rr...)
 }
 {{ end }}
 

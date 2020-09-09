@@ -80,11 +80,11 @@ func (s Store) CreateMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 
 // UpdateMessagingUnread updates one or more existing rows in messaging_unread
 func (s Store) UpdateMessagingUnread(ctx context.Context, rr ...*types.Unread) error {
-	return s.config.ErrorHandler(s.PartialMessagingUnreadUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialMessagingUnreadUpdate(ctx, nil, rr...))
 }
 
-// PartialMessagingUnreadUpdate updates one or more existing rows in messaging_unread
-func (s Store) PartialMessagingUnreadUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Unread) (err error) {
+// partialMessagingUnreadUpdate updates one or more existing rows in messaging_unread
+func (s Store) partialMessagingUnreadUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Unread) (err error) {
 	for _, res := range rr {
 		err = s.checkMessagingUnreadConstraints(ctx, res)
 		if err != nil {

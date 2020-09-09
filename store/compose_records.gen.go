@@ -21,7 +21,6 @@ type (
 		CreateComposeRecord(ctx context.Context, _mod *types.Module, rr ...*types.Record) error
 
 		UpdateComposeRecord(ctx context.Context, _mod *types.Module, rr ...*types.Record) error
-		PartialComposeRecordUpdate(ctx context.Context, _mod *types.Module, onlyColumns []string, rr ...*types.Record) error
 
 		UpsertComposeRecord(ctx context.Context, _mod *types.Module, rr ...*types.Record) error
 
@@ -62,11 +61,6 @@ func CreateComposeRecord(ctx context.Context, s ComposeRecords, _mod *types.Modu
 // UpdateComposeRecord updates one or more (existing) ComposeRecords in store
 func UpdateComposeRecord(ctx context.Context, s ComposeRecords, _mod *types.Module, rr ...*types.Record) error {
 	return s.UpdateComposeRecord(ctx, _mod, rr...)
-}
-
-// PartialComposeRecordUpdate updates one or more existing ComposeRecords in store
-func PartialComposeRecordUpdate(ctx context.Context, s ComposeRecords, _mod *types.Module, onlyColumns []string, rr ...*types.Record) error {
-	return s.PartialComposeRecordUpdate(ctx, _mod, onlyColumns, rr...)
 }
 
 // UpsertComposeRecord creates new or updates existing one or more ComposeRecords in store

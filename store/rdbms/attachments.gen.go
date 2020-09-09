@@ -122,11 +122,11 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) (e
 
 // UpdateAttachment updates one or more existing rows in attachments
 func (s Store) UpdateAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.PartialAttachmentUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialAttachmentUpdate(ctx, nil, rr...))
 }
 
-// PartialAttachmentUpdate updates one or more existing rows in attachments
-func (s Store) PartialAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
+// partialAttachmentUpdate updates one or more existing rows in attachments
+func (s Store) partialAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) (err error) {
 	for _, res := range rr {
 		err = s.checkAttachmentConstraints(ctx, res)
 		if err != nil {

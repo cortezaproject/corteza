@@ -23,7 +23,6 @@ type (
 		CreateComposeModule(ctx context.Context, rr ...*types.Module) error
 
 		UpdateComposeModule(ctx context.Context, rr ...*types.Module) error
-		PartialComposeModuleUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Module) error
 
 		UpsertComposeModule(ctx context.Context, rr ...*types.Module) error
 
@@ -67,11 +66,6 @@ func CreateComposeModule(ctx context.Context, s ComposeModules, rr ...*types.Mod
 // UpdateComposeModule updates one or more (existing) ComposeModules in store
 func UpdateComposeModule(ctx context.Context, s ComposeModules, rr ...*types.Module) error {
 	return s.UpdateComposeModule(ctx, rr...)
-}
-
-// PartialComposeModuleUpdate updates one or more existing ComposeModules in store
-func PartialComposeModuleUpdate(ctx context.Context, s ComposeModules, onlyColumns []string, rr ...*types.Module) error {
-	return s.PartialComposeModuleUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposeModule creates new or updates existing one or more ComposeModules in store

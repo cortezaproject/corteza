@@ -246,11 +246,11 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 
 // UpdateApplication updates one or more existing rows in applications
 func (s Store) UpdateApplication(ctx context.Context, rr ...*types.Application) error {
-	return s.config.ErrorHandler(s.PartialApplicationUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialApplicationUpdate(ctx, nil, rr...))
 }
 
-// PartialApplicationUpdate updates one or more existing rows in applications
-func (s Store) PartialApplicationUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Application) (err error) {
+// partialApplicationUpdate updates one or more existing rows in applications
+func (s Store) partialApplicationUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Application) (err error) {
 	for _, res := range rr {
 		err = s.checkApplicationConstraints(ctx, res)
 		if err != nil {

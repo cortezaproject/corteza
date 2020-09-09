@@ -99,11 +99,11 @@ func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 
 // UpdateRoleMember updates one or more existing rows in role_members
 func (s Store) UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) error {
-	return s.config.ErrorHandler(s.PartialRoleMemberUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialRoleMemberUpdate(ctx, nil, rr...))
 }
 
-// PartialRoleMemberUpdate updates one or more existing rows in role_members
-func (s Store) PartialRoleMemberUpdate(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) (err error) {
+// partialRoleMemberUpdate updates one or more existing rows in role_members
+func (s Store) partialRoleMemberUpdate(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) (err error) {
 	for _, res := range rr {
 		err = s.checkRoleMemberConstraints(ctx, res)
 		if err != nil {

@@ -282,11 +282,11 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
 
 // UpdateUser updates one or more existing rows in users
 func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
-	return s.config.ErrorHandler(s.PartialUserUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialUserUpdate(ctx, nil, rr...))
 }
 
-// PartialUserUpdate updates one or more existing rows in users
-func (s Store) PartialUserUpdate(ctx context.Context, onlyColumns []string, rr ...*types.User) (err error) {
+// partialUserUpdate updates one or more existing rows in users
+func (s Store) partialUserUpdate(ctx context.Context, onlyColumns []string, rr ...*types.User) (err error) {
 	for _, res := range rr {
 		err = s.checkUserConstraints(ctx, res)
 		if err != nil {

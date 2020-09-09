@@ -203,7 +203,7 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 
 			// Increment counter, on struct and in store.
 			original.Replies++
-			if err = store.PartialMessagingMessageUpdate(ctx, s, []string{"replies"}, original); err != nil {
+			if err = store.UpdateMessagingMessageReplyCount(ctx, s, original.ID, original.Replies); err != nil {
 				return
 			}
 
@@ -355,7 +355,7 @@ func (svc message) Delete(messageID uint64) (err error) {
 				original.Replies--
 			}
 
-			if err = store.PartialMessagingMessageUpdate(ctx, s, []string{"replies"}, original); err != nil {
+			if err = store.UpdateMessagingMessageReplyCount(ctx, s, original.ID, original.Replies); err != nil {
 				return
 			}
 

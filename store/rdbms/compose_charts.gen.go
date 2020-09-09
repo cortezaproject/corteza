@@ -256,11 +256,11 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 
 // UpdateComposeChart updates one or more existing rows in compose_chart
 func (s Store) UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	return s.config.ErrorHandler(s.PartialComposeChartUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposeChartUpdate(ctx, nil, rr...))
 }
 
-// PartialComposeChartUpdate updates one or more existing rows in compose_chart
-func (s Store) PartialComposeChartUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Chart) (err error) {
+// partialComposeChartUpdate updates one or more existing rows in compose_chart
+func (s Store) partialComposeChartUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Chart) (err error) {
 	for _, res := range rr {
 		err = s.checkComposeChartConstraints(ctx, res)
 		if err != nil {

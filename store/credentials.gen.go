@@ -21,7 +21,6 @@ type (
 		CreateCredentials(ctx context.Context, rr ...*types.Credentials) error
 
 		UpdateCredentials(ctx context.Context, rr ...*types.Credentials) error
-		PartialCredentialsUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Credentials) error
 
 		UpsertCredentials(ctx context.Context, rr ...*types.Credentials) error
 
@@ -55,11 +54,6 @@ func CreateCredentials(ctx context.Context, s Credentials, rr ...*types.Credenti
 // UpdateCredentials updates one or more (existing) Credentials in store
 func UpdateCredentials(ctx context.Context, s Credentials, rr ...*types.Credentials) error {
 	return s.UpdateCredentials(ctx, rr...)
-}
-
-// PartialCredentialsUpdate updates one or more existing Credentials in store
-func PartialCredentialsUpdate(ctx context.Context, s Credentials, onlyColumns []string, rr ...*types.Credentials) error {
-	return s.PartialCredentialsUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertCredentials creates new or updates existing one or more Credentials in store

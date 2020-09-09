@@ -21,7 +21,6 @@ type (
 		CreateComposeAttachment(ctx context.Context, rr ...*types.Attachment) error
 
 		UpdateComposeAttachment(ctx context.Context, rr ...*types.Attachment) error
-		PartialComposeAttachmentUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Attachment) error
 
 		UpsertComposeAttachment(ctx context.Context, rr ...*types.Attachment) error
 
@@ -55,11 +54,6 @@ func CreateComposeAttachment(ctx context.Context, s ComposeAttachments, rr ...*t
 // UpdateComposeAttachment updates one or more (existing) ComposeAttachments in store
 func UpdateComposeAttachment(ctx context.Context, s ComposeAttachments, rr ...*types.Attachment) error {
 	return s.UpdateComposeAttachment(ctx, rr...)
-}
-
-// PartialComposeAttachmentUpdate updates one or more existing ComposeAttachments in store
-func PartialComposeAttachmentUpdate(ctx context.Context, s ComposeAttachments, onlyColumns []string, rr ...*types.Attachment) error {
-	return s.PartialComposeAttachmentUpdate(ctx, onlyColumns, rr...)
 }
 
 // UpsertComposeAttachment creates new or updates existing one or more ComposeAttachments in store

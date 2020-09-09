@@ -266,11 +266,11 @@ func (s Store) CreateComposePage(ctx context.Context, rr ...*types.Page) (err er
 
 // UpdateComposePage updates one or more existing rows in compose_page
 func (s Store) UpdateComposePage(ctx context.Context, rr ...*types.Page) error {
-	return s.config.ErrorHandler(s.PartialComposePageUpdate(ctx, nil, rr...))
+	return s.config.ErrorHandler(s.partialComposePageUpdate(ctx, nil, rr...))
 }
 
-// PartialComposePageUpdate updates one or more existing rows in compose_page
-func (s Store) PartialComposePageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Page) (err error) {
+// partialComposePageUpdate updates one or more existing rows in compose_page
+func (s Store) partialComposePageUpdate(ctx context.Context, onlyColumns []string, rr ...*types.Page) (err error) {
 	for _, res := range rr {
 		err = s.checkComposePageConstraints(ctx, res)
 		if err != nil {
