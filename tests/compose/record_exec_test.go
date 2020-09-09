@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest"
 	"net/http"
@@ -35,11 +36,9 @@ func TestRecordExecUnknownProcedure(t *testing.T) {
 		End()
 }
 
-func TestRecordExec(t *testing.T) {
-	t.Skipf("disabled due to unconsistent test results in build pipeline")
-	return
-
+func TestRecordExecOrganize(t *testing.T) {
 	h := newHelper(t)
+	h.clearRecords()
 
 	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
 
@@ -61,7 +60,7 @@ func TestRecordExec(t *testing.T) {
 	assertSort := func(expectedHandles, expectedCats string) {
 		// Using record service for fetching to avoid value pre-fetching etc..
 		sorting, _ := filter.NewSorting("position ASC")
-		set, _, err := service.DefaultRecord.With(h.secCtx()).Find(types.RecordFilter{
+		set, _, err := store.SearchComposeRecords(h.secCtx(), service.DefaultNgStore, module, types.RecordFilter{
 			ModuleID:    module.ID,
 			NamespaceID: module.NamespaceID,
 			Sorting:     sorting,
@@ -74,6 +73,12 @@ func TestRecordExec(t *testing.T) {
 		actualCats := ""
 
 		_ = set.Walk(func(r *types.Record) error {
+			//fmt.Printf("%d\t%s\t%s\t%s\n", r.ID,
+			//	r.Values.FilterByName("position")[0].Value,
+			//	r.Values.FilterByName("handle")[0].Value,
+			//	r.Values.FilterByName("category")[0].Value,
+			//)
+
 			v := r.Values.FilterByName("handle")
 
 			if len(v) == 1 {
@@ -90,6 +95,8 @@ func TestRecordExec(t *testing.T) {
 		h.a.Equal(expectedHandles, actualHandles)
 		h.a.Equal(expectedCats, actualCats)
 	}
+
+	t.Logf("seeding records")
 
 	var (
 		aRec = makeRecord(1, "a", "CAT1")
@@ -116,13 +123,18 @@ func TestRecordExec(t *testing.T) {
 		"i": strconv.FormatUint(iRec.ID, 10),
 	}
 
+	t.Logf("testing initial order")
 	assertSort("abcdefghi", "111222333")
 
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+	t.Logf("moving 'a' to position '6'")
 	// Move a to the middle
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["a"]},
 		{"positionField", "position"},
-		{"position", "5"}}).
+		{"position", "6"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -131,6 +143,10 @@ func TestRecordExec(t *testing.T) {
 	//                            ^---v
 	assertSort("bcdeafghi", "112212333")
 
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+	t.Logf("moving 'i' to position '0'")
 	// Move i to the beginning
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["i"]},
@@ -144,6 +160,10 @@ func TestRecordExec(t *testing.T) {
 	//                            v<------^
 	assertSort("ibcdeafgh", "311221233")
 
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+	t.Logf("moving 'b' to position '5'")
 	// Move b to the 5th place
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
@@ -156,26 +176,29 @@ func TestRecordExec(t *testing.T) {
 
 	//                            ibcdeafgh
 	//                             ^->v
-	assertSort("icdebfagh", "312212133")
+	assertSort("icdebafgh", "312211233")
 
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+
+	t.Logf("moving 'b' to category CAT2")
 	// This will keep order of letters but move b to category-2
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
 		{"recordID", rr["b"]},
 		{"groupField", "category"},
-		{"group", "CAT2"},
-		{"position", "5"}}).
+		{"group", "CAT2"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
 	//                            icdebfagh
 	//                                ^
-	assertSort("icdebfagh", "312222133")
+	assertSort("icdebafgh", "312221233")
+
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	// ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 	lRec := h.lookupRecordByID(module, bRec.ID)
-
-	//rsv, err := h.repoRecord().LoadValues([]string{"category"}, []uint64{bRec.ID})
-	//h.noError(err)
 	h.a.NotNil(lRec.Values)
 	h.a.Len(lRec.Values.FilterByName("category"), 1)
 	h.a.Equal("CAT2", lRec.Values.FilterByName("category")[0].Value)

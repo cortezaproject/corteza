@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -16,6 +17,7 @@ import (
 	ngStore "github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
+	"strconv"
 	"time"
 )
 
@@ -176,7 +178,15 @@ func RegisterIteratorProviders() {
 			rf := types.RecordFilter{Query: f["query"]}
 			rf.Sort.Set(f["sort"])
 
-			panic("refactor")
+			if lString, has := f["limit"]; has {
+				if limit, err := strconv.ParseUint(lString, 10, 32); err != nil {
+					return fmt.Errorf("can not parse iterator limit param: %w", err)
+				} else {
+					rf.Limit = uint(limit)
+				}
+			}
+
+			//panic("refactor")
 			//rf.Paging.Limit =
 			//rf.ParsePagination(f)
 

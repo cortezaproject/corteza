@@ -16,6 +16,7 @@ import (
 // https://sqlite.org/lang_UPSERT.html
 func UpsertBuilder(cfg *Config, table string, payload store.Payload, columns ...string) (squirrel.InsertBuilder, error) {
 	var (
+		updateCond    = squirrel.Eq{}
 		updatePayload = store.Payload{}
 
 		// where to cutoff the update query
@@ -29,12 +30,14 @@ func UpsertBuilder(cfg *Config, table string, payload store.Payload, columns ...
 	for _, c := range columns {
 		if _, has := updatePayload[c]; has {
 			delete(updatePayload, c)
+			updateCond[c] = payload[c]
 		}
 	}
 
 	sql, args, err := squirrel.
 		Update(table).
 		SetMap(updatePayload).
+		//Where(updateCond).
 		ToSql()
 
 	if err != nil {

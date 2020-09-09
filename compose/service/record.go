@@ -979,15 +979,14 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 
 		return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 			if len(recordValues) > 0 {
-				svc.recordInfoUpdate(r)
-				if err = store.UpdateComposeRecord(ctx, s, m, r); err != nil {
-					return err
-				}
-
-				panic("refactor")
-				//if err = svc.recordRepo.PartialUpdateValues(recordValues...); err != nil {
+				//svc.recordInfoUpdate(r)
+				//if err = store.UpdateComposeRecord(ctx, s, m, r); err != nil {
 				//	return err
 				//}
+			}
+
+			if err = store.PartialComposeRecordValueUpdate(ctx, s, m, recordValues...); err != nil {
+				return err
 			}
 
 			if reorderingRecords {
@@ -1021,17 +1020,21 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 				}
 
 				// Update value on each record
-				return set.Walk(func(r *types.Record) error {
+				var vv = make([]*types.RecordValue, 0, len(set))
+				_ = set.Walk(func(r *types.Record) error {
 					recordOrderPlace++
+					vv = append(vv, &types.RecordValue{
+						RecordID: r.ID,
+						Name:     posField,
+						Value:    strconv.FormatUint(recordOrderPlace, 10),
+					})
 
-					// Update each and every set
-					panic("refactor")
-					//return svc.recordRepo.PartialUpdateValues(&types.RecordValue{
-					//	RecordID: r.ID,
-					//	Name:     posField,
-					//	Value:    strconv.FormatUint(recordOrderPlace, 10),
-					//})
+					return nil
 				})
+
+				if err = store.PartialComposeRecordValueUpdate(ctx, s, m, vv...); err != nil {
+					return err
+				}
 			}
 
 			return nil

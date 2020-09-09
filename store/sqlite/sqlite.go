@@ -18,6 +18,10 @@ type (
 	}
 )
 
+func init() {
+	store.Register(Connect, "sqlite3", "sqlite")
+}
+
 func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	var (
 		err error

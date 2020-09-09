@@ -44,3 +44,17 @@ func (s Store) ComposeRecordValueRefLookup(ctx context.Context, m *types.Module,
 
 	return recordID, nil
 }
+
+// PartialComposeRecordValueUpdate2 updates specific record values across multiple records
+func (s Store) PartialComposeRecordValueUpdate(ctx context.Context, m *types.Module, vv ...*types.RecordValue) (err error) {
+	{
+		// handle standard record-value storage
+		for _, v := range vv {
+			if err = s.execUpsertComposeRecordValues(ctx, s.internalComposeRecordValueEncoder(v)); err != nil {
+				return
+			}
+		}
+	}
+
+	return nil
+}
