@@ -18,7 +18,7 @@ func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuild
 	}
 
 	if f.MemberID > 0 {
-		query = query.Where(squirrel.Expr("rl.ID IN (SELECT rel_role FROM sys_role_member AS m WHERE m.rel_user = ?)", f.MemberID))
+		query = query.Where(squirrel.Expr("rl.ID IN (SELECT rel_role FROM role_members AS m WHERE m.rel_user = ?)", f.MemberID))
 	}
 
 	if f.Query != "" {
