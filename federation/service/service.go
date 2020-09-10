@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -12,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/store/minio"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	ngStore "github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
@@ -37,6 +39,8 @@ var (
 	CurrentSettings = &types.AppSettings{}
 
 	DefaultActionlog actionlog.Recorder
+
+	DefaultNode NodeService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() time.Time {
@@ -116,6 +120,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Conf
 	}
 
 	hcd.Add(store.Healthcheck(DefaultStore), "Store/Federation")
+
+	DefaultNode = Node(DefaultNgStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler)
 
 	return
 }
