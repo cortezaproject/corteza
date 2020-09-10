@@ -23,7 +23,7 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		// Due to lack of support for more exotic expressions (slice of values inside subquery)
 		// we'll use set of OR expressions as a workaround
 		for _, roleID := range f.RoleID {
-			or = append(or, squirrel.Expr("usr.ID IN (SELECT rel_user FROM sys_role_member WHERE rel_role = ?)", roleID))
+			or = append(or, squirrel.Expr("usr.ID IN (SELECT rel_user FROM role_members WHERE rel_role = ?)", roleID))
 		}
 
 		query = query.Where(or)
