@@ -46,7 +46,6 @@ func Service(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl string
 		dbTable:    tbl,
 	}
 
-	svc.Reload(ctx)
 	return
 }
 
