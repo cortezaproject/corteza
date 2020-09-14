@@ -8,7 +8,7 @@ fields:
   - { field: ID }
   - { field: Handle, lookupFilterPreprocessor: lower, unique: true, sortable: true }
   - { field: Name,   lookupFilterPreprocessor: lower,               sortable: true }
-  - { field: Meta, type: "types.JSONText" }
+  - { field: Meta,   type: "types.JSONText" }
   - { field: NamespaceID }
   - { field: CreatedAt,                              sortable: true }
   - { field: UpdatedAt,                              sortable: true }
