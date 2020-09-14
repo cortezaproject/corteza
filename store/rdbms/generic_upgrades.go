@@ -64,6 +64,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 			g.AlterUsersDropOrganisation,
 			g.AlterUsersDropRelatedUser,
 		)
+	case "compose_module":
+		return g.all(ctx,
+			g.AlterComposeModuleRenameJsonToMeta,
+		)
 	case "messaging_attachment":
 		return g.all(ctx,
 			g.AlterMessageAttachmentsRenameOwner,
@@ -341,6 +345,11 @@ func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error
 //
 //	return nil
 //}
+
+func (g genericUpgrades) AlterComposeModuleRenameJsonToMeta(ctx context.Context) error {
+	_, err := g.u.RenameColumn(ctx, "compose_module", "json", "meta")
+	return err
+}
 
 func (g genericUpgrades) AlterMessageAttachmentsRenameOwner(ctx context.Context) error {
 	_, err := g.u.RenameColumn(ctx, "messaging_attachment", "rel_user", "rel_owner")
