@@ -13,8 +13,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
@@ -55,7 +55,7 @@ func InitTestApp() {
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultNgStore = app.Store
 			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store)
-			service.DefaultStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
+			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
 			}

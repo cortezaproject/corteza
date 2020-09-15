@@ -1254,7 +1254,7 @@ var _ClientScripts_serviceDesc = grpc.ServiceDesc{
 	Metadata: "service-corredor.proto",
 }
 
-// StorageClient is the client API for Storage service.
+// StorageClient is the client API for ObjStore service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type StorageClient interface {
@@ -1268,7 +1268,7 @@ func NewStorageClient(cc *grpc.ClientConn) StorageClient {
 	return &storageClient{cc}
 }
 
-// StorageServer is the server API for Storage service.
+// StorageServer is the server API for ObjStore service.
 type StorageServer interface {
 }
 
@@ -1281,7 +1281,7 @@ func RegisterStorageServer(s *grpc.Server, srv StorageServer) {
 }
 
 var _Storage_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "corredor.Storage",
+	ServiceName: "corredor.ObjStore",
 	HandlerType: (*StorageServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams:     []grpc.StreamDesc{},

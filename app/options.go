@@ -14,7 +14,7 @@ type (
 		Upgrade    options.UpgradeOpt
 		Provision  options.ProvisionOpt
 		Sentry     options.SentryOpt
-		Storage    options.StorageOpt
+		ObjStore   options.ObjectStoreOpt
 		Corredor   options.CorredorOpt
 		Monitor    options.MonitorOpt
 		WaitFor    options.WaitForOpt
@@ -38,7 +38,7 @@ func NewOptions(prefix ...string) *Options {
 		Upgrade:    *options.Upgrade(p),
 		Provision:  *options.Provision(p),
 		Sentry:     *options.Sentry(p),
-		Storage:    *options.Storage(p),
+		ObjStore:   *options.ObjectStore(p),
 		Corredor:   *options.Corredor(),
 		Monitor:    *options.Monitor(p),
 		WaitFor:    *options.WaitFor(p),

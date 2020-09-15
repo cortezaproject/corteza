@@ -1,7 +1,7 @@
 package options
 
 type (
-	StorageOpt struct {
+	ObjectStoreOpt struct {
 		Path string `env:"STORAGE_PATH"`
 
 		MinioEndpoint  string `env:"MINIO_ENDPOINT"`
@@ -14,8 +14,8 @@ type (
 	}
 )
 
-func Storage(pfix string) (o *StorageOpt) {
-	o = &StorageOpt{
+func ObjectStore(pfix string) (o *ObjectStoreOpt) {
+	o = &ObjectStoreOpt{
 		Path: "var/store",
 
 		// Make minio secure by default

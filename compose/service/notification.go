@@ -148,14 +148,14 @@ func (svc notification) procEmailRecipients(ctx context.Context, m *gomail.Messa
 	return nil
 }
 
-// procEmailAttachments treats given strings (URLs) as remote files, downloads and attaches them to
+// procEmailAttachments treats given strings (URLs) as remote objects, downloads and attaches them to
 // the message
 //
 // This could/should be easily extended to support data URLs as well
 // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
 func (svc notification) procEmailAttachments(ctx context.Context, message *gomail.Message, aa ...string) error {
 	var (
-		// threading safely (when multiple files are to be attached)
+		// threading safely (when multiple objects are to be attached)
 		l  = &sync.Mutex{}
 		wg = &sync.WaitGroup{}
 
