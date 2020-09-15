@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/mysql"
 	"github.com/cortezaproject/corteza-server/store/postgres"
@@ -37,6 +38,8 @@ func Test_Store(t *testing.T) {
 			Upgrade(context.Context, *zap.Logger) error
 		}
 	)
+
+	logger.Init()
 
 	var (
 		ctx = context.Background()
@@ -87,8 +90,6 @@ func Test_Store(t *testing.T) {
 				t.Skipf("no %s found, skipping %s store tests", s.dsnEnvKey, s.name)
 				return
 			}
-
-			t.Logf("connecting to %s with %s", s.name, dsn)
 
 			genericStore, err := s.init(ctx, dsn)
 			if err != nil {
