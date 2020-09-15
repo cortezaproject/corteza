@@ -9,7 +9,7 @@ import (
 	"time"
 
 	// Explicitly register SQLite (not done in the app as for testing only)
-	_ "github.com/cortezaproject/corteza-server/store/sqlite"
+	_ "github.com/cortezaproject/corteza-server/store/sqlite3"
 )
 
 func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.CortezaApp) error) *app.CortezaApp {

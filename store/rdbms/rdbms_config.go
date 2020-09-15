@@ -1,6 +1,7 @@
 package rdbms
 
 import (
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
@@ -38,6 +39,9 @@ type (
 		DriverName     string
 		DataSourceName string
 		DBName         string
+
+		// Forces debug mode on RDBMS driver
+		Debug bool
 
 		// MaxOpenConns sets maximum number of open connections to the database
 		// defaults to same value as set in the db/sql
@@ -162,7 +166,7 @@ func (c *Config) SetDefaults() {
 	// ** ** ** ** ** ** ** ** ** ** ** ** ** **
 
 	if c.ConnTryPatience == 0 {
-		c.ConnTryPatience = 1 * time.Minute
+		//c.ConnTryPatience = 1 * time.Minute
 	}
 
 	if c.ConnTryBackoffDelay == 0 {
@@ -217,51 +221,47 @@ func (c *Config) ParseExtra() (err error) {
 		}
 	)
 
+	const storePrefixChar = "*"
+
 	for key := range vv {
 		val = vv.Get(key)
+
+		if storePrefixChar != key[:1] {
+			// skip non-store specific config
+			continue
+		}
+
 		switch key {
 		case "*connTryPatience":
-			delete(vv, key)
-			if c.ConnTryPatience, err = time.ParseDuration(val); err != nil {
-				return
-			}
+			c.ConnTryPatience, err = time.ParseDuration(val)
 
 		case "*connTryBackoffDelay":
-			delete(vv, key)
-			if c.ConnTryBackoffDelay, err = time.ParseDuration(val); err != nil {
-				return
-			}
+			c.ConnTryBackoffDelay, err = time.ParseDuration(val)
 
 		case "*connTryTimeout":
-			delete(vv, key)
-			if c.ConnTryTimeout, err = time.ParseDuration(val); err != nil {
-				return
-			}
+			c.ConnTryTimeout, err = time.ParseDuration(val)
 
 		case "*connMaxTries":
-			delete(vv, key)
-			if c.ConnTryMax, err = parseInt(val); err != nil {
-				return
-			}
+			c.ConnTryMax, err = parseInt(val)
 
 		case "*connMaxOpen":
-			delete(vv, key)
-			if c.MaxOpenConns, err = parseInt(val); err != nil {
-				return
-			}
+			c.MaxOpenConns, err = parseInt(val)
 
 		case "*connMaxLifetime":
-			delete(vv, key)
-			if c.ConnMaxLifetime, err = time.ParseDuration(val); err != nil {
-				return
-			}
+			c.ConnMaxLifetime, err = time.ParseDuration(val)
 
 		case "*connMaxIdle":
-			delete(vv, key)
-			if c.MaxIdleConns, err = parseInt(val); err != nil {
-				return
-			}
+			c.MaxIdleConns, err = parseInt(val)
+
+		default:
+			err = fmt.Errorf("unknown key %q", key)
 		}
+
+		if err != nil {
+			return fmt.Errorf("invalid store configuration for key %q: %w", key, err)
+		}
+
+		delete(vv, key)
 	}
 
 	// Encode QS back to DSN

@@ -1,0 +1,23 @@
+= RDBMS Store instrumentation & debug
+
+This package provides wrap around `database/sql/driver` that logs and measures db activities that pass through store.
+
+== Current capabilities
+
+=== Debug wrapper
+
+Logging of all activities (connections, queries, execs, transactions) and activity duration measures.
+This feature should be used in development env and disabled in production.
+
+.To enable debugging, use extra * parameter for DSN:
+====
+DB_DSN="postgres+debug://crust:crust@localhost:5432/crust?sslmode=disable&"
+====
+
+In previous versions similar functionality was enabled by setting `DB_LOGGER` environmental variable.
+This is no longer supported because of migration to "store" architecture and ability to selectively enable this
+only for specific connections.
+
+== Plans
+
+This package will support proper instrumentation, tracing and metrics via OpenTracing/OpenTelemetry.

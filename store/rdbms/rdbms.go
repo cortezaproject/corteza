@@ -7,7 +7,6 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
@@ -19,16 +18,6 @@ import (
 	"time"
 )
 
-// persistance layer
-//
-// all functions go under one struct
-//   why? because it will be easier to initialize and pass around
-//
-// each domain will be in it's own file
-//
-// connection logic will be built in the persistence layer (making pkg/db obsolete)
-//
-
 type (
 	schemaUpgradeGenerator interface {
 		TableExists(string) bool
@@ -36,6 +25,7 @@ type (
 		CreateIndexes(ii ...*ddl.Index) []string
 	}
 
+	// Store - Corteza RDBMS persistence layer
 	Store struct {
 		config *Config
 
@@ -44,6 +34,9 @@ type (
 		sug schemaUpgradeGenerator
 
 		db dbLayer
+
+		// Logger for connection
+		logger *zap.Logger
 	}
 
 	dbLayer interface {
@@ -66,12 +59,6 @@ type (
 	}
 )
 
-var log = logger.MakeDebugLogger().
-	//return logger.Default().
-	Named("store.rdbms").
-	WithOptions(zap.AddCallerSkip(2)).
-	WithOptions(zap.AddStacktrace(zap.FatalLevel))
-
 const (
 	// TxRetryHardLimit is the absolute maximum retries we'll allow
 	TxRetryHardLimit = 100
@@ -83,20 +70,18 @@ const (
 )
 
 func Connect(ctx context.Context, cfg *Config) (s *Store, err error) {
-	if err = cfg.ParseExtra(); err != nil {
-		return nil, err
-	}
+	return s, func() error {
+		if err = cfg.ParseExtra(); err != nil {
+			return err
+		}
 
-	cfg.SetDefaults()
-	s = &Store{
-		config: cfg,
-	}
+		cfg.SetDefaults()
+		s = &Store{
+			config: cfg,
+		}
 
-	if err = s.Connect(ctx); err != nil {
-		return nil, err
-	}
-
-	return s, nil
+		return s.Connect(ctx)
+	}()
 }
 
 // WithTx spins up new store instance with transaction
@@ -108,20 +93,17 @@ func (s *Store) withTx(tx dbLayer) *Store {
 	}
 }
 
-// Temporary solution for logging
-func (s *Store) log(ctx context.Context) *zap.Logger {
-	// @todo extract logger from context
-	return log
-}
-
 func (s *Store) Connect(ctx context.Context) error {
 	s.log(ctx).Debug("opening connection", zap.String("driver", s.config.DriverName), zap.String("dsn", s.config.MaskedDSN()))
-	db, err := sqlx.Open(s.config.DriverName, s.config.DataSourceName)
-	healthcheck.Defaults().Add(dbHealthcheck(db), "Store/RDBMS/"+s.config.DriverName)
+
+	db, err := sql.Open(s.config.DriverName, s.config.DataSourceName)
 	if err != nil {
 		return err
 	}
 
+	healthcheck.Defaults().Add(dbHealthcheck(db), "Store/RDBMS/"+s.config.DriverName)
+
+	dbx := sqlx.NewDb(db, s.config.DriverName)
 	s.log(ctx).Debug(
 		"setting connection parameters",
 		zap.Int("MaxOpenConns", s.config.MaxOpenConns),
@@ -129,15 +111,15 @@ func (s *Store) Connect(ctx context.Context) error {
 		zap.Int("MaxIdleConns", s.config.MaxIdleConns),
 	)
 
-	db.SetMaxOpenConns(s.config.MaxOpenConns)
-	db.SetConnMaxLifetime(s.config.ConnMaxLifetime)
-	db.SetMaxIdleConns(s.config.MaxIdleConns)
+	dbx.SetMaxOpenConns(s.config.MaxOpenConns)
+	dbx.SetConnMaxLifetime(s.config.ConnMaxLifetime)
+	dbx.SetMaxIdleConns(s.config.MaxIdleConns)
 
-	if err = s.tryToConnect(ctx, db); err != nil {
+	if err = s.tryToConnect(ctx, dbx); err != nil {
 		return err
 	}
 
-	s.db = db
+	s.db = dbx
 	return err
 }
 
@@ -146,8 +128,6 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 		connErrCh = make(chan error, 1)
 		patience  = time.Now().Add(s.config.ConnTryPatience)
 	)
-
-	//defer close(connErrCh)
 
 	go func() {
 		defer sentry.Recover()
@@ -207,21 +187,18 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 	}
 }
 
-func dbHealthcheck(db *sqlx.DB) func(ctx context.Context) error {
+func dbHealthcheck(db *sql.DB) func(ctx context.Context) error {
 	return db.PingContext
 }
 
 func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error) {
 	var (
-		start            = time.Now()
 		query, args, err = q.ToSql()
 	)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
-
-	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
 
 	return s.db.QueryContext(ctx, query, args...)
 }
@@ -229,7 +206,6 @@ func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error)
 // QueryRow returns row instead of filling in the passed struct
 func (s Store) QueryRow(ctx context.Context, q squirrel.SelectBuilder) (*sql.Row, error) {
 	var (
-		start            = time.Now()
 		query, args, err = q.ToSql()
 	)
 
@@ -237,22 +213,17 @@ func (s Store) QueryRow(ctx context.Context, q squirrel.SelectBuilder) (*sql.Row
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
 
-	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
-
 	return s.db.QueryRowContext(ctx, query, args...), nil
 }
 
 func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
 	var (
-		start            = time.Now()
 		query, args, err = sqlizer.ToSql()
 	)
 
 	if err != nil {
 		return err
 	}
-
-	s.log(ctx).Debug(query, zap.Any("args", args), zap.Duration("duration", time.Now().Sub(start)))
 
 	_, err = s.db.ExecContext(ctx, query, args...)
 	return err

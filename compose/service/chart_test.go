@@ -7,7 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/store/sqlite"
+	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"testing"
@@ -16,7 +16,7 @@ import (
 func TestCharts(t *testing.T) {
 	var (
 		ctx    = context.Background()
-		s, err = sqlite.ConnectInMemory(ctx)
+		s, err = sqlite3.ConnectInMemory(ctx)
 
 		namespaceID = id.Next()
 		ns          *types.Namespace

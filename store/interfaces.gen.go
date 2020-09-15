@@ -35,19 +35,9 @@ package store
 // the code is regenerated.
 //
 
-import (
-	"context"
-)
-
 type (
-	Transactioner interface {
-		Tx(context.Context, func(context.Context, Storer) error) error
-	}
-
 	// Sortable interface combines interfaces of all supported store interfaces
-	Storer interface {
-		Transactioner
-
+	storerGenerated interface {
 		Actionlogs
 		Applications
 		Attachments

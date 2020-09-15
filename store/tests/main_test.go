@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/mysql"
-	"github.com/cortezaproject/corteza-server/store/pgsql"
-	"github.com/cortezaproject/corteza-server/store/sqlite"
+	"github.com/cortezaproject/corteza-server/store/postgres"
+	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
@@ -50,7 +50,7 @@ func Test_Store(t *testing.T) {
 			{
 				name:      "PostgreSQL",
 				dsnEnvKey: "RDBMS_PGSQL_DSN",
-				init:      pgsql.Connect,
+				init:      postgres.Connect,
 			},
 			{
 				name:      "CockroachDB",
@@ -60,7 +60,7 @@ func Test_Store(t *testing.T) {
 			{
 				name:      "SQLite",
 				dsnEnvKey: "RDBMS_SQLITE_DSN",
-				init:      sqlite.Connect,
+				init:      sqlite3.Connect,
 			},
 			{
 				name:      "InMemory",
