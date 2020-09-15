@@ -4,11 +4,11 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/objstore"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	"github.com/cortezaproject/corteza-server/pkg/store/minio"
-	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	ngStore "github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"time"
@@ -26,12 +26,12 @@ type (
 
 	Config struct {
 		ActionLog options.ActionLogOpt
-		Storage   options.StorageOpt
+		Storage   options.ObjectStoreOpt
 	}
 )
 
 var (
-	DefaultStore store.Store
+	DefaultObjectStore objstore.Store
 
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
@@ -86,7 +86,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	if DefaultStore == nil {
+	if DefaultObjectStore == nil {
 		const svcPath = "messaging"
 		if c.Storage.MinioEndpoint != "" {
 			var bucket = svcPath
@@ -94,7 +94,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 				bucket = c.Storage.MinioBucket + "/" + svcPath
 			}
 
-			DefaultStore, err = minio.New(bucket, minio.Options{
+			DefaultObjectStore, err = minio.New(bucket, minio.Options{
 				Endpoint:        c.Storage.MinioEndpoint,
 				Secure:          c.Storage.MinioSecure,
 				Strict:          c.Storage.MinioStrict,
@@ -110,7 +110,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 				zap.Error(err))
 		} else {
 			path := c.Storage.Path + "/" + svcPath
-			DefaultStore, err = plain.New(path)
+			DefaultObjectStore, err = plain.New(path)
 
 			log.Info("initializing store",
 				zap.String("path", path),
@@ -122,11 +122,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 		}
 	}
 
-	hcd.Add(store.Healthcheck(DefaultStore), "Store/Messaging")
+	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/Messaging")
 
 	DefaultEvent = Event(ctx)
 	DefaultChannel = Channel(ctx)
-	DefaultAttachment = Attachment(ctx, DefaultStore)
+	DefaultAttachment = Attachment(ctx, DefaultObjectStore)
 	DefaultMessage = Message(ctx)
 	DefaultCommand = Command(ctx)
 

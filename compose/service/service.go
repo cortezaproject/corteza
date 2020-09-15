@@ -9,11 +9,11 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/objstore"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	"github.com/cortezaproject/corteza-server/pkg/store/minio"
-	"github.com/cortezaproject/corteza-server/pkg/store/plain"
 	ngStore "github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
@@ -29,7 +29,7 @@ type (
 
 	Config struct {
 		ActionLog options.ActionLogOpt
-		Storage   options.StorageOpt
+		Storage   options.ObjectStoreOpt
 	}
 
 	eventDispatcher interface {
@@ -39,7 +39,7 @@ type (
 )
 
 var (
-	DefaultStore store.Store
+	DefaultObjectStore objstore.Store
 
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
@@ -106,7 +106,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)
 
-	if DefaultStore == nil {
+	if DefaultObjectStore == nil {
 		const svcPath = "compose"
 		if c.Storage.MinioEndpoint != "" {
 			var bucket = svcPath
@@ -114,7 +114,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 				bucket = c.Storage.MinioBucket + "/" + svcPath
 			}
 
-			DefaultStore, err = minio.New(bucket, minio.Options{
+			DefaultObjectStore, err = minio.New(bucket, minio.Options{
 				Endpoint:        c.Storage.MinioEndpoint,
 				Secure:          c.Storage.MinioSecure,
 				Strict:          c.Storage.MinioStrict,
@@ -130,14 +130,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 				zap.Error(err))
 		} else {
 			path := c.Storage.Path + "/" + svcPath
-			DefaultStore, err = plain.New(path)
+			DefaultObjectStore, err = plain.New(path)
 			log.Info("initializing store",
 				zap.String("path", path),
 				zap.Error(err))
 
 		}
 
-		hcd.Add(store.Healthcheck(DefaultStore), "Store/Compose")
+		hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Compose")
 
 		if err != nil {
 			return err
@@ -154,7 +154,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 	DefaultPage = Page()
 	DefaultChart = Chart()
 	DefaultNotification = Notification()
-	DefaultAttachment = Attachment(DefaultStore)
+	DefaultAttachment = Attachment(DefaultObjectStore)
 
 	RegisterIteratorProviders()
 

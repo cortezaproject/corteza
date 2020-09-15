@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	files "github.com/cortezaproject/corteza-server/pkg/store"
+	files "github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/disintegration/imaging"

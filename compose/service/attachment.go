@@ -7,7 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	files "github.com/cortezaproject/corteza-server/pkg/store"
+	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
@@ -29,7 +29,7 @@ type (
 	attachment struct {
 		ctx       context.Context
 		actionlog actionlog.Recorder
-		files     files.Store
+		objects   objstore.Store
 		ac        attachmentAccessController
 		store     store.Storer
 	}
@@ -57,11 +57,11 @@ type (
 	}
 )
 
-func Attachment(store files.Store) AttachmentService {
+func Attachment(store objstore.Store) AttachmentService {
 	return (&attachment{
-		files: store,
-		ac:    DefaultAccessControl,
-		store: DefaultNgStore,
+		objects: store,
+		ac:      DefaultAccessControl,
+		store:   DefaultNgStore,
 	}).With(context.Background())
 }
 
@@ -70,7 +70,7 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 		ctx:       ctx,
 		actionlog: DefaultActionlog,
 		ac:        svc.ac,
-		files:     svc.files,
+		objects:   svc.objects,
 		store:     svc.store,
 	}
 }
@@ -235,7 +235,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		return nil, nil
 	}
 
-	return svc.files.Open(att.Url)
+	return svc.objects.Open(att.Url)
 }
 
 func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
@@ -243,7 +243,7 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 		return nil, nil
 	}
 
-	return svc.files.Open(att.PreviewUrl)
+	return svc.objects.Open(att.PreviewUrl)
 }
 
 func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (att *types.Attachment, err error) {
@@ -354,7 +354,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		att.OwnerID = auth.GetIdentityFromContext(svc.ctx).Identity()
 	}
 
-	if svc.files == nil {
+	if svc.objects == nil {
 		return errors.New("can not create attachment: store handler not set")
 	}
 
@@ -369,10 +369,10 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToExtractMimeType(aProps).Wrap(err)
 	}
 
-	att.Url = svc.files.Original(att.ID, att.Meta.Original.Extension)
+	att.Url = svc.objects.Original(att.ID, att.Meta.Original.Extension)
 	aProps.setUrl(att.Url)
 
-	if err = svc.files.Save(att.Url, fh); err != nil {
+	if err = svc.objects.Save(att.Url, fh); err != nil {
 		return AttachmentErrFailedToStoreFile(aProps).Wrap(err)
 	}
 
@@ -499,9 +499,9 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	meta.Extension = f2e[previewFormat]
 
 	// Can and how we make a preview of this attachment?
-	att.PreviewUrl = svc.files.Preview(att.ID, meta.Extension)
+	att.PreviewUrl = svc.objects.Preview(att.ID, meta.Extension)
 
-	return svc.files.Save(att.PreviewUrl, buf)
+	return svc.objects.Save(att.PreviewUrl, buf)
 }
 
 var _ AttachmentService = &attachment{}
