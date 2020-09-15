@@ -138,7 +138,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultSettings = Settings(DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	if DefaultObjectStore == nil {
-		const svcPath = "compose"
+		const svcPath = "system"
 		if c.Storage.MinioEndpoint != "" {
 			var bucket = svcPath
 			if c.Storage.MinioBucket != "" {
