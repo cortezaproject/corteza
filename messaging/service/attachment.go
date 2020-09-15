@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	files "github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/disintegration/imaging"
@@ -117,7 +116,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		}
 
 		att = &types.Attachment{
-			ID:        id.Next(),
+			ID:        nextID(),
 			OwnerID:   currentUserID,
 			Name:      strings.TrimSpace(name),
 			CreatedAt: *now(),
@@ -133,7 +132,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		}
 
 		msg := &types.Message{
-			ID:         id.Next(),
+			ID:         nextID(),
 			Attachment: att,
 			Message:    name,
 			Type:       types.MessageTypeAttachment,

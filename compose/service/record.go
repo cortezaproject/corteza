@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"regexp"
 	"strconv"
@@ -684,9 +683,9 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 
 	// Reset values to new record
 	// to make sure nobody slips in something we do not want
-	new.ID = id.Next()
+	new.ID = nextID()
 	new.CreatedBy = invokerID
-	new.CreatedAt = *nowPtr()
+	new.CreatedAt = *now()
 	new.UpdatedAt = nil
 	new.UpdatedBy = 0
 	new.DeletedAt = nil
@@ -738,7 +737,7 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	// to make sure nobody slips in something we do not want
 	upd.CreatedAt = old.CreatedAt
 	upd.CreatedBy = old.CreatedBy
-	upd.UpdatedAt = nowPtr()
+	upd.UpdatedAt = now()
 	upd.UpdatedBy = invokerID
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
@@ -805,7 +804,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 		}
 	}
 
-	del.DeletedAt = nowPtr()
+	del.DeletedAt = now()
 	del.DeletedBy = invokerID
 
 	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
@@ -1193,7 +1192,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 					recordableAction = RecordActionIteratorDelete
 
 					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-						rec.DeletedAt = nowPtr()
+						rec.DeletedAt = now()
 						rec.DeletedBy = invokerID
 						return store.UpdateComposeRecord(ctx, s, m, rec)
 					})

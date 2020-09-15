@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -333,8 +332,8 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 			return
 		}
 
-		new.ID = id.Next()
-		new.CreatedAt = now()
+		new.ID = nextID()
+		new.CreatedAt = *now()
 
 		// consider email confirmed
 		// when creating user like this
@@ -392,7 +391,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 		u.Name = upd.Name
 		u.Handle = upd.Handle
 		u.Kind = upd.Kind
-		u.UpdatedAt = nowPtr()
+		u.UpdatedAt = now()
 
 		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
 			return
@@ -498,7 +497,7 @@ func (svc user) Delete(userID uint64) (err error) {
 			return
 		}
 
-		u.DeletedAt = nowPtr()
+		u.DeletedAt = now()
 		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}
@@ -568,7 +567,7 @@ func (svc user) Suspend(userID uint64) (err error) {
 			return UserErrNotAllowedToSuspend()
 		}
 
-		u.SuspendedAt = nowPtr()
+		u.SuspendedAt = now()
 		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
 		}

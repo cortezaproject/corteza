@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
@@ -72,6 +73,17 @@ var (
 	DefaultSystemUser systemService.UserService
 	//DefaultSystemUser *systemUser
 	//DefaultSystemRole *systemRole
+
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now()
+		return &c
+	}
+
+	// wrapper around nextID that will aid service testing
+	nextID = func() uint64 {
+		return id.Next()
+	}
 )
 
 // Initializes compose-only services
@@ -223,11 +235,6 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 	}
 
 	return new.Equal(createdAt)
-}
-
-func nowPtr() *time.Time {
-	now := time.Now()
-	return &now
 }
 
 // trim1st removes 1st param and returns only error

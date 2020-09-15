@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/disintegration/imaging"
@@ -155,7 +154,7 @@ func (svc attachment) DeleteByID(namespaceID, attachmentID uint64) (err error) {
 
 		aProps.setAttachment(att)
 
-		att.DeletedAt = nowPtr()
+		att.DeletedAt = now()
 		return store.UpdateComposeAttachment(ctx, s, att)
 	})
 
@@ -348,7 +347,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 	)
 
 	// preset attachment ID because we need ref for storage
-	att.ID = id.Next()
+	att.ID = nextID()
 
 	if att.OwnerID == 0 {
 		att.OwnerID = auth.GetIdentityFromContext(svc.ctx).Identity()

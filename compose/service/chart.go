@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -132,8 +131,8 @@ func (svc chart) Create(new *types.Chart) (*types.Chart, error) {
 			return ChartErrNotAllowedToCreate()
 		}
 
-		new.ID = id.Next()
-		new.CreatedAt = *nowPtr()
+		new.ID = nextID()
+		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
@@ -249,7 +248,7 @@ func (svc chart) handleUpdate(upd *types.Chart) chartUpdateHandler {
 		c.Name = upd.Name
 		c.Handle = upd.Handle
 		c.Config = upd.Config
-		c.UpdatedAt = nowPtr()
+		c.UpdatedAt = now()
 		return true, nil
 	}
 }
@@ -264,7 +263,7 @@ func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types
 		return false, nil
 	}
 
-	c.DeletedAt = nowPtr()
+	c.DeletedAt = now()
 	return true, nil
 }
 

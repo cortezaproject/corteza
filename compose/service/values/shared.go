@@ -36,8 +36,3 @@ var (
 	isoDaty     = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`)
 	hasTimezone = regexp.MustCompile(`(Z|\+\d{2}:\d{2})$`)
 )
-
-func nowPtr() *time.Time {
-	now := time.Now()
-	return &now
-}

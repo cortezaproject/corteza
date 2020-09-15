@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"sort"
 	"strconv"
@@ -187,15 +186,15 @@ func (svc module) Create(new *types.Module) (*types.Module, error) {
 			return err
 		}
 
-		new.ID = id.Next()
-		new.CreatedAt = *nowPtr()
+		new.ID = nextID()
+		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
 		if new.Fields != nil {
 			_ = new.Fields.Walk(func(f *types.ModuleField) error {
 				f.ModuleID = new.ID
-				f.CreatedAt = *nowPtr()
+				f.CreatedAt = *now()
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
 				return nil
@@ -387,7 +386,7 @@ func (svc module) handleUpdate(upd *types.Module) moduleUpdateHandler {
 		}
 
 		if mch {
-			m.UpdatedAt = nowPtr()
+			m.UpdatedAt = now()
 		}
 
 		// for now, we assume that
@@ -405,7 +404,7 @@ func (svc module) handleDelete(ctx context.Context, ns *types.Namespace, m *type
 		return false, false, nil
 	}
 
-	m.DeletedAt = nowPtr()
+	m.DeletedAt = now()
 	return true, false, nil
 }
 
@@ -449,7 +448,7 @@ func updateModuleFields(ctx context.Context, s store.Storer, m *types.Module, ne
 			continue
 		}
 
-		ef.DeletedAt = nowPtr()
+		ef.DeletedAt = now()
 		err = store.UpdateComposeModuleField(ctx, s, ef)
 		if err != nil {
 			return err
@@ -471,12 +470,12 @@ func updateModuleFields(ctx context.Context, s store.Storer, m *types.Module, ne
 				f.Kind = e.Kind
 			}
 
-			f.UpdatedAt = nowPtr()
+			f.UpdatedAt = now()
 
 			err = store.UpdateComposeModuleField(ctx, s, f)
 		} else {
-			f.ID = id.Next()
-			f.CreatedAt = *nowPtr()
+			f.ID = nextID()
+			f.CreatedAt = *now()
 			err = store.CreateComposeModuleField(ctx, s, f)
 		}
 

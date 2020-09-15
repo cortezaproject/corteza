@@ -5,7 +5,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -212,8 +211,8 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 			return
 		}
 
-		new.ID = id.Next()
-		new.CreatedAt = now()
+		new.ID = nextID()
+		new.CreatedAt = *now()
 
 		if err = store.CreateRole(svc.ctx, svc.store, new); err != nil {
 			return
@@ -263,7 +262,7 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 
 		r.Handle = upd.Handle
 		r.Name = upd.Name
-		r.UpdatedAt = nowPtr()
+		r.UpdatedAt = now()
 
 		// Assign changed values
 		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
@@ -321,7 +320,7 @@ func (svc role) Delete(roleID uint64) (err error) {
 			return
 		}
 
-		r.DeletedAt = nowPtr()
+		r.DeletedAt = now()
 
 		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
@@ -381,7 +380,7 @@ func (svc role) Archive(roleID uint64) (err error) {
 			return RoleErrNotAllowedToArchive()
 		}
 
-		r.ArchivedAt = nowPtr()
+		r.ArchivedAt = now()
 		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return
 		}

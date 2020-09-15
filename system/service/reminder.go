@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"time"
@@ -119,8 +118,8 @@ func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.R
 			return err
 		}
 
-		r.ID = id.Next()
-		r.CreatedAt = now()
+		r.ID = nextID()
+		r.CreatedAt = *now()
 
 		if err = store.CreateReminder(ctx, svc.store, new); err != nil {
 			return err
@@ -161,7 +160,7 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 		r.Payload = upd.Payload
 		r.RemindAt = upd.RemindAt
 		r.Resource = upd.Resource
-		r.UpdatedAt = nowPtr()
+		r.UpdatedAt = now()
 
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
@@ -254,7 +253,7 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 			return ReminderErrNotFound()
 		}
 
-		r.DeletedAt = nowPtr()
+		r.DeletedAt = now()
 
 		raProps.setReminder(r)
 

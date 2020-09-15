@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -317,7 +316,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 
 		// This is a fresh channel, just copy values
 		ch = &types.Channel{
-			ID:               id.Next(),
+			ID:               nextID(),
 			Name:             new.Name,
 			Topic:            new.Topic,
 			Type:             new.Type,
@@ -968,7 +967,7 @@ func (svc *channel) flushSystemMessages() (err error) {
 	}()
 
 	return svc.sysmsgs.Walk(func(msg *types.Message) error {
-		msg.ID = id.Next()
+		msg.ID = nextID()
 		msg.CreatedAt = *now()
 
 		if err = store.CreateMessagingMessage(svc.ctx, svc.store, msg); err != nil {

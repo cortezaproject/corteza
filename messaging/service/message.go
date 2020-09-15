@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/store"
 	"io"
@@ -142,7 +141,7 @@ func (svc message) readableChannels(f types.MessageFilter) ([]uint64, error) {
 }
 
 func (svc message) Create(msg *types.Message) (*types.Message, error) {
-	msg.ID = id.Next()
+	msg.ID = nextID()
 	msg.CreatedAt = *now()
 	msg.Message = strings.TrimSpace(msg.Message)
 
@@ -594,7 +593,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 		} else {
 			ff = []*types.MessageFlag{
 				{
-					ID:        id.Next(),
+					ID:        nextID(),
 					UserID:    currentUserID,
 					CreatedAt: *now(),
 					ChannelID: msg.ChannelID,
