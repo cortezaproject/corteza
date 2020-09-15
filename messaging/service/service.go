@@ -93,7 +93,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, s)
+		DefaultPermissions = permissions.Global()
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)

@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
+	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/provision/compose"
@@ -149,7 +150,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return nil
 	} else if err := app.InitStore(ctx); err != nil {
 		return err
-
 	}
 
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
@@ -161,6 +161,17 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
+
+	{
+		// Initialize RBAC subsystem
+		// and (re)load rules from the storage backend
+		err = permissions.Initialize(app.Log, app.Store)
+		if err != nil {
+			return
+		}
+
+		permissions.Global().Reload(ctx)
+	}
 
 	// Initializes system services
 	//

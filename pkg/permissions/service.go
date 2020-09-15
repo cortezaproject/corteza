@@ -26,24 +26,43 @@ type (
 	RuleFilter struct{}
 )
 
+var (
+	// Global permissioning service
+	gRBAC *service
+)
+
 const (
 	watchInterval = time.Hour
 )
 
-// Service initializes service{} struct
+// Global returns global RBAC service
+func Global() *service {
+	return gRBAC
+}
+
+func Initialize(logger *zap.Logger, s rbacRulesStore) error {
+	if gRBAC != nil {
+		// Prevent multiple initializations
+		return nil
+	}
+
+	gRBAC = NewService(logger, s)
+	return nil
+}
+
+// NewService initializes service{} struct
 //
 // service{} struct preloads, checks, grants and flushes privileges to and from store
 // It acts as a caching layer
-func Service(ctx context.Context, logger *zap.Logger, s rbacRulesStore) (svc *service) {
+func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 	svc = &service{
 		l: &sync.Mutex{},
 		f: make(chan bool),
 
-		logger: logger.Named("permissions"),
+		logger: logger.Named("rbac"),
 		store:  s,
 	}
 
-	svc.Reload(ctx)
 	return
 }
 
