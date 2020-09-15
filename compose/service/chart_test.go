@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
@@ -18,7 +17,7 @@ func TestCharts(t *testing.T) {
 		ctx    = context.Background()
 		s, err = sqlite3.ConnectInMemory(ctx)
 
-		namespaceID = id.Next()
+		namespaceID = nextID()
 		ns          *types.Namespace
 	)
 
@@ -43,7 +42,7 @@ func TestCharts(t *testing.T) {
 		t.Fatalf("failed to truncate compose charts: %v", err)
 	}
 
-	ns = &types.Namespace{Name: "testing", ID: namespaceID, CreatedAt: *nowPtr()}
+	ns = &types.Namespace{Name: "testing", ID: namespaceID, CreatedAt: *now()}
 	if err = store.CreateComposeNamespace(ctx, s, ns); err != nil {
 		t.Fatalf("failed to seed namespaces: %v", err)
 	}

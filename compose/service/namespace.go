@@ -293,7 +293,7 @@ func (svc namespace) handleUpdate(upd *types.Namespace) namespaceUpdateHandler {
 		ns.Slug = upd.Slug
 		ns.Meta = upd.Meta
 		ns.Enabled = upd.Enabled
-		ns.UpdatedAt = nowPtr()
+		ns.UpdatedAt = now()
 
 		return true, nil
 	}
@@ -309,7 +309,7 @@ func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (boo
 		return false, nil
 	}
 
-	ns.DeletedAt = nowPtr()
+	ns.DeletedAt = now()
 	return true, nil
 }
 

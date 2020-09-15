@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"sync"
 	"time"
 )
@@ -64,7 +63,7 @@ func (svc *importSession) SetByID(ctx context.Context, sessionID, namespaceID, m
 		ris = svc.records[i]
 	} else {
 		ris = &RecordImportSession{
-			SessionID: id.Next(),
+			SessionID: nextID(),
 			CreatedAt: time.Now(),
 		}
 		svc.records = append(svc.records, ris)

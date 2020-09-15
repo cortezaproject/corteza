@@ -8,7 +8,6 @@ import (
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
@@ -154,7 +153,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 
 				if u.Valid() {
 					// Valid user, Bingo!
-					c.LastUsedAt = nowPtr()
+					c.LastUsedAt = now()
 					if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
 						return err
 					}
@@ -214,8 +213,8 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 				createHandle(ctx, svc.store, u)
 			}
 
-			u.ID = id.Next()
-			u.CreatedAt = now()
+			u.ID = nextID()
+			u.CreatedAt = *now()
 			if err = store.CreateUser(ctx, svc.store, u); err != nil {
 				return err
 			}
@@ -255,12 +254,12 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		// If we got to this point, assume that user is authenticated
 		// but credentials need to be stored
 		c := &types.Credentials{
-			ID:          id.Next(),
-			CreatedAt:   now(),
+			ID:          nextID(),
+			CreatedAt:   *now(),
 			Kind:        profile.Provider,
 			OwnerID:     u.ID,
 			Credentials: profile.UserID,
-			LastUsedAt:  nowPtr(),
+			LastUsedAt:  now(),
 		}
 
 		if err = store.CreateCredentials(ctx, svc.store, c); err != nil {
@@ -331,8 +330,8 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 				return AuthErrInvalidCredentials(aam)
 			} else {
 				// Update last-used-by timestamp on matching credentials
-				c.LastUsedAt = nowPtr()
-				c.UpdatedAt = nowPtr()
+				c.LastUsedAt = now()
+				c.UpdatedAt = now()
 				aam.setCredentials(c)
 
 				if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
@@ -377,7 +376,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		}
 
 		var nUser = &types.User{
-			ID:       id.Next(),
+			ID:       nextID(),
 			Email:    input.Email,
 			Name:     input.Name,
 			Username: input.Username,
@@ -483,8 +482,8 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 			return AuthErrInvalidCredentials(aam)
 		} else {
 			// Update last-used-by timestamp on matching credentials
-			c.UpdatedAt = nowPtr()
-			c.LastUsedAt = nowPtr()
+			c.UpdatedAt = now()
+			c.LastUsedAt = now()
 			aam.setCredentials(c)
 
 			if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
@@ -664,7 +663,7 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 
 	// Mark all credentials as deleted
 	_ = cc.Walk(func(c *types.Credentials) error {
-		c.DeletedAt = nowPtr()
+		c.DeletedAt = now()
 		return nil
 	})
 
@@ -675,8 +674,8 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 
 	// Add new credentials with new password
 	c := &types.Credentials{
-		ID:          id.Next(),
-		CreatedAt:   now(),
+		ID:          nextID(),
+		CreatedAt:   *now(),
 		OwnerID:     userID,
 		Kind:        credentialsTypePassword,
 		Credentials: string(hash),
@@ -747,7 +746,7 @@ func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenTy
 		}
 
 		u.EmailConfirmed = true
-		u.UpdatedAt = nowPtr()
+		u.UpdatedAt = now()
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return err
 		}
@@ -979,15 +978,15 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 		switch kind {
 		case credentialsTypeAuthToken:
 			// 15 sec expiration for all tokens that are part of redirection
-			expiresAt = nowPtr().Add(time.Second * 15)
+			expiresAt = now().Add(time.Second * 15)
 		default:
 			// 1h expiration for all tokens send via email
-			expiresAt = nowPtr().Add(time.Minute * 60)
+			expiresAt = now().Add(time.Minute * 60)
 		}
 
 		c := &types.Credentials{
-			ID:          id.Next(),
-			CreatedAt:   now(),
+			ID:          nextID(),
+			CreatedAt:   *now(),
 			OwnerID:     u.ID,
 			Kind:        kind,
 			Credentials: string(rand.Bytes(credentialsTokenLength)),

@@ -91,17 +91,12 @@ var (
 	DefaultStatistics *statistics
 
 	// wrapper around time.Now() that will aid service testing
-	now = func() time.Time {
-		return time.Now()
+	now = func() *time.Time {
+		c := time.Now()
+		return &c
 	}
 
-	// returns pointer to time.Time struct that is set to current time
-	nowPtr = func() *time.Time {
-		n := now()
-		return &n
-	}
-
-	// wrapper around id.Next() that will aid service testing
+	// wrapper around nextID that will aid service testing
 	nextID = func() uint64 {
 		return id.Next()
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -55,15 +54,15 @@ func TestAuth_External(t *testing.T) {
 		ctx = context.Background()
 
 		// Create some virtual user and credentials
-		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: id.Next(), CreatedAt: now()}
-		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), SuspendedAt: nowPtr()}
+		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now()}
+		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
 
 		freshProfileID = func() string {
-			return fmt.Sprintf("fresh-profile-id-%d", id.Next())
+			return fmt.Sprintf("fresh-profile-id-%d", nextID())
 		}
 
 		fooCredentials = &types.Credentials{
-			ID:          id.Next(),
+			ID:          nextID(),
 			OwnerID:     validUser.ID,
 			Label:       "credentials for foo provider",
 			Kind:        "foo",
@@ -72,7 +71,7 @@ func TestAuth_External(t *testing.T) {
 		}
 
 		barCredentials = &types.Credentials{
-			ID:          id.Next(),
+			ID:          nextID(),
 			OwnerID:     validUser.ID,
 			Label:       "credentials for bar provider",
 			Kind:        "bar",
@@ -146,8 +145,8 @@ func TestAuth_InternalLogin(t *testing.T) {
 		ctx = context.Background()
 
 		validPass     = "this is a valid password !! 42"
-		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), EmailConfirmed: true}
-		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: id.Next(), CreatedAt: now(), SuspendedAt: nowPtr()}
+		validUser     = &types.User{Email: "valid@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), EmailConfirmed: true}
+		suspendedUser = &types.User{Email: "suspended@test.cortezaproject.org", ID: nextID(), CreatedAt: *now(), SuspendedAt: now()}
 
 		tests = []struct {
 			name     string

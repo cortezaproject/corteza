@@ -106,7 +106,7 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (app
 
 		// Set new values after beforeCreate events are emitted
 		new.ID = nextID()
-		new.CreatedAt = now()
+		new.CreatedAt = *now()
 
 		if new.Unify == nil {
 			new.Unify = &types.ApplicationUnify{}
@@ -152,7 +152,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 		// Assign changed values after afterUpdate events are emitted
 		app.Name = upd.Name
 		app.Enabled = upd.Enabled
-		app.UpdatedAt = nowPtr()
+		app.UpdatedAt = now()
 
 		if upd.Unify != nil {
 			app.Unify = upd.Unify
@@ -194,7 +194,7 @@ func (svc *application) Delete(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		app.DeletedAt = nowPtr()
+		app.DeletedAt = now()
 		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
 			return
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
@@ -51,6 +52,17 @@ var (
 	DefaultMessage    MessageService
 	DefaultEvent      EventService
 	DefaultCommand    CommandService
+
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now()
+		return &c
+	}
+
+	// wrapper around nextID that will aid service testing
+	nextID = func() uint64 {
+		return id.Next()
+	}
 )
 
 func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
@@ -139,9 +151,4 @@ func Activate(ctx context.Context) (err error) {
 
 func Watchers(ctx context.Context) {
 	DefaultPermissions.Watch(ctx)
-}
-
-func now() *time.Time {
-	now := time.Now()
-	return &now
 }

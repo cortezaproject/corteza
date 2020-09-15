@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/id"
 	files "github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -108,7 +107,7 @@ func (svc attachment) DeleteByID(ID uint64) (err error) {
 			return err
 		}
 
-		att.DeletedAt = nowPtr()
+		att.DeletedAt = now()
 		aaProps.setAttachment(att)
 
 		return store.UpdateAttachment(svc.ctx, svc.store, att)
@@ -158,7 +157,7 @@ func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.Re
 		}
 
 		att = &types.Attachment{
-			ID:      id.Next(),
+			ID:      nextID(),
 			OwnerID: currentUserID,
 			Name:    strings.TrimSpace(name),
 			Kind:    types.AttachmentKindSettings,

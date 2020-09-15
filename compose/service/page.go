@@ -409,7 +409,7 @@ func (svc page) handleUpdate(upd *types.Page) pageUpdateHandler {
 		p.Description = upd.Description
 		p.Visible = upd.Visible
 		p.Weight = upd.Weight
-		p.UpdatedAt = nowPtr()
+		p.UpdatedAt = now()
 
 		return true, nil
 	}
@@ -425,7 +425,7 @@ func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.
 		return false, nil
 	}
 
-	m.DeletedAt = nowPtr()
+	m.DeletedAt = now()
 	return true, nil
 }
 
