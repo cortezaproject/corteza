@@ -445,6 +445,14 @@ func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, ss ...string)
 	return q.OrderBy(sqlSort...), nil
 }
 
+func SqlSortHandler(exp string, desc bool) string {
+	if desc {
+		return fmt.Sprintf("%s DESC NULLS LAST", exp)
+	} else {
+		return fmt.Sprintf("%s ASC NULLS FIRST", exp)
+	}
+}
+
 // TxNoRetry - Transaction retry handler
 //
 // Only returns false so transactions will never retry

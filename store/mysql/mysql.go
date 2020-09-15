@@ -43,6 +43,7 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	cfg.ErrorHandler = errorHandler
 	cfg.UpsertBuilder = UpsertBuilder
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
+	cfg.SqlSortHandler = SqlSortHandler
 
 	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
 		return nil, err

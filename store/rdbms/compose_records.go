@@ -321,8 +321,6 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 		if sortable[c.Column] {
 			sqlSort[i] = c.Column
 		} else if f := m.Fields.FindByName(c.Column); f != nil {
-			//sqlSort[i] = fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, sort[i].Column)
-			// sqlSort[i] = fmt.Sprintf("COALESCE(%s%s.value, '')", composeRecordValueAliasPfx + sort[i].Column)
 			sqlSort[i], err = s.config.CastModuleFieldToColumnType(f, c.Column)
 		} else {
 			err = fmt.Errorf("could not sort by unknown column: %s", c.Column)
@@ -332,9 +330,8 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 			return q, err
 		}
 
-		if sort[i].Descending {
-			sqlSort[i] += " DESC"
-		}
+		// Apply proper sorting param
+		sqlSort[i] = s.config.SqlSortHandler(sqlSort[i], sort[i].Descending)
 	}
 
 	return q.OrderBy(sqlSort...), nil
