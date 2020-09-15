@@ -6,6 +6,9 @@ steps:
   - name: "Quality Control"
     image: cortezaproject/corteza-server-builder:latest
     pull: always
+    environment:
+      GOFLAGS: -mod=vendor
+      CGO_ENABLED: 1
     commands:
       - make test.unit
 
@@ -50,19 +53,23 @@ steps:
     image: cortezaproject/corteza-server-builder:latest
     pull: always
     environment:
-      CGO_ENABLED: 0
+      GOFLAGS: -mod=vendor
+      CGO_ENABLED: 1
       GOOS: linux
       GOARCH: amd64
       CI: circleci
+
+      # Corteza basics
       AUTH_OIDC_ENABLED: 0
       AUTH_JWT_SECRET: FBjddkvwQib0d4usifnEGVr1bncuVeD7
-      SYSTEM_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
-      COMPOSE_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
-      MESSAGING_DB_DSN: corteza:corteza-pwd@tcp(corteza-db:3306)/corteza?collation=utf8mb4_general_ci
       CORREDOR_CLIENT_CERTIFICATES_ENABLED: false
       CORREDOR_ENABLED: false
+
+      # Storage backends
+      DB_DSN: sqlite3://file::memory:?cache=shared&mode=memory
+      # for now, we only run Store tests with SQLite
+      RDBMS_SQLITE_DSN: sqlite3://file::memory:?cache=shared&mode=memory
     commands:
-      - wait-for-it.sh -t 60 --strict corteza-db:3306 -- echo "corteza-db is up"
       - make test.coverprofile.all
 
   - name: coverage
@@ -71,18 +78,6 @@ steps:
       token: 628a7104-4ec8-46ef-a3a8-50b0c2507082
       files:
        - .cover.out
-
-services:
-  - name: corteza-db
-    pull: always
-    image: percona:8.0
-    ports:
-      - 3306
-    environment:
-      MYSQL_ROOT_PASSWORD: bRxJ37sJ6Qu4
-      MYSQL_DATABASE: corteza
-      MYSQL_USER: corteza
-      MYSQL_PASSWORD: corteza-pwd
 
 trigger:
   event:
