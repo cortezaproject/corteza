@@ -60,7 +60,7 @@ func (svc namespace) With(ctx context.Context) NamespaceService {
 		actionlog: DefaultActionlog,
 		ac:        svc.ac,
 		eventbus:  svc.eventbus,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 	}
 }
 

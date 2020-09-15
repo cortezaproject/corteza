@@ -61,7 +61,7 @@ func Attachment(store objstore.Store) AttachmentService {
 	return (&attachment{
 		objects: store,
 		ac:      DefaultAccessControl,
-		store:   DefaultNgStore,
+		store:   DefaultStore,
 	}).With(context.Background())
 }
 

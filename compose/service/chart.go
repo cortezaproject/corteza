@@ -53,7 +53,7 @@ func (svc chart) With(ctx context.Context) ChartService {
 		ctx:       ctx,
 		actionlog: DefaultActionlog,
 		ac:        svc.ac,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 	}
 }
 

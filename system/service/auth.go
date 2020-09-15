@@ -72,7 +72,7 @@ func Auth() *auth {
 		notifications: DefaultAuthNotification,
 
 		actionlog: DefaultActionlog,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 
 		providerValidator: defaultProviderValidator,
 	}

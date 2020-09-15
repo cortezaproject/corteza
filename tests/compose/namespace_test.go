@@ -16,19 +16,19 @@ import (
 )
 
 func (h helper) clearNamespaces() {
-	h.noError(store.TruncateComposeNamespaces(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateComposeNamespaces(context.Background(), service.DefaultStore))
 }
 
 func (h helper) makeNamespace(name string) *types.Namespace {
 	ns := &types.Namespace{Name: name, Slug: name}
 	ns.ID = id.Next()
 	ns.CreatedAt = time.Now()
-	h.noError(store.CreateComposeNamespace(context.Background(), service.DefaultNgStore, ns))
+	h.noError(store.CreateComposeNamespace(context.Background(), service.DefaultStore, ns))
 	return ns
 }
 
 func (h helper) lookupNamespaceByID(ID uint64) *types.Namespace {
-	ns, err := store.LookupComposeNamespaceByID(context.Background(), service.DefaultNgStore, ID)
+	ns, err := store.LookupComposeNamespaceByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return ns
 }

@@ -136,7 +136,7 @@ func Record() RecordService {
 		ac:            DefaultAccessControl,
 		eventbus:      eventbus.Service(),
 		optEmitEvents: true,
-		store:         DefaultNgStore,
+		store:         DefaultStore,
 	}).With(context.Background())
 }
 

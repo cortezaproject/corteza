@@ -48,7 +48,7 @@ func Users(app serviceInitializer) *cobra.Command {
 			uf.Sort = filter.SortExprSet{&filter.SortExpr{Column: "updated_at"}}
 			uf.Limit = uint(limit)
 
-			users, _, err := service.DefaultNgStore.SearchUsers(ctx, uf)
+			users, _, err := service.DefaultStore.SearchUsers(ctx, uf)
 			cli.HandleError(err)
 
 			fmt.Fprintf(

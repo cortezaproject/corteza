@@ -40,7 +40,7 @@ type (
 func Reminder(ctx context.Context) ReminderService {
 	return &reminder{
 		ac:    DefaultAccessControl,
-		store: DefaultNgStore,
+		store: DefaultStore,
 	}
 }
 

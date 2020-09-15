@@ -53,7 +53,7 @@ func InitTestApp() {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			service.DefaultNgStore = app.Store
+			service.DefaultStore = app.Store
 			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store)
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {

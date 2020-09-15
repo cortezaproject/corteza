@@ -15,7 +15,7 @@ import (
 )
 
 func (h helper) clearRoles() {
-	h.noError(store.TruncateRoles(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateRoles(context.Background(), service.DefaultStore))
 }
 
 func (h helper) repoMakeRole(ss ...string) *types.Role {
@@ -36,13 +36,13 @@ func (h helper) repoMakeRole(ss ...string) *types.Role {
 		r.Name = "n_" + rs()
 	}
 
-	h.a.NoError(store.CreateRole(context.Background(), service.DefaultNgStore, r))
+	h.a.NoError(store.CreateRole(context.Background(), service.DefaultStore, r))
 
 	return r
 }
 
 func (h helper) lookupRoleByID(ID uint64) *types.Role {
-	res, err := store.LookupRoleByID(context.Background(), service.DefaultNgStore, ID)
+	res, err := store.LookupRoleByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return res
 }

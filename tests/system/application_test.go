@@ -15,7 +15,7 @@ import (
 )
 
 func (h helper) clearApplications() {
-	h.noError(store.TruncateApplications(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateApplications(context.Background(), service.DefaultStore))
 }
 
 func (h helper) repoMakeApplication(ss ...string) *types.Application {
@@ -31,13 +31,13 @@ func (h helper) repoMakeApplication(ss ...string) *types.Application {
 		res.Name = "n_" + rs()
 	}
 
-	h.a.NoError(store.CreateApplication(context.Background(), service.DefaultNgStore, res))
+	h.a.NoError(store.CreateApplication(context.Background(), service.DefaultStore, res))
 
 	return res
 }
 
 func (h helper) lookupApplicationByID(ID uint64) *types.Application {
-	res, err := store.LookupApplicationByID(context.Background(), service.DefaultNgStore, ID)
+	res, err := store.LookupApplicationByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return res
 }
