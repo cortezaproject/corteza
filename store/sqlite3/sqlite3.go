@@ -1,13 +1,16 @@
-package sqlite
+package sqlite3
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza-server/store/rdbms/instrumentation"
 	"github.com/mattn/go-sqlite3"
+	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -19,7 +22,8 @@ type (
 )
 
 func init() {
-	store.Register(Connect, "sqlite3", "sqlite")
+	store.Register(Connect, "sqlite3", "sqlite3+debug")
+	sql.Register("sqlite3+debug", sqlmw.Driver(new(sqlite3.SQLiteDriver), instrumentation.Debug()))
 }
 
 func Connect(ctx context.Context, dsn string) (store.Storer, error) {

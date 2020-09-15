@@ -1,4 +1,4 @@
-package sqlite
+package postgres
 
 import (
 	"fmt"
@@ -8,9 +8,11 @@ import (
 func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) (string, error) {
 	switch true {
 	case field.IsBoolean():
-		return fmt.Sprintf("(rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false))", ident), nil
+		return fmt.Sprintf("rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false)", ident), nil
 	case field.IsNumeric():
-		return fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", ident), nil
+		return fmt.Sprintf("rv_%s.value::NUMERIC", ident), nil
+	case field.IsDateTime():
+		return fmt.Sprintf("rv_%s.value::TIMESTAMP", ident), nil
 	case field.IsRef():
 		return fmt.Sprintf("rv_%s.ref ", ident), nil
 	default:

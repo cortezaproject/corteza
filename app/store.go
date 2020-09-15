@@ -5,5 +5,5 @@ package app
 // SQLite is intentionally ignored here
 import (
 	_ "github.com/cortezaproject/corteza-server/store/mysql"
-	_ "github.com/cortezaproject/corteza-server/store/pgsql"
+	_ "github.com/cortezaproject/corteza-server/store/postgres"
 )

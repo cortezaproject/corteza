@@ -1,12 +1,15 @@
-package pgsql
+package postgres
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza-server/store/rdbms/instrumentation"
 	"github.com/lib/pq"
+	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
 	"net/url"
 	"strings"
@@ -19,7 +22,9 @@ type (
 )
 
 func init() {
-	store.Register(Connect, "postgresql", "postgres", "pgsql")
+	store.Register(Connect, "postgres", "postgres+debug")
+	sql.Register("postgres+debug", sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
+
 }
 
 func Connect(ctx context.Context, dsn string) (store.Storer, error) {

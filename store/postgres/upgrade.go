@@ -1,11 +1,10 @@
-package sqlite
+package postgres
 
 // PostgreSQL specific prefixes, sql
 // templates, functions and other helpers
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
@@ -20,21 +19,14 @@ type (
 	}
 )
 
-// NewUpgrader returns SQLite schema upgrader
+// NewUpgrader returns PostgreSQL schema upgrader
 func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 	var g = &upgrader{store, log, ddl.NewGenerator(log)}
-	// All modifications we need for the DDL generator
-	// to properly support SQLite dialect
 
-	// Cover mysql exceptions
-	g.ddl.AddTemplateFunc("columnType", func(ct *ddl.ColumnType) string {
-		switch ct.Type {
-		case ddl.ColumnTypeTimestamp:
-			return "TIMESTAMP"
-		default:
-			return ddl.GenColumnType(ct)
-		}
-	})
+	// All modifications we need for the DDL generator
+	// to properly support PostgreSQL dialect
+
+	g.ddl.AddTemplate("create-table-suffix", "WITHOUT OIDS")
 
 	return g
 }
@@ -61,7 +53,6 @@ func (u upgrader) CreateTable(ctx context.Context, t *ddl.Table) (err error) {
 
 	if !exists {
 		if err = u.Exec(ctx, u.ddl.CreateTable(t)); err != nil {
-			println(u.ddl.CreateTable(t))
 			return err
 		}
 
@@ -95,7 +86,7 @@ func (u upgrader) upgradeTable(ctx context.Context, t *ddl.Table) error {
 func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	var exists bool
 
-	if err := u.s.DB().GetContext(ctx, &exists, "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type = 'table' AND name = ?", table); err != nil {
+	if err := u.s.DB().GetContext(ctx, &exists, "SELECT TO_REGCLASS($1) IS NOT NULL", "public."+table); err != nil {
 		return false, fmt.Errorf("could not check if table exists: %w", err)
 	}
 
@@ -218,25 +209,32 @@ func (u upgrader) RenameColumn(ctx context.Context, table, oldName, newName stri
 }
 
 func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Index) (added bool, err error) {
-	return false, fmt.Errorf("adding primary keys on sqlite tables is not implemented")
+	if err = u.Exec(ctx, u.ddl.AddPrimaryKey(table, ind)); err != nil {
+		return false, fmt.Errorf("could not add primary key to table %s: %w", table, err)
+	}
+
+	return true, nil
 }
 
 // loads and returns all tables columns
 func (u upgrader) getColumns(ctx context.Context, table string) (out ddl.Columns, err error) {
 	type (
 		col struct {
-			CID          int            `db:"cid"`
-			Name         string         `db:"name"`
-			NotNull      bool           `db:"notnull"`
-			PrimaryKey   bool           `db:"pk"`
-			DefaultValue sql.NullString `db:"dflt_value"`
-			Type         string         `db:"type"`
+			Name       string `db:"column_name"`
+			IsNullable bool   `db:"is_nullable"`
+			DataType   string `db:"data_type"`
 		}
 	)
 
 	var (
-		lookup = fmt.Sprintf(`PRAGMA TABLE_INFO(%q)`, table)
-		cols   []*col
+		lookup = `SELECT column_name,
+                         is_nullable = 'YES' AS is_nullable,
+                         data_type
+                    FROM information_schema.columns 
+                   WHERE table_catalog = $1 
+                     AND table_name = $2`
+
+		cols []*col
 	)
 
 	if err = u.s.DB().SelectContext(ctx, &cols, lookup, u.s.Config().DBName, table); err != nil {
@@ -248,7 +246,7 @@ func (u upgrader) getColumns(ctx context.Context, table string) (out ddl.Columns
 		out[i] = &ddl.Column{
 			Name: cols[i].Name,
 			//Type:         ddl.ColumnType{},
-			IsNull: !cols[i].NotNull,
+			IsNull: cols[i].IsNullable,
 			//DefaultValue: "",
 		}
 	}

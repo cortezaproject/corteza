@@ -85,7 +85,6 @@ func (imp *Importer) Cast(def interface{}) (err error) {
 	var nsHandle string
 	// Solving a special case where namespace is defined as string
 	// and we're treating value as namespace's handle
-	println("provisioning namespaces")
 	deinterfacer.KVsetString(&nsHandle, "namespace", def)
 	if nsHandle != "" {
 		delete(def.(map[interface{}]interface{}), "namespace")

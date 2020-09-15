@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/store/plain"
-	"github.com/cortezaproject/corteza-server/store/sqlite"
+	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -70,7 +70,7 @@ func InitTestApp() {
 				return err
 			}
 
-			service.DefaultNgStore, err = sqlite.ConnectInMemory(ctx)
+			service.DefaultNgStore, err = sqlite3.ConnectInMemory(ctx)
 			if err != nil {
 				return err
 			}

@@ -2,12 +2,15 @@ package mysql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
+	"github.com/cortezaproject/corteza-server/store/rdbms/instrumentation"
 	"github.com/go-sql-driver/mysql"
+	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -19,7 +22,8 @@ type (
 )
 
 func init() {
-	store.Register(Connect, "mysql")
+	store.Register(Connect, "mysql", "mysql+debug")
+	sql.Register("mysql+debug", sqlmw.Driver(new(mysql.MySQLDriver), instrumentation.Debug()))
 }
 
 func Connect(ctx context.Context, dsn string) (store.Storer, error) {

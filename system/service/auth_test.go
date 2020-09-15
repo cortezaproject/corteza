@@ -3,17 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store/sqlite"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/markbates/goth"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 // Mock auth service with nil for current time, dummy provider validator and mock db
@@ -21,7 +21,7 @@ func makeMockAuthService() *auth {
 	var (
 		ctx = context.Background()
 
-		mem, err = sqlite.ConnectInMemory(ctx)
+		mem, err = sqlite3.ConnectInMemory(ctx)
 
 		svc = &auth{
 			providerValidator: func(s string) error {
