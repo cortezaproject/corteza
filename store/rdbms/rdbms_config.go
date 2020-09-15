@@ -111,6 +111,11 @@ type (
 		// Functions are used in filters and aggregations
 		SqlFunctionHandler func(f ql.Function) (ql.ASTNode, error)
 
+		// SqlSortHandler handles construction of sorting expression
+		//
+		// MySQL does not support NULLS FIRST/LAST and without it sorts nulls differently then Postgres/SQLite
+		SqlSortHandler func(exp string, desc bool) string
+
 		CastModuleFieldToColumnType func(ModuleFieldTypeDetector, string) (string, error)
 	}
 )
@@ -183,6 +188,10 @@ func (c *Config) SetDefaults() {
 
 	if c.TriggerHandlers == nil {
 		c.TriggerHandlers = TriggerHandlers{}
+	}
+
+	if c.SqlSortHandler == nil {
+		c.SqlSortHandler = SqlSortHandler
 	}
 }
 
