@@ -70,7 +70,7 @@ func InitTestApp() {
 				return err
 			}
 
-			service.DefaultNgStore, err = sqlite3.ConnectInMemory(ctx)
+			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
 			if err != nil {
 				return err
 			}

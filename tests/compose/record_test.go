@@ -21,7 +21,7 @@ import (
 func (h helper) clearRecords() {
 	h.clearNamespaces()
 	h.clearModules()
-	h.noError(store.TruncateComposeRecords(context.Background(), service.DefaultNgStore, nil))
+	h.noError(store.TruncateComposeRecords(context.Background(), service.DefaultStore, nil))
 }
 
 type (
@@ -105,13 +105,13 @@ func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *typ
 		Values:      rvs,
 	}
 
-	h.noError(store.CreateComposeRecord(context.Background(), service.DefaultNgStore, module, rec))
+	h.noError(store.CreateComposeRecord(context.Background(), service.DefaultStore, module, rec))
 
 	return rec
 }
 
 func (h helper) lookupRecordByID(module *types.Module, ID uint64) *types.Record {
-	res, err := store.LookupComposeRecordByID(context.Background(), service.DefaultNgStore, module, ID)
+	res, err := store.LookupComposeRecordByID(context.Background(), service.DefaultStore, module, ID)
 	h.noError(err)
 	return res
 }

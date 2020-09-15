@@ -18,7 +18,7 @@ func (h helper) repoMakePublicCh() *types.Channel {
 		Type:      types.ChannelTypePublic,
 	}
 
-	h.a.NoError(store.CreateMessagingChannel(context.Background(), service.DefaultNgStore, ch))
+	h.a.NoError(store.CreateMessagingChannel(context.Background(), service.DefaultStore, ch))
 	return ch
 }
 
@@ -30,7 +30,7 @@ func (h helper) repoMakePrivateCh() *types.Channel {
 		Type:      types.ChannelTypePrivate,
 	}
 
-	h.a.NoError(store.CreateMessagingChannel(context.Background(), service.DefaultNgStore, ch))
+	h.a.NoError(store.CreateMessagingChannel(context.Background(), service.DefaultStore, ch))
 	return ch
 }
 
@@ -41,14 +41,14 @@ func (h helper) repoMakeMember(ch *types.Channel, u *sysTypes.User) *types.Chann
 		UserID:    u.ID,
 		Type:      types.ChannelMembershipTypeMember,
 	}
-	h.a.NoError(store.CreateMessagingChannelMember(context.Background(), service.DefaultNgStore, m))
+	h.a.NoError(store.CreateMessagingChannelMember(context.Background(), service.DefaultStore, m))
 	return m
 }
 
 func (h helper) lookupChMembership(ch *types.Channel) types.ChannelMemberSet {
 	f := types.ChannelMemberFilter{ChannelID: []uint64{ch.ID}}
 
-	mm, _, err := store.SearchMessagingChannelMembers(context.Background(), service.DefaultNgStore, f)
+	mm, _, err := store.SearchMessagingChannelMembers(context.Background(), service.DefaultStore, f)
 	h.a.NoError(err)
 	return mm
 }

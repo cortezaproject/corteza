@@ -16,7 +16,7 @@ import (
 
 func (h helper) clearCharts() {
 	h.clearNamespaces()
-	h.noError(store.TruncateComposeCharts(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateComposeCharts(context.Background(), service.DefaultStore))
 }
 
 func (h helper) makeChart(ns *types.Namespace, name string) *types.Chart {
@@ -28,12 +28,12 @@ func (h helper) makeChart(ns *types.Namespace, name string) *types.Chart {
 		NamespaceID: ns.ID,
 	}
 
-	h.noError(store.CreateComposeChart(context.Background(), service.DefaultNgStore, res))
+	h.noError(store.CreateComposeChart(context.Background(), service.DefaultStore, res))
 	return res
 }
 
 func (h helper) lookupChartByID(ID uint64) *types.Chart {
-	res, err := store.LookupComposeChartByID(context.Background(), service.DefaultNgStore, ID)
+	res, err := store.LookupComposeChartByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return res
 }

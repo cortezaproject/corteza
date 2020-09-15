@@ -16,8 +16,8 @@ import (
 
 func (h helper) clearModules() {
 	h.clearNamespaces()
-	h.noError(store.TruncateComposeModules(context.Background(), service.DefaultNgStore))
-	h.noError(store.TruncateComposeModuleFields(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateComposeModules(context.Background(), service.DefaultStore))
+	h.noError(store.TruncateComposeModuleFields(context.Background(), service.DefaultStore))
 }
 
 func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.ModuleField) *types.Module {
@@ -32,7 +32,7 @@ func (h helper) makeModule(ns *types.Namespace, name string, ff ...*types.Module
 func (h helper) createModule(res *types.Module) *types.Module {
 	res.ID = id.Next()
 	res.CreatedAt = time.Now()
-	h.noError(store.CreateComposeModule(context.Background(), service.DefaultNgStore, res))
+	h.noError(store.CreateComposeModule(context.Background(), service.DefaultStore, res))
 
 	_ = res.Fields.Walk(func(f *types.ModuleField) error {
 		f.ID = id.Next()
@@ -41,16 +41,16 @@ func (h helper) createModule(res *types.Module) *types.Module {
 		return nil
 	})
 
-	h.noError(store.CreateComposeModuleField(context.Background(), service.DefaultNgStore, res.Fields...))
+	h.noError(store.CreateComposeModuleField(context.Background(), service.DefaultStore, res.Fields...))
 
 	return res
 }
 
 func (h helper) lookupModuleByID(ID uint64) *types.Module {
-	res, err := store.LookupComposeModuleByID(context.Background(), service.DefaultNgStore, ID)
+	res, err := store.LookupComposeModuleByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 
-	res.Fields, _, err = store.SearchComposeModuleFields(context.Background(), service.DefaultNgStore, types.ModuleFieldFilter{ModuleID: []uint64{ID}})
+	res.Fields, _, err = store.SearchComposeModuleFields(context.Background(), service.DefaultStore, types.ModuleFieldFilter{ModuleID: []uint64{ID}})
 	h.noError(err)
 
 	return res
@@ -222,7 +222,7 @@ func TestModuleUpdate(t *testing.T) {
 		Assert(jsonpath.Present("$.response.updatedAt")).
 		End()
 
-	m, err := store.LookupComposeModuleByID(context.Background(), service.DefaultNgStore, m.ID)
+	m, err := store.LookupComposeModuleByID(context.Background(), service.DefaultStore, m.ID)
 	h.noError(err)
 	h.a.NotNil(m)
 	h.a.Equal("changed-name", m.Name)

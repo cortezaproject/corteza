@@ -28,7 +28,7 @@ func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *ty
 		ChannelID: ch.ID,
 		UserID:    u.ID,
 	}
-	err := store.CreateMessagingMessage(context.Background(), service.DefaultNgStore, m)
+	err := store.CreateMessagingMessage(context.Background(), service.DefaultStore, m)
 
 	h.a.NoError(err)
 	return m
@@ -56,11 +56,11 @@ func (h helper) apiMessageCreateReply(msg string, o *types.Message) *types.Messa
 }
 
 func (h helper) lookupMessageByID(ID uint64) (*types.Message, error) {
-	return store.LookupMessagingMessageByID(context.Background(), service.DefaultNgStore, ID)
+	return store.LookupMessagingMessageByID(context.Background(), service.DefaultStore, ID)
 }
 
 func (h helper) lookupFlagByMessageID(ID uint64) types.MessageFlagSet {
-	ff, _, err := store.SearchMessagingFlags(context.Background(), service.DefaultNgStore, types.MessageFlagFilter{MessageID: []uint64{ID}})
+	ff, _, err := store.SearchMessagingFlags(context.Background(), service.DefaultStore, types.MessageFlagFilter{MessageID: []uint64{ID}})
 	h.a.NoError(err)
 	return ff
 }

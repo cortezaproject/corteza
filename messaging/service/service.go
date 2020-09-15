@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	ngStore "github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"time"
 )
@@ -33,10 +33,10 @@ type (
 var (
 	DefaultObjectStore objstore.Store
 
-	// DefaultNgStore is an interface to storage backend(s)
+	// DefaultStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore ngStore.Storer
+	DefaultStore store.Storer
 
 	DefaultPermissions permissionServicer
 
@@ -53,14 +53,14 @@ var (
 	DefaultCommand    CommandService
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	DefaultNgStore = s
+	DefaultStore = s
 
 	DefaultLogger = log.Named("service")
 
@@ -75,7 +75,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storer, c Config
 			tee = log
 		}
 
-		DefaultActionlog = actionlog.NewService(DefaultNgStore, log, tee, policy)
+		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
 	if DefaultPermissions == nil {

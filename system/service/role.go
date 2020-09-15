@@ -69,7 +69,7 @@ func Role(ctx context.Context) RoleService {
 		actionlog: DefaultActionlog,
 
 		user:  DefaultUser.With(ctx),
-		store: DefaultNgStore,
+		store: DefaultStore,
 	}).With(ctx)
 }
 
@@ -83,7 +83,7 @@ func (svc role) With(ctx context.Context) RoleService {
 		eventbus: svc.eventbus,
 		user:     svc.user,
 
-		store: DefaultNgStore,
+		store: DefaultStore,
 	}
 }
 

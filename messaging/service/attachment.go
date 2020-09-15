@@ -57,7 +57,7 @@ func Attachment(ctx context.Context, store files.Store) AttachmentService {
 	return (&attachment{
 		ac:    DefaultAccessControl,
 		files: store,
-		store: DefaultNgStore,
+		store: DefaultStore,
 	}).With(ctx)
 }
 

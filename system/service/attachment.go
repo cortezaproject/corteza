@@ -55,7 +55,7 @@ func Attachment(store files.Store) AttachmentService {
 		files:     store,
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 	}).With(context.Background())
 }
 
@@ -68,7 +68,7 @@ func (svc attachment) With(ctx context.Context) AttachmentService {
 
 		files: svc.files,
 
-		store: DefaultNgStore,
+		store: DefaultStore,
 	}
 }
 

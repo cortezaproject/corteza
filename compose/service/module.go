@@ -64,7 +64,7 @@ func (svc module) With(ctx context.Context) ModuleService {
 		actionlog: DefaultActionlog,
 		ac:        svc.ac,
 		eventbus:  svc.eventbus,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 	}
 }
 

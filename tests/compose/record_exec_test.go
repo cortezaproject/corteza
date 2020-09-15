@@ -60,7 +60,7 @@ func TestRecordExecOrganize(t *testing.T) {
 	assertSort := func(expectedHandles, expectedCats string) {
 		// Using record service for fetching to avoid value pre-fetching etc..
 		sorting, _ := filter.NewSorting("position ASC")
-		set, _, err := store.SearchComposeRecords(h.secCtx(), service.DefaultNgStore, module, types.RecordFilter{
+		set, _, err := store.SearchComposeRecords(h.secCtx(), service.DefaultStore, module, types.RecordFilter{
 			ModuleID:    module.ID,
 			NamespaceID: module.NamespaceID,
 			Sorting:     sorting,

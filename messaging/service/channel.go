@@ -75,7 +75,7 @@ const (
 
 func Channel(ctx context.Context) ChannelService {
 	return (&channel{
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 	}).With(ctx)

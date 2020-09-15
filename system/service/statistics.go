@@ -30,7 +30,7 @@ func Statistics() *statistics {
 	return &statistics{
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
-		store:     DefaultNgStore,
+		store:     DefaultStore,
 	}
 }
 

@@ -52,7 +52,7 @@ func Page() PageService {
 	return (&page{
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
-		store:    DefaultNgStore,
+		store:    DefaultStore,
 	}).With(context.Background())
 }
 

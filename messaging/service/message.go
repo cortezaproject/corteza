@@ -70,7 +70,7 @@ func Message(ctx context.Context) MessageService {
 	return (&message{
 		ac:      DefaultAccessControl,
 		channel: DefaultChannel,
-		store:   DefaultNgStore,
+		store:   DefaultStore,
 	}).With(ctx)
 }
 

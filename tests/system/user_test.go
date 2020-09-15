@@ -31,12 +31,12 @@ func (h helper) createUser(user *types.User) *types.User {
 		user.CreatedAt = time.Now()
 	}
 
-	h.a.NoError(service.DefaultNgStore.CreateUser(context.Background(), user))
+	h.a.NoError(service.DefaultStore.CreateUser(context.Background(), user))
 	return user
 }
 
 func (h helper) clearUsers() {
-	h.noError(store.TruncateUsers(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateUsers(context.Background(), service.DefaultStore))
 }
 
 func TestUserRead(t *testing.T) {

@@ -100,7 +100,7 @@ func User(ctx context.Context) UserService {
 		settings: CurrentSettings,
 		auth:     DefaultAuth,
 
-		store: DefaultNgStore,
+		store: DefaultStore,
 
 		actionlog: DefaultActionlog,
 
@@ -326,7 +326,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		}
 
 		if new.Handle == "" {
-			createHandle(svc.ctx, DefaultNgStore, new)
+			createHandle(svc.ctx, DefaultStore, new)
 		}
 
 		if err = svc.UniqueCheck(new); err != nil {

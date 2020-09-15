@@ -16,7 +16,7 @@ import (
 
 func (h helper) clearPages() {
 	h.clearNamespaces()
-	h.noError(store.TruncateComposePages(context.Background(), service.DefaultNgStore))
+	h.noError(store.TruncateComposePages(context.Background(), service.DefaultStore))
 }
 
 func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
@@ -27,7 +27,7 @@ func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
 		NamespaceID: ns.ID,
 	}
 
-	h.noError(store.CreateComposePage(context.Background(), service.DefaultNgStore, res))
+	h.noError(store.CreateComposePage(context.Background(), service.DefaultStore, res))
 	return res
 }
 
@@ -40,12 +40,12 @@ func (h helper) repoMakeWeightedPage(ns *types.Namespace, name string, weight in
 		Weight:      weight,
 	}
 
-	h.noError(store.CreateComposePage(context.Background(), service.DefaultNgStore, res))
+	h.noError(store.CreateComposePage(context.Background(), service.DefaultStore, res))
 	return res
 }
 
 func (h helper) lookupPageByID(ID uint64) *types.Page {
-	res, err := store.LookupComposePageByID(context.Background(), service.DefaultNgStore, ID)
+	res, err := store.LookupComposePageByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return res
 }
