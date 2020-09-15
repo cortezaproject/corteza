@@ -56,8 +56,6 @@ func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
 	return (&rdbms.Schema{}).Upgrade(ctx, NewUpgrader(log, s))
 }
 
-//func (s *Store) Crea
-
 // ProcDataSourceName validates given DSN and ensures
 // params are present and correct
 //
