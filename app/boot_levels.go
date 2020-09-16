@@ -244,7 +244,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// will most likely be merged in the future
 	err = fdrService.Initialize(ctx, app.Log, app.Store, fdrService.Config{
 		ActionLog: app.Opt.ActionLog,
-		Storage:   app.Opt.Storage,
+		Storage:   app.Opt.ObjStore,
 	})
 
 	if err != nil {
