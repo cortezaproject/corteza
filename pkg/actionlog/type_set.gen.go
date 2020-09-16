@@ -1,6 +1,12 @@
 package actionlog
 
-// 	Hello! This file is auto-generated.
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/actionlog/types.yaml
 
 type (
 
@@ -35,6 +41,32 @@ func (set ActionSet) Filter(f func(*Action) (bool, error)) (out ActionSet, err e
 		} else if ok {
 			out = append(out, set[i])
 		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ActionSet) FindByID(ID uint64) *Action {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ActionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
 	}
 
 	return
