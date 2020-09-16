@@ -142,12 +142,12 @@ func (svc namespace) FindByAny(identifier interface{}) (r *types.Namespace, err 
 }
 
 // Create adds namespace and presets access rules for role everyone
-func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err error) {
+func (svc namespace) Create(new *types.Namespace) (*types.Namespace, error) {
 	var (
 		aProps = &namespaceActionProps{changed: new}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Slug) {
 			return NamespaceErrInvalidHandle()
 		}
@@ -164,15 +164,20 @@ func (svc namespace) Create(new *types.Namespace) (ns *types.Namespace, err erro
 			return err
 		}
 
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
 		if err = store.CreateComposeNamespace(svc.ctx, svc.store, new); err != nil {
 			return err
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterCreate(ns, nil))
+		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterCreate(new, nil))
 		return nil
 	})
 
-	return ns, svc.recordAction(svc.ctx, aProps, NamespaceActionCreate, err)
+	return new, svc.recordAction(svc.ctx, aProps, NamespaceActionCreate, err)
 }
 
 func (svc namespace) Update(upd *types.Namespace) (c *types.Namespace, err error) {

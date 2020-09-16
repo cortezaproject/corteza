@@ -231,7 +231,7 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 
 }
 
-func (svc page) Create(new *types.Page) (p *types.Page, err error) {
+func (svc page) Create(new *types.Page) (*types.Page, error) {
 	var (
 		ns     *types.Namespace
 		aProps = &pageActionProps{changed: new}
@@ -239,7 +239,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 
 	new.ID = 0
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return PageErrInvalidID()
 		}
@@ -262,6 +262,11 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 			return err
 		}
 
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
 		if err = store.CreateComposePage(ctx, s, new); err != nil {
 			return err
 		}
@@ -270,7 +275,7 @@ func (svc page) Create(new *types.Page) (p *types.Page, err error) {
 		return err
 	})
 
-	return p, svc.recordAction(svc.ctx, aProps, PageActionCreate, err)
+	return new, svc.recordAction(svc.ctx, aProps, PageActionCreate, err)
 }
 
 func (svc page) Update(upd *types.Page) (c *types.Page, err error) {

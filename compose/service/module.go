@@ -193,6 +193,7 @@ func (svc module) Create(new *types.Module) (*types.Module, error) {
 
 		if new.Fields != nil {
 			_ = new.Fields.Walk(func(f *types.ModuleField) error {
+				f.ID = nextID()
 				f.ModuleID = new.ID
 				f.CreatedAt = *now()
 				f.UpdatedAt = nil
@@ -284,7 +285,7 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 			hasRecords = len(set) > 0
 
 			if err = updateModuleFields(ctx, s, m, m.Fields, hasRecords); err != nil {
-
+				return err
 			}
 		}
 

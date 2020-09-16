@@ -149,7 +149,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 		}
 
-		hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Compose")
+		hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/Compose")
 
 		if err != nil {
 			return err
