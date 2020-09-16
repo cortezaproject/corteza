@@ -23,6 +23,15 @@ type (
 	}
 )
 
+// Check if any roels
+func checkRoles(ctx context.Context, s store.Storer) (bool, error) {
+	if set, _, err := store.SearchRoles(ctx, s, types.RoleFilter{}); err != nil {
+		return false, err
+	} else {
+		return len(set) > 0, nil
+	}
+}
+
 // Check if any RBAC rules exist
 func checkRbacRules(ctx context.Context, s store.Storer) (bool, error) {
 	if set, _, err := store.SearchRbacRules(ctx, s, permissions.RuleFilter{}); err != nil {
@@ -34,9 +43,23 @@ func checkRbacRules(ctx context.Context, s store.Storer) (bool, error) {
 
 func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	var (
-		hasRbacRules bool
-		readers      []io.Reader
+		hasRoles, hasRbacRules bool
+		readers                []io.Reader
 	)
+
+	if hasRoles, err = checkRoles(ctx, s); err != nil {
+		return err
+	} else if !hasRoles {
+		rs := service.DefaultRole.With(ctx)
+		rr := types.RoleSet{
+			&types.Role{ID: 0, Name: "Administrators", Handle: "admins"},
+			&types.Role{ID: 0, Name: "Everyone", Handle: "everyone"},
+		}
+
+		if err = rr.Walk(func(r *types.Role) error { _, err := rs.Create(r); return err }); err != nil {
+			return err
+		}
+	}
 
 	if hasRbacRules, err = checkRbacRules(ctx, s); err != nil {
 		return err
