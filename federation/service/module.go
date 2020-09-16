@@ -15,7 +15,7 @@ type (
 		fetcher composeService.ModuleService
 		// actionlog actionlog.Recorder
 		// ac        moduleAccessController
-		store store.Storable
+		store store.Storer
 	}
 
 	ModuleService interface {
@@ -28,7 +28,7 @@ func Module() ModuleService {
 		ctx: context.Background(),
 		// ac:       DefaultAccessControl,
 		// eventbus: eventbus.Service(),
-		store: composeService.DefaultNgStore,
+		store: composeService.DefaultStore,
 	}
 }
 

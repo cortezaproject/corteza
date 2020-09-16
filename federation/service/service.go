@@ -7,11 +7,11 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/objstore"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
+	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/store"
-	"github.com/cortezaproject/corteza-server/pkg/store/minio"
-	"github.com/cortezaproject/corteza-server/pkg/store/plain"
-	ngStore "github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
@@ -19,17 +19,17 @@ import (
 type (
 	Config struct {
 		ActionLog options.ActionLogOpt
-		Storage   options.StorageOpt
+		Storage   options.ObjectStoreOpt
 	}
 )
 
 var (
-	DefaultStore store.Store
+	DefaultObjectStore objstore.Store
 
 	// DefaultNgStore is an interface to storage backend(s)
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
-	DefaultNgStore ngStore.Storable
+	DefaultStore store.Storer
 
 	DefaultLogger *zap.Logger
 
@@ -55,14 +55,14 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
-	DefaultNgStore = s
+	DefaultStore = s
 
 	DefaultLogger = log.Named("service")
 
@@ -77,7 +77,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Conf
 			tee = log
 		}
 
-		DefaultActionlog = actionlog.NewService(DefaultNgStore, log, tee, policy)
+		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
 	if DefaultStore == nil {
@@ -88,7 +88,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Conf
 				bucket = c.Storage.MinioBucket + "/" + svcPath
 			}
 
-			DefaultStore, err = minio.New(bucket, minio.Options{
+			DefaultObjectStore, err = minio.New(bucket, minio.Options{
 				Endpoint:        c.Storage.MinioEndpoint,
 				Secure:          c.Storage.MinioSecure,
 				Strict:          c.Storage.MinioStrict,
@@ -104,7 +104,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Conf
 				zap.Error(err))
 		} else {
 			path := c.Storage.Path + "/" + svcPath
-			DefaultStore, err = plain.New(path)
+			DefaultObjectStore, err = plain.New(path)
 			log.Info("initializing store",
 				zap.String("path", path),
 				zap.Error(err))
@@ -115,7 +115,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s ngStore.Storable, c Conf
 		}
 	}
 
-	hcd.Add(store.Healthcheck(DefaultStore), "Store/Federation")
+	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Federation")
 
 	return
 }
