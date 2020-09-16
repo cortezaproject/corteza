@@ -3,16 +3,25 @@ package compose
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/importer"
-	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
+	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 )
 
-func Provision(ctx context.Context, log *zap.Logger) error {
-	if provisioned, err := notProvisioned(ctx); err != nil {
+// provision only where there are no namespaces
+func hasNamespaces(ctx context.Context, s store.Storer) (bool, error) {
+	if set, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{}); err != nil {
+		return false, err
+	} else {
+		return len(set) > 0, nil
+	}
+}
+
+func Provision(ctx context.Context, log *zap.Logger, s store.Storer) error {
+	if namespacesExist, err := hasNamespaces(ctx, s); err != nil {
 		return err
-	} else if !provisioned {
+	} else if !namespacesExist {
 		log.Info("provisioning compose")
 		readers, err := impAux.ReadStatic(Asset)
 		if err != nil {
@@ -20,15 +29,9 @@ func Provision(ctx context.Context, log *zap.Logger) error {
 		}
 
 		return importer.Import(ctx, nil, readers...)
+	} else {
+		log.Info("compose already provisioned")
 	}
 
 	return nil
-}
-
-// provision only where there are no namespaces
-func notProvisioned(ctx context.Context) (bool, error) {
-	f := types.NamespaceFilter{}
-	f.Limit = 1
-	set, _, err := service.DefaultNamespace.With(ctx).Find(f)
-	return len(set) == 0, err
 }

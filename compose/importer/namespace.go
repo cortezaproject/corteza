@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -242,6 +243,8 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 		if err != nil {
 			return
 		}
+
+		spew.Dump(nsImp.dirty, namespace)
 
 		nsImp.dirty[namespace.ID] = false
 		nsImp.imp.permissions.UpdateResources(types.NamespacePermissionResource.String(), handle, namespace.ID)

@@ -23,15 +23,26 @@ type (
 	}
 )
 
+// Check if any RBAC rules exist
+func checkRbacRules(ctx context.Context, s store.Storer) (bool, error) {
+	if set, _, err := store.SearchRbacRules(ctx, s, permissions.RuleFilter{}); err != nil {
+		return false, err
+	} else {
+		return len(set) > 0, nil
+	}
+}
+
 func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	var (
-		provisioned bool
-		readers     []io.Reader
+		hasRbacRules bool
+		readers      []io.Reader
 	)
 
-	if provisioned, err = notProvisioned(ctx); err != nil {
+	if hasRbacRules, err = checkRbacRules(ctx, s); err != nil {
 		return err
-	} else if !provisioned {
+	}
+
+	if !hasRbacRules {
 		log.Info("provisioning system")
 		readers, err = impAux.ReadStatic(Asset)
 		if err != nil {
@@ -43,7 +54,7 @@ func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error)
 		}
 
 	} else {
-		log.Info("provisioning system")
+		log.Info("provisioning system settings")
 		// When already provisioned, make sure settings are re-provisioned
 		readers, err = impAux.ReadStatic(Asset)
 		if err != nil {
@@ -58,25 +69,24 @@ func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error)
 	if err = makeDefaultApplications(ctx, log, s); err != nil {
 		return
 	}
+
 	if err = authSettingsAutoDiscovery(ctx, log, service.DefaultSettings); err != nil {
 		return
 	}
+
 	if err = authAddExternals(ctx, log); err != nil {
 		return
 	}
+
 	if err = service.DefaultSettings.UpdateCurrent(ctx); err != nil {
 		return
 	}
+
 	if err = oidcAutoDiscovery(ctx, log); err != nil {
 		return
 	}
 
 	return nil
-}
-
-// provision ONLY when there are no rules for role admins
-func notProvisioned(ctx context.Context) (bool, error) {
-	return len(service.DefaultPermissions.FindRulesByRoleID(permissions.AdminsRoleID)) == 0, nil
 }
 
 // Updates default application directly in the store
