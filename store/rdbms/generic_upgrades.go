@@ -68,6 +68,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 		return g.all(ctx,
 			g.AlterComposeModuleRenameJsonToMeta,
 		)
+	case "messaging_channel":
+		return g.all(ctx,
+			g.AlterMessagingChannelsDropOrganisation,
+		)
 	case "messaging_attachment":
 		return g.all(ctx,
 			g.AlterMessageAttachmentsRenameOwner,
@@ -246,6 +250,11 @@ func (g genericUpgrades) DropOrganisationTable(ctx context.Context) error {
 
 func (g genericUpgrades) AlterUsersDropOrganisation(ctx context.Context) error {
 	_, err := g.u.DropColumn(ctx, "users", "rel_organisation")
+	return err
+}
+
+func (g genericUpgrades) AlterMessagingChannelsDropOrganisation(ctx context.Context) error {
+	_, err := g.u.DropColumn(ctx, "messaging_channel", "rel_organisation")
 	return err
 }
 

@@ -20,7 +20,6 @@ type (
 		MembershipPolicy ChannelMembershipPolicy `json:"membershipPolicy"`
 
 		CreatorID      uint64 `json:"creatorId"`
-		OrganisationID uint64 `json:"organisationId"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
