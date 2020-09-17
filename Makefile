@@ -120,6 +120,8 @@ $(RELEASE_PKEY):
 watch: $(GIN)
 	$(GIN) --laddr localhost --notifications --immediate --build cmd/corteza run -- serve
 
+realize: watch # BC
+
 mailhog.up:
 	$(DOCKER) run --rm --publish $(DEV_MAILHOG_HTTP_ADDR):8025 --publish $(DEV_MAILHOG_SMTP_ADDR):1025 mailhog/mailhog
 
