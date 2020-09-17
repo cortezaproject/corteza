@@ -39,9 +39,7 @@ type (
 func Notification() *notification {
 	return &notification{
 		actionlog: DefaultActionlog,
-
-		// See comment at DefaultSystemUser definition
-		users: DefaultSystemUser,
+		users:     systemService.DefaultUser,
 	}
 }
 

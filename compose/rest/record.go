@@ -65,7 +65,7 @@ func (Record) New() *Record {
 		ac:            service.DefaultAccessControl,
 
 		// See comment at DefaultSystemUser definition
-		userFinder: service.DefaultSystemUser,
+		userFinder: systemService.DefaultUser,
 	}
 }
 
