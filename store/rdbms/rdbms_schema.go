@@ -402,7 +402,6 @@ func (Schema) MessagingChannel() *Table {
 		ColumnDef("type", ColumnTypeText),
 		ColumnDef("membership_policy", ColumnTypeText),
 		ColumnDef("rel_creator", ColumnTypeIdentifier), // @todo rename => created_by
-		ColumnDef("rel_organisation", ColumnTypeIdentifier),
 		ColumnDef("archived_at", ColumnTypeTimestamp, Null),
 		ColumnDef("rel_last_message", ColumnTypeIdentifier),
 		CUDTimestamps,

@@ -12,7 +12,6 @@ fields:
   - { field: Meta }
   - { field: MembershipPolicy }
   - { field: CreatorID }
-  - { field: OrganisationID }
   - { field: CreatedAt }
   - { field: UpdatedAt }
   - { field: ArchivedAt }
