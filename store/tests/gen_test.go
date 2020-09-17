@@ -14,6 +14,7 @@ package tests
 //  - store/compose_namespaces.yaml
 //  - store/compose_pages.yaml
 //  - store/credentials.yaml
+//  - store/federation_exposed_modules.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
 //  - store/messaging_channel_members.yaml
@@ -99,6 +100,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Credentials
 	t.Run("Credentials", func(t *testing.T) {
 		testCredentials(t, s)
+	})
+
+	// Run generated tests for FederationExposedModules
+	t.Run("FederationExposedModules", func(t *testing.T) {
+		testFederationExposedModules(t, s)
 	})
 
 	// Run generated tests for Labels

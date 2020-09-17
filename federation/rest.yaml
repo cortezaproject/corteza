@@ -78,18 +78,37 @@ endpoints:
               type: string
               required: true
               title: Auth token of the origin node
-  - title: Modules
-    description: Federation module definitions
-    entrypoint: module
-    path: "/structure/module"
+
+  - title: Federation sync structure
+    description: Federation structure sync
+    entrypoint: syncStructure
+    path: "/nodes/{nodeID}/modules/{moduleID}"
     authentication: []
     apis:
-      - name: read
+      - name: readExposed
         method: GET
-        title: Read federated module
-        path: "/{moduleID}"
+        title: Exposed settings for module
+        path: "/exposed"
         parameters:
           path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+      - name: remove
+        method: DELETE
+        title: Remove from federation
+        path: "/exposed"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
             - type: uint64
               name: moduleID
               required: true
