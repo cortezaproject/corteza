@@ -58,6 +58,6 @@ func NewModule(h ModuleAPI) *Module {
 func (h Module) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/structure/module/{moduleID}", h.Read)
+		r.Get("/exposed/modules/{moduleID}", h.Read)
 	})
 }

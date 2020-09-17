@@ -1,0 +1,82 @@
+# List of loggable service actions
+
+resource: federation:exposed_module
+service: module
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: module
+    type: "*types.ExposedModule"
+    fields: [ ID, ComposeModuleID ]
+  - name: changed
+    type: "*types.ExposedModule"
+    fields: [ ID, ComposeModuleID ]
+  - name: filter
+    type: "*types.ExposedModuleFilter"
+    fields: [ query, sort, limit ]
+
+actions:
+  - action: search
+    log: "searched for modules"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {module}"
+    severity: info
+
+  - action: create
+    log: "created {module}"
+
+  - action: update
+    log: "updated {module}"
+
+  - action: delete
+    log: "deleted {module}"
+
+  - action: undelete
+    log: "undeleted {module}"
+
+errors:
+  - error: notFound
+    message: "module does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this module"
+    log: "could not read {module}; insufficient permissions"
+
+  - error: notAllowedToListModules
+    message: "not allowed to list modules"
+    log: "could not list modules; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create modules"
+    log: "could not create modules; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this module"
+    log: "could not update {module}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this module"
+    log: "could not delete {module}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this module"
+    log: "could not undelete {module}; insufficient permissions"
