@@ -10,10 +10,11 @@ import (
 func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		handlers.NewPairRequest(NodePairRequest{}.New()).MountRoutes(r)
+
+		// temporary because of acl
+		handlers.NewModule((Module{}.New())).MountRoutes(r)
+		handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
 	})
-	var (
-		module = Module{}.New()
-	)
 
 	// Protect all _private_ routes
 	r.Group(func(r chi.Router) {
@@ -22,6 +23,5 @@ func MountRoutes(r chi.Router) {
 
 		handlers.NewIdentity(NodeIdentity{}.New()).MountRoutes(r)
 		handlers.NewPair(NodePair{}.New()).MountRoutes(r)
-		handlers.NewModule(module).MountRoutes(r)
 	})
 }
