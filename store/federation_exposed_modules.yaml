@@ -1,0 +1,24 @@
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+types:
+  type: types.ExposedModule
+
+fields:
+  - { field: ID }
+  - { field: NodeID }
+  - { field: ComposeModuleID }
+  - { field: Fields, type: "json.Text" }
+
+
+lookups:
+  - fields: [ID]
+    description: |-
+      searches for federation module by ID
+
+      It returns federation module
+
+rdbms:
+  alias: cmd
+  table: federation_module_exposed
+  customFilterConverter: true
