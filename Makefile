@@ -4,6 +4,7 @@ GO         = go
 GOGET      = $(GO) get -u
 GOTEST    ?= go test
 GOFLAGS   ?= -mod=vendor
+GOPATH    ?= $(HOME)/go
 
 export GOFLAGS
 
@@ -64,12 +65,11 @@ DOCKER                ?= docker
 
 ########################################################################################################################
 # Tool bins
-REALIZE     = ${GOPATH}/bin/realize
-GOCRITIC    = ${GOPATH}/bin/gocritic
-MOCKGEN     = ${GOPATH}/bin/mockgen
-STATICCHECK = ${GOPATH}/bin/staticcheck
-PROTOGEN    = ${GOPATH}/bin/protoc-gen-go
-GIN         = ${GOPATH}/bin/gin
+GOCRITIC    = $(GOPATH)/bin/gocritic
+MOCKGEN     = $(GOPATH)/bin/mockgen
+STATICCHECK = $(GOPATH)/bin/staticcheck
+PROTOGEN    = $(GOPATH)/bin/protoc-gen-go
+GIN         = $(GOPATH)/bin/gin
 CODEGEN     = build/codegen
 
 # Using nodemon in development environment for "watch.*" tasks
@@ -128,7 +128,7 @@ codegen: $(PROTOGEN)
 	./codegen.sh
 
 realize: watch # BC
-watch:
+watch: $(GIN)
 	$(GIN) --laddr localhost --notifications --immediate --build cmd/monolith run -- serve
 
 mailhog.up:
