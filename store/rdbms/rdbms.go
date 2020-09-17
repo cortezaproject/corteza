@@ -135,6 +135,11 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 		var (
 			err error
 			try = 0
+
+			log = s.log(ctx).
+				// Make a small adjustment when
+				// collecting callers from the callstack for this
+				WithOptions(zap.AddCallerSkip(-2))
 		)
 
 		for {
@@ -150,7 +155,7 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 				if time.Now().After(patience) {
 					// don't make too much fuss
 					// if we're in patience mode
-					s.log(ctx).Warn(
+					log.Warn(
 						"could not connect to the database",
 						zap.Error(err),
 						zap.Int("try", try),
@@ -168,11 +173,7 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 				}
 			}
 
-			s.log(ctx).
-				// Make a small adjustment when
-				// collecting callers from the callstack for this
-				WithOptions(zap.AddCallerSkip(-2)).
-				Debug("connected to the database")
+			log.Debug("connected to the database")
 			break
 		}
 
