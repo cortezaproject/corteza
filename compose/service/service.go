@@ -16,7 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/store"
-	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -65,14 +64,6 @@ var (
 	DefaultPage          PageService
 	DefaultAttachment    AttachmentService
 	DefaultNotification  *notification
-
-	// DefaultSystemUser is a bridge to users in a system service
-	// @todo this is ad-hoc solution that connects compose to system it breaks microservice
-	//       architecture and service separation and should be refactored properly
-	//       (that is, if we want to continue with microservice architecture)
-	DefaultSystemUser systemService.UserService
-	//DefaultSystemUser *systemUser
-	//DefaultSystemRole *systemRole
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -158,8 +149,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultNamespace = Namespace()
 	DefaultModule = Module()
-
-	DefaultSystemUser = systemService.DefaultUser
 
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()
