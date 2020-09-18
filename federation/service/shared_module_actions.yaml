@@ -1,7 +1,7 @@
 # List of loggable service actions
 
-resource: federation:exposed_module
-service: exposedModule
+resource: federation:shared_module
+service: sharedModule
 
 # Default sensitivity for actions
 defaultActionSeverity: notice
@@ -14,13 +14,13 @@ import:
 
 props:
   - name: module
-    type: "*types.ExposedModule"
-    fields: [ ID, ComposeModuleID ]
+    type: "*types.SharedModule"
+    fields: [ ID ]
   - name: changed
-    type: "*types.ExposedModule"
-    fields: [ ID, ComposeModuleID ]
+    type: "*types.SharedModule"
+    fields: [ ID ]
   - name: filter
-    type: "*types.ExposedModuleFilter"
+    type: "*types.SharedModuleFilter"
     fields: [ query, sort, limit ]
   - name: node
     type: "*types.Node"
@@ -58,11 +58,6 @@ errors:
 
   - error: staleData
     message: "stale data"
-    severity: warning
-
-  - error: notUnique
-    message: "node not unique"
-    log: "used duplicate node TODO - module.node_id for this compose module TODO - module.rel_compose_module"
     severity: warning
 
   - error: notAllowedToRead

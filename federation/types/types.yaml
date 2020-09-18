@@ -1,3 +1,4 @@
 types:
   Node:
   ExposedModule:
+  SharedModule:

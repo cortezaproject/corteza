@@ -25,6 +25,11 @@ $ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migrati
 
 === Structure sync
 
+.TODO
+* [ ] Finish endpoints below
+* [ ] Add structure sync service (the syncing process)
+* [ ] Handle acl
+
 .List of endpoints
 * [x] Show exposed module
 * [x] Remove exposed module
@@ -57,8 +62,8 @@ $ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/shared"
 List of shared/exposed modules::
 [source,bash]
 ----
-$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?exposed"
-$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?shared"
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?exposed=1"
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?shared=1"
 ----
 
 Add module as exposed (with mappings)::

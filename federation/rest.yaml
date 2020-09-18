@@ -79,16 +79,16 @@ endpoints:
               required: true
               title: Auth token of the origin node
 
-  - title: Federation sync structure
-    description: Federation structure sync
-    entrypoint: syncStructure
-    path: "/nodes/{nodeID}/modules/{moduleID}"
+  - title: Manage structure
+    description: Manage structure
+    entrypoint: manageStructure
+    path: "/nodes/{nodeID}"
     authentication: []
     apis:
       - name: readExposed
         method: GET
         title: Exposed settings for module
-        path: "/exposed"
+        path: "/modules/{moduleID}/exposed"
         parameters:
           path:
             - type: uint64
@@ -99,10 +99,33 @@ endpoints:
               name: moduleID
               required: true
               title: Module ID
+      - name: createExposed
+        method: PUT
+        title: Add exposed settings for module
+        path: "/modules/{moduleID}/exposed"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+          post:
+            - type: uint64
+              name: composeModuleID
+              required: true
+              title: Compose module id
+            - type: types.ModuleFieldMappingList
+              name: fields
+              required: true
+              title: Exposed module fields
       - name: remove
         method: DELETE
         title: Remove from federation
-        path: "/exposed"
+        path: "/modules/{moduleID}/exposed"
         parameters:
           path:
             - type: uint64
@@ -113,3 +136,36 @@ endpoints:
               name: moduleID
               required: true
               title: Module ID
+      - name: readShared
+        method: GET
+        title: Shared settings for module
+        path: "/modules/{moduleID}/shared"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+      - name: listAll
+        method: GET
+        title: List of shared/exposed modules
+        path: "/modules"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+          get:
+            - name: shared
+              type: bool
+              required: false
+              title: List shared modules
+            - name: exposed
+              type: bool
+              required: false
+              title: List exposed modules
