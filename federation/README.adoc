@@ -1,0 +1,86 @@
+== Setup db (postgres)
+
+Add db dsn to .env
+[source,bash]
+----
+DB_DSN=postgres+debug://docker:docker@localhost:5432/corteza?sslmode=disable
+----
+
+Start the postgres db
+[source,bash]
+----
+$ docker-compose up -db pg
+----
+
+Add testing migrations
+[source,bash]
+----
+$ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migration_federation_origin.sql
+$ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migration_federation_destination.sql
+----
+
+== Status
+
+=== Node pairing
+
+=== Structure sync
+
+.List of endpoints
+* [x] Show exposed module
+* [x] Remove exposed module
+* [x] Shared module details
+* [x] List of shared/exposed modules
+* [ ] Add module as exposed (with mappings)
+* [ ] Add mappings to module
+* [ ] Show module mappings
+* [ ] Update fields on exposed module
+
+
+Show exposed module::
+[source,bash]
+----
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/exposed"
+----
+
+Remove exposed module::
+[source,bash]
+----
+$ curl -X DELETE "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/exposed"
+----
+
+Shared module details::
+[source,bash]
+----
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/shared"
+----
+
+List of shared/exposed modules::
+[source,bash]
+----
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?exposed"
+$ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?shared"
+----
+
+Add module as exposed (with mappings)::
+[source,bash]
+----
+curl -X PUT "$BASE_URL/federation/nodes/$NODE_ID/modules/0/exposed"
+----
+
+Add mappings to module::
+[source,bash]
+----
+curl -X PUT "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/mapped"
+----
+
+Show module mappings::
+[source,bash]
+----
+curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/mapped"
+----
+
+Update fields on exposed module::
+[source,bash]
+----
+curl -X PUT "$BASE_URL/federation/nodes/$NODE_ID/modules/$MODULE_ID/exposed"
+----
