@@ -6,7 +6,7 @@ package service
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// federation/service/exposed_module_actions.yaml
+// federation/service/shared_module_actions.yaml
 
 import (
 	"context"
@@ -20,14 +20,14 @@ import (
 )
 
 type (
-	exposedModuleActionProps struct {
-		module  *types.ExposedModule
-		changed *types.ExposedModule
-		filter  *types.ExposedModuleFilter
+	sharedModuleActionProps struct {
+		module  *types.SharedModule
+		changed *types.SharedModule
+		filter  *types.SharedModuleFilter
 		node    *types.Node
 	}
 
-	exposedModuleAction struct {
+	sharedModuleAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -37,10 +37,10 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *exposedModuleActionProps
+		props *sharedModuleActionProps
 	}
 
-	exposedModuleError struct {
+	sharedModuleError struct {
 		timestamp time.Time
 		error     string
 		resource  string
@@ -51,7 +51,7 @@ type (
 
 		wrap error
 
-		props *exposedModuleActionProps
+		props *sharedModuleActionProps
 	}
 )
 
@@ -63,66 +63,64 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setModule updates exposedModuleActionProps's module
+// setModule updates sharedModuleActionProps's module
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *exposedModuleActionProps) setModule(module *types.ExposedModule) *exposedModuleActionProps {
+func (p *sharedModuleActionProps) setModule(module *types.SharedModule) *sharedModuleActionProps {
 	p.module = module
 	return p
 }
 
-// setChanged updates exposedModuleActionProps's changed
+// setChanged updates sharedModuleActionProps's changed
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *exposedModuleActionProps) setChanged(changed *types.ExposedModule) *exposedModuleActionProps {
+func (p *sharedModuleActionProps) setChanged(changed *types.SharedModule) *sharedModuleActionProps {
 	p.changed = changed
 	return p
 }
 
-// setFilter updates exposedModuleActionProps's filter
+// setFilter updates sharedModuleActionProps's filter
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *exposedModuleActionProps) setFilter(filter *types.ExposedModuleFilter) *exposedModuleActionProps {
+func (p *sharedModuleActionProps) setFilter(filter *types.SharedModuleFilter) *sharedModuleActionProps {
 	p.filter = filter
 	return p
 }
 
-// setNode updates exposedModuleActionProps's node
+// setNode updates sharedModuleActionProps's node
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *exposedModuleActionProps) setNode(node *types.Node) *exposedModuleActionProps {
+func (p *sharedModuleActionProps) setNode(node *types.Node) *sharedModuleActionProps {
 	p.node = node
 	return p
 }
 
-// serialize converts exposedModuleActionProps to actionlog.Meta
+// serialize converts sharedModuleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p exposedModuleActionProps) serialize() actionlog.Meta {
+func (p sharedModuleActionProps) serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
 
 	if p.module != nil {
 		m.Set("module.ID", p.module.ID, true)
-		m.Set("module.ComposeModuleID", p.module.ComposeModuleID, true)
 	}
 	if p.changed != nil {
 		m.Set("changed.ID", p.changed.ID, true)
-		m.Set("changed.ComposeModuleID", p.changed.ComposeModuleID, true)
 	}
 	if p.filter != nil {
 		m.Set("filter.query", p.filter.Query, true)
@@ -141,7 +139,7 @@ func (p exposedModuleActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p exposedModuleActionProps) tr(in string, err error) string {
+func (p sharedModuleActionProps) tr(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -179,11 +177,9 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 			"{module}",
 			fns(
 				p.module.ID,
-				p.module.ComposeModuleID,
 			),
 		)
 		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
-		pairs = append(pairs, "{module.ComposeModuleID}", fns(p.module.ComposeModuleID))
 	}
 
 	if p.changed != nil {
@@ -193,11 +189,9 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 			"{changed}",
 			fns(
 				p.changed.ID,
-				p.changed.ComposeModuleID,
 			),
 		)
 		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.ComposeModuleID}", fns(p.changed.ComposeModuleID))
 	}
 
 	if p.filter != nil {
@@ -240,8 +234,8 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *exposedModuleAction) String() string {
-	var props = &exposedModuleActionProps{}
+func (a *sharedModuleAction) String() string {
+	var props = &sharedModuleActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -250,7 +244,7 @@ func (a *exposedModuleAction) String() string {
 	return props.tr(a.log, nil)
 }
 
-func (e *exposedModuleAction) LoggableAction() *actionlog.Action {
+func (e *sharedModuleAction) LoggableAction() *actionlog.Action {
 	return &actionlog.Action{
 		Timestamp:   e.timestamp,
 		Resource:    e.resource,
@@ -271,8 +265,8 @@ func (e *exposedModuleAction) LoggableAction() *actionlog.Action {
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) String() string {
-	var props = &exposedModuleActionProps{}
+func (e *sharedModuleError) String() string {
+	var props = &sharedModuleActionProps{}
 
 	if e.props != nil {
 		props = e.props
@@ -291,8 +285,8 @@ func (e *exposedModuleError) String() string {
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) Error() string {
-	var props = &exposedModuleActionProps{}
+func (e *sharedModuleError) Error() string {
+	var props = &sharedModuleActionProps{}
 
 	if e.props != nil {
 		props = e.props
@@ -305,8 +299,8 @@ func (e *exposedModuleError) Error() string {
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) Is(err error) bool {
-	t, ok := err.(*exposedModuleError)
+func (e *sharedModuleError) Is(err error) bool {
+	t, ok := err.(*sharedModuleError)
 	if !ok {
 		return false
 	}
@@ -318,15 +312,15 @@ func (e *exposedModuleError) Is(err error) bool {
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) IsGeneric() bool {
+func (e *sharedModuleError) IsGeneric() bool {
 	return e.error == "generic"
 }
 
-// Wrap wraps exposedModuleError around another error
+// Wrap wraps sharedModuleError around another error
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) Wrap(err error) *exposedModuleError {
+func (e *sharedModuleError) Wrap(err error) *sharedModuleError {
 	e.wrap = err
 	return e
 }
@@ -335,11 +329,11 @@ func (e *exposedModuleError) Wrap(err error) *exposedModuleError {
 //
 // This function is auto-generated.
 //
-func (e *exposedModuleError) Unwrap() error {
+func (e *sharedModuleError) Unwrap() error {
 	return e.wrap
 }
 
-func (e *exposedModuleError) LoggableAction() *actionlog.Action {
+func (e *sharedModuleError) LoggableAction() *actionlog.Action {
 	return &actionlog.Action{
 		Timestamp:   e.timestamp,
 		Resource:    e.resource,
@@ -355,14 +349,14 @@ func (e *exposedModuleError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ExposedModuleActionSearch returns "federation:exposed_module.search" error
+// SharedModuleActionSearch returns "federation:shared_module.search" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionSearch(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionSearch(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "search",
 		log:       "searched for modules",
 		severity:  actionlog.Info,
@@ -375,14 +369,14 @@ func ExposedModuleActionSearch(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionLookup returns "federation:exposed_module.lookup" error
+// SharedModuleActionLookup returns "federation:shared_module.lookup" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionLookup(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "lookup",
 		log:       "looked-up for a {module}",
 		severity:  actionlog.Info,
@@ -395,14 +389,14 @@ func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionCreate returns "federation:exposed_module.create" error
+// SharedModuleActionCreate returns "federation:shared_module.create" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionCreate(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "create",
 		log:       "created {module}",
 		severity:  actionlog.Notice,
@@ -415,14 +409,14 @@ func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionUpdate returns "federation:exposed_module.update" error
+// SharedModuleActionUpdate returns "federation:shared_module.update" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionUpdate(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "update",
 		log:       "updated {module}",
 		severity:  actionlog.Notice,
@@ -435,14 +429,14 @@ func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionDelete returns "federation:exposed_module.delete" error
+// SharedModuleActionDelete returns "federation:shared_module.delete" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionDelete(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "delete",
 		log:       "deleted {module}",
 		severity:  actionlog.Notice,
@@ -455,14 +449,14 @@ func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionUndelete returns "federation:exposed_module.undelete" error
+// SharedModuleActionUndelete returns "federation:shared_module.undelete" error
 //
 // This function is auto-generated.
 //
-func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedModuleAction {
-	a := &exposedModuleAction{
+func SharedModuleActionUndelete(props ...*sharedModuleActionProps) *sharedModuleAction {
+	a := &sharedModuleAction{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		action:    "undelete",
 		log:       "undeleted {module}",
 		severity:  actionlog.Notice,
@@ -479,21 +473,21 @@ func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedMod
 // *********************************************************************************************************************
 // Error constructors
 
-// ExposedModuleErrGeneric returns "federation:exposed_module.generic" audit event as actionlog.Error
+// SharedModuleErrGeneric returns "federation:shared_module.generic" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrGeneric(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrGeneric(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "generic",
 		action:    "error",
 		message:   "failed to complete request due to internal error",
 		log:       "{err}",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -509,21 +503,21 @@ func ExposedModuleErrGeneric(props ...*exposedModuleActionProps) *exposedModuleE
 
 }
 
-// ExposedModuleErrNotFound returns "federation:exposed_module.notFound" audit event as actionlog.Warning
+// SharedModuleErrNotFound returns "federation:shared_module.notFound" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotFound(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notFound",
 		action:    "error",
 		message:   "module does not exist",
 		log:       "module does not exist",
 		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -539,21 +533,21 @@ func ExposedModuleErrNotFound(props ...*exposedModuleActionProps) *exposedModule
 
 }
 
-// ExposedModuleErrInvalidID returns "federation:exposed_module.invalidID" audit event as actionlog.Warning
+// SharedModuleErrInvalidID returns "federation:shared_module.invalidID" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrInvalidID(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrInvalidID(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "invalidID",
 		action:    "error",
 		message:   "invalid ID",
 		log:       "invalid ID",
 		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -569,21 +563,21 @@ func ExposedModuleErrInvalidID(props ...*exposedModuleActionProps) *exposedModul
 
 }
 
-// ExposedModuleErrStaleData returns "federation:exposed_module.staleData" audit event as actionlog.Warning
+// SharedModuleErrStaleData returns "federation:shared_module.staleData" audit event as actionlog.Warning
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrStaleData(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrStaleData(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "staleData",
 		action:    "error",
 		message:   "stale data",
 		log:       "stale data",
 		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -599,51 +593,21 @@ func ExposedModuleErrStaleData(props ...*exposedModuleActionProps) *exposedModul
 
 }
 
-// ExposedModuleErrNotUnique returns "federation:exposed_module.notUnique" audit event as actionlog.Warning
+// SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotUnique(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToRead(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notUnique",
-		action:    "error",
-		message:   "node not unique",
-		log:       "used duplicate node TODO - module.node_id for this compose module TODO - module.rel_compose_module",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-	}
-
-	if len(props) > 0 {
-		e.props = props[0]
-	}
-
-	return e
-
-}
-
-// ExposedModuleErrNotAllowedToRead returns "federation:exposed_module.notAllowedToRead" audit event as actionlog.Error
-//
-//
-// This function is auto-generated.
-//
-func ExposedModuleErrNotAllowedToRead(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToRead",
 		action:    "error",
 		message:   "not allowed to read this module",
 		log:       "could not read {module}; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -659,21 +623,21 @@ func ExposedModuleErrNotAllowedToRead(props ...*exposedModuleActionProps) *expos
 
 }
 
-// ExposedModuleErrNotAllowedToListModules returns "federation:exposed_module.notAllowedToListModules" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToListModules returns "federation:shared_module.notAllowedToListModules" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToListModules(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToListModules(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToListModules",
 		action:    "error",
 		message:   "not allowed to list modules",
 		log:       "could not list modules; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -689,21 +653,21 @@ func ExposedModuleErrNotAllowedToListModules(props ...*exposedModuleActionProps)
 
 }
 
-// ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToCreate returns "federation:shared_module.notAllowedToCreate" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToCreate(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToCreate(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToCreate",
 		action:    "error",
 		message:   "not allowed to create modules",
 		log:       "could not create modules; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -719,21 +683,21 @@ func ExposedModuleErrNotAllowedToCreate(props ...*exposedModuleActionProps) *exp
 
 }
 
-// ExposedModuleErrNotAllowedToUpdate returns "federation:exposed_module.notAllowedToUpdate" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToUpdate returns "federation:shared_module.notAllowedToUpdate" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToUpdate(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToUpdate(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToUpdate",
 		action:    "error",
 		message:   "not allowed to update this module",
 		log:       "could not update {module}; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -749,21 +713,21 @@ func ExposedModuleErrNotAllowedToUpdate(props ...*exposedModuleActionProps) *exp
 
 }
 
-// ExposedModuleErrNotAllowedToDelete returns "federation:exposed_module.notAllowedToDelete" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToDelete returns "federation:shared_module.notAllowedToDelete" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToDelete(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToDelete(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToDelete",
 		action:    "error",
 		message:   "not allowed to delete this module",
 		log:       "could not delete {module}; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -779,21 +743,21 @@ func ExposedModuleErrNotAllowedToDelete(props ...*exposedModuleActionProps) *exp
 
 }
 
-// ExposedModuleErrNotAllowedToUndelete returns "federation:exposed_module.notAllowedToUndelete" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToUndelete returns "federation:shared_module.notAllowedToUndelete" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToUndelete(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
+func SharedModuleErrNotAllowedToUndelete(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
 		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
+		resource:  "federation:shared_module",
 		error:     "notAllowedToUndelete",
 		action:    "error",
 		message:   "not allowed to undelete this module",
 		log:       "could not undelete {module}; insufficient permissions",
 		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
+		props: func() *sharedModuleActionProps {
 			if len(props) > 0 {
 				return props[0]
 			}
@@ -816,7 +780,7 @@ func ExposedModuleErrNotAllowedToUndelete(props ...*exposedModuleActionProps) *e
 //
 // context is used to enrich audit log entry with current user info, request ID, IP address...
 // props are collected action/error properties
-// action (optional) fn will be used to construct exposedModuleAction struct from given props (and error)
+// action (optional) fn will be used to construct sharedModuleAction struct from given props (and error)
 // err is any error that occurred while action was happening
 //
 // Action has success and fail (error) state:
@@ -826,28 +790,28 @@ func ExposedModuleErrNotAllowedToUndelete(props ...*exposedModuleActionProps) *e
 //
 // This function is auto-generated.
 //
-func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, action func(...*exposedModuleActionProps) *exposedModuleAction, err error) error {
+func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, action func(...*sharedModuleActionProps) *sharedModuleAction, err error) error {
 	var (
 		ok bool
 
 		// Return error
-		retError *exposedModuleError
+		retError *sharedModuleError
 
 		// Recorder error
-		recError *exposedModuleError
+		recError *sharedModuleError
 	)
 
 	if err != nil {
-		if retError, ok = err.(*exposedModuleError); !ok {
-			// got non-exposedModule error, wrap it with ExposedModuleErrGeneric
-			retError = ExposedModuleErrGeneric(props).Wrap(err)
+		if retError, ok = err.(*sharedModuleError); !ok {
+			// got non-sharedModule error, wrap it with SharedModuleErrGeneric
+			retError = SharedModuleErrGeneric(props).Wrap(err)
 
 			if action != nil {
 				// copy action to returning and recording error
 				retError.action = action().action
 			}
 
-			// we'll use ExposedModuleErrGeneric for recording too
+			// we'll use SharedModuleErrGeneric for recording too
 			// because it can hold more info
 			recError = retError
 		} else if retError != nil {
@@ -869,8 +833,8 @@ func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleA
 					break
 				}
 
-				// update recError ONLY of wrapped error is of type exposedModuleError
-				if unwrappedSinkError, ok := unwrappedError.(*exposedModuleError); ok {
+				// update recError ONLY of wrapped error is of type sharedModuleError
+				if unwrappedSinkError, ok := unwrappedError.(*sharedModuleError); ok {
 					recError = unwrappedSinkError
 				}
 			}
