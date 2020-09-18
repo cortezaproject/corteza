@@ -54,22 +54,6 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 		truncAndFill(t, 5)
 	})
 
-	t.Run("delete", func(t *testing.T) {
-		t.Run("by role member", func(t *testing.T) {
-			req, roleMember := truncAndCreate(t)
-			req.NoError(s.DeleteRoleMember(ctx, roleMember))
-			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
-			req.Len(roleMembers, 0)
-		})
-
-		t.Run("by RoleID and OwnerID", func(t *testing.T) {
-			req, roleMember := truncAndCreate(t)
-			req.NoError(s.DeleteRoleMemberByUserIDRoleID(ctx, roleMember.UserID, roleMember.RoleID))
-			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
-			req.Len(roleMembers, 0)
-		})
-	})
-
 	// t.Run("update", func(t *testing.T) {
 	// 	req, roleMember := truncAndCreate(t)
 
@@ -95,4 +79,20 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 	// 		req.Len(set, 1)
 	// 	})
 	// })
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by role member", func(t *testing.T) {
+			req, roleMember := truncAndCreate(t)
+			req.NoError(s.DeleteRoleMember(ctx, roleMember))
+			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
+			req.Len(roleMembers, 0)
+		})
+
+		t.Run("by RoleID and UserID", func(t *testing.T) {
+			req, roleMember := truncAndCreate(t)
+			req.NoError(s.DeleteRoleMemberByUserIDRoleID(ctx, roleMember.UserID, roleMember.RoleID))
+			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
+			req.Len(roleMembers, 0)
+		})
+	})
 }

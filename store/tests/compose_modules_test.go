@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -27,6 +28,14 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 				Name:        name,
 				Handle:      handle,
 			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Module) {
+			req := require.New(t)
+			req.NoError(s.TruncateComposeModules(ctx))
+			res := makeNew(string(rand.Bytes(10)), string(rand.Bytes(10)))
+			req.NoError(s.CreateComposeModule(ctx, res))
+			return req, res
 		}
 	)
 
@@ -51,18 +60,6 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		composeModule := makeNew("Delete", "Delete")
-		req.NoError(s.CreateComposeModule(ctx, composeModule))
-		req.NoError(s.DeleteComposeModule(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		composeModule := makeNew("Delete by id", "Delete-by-id")
-		req.NoError(s.CreateComposeModule(ctx, composeModule))
-		req.NoError(s.DeleteComposeModule(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		composeModule := makeNew("update me", "update-me")
 		req.NoError(s.CreateComposeModule(ctx, composeModule))
@@ -81,6 +78,22 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Module", func(t *testing.T) {
+			req, composeModule := truncAndCreate(t)
+			req.NoError(s.DeleteComposeModule(ctx, composeModule))
+			_, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, composeModule := truncAndCreate(t)
+			req.NoError(s.DeleteComposeModuleByID(ctx, composeModule.ID))
+			_, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

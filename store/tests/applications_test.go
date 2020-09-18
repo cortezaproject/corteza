@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
@@ -25,6 +26,14 @@ func testApplications(t *testing.T, s store.Applications) {
 				Unify:     &types.ApplicationUnify{},
 			}
 		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Application) {
+			req := require.New(t)
+			req.NoError(s.TruncateApplications(ctx))
+			res := makeNew(string(rand.Bytes(10)))
+			req.NoError(s.CreateApplication(ctx, res))
+			return req, res
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
@@ -44,18 +53,6 @@ func testApplications(t *testing.T, s store.Applications) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		application := makeNew("Delete")
-		req.NoError(s.CreateApplication(ctx, application))
-		req.NoError(s.DeleteApplication(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		application := makeNew("Delete by id")
-		req.NoError(s.CreateApplication(ctx, application))
-		req.NoError(s.DeleteApplication(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		application := makeNew("update me")
 		req.NoError(s.CreateApplication(ctx, application))
@@ -71,6 +68,22 @@ func testApplications(t *testing.T, s store.Applications) {
 		updated, err := s.LookupApplicationByID(ctx, application.ID)
 		req.NoError(err)
 		req.Equal(application.Name, updated.Name)
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Application", func(t *testing.T) {
+			req, application := truncAndCreate(t)
+			req.NoError(s.DeleteApplication(ctx, application))
+			_, err := s.LookupApplicationByID(ctx, application.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, application := truncAndCreate(t)
+			req.NoError(s.DeleteApplicationByID(ctx, application.ID))
+			_, err := s.LookupApplicationByID(ctx, application.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

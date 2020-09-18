@@ -16,6 +16,7 @@ import (
 func testAttachment(t *testing.T, s store.Attachments) {
 	var (
 		ctx = context.Background()
+		req = require.New(t)
 
 		makeNew = func(nn ...string) *types.Attachment {
 			name := strings.Join(nn, "")
@@ -74,7 +75,22 @@ func testAttachment(t *testing.T, s store.Attachments) {
 		req.NoError(err)
 		req.Equal(att.ID, fetched.ID)
 		req.Equal("url", fetched.Url)
+	})
 
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Attachment", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteAttachment(ctx, att))
+			_, err := s.LookupAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteAttachmentByID(ctx, att.ID))
+			_, err := s.LookupAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

@@ -74,7 +74,7 @@ func testSettings(t *testing.T, s store.Settings) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		t.Run("by settings", func(t *testing.T) {
+		t.Run("by Settings", func(t *testing.T) {
 			req, setting := truncAndCreate(t)
 			req.NoError(s.DeleteSetting(ctx, setting))
 			set, _, err := s.SearchSettings(ctx, types.SettingsFilter{OwnedBy: setting.OwnedBy})

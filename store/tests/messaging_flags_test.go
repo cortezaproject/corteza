@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -29,6 +30,14 @@ func testMessagingFlags(t *testing.T, s store.MessagingFlags) {
 				CreatedAt: *now(),
 			}
 		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.MessageFlag) {
+			req := require.New(t)
+			req.NoError(s.TruncateMessagingFlags(ctx))
+			res := makeNew(string(rand.Bytes(10)))
+			req.NoError(s.CreateMessagingFlag(ctx, res))
+			return req, res
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
@@ -51,18 +60,6 @@ func testMessagingFlags(t *testing.T, s store.MessagingFlags) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		messagingFlag := makeNew("f")
-		req.NoError(s.CreateMessagingFlag(ctx, messagingFlag))
-		req.NoError(s.DeleteMessagingFlag(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		messagingFlag := makeNew("Delete-by-id")
-		req.NoError(s.CreateMessagingFlag(ctx, messagingFlag))
-		req.NoError(s.DeleteMessagingFlag(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		messagingFlag := makeNew("update-me")
 		req.NoError(s.CreateMessagingFlag(ctx, messagingFlag))
@@ -81,6 +78,22 @@ func testMessagingFlags(t *testing.T, s store.MessagingFlags) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Message Flag", func(t *testing.T) {
+			req, messagingFlag := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingFlag(ctx, messagingFlag))
+			_, err := s.LookupMessagingFlagByID(ctx, messagingFlag.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, messagingFlag := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingFlagByID(ctx, messagingFlag.ID))
+			_, err := s.LookupMessagingFlagByID(ctx, messagingFlag.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

@@ -117,24 +117,6 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.Equal(uint64(2), fetched.Values[1].Ref)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		req, rr := truncAndCreate(t)
-		rec := rr[0]
-
-		req.NoError(s.DeleteComposeRecord(ctx, mod, rec))
-		_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
-		req.EqualError(err, store.ErrNotFound.Error())
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		req, rr := truncAndCreate(t)
-		rec := rr[0]
-
-		req.NoError(s.DeleteComposeRecordByID(ctx, mod, rec.ID))
-		_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
-		req.EqualError(err, store.ErrNotFound.Error())
-	})
-
 	t.Run("update", func(t *testing.T) {
 		req, rr := truncAndCreate(t)
 		rec := rr[0]
@@ -203,6 +185,26 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.Len(updated.Values, len(rec.Values))
 		req.NotNil(updated.Values[0].DeletedAt)
 		req.NotNil(updated.Values[1].DeletedAt)
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Record", func(t *testing.T) {
+			req, rr := truncAndCreate(t)
+			rec := rr[0]
+	
+			req.NoError(s.DeleteComposeRecord(ctx, mod, rec))
+			_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, rr := truncAndCreate(t)
+			rec := rr[0]
+	
+			req.NoError(s.DeleteComposeRecordByID(ctx, mod, rec.ID))
+			_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {
