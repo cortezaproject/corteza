@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v2"
@@ -22,7 +22,7 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 			service.DefaultChart.With(ctx),
 			service.DefaultPage.With(ctx),
 
-			permissions.NewImporter(service.DefaultAccessControl.Whitelist()),
+			rbac.NewImporter(service.DefaultAccessControl.Whitelist()),
 			settings.NewImporter(),
 		)
 
@@ -31,8 +31,8 @@ func Import(ctx context.Context, ns *types.Namespace, ff ...io.Reader) (err erro
 		//
 		// Roles are use for resolving access control
 		roles = sysTypes.RoleSet{
-			&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-			&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+			&sysTypes.Role{ID: rbac.EveryoneRoleID, Handle: "everyone"},
+			&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 		}
 	)
 

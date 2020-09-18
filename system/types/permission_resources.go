@@ -1,11 +1,11 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
-const SystemPermissionResource = permissions.Resource("system")
-const ApplicationPermissionResource = permissions.Resource("system:application:")
-const OrganisationPermissionResource = permissions.Resource("system:organisation:")
-const UserPermissionResource = permissions.Resource("system:user:")
-const RolePermissionResource = permissions.Resource("system:role:")
+const SystemRBACResource = rbac.Resource("system")
+const ApplicationRBACResource = rbac.Resource("system:application:")
+const OrganisationRBACResource = rbac.Resource("system:organisation:")
+const UserRBACResource = rbac.Resource("system:user:")
+const RoleRBACResource = rbac.Resource("system:role:")

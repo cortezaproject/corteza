@@ -55,7 +55,7 @@ func TestUserRead(t *testing.T) {
 		End()
 
 	u = h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
+	h.allow(types.UserRBACResource.AppendWildcard(), "unmask.email")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/users/%d", u.ID)).
@@ -77,7 +77,7 @@ func TestUserListAll(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -94,12 +94,12 @@ func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	h.createUserWithEmail("usr")
 	f := h.createUserWithEmail(h.randEmail())
 
-	h.deny(types.UserPermissionResource.AppendID(f.ID), "read")
+	h.deny(types.UserRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -116,7 +116,7 @@ func TestUserListQuery(t *testing.T) {
 
 	h.secCtx()
 
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -138,8 +138,8 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
-	h.allow(types.UserPermissionResource.AppendWildcard(), "unmask.email")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "unmask.email")
 
 	ee := h.randEmail()
 	h.createUserWithEmail(ee)
@@ -159,7 +159,7 @@ func TestUserListQueryUsername(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	ee := h.randEmail()
 	h.createUser(&types.User{
@@ -182,7 +182,7 @@ func TestUserListQueryHandle(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserPermissionResource.AppendWildcard(), "read")
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	h.createUser(&types.User{
 		Email:  "test@test.tld",
@@ -206,7 +206,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 	h.secCtx()
 
 	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
-	h.allow(newUserWeCanAccess.PermissionResource(), "read")
+	h.allow(newUserWeCanAccess.RBACResource(), "read")
 
 	// And one we can not access
 	h.createUserWithEmail(h.randEmail())
@@ -246,7 +246,7 @@ func TestUserCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.SystemPermissionResource, "user.create")
+	h.allow(types.SystemRBACResource, "user.create")
 
 	email := h.randEmail()
 
@@ -279,7 +279,7 @@ func TestUserUpdate(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserPermissionResource.AppendWildcard(), "update")
+	h.allow(types.UserRBACResource.AppendWildcard(), "update")
 
 	newEmail := h.randEmail()
 
@@ -310,7 +310,7 @@ func TestUserDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserPermissionResource.AppendWildcard(), "delete")
+	h.allow(types.UserRBACResource.AppendWildcard(), "delete")
 
 	u := h.createUserWithEmail(h.randEmail())
 

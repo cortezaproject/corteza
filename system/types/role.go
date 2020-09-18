@@ -4,7 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -55,8 +55,8 @@ type (
 )
 
 // Resource returns a resource ID for this type
-func (r *Role) PermissionResource() permissions.Resource {
-	return RolePermissionResource.AppendID(r.ID)
+func (r *Role) RBACResource() rbac.Resource {
+	return RoleRBACResource.AppendID(r.ID)
 }
 
 func (r *Role) DynamicRoles(userID uint64) []uint64 {

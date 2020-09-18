@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ func TestGeneralValueSetValidation(t *testing.T) {
 
 		svc = record{
 			ctx: context.Background(),
-			ac:  AccessControl(&permissions.ServiceAllowAll{}),
+			ac:  AccessControl(&rbac.ServiceAllowAll{}),
 		}
 		module = &types.Module{
 			Fields: types.ModuleFieldSet{
@@ -71,7 +71,7 @@ func TestDefaultValueSetting(t *testing.T) {
 		a = assert.New(t)
 
 		svc = record{
-			ac: AccessControl(&permissions.ServiceAllowAll{}),
+			ac: AccessControl(&rbac.ServiceAllowAll{}),
 		}
 		mod = &types.Module{
 			Fields: types.ModuleFieldSet{

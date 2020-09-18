@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 import "github.com/cortezaproject/corteza-server/pkg/slice"
 

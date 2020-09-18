@@ -17,7 +17,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/provision/compose"
@@ -165,12 +165,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	{
 		// Initialize RBAC subsystem
 		// and (re)load rules from the storage backend
-		err = permissions.Initialize(app.Log, app.Store)
+		err = rbac.Initialize(app.Log, app.Store)
 		if err != nil {
 			return
 		}
 
-		permissions.Global().Reload(ctx)
+		rbac.Global().Reload(ctx)
 	}
 
 	// Initializes system services
@@ -284,6 +284,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	sysService.Watchers(ctx)
 	cmpService.Watchers(ctx)
 	msgService.Watchers(ctx)
+
+	rbac.Global().Watch(ctx)
 
 	if err = sysService.Activate(ctx); err != nil {
 		return err

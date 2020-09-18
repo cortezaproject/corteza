@@ -3,7 +3,7 @@ package importer
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
@@ -18,7 +18,7 @@ type (
 		CastResourcesSet(string, interface{}) error
 		UpdateResources(base string, handle string, ID uint64)
 		UpdateRoles(handle string, ID uint64)
-		Store(context.Context, permissions.ImportKeeper) error
+		Store(context.Context, rbac.ImportKeeper) error
 	}
 
 	SettingImporter interface {

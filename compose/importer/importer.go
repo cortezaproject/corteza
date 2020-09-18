@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -132,7 +132,7 @@ func (imp *Importer) Store(
 	cStore chartKeeper,
 	pStore pageKeeper,
 	rStore recordKeeper,
-	pk permissions.ImportKeeper,
+	pk rbac.ImportKeeper,
 	roles sysTypes.RoleSet,
 ) (err error) {
 	if imp.namespaces != nil {

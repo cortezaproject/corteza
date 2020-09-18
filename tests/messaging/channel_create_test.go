@@ -35,7 +35,7 @@ func (h helper) apiChPubCreate(name string) *apitest.Response {
 
 func TestChannelCreateDenied(t *testing.T) {
 	h := newHelper(t)
-	h.deny(types.MessagingPermissionResource, "channel.public.create")
+	h.deny(types.MessagingRBACResource, "channel.public.create")
 
 	h.apiChPubCreate("should not be created").
 		Assert(helpers.AssertError("not allowed to create channels")).
@@ -44,7 +44,7 @@ func TestChannelCreateDenied(t *testing.T) {
 
 func TestChannelCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "channel.public.create")
+	h.allow(types.MessagingRBACResource, "channel.public.create")
 
 	h.apiChPubCreate("test channel").
 		Assert(helpers.AssertNoErrors).
@@ -57,7 +57,7 @@ func TestChannelCreate(t *testing.T) {
 
 func TestChannelCreateWithShortName(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "channel.public.create")
+	h.allow(types.MessagingRBACResource, "channel.public.create")
 
 	h.apiChPubCreate("").
 		Status(http.StatusOK).
@@ -67,7 +67,7 @@ func TestChannelCreateWithShortName(t *testing.T) {
 
 func TestChannelCreateWithLongName(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "channel.public.create")
+	h.allow(types.MessagingRBACResource, "channel.public.create")
 
 	h.apiChPubCreate(strings.Repeat("X ", 1000)).
 		Status(http.StatusOK).

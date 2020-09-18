@@ -10,51 +10,51 @@ package store
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
 	RbacRules interface {
-		SearchRbacRules(ctx context.Context, f permissions.RuleFilter) (permissions.RuleSet, permissions.RuleFilter, error)
+		SearchRbacRules(ctx context.Context, f rbac.RuleFilter) (rbac.RuleSet, rbac.RuleFilter, error)
 
-		CreateRbacRule(ctx context.Context, rr ...*permissions.Rule) error
+		CreateRbacRule(ctx context.Context, rr ...*rbac.Rule) error
 
-		UpdateRbacRule(ctx context.Context, rr ...*permissions.Rule) error
+		UpdateRbacRule(ctx context.Context, rr ...*rbac.Rule) error
 
-		UpsertRbacRule(ctx context.Context, rr ...*permissions.Rule) error
+		UpsertRbacRule(ctx context.Context, rr ...*rbac.Rule) error
 
-		DeleteRbacRule(ctx context.Context, rr ...*permissions.Rule) error
+		DeleteRbacRule(ctx context.Context, rr ...*rbac.Rule) error
 		DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error
 
 		TruncateRbacRules(ctx context.Context) error
 	}
 )
 
-var _ *permissions.Rule
+var _ *rbac.Rule
 var _ context.Context
 
 // SearchRbacRules returns all matching RbacRules from store
-func SearchRbacRules(ctx context.Context, s RbacRules, f permissions.RuleFilter) (permissions.RuleSet, permissions.RuleFilter, error) {
+func SearchRbacRules(ctx context.Context, s RbacRules, f rbac.RuleFilter) (rbac.RuleSet, rbac.RuleFilter, error) {
 	return s.SearchRbacRules(ctx, f)
 }
 
 // CreateRbacRule creates one or more RbacRules in store
-func CreateRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) error {
+func CreateRbacRule(ctx context.Context, s RbacRules, rr ...*rbac.Rule) error {
 	return s.CreateRbacRule(ctx, rr...)
 }
 
 // UpdateRbacRule updates one or more (existing) RbacRules in store
-func UpdateRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) error {
+func UpdateRbacRule(ctx context.Context, s RbacRules, rr ...*rbac.Rule) error {
 	return s.UpdateRbacRule(ctx, rr...)
 }
 
 // UpsertRbacRule creates new or updates existing one or more RbacRules in store
-func UpsertRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) error {
+func UpsertRbacRule(ctx context.Context, s RbacRules, rr ...*rbac.Rule) error {
 	return s.UpsertRbacRule(ctx, rr...)
 }
 
 // DeleteRbacRule Deletes one or more RbacRules from store
-func DeleteRbacRule(ctx context.Context, s RbacRules, rr ...*permissions.Rule) error {
+func DeleteRbacRule(ctx context.Context, s RbacRules, rr ...*rbac.Rule) error {
 	return s.DeleteRbacRule(ctx, rr...)
 }
 

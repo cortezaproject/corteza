@@ -7,7 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -16,10 +16,10 @@ type (
 	}
 
 	permissionsAccessController interface {
-		Effective(context.Context) permissions.EffectiveSet
-		Whitelist() permissions.Whitelist
-		FindRulesByRoleID(context.Context, uint64) (permissions.RuleSet, error)
-		Grant(ctx context.Context, rr ...*permissions.Rule) error
+		Effective(context.Context) rbac.EffectiveSet
+		Whitelist() rbac.Whitelist
+		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
+		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
 )
 
@@ -47,9 +47,9 @@ func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete
 		return nil, err
 	}
 
-	_ = rr.Walk(func(rule *permissions.Rule) error {
+	_ = rr.Walk(func(rule *rbac.Rule) error {
 		// Setting access to "inherit" will make Grant remove the rule
-		rule.Access = permissions.Inherit
+		rule.Access = rbac.Inherit
 		return nil
 	})
 
@@ -58,7 +58,7 @@ func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete
 
 func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
 	rr := r.Rules
-	_ = rr.Walk(func(rule *permissions.Rule) error {
+	_ = rr.Walk(func(rule *rbac.Rule) error {
 		// Make sure everything is properly set
 		rule.RoleID = r.RoleID
 		return nil

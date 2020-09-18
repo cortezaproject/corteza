@@ -3,21 +3,21 @@ package exporter
 import (
 	"strings"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	ruleFinder interface {
-		FindRulesByRoleID(uint64) permissions.RuleSet
+		FindRulesByRoleID(uint64) rbac.RuleSet
 	}
 )
 
-func ExportableServicePermissions(roles types.RoleSet, rf ruleFinder, access permissions.Access) map[string]map[string][]string {
+func ExportableServicePermissions(roles types.RoleSet, rf ruleFinder, access rbac.Access) map[string]map[string][]string {
 	var (
 		has   bool
 		res   string
-		rules permissions.RuleSet
+		rules rbac.RuleSet
 		sp    = make(map[string]map[string][]string)
 	)
 
@@ -54,10 +54,10 @@ func ExportableServicePermissions(roles types.RoleSet, rf ruleFinder, access per
 	return sp
 }
 
-func ExportableResourcePermissions(roles types.RoleSet, rf ruleFinder, access permissions.Access, resource permissions.Resource) map[string][]string {
+func ExportableResourcePermissions(roles types.RoleSet, rf ruleFinder, access rbac.Access, resource rbac.Resource) map[string][]string {
 	var (
 		has   bool
-		rules permissions.RuleSet
+		rules rbac.RuleSet
 		sp    = make(map[string][]string)
 	)
 

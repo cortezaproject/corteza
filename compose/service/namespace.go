@@ -8,7 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"strconv"
 )
@@ -28,7 +28,7 @@ type (
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 
-		Grant(ctx context.Context, rr ...*permissions.Rule) error
+		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
 
 	NamespaceService interface {

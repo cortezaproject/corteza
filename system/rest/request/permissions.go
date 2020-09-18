@@ -12,7 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
@@ -63,7 +63,7 @@ type (
 		// Rules POST parameter
 		//
 		// List of permission rules to set
-		Rules permissions.RuleSet
+		Rules rbac.RuleSet
 	}
 )
 
@@ -247,7 +247,7 @@ func (r PermissionsUpdate) GetRoleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PermissionsUpdate) GetRules() permissions.RuleSet {
+func (r PermissionsUpdate) GetRules() rbac.RuleSet {
 	return r.Rules
 }
 
@@ -272,7 +272,7 @@ func (r *PermissionsUpdate) Fill(req *http.Request) (err error) {
 		// POST params
 
 		//if val, ok := req.Form["rules[]"]; ok && len(val) > 0  {
-		//    r.Rules, err = permissions.RuleSet(val), nil
+		//    r.Rules, err = rbac.RuleSet(val), nil
 		//    if err != nil {
 		//        return err
 		//    }

@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"time"
@@ -20,8 +20,8 @@ type (
 		Transaction(callback func() error) error
 	}
 
-	permissionServicer interface {
-		accessControlPermissionServicer
+	RBACServicer interface {
+		accessControlRBACServicer
 		Watch(ctx context.Context)
 	}
 
@@ -38,8 +38,6 @@ var (
 	// ng (next-gen) is a temporary prefix
 	// so that we can differentiate between it and the file-only store
 	DefaultStore store.Storer
-
-	DefaultPermissions permissionServicer
 
 	DefaultLogger *zap.Logger
 
@@ -90,13 +88,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	if DefaultPermissions == nil {
-		// Do not override permissions service stored under DefaultPermissions
-		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Global()
-	}
-
-	DefaultAccessControl = AccessControl(DefaultPermissions)
+	DefaultAccessControl = AccessControl(rbac.Global())
 
 	if DefaultObjectStore == nil {
 		const svcPath = "messaging"
@@ -150,5 +142,5 @@ func Activate(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	DefaultPermissions.Watch(ctx)
+	//
 }

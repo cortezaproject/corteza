@@ -10,8 +10,8 @@ import (
 
 func TestPermissionsEffective(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemPermissionResource, "access")
-	h.deny(types.SystemPermissionResource, "application.create")
+	h.allow(types.SystemRBACResource, "access")
+	h.deny(types.SystemRBACResource, "application.create")
 
 	h.apiInit().
 		Get("/permissions/effective").

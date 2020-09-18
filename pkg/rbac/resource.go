@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 import (
 	"strconv"
@@ -23,7 +23,7 @@ func (r Resource) append(suffix string) Resource {
 }
 
 // Resource to satisfty interfaces and ease development
-func (r Resource) PermissionResource() Resource {
+func (r Resource) RBACResource() Resource {
 	return r
 }
 

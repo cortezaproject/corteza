@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -45,8 +45,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (m Module) PermissionResource() permissions.Resource {
-	return ModulePermissionResource.AppendID(m.ID)
+func (m Module) RBACResource() rbac.Resource {
+	return ModuleRBACResource.AppendID(m.ID)
 }
 
 func (m Module) DynamicRoles(userID uint64) []uint64 {

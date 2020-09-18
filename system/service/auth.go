@@ -8,8 +8,8 @@ import (
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -1010,7 +1010,7 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	var (
 		c      uint
-		roleID = permissions.AdminsRoleID
+		roleID = rbac.AdminsRoleID
 		aam    = &authActionProps{user: u, role: &types.Role{ID: roleID}}
 	)
 

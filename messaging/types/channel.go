@@ -6,7 +6,7 @@ import (
 
 	"github.com/jmoiron/sqlx/types"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -19,7 +19,7 @@ type (
 
 		MembershipPolicy ChannelMembershipPolicy `json:"membershipPolicy"`
 
-		CreatorID      uint64 `json:"creatorId"`
+		CreatorID uint64 `json:"creatorId"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -78,8 +78,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (c Channel) PermissionResource() permissions.Resource {
-	return ChannelPermissionResource.AppendID(c.ID)
+func (c Channel) RBACResource() rbac.Resource {
+	return ChannelRBACResource.AppendID(c.ID)
 }
 
 func (c Channel) DynamicRoles(userID uint64) []uint64 {

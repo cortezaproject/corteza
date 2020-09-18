@@ -191,7 +191,7 @@ package system
 //func TestReminderCreateSetAssignee(t *testing.T) {
 //	h := newHelper(t)
 //
-//	h.allow(types.SystemPermissionResource, "reminder.assign")
+//	h.allow(types.SystemRBACResource, "reminder.assign")
 //
 //	h.apiInit().
 //		Post("/reminder/").
@@ -206,7 +206,7 @@ package system
 //func TestReminderCreateSetAssigneeForbidden(t *testing.T) {
 //	h := newHelper(t)
 //
-//	h.deny(types.SystemPermissionResource, "reminder.assign")
+//	h.deny(types.SystemRBACResource, "reminder.assign")
 //
 //	h.apiInit().
 //		Post("/reminder/").
@@ -245,7 +245,7 @@ package system
 //func TestReminderUpdateSetAssignee(t *testing.T) {
 //	h := newHelper(t)
 //
-//	h.allow(types.SystemPermissionResource, "reminder.assign")
+//	h.allow(types.SystemRBACResource, "reminder.assign")
 //	r := h.repoMakeReminder("test_upd_as_namespace:*", nil, 0, nil)
 //
 //	h.apiInit().
@@ -271,7 +271,7 @@ package system
 //func TestReminderUpdateSetAssigneeForbidden(t *testing.T) {
 //	h := newHelper(t)
 //
-//	h.deny(types.SystemPermissionResource, "reminder.assign")
+//	h.deny(types.SystemRBACResource, "reminder.assign")
 //	r := h.repoMakeReminder("test_updf_as_namespace:*", nil, 0, nil)
 //
 //	h.apiInit().

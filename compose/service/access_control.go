@@ -5,28 +5,28 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
 	accessControl struct {
-		permissions accessControlPermissionServicer
+		permissions accessControlRBACServicer
 		actionlog   actionlog.Recorder
 	}
 
-	accessControlPermissionServicer interface {
-		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
-		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
+	accessControlRBACServicer interface {
+		Can([]uint64, rbac.Resource, rbac.Operation, ...rbac.CheckAccessFunc) bool
+		Grant(context.Context, rbac.Whitelist, ...*rbac.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 	}
 
 	secureResource interface {
-		PermissionResource() permissions.Resource
+		RBACResource() rbac.Resource
 		DynamicRoles(uint64) []uint64
 	}
 )
 
-func AccessControl(perm accessControlPermissionServicer) *accessControl {
+func AccessControl(perm accessControlRBACServicer) *accessControl {
 	return &accessControl{
 		permissions: perm,
 		actionlog:   DefaultActionlog,
@@ -34,40 +34,40 @@ func AccessControl(perm accessControlPermissionServicer) *accessControl {
 }
 
 // Effective returns a list of effective service-level permissions
-func (svc accessControl) Effective(ctx context.Context) (ee permissions.EffectiveSet) {
-	ee = permissions.EffectiveSet{}
+func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
+	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.ComposePermissionResource, "access", svc.CanAccess(ctx))
-	ee.Push(types.ComposePermissionResource, "grant", svc.CanGrant(ctx))
-	ee.Push(types.ComposePermissionResource, "namespace.create", svc.CanCreateNamespace(ctx))
-	ee.Push(types.ComposePermissionResource, "settings.read", svc.CanReadSettings(ctx))
-	ee.Push(types.ComposePermissionResource, "settings.manage", svc.CanManageSettings(ctx))
+	ee.Push(types.ComposeRBACResource, "access", svc.CanAccess(ctx))
+	ee.Push(types.ComposeRBACResource, "grant", svc.CanGrant(ctx))
+	ee.Push(types.ComposeRBACResource, "namespace.create", svc.CanCreateNamespace(ctx))
+	ee.Push(types.ComposeRBACResource, "settings.read", svc.CanReadSettings(ctx))
+	ee.Push(types.ComposeRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 
 	return
 }
 
 func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposePermissionResource, "access")
+	return svc.can(ctx, types.ComposeRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposePermissionResource, "grant")
+	return svc.can(ctx, types.ComposeRBACResource, "grant")
 }
 
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposePermissionResource, "settings.read")
+	return svc.can(ctx, types.ComposeRBACResource, "settings.read")
 }
 
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposePermissionResource, "settings.manage")
+	return svc.can(ctx, types.ComposeRBACResource, "settings.manage")
 }
 
 func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposePermissionResource, "namespace.create")
+	return svc.can(ctx, types.ComposeRBACResource, "namespace.create")
 }
 
 func (svc accessControl) CanReadNamespace(ctx context.Context, r *types.Namespace) bool {
-	return svc.can(ctx, r, "read", permissions.Allowed)
+	return svc.can(ctx, r, "read", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateNamespace(ctx context.Context, r *types.Namespace) bool {
@@ -99,11 +99,11 @@ func (svc accessControl) CanDeleteModule(ctx context.Context, r *types.Module) b
 }
 
 func (svc accessControl) CanReadRecordValue(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, r, "record.value.read", permissions.Allowed)
+	return svc.can(ctx, r, "record.value.read", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateRecordValue(ctx context.Context, r *types.ModuleField) bool {
-	return svc.can(ctx, r, "record.value.update", permissions.Allowed)
+	return svc.can(ctx, r, "record.value.update", rbac.Allowed)
 }
 
 func (svc accessControl) CanCreateRecord(ctx context.Context, r *types.Module) bool {
@@ -158,7 +158,7 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 	return svc.can(ctx, r, "delete")
 }
 
-func (svc accessControl) can(ctx context.Context, res secureResource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+func (svc accessControl) can(ctx context.Context, res secureResource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
 	var u = auth.GetIdentityFromContext(ctx)
 
 	if auth.IsSuperUser(u) {
@@ -170,13 +170,13 @@ func (svc accessControl) can(ctx context.Context, res secureResource, op permiss
 
 	return svc.permissions.Can(
 		append(u.Roles(), res.DynamicRoles(u.Identity())...),
-		res.PermissionResource(),
+		res.RBACResource(),
 		op,
 		ff...,
 	)
 }
 
-func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+func (svc accessControl) Grant(ctx context.Context, rr ...*rbac.Rule) error {
 	if !svc.CanGrant(ctx) {
 		return AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -190,7 +190,7 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 	return nil
 }
 
-func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) {
+func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 	if svc.actionlog == nil {
 		return
 	}
@@ -204,7 +204,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) 
 	}
 }
 
-func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (rbac.RuleSet, error) {
 	if !svc.CanGrant(ctx) {
 		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -212,11 +212,11 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-func (svc accessControl) Whitelist() permissions.Whitelist {
-	var wl = permissions.Whitelist{}
+func (svc accessControl) Whitelist() rbac.Whitelist {
+	var wl = rbac.Whitelist{}
 
 	wl.Set(
-		types.ComposePermissionResource,
+		types.ComposeRBACResource,
 		"access",
 		"grant",
 		"namespace.create",
@@ -225,7 +225,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.NamespacePermissionResource,
+		types.NamespaceRBACResource,
 		"read",
 		"update",
 		"delete",
@@ -236,7 +236,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.ModulePermissionResource,
+		types.ModuleRBACResource,
 		"read",
 		"update",
 		"delete",
@@ -247,20 +247,20 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.ModuleFieldPermissionResource,
+		types.ModuleFieldRBACResource,
 		"record.value.read",
 		"record.value.update",
 	)
 
 	wl.Set(
-		types.ChartPermissionResource,
+		types.ChartRBACResource,
 		"read",
 		"update",
 		"delete",
 	)
 
 	wl.Set(
-		types.PagePermissionResource,
+		types.PageRBACResource,
 		"read",
 		"update",
 		"delete",

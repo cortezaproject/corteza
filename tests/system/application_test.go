@@ -81,7 +81,7 @@ func TestApplicationList_filterForbidden(t *testing.T) {
 	h.repoMakeApplication("application")
 	f := h.repoMakeApplication()
 
-	h.deny(types.ApplicationPermissionResource.AppendID(f.ID), "read")
+	h.deny(types.ApplicationRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get("/application/").
@@ -107,7 +107,7 @@ func TestApplicationCreateForbidden(t *testing.T) {
 
 func TestApplicationCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemPermissionResource, "application.create")
+	h.allow(types.SystemRBACResource, "application.create")
 
 	h.apiInit().
 		Post("/application/").
@@ -135,7 +135,7 @@ func TestApplicationUpdateForbidden(t *testing.T) {
 func TestApplicationUpdate(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeApplication()
-	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "update")
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -168,7 +168,7 @@ func TestApplicationDeleteForbidden(t *testing.T) {
 
 func TestApplicationDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ApplicationPermissionResource.AppendWildcard(), "delete")
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "delete")
 
 	res := h.repoMakeApplication()
 

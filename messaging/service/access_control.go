@@ -6,23 +6,23 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
 	accessControl struct {
-		permissions accessControlPermissionServicer
+		permissions accessControlRBACServicer
 		actionlog   actionlog.Recorder
 	}
 
-	accessControlPermissionServicer interface {
-		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
-		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
+	accessControlRBACServicer interface {
+		Can([]uint64, rbac.Resource, rbac.Operation, ...rbac.CheckAccessFunc) bool
+		Grant(context.Context, rbac.Whitelist, ...*rbac.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 	}
 )
 
-func AccessControl(perm accessControlPermissionServicer) *accessControl {
+func AccessControl(perm accessControlRBACServicer) *accessControl {
 	return &accessControl{
 		permissions: perm,
 		actionlog:   DefaultActionlog,
@@ -30,132 +30,132 @@ func AccessControl(perm accessControlPermissionServicer) *accessControl {
 }
 
 // Effective returns a list of effective service-level permissions
-func (svc accessControl) Effective(ctx context.Context) (ee permissions.EffectiveSet) {
-	ee = permissions.EffectiveSet{}
+func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
+	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.MessagingPermissionResource, "access", svc.CanAccess(ctx))
-	ee.Push(types.MessagingPermissionResource, "grant", svc.CanGrant(ctx))
-	ee.Push(types.MessagingPermissionResource, "settings.read", svc.CanReadSettings(ctx))
-	ee.Push(types.MessagingPermissionResource, "settings.manage", svc.CanManageSettings(ctx))
-	ee.Push(types.MessagingPermissionResource, "channel.public.create", svc.CanCreatePublicChannel(ctx))
-	ee.Push(types.MessagingPermissionResource, "channel.private.create", svc.CanCreatePrivateChannel(ctx))
-	ee.Push(types.MessagingPermissionResource, "channel.group.create", svc.CanCreateGroupChannel(ctx))
+	ee.Push(types.MessagingRBACResource, "access", svc.CanAccess(ctx))
+	ee.Push(types.MessagingRBACResource, "grant", svc.CanGrant(ctx))
+	ee.Push(types.MessagingRBACResource, "settings.read", svc.CanReadSettings(ctx))
+	ee.Push(types.MessagingRBACResource, "settings.manage", svc.CanManageSettings(ctx))
+	ee.Push(types.MessagingRBACResource, "channel.public.create", svc.CanCreatePublicChannel(ctx))
+	ee.Push(types.MessagingRBACResource, "channel.private.create", svc.CanCreatePrivateChannel(ctx))
+	ee.Push(types.MessagingRBACResource, "channel.group.create", svc.CanCreateGroupChannel(ctx))
 
 	return
 }
 
 func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "access")
+	return svc.can(ctx, types.MessagingRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "grant")
+	return svc.can(ctx, types.MessagingRBACResource, "grant")
 }
 
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "settings.read")
+	return svc.can(ctx, types.MessagingRBACResource, "settings.read")
 }
 
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "settings.manage")
+	return svc.can(ctx, types.MessagingRBACResource, "settings.manage")
 }
 
 func (svc accessControl) CanCreatePublicChannel(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "channel.public.create", permissions.Allowed)
+	return svc.can(ctx, types.MessagingRBACResource, "channel.public.create", rbac.Allowed)
 }
 
 func (svc accessControl) CanCreatePrivateChannel(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "channel.private.create", permissions.Allowed)
+	return svc.can(ctx, types.MessagingRBACResource, "channel.private.create", rbac.Allowed)
 }
 
 func (svc accessControl) CanCreateGroupChannel(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingPermissionResource, "channel.group.create", permissions.Allowed)
+	return svc.can(ctx, types.MessagingRBACResource, "channel.group.create", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "update", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "update", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanReadChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "read", svc.canReadFallback(ch))
+	return svc.can(ctx, ch.RBACResource(), "read", svc.canReadFallback(ch))
 }
 
 func (svc accessControl) CanJoinChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "join", svc.canJoinFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "join", svc.canJoinFallback(ctx, ch))
 }
 
 func (svc accessControl) CanLeaveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "leave", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "leave", rbac.Allowed)
 }
 
 func (svc accessControl) CanArchiveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "archive", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "archive", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanUnarchiveChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "unarchive", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "unarchive", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanDeleteChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "delete", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "delete", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanUndeleteChannel(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "undelete", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "undelete", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanManageChannelMembers(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "members.manage", svc.isChannelOwnerFallback(ctx, ch))
+	return svc.can(ctx, ch.RBACResource(), "members.manage", svc.isChannelOwnerFallback(ctx, ch))
 }
 
 func (svc accessControl) CanChangeChannelMembershipPolicy(ctx context.Context, ch *types.Channel) bool {
 	// @todo introduce dedicated channel op. for this.
-	return svc.can(ctx, types.MessagingPermissionResource, "grant")
+	return svc.can(ctx, types.MessagingRBACResource, "grant")
 }
 
 func (svc accessControl) CanManageChannelAttachments(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "attachments.manage")
+	return svc.can(ctx, ch.RBACResource(), "attachments.manage")
 }
 
 func (svc accessControl) CanSendMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.send", svc.canSendMessagesFallback(ch))
+	return svc.can(ctx, ch.RBACResource(), "message.send", svc.canSendMessagesFallback(ch))
 }
 
 func (svc accessControl) CanReplyMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.reply", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "message.reply", rbac.Allowed)
 }
 
 func (svc accessControl) CanEmbedMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.embed", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "message.embed", rbac.Allowed)
 }
 
 func (svc accessControl) CanAttachMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.attach", svc.canSendMessagesFallback(ch))
+	return svc.can(ctx, ch.RBACResource(), "message.attach", svc.canSendMessagesFallback(ch))
 }
 
 func (svc accessControl) CanUpdateOwnMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.update.own", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "message.update.own", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.update.all")
+	return svc.can(ctx, ch.RBACResource(), "message.update.all")
 }
 
 func (svc accessControl) CanDeleteOwnMessages(ctx context.Context, ch *types.Channel) bool {
 	// @todo implement
-	return svc.can(ctx, ch.PermissionResource(), "message.delete.own", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "message.delete.own", rbac.Allowed)
 }
 
 func (svc accessControl) CanDeleteMessages(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.delete.all")
+	return svc.can(ctx, ch.RBACResource(), "message.delete.all")
 }
 
 func (svc accessControl) CanReactMessage(ctx context.Context, ch *types.Channel) bool {
-	return svc.can(ctx, ch.PermissionResource(), "message.react", permissions.Allowed)
+	return svc.can(ctx, ch.RBACResource(), "message.react", rbac.Allowed)
 }
 
-func (svc accessControl) canJoinFallback(ctx context.Context, ch *types.Channel) func() permissions.Access {
-	return func() permissions.Access {
+func (svc accessControl) canJoinFallback(ctx context.Context, ch *types.Channel) func() rbac.Access {
+	return func() rbac.Access {
 		userID := auth.GetIdentityFromContext(ctx).Identity()
 
 		isMember := ch.Member != nil
@@ -164,32 +164,32 @@ func (svc accessControl) canJoinFallback(ctx context.Context, ch *types.Channel)
 		isPublic := ch.Type == types.ChannelTypePublic
 
 		if (ch.IsValid() && isPublic) || isOwner {
-			return permissions.Allow
+			return rbac.Allow
 		}
-		return permissions.Deny
+		return rbac.Deny
 	}
 }
 
-func (svc accessControl) canReadFallback(ch *types.Channel) func() permissions.Access {
-	return func() permissions.Access {
+func (svc accessControl) canReadFallback(ch *types.Channel) func() rbac.Access {
+	return func() rbac.Access {
 		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
-			return permissions.Allow
+			return rbac.Allow
 		}
-		return permissions.Deny
+		return rbac.Deny
 	}
 }
 
-func (svc accessControl) canSendMessagesFallback(ch *types.Channel) func() permissions.Access {
-	return func() permissions.Access {
+func (svc accessControl) canSendMessagesFallback(ch *types.Channel) func() rbac.Access {
+	return func() rbac.Access {
 		if ch.IsValid() && (ch.Type == types.ChannelTypePublic || ch.Member != nil) {
-			return permissions.Allow
+			return rbac.Allow
 		}
-		return permissions.Deny
+		return rbac.Deny
 	}
 }
 
-func (svc accessControl) isChannelOwnerFallback(ctx context.Context, ch *types.Channel) func() permissions.Access {
-	return func() permissions.Access {
+func (svc accessControl) isChannelOwnerFallback(ctx context.Context, ch *types.Channel) func() rbac.Access {
+	return func() rbac.Access {
 		userID := auth.GetIdentityFromContext(ctx).Identity()
 
 		isMember := ch.Member != nil
@@ -197,13 +197,13 @@ func (svc accessControl) isChannelOwnerFallback(ctx context.Context, ch *types.C
 		isOwner := isCreator || (isMember && ch.Member.Type == types.ChannelMembershipTypeOwner)
 
 		if isOwner {
-			return permissions.Allow
+			return rbac.Allow
 		}
-		return permissions.Deny
+		return rbac.Deny
 	}
 }
 
-func (svc accessControl) can(ctx context.Context, res permissions.Resource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+func (svc accessControl) can(ctx context.Context, res rbac.Resource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
 	var (
 		u     = auth.GetIdentityFromContext(ctx)
 		roles = u.Roles()
@@ -219,7 +219,7 @@ func (svc accessControl) can(ctx context.Context, res permissions.Resource, op p
 	return svc.permissions.Can(roles, res, op, ff...)
 }
 
-func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+func (svc accessControl) Grant(ctx context.Context, rr ...*rbac.Rule) error {
 	if !svc.CanGrant(ctx) {
 		return AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -233,7 +233,7 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 	return nil
 }
 
-func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) {
+func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 	if svc.actionlog == nil {
 		return
 	}
@@ -247,7 +247,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) 
 	}
 }
 
-func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (rbac.RuleSet, error) {
 	if !svc.CanGrant(ctx) {
 		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -255,11 +255,11 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-func (svc accessControl) Whitelist() permissions.Whitelist {
-	var wl = permissions.Whitelist{}
+func (svc accessControl) Whitelist() rbac.Whitelist {
+	var wl = rbac.Whitelist{}
 
 	wl.Set(
-		types.MessagingPermissionResource,
+		types.MessagingRBACResource,
 		"access",
 		"grant",
 		"settings.read",
@@ -270,7 +270,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.ChannelPermissionResource,
+		types.ChannelRBACResource,
 		"update",
 		"read",
 		"join",

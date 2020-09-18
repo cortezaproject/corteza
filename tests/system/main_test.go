@@ -11,8 +11,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -64,7 +64,7 @@ func InitTestApp() {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			service.DefaultPermissions = permissions.NewTestService(ctx, zap.NewNop(), app.Store)
+			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
@@ -76,7 +76,6 @@ func InitTestApp() {
 			}
 
 			eventbus.Set(eventBus)
-			service.DefaultPermissions.(*permissions.TestService).Reload(ctx)
 			return nil
 		})
 
@@ -107,7 +106,7 @@ func newHelper(t *testing.T) helper {
 
 	h.cUser.SetRoles([]uint64{h.roleID})
 
-	service.DefaultPermissions.(*permissions.TestService).ClearGrants()
+	rbac.Global().(*rbac.TestService).ClearGrants()
 	h.mockPermissionsWithAccess()
 
 	return h
@@ -128,8 +127,8 @@ func (h helper) apiInit() *apitest.APITest {
 		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
 }
 
-func (h helper) mockPermissions(rules ...*permissions.Rule) {
-	h.a.NoError(service.DefaultPermissions.(*permissions.TestService).Grant(
+func (h helper) mockPermissions(rules ...*rbac.Rule) {
+	h.a.NoError(rbac.Global().Grant(
 		// TestService we use does not have any backend storage,
 		context.Background(),
 		// We want to make sure we did not make a mistake with any of the mocked resources or actions
@@ -139,23 +138,23 @@ func (h helper) mockPermissions(rules ...*permissions.Rule) {
 }
 
 // Prepends allow access rule for messaging service for everyone
-func (h helper) mockPermissionsWithAccess(rules ...*permissions.Rule) {
+func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	rules = append(
 		rules,
-		permissions.AllowRule(permissions.EveryoneRoleID, types.SystemPermissionResource, "access"),
+		rbac.AllowRule(rbac.EveryoneRoleID, types.SystemRBACResource, "access"),
 	)
 
 	h.mockPermissions(rules...)
 }
 
 // Set allow permision for test role
-func (h helper) allow(r permissions.Resource, o permissions.Operation) {
-	h.mockPermissions(permissions.AllowRule(h.roleID, r, o))
+func (h helper) allow(r rbac.Resource, o rbac.Operation) {
+	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
 }
 
 // set deny permission for test role
-func (h helper) deny(r permissions.Resource, o permissions.Operation) {
-	h.mockPermissions(permissions.DenyRule(h.roleID, r, o))
+func (h helper) deny(r rbac.Resource, o rbac.Operation) {
+	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester

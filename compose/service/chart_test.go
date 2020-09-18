@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
@@ -52,7 +52,7 @@ func TestCharts(t *testing.T) {
 		svc := chart{
 			store: s,
 			ctx:   context.Background(),
-			ac:    AccessControl(&permissions.ServiceAllowAll{}),
+			ac:    AccessControl(&rbac.ServiceAllowAll{}),
 		}
 		res, err := svc.Create(&types.Chart{Name: "My first chart", NamespaceID: namespaceID})
 		req.NoError(unwrapChartInternal(err))

@@ -1,8 +1,8 @@
 import:
-  - github.com/cortezaproject/corteza-server/pkg/permissions
+  - github.com/cortezaproject/corteza-server/pkg/rbac
 
 types:
-  type: permissions.Rule
+  type: rbac.Rule
 
 fields:
   - { field: RoleID, isPrimaryKey: true }

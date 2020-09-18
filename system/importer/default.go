@@ -3,7 +3,7 @@ package importer
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -28,7 +28,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		return err
 	}
 
-	pi := permissions.NewImporter(service.DefaultAccessControl.Whitelist())
+	pi := rbac.NewImporter(service.DefaultAccessControl.Whitelist())
 	imp := NewImporter(
 		pi,
 		settings.NewImporter(),

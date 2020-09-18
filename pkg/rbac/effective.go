@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 type (
 	effective struct {

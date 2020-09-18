@@ -111,7 +111,7 @@ func (cImp *Chart) Cast(handle string, def interface{}) (err error) {
 			chart.Config, err = cImp.castConfig(chart, val)
 
 		case "allow", "deny":
-			return cImp.imp.permissions.CastSet(types.ChartPermissionResource.String()+handle, key, val)
+			return cImp.imp.permissions.CastSet(types.ChartRBACResource.String()+handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for chart %q", key, handle)
@@ -215,7 +215,7 @@ func (cImp *Chart) Store(ctx context.Context, k chartKeeper) (err error) {
 		}
 
 		cImp.dirty[chart.ID] = false
-		cImp.imp.permissions.UpdateResources(types.ChartPermissionResource.String(), handle, chart.ID)
+		cImp.imp.permissions.UpdateResources(types.ChartRBACResource.String(), handle, chart.ID)
 
 		return
 	})

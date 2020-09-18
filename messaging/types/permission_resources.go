@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
-const MessagingPermissionResource = permissions.Resource("messaging")
-const ChannelPermissionResource = permissions.Resource("messaging:channel:")
+const MessagingRBACResource = rbac.Resource("messaging")
+const ChannelRBACResource = rbac.Resource("messaging:channel:")

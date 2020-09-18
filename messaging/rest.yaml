@@ -572,7 +572,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
-    - github.com/cortezaproject/corteza-server/pkg/permissions
+    - github.com/cortezaproject/corteza-server/pkg/rbac
   apis:
   - name: list
     path: "/"
@@ -620,6 +620,6 @@ endpoints:
         title: Role ID
       post:
       - name: rules
-        type: permissions.RuleSet
+        type: rbac.RuleSet
         required: true
         title: List of permission rules to set

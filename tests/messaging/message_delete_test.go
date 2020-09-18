@@ -30,7 +30,7 @@ func TestMessagesDelete_forbidden(t *testing.T) {
 	h := newHelper(t)
 
 	msg := h.makeMessage("old", h.repoMakePublicCh(), h.cUser)
-	h.deny(types.ChannelPermissionResource.AppendWildcard(), "message.update.own")
+	h.deny(types.ChannelRBACResource.AppendWildcard(), "message.update.own")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, msg.ID)).

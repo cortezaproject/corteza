@@ -6,7 +6,7 @@ import (
 	cmptyp "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	syssvc "github.com/cortezaproject/corteza-server/system/service"
 	systyp "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
@@ -21,7 +21,7 @@ type (
 
 	rbacModule struct {
 		res   *cmptyp.Module
-		rules permissions.RuleSet
+		rules rbac.RuleSet
 
 		Allow rbacRoleOps `yaml:"allow"`
 		Deny  rbacRoleOps `yaml:"deny"`
@@ -29,7 +29,7 @@ type (
 
 	rbacNamespace struct {
 		res   *cmptyp.Namespace
-		rules permissions.RuleSet
+		rules rbac.RuleSet
 
 		Allow rbacRoleOps `yaml:"allow"`
 		Deny  rbacRoleOps `yaml:"deny"`
@@ -79,7 +79,7 @@ func rbacCheck(app serviceInitializer) *cobra.Command {
 
 				p = rbacPreloads{}
 
-				currentRules = cmpsvc.DefaultPermissions.(interface{ Rules() permissions.RuleSet }).Rules()
+				currentRules = rbac.Global().Rules()
 			)
 
 			if len(args) > 0 {
@@ -164,8 +164,8 @@ func (r *rbacRoot) Resolve(p rbacPreloads) (err error) {
 //		d = ns.Deny.CollectRbacRules()
 //	)
 //
-//	a.Update(cmptyp.NamespacePermissionResource, permissions.Allow)
-//	d.Update(cmptyp.NamespacePermissionResource, permissions.Deny)
+//	a.Update(cmptyp.NamespaceRBACResource, permissions.Allow)
+//	d.Update(cmptyp.NamespaceRBACResource, permissions.Deny)
 //
 //	rr = rr.Merge(a).Merge(d)
 //
@@ -188,15 +188,15 @@ func (ns *rbacNamespace) Resolve(nsHandle string, p rbacPreloads) error {
 		}
 	}
 
-	ns.rules = permissions.RuleSet{}
+	ns.rules = rbac.RuleSet{}
 
-	if allows, err := ns.Allow.Resolve(ns.res.PermissionResource(), permissions.Allow, p); err != nil {
+	if allows, err := ns.Allow.Resolve(ns.res.RBACResource(), rbac.Allow, p); err != nil {
 		return fmt.Errorf("failed to resolve allow rules on namespace %q: %w", nsHandle, err)
 	} else {
 		ns.rules = append(ns.rules, allows...)
 	}
 
-	if allows, err := ns.Deny.Resolve(ns.res.PermissionResource(), permissions.Allow, p); err != nil {
+	if allows, err := ns.Deny.Resolve(ns.res.RBACResource(), rbac.Allow, p); err != nil {
 		return fmt.Errorf("failed to resolve deny rules on namespace %q: %w", nsHandle, err)
 	} else {
 		ns.rules = append(ns.rules, allows...)
@@ -216,27 +216,27 @@ func (ns *rbacNamespace) SortedModuleHandles() []string {
 }
 
 func (m *rbacModule) Resolve(handle string, p rbacPreloads) error {
-	var permRes permissions.Resource
+	var permRes rbac.Resource
 	if handle != "*" {
 		m.res = p.modules.FindByHandle(handle)
 		if m.res == nil {
 			return fmt.Errorf("could not find module by handle: %q", handle)
 		}
 
-		permRes = m.res.PermissionResource()
+		permRes = m.res.RBACResource()
 	} else {
-		permRes = cmptyp.ModulePermissionResource.AppendWildcard()
+		permRes = cmptyp.ModuleRBACResource.AppendWildcard()
 	}
 
-	m.rules = permissions.RuleSet{}
+	m.rules = rbac.RuleSet{}
 
-	if allows, err := m.Allow.Resolve(permRes, permissions.Allow, p); err != nil {
+	if allows, err := m.Allow.Resolve(permRes, rbac.Allow, p); err != nil {
 		return fmt.Errorf("failed to resolve allow rules on module %q: %w", handle, err)
 	} else {
 		m.rules = append(m.rules, allows...)
 	}
 
-	if allows, err := m.Deny.Resolve(permRes, permissions.Allow, p); err != nil {
+	if allows, err := m.Deny.Resolve(permRes, rbac.Allow, p); err != nil {
 		return fmt.Errorf("failed to resolve deny rules on module %q: %w", handle, err)
 	} else {
 		m.rules = append(m.rules, allows...)
@@ -245,27 +245,27 @@ func (m *rbacModule) Resolve(handle string, p rbacPreloads) error {
 	return nil
 }
 
-func (m *rbacModule) diagnose(currentRules permissions.RuleSet, p rbacPreloads) {
+func (m *rbacModule) diagnose(currentRules rbac.RuleSet, p rbacPreloads) {
 	// all modules
 	var (
-		res = cmptyp.ModulePermissionResource.AppendWildcard()
+		res = cmptyp.ModuleRBACResource.AppendWildcard()
 	)
 
 	if m.res != nil {
 		// specific module
-		res = m.res.PermissionResource()
+		res = m.res.RBACResource()
 	}
 
 	// all rules that belong to the module
 	currentRules = currentRules.ByResource(res)
 
-	printRuleDiffs(currentRules, m.rules, permissions.Allow, p)
-	printRuleDiffs(currentRules, m.rules, permissions.Deny, p)
+	printRuleDiffs(currentRules, m.rules, rbac.Allow, p)
+	printRuleDiffs(currentRules, m.rules, rbac.Deny, p)
 
 }
 
-func (rules rbacRoleOps) Resolve(res permissions.Resource, access permissions.Access, p rbacPreloads) (permissions.RuleSet, error) {
-	prs := permissions.RuleSet{}
+func (rules rbacRoleOps) Resolve(res rbac.Resource, access rbac.Access, p rbacPreloads) (rbac.RuleSet, error) {
+	prs := rbac.RuleSet{}
 
 	for roleHandle, ops := range rules {
 		role := p.roles.FindByHandle(roleHandle)
@@ -274,10 +274,10 @@ func (rules rbacRoleOps) Resolve(res permissions.Resource, access permissions.Ac
 		}
 
 		for _, op := range ops {
-			prs = append(prs, &permissions.Rule{
+			prs = append(prs, &rbac.Rule{
 				RoleID:    role.ID,
 				Resource:  res,
-				Operation: permissions.Operation(op),
+				Operation: rbac.Operation(op),
 				Access:    access,
 			})
 		}
@@ -286,7 +286,7 @@ func (rules rbacRoleOps) Resolve(res permissions.Resource, access permissions.Ac
 	return prs, nil
 }
 
-func (r *rbacRoot) diagnose(c permissions.RuleSet, p rbacPreloads) {
+func (r *rbacRoot) diagnose(c rbac.RuleSet, p rbacPreloads) {
 	for _, ns := range r.Namespaces {
 		fmt.Printf("=> [%d] %s\n", ns.res.ID, ns.res.Slug)
 		fmt.Printf("  checking with %d module(s) from YAML\n", len(ns.Modules))
@@ -314,7 +314,7 @@ func (r *rbacRoot) diagnose(c permissions.RuleSet, p rbacPreloads) {
 	}
 }
 
-func printRuleDiffs(current, required permissions.RuleSet, a permissions.Access, p rbacPreloads) {
+func printRuleDiffs(current, required rbac.RuleSet, a rbac.Access, p rbacPreloads) {
 	diff := required.ByAccess(a).Diff(current.ByAccess(a))
 
 	if len(diff) > 0 {

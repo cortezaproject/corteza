@@ -60,8 +60,8 @@ func TestModuleRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
 
@@ -79,8 +79,8 @@ func TestModuleReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeModule(ns, "some-module")
 
@@ -96,7 +96,7 @@ func TestModuleList(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeModule(ns, "app")
@@ -114,7 +114,7 @@ func TestModuleListQuery(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.createModule(&types.Module{
@@ -137,13 +137,13 @@ func TestModuleList_filterForbiden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeModule(ns, "module")
 	f := h.makeModule(ns, "module_forbiden")
 
-	h.deny(types.ModulePermissionResource.AppendID(f.ID), "read")
+	h.deny(types.ModuleRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
@@ -173,8 +173,8 @@ func TestModuleCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "module.create")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "module.create")
 
 	ns := h.makeNamespace("some-namespace")
 
@@ -191,7 +191,7 @@ func TestModuleUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
 
@@ -208,10 +208,10 @@ func TestModuleUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
@@ -232,10 +232,10 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
 
 	f := m.Fields[0]
 	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
@@ -264,11 +264,11 @@ func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
 	h.makeRecord(m, &types.RecordValue{Name: "existing", Value: "value"})
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
 
 	f := m.Fields[0]
 	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "Number" }, { "name": "new", "kind": "DateTime" }] }`, m.Name, f.ID)
@@ -297,8 +297,8 @@ func TestModuleDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
 
@@ -314,9 +314,9 @@ func TestModuleDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "delete")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "delete")
 
 	ns := h.makeNamespace("some-namespace")
 	res := h.makeModule(ns, "some-module")

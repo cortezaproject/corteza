@@ -83,7 +83,7 @@ func (rImp *Role) Cast(handle string, def interface{}) (err error) {
 			role.Name = name
 
 		case "allow", "deny":
-			return rImp.permissions.CastSet(types.RolePermissionResource.String()+role.Handle, key, val)
+			return rImp.permissions.CastSet(types.RoleRBACResource.String()+role.Handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for role %q", key, role.Handle)
@@ -121,7 +121,7 @@ func (rImp *Role) Store(ctx context.Context, k roleKeeper) error {
 			return
 		}
 
-		rImp.permissions.UpdateResources(types.RolePermissionResource.String(), handle, role.ID)
+		rImp.permissions.UpdateResources(types.RoleRBACResource.String(), handle, role.ID)
 		rImp.permissions.UpdateRoles(role.Handle, role.ID)
 
 		return

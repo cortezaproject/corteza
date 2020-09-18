@@ -134,7 +134,7 @@ func (mImp *Module) Cast(handle string, def interface{}) (err error) {
 		// 	return c.resolveRecords(val)
 
 		case "allow", "deny":
-			return mImp.imp.permissions.CastSet(types.ModulePermissionResource.String()+handle, key, val)
+			return mImp.imp.permissions.CastSet(types.ModuleRBACResource.String()+handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for module %q", key, handle)
@@ -197,7 +197,7 @@ func (mImp *Module) castFields(module *types.Module, def interface{}) (err error
 				})
 
 			case "allow", "deny":
-				return mImp.imp.permissions.CastSet(types.ModuleFieldPermissionResource.String()+fieldName, key, val)
+				return mImp.imp.permissions.CastSet(types.ModuleFieldRBACResource.String()+fieldName, key, val)
 
 			default:
 				return fmt.Errorf("unexpected key %q for field %q on module %q", key, fieldName, module.Name)
@@ -247,10 +247,10 @@ func (mImp *Module) Store(ctx context.Context, k moduleKeeper) (err error) {
 		}
 
 		mImp.dirty[module.ID] = false
-		mImp.imp.permissions.UpdateResources(types.ModulePermissionResource.String(), handle, module.ID)
+		mImp.imp.permissions.UpdateResources(types.ModuleRBACResource.String(), handle, module.ID)
 
 		err = module.Fields.Walk(func(f *types.ModuleField) error {
-			mImp.imp.permissions.UpdateResources(types.ModuleFieldPermissionResource.String(), f.Name, f.ID)
+			mImp.imp.permissions.UpdateResources(types.ModuleFieldRBACResource.String(), f.Name, f.ID)
 			return nil
 		})
 	}

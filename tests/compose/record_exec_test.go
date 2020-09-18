@@ -40,7 +40,7 @@ func TestRecordExecOrganize(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
 
 	module := h.repoMakeRecordModuleWithFields(
 		"record testing module",

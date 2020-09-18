@@ -9,8 +9,8 @@ import (
 
 func TestPermissionsEffective(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ComposePermissionResource, "access")
-	h.deny(types.ComposePermissionResource, "namespace.create")
+	h.allow(types.ComposeRBACResource, "access")
+	h.deny(types.ComposeRBACResource, "namespace.create")
 
 	h.apiInit().
 		Get("/permissions/effective").
