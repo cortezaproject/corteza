@@ -1,12 +1,11 @@
-package permissions
+package rbac
 
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 	"sync"
-
-	"go.uber.org/zap"
 )
 
 type (
@@ -69,13 +68,13 @@ func (svc *TestService) String() (out string) {
 	return
 }
 
-func NewTestService(ctx context.Context, logger *zap.Logger, s rbacRulesStore) (svc *TestService) {
+func NewTestService(logger *zap.Logger, s rbacRulesStore) (svc *TestService) {
 	svc = &TestService{
 		service: service{
 			l: &sync.Mutex{},
 			f: make(chan bool),
 
-			logger: logger.Named("permissions"),
+			logger: logger.Named("rbac-test"),
 			store:  s,
 		},
 	}

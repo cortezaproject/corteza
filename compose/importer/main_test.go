@@ -10,7 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 )
 
@@ -23,7 +23,7 @@ var (
 	}
 
 	// Add namespace to the stack, make sure importer can find it
-	pi *permissions.Importer
+	pi *rbac.Importer
 	st *settings.Importer
 
 	imp *Importer
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 
 func resetMocks() {
 	// whitelist = nil, anything can be added
-	pi = permissions.NewImporter(service.AccessControl(nil).Whitelist())
+	pi = rbac.NewImporter(service.AccessControl(nil).Whitelist())
 	st = settings.NewImporter()
 
 	imp = NewImporter(nil, nil, nil, nil, pi, st)

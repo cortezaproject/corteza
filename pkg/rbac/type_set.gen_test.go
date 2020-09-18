@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 // This file is auto-generated.
 //
@@ -6,7 +6,7 @@ package permissions
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// pkg/permissions/types.yaml
+// pkg/rbac/types.yaml
 
 import (
 	"fmt"

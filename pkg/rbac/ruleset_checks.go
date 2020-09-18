@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 // Check verifies if role has access to perform an operation on a resource
 //

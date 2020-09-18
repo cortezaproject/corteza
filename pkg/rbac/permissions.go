@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 // General permission stuff, types, constants
 

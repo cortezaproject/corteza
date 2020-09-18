@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"sort"
 	"time"
 )
@@ -44,8 +44,8 @@ var (
 )
 
 // Resource returns a system resource ID for this type
-func (m ModuleField) PermissionResource() permissions.Resource {
-	return ModuleFieldPermissionResource.AppendID(m.ID)
+func (m ModuleField) RBACResource() rbac.Resource {
+	return ModuleFieldRBACResource.AppendID(m.ID)
 }
 
 func (m ModuleField) DynamicRoles(userID uint64) []uint64 {

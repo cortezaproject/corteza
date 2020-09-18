@@ -33,9 +33,9 @@ type (
 )
 
 func (h helper) makeRecordModuleWithFieldsOnNs(name string, namespace *types.Namespace, ff ...*types.ModuleField) *types.Module {
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
 
 	if len(ff) == 0 {
 		// Default fields
@@ -66,9 +66,9 @@ func (h helper) makeRecordModuleWithFieldsOnNs(name string, namespace *types.Nam
 func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleField) *types.Module {
 	namespace := h.makeNamespace("record testing namespace")
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
 
 	if len(ff) == 0 {
 		// Default fields
@@ -169,7 +169,7 @@ func TestRecordCreate(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -196,7 +196,7 @@ func TestRecordCreateWithErrors(t *testing.T) {
 		},
 	}
 	module := h.repoMakeRecordModuleWithFields("record testing module", fields...)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -234,7 +234,7 @@ func TestRecordUpdate(t *testing.T) {
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	record := h.makeRecord(module)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -270,7 +270,7 @@ func TestRecordDelete(t *testing.T) {
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	record := h.makeRecord(module)
 
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.delete")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -474,10 +474,10 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	// make a standard module, and prevent current user to
 	// read from "name" and update "email" fields
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.deny(module.Fields.FindByName("name").PermissionResource(), "record.value.read")
-	h.deny(module.Fields.FindByName("email").PermissionResource(), "record.value.update")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
+	h.deny(module.Fields.FindByName("name").RBACResource(), "record.value.read")
+	h.deny(module.Fields.FindByName("email").RBACResource(), "record.value.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
 
 	record := h.makeRecord(
 		module,

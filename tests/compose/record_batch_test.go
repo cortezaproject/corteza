@@ -17,7 +17,7 @@ func TestRecordCreate_batch(t *testing.T) {
 	ns := h.makeNamespace("batch testing namespace")
 	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -38,7 +38,7 @@ func TestRecordUpdate_batch(t *testing.T) {
 	ns := h.makeNamespace("batch testing namespace")
 	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
 
 	record := h.makeRecord(module)
 	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
@@ -62,8 +62,8 @@ func TestRecordDelete_batch(t *testing.T) {
 	ns := h.makeNamespace("batch testing namespace")
 	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.delete")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.delete")
 
 	record := h.makeRecord(module)
 	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})
@@ -90,8 +90,8 @@ func TestRecordMixed_batch(t *testing.T) {
 	ns := h.makeNamespace("batch testing namespace")
 	module := h.makeRecordModuleWithFieldsOnNs("record testing module", ns)
 	childModule := h.makeRecordModuleWithFieldsOnNs("record testing module child", ns)
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.update")
-	h.allow(types.ModulePermissionResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
 
 	record := h.makeRecord(module)
 	childRecord := h.makeRecord(childModule, &types.RecordValue{Name: "another_record", Value: strconv.FormatUint(record.ID, 10), Ref: record.ID})

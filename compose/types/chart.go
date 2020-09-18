@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -59,8 +59,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (c Chart) PermissionResource() permissions.Resource {
-	return ChartPermissionResource.AppendID(c.ID)
+func (c Chart) RBACResource() rbac.Resource {
+	return ChartRBACResource.AppendID(c.ID)
 }
 
 func (c Chart) DynamicRoles(userID uint64) []uint64 {

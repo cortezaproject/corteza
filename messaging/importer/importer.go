@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -63,7 +63,7 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 	})
 }
 
-func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk permissions.ImportKeeper, sk settings.ImportKeeper, roles sysTypes.RoleSet) (err error) {
+func (imp *Importer) Store(ctx context.Context, rk channelKeeper, pk rbac.ImportKeeper, sk settings.ImportKeeper, roles sysTypes.RoleSet) (err error) {
 	if imp.channels != nil {
 		err = imp.channels.Store(ctx, rk)
 		if err != nil {

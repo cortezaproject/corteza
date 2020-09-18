@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -25,7 +25,7 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 	}
 
 	var (
-		p   = permissions.NewImporter(service.DefaultAccessControl.Whitelist())
+		p   = rbac.NewImporter(service.DefaultAccessControl.Whitelist())
 		imp = NewImporter(
 			p,
 			settings.NewImporter(),
@@ -37,8 +37,8 @@ func Import(ctx context.Context, ff ...io.Reader) (err error) {
 		//
 		// Roles are use for resolving access control
 		roles = sysTypes.RoleSet{
-			&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-			&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+			&sysTypes.Role{ID: rbac.EveryoneRoleID, Handle: "everyone"},
+			&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 		}
 	)
 

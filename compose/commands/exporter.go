@@ -11,7 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/store"
 	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
@@ -97,8 +97,8 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 	//
 	// Roles are use for resolving access control
 	roles = sysTypes.RoleSet{
-		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+		&sysTypes.Role{ID: rbac.EveryoneRoleID, Handle: "everyone"},
+		&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 	}
 
 	modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
@@ -115,8 +115,8 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 	// nsOut.Always = ns.Always
 	// nsOut.Meta = ns.Meta
 	//
-	// nsOut.Allow = sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, ns.PermissionResource())
-	// nsOut.Deny = sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, ns.PermissionResource())
+	// nsOut.Allow = sysExporter.ExportableResourcePermissions(roles, service.DefaultRBAC, permissions.Allow, ns.RBACResource())
+	// nsOut.Deny = sysExporter.ExportableResourcePermissions(roles, service.DefaultRBAC, permissions.Deny, ns.RBACResource())
 
 	for _, arg := range args {
 		switch arg {
@@ -146,12 +146,12 @@ func settingExporter(ctx context.Context, out *Compose) {
 
 func permissionExporter(ctx context.Context, out *Compose) {
 	roles := sysTypes.RoleSet{
-		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+		&sysTypes.Role{ID: rbac.EveryoneRoleID, Handle: "everyone"},
+		&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 	}
 
-	out.Allow = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Allow)
-	out.Deny = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Deny)
+	out.Allow = sysExporter.ExportableServicePermissions(roles, rbac.Global(), rbac.Allow)
+	out.Deny = sysExporter.ExportableServicePermissions(roles, rbac.Global(), rbac.Deny)
 }
 
 // This is PoC for exporting compose resources
@@ -287,8 +287,8 @@ func expModules(mm types.ModuleSet) (o map[string]Module) {
 			Name:   m.Name,
 			Fields: expModuleFields(m.Fields, mm),
 
-			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ModulePermissionResource),
-			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ModulePermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Allow, types.ModuleRBACResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Deny, types.ModuleRBACResource),
 		}
 
 		if meta := expModuleMetaCleanup(m.Meta); len(meta) > 0 {
@@ -336,8 +336,8 @@ func expModuleFields(ff types.ModuleFieldSet, modules types.ModuleSet) (o yaml.M
 				Visible:  f.Visible,
 				Multi:    f.Multi,
 
-				Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ModuleFieldPermissionResource),
-				Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ModuleFieldPermissionResource),
+				Allow: sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Allow, types.ModuleFieldRBACResource),
+				Deny:  sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Deny, types.ModuleFieldRBACResource),
 			},
 		}
 	}
@@ -416,8 +416,8 @@ func expPages(parentID uint64, pages types.PageSet, modules types.ModuleSet, cha
 			Pages:       expPages(child.ID, pages, modules, charts),
 			Visible:     child.Visible,
 
-			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.PagePermissionResource),
-			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.PagePermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Allow, types.PageRBACResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Deny, types.PageRBACResource),
 		}
 
 		if child.ModuleID > 0 {
@@ -638,8 +638,8 @@ func expCharts(charts types.ChartSet, modules types.ModuleSet) (o map[string]Cha
 				ColorScheme: c.Config.ColorScheme,
 			},
 
-			Allow: sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Allow, types.ChartPermissionResource),
-			Deny:  sysExporter.ExportableResourcePermissions(roles, service.DefaultPermissions, permissions.Deny, types.ChartPermissionResource),
+			Allow: sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Allow, types.ChartRBACResource),
+			Deny:  sysExporter.ExportableResourcePermissions(roles, rbac.Global(), rbac.Deny, types.ChartRBACResource),
 		}
 
 		for i, r := range c.Config.Reports {

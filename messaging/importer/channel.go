@@ -90,7 +90,7 @@ func (cImp *Channel) Cast(name string, def interface{}) (err error) {
 			channel.Topic = deinterfacer.ToString(val)
 
 		case "allow", "deny":
-			return cImp.permissions.CastSet(types.ChannelPermissionResource.String()+channel.Name, key, val)
+			return cImp.permissions.CastSet(types.ChannelRBACResource.String()+channel.Name, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for channel %q", key, channel.Name)
@@ -128,7 +128,7 @@ func (cImp *Channel) Store(ctx context.Context, k channelKeeper) error {
 			return
 		}
 
-		cImp.permissions.UpdateResources(types.ChannelPermissionResource.String(), handle, channel.ID)
+		cImp.permissions.UpdateResources(types.ChannelRBACResource.String(), handle, channel.ID)
 		cImp.permissions.UpdateRoles(channel.Name, channel.ID)
 
 		return

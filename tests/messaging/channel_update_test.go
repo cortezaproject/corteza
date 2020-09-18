@@ -56,7 +56,7 @@ func TestChannelUpdateDenied(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.deny(ch.PermissionResource(), "update")
+	h.deny(ch.RBACResource(), "update")
 
 	req := channelToRequest(ch)
 	req.Name = "Updated name"
@@ -70,7 +70,7 @@ func TestChannelUpdate(t *testing.T) {
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
-	h.allow(ch.PermissionResource(), "update")
+	h.allow(ch.RBACResource(), "update")
 
 	req := channelToRequest(ch)
 	req.Name = "Updated name"

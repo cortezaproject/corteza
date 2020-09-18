@@ -158,7 +158,7 @@ func (pImp *Page) cast(parent, handle string, def interface{}) (err error) {
 			return pImp.castSet(handle, val)
 
 		case "allow", "deny":
-			return pImp.imp.permissions.CastSet(types.PagePermissionResource.String()+handle, key, val)
+			return pImp.imp.permissions.CastSet(types.PageRBACResource.String()+handle, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for page %q", key, handle)
@@ -358,7 +358,7 @@ func (pImp *Page) storeChildren(ctx context.Context, parent string, k pageKeeper
 			continue
 		}
 
-		pImp.imp.permissions.UpdateResources(types.PagePermissionResource.String(), page.Handle, page.ID)
+		pImp.imp.permissions.UpdateResources(types.PageRBACResource.String(), page.Handle, page.ID)
 
 		if err = pImp.storeChildren(ctx, page.Handle, k); err != nil {
 			return err

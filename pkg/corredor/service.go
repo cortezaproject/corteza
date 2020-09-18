@@ -18,7 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -75,7 +75,7 @@ type (
 		userLookupCache userLookupCacheMap
 
 		// set of permission rules, generated from security info of each script
-		permissions permissions.RuleSet
+		permissions rbac.RuleSet
 	}
 
 	ScriptArgs interface {
@@ -111,7 +111,7 @@ type (
 	}
 
 	permissionRuleChecker interface {
-		Check(res permissions.Resource, op permissions.Operation, roles ...uint64) permissions.Access
+		Check(res rbac.Resource, op rbac.Operation, roles ...uint64) rbac.Access
 	}
 )
 
@@ -145,7 +145,7 @@ var (
 )
 
 const (
-	permOpExec permissions.Operation = "exec"
+	permOpExec rbac.Operation = "exec"
 )
 
 func Service() *service {
@@ -175,7 +175,7 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
-		permissions:    permissions.RuleSet{},
+		permissions:    rbac.RuleSet{},
 
 		userLookupCache: userLookupCacheMap{},
 
@@ -401,7 +401,7 @@ func (svc service) canExec(ctx context.Context, script string) bool {
 		return true
 	}
 
-	return svc.permissions.Check(permissions.Resource(script), permOpExec, u.Roles()...) != permissions.Deny
+	return svc.permissions.Check(rbac.Resource(script), permOpExec, u.Roles()...) != rbac.Deny
 }
 
 func (svc *service) loadServerScripts(ctx context.Context) {
@@ -452,7 +452,7 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 	svc.explicit = make(map[string]map[string]bool)
 
 	// Reset security
-	svc.permissions = permissions.RuleSet{}
+	svc.permissions = rbac.RuleSet{}
 
 	// reset the cache
 	svc.userLookupCache = userLookupCacheMap{}
@@ -884,7 +884,7 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 // User and role caches (uc, rc args) hold list of users/roles
 // that were already loaded/checked
 //
-func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript) (sec *ScriptSecurity, rr permissions.RuleSet, err error) {
+func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript) (sec *ScriptSecurity, rr rbac.RuleSet, err error) {
 	if script.Security == nil {
 		return
 	}
@@ -892,18 +892,18 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 	var (
 		// collectors for allow&deny rules
 		// we'll merge
-		allow = permissions.RuleSet{}
-		deny  = permissions.RuleSet{}
+		allow = rbac.RuleSet{}
+		deny  = rbac.RuleSet{}
 
-		permRuleGenerator = func(script string, access permissions.Access, roles ...string) (permissions.RuleSet, error) {
-			out := make([]*permissions.Rule, len(roles))
+		permRuleGenerator = func(script string, access rbac.Access, roles ...string) (rbac.RuleSet, error) {
+			out := make([]*rbac.Rule, len(roles))
 			for i, role := range roles {
 				if r, err := svc.roles.FindByAny(ctx, role); err != nil {
 					return nil, errors.Wrapf(err, "could not load security role: %s", role)
 				} else {
-					out[i] = &permissions.Rule{
+					out[i] = &rbac.Rule{
 						RoleID:    r.ID,
-						Resource:  permissions.Resource(script),
+						Resource:  rbac.Resource(script),
 						Operation: permOpExec,
 						Access:    access,
 					}
@@ -928,11 +928,11 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 		}
 	}
 
-	if allow, err = permRuleGenerator(script.Name, permissions.Allow, script.Security.Allow...); err != nil {
+	if allow, err = permRuleGenerator(script.Name, rbac.Allow, script.Security.Allow...); err != nil {
 		return
 	}
 
-	if deny, err = permRuleGenerator(script.Name, permissions.Deny, script.Security.Deny...); err != nil {
+	if deny, err = permRuleGenerator(script.Name, rbac.Deny, script.Security.Deny...); err != nil {
 		return
 	}
 

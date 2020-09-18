@@ -2,18 +2,17 @@ package messaging
 
 import (
 	"fmt"
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "access")
-	h.allow(types.MessagingPermissionResource, "grant")
-	h.deny(types.MessagingPermissionResource, "channel.group.create")
+	h.allow(types.MessagingRBACResource, "access")
+	h.allow(types.MessagingRBACResource, "grant")
+	h.deny(types.MessagingRBACResource, "channel.group.create")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/permissions/%d/rules", h.roleID)).

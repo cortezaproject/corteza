@@ -16,12 +16,12 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
 	accessControlActionProps struct {
-		rule *permissions.Rule
+		rule *rbac.Rule
 	}
 
 	accessControlAction struct {
@@ -66,7 +66,7 @@ var (
 //
 // This function is auto-generated.
 //
-func (p *accessControlActionProps) setRule(rule *permissions.Rule) *accessControlActionProps {
+func (p *accessControlActionProps) setRule(rule *rbac.Rule) *accessControlActionProps {
 	p.rule = rule
 	return p
 }

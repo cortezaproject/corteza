@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/importer"
@@ -34,7 +34,7 @@ func checkRoles(ctx context.Context, s store.Storer) (bool, error) {
 
 // Check if any RBAC rules exist
 func checkRbacRules(ctx context.Context, s store.Storer) (bool, error) {
-	if set, _, err := store.SearchRbacRules(ctx, s, permissions.RuleFilter{}); err != nil {
+	if set, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{}); err != nil {
 		return false, err
 	} else {
 		return len(set) > 0, nil

@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -144,8 +144,8 @@ func (m *Message) IsValid() bool {
 	return m.DeletedAt == nil
 }
 
-func (m Message) PermissionResource() permissions.Resource {
-	return ChannelPermissionResource.AppendID(m.ChannelID)
+func (m Message) RBACResource() rbac.Resource {
+	return ChannelRBACResource.AppendID(m.ChannelID)
 }
 
 func (c Message) DynamicRoles(userID uint64) []uint64 {

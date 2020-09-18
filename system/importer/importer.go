@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/importer"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -72,7 +72,7 @@ func (imp *Importer) Cast(in interface{}) (err error) {
 func (imp *Importer) Store(
 	ctx context.Context,
 	rk roleKeeper,
-	pk permissions.ImportKeeper,
+	pk rbac.ImportKeeper,
 	sk settings.ImportKeeper,
 	roles types.RoleSet,
 ) (err error) {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -49,8 +49,8 @@ type (
 )
 
 // Resource returns a system resource ID for this type
-func (n Namespace) PermissionResource() permissions.Resource {
-	return NamespacePermissionResource.AppendID(n.ID)
+func (n Namespace) RBACResource() rbac.Resource {
+	return NamespaceRBACResource.AppendID(n.ID)
 }
 
 func (n Namespace) DynamicRoles(userID uint64) []uint64 {

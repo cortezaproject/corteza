@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 var (
-	pi  *permissions.Importer
+	pi  *rbac.Importer
 	si  *settings.Importer
 	imp *Importer
 )
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 
 func resetMocks() {
 	// whitelist = nil, anything can be added
-	pi = permissions.NewImporter(service.AccessControl(nil).Whitelist())
+	pi = rbac.NewImporter(service.AccessControl(nil).Whitelist())
 	si = settings.NewImporter()
 	imp = NewImporter(
 		pi,

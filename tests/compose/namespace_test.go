@@ -53,8 +53,8 @@ func TestNamespaceReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
 	nsbh, err := service.DefaultNamespace.With(h.secCtx()).FindByHandle(ns.Slug)
@@ -87,7 +87,7 @@ func TestNamespaceList_filterForbiden(t *testing.T) {
 	h.makeNamespace("namespace")
 	f := h.makeNamespace("namespace_forbiden")
 
-	h.deny(types.NamespacePermissionResource.AppendID(f.ID), "read")
+	h.deny(types.NamespaceRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get("/namespace/").
@@ -115,7 +115,7 @@ func TestNamespaceCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.ComposePermissionResource, "namespace.create")
+	h.allow(types.ComposeRBACResource, "namespace.create")
 
 	h.apiInit().
 		Post("/namespace/").
@@ -146,7 +146,7 @@ func TestNamespaceUpdate(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "update")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -179,7 +179,7 @@ func TestNamespaceDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "delete")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "delete")
 
 	ns := h.makeNamespace("some-namespace")
 

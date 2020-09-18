@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ func TestResource(t *testing.T) {
 				Resource("a:b:c"),
 				"a:b:c"},
 			{
-				Resource("a:b:c").PermissionResource(),
+				Resource("a:b:c").RBACResource(),
 				"a:b:c"},
 			{
 				Resource("a:b:").AppendID(1),

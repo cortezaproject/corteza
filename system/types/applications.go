@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -68,8 +68,8 @@ func (r *Application) DynamicRoles(userID uint64) []uint64 {
 }
 
 // Resource returns a resource ID for this type
-func (r Application) PermissionResource() permissions.Resource {
-	return ApplicationPermissionResource.AppendID(r.ID)
+func (r Application) RBACResource() rbac.Resource {
+	return ApplicationRBACResource.AppendID(r.ID)
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

@@ -137,7 +137,7 @@ func (nsImp *Namespace) Cast(handle string, def interface{}) (err error) {
 			return nsImp.castRecords(handle, val)
 
 		case "allow", "deny":
-			return nsImp.imp.permissions.CastSet(types.NamespacePermissionResource.String()+namespace.Slug, key, val)
+			return nsImp.imp.permissions.CastSet(types.NamespaceRBACResource.String()+namespace.Slug, key, val)
 
 		default:
 			return fmt.Errorf("unexpected key %q for namespace %q", key, namespace.Slug)
@@ -247,7 +247,7 @@ func (nsImp *Namespace) Store(ctx context.Context, nsk namespaceKeeper, mk modul
 		spew.Dump(nsImp.dirty, namespace)
 
 		nsImp.dirty[namespace.ID] = false
-		nsImp.imp.permissions.UpdateResources(types.NamespacePermissionResource.String(), handle, namespace.ID)
+		nsImp.imp.permissions.UpdateResources(types.NamespaceRBACResource.String(), handle, namespace.ID)
 
 		if _, ok := nsImp.modules[handle]; ok {
 			nsImp.modules[handle].namespace = namespace

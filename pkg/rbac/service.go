@@ -1,4 +1,4 @@
-package permissions
+package rbac
 
 import (
 	"context"
@@ -24,11 +24,21 @@ type (
 
 	// RuleFilter is a dummy struct to satisfy store codegen
 	RuleFilter struct{}
+
+	Controller interface {
+		Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool
+		Check(res Resource, op Operation, roles ...uint64) (v Access)
+		Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error)
+		Watch(ctx context.Context)
+		FindRulesByRoleID(roleID uint64) (rr RuleSet)
+		Rules() (rr RuleSet)
+		Reload(ctx context.Context)
+	}
 )
 
 var (
-	// Global permissioning service
-	gRBAC *service
+	// Global RBAC service
+	gRBAC Controller
 )
 
 const (
@@ -36,8 +46,12 @@ const (
 )
 
 // Global returns global RBAC service
-func Global() *service {
+func Global() Controller {
 	return gRBAC
+}
+
+func SetGlobal(svc Controller) {
+	gRBAC = svc
 }
 
 func Initialize(logger *zap.Logger, s rbacRulesStore) error {
@@ -46,7 +60,7 @@ func Initialize(logger *zap.Logger, s rbacRulesStore) error {
 		return nil
 	}
 
-	gRBAC = NewService(logger, s)
+	SetGlobal(NewService(logger, s))
 	return nil
 }
 
@@ -77,7 +91,7 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
 func (svc service) Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool {
 	// Checking rules
-	var v = svc.Check(res.PermissionResource(), op, roles...)
+	var v = svc.Check(res.RBACResource(), op, roles...)
 	if v != Inherit {
 		return v == Allow
 	}

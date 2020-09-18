@@ -9,7 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/settings"
 	sysExporter "github.com/cortezaproject/corteza-server/system/exporter"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -59,12 +59,12 @@ func Exporter() *cobra.Command {
 
 func permissionExporter(ctx context.Context, out *System) {
 	roles := sysTypes.RoleSet{
-		&sysTypes.Role{ID: permissions.EveryoneRoleID, Handle: "everyone"},
-		&sysTypes.Role{ID: permissions.AdminsRoleID, Handle: "admins"},
+		&sysTypes.Role{ID: rbac.EveryoneRoleID, Handle: "everyone"},
+		&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 	}
 
-	out.Allow = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Allow)
-	out.Deny = sysExporter.ExportableServicePermissions(roles, service.DefaultPermissions, permissions.Deny)
+	out.Allow = sysExporter.ExportableServicePermissions(roles, rbac.Global(), rbac.Allow)
+	out.Deny = sysExporter.ExportableServicePermissions(roles, rbac.Global(), rbac.Deny)
 }
 
 func settingExporter(ctx context.Context, out *System) {

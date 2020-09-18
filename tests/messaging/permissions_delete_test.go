@@ -2,21 +2,19 @@ package messaging
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"net/http"
 	"testing"
-
-	"github.com/cortezaproject/corteza-server/messaging/service"
-	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 )
 
 func TestPermissionsDelete(t *testing.T) {
 	h := newHelper(t)
-	p := service.DefaultPermissions
+	p := rbac.Global()
 
 	// Make sure our user can grant
-	h.allow(types.MessagingPermissionResource, "grant")
+	h.allow(types.MessagingRBACResource, "grant")
 
 	// New role.
 	permDelRole := h.roleID + 1
@@ -25,9 +23,9 @@ func TestPermissionsDelete(t *testing.T) {
 
 	// Setup a few fake rules for new roke
 	h.mockPermissions(
-		permissions.AllowRule(permDelRole, types.MessagingPermissionResource, "access"),
-		permissions.DenyRule(permDelRole, types.MessagingPermissionResource, "channel.group.create"),
-		permissions.DenyRule(permDelRole, types.MessagingPermissionResource, "channel.private.create"),
+		rbac.AllowRule(permDelRole, types.MessagingRBACResource, "access"),
+		rbac.DenyRule(permDelRole, types.MessagingRBACResource, "channel.group.create"),
+		rbac.DenyRule(permDelRole, types.MessagingRBACResource, "channel.private.create"),
 	)
 
 	h.a.Len(p.FindRulesByRoleID(permDelRole), 3)
@@ -40,8 +38,8 @@ func TestPermissionsDelete(t *testing.T) {
 		End()
 
 	// Make sure everything is deleted
-	rr, _ := p.FindRulesByRoleID(permDelRole).Filter(func(r *permissions.Rule) (b bool, e error) {
-		return r.Access != permissions.Inherit, nil
+	rr, _ := p.FindRulesByRoleID(permDelRole).Filter(func(r *rbac.Rule) (b bool, e error) {
+		return r.Access != rbac.Inherit, nil
 	})
 
 	h.a.Empty(rr)

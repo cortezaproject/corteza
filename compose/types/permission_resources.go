@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
-const ComposePermissionResource = permissions.Resource("compose")
-const NamespacePermissionResource = permissions.Resource("compose:namespace:")
-const ChartPermissionResource = permissions.Resource("compose:chart:")
-const ModulePermissionResource = permissions.Resource("compose:module:")
-const ModuleFieldPermissionResource = permissions.Resource("compose:module-field:")
-const PagePermissionResource = permissions.Resource("compose:page:")
+const ComposeRBACResource = rbac.Resource("compose")
+const NamespaceRBACResource = rbac.Resource("compose:namespace:")
+const ChartRBACResource = rbac.Resource("compose:chart:")
+const ModuleRBACResource = rbac.Resource("compose:module:")
+const ModuleFieldRBACResource = rbac.Resource("compose:module-field:")
+const PageRBACResource = rbac.Resource("compose:page:")

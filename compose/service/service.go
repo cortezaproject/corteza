@@ -14,7 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"strconv"
@@ -22,8 +22,8 @@ import (
 )
 
 type (
-	permissionServicer interface {
-		accessControlPermissionServicer
+	RBACServicer interface {
+		accessControlRBACServicer
 		Watch(ctx context.Context)
 	}
 
@@ -49,9 +49,6 @@ var (
 	DefaultLogger *zap.Logger
 
 	DefaultActionlog actionlog.Recorder
-
-	// DefaultPermissions Retrieves & stores permissions
-	DefaultPermissions permissionServicer
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
@@ -101,13 +98,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	if DefaultPermissions == nil {
-		// Do not override permissions service stored under DefaultPermissions
-		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Global()
-	}
-
-	DefaultAccessControl = AccessControl(DefaultPermissions)
+	DefaultAccessControl = AccessControl(rbac.Global())
 
 	if DefaultObjectStore == nil {
 		const svcPath = "compose"
@@ -167,8 +158,7 @@ func Activate(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	// Reloading permissions on change
-	DefaultPermissions.Watch(ctx)
+	//
 }
 
 func RegisterIteratorProviders() {

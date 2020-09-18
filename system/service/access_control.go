@@ -6,28 +6,28 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
 	accessControl struct {
-		permissions accessControlPermissionServicer
+		permissions accessControlRBACServicer
 		actionlog   actionlog.Recorder
 	}
 
-	accessControlPermissionServicer interface {
-		Can([]uint64, permissions.Resource, permissions.Operation, ...permissions.CheckAccessFunc) bool
-		Grant(context.Context, permissions.Whitelist, ...*permissions.Rule) error
-		FindRulesByRoleID(roleID uint64) (rr permissions.RuleSet)
+	accessControlRBACServicer interface {
+		Can([]uint64, rbac.Resource, rbac.Operation, ...rbac.CheckAccessFunc) bool
+		Grant(context.Context, rbac.Whitelist, ...*rbac.Rule) error
+		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 	}
 
-	permissionResource interface {
-		PermissionResource() permissions.Resource
+	RBACResource interface {
+		RBACResource() rbac.Resource
 	}
 )
 
-func AccessControl(perm accessControlPermissionServicer) *accessControl {
+func AccessControl(perm accessControlRBACServicer) *accessControl {
 	return &accessControl{
 		permissions: perm,
 		actionlog:   DefaultActionlog,
@@ -35,112 +35,112 @@ func AccessControl(perm accessControlPermissionServicer) *accessControl {
 }
 
 // Effective returns a list of effective service-level permissions
-func (svc accessControl) Effective(ctx context.Context) (ee permissions.EffectiveSet) {
-	ee = permissions.EffectiveSet{}
+func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
+	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.SystemPermissionResource, "access", svc.CanAccess(ctx))
-	ee.Push(types.SystemPermissionResource, "grant", svc.CanGrant(ctx))
-	ee.Push(types.SystemPermissionResource, "settings.read", svc.CanReadSettings(ctx))
-	ee.Push(types.SystemPermissionResource, "settings.manage", svc.CanManageSettings(ctx))
-	ee.Push(types.SystemPermissionResource, "application.create", svc.CanCreateApplication(ctx))
-	ee.Push(types.SystemPermissionResource, "role.create", svc.CanCreateRole(ctx))
+	ee.Push(types.SystemRBACResource, "access", svc.CanAccess(ctx))
+	ee.Push(types.SystemRBACResource, "grant", svc.CanGrant(ctx))
+	ee.Push(types.SystemRBACResource, "settings.read", svc.CanReadSettings(ctx))
+	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
+	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
+	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
 
 	return
 }
 
 func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "access")
+	return svc.can(ctx, types.SystemRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "grant")
+	return svc.can(ctx, types.SystemRBACResource, "grant")
 }
 
 func (svc accessControl) CanReadSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "settings.read")
+	return svc.can(ctx, types.SystemRBACResource, "settings.read")
 }
 
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "settings.manage")
+	return svc.can(ctx, types.SystemRBACResource, "settings.manage")
 }
 
 func (svc accessControl) CanCreateUser(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "user.create")
+	return svc.can(ctx, types.SystemRBACResource, "user.create")
 }
 
 func (svc accessControl) CanCreateRole(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "role.create")
+	return svc.can(ctx, types.SystemRBACResource, "role.create")
 }
 
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "application.create")
+	return svc.can(ctx, types.SystemRBACResource, "application.create")
 }
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemPermissionResource, "reminder.assign")
+	return svc.can(ctx, types.SystemRBACResource, "reminder.assign")
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
-	return svc.can(ctx, rl.PermissionResource(), "read", permissions.Allowed)
+	return svc.can(ctx, rl.RBACResource(), "read", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateRole(ctx context.Context, rl *types.Role) bool {
-	if rl.ID == permissions.EveryoneRoleID {
+	if rl.ID == rbac.EveryoneRoleID {
 		return false
 	}
 
-	return svc.can(ctx, rl.PermissionResource(), "update")
+	return svc.can(ctx, rl.RBACResource(), "update")
 }
 
 func (svc accessControl) CanDeleteRole(ctx context.Context, rl *types.Role) bool {
-	if rl.ID == permissions.EveryoneRoleID {
+	if rl.ID == rbac.EveryoneRoleID {
 		return false
 	}
 
-	return svc.can(ctx, rl.PermissionResource(), "delete")
+	return svc.can(ctx, rl.RBACResource(), "delete")
 }
 
 func (svc accessControl) CanManageRoleMembers(ctx context.Context, rl *types.Role) bool {
-	if rl.ID == permissions.EveryoneRoleID {
+	if rl.ID == rbac.EveryoneRoleID {
 		return false
 	}
-	return svc.can(ctx, rl.PermissionResource(), "members.manage")
+	return svc.can(ctx, rl.RBACResource(), "members.manage")
 }
 
 func (svc accessControl) CanReadApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app.PermissionResource(), "read", permissions.Allowed)
+	return svc.can(ctx, app.RBACResource(), "read", rbac.Allowed)
 }
 
 func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app.PermissionResource(), "update")
+	return svc.can(ctx, app.RBACResource(), "update")
 }
 
 func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Application) bool {
-	return svc.can(ctx, app.PermissionResource(), "delete")
+	return svc.can(ctx, app.RBACResource(), "delete")
 }
 
 func (svc accessControl) CanReadUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "read")
+	return svc.can(ctx, u.RBACResource(), "read")
 }
 
 func (svc accessControl) CanUpdateUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "update")
+	return svc.can(ctx, u.RBACResource(), "update")
 }
 
 func (svc accessControl) CanSuspendUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "suspend")
+	return svc.can(ctx, u.RBACResource(), "suspend")
 }
 
 func (svc accessControl) CanUnsuspendUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "unsuspend")
+	return svc.can(ctx, u.RBACResource(), "unsuspend")
 }
 
 func (svc accessControl) CanDeleteUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "delete")
+	return svc.can(ctx, u.RBACResource(), "delete")
 }
 
 func (svc accessControl) CanImpersonateUser(ctx context.Context, u *types.User) bool {
-	return svc.can(ctx, u.PermissionResource(), "impersonate", permissions.Denied)
+	return svc.can(ctx, u.RBACResource(), "impersonate", rbac.Denied)
 }
 
 func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool {
@@ -149,7 +149,7 @@ func (svc accessControl) CanUnmaskEmail(ctx context.Context, u *types.User) bool
 		return true
 	}
 
-	return svc.can(ctx, u.PermissionResource(), "unmask.email")
+	return svc.can(ctx, u.RBACResource(), "unmask.email")
 }
 
 func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool {
@@ -158,10 +158,10 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 		return true
 	}
 
-	return svc.can(ctx, u.PermissionResource(), "unmask.name")
+	return svc.can(ctx, u.RBACResource(), "unmask.name")
 }
 
-func (svc accessControl) can(ctx context.Context, res permissions.Resource, op permissions.Operation, ff ...permissions.CheckAccessFunc) bool {
+func (svc accessControl) can(ctx context.Context, res rbac.Resource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
 	var (
 		u     = internalAuth.GetIdentityFromContext(ctx)
 		roles = u.Roles()
@@ -174,10 +174,10 @@ func (svc accessControl) can(ctx context.Context, res permissions.Resource, op p
 		return true
 	}
 
-	return svc.permissions.Can(roles, res.PermissionResource(), op, ff...)
+	return svc.permissions.Can(roles, res.RBACResource(), op, ff...)
 }
 
-func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) error {
+func (svc accessControl) Grant(ctx context.Context, rr ...*rbac.Rule) error {
 	if !svc.CanGrant(ctx) {
 		return AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -191,7 +191,7 @@ func (svc accessControl) Grant(ctx context.Context, rr ...*permissions.Rule) err
 	return nil
 }
 
-func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) {
+func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 	if svc.actionlog == nil {
 		return
 	}
@@ -205,7 +205,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*permissions.Rule) 
 	}
 }
 
-func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (permissions.RuleSet, error) {
+func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (rbac.RuleSet, error) {
 	if !svc.CanGrant(ctx) {
 		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
@@ -213,11 +213,11 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	return svc.permissions.FindRulesByRoleID(roleID), nil
 }
 
-func (svc accessControl) Whitelist() permissions.Whitelist {
-	var wl = permissions.Whitelist{}
+func (svc accessControl) Whitelist() rbac.Whitelist {
+	var wl = rbac.Whitelist{}
 
 	wl.Set(
-		types.SystemPermissionResource,
+		types.SystemRBACResource,
 		"access",
 		"grant",
 		"settings.read",
@@ -229,14 +229,14 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.ApplicationPermissionResource,
+		types.ApplicationRBACResource,
 		"read",
 		"update",
 		"delete",
 	)
 
 	wl.Set(
-		types.UserPermissionResource,
+		types.UserRBACResource,
 		"read",
 		"update",
 		"delete",
@@ -248,7 +248,7 @@ func (svc accessControl) Whitelist() permissions.Whitelist {
 	)
 
 	wl.Set(
-		types.RolePermissionResource,
+		types.RoleRBACResource,
 		"read",
 		"update",
 		"delete",

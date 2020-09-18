@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -101,17 +101,17 @@ func (r Record) Clone() *Record {
 }
 
 // Resource returns a system resource ID for this type
-func (r Record) PermissionResource() permissions.Resource {
-	return ModulePermissionResource.AppendID(r.ModuleID)
+func (r Record) RBACResource() rbac.Resource {
+	return ModuleRBACResource.AppendID(r.ModuleID)
 }
 
 func (r Record) DynamicRoles(userID uint64) []uint64 {
-	return permissions.DynamicRoles(
+	return rbac.DynamicRoles(
 		userID,
-		r.OwnedBy, permissions.OwnersDynamicRoleID,
-		r.CreatedBy, permissions.CreatorsDynamicRoleID,
-		r.UpdatedBy, permissions.UpdatersDynamicRoleID,
-		r.DeletedBy, permissions.DeletersDynamicRoleID,
+		r.OwnedBy, rbac.OwnersDynamicRoleID,
+		r.CreatedBy, rbac.CreatorsDynamicRoleID,
+		r.UpdatedBy, rbac.UpdatersDynamicRoleID,
+		r.DeletedBy, rbac.DeletersDynamicRoleID,
 	)
 }
 

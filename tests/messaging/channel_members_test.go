@@ -59,7 +59,7 @@ func TestChannelMemberInvite(t *testing.T) {
 
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
-	h.allow(ch.PermissionResource(), "members.manage")
+	h.allow(ch.RBACResource(), "members.manage")
 
 	invitee := &sysType.User{ID: id.Next()}
 

@@ -2,16 +2,15 @@ package messaging
 
 import (
 	"fmt"
-	"net/http"
-	"testing"
-
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"net/http"
+	"testing"
 )
 
 func TestPermissionsUpdate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingPermissionResource, "grant")
+	h.allow(types.MessagingRBACResource, "grant")
 
 	h.apiInit().
 		Patch(fmt.Sprintf("/permissions/%d/rules", h.roleID)).

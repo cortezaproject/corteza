@@ -5,7 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -434,7 +434,7 @@ func (svc role) MemberList(roleID uint64) (mm types.RoleMemberSet, err error) {
 	)
 
 	err = func() error {
-		if roleID == permissions.EveryoneRoleID || roleID == 0 {
+		if roleID == rbac.EveryoneRoleID || roleID == 0 {
 			return RoleErrInvalidID()
 		}
 
@@ -466,7 +466,7 @@ func (svc role) MemberAdd(roleID, memberID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if roleID == permissions.EveryoneRoleID || roleID == 0 || memberID == 0 {
+		if roleID == rbac.EveryoneRoleID || roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
 		}
 
@@ -513,7 +513,7 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 	)
 
 	err = func() (err error) {
-		if roleID == permissions.EveryoneRoleID || roleID == 0 || memberID == 0 {
+		if roleID == rbac.EveryoneRoleID || roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
 		}
 

@@ -10,11 +10,11 @@ defaultActionSeverity: notice
 defaultErrorSeverity: alert
 
 import:
-  - github.com/cortezaproject/corteza-server/pkg/permissions
+  - github.com/cortezaproject/corteza-server/pkg/rbac
 
 props:
   - name: rule
-    type: "*permissions.Rule"
+    type: "*rbac.Rule"
     fields: [ operation, roleID, access, resource ]
 
 actions:

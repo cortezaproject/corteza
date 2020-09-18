@@ -42,8 +42,8 @@ func TestChartRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
 
@@ -61,8 +61,8 @@ func TestChartReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeChart(ns, "some-chart")
 
@@ -78,7 +78,7 @@ func TestChartList(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeChart(ns, "chart1")
@@ -96,13 +96,13 @@ func TestChartList_filterForbiden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeChart(ns, "chart")
 	f := h.makeChart(ns, "chart_forbidden")
 
-	h.deny(types.ChartPermissionResource.AppendID(f.ID), "read")
+	h.deny(types.ChartRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/chart/", ns.ID)).
@@ -132,8 +132,8 @@ func TestChartCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "chart.create")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "chart.create")
 
 	ns := h.makeNamespace("some-namespace")
 
@@ -150,7 +150,7 @@ func TestChartUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
 
@@ -167,10 +167,10 @@ func TestChartUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	res := h.makeChart(ns, "some-chart")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "update")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/chart/%d", ns.ID, res.ID)).
@@ -189,8 +189,8 @@ func TestChartDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
 
@@ -206,9 +206,9 @@ func TestChartDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	h.allow(types.NamespacePermissionResource.AppendWildcard(), "read")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "read")
-	h.allow(types.ChartPermissionResource.AppendWildcard(), "delete")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "read")
+	h.allow(types.ChartRBACResource.AppendWildcard(), "delete")
 
 	ns := h.makeNamespace("some-namespace")
 	res := h.makeChart(ns, "some-chart")

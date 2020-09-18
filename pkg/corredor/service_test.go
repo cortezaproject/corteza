@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/permissions"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -67,7 +67,7 @@ func TestFindOnManual(t *testing.T) {
 		ctx = context.Background()
 
 		svc = &service{
-			permissions: permissions.RuleSet{},
+			permissions: rbac.RuleSet{},
 			sScripts: ScriptSet{
 				&Script{
 					Name: "s1",
@@ -166,7 +166,7 @@ func TestService_canExec(t *testing.T) {
 		svc = &service{
 			users:       &mockUserSvc{user: &types.User{ID: 42, Email: "dummy@mo.ck", Handle: "dummy"}},
 			roles:       &mockRoleSvc{role: &types.Role{ID: 84, Handle: "role", Name: "ROLE"}},
-			permissions: permissions.RuleSet{},
+			permissions: rbac.RuleSet{},
 		}
 
 		ctx = auth.SetIdentityToContext(context.Background(), auth.NewIdentity(42, 84))
