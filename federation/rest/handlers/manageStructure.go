@@ -23,7 +23,7 @@ type (
 	ManageStructureAPI interface {
 		ReadExposed(context.Context, *request.ManageStructureReadExposed) (interface{}, error)
 		CreateExposed(context.Context, *request.ManageStructureCreateExposed) (interface{}, error)
-		Remove(context.Context, *request.ManageStructureRemove) (interface{}, error)
+		RemoveExposed(context.Context, *request.ManageStructureRemoveExposed) (interface{}, error)
 		ReadShared(context.Context, *request.ManageStructureReadShared) (interface{}, error)
 		ListAll(context.Context, *request.ManageStructureListAll) (interface{}, error)
 	}
@@ -32,7 +32,7 @@ type (
 	ManageStructure struct {
 		ReadExposed   func(http.ResponseWriter, *http.Request)
 		CreateExposed func(http.ResponseWriter, *http.Request)
-		Remove        func(http.ResponseWriter, *http.Request)
+		RemoveExposed func(http.ResponseWriter, *http.Request)
 		ReadShared    func(http.ResponseWriter, *http.Request)
 		ListAll       func(http.ResponseWriter, *http.Request)
 	}
@@ -80,22 +80,22 @@ func NewManageStructure(h ManageStructureAPI) *ManageStructure {
 				resputil.JSON(w, value)
 			}
 		},
-		Remove: func(w http.ResponseWriter, r *http.Request) {
+		RemoveExposed: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewManageStructureRemove()
+			params := request.NewManageStructureRemoveExposed()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.Remove", r, err)
+				logger.LogParamError("ManageStructure.RemoveExposed", r, err)
 				resputil.JSON(w, err)
 				return
 			}
 
-			value, err := h.Remove(r.Context(), params)
+			value, err := h.RemoveExposed(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.Remove", r, err, params.Auditable())
+				logger.LogControllerError("ManageStructure.RemoveExposed", r, err, params.Auditable())
 				resputil.JSON(w, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.Remove", r, params.Auditable())
+			logger.LogControllerCall("ManageStructure.RemoveExposed", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -148,7 +148,7 @@ func (h ManageStructure) MountRoutes(r chi.Router, middlewares ...func(http.Hand
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/exposed", h.ReadExposed)
 		r.Put("/nodes/{nodeID}/modules/{moduleID}/exposed", h.CreateExposed)
-		r.Delete("/nodes/{nodeID}/modules/{moduleID}/exposed", h.Remove)
+		r.Delete("/nodes/{nodeID}/modules/{moduleID}/exposed", h.RemoveExposed)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/shared", h.ReadShared)
 		r.Get("/nodes/{nodeID}/modules", h.ListAll)
 	})
