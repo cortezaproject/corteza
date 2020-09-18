@@ -12,7 +12,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewPairRequest(NodePairRequest{}.New()).MountRoutes(r)
 
 		// temporary because of acl
-		handlers.NewModule((Module{}.New())).MountRoutes(r)
 		handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
 	})
 
