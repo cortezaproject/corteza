@@ -65,6 +65,22 @@ func testMessagingAttachments(t *testing.T, s store.MessagingAttachments) {
 
 	})
 
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Attachment", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingAttachment(ctx, att))
+			_, err := s.LookupMessagingAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingAttachmentByID(ctx, att.ID))
+			_, err := s.LookupMessagingAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+	})
+
 	t.Run("search", func(t *testing.T) {
 		t.Skip("not implemented")
 	})

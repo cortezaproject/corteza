@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -22,6 +23,14 @@ func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
 				CreatedAt: time.Now(),
 				Name:      name,
 			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Channel) {
+			req := require.New(t)
+			req.NoError(s.TruncateMessagingChannels(ctx))
+			res := makeNew(string(rand.Bytes(10)))
+			req.NoError(s.CreateMessagingChannel(ctx, res))
+			return req, res
 		}
 	)
 
@@ -46,18 +55,6 @@ func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		messagingChannel := makeNew("Delete")
-		req.NoError(s.CreateMessagingChannel(ctx, messagingChannel))
-		req.NoError(s.DeleteMessagingChannel(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		messagingChannel := makeNew("Delete by id")
-		req.NoError(s.CreateMessagingChannel(ctx, messagingChannel))
-		req.NoError(s.DeleteMessagingChannel(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		messagingChannel := makeNew("update me")
 		req.NoError(s.CreateMessagingChannel(ctx, messagingChannel))
@@ -76,6 +73,22 @@ func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Channel", func(t *testing.T) {
+			req, messagingChannel := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingChannel(ctx, messagingChannel))
+			_, err := s.LookupMessagingChannelByID(ctx, messagingChannel.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, messagingChannel := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingChannelByID(ctx, messagingChannel.ID))
+			_, err := s.LookupMessagingChannelByID(ctx, messagingChannel.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

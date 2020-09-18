@@ -62,7 +62,22 @@ func testComposeAttachments(t *testing.T, s store.ComposeAttachments) {
 		req.NoError(err)
 		req.Equal(att.ID, fetched.ID)
 		req.Equal("url", fetched.Url)
+	})
 
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Attachment", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteComposeAttachment(ctx, att))
+			_, err := s.LookupComposeAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			req.NoError(s.DeleteComposeAttachmentByID(ctx, att.ID))
+			_, err := s.LookupComposeAttachmentByID(ctx, att.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -24,6 +25,14 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 				Name:      name,
 				Slug:      slug,
 			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Namespace) {
+			req := require.New(t)
+			req.NoError(s.TruncateComposeNamespaces(ctx))
+			res := makeNew(string(rand.Bytes(10)), string(rand.Bytes(10)))
+			req.NoError(s.CreateComposeNamespace(ctx, res))
+			return req, res
 		}
 	)
 
@@ -48,18 +57,6 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		composeNamespace := makeNew("Delete", "Delete")
-		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
-		req.NoError(s.DeleteComposeNamespace(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		composeNamespace := makeNew("Delete by id", "Delete-by-id")
-		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
-		req.NoError(s.DeleteComposeNamespace(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		composeNamespace := makeNew("update me", "update-me")
 		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
@@ -78,6 +75,22 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 
 	t.Run("update with duplicate slug", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Namespace", func(t *testing.T) {
+			req, composeNamespace := truncAndCreate(t)
+			req.NoError(s.DeleteComposeNamespace(ctx, composeNamespace))
+			_, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, composeNamespace := truncAndCreate(t)
+			req.NoError(s.DeleteComposeNamespaceByID(ctx, composeNamespace.ID))
+			_, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

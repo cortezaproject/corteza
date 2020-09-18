@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -25,6 +26,14 @@ func testMessagingMessages(t *testing.T, s store.MessagingMessages) {
 				Message:   msg,
 				Type:      types.MessageTypeSimpleMessage,
 			}
+		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Message) {
+			req := require.New(t)
+			req.NoError(s.TruncateMessagingMessages(ctx))
+			res := makeNew(string(rand.Bytes(10)))
+			req.NoError(s.CreateMessagingMessage(ctx, res))
+			return req, res
 		}
 	)
 
@@ -49,18 +58,6 @@ func testMessagingMessages(t *testing.T, s store.MessagingMessages) {
 		req.Nil(fetched.DeletedAt)
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		messagingMessage := makeNew("deleted")
-		req.NoError(s.CreateMessagingMessage(ctx, messagingMessage))
-		req.NoError(s.DeleteMessagingMessage(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		messagingMessage := makeNew("Delete by id")
-		req.NoError(s.CreateMessagingMessage(ctx, messagingMessage))
-		req.NoError(s.DeleteMessagingMessage(ctx))
-	})
-
 	t.Run("update", func(t *testing.T) {
 		messagingMessage := makeNew("update me")
 		req.NoError(s.CreateMessagingMessage(ctx, messagingMessage))
@@ -80,6 +77,22 @@ func testMessagingMessages(t *testing.T, s store.MessagingMessages) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Message", func(t *testing.T) {
+			req, messagingMessage := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingMessage(ctx, messagingMessage))
+			_, err := s.LookupMessagingMessageByID(ctx, messagingMessage.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, messagingMessage := truncAndCreate(t)
+			req.NoError(s.DeleteMessagingMessageByID(ctx, messagingMessage.ID))
+			_, err := s.LookupMessagingMessageByID(ctx, messagingMessage.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

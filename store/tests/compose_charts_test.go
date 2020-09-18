@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -28,6 +29,14 @@ func testComposeCharts(t *testing.T, s store.Storer) {
 				Handle:      handle,
 			}
 		}
+
+		truncAndCreate = func(t *testing.T) (*require.Assertions, *types.Chart) {
+			req := require.New(t)
+			req.NoError(s.TruncateComposeCharts(ctx))
+			res := makeNew(string(rand.Bytes(10)), string(rand.Bytes(10)))
+			req.NoError(s.CreateComposeChart(ctx, res))
+			return req, res
+		}
 	)
 
 	t.Run("create", func(t *testing.T) {
@@ -39,33 +48,34 @@ func testComposeCharts(t *testing.T, s store.Storer) {
 		t.Skip("not implemented")
 	})
 
-	t.Run("lookup by ID", func(t *testing.T) {
-		composeChart := makeNew("look up by id", "look-up-by-id")
-		req.NoError(s.CreateComposeChart(ctx, composeChart))
-		fetched, err := s.LookupComposeChartByID(ctx, composeChart.ID)
-		req.NoError(err)
-		req.Equal(composeChart.Name, fetched.Name)
-		req.Equal(composeChart.ID, fetched.ID)
-		req.NotNil(fetched.CreatedAt)
-		req.Nil(fetched.UpdatedAt)
-		req.Nil(fetched.DeletedAt)
-	})
+	t.Run("lookup", func(t *testing.T) {
+		t.Run("by ID", func(t *testing.T) {
+			composeChart := makeNew("look up by id", "look-up-by-id")
+			req.NoError(s.CreateComposeChart(ctx, composeChart))
+			fetched, err := s.LookupComposeChartByID(ctx, composeChart.ID)
+			req.NoError(err)
+			req.Equal(composeChart.Name, fetched.Name)
+			req.Equal(composeChart.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
 
-	t.Run("Delete", func(t *testing.T) {
-		composeChart := makeNew("Delete", "Delete")
-		req.NoError(s.CreateComposeChart(ctx, composeChart))
-		req.NoError(s.DeleteComposeChart(ctx))
-	})
-
-	t.Run("Delete by ID", func(t *testing.T) {
-		composeChart := makeNew("Delete by id", "Delete-by-id")
-		req.NoError(s.CreateComposeChart(ctx, composeChart))
-		req.NoError(s.DeleteComposeChart(ctx))
+		t.Run("by Namespace ID, Handle", func(t *testing.T) {
+			composeChart := makeNew("look up by handle", "look-up-by-handle")
+			req.NoError(s.CreateComposeChart(ctx, composeChart))
+			fetched, err := s.LookupComposeChartByNamespaceIDHandle(ctx, composeChart.NamespaceID, composeChart.Handle)
+			req.NoError(err)
+			req.Equal(composeChart.Name, fetched.Name)
+			req.Equal(composeChart.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
 	})
 
 	t.Run("update", func(t *testing.T) {
-		composeChart := makeNew("update me", "update-me")
-		req.NoError(s.CreateComposeChart(ctx, composeChart))
+		req, composeChart := truncAndCreate(t)
 
 		composeChart = &types.Chart{
 			ID:        composeChart.ID,
@@ -81,6 +91,23 @@ func testComposeCharts(t *testing.T, s store.Storer) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Chart", func(t *testing.T) {
+			req, composeChart := truncAndCreate(t)
+			req.NoError(s.DeleteComposeChart(ctx, composeChart))
+			_, err := s.LookupComposeChartByID(ctx, composeChart.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, composeChart := truncAndCreate(t)
+			req.NoError(s.DeleteComposeChartByID(ctx, composeChart.ID))
+			_, err := s.LookupComposeChartByID(ctx, composeChart.ID)
+			req.EqualError(err, store.ErrNotFound.Error())
+		})
 	})
 
 	t.Run("search", func(t *testing.T) {

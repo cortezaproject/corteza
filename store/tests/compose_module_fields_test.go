@@ -50,14 +50,6 @@ func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 		t.Skip("not implemented")
 	})
 
-	t.Run("Delete", func(t *testing.T) {
-		req, fld := truncAndCreate(t)
-		req.NoError(s.DeleteComposeModuleField(ctx, fld))
-		fetched, _, err := s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{ModuleID: []uint64{fld.ModuleID}})
-		req.NoError(err)
-		req.Empty(fetched)
-	})
-
 	t.Run("update", func(t *testing.T) {
 		req := require.New(t)
 		composeModuleField := makeNew("update me", "update-me")
@@ -73,5 +65,24 @@ func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+
+	t.Run("delete", func(t *testing.T) {
+		t.Run("by Field", func(t *testing.T) {
+			req, fld := truncAndCreate(t)
+			req.NoError(s.DeleteComposeModuleField(ctx, fld))
+			fetched, _, err := s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{ModuleID: []uint64{fld.ModuleID}})
+			req.NoError(err)
+			req.Empty(fetched)
+		})
+
+		t.Run("by ID", func(t *testing.T) {
+			req, fld := truncAndCreate(t)
+			req.NoError(s.DeleteComposeModuleFieldByID(ctx, fld.ID))
+			fetched, _, err := s.SearchComposeModuleFields(ctx, types.ModuleFieldFilter{ModuleID: []uint64{fld.ModuleID}})
+			req.NoError(err)
+			req.Empty(fetched)
+		})
 	})
 }
