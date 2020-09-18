@@ -122,7 +122,7 @@ endpoints:
               name: fields
               required: true
               title: Exposed module fields
-      - name: remove
+      - name: removeExposed
         method: DELETE
         title: Remove from federation
         path: "/modules/{moduleID}/exposed"
