@@ -18,7 +18,7 @@ func (ManageStructure) New() *ManageStructure {
 	return &ManageStructure{}
 }
 
-func (ctrl ManageStructure) Remove(ctx context.Context, r *request.ManageStructureRemove) (interface{}, error) {
+func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.ManageStructureRemoveExposed) (interface{}, error) {
 	return nil, (service.ExposedModule()).DeleteByID(ctx, r.NodeID, r.ModuleID)
 }
 

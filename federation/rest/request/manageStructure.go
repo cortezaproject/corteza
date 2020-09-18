@@ -65,7 +65,7 @@ type (
 		Fields types.ModuleFieldMappingList
 	}
 
-	ManageStructureRemove struct {
+	ManageStructureRemoveExposed struct {
 		// NodeID PATH parameter
 		//
 		// Node ID
@@ -255,13 +255,13 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewManageStructureRemove request
-func NewManageStructureRemove() *ManageStructureRemove {
-	return &ManageStructureRemove{}
+// NewManageStructureRemoveExposed request
+func NewManageStructureRemoveExposed() *ManageStructureRemoveExposed {
+	return &ManageStructureRemoveExposed{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureRemove) Auditable() map[string]interface{} {
+func (r ManageStructureRemoveExposed) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"nodeID":   r.NodeID,
 		"moduleID": r.ModuleID,
@@ -269,17 +269,17 @@ func (r ManageStructureRemove) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureRemove) GetNodeID() uint64 {
+func (r ManageStructureRemoveExposed) GetNodeID() uint64 {
 	return r.NodeID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureRemove) GetModuleID() uint64 {
+func (r ManageStructureRemoveExposed) GetModuleID() uint64 {
 	return r.ModuleID
 }
 
 // Fill processes request and fills internal variables
-func (r *ManageStructureRemove) Fill(req *http.Request) (err error) {
+func (r *ManageStructureRemoveExposed) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
