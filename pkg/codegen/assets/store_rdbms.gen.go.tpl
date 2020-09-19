@@ -678,7 +678,7 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	{{ if .UniqueConstraintCheck }}
 	{
 		ex, err := s.{{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range .RDBMSColumns }}, res.{{ .Field }} {{- end }})
-		if err == nil && ex != nil && ex.ID != res.ID {
+		if err == nil && ex != nil {{- range $.RDBMS.Columns.PrimaryKeyFields }} && ex.{{ .Field }} != res.{{ .Field }} {{ end }} {
 			return store.ErrNotUnique
 		} else if !errors.Is(err, store.ErrNotFound) {
 			return err
