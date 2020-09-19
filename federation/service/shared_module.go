@@ -60,7 +60,7 @@ func (svc sharedModule) FindByAny(ctx context.Context, nodeID uint64, identifier
 
 func (svc sharedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.SharedModule, err error) {
 	err = func() error {
-		if module, err = store.LookupFederationSharedModuleByID(svc.ctx, svc.store, moduleID); err != nil {
+		if module, err = store.LookupFederationSharedModuleByID(ctx, svc.store, moduleID); err != nil {
 			return err
 		}
 
@@ -84,8 +84,6 @@ func (svc sharedModule) FindByID(ctx context.Context, nodeID uint64, moduleID ui
 // 		aProps = &moduleActionProps{module: &types.SharedModule{ID: moduleID, NodeID: nodeID}}
 // 		err    error
 // 	)
-
-// 	spew.Dump("before handle delete", fn, n, m)
 
 // 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 // 		if m, err = svc.store.LookupFederationSharedModuleByID(ctx, moduleID); err != nil {

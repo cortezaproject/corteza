@@ -114,7 +114,7 @@ endpoints:
               name: composeModuleID
               required: true
               title: Compose module id
-            - type: types.ModuleFieldMappingList
+            - type: types.ModuleFieldList
               name: fields
               required: false
               title: Exposed module fields
@@ -136,6 +136,39 @@ endpoints:
         method: GET
         title: Shared settings for module
         path: "/modules/{moduleID}/shared"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+      - name: createMappings
+        method: PUT
+        title: Add fields mappings to federated module
+        path: "/modules/{moduleID}/mapped"
+        parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+          post:
+            - type: types.ModuleFieldMappingList
+              name: fields
+              required: false
+              title: Exposed module fields
+      - name: readMappings
+        method: GET
+        title: Fields mappings for module
+        path: "/modules/{moduleID}/mapped"
         parameters:
           path:
             - type: uint64

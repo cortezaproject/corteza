@@ -11,10 +11,8 @@ type (
 	ModuleFieldMappingList []*ModuleFieldMapping
 
 	ModuleFieldMapping struct {
-		Kind    string `json:"kind"`
-		Name    string `json:"name"`
-		Label   string `json:"label"`
-		IsMulti bool   `json:"isMulti"`
+		Origin      ModuleField `json:"origin"`
+		Destination ModuleField `json:"destination"`
 	}
 )
 
@@ -28,7 +26,7 @@ func (list *ModuleFieldMappingList) Scan(value interface{}) error {
 		*list = ModuleFieldMappingList{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("Can not scan '%v' into RecordValueSet", value))
+			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldMappingList", value))
 		}
 	}
 

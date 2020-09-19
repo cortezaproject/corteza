@@ -17,6 +17,7 @@ package store
 //  - store/compose_records.yaml
 //  - store/credentials.yaml
 //  - store/federation_exposed_modules.yaml
+//  - store/federation_module_mappings.yaml
 //  - store/federation_shared_modules.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
@@ -54,6 +55,7 @@ type (
 		ComposeRecords
 		Credentials
 		FederationExposedModules
+		FederationModuleMappings
 		FederationSharedModules
 		Labels
 		MessagingAttachments

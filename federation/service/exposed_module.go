@@ -61,7 +61,7 @@ func (svc exposedModule) FindByAny(ctx context.Context, nodeID uint64, identifie
 
 func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.ExposedModule, err error) {
 	err = func() error {
-		if module, err = store.LookupFederationExposedModuleByID(svc.ctx, svc.store, moduleID); err != nil {
+		if module, err = store.LookupFederationExposedModuleByID(ctx, svc.store, moduleID); err != nil {
 			return err
 		}
 
@@ -112,7 +112,7 @@ func (svc exposedModule) handleDelete(ctx context.Context, n *types.Node, m *typ
 
 func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFilter) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
 	err = func() error {
-		if set, f, err = store.SearchFederationExposedModules(svc.ctx, svc.store, filter); err != nil {
+		if set, f, err = store.SearchFederationExposedModules(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
@@ -165,7 +165,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		return nil
 	})
 
-	return new, svc.recordAction(svc.ctx, aProps, ExposedModuleActionCreate, err)
+	return new, svc.recordAction(ctx, aProps, ExposedModuleActionCreate, err)
 }
 
 func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule) (err error) {
