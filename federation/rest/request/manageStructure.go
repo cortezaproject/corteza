@@ -49,11 +49,6 @@ type (
 		// Node ID
 		NodeID uint64 `json:",string"`
 
-		// ModuleID PATH parameter
-		//
-		// Module ID
-		ModuleID uint64 `json:",string"`
-
 		// ComposeModuleID POST parameter
 		//
 		// Compose module id
@@ -173,7 +168,6 @@ func NewManageStructureCreateExposed() *ManageStructureCreateExposed {
 func (r ManageStructureCreateExposed) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"nodeID":          r.NodeID,
-		"moduleID":        r.ModuleID,
 		"composeModuleID": r.ComposeModuleID,
 		"fields":          r.Fields,
 	}
@@ -182,11 +176,6 @@ func (r ManageStructureCreateExposed) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureCreateExposed) GetNodeID() uint64 {
 	return r.NodeID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ManageStructureCreateExposed) GetModuleID() uint64 {
-	return r.ModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -240,12 +229,6 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "nodeID")
 		r.NodeID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-		val = chi.URLParam(req, "moduleID")
-		r.ModuleID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

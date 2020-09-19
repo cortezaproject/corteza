@@ -101,18 +101,14 @@ endpoints:
               title: Module ID
       - name: createExposed
         method: PUT
-        title: Add exposed settings for module
-        path: "/modules/{moduleID}/exposed"
+        title: Add module to federation
+        path: "/modules"
         parameters:
           path:
             - type: uint64
               name: nodeID
               required: true
               title: Node ID
-            - type: uint64
-              name: moduleID
-              required: true
-              title: Module ID
           post:
             - type: uint64
               name: composeModuleID
@@ -120,7 +116,7 @@ endpoints:
               title: Compose module id
             - type: types.ModuleFieldMappingList
               name: fields
-              required: true
+              required: false
               title: Exposed module fields
       - name: removeExposed
         method: DELETE

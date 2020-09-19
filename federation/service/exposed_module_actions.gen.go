@@ -629,6 +629,36 @@ func ExposedModuleErrNotUnique(props ...*exposedModuleActionProps) *exposedModul
 
 }
 
+// ExposedModuleErrComposeModuleNotFound returns "federation:exposed_module.composeModuleNotFound" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func ExposedModuleErrComposeModuleNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
+	var e = &exposedModuleError{
+		timestamp: time.Now(),
+		resource:  "federation:exposed_module",
+		error:     "composeModuleNotFound",
+		action:    "error",
+		message:   "compose module not found",
+		log:       "compose module not found",
+		severity:  actionlog.Warning,
+		props: func() *exposedModuleActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // ExposedModuleErrNotAllowedToRead returns "federation:exposed_module.notAllowedToRead" audit event as actionlog.Error
 //
 //
