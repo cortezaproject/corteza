@@ -35,7 +35,7 @@ $ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migrati
 * [x] Remove exposed module
 * [x] Shared module details
 * [x] List of shared/exposed modules
-* [ ] Add module as exposed (with mappings)
+* [ ] Add module as exposed - same as add module to federation
 * [ ] Add mappings to module
 * [ ] Show module mappings
 * [ ] Update fields on exposed module
@@ -66,10 +66,10 @@ $ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?exposed=1"
 $ curl -X GET "$BASE_URL/federation/nodes/$NODE_ID/modules?shared=1"
 ----
 
-Add module as exposed (with mappings)::
+Add module as exposed - same as add module to federation::
 [source,bash]
 ----
-curl -X PUT "$BASE_URL/federation/nodes/$NODE_ID/modules/0/exposed"
+curl -X PUT "$BASE_URL/federation/nodes/$NODE_ID/modules"
 ----
 
 Add mappings to module::
