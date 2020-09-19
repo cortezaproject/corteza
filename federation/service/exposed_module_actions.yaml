@@ -65,6 +65,10 @@ errors:
     log: "used duplicate node TODO - module.node_id for this compose module TODO - module.rel_compose_module"
     severity: warning
 
+  - error: composeModuleNotFound
+    message: "compose module not found"
+    severity: "warning"
+
   - error: notAllowedToRead
     message: "not allowed to read this module"
     log: "could not read {module}; insufficient permissions"

@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -25,7 +24,6 @@ type (
 		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
 		DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
 		Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error)
-		// Remove(ctx context.Context, filter types.ExposedModuleFilter) (err error)
 	}
 
 	moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.ExposedModule) (bool, bool, error)
@@ -88,8 +86,6 @@ func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, a
 		err    error
 	)
 
-	spew.Dump("before handle delete", fn, n, m)
-
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if m, err = svc.store.LookupFederationExposedModuleByID(ctx, moduleID); err != nil {
 			return err
@@ -131,6 +127,12 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		aProps = &exposedModuleActionProps{changed: new}
 	)
 
+	// check if compose module actually exists
+	// TODO - how do we handle namespace?
+	// if _, err := svc.compose.With(ctx).FindByID(r.NamespaceID, new.ComposeModuleID); err == nil {
+	// 	return nil, ExposedModuleErrComposeModuleNotFound()
+	// }
+
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// TODO
 		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
@@ -145,35 +147,21 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return err
 		}
 
-		spew.Dump("NEW", new)
+		new.ID = nextID()
+		new.CreatedAt = now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
 
-		// new.ID = nextID()
-		// new.CreatedAt = *now()
-		// new.UpdatedAt = nil
-		// new.DeletedAt = nil
-
-		// if new.Fields != nil {
-		// 	_ = new.Fields.Walk(func(f *types.ModuleField) error {
-		// 		f.ID = nextID()
-		// 		f.ModuleID = new.ID
-		// 		f.CreatedAt = *now()
-		// 		f.UpdatedAt = nil
-		// 		f.DeletedAt = nil
-		// 		return nil
-		// 	})
-		// }
+		// check if Fields can be unmarshaled to the fields structure
+		if new.Fields != nil {
+		}
 
 		aProps.setModule(new)
 
-		// if err = store.CreateComposeModule(ctx, s, new); err != nil {
-		// 	return err
-		// }
+		if err = store.CreateFederationExposedModule(ctx, s, new); err != nil {
+			return err
+		}
 
-		// if err = store.CreateComposeModuleField(ctx, s, new.Fields...); err != nil {
-		// 	return err
-		// }
-
-		// _ = svc.eventbus.WaitFor(ctx, event.ModuleAfterCreate(new, nil, ns))
 		return nil
 	})
 
