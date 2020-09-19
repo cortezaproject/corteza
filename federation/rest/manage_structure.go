@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -27,11 +26,7 @@ func (ctrl ManageStructure) ReadExposed(ctx context.Context, r *request.ManageSt
 }
 
 func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.ManageStructureCreateExposed) (interface{}, error) {
-	spew.Dump("RECEIVED", r)
-	// create new type, add to Create()
-	// return (service.ExposedModule()).Create(context.Background(), r.GetNodeID(), r.GetModuleID())
 	var (
-		err error
 		mod = &types.ExposedModule{
 			NodeID:          r.NodeID,
 			ComposeModuleID: r.ComposeModuleID,
@@ -39,12 +34,11 @@ func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.Manage
 		}
 	)
 
-	spew.Dump("MOD", mod)
+	if r.ComposeModuleID == 0 {
+		return nil, errors.New("TODO - http 400 bad request - use compose module id in request")
+	}
 
-	mod, err = (service.ExposedModule()).Create(context.Background(), mod)
-	spew.Dump(mod, err)
-	// return ctrl.makePayload(ctx, mod, err)
-	return nil, nil
+	return (service.ExposedModule()).Create(context.Background(), mod)
 }
 
 func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStructureReadShared) (interface{}, error) {
