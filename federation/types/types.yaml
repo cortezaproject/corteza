@@ -2,3 +2,4 @@ types:
   Node:
   ExposedModule:
   SharedModule:
+  ModuleMapping:

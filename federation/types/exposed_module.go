@@ -8,10 +8,10 @@ import (
 
 type (
 	ExposedModule struct {
-		ID              uint64                 `json:"moduleID,string"`
-		NodeID          uint64                 `json:"nodeID,string"`
-		ComposeModuleID uint64                 `json:"composeModuleID,string"`
-		Fields          ModuleFieldMappingList `json:"fields"`
+		ID              uint64          `json:"moduleID,string"`
+		NodeID          uint64          `json:"nodeID,string"`
+		ComposeModuleID uint64          `json:"composeModuleID,string"`
+		Fields          ModuleFieldList `json:"fields"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`

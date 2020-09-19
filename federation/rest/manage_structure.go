@@ -45,6 +45,14 @@ func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStr
 	return (service.SharedModule()).FindByID(context.Background(), r.GetNodeID(), r.GetModuleID())
 }
 
+func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.ManageStructureCreateMappings) (interface{}, error) {
+	return nil, errors.New("not implemented yet")
+}
+
+func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageStructureReadMappings) (interface{}, error) {
+	return (service.ModuleMapping()).FindByID(context.Background(), r.ModuleID)
+}
+
 func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStructureListAll) (interface{}, error) {
 	var (
 		list interface{}

@@ -25,16 +25,20 @@ type (
 		CreateExposed(context.Context, *request.ManageStructureCreateExposed) (interface{}, error)
 		RemoveExposed(context.Context, *request.ManageStructureRemoveExposed) (interface{}, error)
 		ReadShared(context.Context, *request.ManageStructureReadShared) (interface{}, error)
+		CreateMappings(context.Context, *request.ManageStructureCreateMappings) (interface{}, error)
+		ReadMappings(context.Context, *request.ManageStructureReadMappings) (interface{}, error)
 		ListAll(context.Context, *request.ManageStructureListAll) (interface{}, error)
 	}
 
 	// HTTP API interface
 	ManageStructure struct {
-		ReadExposed   func(http.ResponseWriter, *http.Request)
-		CreateExposed func(http.ResponseWriter, *http.Request)
-		RemoveExposed func(http.ResponseWriter, *http.Request)
-		ReadShared    func(http.ResponseWriter, *http.Request)
-		ListAll       func(http.ResponseWriter, *http.Request)
+		ReadExposed    func(http.ResponseWriter, *http.Request)
+		CreateExposed  func(http.ResponseWriter, *http.Request)
+		RemoveExposed  func(http.ResponseWriter, *http.Request)
+		ReadShared     func(http.ResponseWriter, *http.Request)
+		CreateMappings func(http.ResponseWriter, *http.Request)
+		ReadMappings   func(http.ResponseWriter, *http.Request)
+		ListAll        func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -120,6 +124,46 @@ func NewManageStructure(h ManageStructureAPI) *ManageStructure {
 				resputil.JSON(w, value)
 			}
 		},
+		CreateMappings: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewManageStructureCreateMappings()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("ManageStructure.CreateMappings", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.CreateMappings(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("ManageStructure.CreateMappings", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("ManageStructure.CreateMappings", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		ReadMappings: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewManageStructureReadMappings()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("ManageStructure.ReadMappings", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.ReadMappings(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("ManageStructure.ReadMappings", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("ManageStructure.ReadMappings", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 		ListAll: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureListAll()
@@ -150,6 +194,8 @@ func (h ManageStructure) MountRoutes(r chi.Router, middlewares ...func(http.Hand
 		r.Put("/nodes/{nodeID}/modules", h.CreateExposed)
 		r.Delete("/nodes/{nodeID}/modules/{moduleID}/exposed", h.RemoveExposed)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/shared", h.ReadShared)
+		r.Put("/nodes/{nodeID}/modules/{moduleID}/mapped", h.CreateMappings)
+		r.Get("/nodes/{nodeID}/modules/{moduleID}/mapped", h.ReadMappings)
 		r.Get("/nodes/{nodeID}/modules", h.ListAll)
 	})
 }

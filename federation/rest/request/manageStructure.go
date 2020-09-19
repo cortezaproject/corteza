@@ -57,7 +57,7 @@ type (
 		// Fields POST parameter
 		//
 		// Exposed module fields
-		Fields types.ModuleFieldMappingList
+		Fields types.ModuleFieldList
 	}
 
 	ManageStructureRemoveExposed struct {
@@ -73,6 +73,35 @@ type (
 	}
 
 	ManageStructureReadShared struct {
+		// NodeID PATH parameter
+		//
+		// Node ID
+		NodeID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+	}
+
+	ManageStructureCreateMappings struct {
+		// NodeID PATH parameter
+		//
+		// Node ID
+		NodeID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// Fields POST parameter
+		//
+		// Exposed module fields
+		Fields types.ModuleFieldMappingList
+	}
+
+	ManageStructureReadMappings struct {
 		// NodeID PATH parameter
 		//
 		// Node ID
@@ -184,7 +213,7 @@ func (r ManageStructureCreateExposed) GetComposeModuleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldMappingList {
+func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldList {
 	return r.Fields
 }
 
@@ -216,7 +245,7 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 		}
 
 		// if val, ok := req.Form["fields"]; ok && len(val) > 0 {
-		// 	r.Fields, err = types.ModuleFieldMappingList(val[0]), nil
+		// 	r.Fields, err = types.ModuleFieldList(val[0]), nil
 		// 	if err != nil {
 		// 		return err
 		// 	}
@@ -320,6 +349,141 @@ func (r ManageStructureReadShared) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureReadShared) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewManageStructureCreateMappings request
+func NewManageStructureCreateMappings() *ManageStructureCreateMappings {
+	return &ManageStructureCreateMappings{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateMappings) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID":   r.NodeID,
+		"moduleID": r.ModuleID,
+		"fields":   r.Fields,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateMappings) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateMappings) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateMappings) GetFields() types.ModuleFieldMappingList {
+	return r.Fields
+}
+
+// Fill processes request and fills internal variables
+func (r *ManageStructureCreateMappings) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		// if val, ok := req.Form["fields"]; ok && len(val) > 0 {
+		// 	r.Fields, err = types.ModuleFieldMappingList(val[0]), nil
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewManageStructureReadMappings request
+func NewManageStructureReadMappings() *ManageStructureReadMappings {
+	return &ManageStructureReadMappings{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureReadMappings) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID":   r.NodeID,
+		"moduleID": r.ModuleID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureReadMappings) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureReadMappings) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Fill processes request and fills internal variables
+func (r *ManageStructureReadMappings) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
