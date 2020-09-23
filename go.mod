@@ -43,6 +43,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.50.0
+	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -51,6 +52,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
+	github.com/rakyll/gotest v0.0.5 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/sony/sonyflake v0.0.0-20181109022403-6d5bd6181009
@@ -65,6 +67,7 @@ require (
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+	golang.org/x/sys v0.0.0-20200918174421-af09f7315aff // indirect
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
