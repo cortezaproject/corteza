@@ -1,8 +1,7 @@
-.PHONY: pack build help qa critic vet codegen integration
+.PHONY: pack build help qa critic vet codegen
 
 GO         = go
 GOGET      = $(GO) get -u
-GOTEST    ?= go test
 GOFLAGS   ?= -mod=vendor
 GOPATH    ?= $(HOME)/go
 
@@ -28,14 +27,9 @@ LDFLAGS_VERSION        = -X github.com/cortezaproject/corteza-server/pkg/version
 LDFLAGS_EXTRA         ?=
 LDFLAGS                = -ldflags "$(LDFLAGS_VERSION) $(LDFLAGS_EXTRA)"
 
-
-# Run watcher with a different event-trigger delay, eg:
-# $> WATCH_DELAY=5s make watch.test.integration
-WATCH_DELAY ?= 1s
-
 # Run go test cmd with flags, eg:
-# $> TEST_FLAGS="-v" make test.integration
-# $> TEST_FLAGS="-v -run SpecialTest" make test.integration
+# $> make test.integration TEST_FLAGS="-v"
+# $> make test.integration TEST_FLAGS="-v -run SpecialTest"
 TEST_FLAGS ?=
 
 COVER_MODE    ?= count
@@ -68,17 +62,15 @@ DOCKER                ?= docker
 # Tool bins
 GOCRITIC    = $(GOPATH)/bin/gocritic
 MOCKGEN     = $(GOPATH)/bin/mockgen
+GOTEST      = $(GOPATH)/bin/gotest
 STATICCHECK = $(GOPATH)/bin/staticcheck
 PROTOGEN    = $(GOPATH)/bin/protoc-gen-go
 GIN         = $(GOPATH)/bin/gin
 CODEGEN     = build/codegen
+FSWATCH     = /usr/local/bin/fswatch
 
-# Using nodemon in development environment for "watch.*" tasks
-# https://nodemon.io
-#
-# @todo we need some consistency here: realize was broken and replaced with gin. If we can use gin in the same maner
-NODEMON      = /usr/local/bin/nodemon
-WATCHER      = $(NODEMON) --delay ${WATCH_DELAY} -e go -w . --exec
+# fswatch is intentionally left out...
+BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(CODEGEN)
 
 help:
 	@echo
@@ -136,10 +128,16 @@ minio.up:
 	# No volume mounts because we do not want the data to persist
 	$(DOCKER) run --rm --publish $(DEV_MINIO_PORT):9000 --env-file .env minio/minio server /data
 
-watch.test.%: $(NODEMON)
-	# Development helper - watches for file
-	# changes & reruns  tests
-	$(WATCHER) "make test.$* || exit 0"
+# Development helper - reruns test when files change
+#
+# make watch.test.unit
+# make watch.test.pkg
+# make watch.test.all
+# make watch.test.pkg TEST_FLAGS="-v"
+watch.test.%: $(FSWATCH)
+	( make test.$* || exit 0 ) && ( $(FSWATCH) -o . | xargs -n1 -I{} make test.$* )
+
+watch.test: watch.test.unit
 
 # codegen: $(PROTOGEN)
 codegen: $(CODEGEN)
@@ -148,7 +146,11 @@ codegen: $(CODEGEN)
 watch.codegen: $(CODEGEN)
 	@ $(CODEGEN) -w -v
 
-########################################################################################################################
+
+clean.codegen:
+	rm -f $(CODEGEN)
+
+#######################################################################################################################
 # Quality Assurance
 
 # Adds -coverprofile flag to test flags
@@ -161,30 +163,32 @@ test.cover.%:
 	@ TEST_FLAGS="$(TEST_FLAGS) -coverpkg=$(COVER_PKGS_$*)" make test.$*
 
 # Runs integration tests
-test.integration:
+test.integration: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_integration)
 
 # Runs one suite from integration tests
-test.integration.%:
+test.integration.%: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) ./tests/$*/...
 
 # Runs ALL tests
-test.all:
+test.all: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_all)
 
 # Unit testing testing messaging, system or compose
-test.unit.%:
+test.unit.%: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) ./$*/...
 
 # Runs ALL tests
-test.unit:
+test.unit: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_unit)
 
 # Testing pkg
-test.pkg:
+test.pkg: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_pkg)
 
+# Test defaults to test.unit
 test: test.unit
+
 
 vet:
 	$(GO) vet ./...
@@ -198,20 +202,10 @@ staticcheck: $(STATICCHECK)
 qa: vet critic test
 
 mocks: $(MOCKGEN)
-	# Cleanup all pre-generated
-	rm -rf system/repository/mocks && mkdir -p system/repository/mocks
-	rm -rf compose/service/mocks && mkdir -p compose/service/mocks
-
-	$(MOCKGEN) -package repository -source system/repository/user.go         -destination system/repository/mocks/user.go
-	$(MOCKGEN) -package repository -source system/repository/credentials.go  -destination system/repository/mocks/credentials.go
-
-	$(MOCKGEN) -package mail  -source pkg/mail/mail.go                           -destination pkg/mail/mail_mock_test.go
-
-
+	$(MOCKGEN) -package mail -source pkg/mail/mail.go -destination pkg/mail/mail_mock_test.go
 
 ########################################################################################################################
 # Toolset
-
 $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
 
@@ -227,13 +221,19 @@ $(PROTOGEN):
 $(GIN):
 	$(GOGET) github.com/codegangsta/gin
 
-$(NODEMON):
-	npm install -g nodemon
+$(GOTEST):
+	$(GOGET) github.com/rakyll/gotest
 
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
 
+# @todo this will most likely need some special care for other platforms
+$(FSWATCH):
+	ifeq ($(UNAME_S),Darwin)
+		brew install fswatch
+	endif
+
 clean:
-	rm -f $(GOCRITIC)
+	rm -f $(BINS)
 
 #
