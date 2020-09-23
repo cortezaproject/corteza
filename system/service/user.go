@@ -347,7 +347,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		return
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionCreate, err)
+	return new, svc.recordAction(svc.ctx, uaProps, UserActionCreate, err)
 }
 
 func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *types.User, err error) {
