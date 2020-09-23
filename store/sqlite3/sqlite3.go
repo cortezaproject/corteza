@@ -58,6 +58,10 @@ func ConnectInMemory(ctx context.Context) (s store.Storer, err error) {
 	return Connect(ctx, "sqlite3://file::memory:?cache=shared&mode=memory")
 }
 
+func ConnectInMemoryWithDebug(ctx context.Context) (s store.Storer, err error) {
+	return Connect(ctx, "sqlite3+debug://file::memory:?cache=shared&mode=memory")
+}
+
 func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
 	if err = (&rdbms.Schema{}).Upgrade(ctx, NewUpgrader(log, s)); err != nil {
 		return fmt.Errorf("can not upgrade sqlite schema: %w", err)
