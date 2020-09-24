@@ -13,6 +13,7 @@ import (
 func testMessagingMessageAttachments(t *testing.T, s store.MessagingMessageAttachments) {
 	var (
 		ctx = context.Background()
+		req = require.New(t)
 
 		makeNew = func() *types.MessageAttachment {
 			// minimum data set for new messageAttachment
@@ -38,6 +39,36 @@ func testMessagingMessageAttachments(t *testing.T, s store.MessagingMessageAttac
 			AttachmentID: id.Next(),
 		}
 		req.NoError(s.CreateMessagingMessageAttachment(ctx, mma))
+	})
+
+	t.Run("update", func(t *testing.T) {
+		req, att := truncAndCreate(t)
+		att.AttachmentID = id.Next()
+		req.NoError(s.UpdateMessagingMessageAttachment(ctx, att))
+		fetched, err := s.LookupMessagingMessageAttachmentByMessageID(ctx, att.MessageID)
+		req.NoError(err)
+		req.Equal(att.AttachmentID, fetched.AttachmentID)
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			att.AttachmentID = id.Next()
+			req.NoError(s.UpsertMessagingMessageAttachment(ctx, att))
+			fetched, err := s.LookupMessagingMessageAttachmentByMessageID(ctx, att.MessageID)
+			req.NoError(err)
+			req.Equal(att.AttachmentID, fetched.AttachmentID)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			att := makeNew()
+			att.AttachmentID = id.Next()
+			req.NoError(s.UpsertMessagingMessageAttachment(ctx, att))
+
+			upserted, err := s.LookupMessagingMessageAttachmentByMessageID(ctx, att.MessageID)
+			req.NoError(err)
+			req.Equal(att.AttachmentID, upserted.AttachmentID)
+		})
 	})
 
 	t.Run("delete", func(t *testing.T) {

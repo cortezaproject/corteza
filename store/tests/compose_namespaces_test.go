@@ -45,16 +45,28 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 		t.Skip("not implemented")
 	})
 
-	t.Run("lookup by ID", func(t *testing.T) {
-		composeNamespace := makeNew("look up by id", "look-up-by-id")
-		req.NoError(s.CreateComposeNamespace(ctx, composeNamespace))
-		fetched, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
-		req.NoError(err)
-		req.Equal(composeNamespace.Name, fetched.Name)
-		req.Equal(composeNamespace.ID, fetched.ID)
-		req.NotNil(fetched.CreatedAt)
-		req.Nil(fetched.UpdatedAt)
-		req.Nil(fetched.DeletedAt)
+	t.Run("lookup", func(t *testing.T) {
+		t.Run("by ID", func(t *testing.T) {
+			req, composeNamespace := truncAndCreate(t)
+			fetched, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
+			req.NoError(err)
+			req.Equal(composeNamespace.Name, fetched.Name)
+			req.Equal(composeNamespace.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
+
+		t.Run("by Slug", func(t *testing.T) {
+			req, composeNamespace := truncAndCreate(t)
+			fetched, err := s.LookupComposeNamespaceBySlug(ctx, composeNamespace.Slug)
+			req.NoError(err)
+			req.Equal(composeNamespace.Name, fetched.Name)
+			req.Equal(composeNamespace.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
 	})
 
 	t.Run("update", func(t *testing.T) {
@@ -75,6 +87,30 @@ func testComposeNamespaces(t *testing.T, s store.ComposeNamespaces) {
 
 	t.Run("update with duplicate slug", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, composeNamespace := truncAndCreate(t)
+			composeNamespace.Name = "ComposeNamespaceCRUD+2"
+
+			req.NoError(s.UpsertComposeNamespace(ctx, composeNamespace))
+	
+			upserted, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
+			req.NoError(err)
+			req.Equal(composeNamespace.Name, upserted.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			composeNamespace := makeNew("upsert me", "upsert-me")
+			composeNamespace.Name = "ComposeNamespaceCRUD+3"
+
+			req.NoError(s.UpsertComposeNamespace(ctx, composeNamespace))
+	
+			upserted, err := s.LookupComposeNamespaceByID(ctx, composeNamespace.ID)
+			req.NoError(err)
+			req.Equal(composeNamespace.Name, upserted.Name)
+		})
 	})
 
 	t.Run("delete", func(t *testing.T) {

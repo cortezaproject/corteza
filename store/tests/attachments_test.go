@@ -58,7 +58,6 @@ func testAttachment(t *testing.T, s store.Attachments) {
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, att := truncAndCreate(t)
-
 		fetched, err := s.LookupAttachmentByID(ctx, att.ID)
 		req.NoError(err)
 		req.Equal(att.ID, fetched.ID)
@@ -75,6 +74,29 @@ func testAttachment(t *testing.T, s store.Attachments) {
 		req.NoError(err)
 		req.Equal(att.ID, fetched.ID)
 		req.Equal("url", fetched.Url)
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, att := truncAndCreate(t)
+			att.Url = "url"
+
+			req.NoError(s.UpsertAttachment(ctx, att))
+	
+			upserted, err := s.LookupAttachmentByID(ctx, att.ID)
+			req.NoError(err)
+			req.Equal(att.Name, upserted.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			att := makeNew("upsert me", "upsert-me")
+
+			req.NoError(s.UpsertAttachment(ctx, att))
+	
+			upserted, err := s.LookupAttachmentByID(ctx, att.ID)
+			req.NoError(err)
+			req.Equal(att.Name, upserted.Name)
+		})
 	})
 
 	t.Run("delete", func(t *testing.T) {
@@ -103,19 +125,19 @@ func testAttachment(t *testing.T, s store.Attachments) {
 			req.Len(set, 1)
 		})
 
-		// t.Run("with check", func(t *testing.T) {
-		// 	req, prefill := truncAndFill(t, 5)
+		t.Run("with check", func(t *testing.T) {
+			req, prefill := truncAndFill(t, 5)
 
-		// 	set, _, err := s.SearchAttachments(ctx, types.AttachmentFilter{
-		// 		Check: func(attachment *types.Attachment) (bool, error) {
-		// 			return attachment.Kind == prefill[0].Kind, nil
-		// 		},
-		// 	})
+			set, _, err := s.SearchAttachments(ctx, types.AttachmentFilter{
+				Check: func(attachment *types.Attachment) (bool, error) {
+					return attachment.Kind == prefill[0].Kind, nil
+				},
+			})
 
-		// 	req.NoError(err)
-		// 	req.Len(set, 1)
-		// 	req.Equal(prefill[0].Kind, set[0].Kind)
-		// })
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Equal(prefill[0].Kind, set[0].Kind)
+		})
 	})
 
 	t.Run("ordered search", func(t *testing.T) {
