@@ -48,27 +48,48 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 		t.Skip("not implemented")
 	})
 
-	t.Run("lookup by ID", func(t *testing.T) {
-		composeModule := makeNew("look up by id", "look-up-by-id")
-		req.NoError(s.CreateComposeModule(ctx, composeModule))
-		fetched, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
-		req.NoError(err)
-		req.Equal(composeModule.Name, fetched.Name)
-		req.Equal(composeModule.ID, fetched.ID)
-		req.NotNil(fetched.CreatedAt)
-		req.Nil(fetched.UpdatedAt)
-		req.Nil(fetched.DeletedAt)
+	t.Run("lookup", func(t *testing.T) {
+		t.Run("by ID", func(t *testing.T) {
+			composeModule := makeNew("look up by id", "look-up-by-id")
+			req.NoError(s.CreateComposeModule(ctx, composeModule))
+			fetched, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
+			req.NoError(err)
+			req.Equal(composeModule.Name, fetched.Name)
+			req.Equal(composeModule.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
+
+		t.Run("by NamespaceID, Name", func(t *testing.T) {
+			composeModule := makeNew("look up by namespaceIDName", "look-up-by-namespaceIDName")
+			req.NoError(s.CreateComposeModule(ctx, composeModule))
+			fetched, err := s.LookupComposeModuleByNamespaceIDName(ctx, composeModule.NamespaceID, composeModule.Name)
+			req.NoError(err)
+			req.Equal(composeModule.Name, fetched.Name)
+			req.Equal(composeModule.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
+
+		t.Run("by Handle", func(t *testing.T) {
+			composeModule := makeNew("look up by namespaceIDHandle", "look-up-by-namespaceIDHandle")
+			req.NoError(s.CreateComposeModule(ctx, composeModule))
+			fetched, err := s.LookupComposeModuleByNamespaceIDHandle(ctx, composeModule.NamespaceID, composeModule.Handle)
+			req.NoError(err)
+			req.Equal(composeModule.Name, fetched.Name)
+			req.Equal(composeModule.ID, fetched.ID)
+			req.NotNil(fetched.CreatedAt)
+			req.Nil(fetched.UpdatedAt)
+			req.Nil(fetched.DeletedAt)
+		})
 	})
 
 	t.Run("update", func(t *testing.T) {
-		composeModule := makeNew("update me", "update-me")
-		req.NoError(s.CreateComposeModule(ctx, composeModule))
+		req, composeModule := truncAndCreate(t)
+		composeModule.Name = "ComposeModuleCRUD+2"
 
-		composeModule = &types.Module{
-			ID:        composeModule.ID,
-			CreatedAt: composeModule.CreatedAt,
-			Name:      "ComposeModuleCRUD+2",
-		}
 		req.NoError(s.UpdateComposeModule(ctx, composeModule))
 
 		updated, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
@@ -78,6 +99,30 @@ func testComposeModules(t *testing.T, s store.ComposeModules) {
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, composeModule := truncAndCreate(t)
+			composeModule.Name = "ComposeModuleCRUD+2"
+	
+			req.NoError(s.UpsertComposeModule(ctx, composeModule))
+	
+			updated, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
+			req.NoError(err)
+			req.Equal(composeModule.Name, updated.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			composeModule := makeNew("upsert me", "upsert-me")
+			composeModule.Name = "ComposeChartCRUD+2"
+
+			req.NoError(s.UpsertComposeModule(ctx, composeModule))
+	
+			upserted, err := s.LookupComposeModuleByID(ctx, composeModule.ID)
+			req.NoError(err)
+			req.Equal(composeModule.Name, upserted.Name)
+		})
 	})
 
 	t.Run("delete", func(t *testing.T) {

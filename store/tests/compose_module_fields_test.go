@@ -14,6 +14,7 @@ import (
 func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 	var (
 		ctx = context.Background()
+		req = require.New(t)
 
 		moduleID = id.Next()
 
@@ -50,23 +51,55 @@ func testComposeModuleFields(t *testing.T, s store.ComposeModuleFields) {
 		t.Skip("not implemented")
 	})
 
-	t.Run("update", func(t *testing.T) {
-		req := require.New(t)
-		composeModuleField := makeNew("update me", "update-me")
-		req.NoError(s.CreateComposeModuleField(ctx, composeModuleField))
+	t.Run("lookup by Module ID, Name", func(t *testing.T) {
+		req, composeModuleField := truncAndCreate(t)
+		fetched, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
+		req.NoError(err)
+		req.Equal(composeModuleField.Name, fetched.Name)
+		req.Equal(composeModuleField.ID, fetched.ID)
+		req.NotNil(fetched.CreatedAt)
+		req.Nil(fetched.UpdatedAt)
+		req.Nil(fetched.DeletedAt)
+	})
 
-		composeModuleField = &types.ModuleField{
-			ID:        composeModuleField.ID,
-			CreatedAt: composeModuleField.CreatedAt,
-			Name:      "ComposeModuleFieldCRUD+2",
-		}
+	t.Run("update", func(t *testing.T) {
+		req, composeModuleField := truncAndCreate(t)
+		composeModuleField.Name = "ComposeModuleFieldCRUD+2"
+
 		req.NoError(s.UpdateComposeModuleField(ctx, composeModuleField))
+
+		updated, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
+		req.NoError(err)
+		req.Equal(composeModuleField.Name, updated.Name)
 	})
 
 	t.Run("update with duplicate handle", func(t *testing.T) {
 		t.Skip("not implemented")
 	})
 
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, composeModuleField := truncAndCreate(t)
+			composeModuleField.Name = "ComposeModuleFieldCRUD+2"
+
+			req.NoError(s.UpsertComposeModuleField(ctx, composeModuleField))
+	
+			upserted, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
+			req.NoError(err)
+			req.Equal(composeModuleField.Name, upserted.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			composeModuleField := makeNew("upsert me", "upsert-me")
+			composeModuleField.Name = "ComposeModuleFieldCRUD+3"
+
+			req.NoError(s.UpsertComposeModuleField(ctx, composeModuleField))
+	
+			upserted, err := s.LookupComposeModuleFieldByModuleIDName(ctx, composeModuleField.ModuleID, composeModuleField.Name)
+			req.NoError(err)
+			req.Equal(composeModuleField.Name, upserted.Name)
+		})
+	})
 
 	t.Run("delete", func(t *testing.T) {
 		t.Run("by Field", func(t *testing.T) {

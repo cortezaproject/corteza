@@ -42,8 +42,7 @@ func testApplications(t *testing.T, s store.Applications) {
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		application := makeNew("look up by id")
-		req.NoError(s.CreateApplication(ctx, application))
+		req, application := truncAndCreate(t)
 		fetched, err := s.LookupApplicationByID(ctx, application.ID)
 		req.NoError(err)
 		req.Equal(application.Name, fetched.Name)
@@ -54,20 +53,38 @@ func testApplications(t *testing.T, s store.Applications) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		application := makeNew("update me")
-		req.NoError(s.CreateApplication(ctx, application))
+		req, application := truncAndCreate(t)
+		application.Name = "ApplicationCRUD+2"
 
-		application = &types.Application{
-			ID:        application.ID,
-			CreatedAt: application.CreatedAt,
-			Name:      "ApplicationCRUD+2",
-			Unify:     application.Unify,
-		}
 		req.NoError(s.UpdateApplication(ctx, application))
 
 		updated, err := s.LookupApplicationByID(ctx, application.ID)
 		req.NoError(err)
 		req.Equal(application.Name, updated.Name)
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, application := truncAndCreate(t)
+			application.Name = "ApplicationCRUD+2"
+	
+			req.NoError(s.UpsertApplication(ctx, application))
+	
+			updated, err := s.LookupApplicationByID(ctx, application.ID)
+			req.NoError(err)
+			req.Equal(application.Name, updated.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			application := makeNew("upsert me")
+			application.Name = "ComposeChartCRUD+2"
+
+			req.NoError(s.UpsertApplication(ctx, application))
+	
+			upserted, err := s.LookupApplicationByID(ctx, application.ID)
+			req.NoError(err)
+			req.Equal(application.Name, upserted.Name)
+		})
 	})
 
 	t.Run("delete", func(t *testing.T) {

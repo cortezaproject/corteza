@@ -76,12 +76,8 @@ func testComposeCharts(t *testing.T, s store.Storer) {
 
 	t.Run("update", func(t *testing.T) {
 		req, composeChart := truncAndCreate(t)
+		composeChart.Name = "ComposeChartCRUD+2"
 
-		composeChart = &types.Chart{
-			ID:        composeChart.ID,
-			CreatedAt: composeChart.CreatedAt,
-			Name:      "ComposeChartCRUD+2",
-		}
 		req.NoError(s.UpdateComposeChart(ctx, composeChart))
 
 		updated, err := s.LookupComposeChartByID(ctx, composeChart.ID)
@@ -93,6 +89,29 @@ func testComposeCharts(t *testing.T, s store.Storer) {
 		t.Skip("not implemented")
 	})
 
+	t.Run("upsert", func(t *testing.T) {
+		t.Run("existing", func(t *testing.T) {
+			req, composeChart := truncAndCreate(t)
+			composeChart.Name = "ComposeChartCRUD+2"
+
+			req.NoError(s.UpsertComposeChart(ctx, composeChart))
+	
+			upserted, err := s.LookupComposeChartByID(ctx, composeChart.ID)
+			req.NoError(err)
+			req.Equal(composeChart.Name, upserted.Name)
+		})
+
+		t.Run("new", func(t *testing.T) {
+			composeChart := makeNew("upsert me", "upsert-me")
+			composeChart.Name = "ComposeChartCRUD+2"
+
+			req.NoError(s.UpsertComposeChart(ctx, composeChart))
+	
+			upserted, err := s.LookupComposeChartByID(ctx, composeChart.ID)
+			req.NoError(err)
+			req.Equal(composeChart.Name, upserted.Name)
+		})
+	})
 
 	t.Run("delete", func(t *testing.T) {
 		t.Run("by Chart", func(t *testing.T) {
