@@ -69,7 +69,7 @@ func (u upgrader) Before(ctx context.Context) error {
 			return err
 		}
 
-		if _, err := u.s.DB().ExecContext(ctx, fmt.Sprintf("DROP TABLE %s", migrations)); err != nil {
+		if _, err := u.s.DB().ExecContext(ctx, fmt.Sprintf(`DROP TABLE "%s"`, migrations)); err != nil {
 			return err
 		}
 
@@ -126,7 +126,7 @@ func (u upgrader) DropTable(ctx context.Context, table string) (dropped bool, er
 		return false, err
 	}
 
-	err = u.Exec(ctx, fmt.Sprintf(`DROP TABLE %s`, table))
+	err = u.Exec(ctx, fmt.Sprintf(`DROP TABLE "%s"`, table))
 	if err != nil {
 		return false, err
 	}
@@ -151,7 +151,7 @@ func (u upgrader) upgradeTable(ctx context.Context, t *ddl.Table) error {
 
 func (u upgrader) TableExists(ctx context.Context, table string) (bool, error) {
 	var tmp interface{}
-	if err := u.s.DB().GetContext(ctx, &tmp, fmt.Sprintf("SHOW TABLES LIKE %q", table)); err == sql.ErrNoRows {
+	if err := u.s.DB().GetContext(ctx, &tmp, fmt.Sprintf(`SHOW TABLES LIKE '%s'`, table)); err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
 		return false, fmt.Errorf("could not check if table exists: %w", err)

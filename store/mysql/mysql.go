@@ -49,6 +49,8 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 		return nil, err
 	}
 
+	s.DB().ExecContext(ctx, "SET SESSION sql_mode = 'ANSI'")
+
 	return s, nil
 }
 
