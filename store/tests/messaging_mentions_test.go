@@ -49,8 +49,7 @@ func testMessagingMentions(t *testing.T, s store.MessagingMentions) {
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		messagingMention := makeNew("look-up-by-id")
-		req.NoError(s.CreateMessagingMention(ctx, messagingMention))
+		req, messagingMention := truncAndCreate(t)
 		fetched, err := s.LookupMessagingMentionByID(ctx, messagingMention.ID)
 		req.NoError(err)
 		req.Equal(messagingMention.ID, fetched.ID)

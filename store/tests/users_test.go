@@ -99,7 +99,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, user := truncAndCreate(t)
-
 		fetched, err := store.LookupUserByID(ctx, s, user.ID)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
@@ -119,7 +118,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 	t.Run("lookup by email", func(t *testing.T) {
 		req, user := truncAndCreate(t)
-
 		fetched, err := store.LookupUserByEmail(ctx, s, user.Email)
 		req.NoError(err)
 		req.Equal(user.Email, fetched.Email)
@@ -127,7 +125,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 	t.Run("lookup by handle", func(t *testing.T) {
 		req, user := truncAndCreate(t)
-
 		fetched, err := store.LookupUserByHandle(ctx, s, user.Handle)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
@@ -135,7 +132,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 	t.Run("lookup by nonexisting handle", func(t *testing.T) {
 		req, _ := truncAndCreate(t)
-
 		fetched, err := store.LookupUserByHandle(ctx, s, "no such handle")
 		req.EqualError(err, "not found")
 		req.Nil(fetched)
@@ -143,7 +139,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 	t.Run("lookup by username", func(t *testing.T) {
 		req, user := truncAndCreate(t)
-
 		fetched, err := store.LookupUserByUsername(ctx, s, user.Username)
 		req.NoError(err)
 		req.Equal(user.ID, fetched.ID)
@@ -152,7 +147,6 @@ func testUsers(t *testing.T, s store.Users) {
 	t.Run("search", func(t *testing.T) {
 		t.Run("by ID", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-
 			set, f, err := store.SearchUsers(ctx, s, types.UserFilter{UserID: []uint64{prefill[0].ID}})
 			req.NoError(err)
 			req.Equal([]uint64{prefill[0].ID}, f.UserID)
@@ -162,7 +156,6 @@ func testUsers(t *testing.T, s store.Users) {
 
 		t.Run("by email", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-
 			set, _, err := store.SearchUsers(ctx, s, types.UserFilter{Email: prefill[0].Email})
 			req.NoError(err)
 			req.Len(set, 1)

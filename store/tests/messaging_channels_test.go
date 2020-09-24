@@ -44,8 +44,7 @@ func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		messagingChannel := makeNew("look up by id")
-		req.NoError(s.CreateMessagingChannel(ctx, messagingChannel))
+		req, messagingChannel := truncAndCreate(t)
 		fetched, err := s.LookupMessagingChannelByID(ctx, messagingChannel.ID)
 		req.NoError(err)
 		req.Equal(messagingChannel.Name, fetched.Name)

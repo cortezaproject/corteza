@@ -50,8 +50,7 @@ func testMessagingFlags(t *testing.T, s store.MessagingFlags) {
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		messagingFlag := makeNew("look-up-by-id")
-		req.NoError(s.CreateMessagingFlag(ctx, messagingFlag))
+		req, messagingFlag := truncAndCreate(t)
 		fetched, err := s.LookupMessagingFlagByID(ctx, messagingFlag.ID)
 		req.NoError(err)
 		req.Equal(messagingFlag.Flag, fetched.Flag)

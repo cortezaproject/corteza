@@ -60,7 +60,6 @@ func testReminders(t *testing.T, s store.Reminders) {
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, reminder := truncAndCreate(t)
-
 		fetched, err := s.LookupReminderByID(ctx, reminder.ID)
 		req.NoError(err)
 		req.Equal(reminder.ID, fetched.ID)

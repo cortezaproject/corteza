@@ -47,8 +47,7 @@ func testMessagingMessages(t *testing.T, s store.MessagingMessages) {
 	})
 
 	t.Run("lookup by ID", func(t *testing.T) {
-		messagingMessage := makeNew("look up by id")
-		req.NoError(s.CreateMessagingMessage(ctx, messagingMessage))
+		req, messagingMessage := truncAndCreate(t)
 		fetched, err := s.LookupMessagingMessageByID(ctx, messagingMessage.ID)
 		req.NoError(err)
 		req.Equal(messagingMessage.Message, fetched.Message)
