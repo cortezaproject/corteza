@@ -50,13 +50,12 @@ func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error)
 	if hasRoles, err = checkRoles(ctx, s); err != nil {
 		return err
 	} else if !hasRoles {
-		rs := service.DefaultRole.With(ctx)
 		rr := types.RoleSet{
-			&types.Role{ID: 0, Name: "Administrators", Handle: "admins"},
-			&types.Role{ID: 0, Name: "Everyone", Handle: "everyone"},
+			&types.Role{ID: rbac.AdminsRoleID, Name: "Administrators", Handle: "admins"},
+			&types.Role{ID: rbac.EveryoneRoleID, Name: "Everyone", Handle: "everyone"},
 		}
 
-		if err = rr.Walk(func(r *types.Role) error { _, err := rs.Create(r); return err }); err != nil {
+		if err = rr.Walk(func(r *types.Role) error { return store.CreateRole(ctx, s, r) }); err != nil {
 			return err
 		}
 	}
