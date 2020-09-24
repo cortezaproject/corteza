@@ -54,7 +54,6 @@ func testSettings(t *testing.T, s store.Settings) {
 
 	t.Run("lookup by name and ownedBy", func(t *testing.T) {
 		req, setting := truncAndCreate(t)
-
 		fetched, err := s.LookupSettingByNameOwnedBy(ctx, setting.Name, setting.OwnedBy)
 		req.NoError(err)
 		req.Equal(setting.Name, fetched.Name)

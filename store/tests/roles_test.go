@@ -58,7 +58,6 @@ func testRoles(t *testing.T, s store.Roles) {
 
 	t.Run("lookup by ID", func(t *testing.T) {
 		req, role := truncAndCreate(t)
-
 		fetched, err := s.LookupRoleByID(ctx, role.ID)
 		req.NoError(err)
 		req.Equal(role.Name, fetched.Name)
@@ -76,7 +75,6 @@ func testRoles(t *testing.T, s store.Roles) {
 
 	t.Run("lookup by handle", func(t *testing.T) {
 		req, role := truncAndCreate(t)
-
 		fetched, err := s.LookupRoleByHandle(ctx, role.Handle)
 		req.NoError(err)
 		req.Equal(role.ID, fetched.ID)
