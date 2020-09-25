@@ -119,10 +119,10 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger) error {
 		},
 
 		&types.Application{
-			Name:    "Service Cloud",
+			Name:    "Service Solution",
 			Enabled: true,
 			Unify: &types.ApplicationUnify{
-				Name:   "Service Cloud",
+				Name:   "Service Solution",
 				Listed: true,
 				Icon:   newIconUrl,
 				Logo:   newLogoUrl,
