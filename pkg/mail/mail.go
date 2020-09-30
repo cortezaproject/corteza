@@ -1,12 +1,11 @@
 package mail
 
 import (
+	"fmt"
+	gomail "gopkg.in/mail.v2"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/pkg/errors"
-	gomail "gopkg.in/mail.v2"
 )
 
 type (
@@ -37,7 +36,7 @@ func init() {
 // Host variable can contain "<host>:<port>" that will override port value
 func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg) {
 	if host == "" {
-		defaultDialerError = errors.New("No hostname provided for SMTP")
+		defaultDialerError = fmt.Errorf("No hostname provided for SMTP")
 		return
 	}
 
@@ -48,7 +47,7 @@ func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg)
 	}
 
 	if port == 0 {
-		defaultDialerError = errors.New("No port provided for SMTP")
+		defaultDialerError = fmt.Errorf("No port provided for SMTP")
 		return
 	}
 
@@ -68,7 +67,6 @@ func SetupDialer(host string, port int, user, pass, from string, ff ...applyCfg)
 		pass,
 	)
 
-	dialer.SSL = true
 	for _, fn := range ff {
 		fn(dialer)
 	}
@@ -89,16 +87,20 @@ func Send(message *gomail.Message, dd ...Dialer) (err error) {
 			continue
 		}
 
-		return errors.WithStack(d.DialAndSend(message))
+		if err = d.DialAndSend(message); err != nil {
+			return fmt.Errorf("could not send email: %w", err)
+		} else {
+			return nil
+		}
 	}
 
 	// At this point, none of the dialer could be used,
 	// is there an error with default dialer?
 	if defaultDialerError != nil {
-		return errors.Wrap(defaultDialerError, "could not send email")
+		return fmt.Errorf("could not send email: %w", defaultDialerError)
 	}
 
-	return errors.New("unable to find configured and working SMTP dialer")
+	return fmt.Errorf("unable to find configured and working SMTP dialer")
 
 }
 
