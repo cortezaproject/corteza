@@ -695,14 +695,14 @@ modules:
         label: Total time of all cases
         kind: Number
         options:
-          format: ""
+          format: "0.00"
           precision: "2"
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
         kind: Number
         options:
-          format: ""
+          format: "0.00"
           precision: "2"
           prefix: $
   Attachement:
@@ -856,14 +856,14 @@ modules:
         label: Total Time
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           suffix: ' hour(s)'
       TotalCost:
         label: Total Cost
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           prefix: $
       MailingList:
@@ -1600,21 +1600,21 @@ modules:
         label: Cost per hour
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           prefix: $
       TotalTime:
         label: Total time of all cases
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 0
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: "2"
           prefix: $
       DepartmentSelect:
@@ -1939,14 +1939,14 @@ modules:
         label: Total time of all cases
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: "2"
           suffix: ' hour(s)'
       TotalCost:
         label: Total cost of all cases
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           prefix: $
       ProductSelect:
@@ -1970,8 +1970,9 @@ modules:
         label: Default cost per hour
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 0
+          prefix: $
       DefaultDepartment:
         label: Default department for new ticket
         kind: Record
@@ -1985,7 +1986,7 @@ modules:
         label: Default time for a case update
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           suffix: ' hour(s)'
       DefaultSupportChannel:
@@ -2067,14 +2068,14 @@ modules:
         label: Time spend
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           suffix: ' hour(s)'
       Cost:
         label: Cost
         kind: Number
         options:
-          format: 0
+          format: "0.00"
           precision: 2
           prefix: $
       Department:
