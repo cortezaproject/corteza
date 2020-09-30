@@ -98,7 +98,7 @@ func (svc service) log(a *Action) {
 		zap.Any("meta", a.Meta),
 	}
 
-	svc.tee.With(zlf...).Debug(a.Description)
+	svc.tee.With(zlf...).WithOptions(zap.AddCallerSkip(3)).Debug(a.Description)
 }
 
 func (svc service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, error) {
