@@ -61,14 +61,17 @@ DOCKER                ?= docker
 
 ########################################################################################################################
 # Tool bins
-GOCRITIC    = $(GOPATH)/bin/gocritic
-MOCKGEN     = $(GOPATH)/bin/mockgen
-GOTEST      = $(GOPATH)/bin/gotest
-STATICCHECK = $(GOPATH)/bin/staticcheck
-PROTOGEN    = $(GOPATH)/bin/protoc-gen-go
-GIN         = $(GOPATH)/bin/gin
-STATIK      = $(GOPATH)/bin/statik
-CODEGEN     = build/codegen
+GOCRITIC      = $(GOPATH)/bin/gocritic
+MOCKGEN       = $(GOPATH)/bin/mockgen
+GOTEST        = $(GOPATH)/bin/gotest
+STATICCHECK   = $(GOPATH)/bin/staticcheck
+PROTOGEN      = $(GOPATH)/bin/protoc-gen-go
+PROTOGEN_GRPC = $(GOPATH)/bin/protoc-gen-go-grpc
+GIN           = $(GOPATH)/bin/gin
+STATIK        = $(GOPATH)/bin/statik
+CODEGEN       = build/codegen
+
+PROTOC      = /usr/local/bin/protoc
 FSWATCH     = /usr/local/bin/fswatch
 
 # fswatch is intentionally left out...
@@ -212,7 +215,7 @@ mocks: $(MOCKGEN)
 	$(MOCKGEN) -package mail -source pkg/mail/mail.go -destination pkg/mail/mail_mock_test.go
 
 ########################################################################################################################
-# Toolset
+# Go Toolset
 $(GOCRITIC):
 	$(GOGET) github.com/go-critic/go-critic/...
 
@@ -224,6 +227,9 @@ $(STATICCHECK):
 
 $(PROTOGEN):
 	$(GOGET) github.com/golang/protobuf/protoc-gen-go
+
+$(PROTOGEN_GRPC):
+	$(GOGET) google.golang.org/grpc/cmd/protoc-gen-go-grpc
 
 $(GIN):
 	$(GOGET) github.com/codegangsta/gin
@@ -237,7 +243,11 @@ $(STATIK):
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
 
+clean:
+	rm -f $(BINS)
 
+########################################################################################################################
+# Toolset
 
 # @todo this will most likely need some special care for other platforms
 $(FSWATCH):
@@ -245,7 +255,11 @@ $(FSWATCH):
 		brew install fswatch
 	endif
 
-clean:
-	rm -f $(BINS)
+# https://grpc.io/docs/protoc-installation/
+# @todo $ apt install -y protobuf-compiler
+$(PROTOC):
+	ifeq ($(UNAME_S),Darwin)
+		brew install protobuf
+	endif
 
 #
