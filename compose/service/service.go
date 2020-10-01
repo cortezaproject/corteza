@@ -108,7 +108,9 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	if DefaultPermissions == nil {
 		// Do not override permissions service stored under DefaultPermissions
 		// to allow integration tests to inject own permission service
-		DefaultPermissions = permissions.Service(ctx, DefaultLogger, db, "compose_permission_rules")
+		rbac := permissions.Service(DefaultLogger, db, "compose_permission_rules")
+		rbac.Reload(ctx)
+		DefaultPermissions = rbac
 	}
 
 	DefaultAccessControl = AccessControl(DefaultPermissions)

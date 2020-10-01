@@ -36,7 +36,7 @@ const (
 //
 // service{} struct preloads, checks, grants and flushes privileges to and from repository
 // It acts as a caching layer
-func Service(ctx context.Context, logger *zap.Logger, db *factory.DB, tbl string) (svc *service) {
+func Service(logger *zap.Logger, db *factory.DB, tbl string) (svc *service) {
 	svc = &service{
 		l: &sync.Mutex{},
 		f: make(chan bool),
