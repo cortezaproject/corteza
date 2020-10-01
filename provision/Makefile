@@ -1,4 +1,4 @@
-.PHONY: clean statik
+.PHONY: clean
 
 PARTS   ?= compose messaging system
 OUTPUTS ?= $(addsuffix /static.go, $(PARTS))
