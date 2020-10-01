@@ -27,8 +27,8 @@ type (
 		TlsCertEnabled bool   `env:"CORREDOR_CLIENT_CERTIFICATES_ENABLED"`
 		TlsCertPath    string `env:"CORREDOR_CLIENT_CERTIFICATES_PATH"`
 		TlsCertCA      string `env:"CORREDOR_CLIENT_CERTIFICATES_CA"`
-		TlsCertPrivate string `env:"CORREDOR_CLIENT_CERTIFICATES_PUBLIC"`
-		TlsCertPublic  string `env:"CORREDOR_CLIENT_CERTIFICATES_PRIVATE"`
+		TlsCertPrivate string `env:"CORREDOR_CLIENT_CERTIFICATES_PRIVATE"`
+		TlsCertPublic  string `env:"CORREDOR_CLIENT_CERTIFICATES_PUBLIC"`
 		TlsServerName  string `env:"CORREDOR_CLIENT_CERTIFICATES_SERVER_NAME"`
 	}
 )
