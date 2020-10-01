@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen
+.PHONY: pack build help qa critic vet codegen provision
 
 GO         = go
 GOGET      = $(GO) get -u
@@ -9,6 +9,7 @@ export GOFLAGS
 
 BUILD_FLAVOUR         ?= corteza
 BUILD_APPS            ?= system compose messaging monolith
+BUILD_APPS_TEMP       ?= system compose messaging
 BUILD_TIME            ?= $(shell date +%FT%T%z)
 BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
 BUILD_ARCH            ?= $(shell go env GOARCH)
@@ -66,11 +67,12 @@ GOTEST      = $(GOPATH)/bin/gotest
 STATICCHECK = $(GOPATH)/bin/staticcheck
 PROTOGEN    = $(GOPATH)/bin/protoc-gen-go
 GIN         = $(GOPATH)/bin/gin
+STATIK      = $(GOPATH)/bin/statik
 CODEGEN     = build/codegen
 FSWATCH     = /usr/local/bin/fswatch
 
 # fswatch is intentionally left out...
-BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(CODEGEN)
+BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK) $(CODEGEN)
 
 help:
 	@echo
@@ -148,9 +150,12 @@ codegen: $(CODEGEN)
 watch.codegen: $(CODEGEN)
 	@ $(CODEGEN) -w -v
 
-
 clean.codegen:
 	rm -f $(CODEGEN)
+
+provision:
+	$(MAKE) --directory=provision clean all
+
 
 #######################################################################################################################
 # Quality Assurance
@@ -226,8 +231,13 @@ $(GIN):
 $(GOTEST):
 	$(GOGET) github.com/rakyll/gotest
 
+$(STATIK):
+	$(GOGET) github.com/goware/statik
+
 $(CODEGEN):
 	$(GO) build -o $@ cmd/codegen/main.go
+
+
 
 # @todo this will most likely need some special care for other platforms
 $(FSWATCH):

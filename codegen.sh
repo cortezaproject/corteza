@@ -18,14 +18,6 @@ function green {
 	echo -e "\033[32m$@\033[39m"
 }
 
-function provision {
-	yellow "> provision files"
-	for FOLDER in system compose messaging; do
-   	$GOPATH/bin/statik -p $FOLDER -m -Z -f -src="./provision/$FOLDER/src" -dest "./provision"
-	done
-	green "OK"
-}
-
 function proto {
 	yellow "> proto"
 
