@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS federation_module_exposed
 
 CREATE TABLE IF NOT EXISTS federation_module_mapping
 (
-    federation_module_id BIGINT,
-    compose_module_id BIGINT,
+    rel_federation_module BIGINT,
+    rel_compose_module BIGINT,
     field_mapping TEXT
 );
 
