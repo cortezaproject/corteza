@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS federation_module_shared
     name varchar(64),
     rel_node BIGINT,
     xref_module BIGINT,
-    fields jsonb,
+    fields TEXT,
     PRIMARY KEY (id)
 );
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS federation_module_exposed
     id BIGINT NOT NULL,
     rel_node BIGINT,
     rel_compose_module BIGINT,
-    fields jsonb,
+    fields TEXT,
     PRIMARY KEY (id)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS federation_module_mapping
 (
     federation_module_id BIGINT,
     compose_module_id BIGINT,
-    field_mapping jsonb
+    field_mapping TEXT
 );
 
 CREATE TABLE IF NOT EXISTS federation_node
