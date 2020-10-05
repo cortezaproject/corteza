@@ -219,8 +219,8 @@ func (s Store) QueryFederationModuleMappings(
 // It returns module mapping
 func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federation_module_id uint64, compose_module_id uint64) (*types.ModuleMapping, error) {
 	return s.execLookupFederationModuleMapping(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.federation_module_id", ""): s.preprocessValue(federation_module_id, ""),
-		s.preprocessColumn("cmd.compose_module_id", ""):    s.preprocessValue(compose_module_id, ""),
+		s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(federation_module_id, ""),
+		s.preprocessColumn("cmd.rel_compose_module", ""):    s.preprocessValue(compose_module_id, ""),
 	})
 }
 
@@ -229,7 +229,7 @@ func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID(
 // It returns module mapping
 func (s Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federation_module_id uint64) (*types.ModuleMapping, error) {
 	return s.execLookupFederationModuleMapping(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.federation_module_id", ""): s.preprocessValue(federation_module_id, ""),
+		s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(federation_module_id, ""),
 	})
 }
 
@@ -415,8 +415,8 @@ func (Store) federationModuleMappingColumns(aa ...string) []string {
 	}
 
 	return []string{
-		alias + "federation_module_id",
-		alias + "compose_module_id",
+		alias + "rel_federation_module",
+		alias + "rel_compose_module",
 		alias + "field_mapping",
 	}
 }
@@ -436,9 +436,9 @@ func (Store) sortableFederationModuleMappingColumns() []string {
 // func when rdbms.customEncoder=true
 func (s Store) internalFederationModuleMappingEncoder(res *types.ModuleMapping) store.Payload {
 	return store.Payload{
-		"federation_module_id": res.FederationModuleID,
-		"compose_module_id":    res.ComposeModuleID,
-		"field_mapping":        res.FieldMapping,
+		"rel_federation_module": res.FederationModuleID,
+		"rel_compose_module":    res.ComposeModuleID,
+		"field_mapping":         res.FieldMapping,
 	}
 }
 
