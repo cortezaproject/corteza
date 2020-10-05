@@ -25,6 +25,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/provision/compose"
+	"github.com/cortezaproject/corteza-server/provision/federation"
 	"github.com/cortezaproject/corteza-server/provision/messaging"
 	"github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/store"
@@ -287,6 +288,10 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 
 		if err = messaging.Provision(ctx, app.Log, app.Store); err != nil {
 			return fmt.Errorf("could not provision messaging: %w", err)
+		}
+
+		if err = federation.Provision(ctx, app.Log, app.Store); err != nil {
+			return fmt.Errorf("could not provision federation: %w", err)
 		}
 
 		for errors.Unwrap(err) != nil {
