@@ -17,7 +17,6 @@ type (
 
 var (
 	ErrInvalidNodeCreateParams = errors.New("create node: missing or invalid parameters")
-	ErrorIdentityMissingToken  = errors.New("identity: token missing")
 )
 
 func (Node) New() *Node {
