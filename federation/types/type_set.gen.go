@@ -120,28 +120,28 @@ func (set ModuleMappingSet) Filter(f func(*ModuleMapping) (bool, error)) (out Mo
 // FindByID finds items from slice by its ID property
 //
 // This function is auto-generated.
-// func (set ModuleMappingSet) FindByID(ID uint64) *ModuleMapping {
-// 	for i := range set {
-// 		if set[i].ID == ID {
-// 			return set[i]
-// 		}
-// 	}
+func (set ModuleMappingSet) FindByID(ID uint64) *ModuleMapping {
+	// for i := range set {
+	// 	if set[i].ID == ID {
+	// 		return set[i]
+	// 	}
+	// }
 
-// 	return nil
-// }
+	return nil
+}
 
 // IDs returns a slice of uint64s from all items in the set
 //
 // This function is auto-generated.
-// func (set ModuleMappingSet) IDs() (IDs []uint64) {
-// 	IDs = make([]uint64, len(set))
+func (set ModuleMappingSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
 
-// 	for i := range set {
-// 		IDs[i] = set[i].ID
-// 	}
+	// for i := range set {
+	// 	IDs[i] = set[i].ID
+	// }
 
-// 	return
-// }
+	return
+}
 
 // Walk iterates through every slice item and calls w(Node) err
 //
