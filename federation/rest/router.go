@@ -9,7 +9,7 @@ import (
 
 func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
-		handlers.NewPairRequest(NodePairRequest{}.New()).MountRoutes(r)
+		handlers.NewNodeHandshake(NodeHandshake{}.New()).MountRoutes(r)
 
 		// temporary because of acl
 		handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
@@ -20,7 +20,6 @@ func MountRoutes(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 		r.Use(middlewareAllowedAccess)
 
-		handlers.NewIdentity(NodeIdentity{}.New()).MountRoutes(r)
-		handlers.NewPair(NodePair{}.New()).MountRoutes(r)
+		handlers.NewNode(Node{}.New()).MountRoutes(r)
 	})
 }
