@@ -3,3 +3,4 @@ types:
   ExposedModule:
   SharedModule:
   ModuleMapping:
+    noIdField: true

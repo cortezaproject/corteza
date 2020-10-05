@@ -15,7 +15,7 @@ import:
 props:
   - name: module
     type: "*types.ExposedModule"
-    fields: [ ID, ComposeModuleID ]
+    fields: [ ID, ComposeModuleID, NodeID ]
   - name: changed
     type: "*types.ExposedModule"
     fields: [ ID, ComposeModuleID ]
@@ -62,7 +62,7 @@ errors:
 
   - error: notUnique
     message: "node not unique"
-    log: "used duplicate node TODO - module.node_id for this compose module TODO - module.rel_compose_module"
+    log: "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module"
     severity: warning
 
   - error: composeModuleNotFound
