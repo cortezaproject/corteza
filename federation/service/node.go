@@ -204,7 +204,6 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*stypes.
 		u, err = svc.sysUser.With(ctx).Create(&stypes.User{
 			Email:  strconv.FormatUint(n.ID, 10) + "@federation.corteza",
 			Handle: uHandle,
-			Kind:   stypes.FederationUser,
 		})
 		if err != nil {
 			return nil, err

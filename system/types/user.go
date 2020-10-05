@@ -84,9 +84,8 @@ type (
 )
 
 const (
-	NormalUser     UserKind = ""
-	BotUser        UserKind = "bot"
-	FederationUser UserKind = "fdr"
+	NormalUser UserKind = ""
+	BotUser    UserKind = "bot"
 )
 
 func (u User) String() string {
