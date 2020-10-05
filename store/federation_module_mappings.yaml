@@ -27,6 +27,6 @@ rdbms:
   table: federation_module_mapping
   customFilterConverter: true
   mapFields:
-    FederationModuleID: { column: federation_module_id }
-    ComposeModuleID: { column: compose_module_id }
+    FederationModuleID: { column: rel_federation_module }
+    ComposeModuleID: { column: rel_compose_module }
     FieldMapping: { column: field_mapping }
