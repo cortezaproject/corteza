@@ -5,79 +5,106 @@
 # Next step: swagger.
 
 endpoints:
-  - title: Node identity
-    path: "/node/identity"
-    entrypoint: identity
-    authentication: []
+  - title: Federation node handshake
+    path: "/nodes/{nodeID}/handshake"
+    entrypoint: nodeHandshake
+    parameters:
+      path:
+      - name: nodeID
+        type: uint64
+        required: true
+        title: NodeID
     apis:
-      - name: generate node identity
+      - name: initialize
         method: POST
-        title: Generate an origin node identity
-        path: "/generate"
+        title: Initialize the handshake step with node B
+        path: ""
         parameters:
           post:
-            - name: domain
+            - name: nodeURI
               type: string
               required: true
-              title: Domain of the destination node
-
-      - name: register origin node
-        method: POST
-        title: Register a new origin node
-        path: "/register"
-        parameters:
-          post:
-            - name: identifier
+              title: Node A node URI
+            - name: tokenB
               type: string
               required: true
-              title: Origin node identifier
-
-  - title: Federation node pair request
-    path: "/node/pair/request"
-    entrypoint: pairRequest
-    authentication: []
-    apis:
-      - name: request pairing
-        method: POST
-        title: Handle destination node pair request
-        path: "/"
-        parameters:
-          post:
-            - name: identifier
-              type: string
-              required: true
-              title: Origin node identifier
-            - name: token
-              type: string
-              required: true
-              title: Destination node token
-
-  - title: Federation node pairing
-    path: "/node/pair"
-    entrypoint: pair
-    authentication: []
-    apis:
-      - name: approve pairing
-        method: POST
-        title: Approve the destination node pair request
-        path: "/approve"
-        parameters:
-          get:
-            - name: requestID
+              title: Node B auth token
+            - name: nodeIDB
               type: uint64
               required: true
-              title: Pair requestID
+              title: Node B nodeID
 
-      - name: complete pairing
+  - title: Federation nodes
+    path: "/nodes"
+    entrypoint: node
+    apis:
+      - name: create
         method: POST
-        title: Complete pairing with the origin
-        path: "/complete"
+        title: Create a new federation node
+        path: ""
         parameters:
           post:
-            - name: token
+            # @todo remove this
+            - name: myDomain
+              type: string
+              required: false
+              title: "[TMP] field that determines my domain"
+
+            - name: domain
+              type: string
+              required: false
+              title: Node B domain
+            - name: name
+              type: string
+              required: false
+              title: Name for this node
+            - name: adminContact
+              type: string
+              required: false
+              title: Node B admin contact email
+            - name: nodeURI
+              type: string
+              required: false
+              title: Node A URI
+
+      - name: pair
+        method: POST
+        title: Initialize the pairing process between the two nodes
+        path: "/{nodeID}/pair"
+        parameters:
+          path:
+            - name: nodeID
+              type: uint64
+              required: true
+              title: NodeID
+
+      - name: handshake confirm
+        method: POST
+        title: Confirm the requested handshake
+        path: "/{nodeID}/handshake-confirm"
+        parameters:
+          path:
+            - name: nodeID
+              type: uint64
+              required: true
+              title: NodeID
+
+      - name: handshake complete
+        method: POST
+        title: Complete the handshake
+        path: "/{nodeID}/handshake-complete"
+        parameters:
+          path:
+            - name: nodeID
+              type: uint64
+              required: true
+              title: NodeID
+
+          post:
+            - name: tokenA
               type: string
               required: true
-              title: Auth token of the origin node
+              title: Node A token
 
   - title: Manage structure
     description: Manage structure
