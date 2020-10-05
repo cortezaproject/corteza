@@ -1,0 +1,45 @@
+# List of loggable service actions
+
+resource: federation:node
+service: node
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: node
+    type: "*types.Node"
+    fields: [ ID, Domain, Status ]
+
+actions:
+  - action: create
+    log: "created a node"
+
+  - action: pair
+    log: "node pairing started"
+
+  - action: handshakeInit
+    log: "node handshake initialized"
+
+  - action: handshakeConfirm
+    log: "node handshake confirmed"
+
+  - action: handshakeComplete
+    log: "node handshake completed"
+
+errors:
+  - error: invalidCreateParams
+    message: "provided invalid parameters to create a node"
+
+  - error: invalidCreateURI
+    message: "provided invalid URI to create a node"
+
+  - error: notFound
+    message: "node does not exist"
+    severity: warning
