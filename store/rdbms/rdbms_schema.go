@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"fmt"
+
 	. "github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 )
 
@@ -73,6 +74,9 @@ func (s Schema) Tables() []*Table {
 		s.MessagingMessageAttachment(),
 		s.MessagingMessageFlag(),
 		s.MessagingUnread(),
+		s.FederationModuleShared(),
+		s.FederationModuleExposed(),
+		s.FederationModuleMapping(),
 	}
 }
 
@@ -485,5 +489,38 @@ func (Schema) MessagingUnread() *Table {
 		ColumnDef("count", ColumnTypeInteger),
 		ColumnDef("rel_last_message", ColumnTypeIdentifier),
 		PrimaryKey(IColumn("rel_channel", "rel_reply_to", "rel_user")),
+	)
+}
+
+func (Schema) FederationModuleShared() *Table {
+	return TableDef("federation_module_shared",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("xref_module", ColumnTypeIdentifier),
+		ColumnDef("fields", ColumnTypeText),
+	)
+}
+
+func (Schema) FederationModuleExposed() *Table {
+	return TableDef("federation_module_exposed",
+		ID,
+		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("fields", ColumnTypeText),
+
+		AddIndex("unique_node_composemodule", IColumn("rel_node", "rel_compose_module")),
+	)
+}
+
+func (Schema) FederationModuleMapping() *Table {
+	return TableDef("federation_module_mapping",
+		ID,
+		ColumnDef("rel_federation_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("field_mapping", ColumnTypeText),
+
+		AddIndex("unique_federationmodule_composemodule", IColumn("rel_federation_module", "rel_compose_module")),
 	)
 }
