@@ -119,6 +119,7 @@ func (p exposedModuleActionProps) serialize() actionlog.Meta {
 	if p.module != nil {
 		m.Set("module.ID", p.module.ID, true)
 		m.Set("module.ComposeModuleID", p.module.ComposeModuleID, true)
+		m.Set("module.NodeID", p.module.NodeID, true)
 	}
 	if p.changed != nil {
 		m.Set("changed.ID", p.changed.ID, true)
@@ -180,10 +181,12 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 			fns(
 				p.module.ID,
 				p.module.ComposeModuleID,
+				p.module.NodeID,
 			),
 		)
 		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
 		pairs = append(pairs, "{module.ComposeModuleID}", fns(p.module.ComposeModuleID))
+		pairs = append(pairs, "{module.NodeID}", fns(p.module.NodeID))
 	}
 
 	if p.changed != nil {
@@ -611,7 +614,7 @@ func ExposedModuleErrNotUnique(props ...*exposedModuleActionProps) *exposedModul
 		error:     "notUnique",
 		action:    "error",
 		message:   "node not unique",
-		log:       "used duplicate node TODO - module.node_id for this compose module TODO - module.rel_compose_module",
+		log:       "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module",
 		severity:  actionlog.Warning,
 		props: func() *exposedModuleActionProps {
 			if len(props) > 0 {
