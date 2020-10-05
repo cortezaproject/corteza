@@ -160,40 +160,6 @@ func TestModuleMappingSetFilter(t *testing.T) {
 	}
 }
 
-func TestModuleMappingSetIDs(t *testing.T) {
-	var (
-		value = make(ModuleMappingSet, 3)
-		req   = require.New(t)
-	)
-
-	// construct objects
-	value[0] = new(ModuleMapping)
-	value[1] = new(ModuleMapping)
-	value[2] = new(ModuleMapping)
-	// set ids
-	value[0].ID = 1
-	value[1].ID = 2
-	value[2].ID = 3
-
-	// Find existing
-	{
-		val := value.FindByID(2)
-		req.Equal(uint64(2), val.ID)
-	}
-
-	// Find non-existing
-	{
-		val := value.FindByID(4)
-		req.Nil(val)
-	}
-
-	// List IDs from set
-	{
-		val := value.IDs()
-		req.Equal(len(val), len(value))
-	}
-}
-
 func TestNodeSetWalk(t *testing.T) {
 	var (
 		value = make(NodeSet, 3)
