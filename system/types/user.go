@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
 
@@ -83,8 +84,9 @@ type (
 )
 
 const (
-	NormalUser UserKind = ""
-	BotUser    UserKind = "bot"
+	NormalUser     UserKind = ""
+	BotUser        UserKind = "bot"
+	FederationUser UserKind = "fdr"
 )
 
 func (u User) String() string {
