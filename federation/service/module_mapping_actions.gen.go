@@ -579,6 +579,36 @@ func ModuleMappingErrFederationModuleNotFound(props ...*moduleMappingActionProps
 
 }
 
+// ModuleMappingErrModuleMappingExists returns "federation:module_mapping.moduleMappingExists" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func ModuleMappingErrModuleMappingExists(props ...*moduleMappingActionProps) *moduleMappingError {
+	var e = &moduleMappingError{
+		timestamp: time.Now(),
+		resource:  "federation:module_mapping",
+		error:     "moduleMappingExists",
+		action:    "error",
+		message:   "module mapping already exists",
+		log:       "module mapping already exists",
+		severity:  actionlog.Error,
+		props: func() *moduleMappingActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // ModuleMappingErrNotAllowedToRead returns "federation:module_mapping.notAllowedToRead" audit event as actionlog.Error
 //
 //

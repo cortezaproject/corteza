@@ -46,7 +46,13 @@ func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStr
 }
 
 func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.ManageStructureCreateMappings) (interface{}, error) {
-	return nil, errors.New("not implemented yet")
+	mm := &types.ModuleMapping{
+		FederationModuleID: r.ModuleID,
+		ComposeModuleID:    r.ComposeModuleID,
+		FieldMapping:       r.Fields,
+	}
+
+	return (service.ModuleMapping()).Create(context.Background(), mm)
 }
 
 func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageStructureReadMappings) (interface{}, error) {
