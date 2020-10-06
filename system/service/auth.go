@@ -401,6 +401,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return err
 		}
 
+		u = nUser
 		aam.setUser(u)
 		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(u, authProvider))
 
