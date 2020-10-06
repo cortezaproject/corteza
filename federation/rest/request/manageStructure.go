@@ -95,6 +95,11 @@ type (
 		// Module ID
 		ModuleID uint64 `json:",string"`
 
+		// ComposeModuleID POST parameter
+		//
+		// Compose module id
+		ComposeModuleID uint64 `json:",string"`
+
 		// Fields POST parameter
 		//
 		// Exposed module fields
@@ -389,9 +394,10 @@ func NewManageStructureCreateMappings() *ManageStructureCreateMappings {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureCreateMappings) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"nodeID":   r.NodeID,
-		"moduleID": r.ModuleID,
-		"fields":   r.Fields,
+		"nodeID":          r.NodeID,
+		"moduleID":        r.ModuleID,
+		"composeModuleID": r.ComposeModuleID,
+		"fields":          r.Fields,
 	}
 }
 
@@ -403,6 +409,11 @@ func (r ManageStructureCreateMappings) GetNodeID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureCreateMappings) GetModuleID() uint64 {
 	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateMappings) GetComposeModuleID() uint64 {
+	return r.ComposeModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -429,6 +440,13 @@ func (r *ManageStructureCreateMappings) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
+
+		if val, ok := req.Form["composeModuleID"]; ok && len(val) > 0 {
+			r.ComposeModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 
 		// if val, ok := req.Form["fields"]; ok && len(val) > 0 {
 		// 	r.Fields, err = types.ModuleFieldMappingList(val[0]), nil
