@@ -18,9 +18,9 @@ type (
 	ModuleMappingService interface {
 		Find(ctx context.Context, filter types.ModuleMappingFilter) (types.ModuleMappingSet, types.ModuleMappingFilter, error)
 		FindByID(ctx context.Context, federationModuleID uint64) (*types.ModuleMapping, error)
+		Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error)
 		// FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
 		// DeleteByID(ctx context.Context, federationModuleID uint64) error
-		// Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error)
 	}
 
 	moduleMappingUpdateHandler func(ctx context.Context, c *types.ModuleMapping) (bool, bool, error)
@@ -95,37 +95,37 @@ func (svc moduleMapping) Find(ctx context.Context, filter types.ModuleMappingFil
 	return set, f, err
 }
 
-// func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error) {
-// 	var (
-// 		aProps = &moduleMappingActionProps{created: new}
-// 	)
+func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error) {
+	var (
+		aProps = &moduleMappingActionProps{created: new}
+	)
 
-// 	// check if compose module actually exists
-// 	// TODO - how do we handle namespace?
-// 	// if _, err := svc.compose.With(ctx).FindByID(r.NamespaceID, new.ComposeModuleID); err == nil {
-// 	// 	return nil, ExposedModuleErrComposeModuleNotFound()
-// 	// }
+	// check if compose module actually exists
+	// TODO - how do we handle namespace?
+	// if _, err := svc.compose.With(ctx).FindByID(r.NamespaceID, new.ComposeModuleID); err == nil {
+	// 	return nil, ExposedModuleErrComposeModuleNotFound()
+	// }
 
-// 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-// 		// TODO
-// 		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-// 		// 	return ExposedModuleErrNotAllowedToCreate()
-// 		// }
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		// TODO
+		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
+		// 	return ExposedModuleErrNotAllowedToCreate()
+		// }
 
-// 		// Check for federation module - compose.Module combo
-// 		if err = svc.uniqueCheck(ctx, new); err != nil {
-// 			return err
-// 		}
+		// Check for federation module - compose.Module combo
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
 
-// 		if err = store.CreateFederationModuleMapping(ctx, s, new); err != nil {
-// 			return err
-// 		}
+		if err = store.CreateFederationModuleMapping(ctx, s, new); err != nil {
+			return err
+		}
 
-// 		return nil
-// 	})
+		return nil
+	})
 
-// 	return new, svc.recordAction(ctx, aProps, ModuleMappingActionCreate, err)
-// }
+	return new, svc.recordAction(ctx, aProps, ModuleMappingActionCreate, err)
+}
 
 func (svc moduleMapping) uniqueCheck(ctx context.Context, m *types.ModuleMapping) (err error) {
 	f := types.ModuleMappingFilter{
@@ -133,9 +133,9 @@ func (svc moduleMapping) uniqueCheck(ctx context.Context, m *types.ModuleMapping
 		ComposeModuleID:    m.ComposeModuleID,
 	}
 
-	if set, _, err := store.SearchFederationModuleMappings(ctx, svc.store, f); len(set) > 0 && err != nil {
-		return ModuleMappingErrFederationModuleNotFound()
+	if set, _, err := store.SearchFederationModuleMappings(ctx, svc.store, f); len(set) > 0 && err == nil {
+		return ModuleMappingErrModuleMappingExists()
 	}
 
-	return nil
+	return err
 }

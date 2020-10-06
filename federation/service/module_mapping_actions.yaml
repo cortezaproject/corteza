@@ -57,6 +57,10 @@ errors:
     message: "federation module not found"
     severity: "warning"
 
+  - error: moduleMappingExists
+    message: "module mapping already exists"
+    # severity: "warning"
+
   - error: notAllowedToRead
     message: "not allowed to read this module"
     log: "could not read module; insufficient permissions"

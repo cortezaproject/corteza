@@ -161,6 +161,10 @@ endpoints:
               required: true
               title: Module ID
           post:
+            - type: uint64
+              name: composeModuleID
+              required: true
+              title: Compose module id
             - type: types.ModuleFieldMappingList
               name: fields
               required: false
