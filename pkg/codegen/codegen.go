@@ -33,7 +33,9 @@ func Proc() {
 		eventSrc     []string
 		eventDefs    []*eventsDef
 
-		typeSrcPath = filepath.Join("*", "*", "types.yaml")
+		// workaround because
+		// filepath.Join merges "*","*" into "**" instead of "*/*"
+		typeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "types.yaml")
 		typeSrc     []string
 		typeDefs    []*typesDef
 
