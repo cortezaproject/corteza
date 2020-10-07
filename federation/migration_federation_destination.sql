@@ -43,9 +43,14 @@ CREATE TABLE IF NOT EXISTS federation_node
     PRIMARY KEY(id)
 );
 
+TRUNCATE TABLE federation_node;
+TRUNCATE TABLE federation_module_shared;
+TRUNCATE TABLE federation_module_exposed;
+TRUNCATE TABLE federation_module_mapping;
+
 INSERT INTO federation_node values ('276342359342989555', 'Node Origin (somewhere else)', 'paired', 'synced', now(), 'synced', now());
 
 INSERT INTO federation_module_shared (id, handle, name, rel_node, xref_module, fields)
 VALUES
-(206342359342988000, 'Pricebook_on_origin_somewhere_else', 'Pricebook on some other origin (somewhere else)', 276342359342989555, 196342359342989000, NULL)
+(206342359342988000, 'Pricebook_on_origin_somewhere_else', 'Pricebook on some other origin (somewhere else)', 276342359342989555, 196342359342989000, '[]')
 ;
