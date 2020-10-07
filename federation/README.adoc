@@ -1,3 +1,31 @@
+== Development setup for origin and destination nodes
+
+Add the appropriate .env files
+[source,bash]
+----
+$ cp .env federation/etc/{.env.orig,.env.dest}
+----
+
+Change the DB_DSN in each of the files
+----
+.env.orig: DB_DSN=corteza:rootcorteza@tcp(db_origin:3306)/corteza?collation=utf8mb4_general_ci
+.env.dest: DB_DSN=corteza:rootcorteza@tcp(db_destination:3306)/corteza?collation=utf8mb4_general_ci
+----
+
+Run the nodes
+[source,bash]
+----
+$ docker-compose -f federation/etc/docker-compose.yml up -d node_origin
+$ docker-compose -f federation/etc/docker-compose.yml up -d node_destination
+----
+
+Add testing migrations
+[source,bash]
+----
+$ docker-compose -f federation/etc/docker-compose.yml run db_origin mysql -u corteza -prootcorteza corteza -h localhost --port 3306 < federation/migration_federation_origin.sql
+$ docker-compose -f federation/etc/docker-compose.yml run db_destination mysql -u corteza -prootcorteza corteza -h localhost --port 3307 < federation/migration_federation_destination.sql
+----
+
 == Setup db (postgres)
 
 Add db dsn to .env
@@ -10,13 +38,6 @@ Start the postgres db
 [source,bash]
 ----
 $ docker-compose up -db pg
-----
-
-Add testing migrations
-[source,bash]
-----
-$ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migration_federation_origin.sql
-$ docker exec -i corteza-server_pg_1 psql -U docker corteza < federation/migration_federation_destination.sql
 ----
 
 == Status
