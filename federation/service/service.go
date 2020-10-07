@@ -39,14 +39,9 @@ var (
 	DefaultActionlog actionlog.Recorder
 
 	// wrapper around time.Now() that will aid service testing
-	now = func() time.Time {
-		return time.Now()
-	}
-
-	// returns pointer to time.Time struct that is set to current time
-	nowPtr = func() *time.Time {
-		n := now()
-		return &n
+	now = func() *time.Time {
+		c := time.Now()
+		return &c
 	}
 
 	// wrapper around id.Next() that will aid service testing
