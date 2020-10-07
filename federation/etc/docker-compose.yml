@@ -1,0 +1,57 @@
+version: "3"
+services:
+  db_origin:
+    image: percona:8.0
+    container_name: db_origin
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE:      corteza
+      MYSQL_USER:          corteza
+      MYSQL_PASSWORD:      rootcorteza
+      MYSQL_ROOT_PASSWORD: rootcorteza
+    volumes:
+      - "../../data/db_origin:/var/lib/mysql"
+    ports:
+      - 3306:3306
+
+  db_destination:
+    image: percona:8.0
+    container_name: db_destination
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE:      corteza
+      MYSQL_USER:          corteza
+      MYSQL_PASSWORD:      rootcorteza
+      MYSQL_ROOT_PASSWORD: rootcorteza
+    volumes:
+      - "../../data/db_destination:/var/lib/mysql"
+    ports:
+      - 3307:3306
+
+  node_origin:
+    image: golang
+    container_name: node_origin
+    entrypoint: [ make, watch ]
+    depends_on: [ db_origin ]
+    volumes:
+      - "../../:/app"
+      - "./.env.orig:/app/.env"
+    working_dir: /app
+    restart: on-failure
+    ports:
+      - 8084:8084
+
+  node_destination:
+    image: golang
+    container_name: node_destination
+    entrypoint: [ make, watch ]
+    depends_on: [ db_destination ]
+    volumes:
+      - "../../:/app"
+      - "./.env.dest:/app/.env"
+    working_dir: /app
+    restart: on-failure
+    ports:
+      - 8085:8084
+
+

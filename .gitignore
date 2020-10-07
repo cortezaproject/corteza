@@ -11,3 +11,4 @@ profile.coverprofile
 /var
 /TODO
 /gin-bin
+/federation/etc/.env*
