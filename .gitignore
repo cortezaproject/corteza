@@ -12,3 +12,4 @@ profile.coverprofile
 /TODO
 /gin-bin
 /.vscode
+/federation/etc/.env*
