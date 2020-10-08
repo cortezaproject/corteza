@@ -6,9 +6,9 @@ import (
 
 type (
 	ModuleMapping struct {
-		FederationModuleID uint64                 `json:"federationModuleID,string"`
-		ComposeModuleID    uint64                 `json:"composeModuleID,string"`
-		FieldMapping       ModuleFieldMappingList `json:"fields"`
+		FederationModuleID uint64                `json:"federationModuleID,string"`
+		ComposeModuleID    uint64                `json:"composeModuleID,string"`
+		FieldMapping       ModuleFieldMappingSet `json:"fields"`
 	}
 
 	ModuleMappingFilter struct {

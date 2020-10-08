@@ -5,10 +5,9 @@ types:
   type: types.ModuleMapping
 
 fields:
-  - { field: FederationModuleID }
-  - { field: ComposeModuleID }
+  - { field: FederationModuleID, isPrimaryKey: true }
+  - { field: ComposeModuleID, isPrimaryKey: true }
   - { field: FieldMapping, type: "json.Text" }
-
 
 lookups:
   - fields: [FederationModuleID, ComposeModuleID]

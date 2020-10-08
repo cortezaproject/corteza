@@ -26,7 +26,7 @@ type (
 		UpsertFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error
 
 		DeleteFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error
-		DeleteFederationModuleMappingBy(ctx context.Context) error
+		DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federationModuleID uint64, composeModuleID uint64) error
 
 		TruncateFederationModuleMappings(ctx context.Context) error
 	}
@@ -74,9 +74,9 @@ func DeleteFederationModuleMapping(ctx context.Context, s FederationModuleMappin
 	return s.DeleteFederationModuleMapping(ctx, rr...)
 }
 
-// DeleteFederationModuleMappingBy Deletes FederationModuleMapping from store
-func DeleteFederationModuleMappingBy(ctx context.Context, s FederationModuleMappings) error {
-	return s.DeleteFederationModuleMappingBy(ctx)
+// DeleteFederationModuleMappingByFederationModuleIDComposeModuleID Deletes FederationModuleMapping from store
+func DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, s FederationModuleMappings, federationModuleID uint64, composeModuleID uint64) error {
+	return s.DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx, federationModuleID, composeModuleID)
 }
 
 // TruncateFederationModuleMappings Deletes all FederationModuleMappings from store

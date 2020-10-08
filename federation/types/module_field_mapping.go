@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	ModuleFieldMappingList []*ModuleFieldMapping
+	ModuleFieldMappingSet []*ModuleFieldMapping
 
 	ModuleFieldMapping struct {
 		Origin      ModuleField `json:"origin"`
@@ -16,17 +16,17 @@ type (
 	}
 )
 
-func (list ModuleFieldMappingList) Value() (driver.Value, error) {
+func (list ModuleFieldMappingSet) Value() (driver.Value, error) {
 	return json.Marshal(list)
 }
 
-func (list *ModuleFieldMappingList) Scan(value interface{}) error {
+func (list *ModuleFieldMappingSet) Scan(value interface{}) error {
 	switch value.(type) {
 	case nil:
-		*list = ModuleFieldMappingList{}
+		*list = ModuleFieldMappingSet{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldMappingList", value))
+			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldMappingSet", value))
 		}
 	}
 
