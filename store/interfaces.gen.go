@@ -18,6 +18,7 @@ package store
 //  - store/credentials.yaml
 //  - store/federation_exposed_modules.yaml
 //  - store/federation_module_mappings.yaml
+//  - store/federation_nodes.yaml
 //  - store/federation_shared_modules.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
@@ -56,6 +57,7 @@ type (
 		Credentials
 		FederationExposedModules
 		FederationModuleMappings
+		FederationNodes
 		FederationSharedModules
 		Labels
 		MessagingAttachments
