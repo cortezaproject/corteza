@@ -76,6 +76,7 @@ func (s Schema) Tables() []*Table {
 		s.FederationModuleShared(),
 		s.FederationModuleExposed(),
 		s.FederationModuleMapping(),
+		s.FederationNodes(),
 	}
 }
 
@@ -509,5 +510,20 @@ func (Schema) FederationModuleMapping() *Table {
 		ColumnDef("field_mapping", ColumnTypeText),
 
 		AddIndex("unique_federationmodule_composemodule", IColumn("rel_federation_module", "rel_compose_module")),
+	)
+}
+
+func (Schema) FederationNodes() *Table {
+	return TableDef("federation_nodes",
+		ID,
+		ColumnDef("shared_node_id", ColumnTypeIdentifier),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("base_url", ColumnTypeText),
+		ColumnDef("status", ColumnTypeText),
+		ColumnDef("pair_token", ColumnTypeText),
+		ColumnDef("auth_token", ColumnTypeText),
+
+		CUDTimestamps,
+		CUDUsers,
 	)
 }
