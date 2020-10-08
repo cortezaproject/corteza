@@ -21,7 +21,9 @@ import (
 type (
 	// Internal API interface
 	NodeAPI interface {
+		Search(context.Context, *request.NodeSearch) (interface{}, error)
 		Create(context.Context, *request.NodeCreate) (interface{}, error)
+		GenerateURI(context.Context, *request.NodeGenerateURI) (interface{}, error)
 		Pair(context.Context, *request.NodePair) (interface{}, error)
 		HandshakeConfirm(context.Context, *request.NodeHandshakeConfirm) (interface{}, error)
 		HandshakeComplete(context.Context, *request.NodeHandshakeComplete) (interface{}, error)
@@ -29,7 +31,9 @@ type (
 
 	// HTTP API interface
 	Node struct {
+		Search            func(http.ResponseWriter, *http.Request)
 		Create            func(http.ResponseWriter, *http.Request)
+		GenerateURI       func(http.ResponseWriter, *http.Request)
 		Pair              func(http.ResponseWriter, *http.Request)
 		HandshakeConfirm  func(http.ResponseWriter, *http.Request)
 		HandshakeComplete func(http.ResponseWriter, *http.Request)
@@ -38,6 +42,26 @@ type (
 
 func NewNode(h NodeAPI) *Node {
 	return &Node{
+		Search: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNodeSearch()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Node.Search", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Search(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Node.Search", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Node.Search", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeCreate()
@@ -54,6 +78,26 @@ func NewNode(h NodeAPI) *Node {
 				return
 			}
 			logger.LogControllerCall("Node.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		GenerateURI: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNodeGenerateURI()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Node.GenerateURI", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.GenerateURI(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Node.GenerateURI", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Node.GenerateURI", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -124,7 +168,9 @@ func NewNode(h NodeAPI) *Node {
 func (h Node) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
+		r.Get("/nodes", h.Search)
 		r.Post("/nodes", h.Create)
+		r.Post("/nodes/{nodeID}/uri", h.GenerateURI)
 		r.Post("/nodes/{nodeID}/pair", h.Pair)
 		r.Post("/nodes/{nodeID}/handshake-confirm", h.HandshakeConfirm)
 		r.Post("/nodes/{nodeID}/handshake-complete", h.HandshakeComplete)

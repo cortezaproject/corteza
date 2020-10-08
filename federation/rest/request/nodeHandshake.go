@@ -35,20 +35,20 @@ type (
 		// NodeID
 		NodeID uint64 `json:",string"`
 
-		// NodeURI POST parameter
+		// PairToken POST parameter
 		//
-		// Node A node URI
-		NodeURI string
+		// Pairing token to authenticate handshake initialization request
+		PairToken string
 
-		// TokenB POST parameter
+		// SharedNodeID POST parameter
 		//
-		// Node B auth token
-		TokenB string
+		// Remote (invoker's) node ID
+		SharedNodeID uint64 `json:",string"`
 
-		// NodeIDB POST parameter
+		// AuthToken POST parameter
 		//
-		// Node B nodeID
-		NodeIDB uint64 `json:",string"`
+		// Authentication token so that remote
+		AuthToken string
 	}
 )
 
@@ -60,10 +60,10 @@ func NewNodeHandshakeInitialize() *NodeHandshakeInitialize {
 // Auditable returns all auditable/loggable parameters
 func (r NodeHandshakeInitialize) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"nodeID":  r.NodeID,
-		"nodeURI": r.NodeURI,
-		"tokenB":  r.TokenB,
-		"nodeIDB": r.NodeIDB,
+		"nodeID":       r.NodeID,
+		"pairToken":    r.PairToken,
+		"sharedNodeID": r.SharedNodeID,
+		"authToken":    r.AuthToken,
 	}
 }
 
@@ -73,18 +73,18 @@ func (r NodeHandshakeInitialize) GetNodeID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeHandshakeInitialize) GetNodeURI() string {
-	return r.NodeURI
+func (r NodeHandshakeInitialize) GetPairToken() string {
+	return r.PairToken
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeHandshakeInitialize) GetTokenB() string {
-	return r.TokenB
+func (r NodeHandshakeInitialize) GetSharedNodeID() uint64 {
+	return r.SharedNodeID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeHandshakeInitialize) GetNodeIDB() uint64 {
-	return r.NodeIDB
+func (r NodeHandshakeInitialize) GetAuthToken() string {
+	return r.AuthToken
 }
 
 // Fill processes request and fills internal variables
@@ -107,22 +107,22 @@ func (r *NodeHandshakeInitialize) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		if val, ok := req.Form["nodeURI"]; ok && len(val) > 0 {
-			r.NodeURI, err = val[0], nil
+		if val, ok := req.Form["pairToken"]; ok && len(val) > 0 {
+			r.PairToken, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["tokenB"]; ok && len(val) > 0 {
-			r.TokenB, err = val[0], nil
+		if val, ok := req.Form["sharedNodeID"]; ok && len(val) > 0 {
+			r.SharedNodeID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["nodeIDB"]; ok && len(val) > 0 {
-			r.NodeIDB, err = payload.ParseUint64(val[0]), nil
+		if val, ok := req.Form["authToken"]; ok && len(val) > 0 {
+			r.AuthToken, err = val[0], nil
 			if err != nil {
 				return err
 			}

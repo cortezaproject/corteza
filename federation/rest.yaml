@@ -21,51 +21,67 @@ endpoints:
         path: ""
         parameters:
           post:
-            - name: nodeURI
+            - name: pairToken
               type: string
               required: true
-              title: Node A node URI
-            - name: tokenB
-              type: string
-              required: true
-              title: Node B auth token
-            - name: nodeIDB
+              title: Pairing token to authenticate handshake initialization request
+            - name: sharedNodeID
               type: uint64
               required: true
-              title: Node B nodeID
+              title: Remote (invoker's) node ID
+            - name: authToken
+              type: string
+              required: true
+              title: Authentication token so that remote
 
   - title: Federation nodes
     path: "/nodes"
     entrypoint: node
     apis:
+      - name: search
+        method: GET
+        title: Search federated nodes
+        parameters:
+          get:
+            - name: query
+              type: string
+              title: Filter nodes by name and host
+            - name: status
+              type: string
+              title: Filter by status
       - name: create
         method: POST
         title: Create a new federation node
         path: ""
         parameters:
           post:
-            # @todo remove this
-            - name: myDomain
+            - name: host
               type: string
               required: false
-              title: "[TMP] field that determines my domain"
-
-            - name: domain
+              title: Node B host
+            - name: baseURL
               type: string
               required: false
-              title: Node B domain
+              title: Federation API base URL
             - name: name
               type: string
               required: false
               title: Name for this node
-            - name: adminContact
+            - name: pairingURI
               type: string
               required: false
-              title: Node B admin contact email
-            - name: nodeURI
-              type: string
-              required: false
-              title: Node A URI
+              title: Pairing URI
+
+      - name: generateURI
+        method: POST
+        title: Creates new sharable federation URI
+        path: "/{nodeID}/uri"
+        parameters:
+          path:
+            - name: nodeID
+              type: uint64
+              required: true
+              title: NodeID
 
       - name: pair
         method: POST
