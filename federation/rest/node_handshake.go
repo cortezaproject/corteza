@@ -2,14 +2,19 @@ package rest
 
 import (
 	"context"
+	"github.com/titpetric/factory/resputil"
 
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 )
 
 type (
+	handshakeInitializer interface {
+		HandshakeInit(context.Context, uint64, string, uint64, string) error
+	}
+
 	NodeHandshake struct {
-		svcNode service.NodeService
+		svcNode handshakeInitializer
 	}
 )
 
@@ -20,6 +25,5 @@ func (NodeHandshake) New() *NodeHandshake {
 }
 
 func (ctrl NodeHandshake) Initialize(ctx context.Context, r *request.NodeHandshakeInitialize) (interface{}, error) {
-	err := ctrl.svcNode.HandshakeInit(ctx, r.NodeID, r.NodeIDB, r.NodeURI, r.TokenB)
-	return nil, err
+	return resputil.OK(), ctrl.svcNode.HandshakeInit(ctx, r.NodeID, r.PairToken, r.SharedNodeID, r.AuthToken)
 }
