@@ -15,11 +15,24 @@ import:
 props:
   - name: node
     type: "*types.Node"
-    fields: [ ID, Domain, Status ]
+    fields: [ Name, ID, Status, BaseURL ]
+  - name: uri
+  - name: filter
+    type: "*types.NodeFilter"
+    fields: [ query, status ]
 
 actions:
+  - action: search
+    log: "searched for nodes"
+
   - action: create
-    log: "created a node"
+    log: "created node"
+
+  - action: createFromURI
+    log: "created node from URI"
+
+  - action: ottRegenerated
+    log: "regenerated one-time-token for {node}"
 
   - action: pair
     log: "node pairing started"
@@ -37,8 +50,19 @@ errors:
   - error: invalidCreateParams
     message: "provided invalid parameters to create a node"
 
-  - error: invalidCreateURI
-    message: "provided invalid URI to create a node"
+  - error: unableToCreateUri
+
+  - error: invalidPairingURI
+    message: "provided invalid pairing URI"
+
+  - error: uriSourceNodeIDMissing
+    message: "provided URI without source ID"
+
+  - error: uriTokenMissing
+    message: "provided URI without token"
+
+  - error: invalidHandshakeInitNodeURI
+    message: "provided invalid URI to initialize handshake"
 
   - error: notFound
     message: "node does not exist"
