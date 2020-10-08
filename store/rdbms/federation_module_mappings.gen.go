@@ -13,7 +13,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -106,6 +105,15 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 		fetched uint
 		err     error
 	)
+
+	// Make sure we always end our sort by primary keys
+	if sort.Get("rel_federation_module") == nil {
+		sort = append(sort, &filter.SortExpr{Column: "rel_federation_module"})
+	}
+
+	if sort.Get("rel_compose_module") == nil {
+		sort = append(sort, &filter.SortExpr{Column: "rel_compose_module"})
+	}
 
 	// Apply sorting expr from filter to query
 	if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()...); err != nil {
@@ -265,8 +273,10 @@ func (s Store) partialFederationModuleMappingUpdate(ctx context.Context, onlyCol
 
 		err = s.execUpdateFederationModuleMappings(
 			ctx,
-			squirrel.Eq{},
-			s.internalFederationModuleMappingEncoder(res).Skip().Only(onlyColumns...))
+			squirrel.Eq{
+				s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""),
+			},
+			s.internalFederationModuleMappingEncoder(res).Skip("rel_federation_module", "rel_compose_module").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -294,9 +304,11 @@ func (s Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*types.M
 
 // DeleteFederationModuleMapping Deletes one or more rows from federation_module_mapping table
 func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) (err error) {
-	for _, _ = range rr {
+	for _, res := range rr {
 
-		err = s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{})
+		err = s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{
+			s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""),
+		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -305,9 +317,12 @@ func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*types.M
 	return nil
 }
 
-// DeleteFederationModuleMappingBy Deletes row from the federation_module_mapping table
-func (s Store) DeleteFederationModuleMappingBy(ctx context.Context) error {
-	return s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{})
+// DeleteFederationModuleMappingByFederationModuleIDComposeModuleID Deletes row from the federation_module_mapping table
+func (s Store) DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federationModuleID uint64, composeModuleID uint64) error {
+	return s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{
+		s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(federationModuleID, ""),
+		s.preprocessColumn("cmd.rel_compose_module", ""):    s.preprocessValue(composeModuleID, ""),
+	})
 }
 
 // TruncateFederationModuleMappings Deletes all rows from the federation_module_mapping table
@@ -351,6 +366,8 @@ func (s Store) execUpsertFederationModuleMappings(ctx context.Context, set store
 		s.config,
 		s.federationModuleMappingTable(),
 		set,
+		"rel_federation_module",
+		"rel_compose_module",
 	)
 
 	if err != nil {
@@ -459,17 +476,30 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 
 		// All known primary key columns
 
+		pkRel_federation_module bool
+
+		pkRel_compose_module bool
+
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
+				case "rel_federation_module":
+					cursor.Set(c, res.FederationModuleID, false)
+
+					pkRel_federation_module = true
+				case "rel_compose_module":
+					cursor.Set(c, res.ComposeModuleID, false)
+
+					pkRel_compose_module = true
+
 				}
 			}
 		}
 	)
 
 	collect(cc...)
-	if !hasUnique || !(true) {
-		collect()
+	if !hasUnique || !(pkRel_federation_module && pkRel_compose_module && true) {
+		collect("rel_federation_module", "rel_compose_module")
 	}
 
 	return cursor

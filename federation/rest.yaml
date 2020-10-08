@@ -84,6 +84,8 @@ endpoints:
     entrypoint: manageStructure
     path: "/nodes/{nodeID}"
     authentication: []
+    imports:
+      - github.com/cortezaproject/corteza-server/federation/types
     apis:
       - name: readExposed
         method: GET
@@ -114,7 +116,7 @@ endpoints:
               name: composeModuleID
               required: true
               title: Compose module id
-            - type: types.ModuleFieldList
+            - type: types.ModuleFieldSet
               name: fields
               required: false
               title: Exposed module fields
@@ -165,7 +167,7 @@ endpoints:
               name: composeModuleID
               required: true
               title: Compose module id
-            - type: types.ModuleFieldMappingList
+            - type: types.ModuleFieldMappingSet
               name: fields
               required: false
               title: Exposed module fields
