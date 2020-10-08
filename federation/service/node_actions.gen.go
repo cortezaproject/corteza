@@ -21,7 +21,9 @@ import (
 
 type (
 	nodeActionProps struct {
-		node *types.Node
+		node   *types.Node
+		uri    string
+		filter *types.NodeFilter
 	}
 
 	nodeAction struct {
@@ -71,6 +73,28 @@ func (p *nodeActionProps) setNode(node *types.Node) *nodeActionProps {
 	return p
 }
 
+// setUri updates nodeActionProps's uri
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *nodeActionProps) setUri(uri string) *nodeActionProps {
+	p.uri = uri
+	return p
+}
+
+// setFilter updates nodeActionProps's filter
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *nodeActionProps) setFilter(filter *types.NodeFilter) *nodeActionProps {
+	p.filter = filter
+	return p
+}
+
 // serialize converts nodeActionProps to actionlog.Meta
 //
 // This function is auto-generated.
@@ -81,9 +105,15 @@ func (p nodeActionProps) serialize() actionlog.Meta {
 	)
 
 	if p.node != nil {
+		m.Set("node.Name", p.node.Name, true)
 		m.Set("node.ID", p.node.ID, true)
-		m.Set("node.Domain", p.node.Domain, true)
 		m.Set("node.Status", p.node.Status, true)
+		m.Set("node.BaseURL", p.node.BaseURL, true)
+	}
+	m.Set("uri", p.uri, true)
+	if p.filter != nil {
+		m.Set("filter.query", p.filter.Query, true)
+		m.Set("filter.status", p.filter.Status, true)
 	}
 
 	return m
@@ -130,14 +160,31 @@ func (p nodeActionProps) tr(in string, err error) string {
 			pairs,
 			"{node}",
 			fns(
+				p.node.Name,
 				p.node.ID,
-				p.node.Domain,
 				p.node.Status,
+				p.node.BaseURL,
 			),
 		)
+		pairs = append(pairs, "{node.Name}", fns(p.node.Name))
 		pairs = append(pairs, "{node.ID}", fns(p.node.ID))
-		pairs = append(pairs, "{node.Domain}", fns(p.node.Domain))
 		pairs = append(pairs, "{node.Status}", fns(p.node.Status))
+		pairs = append(pairs, "{node.BaseURL}", fns(p.node.BaseURL))
+	}
+	pairs = append(pairs, "{uri}", fns(p.uri))
+
+	if p.filter != nil {
+		// replacement for "{filter}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{filter}",
+			fns(
+				p.filter.Query,
+				p.filter.Status,
+			),
+		)
+		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
+		pairs = append(pairs, "{filter.status}", fns(p.filter.Status))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -265,6 +312,26 @@ func (e *nodeError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
+// NodeActionSearch returns "federation:node.search" error
+//
+// This function is auto-generated.
+//
+func NodeActionSearch(props ...*nodeActionProps) *nodeAction {
+	a := &nodeAction{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		action:    "search",
+		log:       "searched for nodes",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // NodeActionCreate returns "federation:node.create" error
 //
 // This function is auto-generated.
@@ -274,7 +341,47 @@ func NodeActionCreate(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "create",
-		log:       "created a node",
+		log:       "created node",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NodeActionCreateFromURI returns "federation:node.createFromURI" error
+//
+// This function is auto-generated.
+//
+func NodeActionCreateFromURI(props ...*nodeActionProps) *nodeAction {
+	a := &nodeAction{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		action:    "createFromURI",
+		log:       "created node from URI",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NodeActionOttRegenerated returns "federation:node.ottRegenerated" error
+//
+// This function is auto-generated.
+//
+func NodeActionOttRegenerated(props ...*nodeActionProps) *nodeAction {
+	a := &nodeAction{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		action:    "ottRegenerated",
+		log:       "regenerated one-time-token for {node}",
 		severity:  actionlog.Notice,
 	}
 
@@ -429,19 +536,139 @@ func NodeErrInvalidCreateParams(props ...*nodeActionProps) *nodeError {
 
 }
 
-// NodeErrInvalidCreateURI returns "federation:node.invalidCreateURI" audit event as actionlog.Error
+// NodeErrUnableToCreateUri returns "federation:node.unableToCreateUri" audit event as actionlog.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrInvalidCreateURI(props ...*nodeActionProps) *nodeError {
+func NodeErrUnableToCreateUri(props ...*nodeActionProps) *nodeError {
 	var e = &nodeError{
 		timestamp: time.Now(),
 		resource:  "federation:node",
-		error:     "invalidCreateURI",
+		error:     "unableToCreateUri",
 		action:    "error",
-		message:   "provided invalid URI to create a node",
-		log:       "provided invalid URI to create a node",
+		message:   "unableToCreateUri",
+		log:       "unableToCreateUri",
+		severity:  actionlog.Error,
+		props: func() *nodeActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// NodeErrInvalidPairingURI returns "federation:node.invalidPairingURI" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrInvalidPairingURI(props ...*nodeActionProps) *nodeError {
+	var e = &nodeError{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		error:     "invalidPairingURI",
+		action:    "error",
+		message:   "provided invalid pairing URI",
+		log:       "provided invalid pairing URI",
+		severity:  actionlog.Error,
+		props: func() *nodeActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// NodeErrUriSourceNodeIDMissing returns "federation:node.uriSourceNodeIDMissing" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrUriSourceNodeIDMissing(props ...*nodeActionProps) *nodeError {
+	var e = &nodeError{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		error:     "uriSourceNodeIDMissing",
+		action:    "error",
+		message:   "provided URI without source ID",
+		log:       "provided URI without source ID",
+		severity:  actionlog.Error,
+		props: func() *nodeActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// NodeErrUriTokenMissing returns "federation:node.uriTokenMissing" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrUriTokenMissing(props ...*nodeActionProps) *nodeError {
+	var e = &nodeError{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		error:     "uriTokenMissing",
+		action:    "error",
+		message:   "provided URI without token",
+		log:       "provided URI without token",
+		severity:  actionlog.Error,
+		props: func() *nodeActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// NodeErrInvalidHandshakeInitNodeURI returns "federation:node.invalidHandshakeInitNodeURI" audit event as actionlog.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrInvalidHandshakeInitNodeURI(props ...*nodeActionProps) *nodeError {
+	var e = &nodeError{
+		timestamp: time.Now(),
+		resource:  "federation:node",
+		error:     "invalidHandshakeInitNodeURI",
+		action:    "error",
+		message:   "provided invalid URI to initialize handshake",
+		log:       "provided invalid URI to initialize handshake",
 		severity:  actionlog.Error,
 		props: func() *nodeActionProps {
 			if len(props) > 0 {
