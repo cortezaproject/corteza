@@ -11,14 +11,13 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"strings"
-
-	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/go-chi/chi"
 )
 
 // dummy vars to prevent
@@ -57,7 +56,7 @@ type (
 		// Fields POST parameter
 		//
 		// Exposed module fields
-		Fields types.ModuleFieldList
+		Fields types.ModuleFieldSet
 	}
 
 	ManageStructureRemoveExposed struct {
@@ -103,7 +102,7 @@ type (
 		// Fields POST parameter
 		//
 		// Exposed module fields
-		Fields types.ModuleFieldMappingList
+		Fields types.ModuleFieldMappingSet
 	}
 
 	ManageStructureReadMappings struct {
@@ -218,7 +217,7 @@ func (r ManageStructureCreateExposed) GetComposeModuleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldList {
+func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldSet {
 	return r.Fields
 }
 
@@ -249,12 +248,12 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		// if val, ok := req.Form["fields"]; ok && len(val) > 0 {
-		// 	r.Fields, err = types.ModuleFieldList(val[0]), nil
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		//if val, ok := req.Form["fields[]"]; ok && len(val) > 0  {
+		//    r.Fields, err = types.ModuleFieldSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{
@@ -417,7 +416,7 @@ func (r ManageStructureCreateMappings) GetComposeModuleID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ManageStructureCreateMappings) GetFields() types.ModuleFieldMappingList {
+func (r ManageStructureCreateMappings) GetFields() types.ModuleFieldMappingSet {
 	return r.Fields
 }
 
@@ -448,12 +447,12 @@ func (r *ManageStructureCreateMappings) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		// if val, ok := req.Form["fields"]; ok && len(val) > 0 {
-		// 	r.Fields, err = types.ModuleFieldMappingList(val[0]), nil
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		//if val, ok := req.Form["fields[]"]; ok && len(val) > 0  {
+		//    r.Fields, err = types.ModuleFieldMappingSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	{

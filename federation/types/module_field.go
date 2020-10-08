@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	ModuleFieldList []*ModuleField
+	ModuleFieldSet []*ModuleField
 
 	ModuleField struct {
 		Kind    string `json:"kind"`
@@ -18,17 +18,17 @@ type (
 	}
 )
 
-func (list ModuleFieldList) Value() (driver.Value, error) {
+func (list ModuleFieldSet) Value() (driver.Value, error) {
 	return json.Marshal(list)
 }
 
-func (list *ModuleFieldList) Scan(value interface{}) error {
+func (list *ModuleFieldSet) Scan(value interface{}) error {
 	switch value.(type) {
 	case nil:
-		*list = ModuleFieldList{}
+		*list = ModuleFieldSet{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldList", value))
+			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldSet", value))
 		}
 	}
 
