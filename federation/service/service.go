@@ -40,7 +40,7 @@ var (
 
 	DefaultActionlog actionlog.Recorder
 
-	DefaultNode NodeService
+	DefaultNode *node
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
