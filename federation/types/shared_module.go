@@ -8,12 +8,12 @@ import (
 
 type (
 	SharedModule struct {
-		ID                         uint64          `json:"moduleID,string"`
-		NodeID                     uint64          `json:"nodeID,string"`
-		Handle                     string          `json:"handle"`
-		Name                       string          `json:"name"`
-		ExternalFederationModuleID uint64          `json:"externalFederationModuleID,string"`
-		Fields                     ModuleFieldList `json:"fields"`
+		ID                         uint64         `json:"moduleID,string"`
+		NodeID                     uint64         `json:"nodeID,string"`
+		Handle                     string         `json:"handle"`
+		Name                       string         `json:"name"`
+		ExternalFederationModuleID uint64         `json:"externalFederationModuleID,string"`
+		Fields                     ModuleFieldSet `json:"fields"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
