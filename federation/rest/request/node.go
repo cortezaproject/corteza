@@ -29,31 +29,45 @@ var (
 
 type (
 	// Internal API interface
-	NodeCreate struct {
-		// MyDomain POST parameter
+	NodeSearch struct {
+		// Query GET parameter
 		//
-		// [TMP] field that determines my domain
-		MyDomain string
+		// Filter nodes by name and host
+		Query string
 
-		// Domain POST parameter
+		// Status GET parameter
 		//
-		// Node B domain
-		Domain string
+		// Filter by status
+		Status string
+	}
+
+	NodeCreate struct {
+		// Host POST parameter
+		//
+		// Node B host
+		Host string
+
+		// BaseURL POST parameter
+		//
+		// Federation API base URL
+		BaseURL string
 
 		// Name POST parameter
 		//
 		// Name for this node
 		Name string
 
-		// AdminContact POST parameter
+		// PairingURI POST parameter
 		//
-		// Node B admin contact email
-		AdminContact string
+		// Pairing URI
+		PairingURI string
+	}
 
-		// NodeURI POST parameter
+	NodeGenerateURI struct {
+		// NodeID PATH parameter
 		//
-		// Node A URI
-		NodeURI string
+		// NodeID
+		NodeID uint64 `json:",string"`
 	}
 
 	NodePair struct {
@@ -83,6 +97,63 @@ type (
 	}
 )
 
+// NewNodeSearch request
+func NewNodeSearch() *NodeSearch {
+	return &NodeSearch{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"query":  r.Query,
+		"status": r.Status,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetQuery() string {
+	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeSearch) GetStatus() string {
+	return r.Status
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeSearch) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
 // NewNodeCreate request
 func NewNodeCreate() *NodeCreate {
 	return &NodeCreate{}
@@ -91,22 +162,21 @@ func NewNodeCreate() *NodeCreate {
 // Auditable returns all auditable/loggable parameters
 func (r NodeCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"myDomain":     r.MyDomain,
-		"domain":       r.Domain,
-		"name":         r.Name,
-		"adminContact": r.AdminContact,
-		"nodeURI":      r.NodeURI,
+		"host":       r.Host,
+		"baseURL":    r.BaseURL,
+		"name":       r.Name,
+		"pairingURI": r.PairingURI,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeCreate) GetMyDomain() string {
-	return r.MyDomain
+func (r NodeCreate) GetHost() string {
+	return r.Host
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeCreate) GetDomain() string {
-	return r.Domain
+func (r NodeCreate) GetBaseURL() string {
+	return r.BaseURL
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -115,13 +185,8 @@ func (r NodeCreate) GetName() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeCreate) GetAdminContact() string {
-	return r.AdminContact
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NodeCreate) GetNodeURI() string {
-	return r.NodeURI
+func (r NodeCreate) GetPairingURI() string {
+	return r.PairingURI
 }
 
 // Fill processes request and fills internal variables
@@ -144,15 +209,15 @@ func (r *NodeCreate) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		if val, ok := req.Form["myDomain"]; ok && len(val) > 0 {
-			r.MyDomain, err = val[0], nil
+		if val, ok := req.Form["host"]; ok && len(val) > 0 {
+			r.Host, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["domain"]; ok && len(val) > 0 {
-			r.Domain, err = val[0], nil
+		if val, ok := req.Form["baseURL"]; ok && len(val) > 0 {
+			r.BaseURL, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -165,19 +230,57 @@ func (r *NodeCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["adminContact"]; ok && len(val) > 0 {
-			r.AdminContact, err = val[0], nil
+		if val, ok := req.Form["pairingURI"]; ok && len(val) > 0 {
+			r.PairingURI, err = val[0], nil
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	return err
+}
+
+// NewNodeGenerateURI request
+func NewNodeGenerateURI() *NodeGenerateURI {
+	return &NodeGenerateURI{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeGenerateURI) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID": r.NodeID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeGenerateURI) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeGenerateURI) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
 		}
 
-		if val, ok := req.Form["nodeURI"]; ok && len(val) > 0 {
-			r.NodeURI, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 	}
 
 	return err
