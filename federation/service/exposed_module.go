@@ -148,7 +148,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		}
 
 		new.ID = nextID()
-		new.CreatedAt = now()
+		new.CreatedAt = *now()
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
