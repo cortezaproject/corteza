@@ -41,6 +41,7 @@ endpoints:
       - name: search
         method: GET
         title: Search federated nodes
+        path: "/"
         parameters:
           get:
             - name: query
@@ -52,7 +53,7 @@ endpoints:
       - name: create
         method: POST
         title: Create a new federation node
-        path: ""
+        path: "/"
         parameters:
           post:
             - name: baseURL
