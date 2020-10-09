@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -16,33 +17,33 @@ func TestNode_decodePairingURI(t *testing.T) {
 		}{
 			{
 				"happy path",
-				"https://42:secret@example.tld/federation?name=Noddy",
-				&types.Node{SharedNodeID: 42, Name: "Noddy", BaseURL: "https://example.tld/federation", PairToken: "secret"},
+				"https://42:secret-secret-secret-secret-1234@example.tld/federation?name=Noddy",
+				&types.Node{SharedNodeID: 42, Name: "Noddy", BaseURL: "https://example.tld/federation", PairToken: "secret-secret-secret-secret-1234"},
 				nil,
 			},
 			{
 				"no name",
-				"https://42:secret@example.tld",
-				&types.Node{SharedNodeID: 42, BaseURL: "https://example.tld/", PairToken: "secret"},
+				"https://42:secret-secret-secret-secret-1234@example.tld",
+				&types.Node{SharedNodeID: 42, BaseURL: "https://example.tld/", PairToken: "secret-secret-secret-secret-1234"},
 				nil,
 			},
 			{
 				"no token",
 				"https://42@example.tld",
 				nil,
-				NodeErrUriTokenMissing(),
+				NodeErrPairingURITokenInvalid(),
 			},
 			{
 				"no node id",
-				"https://:secret@example.tld",
+				"https://:secret-secret-secret-secret-1234@example.tld",
 				nil,
-				NodeErrUriSourceNodeIDMissing(),
+				NodeErrPairingURISourceIDInvalid(),
 			},
 			{
 				"invalid URL",
 				"https://this is not a valid url",
 				nil,
-				NodeErrInvalidPairingURI(),
+				NodeErrPairingURIInvalid().Wrap(fmt.Errorf(`invalid character " " in host name`)),
 			},
 		}
 	)

@@ -13,6 +13,9 @@ type (
 		Search(ctx context.Context, f types.NodeFilter) (types.NodeSet, types.NodeFilter, error)
 		Create(ctx context.Context, n *types.Node) (*types.Node, error)
 		CreateFromPairingURI(ctx context.Context, uri string) (*types.Node, error)
+		Update(ctx context.Context, n *types.Node) (*types.Node, error)
+		DeleteByID(ctx context.Context, ID uint64) error
+		UndeleteByID(ctx context.Context, ID uint64) error
 
 		Pair(ctx context.Context, nodeID uint64) error
 		HandshakeConfirm(ctx context.Context, nodeID uint64) error
@@ -59,8 +62,26 @@ func (ctrl Node) Create(ctx context.Context, r *request.NodeCreate) (interface{}
 			Name:    r.Name,
 		}
 
-		return ctrl.svcNode.Create(ctx, n)
+		n, err := ctrl.svcNode.Create(ctx, n)
+		return ctrl.makePayload(ctx, n, err)
 	}
+}
+
+func (ctrl Node) Update(ctx context.Context, r *request.NodeUpdate) (interface{}, error) {
+	n, err := ctrl.svcNode.Update(ctx, &types.Node{
+		ID:      r.NodeID,
+		Name:    r.Name,
+		BaseURL: r.BaseURL,
+	})
+
+	return ctrl.makePayload(ctx, n, err)
+}
+func (ctrl Node) Delete(ctx context.Context, r *request.NodeDelete) (interface{}, error) {
+	return resputil.OK(), ctrl.svcNode.DeleteByID(ctx, r.NodeID)
+}
+
+func (ctrl Node) Undelete(ctx context.Context, r *request.NodeUndelete) (interface{}, error) {
+	return resputil.OK(), ctrl.svcNode.UndeleteByID(ctx, r.NodeID)
 }
 
 func (ctrl Node) GenerateURI(ctx context.Context, r *request.NodeGenerateURI) (interface{}, error) {
