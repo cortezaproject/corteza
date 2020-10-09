@@ -96,6 +96,9 @@ func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, a
 			return err
 		}
 
+		_ = moduleChanged
+		_ = fieldsChanged
+
 		return err
 	})
 
