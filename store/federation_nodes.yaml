@@ -23,9 +23,13 @@ fields:
 lookups:
   - fields: [ID]
     description: |-
-      searches for shared federation node by ID
+      searches for federation node by ID
 
-      It returns shared federation node
+      It returns federation node
+
+  - fields: [BaseURL, SharedNodeID]
+    description: |-
+      searches for node by shared-node-id and base-url
 
 search:
   enablePaging: false

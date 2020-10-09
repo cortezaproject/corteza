@@ -94,12 +94,20 @@ func (s Store) QueryFederationNodes(
 	return set, fetched, res, rows.Err()
 }
 
-// LookupFederationNodeByID searches for shared federation node by ID
+// LookupFederationNodeByID searches for federation node by ID
 //
-// It returns shared federation node
+// It returns federation node
 func (s Store) LookupFederationNodeByID(ctx context.Context, id uint64) (*types.Node, error) {
 	return s.execLookupFederationNode(ctx, squirrel.Eq{
 		s.preprocessColumn("fdn.id", ""): s.preprocessValue(id, ""),
+	})
+}
+
+// LookupFederationNodeByBaseURLSharedNodeID searches for node by shared-node-id and base-url
+func (s Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, base_url string, shared_node_id uint64) (*types.Node, error) {
+	return s.execLookupFederationNode(ctx, squirrel.Eq{
+		s.preprocessColumn("fdn.base_url", ""):       s.preprocessValue(base_url, ""),
+		s.preprocessColumn("fdn.shared_node_id", ""): s.preprocessValue(shared_node_id, ""),
 	})
 }
 

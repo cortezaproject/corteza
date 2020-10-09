@@ -88,39 +88,70 @@ func (svc node) Search(ctx context.Context, filter types.NodeFilter) (set types.
 
 // Create is used on server A to create federation with server B
 func (svc node) Create(ctx context.Context, new *types.Node) (*types.Node, error) {
+
 	// @todo verify new.baseURL; if it's set it must be valid URL that returns 200
+	var (
+		n = &types.Node{
+			ID:        nextID(),
+			Name:      new.Name,
+			BaseURL:   new.BaseURL,
+			Status:    types.NodeStatusPending,
+			CreatedAt: *now(),
+		}
 
-	n := &types.Node{
-		ID:        nextID(),
-		Name:      new.Name,
-		BaseURL:   new.BaseURL,
-		Status:    types.NodeStatusPending,
-		CreatedAt: *now(),
-	}
+		aProps = &nodeActionProps{node: n}
+		err    = store.CreateFederationNode(ctx, svc.store, n)
+	)
 
-	if err := store.CreateFederationNode(ctx, svc.store, n); err != nil {
-		return nil, err
-	}
-
-	return n, nil
+	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
 }
 
 // CreateFromURI is used on server B to create federation with server A
-func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (*types.Node, error) {
-	n, err := svc.decodePairingURI(uri)
+func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.Node, err error) {
+	var (
+		existing *types.Node
+		aProps   = &nodeActionProps{pairingURI: uri}
+	)
+
+	n, err = svc.decodePairingURI(uri)
 	if err != nil {
-		return nil, err
+		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
 	}
 
-	n.ID = nextID()
-	n.CreatedAt = *now()
-	n.Status = types.NodeStatusPending
+	existing, err = store.LookupFederationNodeByBaseURLSharedNodeID(ctx, svc.store, n.BaseURL, n.SharedNodeID)
+	aProps.setNode(existing)
 
-	if err := store.CreateFederationNode(ctx, svc.store, n); err != nil {
-		return nil, err
+	if errors.Is(err, store.ErrNotFound) {
+		// @todo access-control
+
+		n.ID = nextID()
+		n.CreatedAt = *now()
+		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		n.Status = types.NodeStatusPending
+
+		err = store.CreateFederationNode(ctx, svc.store, n)
+		return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+
+	} else if err != nil {
+		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
+	} else {
+		// @todo access-control
+
+		// Node with the same sharing ID and domain already exists
+		// so we'll reset status and tokens
+
+		existing.Status = types.NodeStatusPending
+
+		// Remove existing auth token
+		existing.AuthToken = ""
+
+		// Reset pairing token
+		existing.PairToken = n.PairToken
+		existing.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		existing.UpdatedAt = now()
+		err = store.UpdateFederationNode(ctx, svc.store, n)
+		return n, svc.recordAction(ctx, aProps, NodeActionRecreateFromPairingURI, err)
 	}
-
-	return n, nil
 }
 
 // RegenerateNodeURI loads and updates node with the new OTT and returns sharable link
@@ -129,7 +160,7 @@ func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, e
 		uri string
 	)
 
-	return uri, svc.updater(
+	_, err := svc.updater(
 		ctx,
 		nodeID,
 		NodeActionOttRegenerated,
@@ -142,11 +173,53 @@ func (svc node) RegenerateNodeURI(ctx context.Context, nodeID uint64) (string, e
 			return nil
 		},
 	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return uri, nil
+}
+
+func (svc node) Update(ctx context.Context, upd *types.Node) (*types.Node, error) {
+	return svc.updater(ctx, upd.ID, NodeActionUpdate, func(ctx context.Context, n *types.Node) error {
+		n.Name = upd.Name
+		n.BaseURL = upd.BaseURL
+
+		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		n.UpdatedAt = now()
+
+		return nil
+	}, nil)
+}
+
+func (svc node) DeleteByID(ctx context.Context, ID uint64) error {
+	_, err := svc.updater(ctx, ID, NodeActionDelete, func(ctx context.Context, n *types.Node) error {
+		// @todo access-control
+
+		n.DeletedAt = now()
+		n.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
+
+		return nil
+	}, nil)
+	return err
+}
+
+func (svc node) UndeleteByID(ctx context.Context, ID uint64) error {
+	_, err := svc.updater(ctx, ID, NodeActionUndelete, func(ctx context.Context, n *types.Node) error {
+		// @todo access-control
+
+		n.DeletedAt = nil
+		n.DeletedBy = 0
+
+		return nil
+	}, nil)
+	return err
 }
 
 // Pair is used on server B to send request to server A
 func (svc node) Pair(ctx context.Context, nodeID uint64) error {
-	return svc.updater(
+	_, err := svc.updater(
 		ctx,
 		nodeID,
 		NodeActionPair,
@@ -161,6 +234,9 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 			// Generate JWT token for the federated user
 			authToken := svc.tokenEncoder.Encode(u)
 
+			n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+			n.UpdatedAt = now()
+
 			// Start handshake initialization remote node
 			if err = svc.handshaker.Init(ctx, n, authToken); err != nil {
 				return err
@@ -171,22 +247,27 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 		},
 		nil,
 	)
+
+	return err
 }
 
 // HandshakeInit is used on server A to handle pairing request (see Pair fn above) from server B
 func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) error {
-	return svc.updater(
+	_, err := svc.updater(
 		ctx,
 		nodeID,
 		NodeActionHandshakeInit,
 		func(ctx context.Context, n *types.Node) error {
 			// @todo need to check node status before we can proceed with initialization
 			if n.PairToken != pairToken {
-				return NodeErrInvalidHandshakeInitNodeURI()
+				return NodeErrPairingTokenInvalid()
 			}
 
 			n.SharedNodeID = sharedNodeID
 			n.AuthToken = authToken
+
+			n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+			n.UpdatedAt = now()
 
 			n.Status = types.NodeStatusPairRequested
 			return nil
@@ -196,11 +277,13 @@ func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken stri
 			return nil
 		},
 	)
+
+	return err
 }
 
 // HandshakeConfirm is used by server A to manually confirm the handshake
 func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
-	return svc.updater(ctx, nodeID, NodeActionHandshakeConfirm, func(ctx context.Context, n *types.Node) error {
+	_, err := svc.updater(ctx, nodeID, NodeActionHandshakeConfirm, func(ctx context.Context, n *types.Node) error {
 		// Handle federated user
 		u, err := svc.fetchFederatedUser(ctx, n)
 		if err != nil {
@@ -210,6 +293,9 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 		// Generate JWT token for the federated user
 		authToken := svc.tokenEncoder.Encode(u)
 
+		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		n.UpdatedAt = now()
+
 		// Complete handshake on remote node
 		if err = svc.handshaker.Complete(ctx, n, authToken); err != nil {
 			return err
@@ -218,18 +304,25 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 		n.Status = types.NodeStatusPaired
 		return nil
 	}, nil)
+	return err
 }
 
 // HandshakeComplete is used by server B to handle handshake confirmation
 func (svc node) HandshakeComplete(ctx context.Context, nodeID uint64, token string) error {
-	return svc.updater(ctx, nodeID, NodeActionHandshakeComplete, func(ctx context.Context, n *types.Node) error {
+	_, err := svc.updater(ctx, nodeID, NodeActionHandshakeComplete, func(ctx context.Context, n *types.Node) error {
 		n.Status = types.NodeStatusPaired
+
+		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		n.UpdatedAt = now()
+
 		return nil
 	}, nil)
+	return err
 }
 
-func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*nodeActionProps) *nodeAction, fn, afterFn nodeUpdateHandler) (err error) {
+func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*nodeActionProps) *nodeAction, fn, afterFn nodeUpdateHandler) (*types.Node, error) {
 	var (
+		err    error
 		n      *types.Node
 		aProps = &nodeActionProps{node: &types.Node{ID: nodeID}}
 	)
@@ -246,7 +339,6 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 			return err
 		}
 
-		n.UpdatedAt = now()
 		if err = store.UpdateFederationNode(ctx, svc.store, n); err != nil {
 			return err
 		}
@@ -260,7 +352,7 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 		return nil
 	}()
 
-	return svc.recordAction(ctx, aProps, action, err)
+	return n, svc.recordAction(ctx, aProps, action, err)
 }
 
 // Looks for existing user or crates a new one
@@ -311,17 +403,17 @@ func (node) decodePairingURI(uri string) (*types.Node, error) {
 	return n, func() error {
 		parsedURI, err := url.Parse(uri)
 		if err != nil {
-			return NodeErrInvalidPairingURI().Wrap(err)
+			return NodeErrPairingURIInvalid().Wrap(err)
 		}
 
 		n.PairToken, _ = parsedURI.User.Password()
-		if len(n.PairToken) == 0 {
-			return NodeErrUriTokenMissing()
+		if len(n.PairToken) != TokenLength {
+			return NodeErrPairingURITokenInvalid()
 		}
 
 		n.SharedNodeID, err = strconv.ParseUint(parsedURI.User.Username(), 10, 64)
 		if err != nil || n.SharedNodeID == 0 {
-			return NodeErrUriSourceNodeIDMissing().Wrap(err)
+			return NodeErrPairingURISourceIDInvalid().Wrap(err)
 		}
 
 		n.Name = parsedURI.Query().Get("name")

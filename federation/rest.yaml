@@ -55,10 +55,6 @@ endpoints:
         path: ""
         parameters:
           post:
-            - name: host
-              type: string
-              required: false
-              title: Node B host
             - name: baseURL
               type: string
               required: false
@@ -76,46 +72,54 @@ endpoints:
         method: POST
         title: Creates new sharable federation URI
         path: "/{nodeID}/uri"
+        parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
+
+      - name: update
+        method: POST
+        title: Updates existing node
+        path: "/{nodeID}"
         parameters:
-          path:
-            - name: nodeID
-              type: uint64
-              required: true
-              title: NodeID
+          path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ]
+          post:
+            - name: name
+              type: string
+              required: false
+              title: Name for this node
+            - name: baseURL
+              type: string
+              required: false
+              title: Federation API base URL
+
+      - name: delete
+        method: DELETE
+        title: Deletes node
+        path: "/{nodeID}"
+        parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
+
+      - name: undelete
+        method: POST
+        title: Undeletes a node
+        path: "/{nodeID}/undelete"
+        parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: pair
         method: POST
         title: Initialize the pairing process between the two nodes
         path: "/{nodeID}/pair"
-        parameters:
-          path:
-            - name: nodeID
-              type: uint64
-              required: true
-              title: NodeID
+        parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: handshake confirm
         method: POST
         title: Confirm the requested handshake
         path: "/{nodeID}/handshake-confirm"
-        parameters:
-          path:
-            - name: nodeID
-              type: uint64
-              required: true
-              title: NodeID
+        parameters: { path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ] }
 
       - name: handshake complete
         method: POST
         title: Complete the handshake
         path: "/{nodeID}/handshake-complete"
         parameters:
-          path:
-            - name: nodeID
-              type: uint64
-              required: true
-              title: NodeID
-
+          path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ]
           post:
             - name: tokenA
               type: string

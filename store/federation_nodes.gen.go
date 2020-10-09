@@ -17,6 +17,7 @@ type (
 	FederationNodes interface {
 		SearchFederationNodes(ctx context.Context, f types.NodeFilter) (types.NodeSet, types.NodeFilter, error)
 		LookupFederationNodeByID(ctx context.Context, id uint64) (*types.Node, error)
+		LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, base_url string, shared_node_id uint64) (*types.Node, error)
 
 		CreateFederationNode(ctx context.Context, rr ...*types.Node) error
 
@@ -39,11 +40,16 @@ func SearchFederationNodes(ctx context.Context, s FederationNodes, f types.NodeF
 	return s.SearchFederationNodes(ctx, f)
 }
 
-// LookupFederationNodeByID searches for shared federation node by ID
+// LookupFederationNodeByID searches for federation node by ID
 //
-// It returns shared federation node
+// It returns federation node
 func LookupFederationNodeByID(ctx context.Context, s FederationNodes, id uint64) (*types.Node, error) {
 	return s.LookupFederationNodeByID(ctx, id)
+}
+
+// LookupFederationNodeByBaseURLSharedNodeID searches for node by shared-node-id and base-url
+func LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, s FederationNodes, base_url string, shared_node_id uint64) (*types.Node, error) {
+	return s.LookupFederationNodeByBaseURLSharedNodeID(ctx, base_url, shared_node_id)
 }
 
 // CreateFederationNode creates one or more FederationNodes in store
