@@ -42,11 +42,6 @@ type (
 	}
 
 	NodeCreate struct {
-		// Host POST parameter
-		//
-		// Node B host
-		Host string
-
 		// BaseURL POST parameter
 		//
 		// Federation API base URL
@@ -64,6 +59,37 @@ type (
 	}
 
 	NodeGenerateURI struct {
+		// NodeID PATH parameter
+		//
+		// NodeID
+		NodeID uint64 `json:",string"`
+	}
+
+	NodeUpdate struct {
+		// NodeID PATH parameter
+		//
+		// NodeID
+		NodeID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Name for this node
+		Name string
+
+		// BaseURL POST parameter
+		//
+		// Federation API base URL
+		BaseURL string
+	}
+
+	NodeDelete struct {
+		// NodeID PATH parameter
+		//
+		// NodeID
+		NodeID uint64 `json:",string"`
+	}
+
+	NodeUndelete struct {
 		// NodeID PATH parameter
 		//
 		// NodeID
@@ -162,16 +188,10 @@ func NewNodeCreate() *NodeCreate {
 // Auditable returns all auditable/loggable parameters
 func (r NodeCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"host":       r.Host,
 		"baseURL":    r.BaseURL,
 		"name":       r.Name,
 		"pairingURI": r.PairingURI,
 	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NodeCreate) GetHost() string {
-	return r.Host
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -208,13 +228,6 @@ func (r *NodeCreate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["host"]; ok && len(val) > 0 {
-			r.Host, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["baseURL"]; ok && len(val) > 0 {
 			r.BaseURL, err = val[0], nil
@@ -260,6 +273,175 @@ func (r NodeGenerateURI) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeGenerateURI) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNodeUpdate request
+func NewNodeUpdate() *NodeUpdate {
+	return &NodeUpdate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUpdate) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID":  r.NodeID,
+		"name":    r.Name,
+		"baseURL": r.BaseURL,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUpdate) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUpdate) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUpdate) GetBaseURL() string {
+	return r.BaseURL
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["baseURL"]; ok && len(val) > 0 {
+			r.BaseURL, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNodeDelete request
+func NewNodeDelete() *NodeDelete {
+	return &NodeDelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeDelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID": r.NodeID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeDelete) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNodeUndelete request
+func NewNodeUndelete() *NodeUndelete {
+	return &NodeUndelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUndelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID": r.NodeID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUndelete) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeUndelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

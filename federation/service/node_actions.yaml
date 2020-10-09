@@ -15,8 +15,8 @@ import:
 props:
   - name: node
     type: "*types.Node"
-    fields: [ Name, ID, Status, BaseURL ]
-  - name: uri
+    fields: [ Name, BaseURL, ID, Status ]
+  - name: pairingURI
   - name: filter
     type: "*types.NodeFilter"
     fields: [ query, status ]
@@ -25,45 +25,57 @@ actions:
   - action: search
     log: "searched for nodes"
 
-  - action: create
-    log: "created node"
+  - action: lookup
+    log: "looked-up for a {node}"
+    severity: info
 
-  - action: createFromURI
-    log: "created node from URI"
+  - action: create
+    log: "created {node}"
+
+  - action: createFromPairingURI
+    log: "created {node} from pairing URI"
+
+  - action: recreateFromPairingURI
+    log: "recreate {node} from pairing URI"
+
+  - action: update
+    log: "updated {node}"
+
+
+  - action: delete
+    log: "deleted {node}"
+
+  - action: undelete
+    log: "undeleted {node}"
 
   - action: ottRegenerated
     log: "regenerated one-time-token for {node}"
 
   - action: pair
-    log: "node pairing started"
+    log: "{node} pairing started"
 
   - action: handshakeInit
-    log: "node handshake initialized"
+    log: "{node} handshake initialized"
 
   - action: handshakeConfirm
-    log: "node handshake confirmed"
+    log: "{node} handshake confirmed"
 
   - action: handshakeComplete
-    log: "node handshake completed"
+    log: "{node} handshake completed"
 
 errors:
-  - error: invalidCreateParams
-    message: "provided invalid parameters to create a node"
-
-  - error: unableToCreateUri
-
-  - error: invalidPairingURI
-    message: "provided invalid pairing URI"
-
-  - error: uriSourceNodeIDMissing
-    message: "provided URI without source ID"
-
-  - error: uriTokenMissing
-    message: "provided URI without token"
-
-  - error: invalidHandshakeInitNodeURI
-    message: "provided invalid URI to initialize handshake"
-
   - error: notFound
     message: "node does not exist"
     severity: warning
+
+  - error: pairingURIInvalid
+    message: "pairing URI invalid: {err}"
+#
+  - error: pairingURITokenInvalid
+    message: "pairing URI with invalid pairing token"
+
+  - error: pairingURISourceIDInvalid
+    message: "pairing URI without source node ID"
+
+  - error: pairingTokenInvalid
+    message: "pairing token invalid"
