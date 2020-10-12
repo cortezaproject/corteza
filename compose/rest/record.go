@@ -78,14 +78,14 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		m   *types.Module
 		err error
 
-		rf = types.RecordFilter{
+		f = types.RecordFilter{
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
 			Deleted:     filter.State(r.Deleted),
 		}
 	)
 
-	if err = rf.Sort.Set(r.Sort); err != nil {
+	if err = f.Sort.Set(r.Sort); err != nil {
 		return nil, err
 	}
 
@@ -95,14 +95,22 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 
 	if r.Query != "" {
 		// Query param takes preference
-		rf.Query = r.Query
+		f.Query = r.Query
 	} else if r.Filter != "" {
 		// Backward compatibility
 		// Filter param is deprecated
-		rf.Query = r.Filter
+		f.Query = r.Filter
 	}
 
-	rr, filter, err := ctrl.record.With(ctx).Find(rf)
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	rr, filter, err := ctrl.record.With(ctx).Find(f)
 
 	return ctrl.makeFilterPayload(ctx, m, rr, &filter, err)
 }

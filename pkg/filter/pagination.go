@@ -85,7 +85,7 @@ func (p *PagingCursor) String() string {
 }
 
 func (p *PagingCursor) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
+	buf, err := json.Marshal(struct {
 		K []string
 		V []interface{}
 		D []bool
@@ -96,11 +96,26 @@ func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 		p.desc,
 		p.Reverse,
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	std := base64.StdEncoding
+	dbuf := make([]byte, std.EncodedLen(len(buf)))
+	std.Encode(dbuf, buf)
+
+	return append([]byte{'"'}, append(dbuf, '"')...), nil
+}
+
+func (p *PagingCursor) Encode() string {
+	b, _ := p.MarshalJSON()
+	return string(b)
 }
 
 func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	var (
-		aux *struct {
+		aux struct {
 			K []string
 			V []interface{}
 			D []bool
@@ -108,7 +123,7 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 		}
 	)
 
-	if err := json.Unmarshal(in, aux); err != nil {
+	if err := json.Unmarshal(in, &aux); err != nil {
 		return err
 	}
 
@@ -118,6 +133,20 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	p.Reverse = aux.R
 
 	return nil
+}
+
+func (p *PagingCursor) Decode(cursor string) error {
+	b, err := base64.StdEncoding.DecodeString(cursor)
+	if err != nil {
+		return err
+	}
+
+	err = p.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func parseCursor(in string) (p *PagingCursor, err error) {
@@ -130,7 +159,8 @@ func parseCursor(in string) (p *PagingCursor, err error) {
 		return nil, fmt.Errorf("could not decode cursor: %w", err)
 	}
 
-	if err = json.Unmarshal(buf, p); err != nil {
+	p = &PagingCursor{}
+	if err = p.UnmarshalJSON(buf); err != nil {
 		return nil, fmt.Errorf("could not decode cursor: %w", err)
 	}
 
