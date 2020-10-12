@@ -378,6 +378,9 @@ func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *t
 			&res.NodeID,
 			&res.ComposeModuleID,
 			&res.Fields,
+			&res.CreatedAt,
+			&res.UpdatedAt,
+			&res.DeletedAt,
 		)
 	}
 
@@ -421,6 +424,9 @@ func (Store) federationExposedModuleColumns(aa ...string) []string {
 		alias + "rel_node",
 		alias + "rel_compose_module",
 		alias + "fields",
+		alias + "created_at",
+		alias + "updated_at",
+		alias + "deleted_at",
 	}
 }
 
@@ -432,6 +438,9 @@ func (Store) federationExposedModuleColumns(aa ...string) []string {
 func (Store) sortableFederationExposedModuleColumns() []string {
 	return []string{
 		"id",
+		"created_at",
+		"updated_at",
+		"deleted_at",
 	}
 }
 
@@ -445,6 +454,9 @@ func (s Store) internalFederationExposedModuleEncoder(res *types.ExposedModule) 
 		"rel_node":           res.NodeID,
 		"rel_compose_module": res.ComposeModuleID,
 		"fields":             res.Fields,
+		"created_at":         res.CreatedAt,
+		"updated_at":         res.UpdatedAt,
+		"deleted_at":         res.DeletedAt,
 	}
 }
 
@@ -474,6 +486,14 @@ func (s Store) collectFederationExposedModuleCursorValues(res *types.ExposedModu
 					cursor.Set(c, res.ID, false)
 
 					pkId = true
+				case "created_at":
+					cursor.Set(c, res.CreatedAt, false)
+
+				case "updated_at":
+					cursor.Set(c, res.UpdatedAt, false)
+
+				case "deleted_at":
+					cursor.Set(c, res.DeletedAt, false)
 
 				}
 			}
