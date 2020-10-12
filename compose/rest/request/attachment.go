@@ -75,20 +75,10 @@ type (
 		// Limit
 		Limit uint
 
-		// Offset GET parameter
+		// PageCursor GET parameter
 		//
-		// Offset
-		Offset uint
-
-		// Page GET parameter
-		//
-		// Page number (1-based)
-		Page uint
-
-		// PerPage GET parameter
-		//
-		// Returned items per page (default 50)
-		PerPage uint
+		// Page cursor
+		PageCursor string
 	}
 
 	AttachmentRead struct {
@@ -232,9 +222,7 @@ func (r AttachmentList) Auditable() map[string]interface{} {
 		"recordID":    r.RecordID,
 		"fieldName":   r.FieldName,
 		"limit":       r.Limit,
-		"offset":      r.Offset,
-		"page":        r.Page,
-		"perPage":     r.PerPage,
+		"pageCursor":  r.PageCursor,
 	}
 }
 
@@ -284,18 +272,8 @@ func (r AttachmentList) GetLimit() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AttachmentList) GetOffset() uint {
-	return r.Offset
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AttachmentList) GetPage() uint {
-	return r.Page
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AttachmentList) GetPerPage() uint {
-	return r.PerPage
+func (r AttachmentList) GetPageCursor() string {
+	return r.PageCursor
 }
 
 // Fill processes request and fills internal variables
@@ -357,20 +335,8 @@ func (r *AttachmentList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["offset"]; ok && len(val) > 0 {
-			r.Offset, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["page"]; ok && len(val) > 0 {
-			r.Page, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["perPage"]; ok && len(val) > 0 {
-			r.PerPage, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

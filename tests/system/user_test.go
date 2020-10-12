@@ -90,6 +90,61 @@ func TestUserListAll(t *testing.T) {
 		End()
 }
 
+func TestUserListWithPaging(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	h.secCtx()
+
+	seedCount := 40
+	for i := 0; i < seedCount; i++ {
+		h.createUserWithEmail(h.randEmail())
+	}
+
+	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+
+	var aux = struct {
+		Response struct {
+			Filter struct {
+				NextPage *string
+				PrevPage *string
+			}
+		}
+	}{}
+
+	h.apiInit().
+		Get("/users/").
+		Query("limit", "13").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Present(`$.response.filter`)).
+		Assert(jsonpath.Present(`$.response.set`)).
+		Assert(jsonpath.Len(`$.response.set`, 13)).
+		Assert(jsonpath.Present(`$.response.filter.nextPage`)).
+		End().
+		JSON(&aux)
+
+	h.a.NotNil(aux.Response.Filter.NextPage)
+
+	h.apiInit().
+		Debug().
+		Get("/users/").
+		Query("limit", "13").
+		Query("pageCursor", *aux.Response.Filter.NextPage).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(jsonpath.Len(`$.response.set`, 13)).
+		Assert(jsonpath.Present(`$.response.filter.prevPage`)).
+		Assert(jsonpath.Present(`$.response.filter.nextPage`)).
+		End().
+		JSON(&aux)
+
+	h.a.NotNil(aux.Response.Filter.PrevPage)
+	h.a.NotNil(aux.Response.Filter.NextPage)
+
+}
+
 func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
