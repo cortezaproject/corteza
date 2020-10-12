@@ -509,6 +509,7 @@ func (Schema) FederationModuleExposed() *Table {
 		ColumnDef("rel_node", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
 		ColumnDef("fields", ColumnTypeText),
+		CUDTimestamps,
 
 		AddIndex("unique_node_composemodule", IColumn("rel_node", "rel_compose_module")),
 	)
