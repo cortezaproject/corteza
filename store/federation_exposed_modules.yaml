@@ -9,7 +9,9 @@ fields:
   - { field: NodeID }
   - { field: ComposeModuleID }
   - { field: Fields, type: "json.Text" }
-
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ID]
