@@ -13,6 +13,7 @@ func MountRoutes(r chi.Router) {
 
 		// temporary because of acl
 		handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
+		handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
 	})
 
 	// Protect all _private_ routes

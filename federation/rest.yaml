@@ -287,3 +287,29 @@ endpoints:
               type: bool
               required: false
               title: List exposed modules
+
+  - title: Sync structure
+    description: Sync structure
+    entrypoint: syncStructure
+    path: ""
+    authentication: []
+    apis:
+      - name: readExposedAll
+        method: GET
+        title: List all exposed modules changes
+        path: "/exposed/modules/"
+        parameters:
+          get:
+          - type: string
+            name: query
+            required: false
+            title: Search query
+          - type: uint
+            name: limit
+            title: Limit
+          - type: string
+            name: pageCursor
+            title: Page cursor
+          - type: string
+            name: sort
+            title: Sort items
