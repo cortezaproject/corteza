@@ -234,8 +234,8 @@ func NewNode(h NodeAPI) *Node {
 func (h Node) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/nodes", h.Search)
-		r.Post("/nodes", h.Create)
+		r.Get("/nodes/", h.Search)
+		r.Post("/nodes/", h.Create)
 		r.Post("/nodes/{nodeID}/uri", h.GenerateURI)
 		r.Post("/nodes/{nodeID}", h.Update)
 		r.Delete("/nodes/{nodeID}", h.Delete)
