@@ -60,6 +60,11 @@ errors:
     message: "stale data"
     severity: warning
 
+  - error: notUnique
+    message: "node not unique"
+    log: "used duplicate node TODO"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this module"
     log: "could not read {module}; insufficient permissions"

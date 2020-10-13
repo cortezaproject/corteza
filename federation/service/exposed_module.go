@@ -173,12 +173,15 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule) (err error) {
 	f := types.ExposedModuleFilter{
-		NodeID:          m.NodeID,
-		ComposeModuleID: m.ComposeModuleID,
+		NodeID:             m.NodeID,
+		ComposeModuleID:    m.ComposeModuleID,
+		ComposeNamespaceID: m.ComposeNamespaceID,
 	}
 
-	if set, _, err := store.SearchFederationExposedModules(ctx, svc.store, f); len(set) > 0 && err != nil {
+	if set, _, err := store.SearchFederationExposedModules(ctx, svc.store, f); len(set) > 0 && err == nil {
 		return ExposedModuleErrNotUnique()
+	} else if err != nil {
+		return err
 	}
 
 	return nil

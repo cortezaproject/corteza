@@ -16,5 +16,9 @@ func (s Store) convertFederationModuleMappingFilter(f types.ModuleMappingFilter)
 		query = query.Where("cmd.rel_federation_module = ?", f.FederationModuleID)
 	}
 
+	if f.ComposeNamespaceID > 0 {
+		query = query.Where("cmd.rel_compose_namespace = ?", f.ComposeNamespaceID)
+	}
+
 	return
 }

@@ -164,6 +164,10 @@ endpoints:
               name: composeModuleID
               required: true
               title: Compose module id
+            - type: uint64
+              name: composeNamespaceID
+              required: true
+              title: Compose namespace id
             - type: types.ModuleFieldSet
               name: fields
               required: false
@@ -215,6 +219,10 @@ endpoints:
               name: composeModuleID
               required: true
               title: Compose module id
+            - type: uint64
+              name: composeNamespaceID
+              required: true
+              title: Compose namespace id
             - type: types.ModuleFieldMappingSet
               name: fields
               required: false

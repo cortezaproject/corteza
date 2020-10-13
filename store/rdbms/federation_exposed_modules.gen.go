@@ -377,6 +377,7 @@ func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *t
 			&res.ID,
 			&res.NodeID,
 			&res.ComposeModuleID,
+			&res.ComposeNamespaceID,
 			&res.Fields,
 			&res.CreatedAt,
 			&res.UpdatedAt,
@@ -423,6 +424,7 @@ func (Store) federationExposedModuleColumns(aa ...string) []string {
 		alias + "id",
 		alias + "rel_node",
 		alias + "rel_compose_module",
+		alias + "rel_compose_namespace",
 		alias + "fields",
 		alias + "created_at",
 		alias + "updated_at",
@@ -450,13 +452,14 @@ func (Store) sortableFederationExposedModuleColumns() []string {
 // func when rdbms.customEncoder=true
 func (s Store) internalFederationExposedModuleEncoder(res *types.ExposedModule) store.Payload {
 	return store.Payload{
-		"id":                 res.ID,
-		"rel_node":           res.NodeID,
-		"rel_compose_module": res.ComposeModuleID,
-		"fields":             res.Fields,
-		"created_at":         res.CreatedAt,
-		"updated_at":         res.UpdatedAt,
-		"deleted_at":         res.DeletedAt,
+		"id":                    res.ID,
+		"rel_node":              res.NodeID,
+		"rel_compose_module":    res.ComposeModuleID,
+		"rel_compose_namespace": res.ComposeNamespaceID,
+		"fields":                res.Fields,
+		"created_at":            res.CreatedAt,
+		"updated_at":            res.UpdatedAt,
+		"deleted_at":            res.DeletedAt,
 	}
 }
 
