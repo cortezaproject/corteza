@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	composeService "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/store"
@@ -12,6 +13,7 @@ type (
 	moduleMapping struct {
 		ctx       context.Context
 		store     store.Storer
+		compose   composeService.ModuleService
 		actionlog actionlog.Recorder
 	}
 
@@ -30,6 +32,7 @@ func ModuleMapping() ModuleMappingService {
 	return &moduleMapping{
 		ctx:       context.Background(),
 		store:     DefaultStore,
+		compose:   composeService.Module(),
 		actionlog: DefaultActionlog,
 	}
 }
@@ -131,10 +134,13 @@ func (svc moduleMapping) uniqueCheck(ctx context.Context, m *types.ModuleMapping
 	f := types.ModuleMappingFilter{
 		FederationModuleID: m.FederationModuleID,
 		ComposeModuleID:    m.ComposeModuleID,
+		ComposeNamespaceID: m.ComposeNamespaceID,
 	}
 
 	if set, _, err := store.SearchFederationModuleMappings(ctx, svc.store, f); len(set) > 0 && err == nil {
 		return ModuleMappingErrModuleMappingExists()
+	} else if err != nil {
+		return err
 	}
 
 	return err

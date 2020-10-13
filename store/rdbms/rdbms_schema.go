@@ -509,21 +509,22 @@ func (Schema) FederationModuleExposed() *Table {
 		ID,
 		ColumnDef("rel_node", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
 		ColumnDef("fields", ColumnTypeText),
 		CUDTimestamps,
 
-		AddIndex("unique_node_composemodule", IColumn("rel_node", "rel_compose_module")),
+		AddIndex("unique_node_compose_module", IColumn("rel_node", "rel_compose_module", "rel_compose_namespace")),
 	)
 }
 
 func (Schema) FederationModuleMapping() *Table {
 	return TableDef("federation_module_mapping",
-		ID,
 		ColumnDef("rel_federation_module", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
 		ColumnDef("field_mapping", ColumnTypeText),
 
-		AddIndex("unique_federationmodule_composemodule", IColumn("rel_federation_module", "rel_compose_module")),
+		AddIndex("unique_federation_module_compose_module", IColumn("rel_federation_module", "rel_compose_module", "rel_compose_namespace")),
 	)
 }
 

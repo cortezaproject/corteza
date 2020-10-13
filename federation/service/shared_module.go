@@ -22,6 +22,7 @@ type (
 		Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.SharedModule, error)
 		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.SharedModule, error)
+		Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error)
 		// DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
 	}
 
@@ -68,6 +69,62 @@ func (svc sharedModule) FindByID(ctx context.Context, nodeID uint64, moduleID ui
 	}()
 
 	return module, err
+}
+
+func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
+	var (
+		aProps = &sharedModuleActionProps{changed: new}
+	)
+
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		// TODO
+		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
+		// 	return ExposedModuleErrNotAllowedToCreate()
+		// }
+
+		// TODO - fetch Node
+		aProps.setNode(nil)
+
+		// Check for node - compose.Module combo
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
+
+		new.ID = nextID()
+		new.CreatedAt = *now()
+		new.UpdatedAt = nil
+		new.DeletedAt = nil
+
+		// check if Fields can be unmarshaled to the fields structure
+		if new.Fields != nil {
+		}
+
+		aProps.setModule(new)
+
+		if err = store.CreateFederationSharedModule(ctx, s, new); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return new, svc.recordAction(ctx, aProps, SharedModuleActionCreate, err)
+}
+
+func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) (err error) {
+	f := types.SharedModuleFilter{
+		NodeID: m.NodeID,
+		Handle: m.Handle,
+		Name:   m.Name,
+	}
+
+	if set, _, err := store.SearchFederationSharedModules(ctx, svc.store, f); len(set) > 0 && err == nil {
+		return SharedModuleErrNotUnique()
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // func (svc sharedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64) error {

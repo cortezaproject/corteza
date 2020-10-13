@@ -16,6 +16,14 @@ func (s Store) convertFederationSharedModuleFilter(f types.SharedModuleFilter) (
 		query = query.Where("cmd.rel_node = ?", f.NodeID)
 	}
 
+	if f.Handle != "" {
+		query = query.Where("cmd.handle = ?", f.Handle)
+	}
+
+	if f.Name != "" {
+		query = query.Where("cmd.name = ?", f.Name)
+	}
+
 	if f.Query != "" {
 		q := "%" + strings.ToLower(f.Query) + "%"
 		query = query.Where(squirrel.Or{

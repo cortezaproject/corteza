@@ -28,14 +28,19 @@ func (ctrl ManageStructure) ReadExposed(ctx context.Context, r *request.ManageSt
 func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.ManageStructureCreateExposed) (interface{}, error) {
 	var (
 		mod = &types.ExposedModule{
-			NodeID:          r.NodeID,
-			ComposeModuleID: r.ComposeModuleID,
-			Fields:          r.Fields,
+			NodeID:             r.NodeID,
+			ComposeModuleID:    r.ComposeModuleID,
+			ComposeNamespaceID: r.ComposeNamespaceID,
+			Fields:             r.Fields,
 		}
 	)
 
 	if r.ComposeModuleID == 0 {
 		return nil, errors.New("TODO - http 400 bad request - use compose module id in request")
+	}
+
+	if r.ComposeNamespaceID == 0 {
+		return nil, errors.New("TODO - http 400 bad request - use compose namespace id in request")
 	}
 
 	return (service.ExposedModule()).Create(context.Background(), mod)
@@ -49,6 +54,7 @@ func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.Manag
 	mm := &types.ModuleMapping{
 		FederationModuleID: r.ModuleID,
 		ComposeModuleID:    r.ComposeModuleID,
+		ComposeNamespaceID: r.ComposeNamespaceID,
 		FieldMapping:       r.Fields,
 	}
 
