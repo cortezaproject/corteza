@@ -191,11 +191,11 @@ func (h ManageStructure) MountRoutes(r chi.Router, middlewares ...func(http.Hand
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/exposed", h.ReadExposed)
-		r.Put("/nodes/{nodeID}/modules", h.CreateExposed)
+		r.Put("/nodes/{nodeID}/modules/", h.CreateExposed)
 		r.Delete("/nodes/{nodeID}/modules/{moduleID}/exposed", h.RemoveExposed)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/shared", h.ReadShared)
 		r.Put("/nodes/{nodeID}/modules/{moduleID}/mapped", h.CreateMappings)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/mapped", h.ReadMappings)
-		r.Get("/nodes/{nodeID}/modules", h.ListAll)
+		r.Get("/nodes/{nodeID}/modules/", h.ListAll)
 	})
 }
