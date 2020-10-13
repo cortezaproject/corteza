@@ -115,6 +115,10 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 		sort = append(sort, &filter.SortExpr{Column: "rel_compose_module"})
 	}
 
+	if sort.Get("rel_compose_namespace") == nil {
+		sort = append(sort, &filter.SortExpr{Column: "rel_compose_namespace"})
+	}
+
 	// Apply sorting expr from filter to query
 	if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()...); err != nil {
 		return nil, err
@@ -222,13 +226,14 @@ func (s Store) QueryFederationModuleMappings(
 	return set, fetched, res, rows.Err()
 }
 
-// LookupFederationModuleMappingByFederationModuleIDComposeModuleID searches for module mapping by federation module id and compose module id
+// LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id
 //
 // It returns module mapping
-func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federation_module_id uint64, compose_module_id uint64) (*types.ModuleMapping, error) {
+func (s Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federation_module_id uint64, compose_module_id uint64, compose_namespace_id uint64) (*types.ModuleMapping, error) {
 	return s.execLookupFederationModuleMapping(ctx, squirrel.Eq{
 		s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(federation_module_id, ""),
 		s.preprocessColumn("cmd.rel_compose_module", ""):    s.preprocessValue(compose_module_id, ""),
+		s.preprocessColumn("cmd.rel_compose_namespace", ""): s.preprocessValue(compose_namespace_id, ""),
 	})
 }
 
@@ -274,9 +279,9 @@ func (s Store) partialFederationModuleMappingUpdate(ctx context.Context, onlyCol
 		err = s.execUpdateFederationModuleMappings(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""),
+				s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""), s.preprocessColumn("cmd.rel_compose_namespace", ""): s.preprocessValue(res.ComposeNamespaceID, ""),
 			},
-			s.internalFederationModuleMappingEncoder(res).Skip("rel_federation_module", "rel_compose_module").Only(onlyColumns...))
+			s.internalFederationModuleMappingEncoder(res).Skip("rel_federation_module", "rel_compose_module", "rel_compose_namespace").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -307,7 +312,7 @@ func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*types.M
 	for _, res := range rr {
 
 		err = s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{
-			s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""),
+			s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): s.preprocessValue(res.ComposeModuleID, ""), s.preprocessColumn("cmd.rel_compose_namespace", ""): s.preprocessValue(res.ComposeNamespaceID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -317,11 +322,12 @@ func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*types.M
 	return nil
 }
 
-// DeleteFederationModuleMappingByFederationModuleIDComposeModuleID Deletes row from the federation_module_mapping table
-func (s Store) DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federationModuleID uint64, composeModuleID uint64) error {
+// DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID Deletes row from the federation_module_mapping table
+func (s Store) DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) error {
 	return s.execDeleteFederationModuleMappings(ctx, squirrel.Eq{
 		s.preprocessColumn("cmd.rel_federation_module", ""): s.preprocessValue(federationModuleID, ""),
 		s.preprocessColumn("cmd.rel_compose_module", ""):    s.preprocessValue(composeModuleID, ""),
+		s.preprocessColumn("cmd.rel_compose_namespace", ""): s.preprocessValue(composeNamespaceID, ""),
 	})
 }
 
@@ -368,6 +374,7 @@ func (s Store) execUpsertFederationModuleMappings(ctx context.Context, set store
 		set,
 		"rel_federation_module",
 		"rel_compose_module",
+		"rel_compose_namespace",
 	)
 
 	if err != nil {
@@ -392,6 +399,7 @@ func (s Store) internalFederationModuleMappingRowScanner(row rowScanner) (res *t
 		err = row.Scan(
 			&res.FederationModuleID,
 			&res.ComposeModuleID,
+			&res.ComposeNamespaceID,
 			&res.FieldMapping,
 		)
 	}
@@ -434,6 +442,7 @@ func (Store) federationModuleMappingColumns(aa ...string) []string {
 	return []string{
 		alias + "rel_federation_module",
 		alias + "rel_compose_module",
+		alias + "rel_compose_namespace",
 		alias + "field_mapping",
 	}
 }
@@ -444,7 +453,11 @@ func (Store) federationModuleMappingColumns(aa ...string) []string {
 //
 // With optional string arg, all columns are returned aliased
 func (Store) sortableFederationModuleMappingColumns() []string {
-	return []string{}
+	return []string{
+		"rel_federation_module",
+		"rel_compose_module",
+		"rel_compose_namespace",
+	}
 }
 
 // internalFederationModuleMappingEncoder encodes fields from types.ModuleMapping to store.Payload (map)
@@ -455,6 +468,7 @@ func (s Store) internalFederationModuleMappingEncoder(res *types.ModuleMapping) 
 	return store.Payload{
 		"rel_federation_module": res.FederationModuleID,
 		"rel_compose_module":    res.ComposeModuleID,
+		"rel_compose_namespace": res.ComposeNamespaceID,
 		"field_mapping":         res.FieldMapping,
 	}
 }
@@ -480,6 +494,8 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 
 		pkRel_compose_module bool
 
+		pkRel_compose_namespace bool
+
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
@@ -491,6 +507,10 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 					cursor.Set(c, res.ComposeModuleID, false)
 
 					pkRel_compose_module = true
+				case "rel_compose_namespace":
+					cursor.Set(c, res.ComposeNamespaceID, false)
+
+					pkRel_compose_namespace = true
 
 				}
 			}
@@ -498,8 +518,8 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 	)
 
 	collect(cc...)
-	if !hasUnique || !(pkRel_federation_module && pkRel_compose_module && true) {
-		collect("rel_federation_module", "rel_compose_module")
+	if !hasUnique || !(pkRel_federation_module && pkRel_compose_module && pkRel_compose_namespace && true) {
+		collect("rel_federation_module", "rel_compose_module", "rel_compose_namespace")
 	}
 
 	return cursor

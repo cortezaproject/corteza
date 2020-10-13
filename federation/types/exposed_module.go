@@ -8,10 +8,11 @@ import (
 
 type (
 	ExposedModule struct {
-		ID              uint64         `json:"moduleID,string"`
-		NodeID          uint64         `json:"nodeID,string"`
-		ComposeModuleID uint64         `json:"composeModuleID,string"`
-		Fields          ModuleFieldSet `json:"fields"`
+		ID                 uint64         `json:"moduleID,string"`
+		NodeID             uint64         `json:"nodeID,string"`
+		ComposeModuleID    uint64         `json:"composeModuleID,string"`
+		ComposeNamespaceID uint64         `json:"composeNamespaceID,string"`
+		Fields             ModuleFieldSet `json:"fields"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -19,9 +20,10 @@ type (
 	}
 
 	ExposedModuleFilter struct {
-		NodeID          uint64 `json:"node"`
-		ComposeModuleID uint64 `json:"composeModuleID"`
-		Query           string `json:"query"`
+		NodeID             uint64 `json:"node"`
+		ComposeModuleID    uint64 `json:"composeModuleID"`
+		ComposeNamespaceID uint64 `json:"composeNamespaceID"`
+		Query              string `json:"query"`
 
 		Check func(*ExposedModule) (bool, error) `json:"-"`
 

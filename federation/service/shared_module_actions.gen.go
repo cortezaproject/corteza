@@ -593,6 +593,36 @@ func SharedModuleErrStaleData(props ...*sharedModuleActionProps) *sharedModuleEr
 
 }
 
+// SharedModuleErrNotUnique returns "federation:shared_module.notUnique" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func SharedModuleErrNotUnique(props ...*sharedModuleActionProps) *sharedModuleError {
+	var e = &sharedModuleError{
+		timestamp: time.Now(),
+		resource:  "federation:shared_module",
+		error:     "notUnique",
+		action:    "error",
+		message:   "node not unique",
+		log:       "used duplicate node TODO",
+		severity:  actionlog.Warning,
+		props: func() *sharedModuleActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" audit event as actionlog.Error
 //
 //

@@ -16,7 +16,7 @@ import (
 type (
 	FederationModuleMappings interface {
 		SearchFederationModuleMappings(ctx context.Context, f types.ModuleMappingFilter) (types.ModuleMappingSet, types.ModuleMappingFilter, error)
-		LookupFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federation_module_id uint64, compose_module_id uint64) (*types.ModuleMapping, error)
+		LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federation_module_id uint64, compose_module_id uint64, compose_namespace_id uint64) (*types.ModuleMapping, error)
 		LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federation_module_id uint64) (*types.ModuleMapping, error)
 
 		CreateFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error
@@ -26,7 +26,7 @@ type (
 		UpsertFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error
 
 		DeleteFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error
-		DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, federationModuleID uint64, composeModuleID uint64) error
+		DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) error
 
 		TruncateFederationModuleMappings(ctx context.Context) error
 	}
@@ -40,11 +40,11 @@ func SearchFederationModuleMappings(ctx context.Context, s FederationModuleMappi
 	return s.SearchFederationModuleMappings(ctx, f)
 }
 
-// LookupFederationModuleMappingByFederationModuleIDComposeModuleID searches for module mapping by federation module id and compose module id
+// LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id
 //
 // It returns module mapping
-func LookupFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, s FederationModuleMappings, federation_module_id uint64, compose_module_id uint64) (*types.ModuleMapping, error) {
-	return s.LookupFederationModuleMappingByFederationModuleIDComposeModuleID(ctx, federation_module_id, compose_module_id)
+func LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, s FederationModuleMappings, federation_module_id uint64, compose_module_id uint64, compose_namespace_id uint64) (*types.ModuleMapping, error) {
+	return s.LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx, federation_module_id, compose_module_id, compose_namespace_id)
 }
 
 // LookupFederationModuleMappingByFederationModuleID searches for module mapping by federation module id
@@ -74,9 +74,9 @@ func DeleteFederationModuleMapping(ctx context.Context, s FederationModuleMappin
 	return s.DeleteFederationModuleMapping(ctx, rr...)
 }
 
-// DeleteFederationModuleMappingByFederationModuleIDComposeModuleID Deletes FederationModuleMapping from store
-func DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx context.Context, s FederationModuleMappings, federationModuleID uint64, composeModuleID uint64) error {
-	return s.DeleteFederationModuleMappingByFederationModuleIDComposeModuleID(ctx, federationModuleID, composeModuleID)
+// DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID Deletes FederationModuleMapping from store
+func DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, s FederationModuleMappings, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) error {
+	return s.DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx, federationModuleID, composeModuleID, composeNamespaceID)
 }
 
 // TruncateFederationModuleMappings Deletes all FederationModuleMappings from store

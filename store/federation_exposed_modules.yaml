@@ -8,6 +8,7 @@ fields:
   - { field: ID }
   - { field: NodeID }
   - { field: ComposeModuleID }
+  - { field: ComposeNamespaceID }
   - { field: Fields, type: "json.Text" }
   - { field: CreatedAt,                              sortable: true }
   - { field: UpdatedAt,                              sortable: true }
