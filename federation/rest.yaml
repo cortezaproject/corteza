@@ -130,7 +130,7 @@ endpoints:
   - title: Manage structure
     description: Manage structure
     entrypoint: manageStructure
-    path: "/nodes/{nodeID}"
+    path: "/nodes/{nodeID}/modules"
     authentication: []
     imports:
       - github.com/cortezaproject/corteza-server/federation/types
@@ -138,7 +138,7 @@ endpoints:
       - name: readExposed
         method: GET
         title: Exposed settings for module
-        path: "/modules/{moduleID}/exposed"
+        path: "/{moduleID}/exposed"
         parameters:
           path:
             - type: uint64
@@ -152,7 +152,7 @@ endpoints:
       - name: createExposed
         method: PUT
         title: Add module to federation
-        path: "/modules"
+        path: "/"
         parameters:
           path:
             - type: uint64
@@ -171,7 +171,7 @@ endpoints:
       - name: removeExposed
         method: DELETE
         title: Remove from federation
-        path: "/modules/{moduleID}/exposed"
+        path: "/{moduleID}/exposed"
         parameters:
           path:
             - type: uint64
@@ -185,7 +185,7 @@ endpoints:
       - name: readShared
         method: GET
         title: Shared settings for module
-        path: "/modules/{moduleID}/shared"
+        path: "/{moduleID}/shared"
         parameters:
           path:
             - type: uint64
@@ -199,7 +199,7 @@ endpoints:
       - name: createMappings
         method: PUT
         title: Add fields mappings to federated module
-        path: "/modules/{moduleID}/mapped"
+        path: "/{moduleID}/mapped"
         parameters:
           path:
             - type: uint64
@@ -222,7 +222,7 @@ endpoints:
       - name: readMappings
         method: GET
         title: Fields mappings for module
-        path: "/modules/{moduleID}/mapped"
+        path: "/{moduleID}/mapped"
         parameters:
           path:
             - type: uint64
@@ -236,7 +236,7 @@ endpoints:
       - name: listAll
         method: GET
         title: List of shared/exposed modules
-        path: "/modules"
+        path: "/"
         parameters:
           path:
             - type: uint64
