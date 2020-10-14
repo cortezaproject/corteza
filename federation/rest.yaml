@@ -313,3 +313,53 @@ endpoints:
           - type: string
             name: sort
             title: Sort items
+
+  - title: Sync data
+    description: Sync data
+    entrypoint: syncData
+    path: "/exposed"
+    authentication: []
+    apis:
+      - name: readExposedAll
+        method: GET
+        title: List all record changes
+        path: "/records/"
+        parameters:
+          get:
+          - type: string
+            name: query
+            required: false
+            title: Search query
+          - type: uint
+            name: limit
+            title: Limit
+          - type: string
+            name: pageCursor
+            title: Page cursor
+          - type: string
+            name: sort
+            title: Sort items
+      - name: readExposed
+        method: GET
+        title: List all records per module
+        path: "/modules/{moduleID}/records/"
+        parameters:
+          path:
+            - type: uint64
+              name: moduleID
+              required: true
+              title: Module ID
+          get:
+          - type: string
+            name: query
+            required: false
+            title: Search query
+          - type: uint
+            name: limit
+            title: Limit
+          - type: string
+            name: pageCursor
+            title: Page cursor
+          - type: string
+            name: sort
+            title: Sort items
