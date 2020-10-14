@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -15,8 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 type (
@@ -368,7 +369,7 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// Start transaction
 		tx, err = db.BeginTxx(ctx, txOpt)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		if lastTaskErr = task(ctx, tx); lastTaskErr == nil {
