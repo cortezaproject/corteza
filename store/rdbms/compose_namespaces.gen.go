@@ -221,7 +221,7 @@ func (s Store) QueryComposeNamespaces(
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)
 func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (*types.Namespace, error) {
 	return s.execLookupComposeNamespace(ctx, squirrel.Eq{
-		s.preprocessColumn("cns.slug", "lower"): s.preprocessValue(slug, "lower"),
+		s.preprocessColumn("cns.slug", "lower"): store.PreprocessValue(slug, "lower"),
 
 		"cns.deleted_at": nil,
 	})
@@ -232,7 +232,7 @@ func (s Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (*
 // It returns compose namespace even if deleted
 func (s Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (*types.Namespace, error) {
 	return s.execLookupComposeNamespace(ctx, squirrel.Eq{
-		s.preprocessColumn("cns.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cns.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -269,7 +269,7 @@ func (s Store) partialComposeNamespaceUpdate(ctx context.Context, onlyColumns []
 		err = s.execUpdateComposeNamespaces(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cns.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeNamespaceEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -302,7 +302,7 @@ func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*types.Namespac
 	for _, res := range rr {
 
 		err = s.execDeleteComposeNamespaces(ctx, squirrel.Eq{
-			s.preprocessColumn("cns.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cns.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -315,7 +315,7 @@ func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*types.Namespac
 // DeleteComposeNamespaceByID Deletes row from the compose_namespace table
 func (s Store) DeleteComposeNamespaceByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposeNamespaces(ctx, squirrel.Eq{
-		s.preprocessColumn("cns.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cns.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

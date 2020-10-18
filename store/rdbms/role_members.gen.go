@@ -113,7 +113,7 @@ func (s Store) partialRoleMemberUpdate(ctx context.Context, onlyColumns []string
 		err = s.execUpdateRoleMembers(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+				s.preprocessColumn("rm.rel_user", ""): store.PreprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): store.PreprocessValue(res.RoleID, ""),
 			},
 			s.internalRoleMemberEncoder(res).Skip("rel_user", "rel_role").Only(onlyColumns...))
 		if err != nil {
@@ -146,7 +146,7 @@ func (s Store) DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 	for _, res := range rr {
 
 		err = s.execDeleteRoleMembers(ctx, squirrel.Eq{
-			s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(res.RoleID, ""),
+			s.preprocessColumn("rm.rel_user", ""): store.PreprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): store.PreprocessValue(res.RoleID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -159,8 +159,8 @@ func (s Store) DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 // DeleteRoleMemberByUserIDRoleID Deletes row from the role_members table
 func (s Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error {
 	return s.execDeleteRoleMembers(ctx, squirrel.Eq{
-		s.preprocessColumn("rm.rel_user", ""): s.preprocessValue(userID, ""),
-		s.preprocessColumn("rm.rel_role", ""): s.preprocessValue(roleID, ""),
+		s.preprocessColumn("rm.rel_user", ""): store.PreprocessValue(userID, ""),
+		s.preprocessColumn("rm.rel_role", ""): store.PreprocessValue(roleID, ""),
 	})
 }
 

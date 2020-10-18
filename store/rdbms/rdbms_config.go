@@ -24,8 +24,7 @@ import (
 
 type (
 	txRetryOnErrHandler func(int, error) bool
-	columnPreprocFn     func(string, string) string
-	valuePreprocFn      func(interface{}, string) interface{}
+	columnPreprocFn     func(string) string
 	errorHandler        func(error) error
 	triggerKey          string
 
@@ -85,7 +84,6 @@ type (
 		TxRetryErrHandler txRetryOnErrHandler
 
 		ColumnPreprocessors map[string]columnPreprocFn
-		ValuePreprocessors  map[string]valuePreprocFn
 
 		ErrorHandler errorHandler
 

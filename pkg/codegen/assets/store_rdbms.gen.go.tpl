@@ -302,7 +302,7 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 func (s Store) {{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx context.Context{{ template "extraArgsDef" $ }}{{- range .RDBMSColumns }}, {{ cc2underscore .Field }} {{ .Type  }}{{- end }}) (*{{ $.Types.GoType }}, error) {
 	return s.execLookup{{ $.Types.Singular }}(ctx{{ template "extraArgsCall" $ }}, squirrel.Eq{
     {{- range .RDBMSColumns }}
-		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue({{ cc2underscore .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): store.PreprocessValue({{ cc2underscore .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{- end }}
 
     {{ range $field, $value := .Filter }}
@@ -376,8 +376,8 @@ func (s Store) partial{{ export $.Types.Singular "Update" }}(ctx context.Context
 {{ end }}
 
 {{ if .Upsert.Enable }}
-// {{ toggleExport .Delete.Export "Upsert" $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
-func (s Store) {{ toggleExport .Delete.Export "Upsert" $.Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $.Types.GoType }}) (err error) {
+// {{ toggleExport .Upsert.Export "Upsert" $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
+func (s Store) {{ toggleExport .Upsert.Export "Upsert" $.Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $.Types.GoType }}) (err error) {
 	for _, res := range rr {
 		err = s.check{{ export $.Types.Singular }}Constraints(ctx {{ template "extraArgsCall" $ }}, res)
 		if err != nil {
@@ -706,7 +706,7 @@ func (s *Store) {{ unexport $.Types.Singular }}Hook(ctx context.Context, key tri
 {{- define "filterByPrimaryKeys" -}}
     squirrel.Eq{
     {{ range . -}}
-		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue(res.{{ .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): store.PreprocessValue(res.{{ .Field }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{- end }}
     }
 {{- end -}}
@@ -714,7 +714,7 @@ func (s *Store) {{ unexport $.Types.Singular }}Hook(ctx context.Context, key tri
 {{- define "filterByPrimaryKeysWithArgs" -}}
     squirrel.Eq{
     {{ range . -}}
-		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): s.preprocessValue({{ .Arg }}, {{ printf "%q" .LookupFilterPreprocess }}),
+		s.preprocessColumn({{ printf "%q" .AliasedColumn }}, {{ printf "%q" .LookupFilterPreprocess }}): store.PreprocessValue({{ .Arg }}, {{ printf "%q" .LookupFilterPreprocess }}),
     {{ end }}
     }
 {{- end -}}

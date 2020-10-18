@@ -86,8 +86,8 @@ func (s Store) QueryComposeModuleFields(
 // LookupComposeModuleFieldByModuleIDName searches for compose module field by name (case-insensitive)
 func (s Store) LookupComposeModuleFieldByModuleIDName(ctx context.Context, module_id uint64, name string) (*types.ModuleField, error) {
 	return s.execLookupComposeModuleField(ctx, squirrel.Eq{
-		s.preprocessColumn("cmf.rel_module", ""): s.preprocessValue(module_id, ""),
-		s.preprocessColumn("cmf.name", "lower"):  s.preprocessValue(name, "lower"),
+		s.preprocessColumn("cmf.rel_module", ""): store.PreprocessValue(module_id, ""),
+		s.preprocessColumn("cmf.name", "lower"):  store.PreprocessValue(name, "lower"),
 
 		"cmf.deleted_at": nil,
 	})
@@ -126,7 +126,7 @@ func (s Store) partialComposeModuleFieldUpdate(ctx context.Context, onlyColumns 
 		err = s.execUpdateComposeModuleFields(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cmf.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cmf.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeModuleFieldEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -159,7 +159,7 @@ func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*types.Module
 	for _, res := range rr {
 
 		err = s.execDeleteComposeModuleFields(ctx, squirrel.Eq{
-			s.preprocessColumn("cmf.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cmf.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -172,7 +172,7 @@ func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*types.Module
 // DeleteComposeModuleFieldByID Deletes row from the compose_module_field table
 func (s Store) DeleteComposeModuleFieldByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposeModuleFields(ctx, squirrel.Eq{
-		s.preprocessColumn("cmf.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cmf.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

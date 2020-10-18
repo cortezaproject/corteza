@@ -88,7 +88,7 @@ func (s Store) QueryMessagingMessages(
 // It returns message even if deleted
 func (s Store) LookupMessagingMessageByID(ctx context.Context, id uint64) (*types.Message, error) {
 	return s.execLookupMessagingMessage(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("msg.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -125,7 +125,7 @@ func (s Store) partialMessagingMessageUpdate(ctx context.Context, onlyColumns []
 		err = s.execUpdateMessagingMessages(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalMessagingMessageEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -158,7 +158,7 @@ func (s Store) DeleteMessagingMessage(ctx context.Context, rr ...*types.Message)
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingMessages(ctx, squirrel.Eq{
-			s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -171,7 +171,7 @@ func (s Store) DeleteMessagingMessage(ctx context.Context, rr ...*types.Message)
 // DeleteMessagingMessageByID Deletes row from the messaging_message table
 func (s Store) DeleteMessagingMessageByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteMessagingMessages(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("msg.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

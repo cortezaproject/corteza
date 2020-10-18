@@ -88,7 +88,7 @@ func (s Store) QueryCredentials(
 // It returns credentials even if deleted
 func (s Store) LookupCredentialsByID(ctx context.Context, id uint64) (*types.Credentials, error) {
 	return s.execLookupCredentials(ctx, squirrel.Eq{
-		s.preprocessColumn("crd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("crd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -125,7 +125,7 @@ func (s Store) partialCredentialsUpdate(ctx context.Context, onlyColumns []strin
 		err = s.execUpdateCredentials(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalCredentialsEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -158,7 +158,7 @@ func (s Store) DeleteCredentials(ctx context.Context, rr ...*types.Credentials) 
 	for _, res := range rr {
 
 		err = s.execDeleteCredentials(ctx, squirrel.Eq{
-			s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -171,7 +171,7 @@ func (s Store) DeleteCredentials(ctx context.Context, rr ...*types.Credentials) 
 // DeleteCredentialsByID Deletes row from the credentials table
 func (s Store) DeleteCredentialsByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteCredentials(ctx, squirrel.Eq{
-		s.preprocessColumn("crd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("crd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

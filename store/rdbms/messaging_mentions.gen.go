@@ -88,7 +88,7 @@ func (s Store) QueryMessagingMentions(
 // It returns attachment even if deleted
 func (s Store) LookupMessagingMentionByID(ctx context.Context, id uint64) (*types.Mention, error) {
 	return s.execLookupMessagingMention(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("msg.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -125,7 +125,7 @@ func (s Store) partialMessagingMentionUpdate(ctx context.Context, onlyColumns []
 		err = s.execUpdateMessagingMentions(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalMessagingMentionEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -158,7 +158,7 @@ func (s Store) DeleteMessagingMention(ctx context.Context, rr ...*types.Mention)
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingMentions(ctx, squirrel.Eq{
-			s.preprocessColumn("msg.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -171,7 +171,7 @@ func (s Store) DeleteMessagingMention(ctx context.Context, rr ...*types.Mention)
 // DeleteMessagingMentionByID Deletes row from the messaging_mention table
 func (s Store) DeleteMessagingMentionByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteMessagingMentions(ctx, squirrel.Eq{
-		s.preprocessColumn("msg.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("msg.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

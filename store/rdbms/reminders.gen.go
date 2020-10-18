@@ -223,7 +223,7 @@ func (s Store) QueryReminders(
 // It returns reminder even if deleted or suspended
 func (s Store) LookupReminderByID(ctx context.Context, id uint64) (*types.Reminder, error) {
 	return s.execLookupReminder(ctx, squirrel.Eq{
-		s.preprocessColumn("rmd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("rmd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -260,7 +260,7 @@ func (s Store) partialReminderUpdate(ctx context.Context, onlyColumns []string, 
 		err = s.execUpdateReminders(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("rmd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("rmd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalReminderEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -293,7 +293,7 @@ func (s Store) DeleteReminder(ctx context.Context, rr ...*types.Reminder) (err e
 	for _, res := range rr {
 
 		err = s.execDeleteReminders(ctx, squirrel.Eq{
-			s.preprocessColumn("rmd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("rmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -306,7 +306,7 @@ func (s Store) DeleteReminder(ctx context.Context, rr ...*types.Reminder) (err e
 // DeleteReminderByID Deletes row from the reminders table
 func (s Store) DeleteReminderByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteReminders(ctx, squirrel.Eq{
-		s.preprocessColumn("rmd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("rmd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

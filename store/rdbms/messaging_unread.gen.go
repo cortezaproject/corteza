@@ -94,7 +94,7 @@ func (s Store) partialMessagingUnreadUpdate(ctx context.Context, onlyColumns []s
 		err = s.execUpdateMessagingUnreads(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
+				s.preprocessColumn("mur.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): store.PreprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 			},
 			s.internalMessagingUnreadEncoder(res).Skip("rel_channel", "rel_reply_to", "rel_user").Only(onlyColumns...))
 		if err != nil {
@@ -127,7 +127,7 @@ func (s Store) DeleteMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingUnreads(ctx, squirrel.Eq{
-			s.preprocessColumn("mur.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): s.preprocessValue(res.UserID, ""),
+			s.preprocessColumn("mur.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): store.PreprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -140,9 +140,9 @@ func (s Store) DeleteMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 // DeleteMessagingUnreadByChannelIDReplyToUserID Deletes row from the messaging_unread table
 func (s Store) DeleteMessagingUnreadByChannelIDReplyToUserID(ctx context.Context, channelID uint64, replyTo uint64, userID uint64) error {
 	return s.execDeleteMessagingUnreads(ctx, squirrel.Eq{
-		s.preprocessColumn("mur.rel_channel", ""):  s.preprocessValue(channelID, ""),
-		s.preprocessColumn("mur.rel_reply_to", ""): s.preprocessValue(replyTo, ""),
-		s.preprocessColumn("mur.rel_user", ""):     s.preprocessValue(userID, ""),
+		s.preprocessColumn("mur.rel_channel", ""):  store.PreprocessValue(channelID, ""),
+		s.preprocessColumn("mur.rel_reply_to", ""): store.PreprocessValue(replyTo, ""),
+		s.preprocessColumn("mur.rel_user", ""):     store.PreprocessValue(userID, ""),
 	})
 }
 

@@ -223,15 +223,15 @@ func (s Store) QueryComposeCharts(
 // It returns compose chart even if deleted
 func (s Store) LookupComposeChartByID(ctx context.Context, id uint64) (*types.Chart, error) {
 	return s.execLookupComposeChart(ctx, squirrel.Eq{
-		s.preprocessColumn("cch.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cch.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
 // LookupComposeChartByNamespaceIDHandle searches for compose chart by handle (case-insensitive)
 func (s Store) LookupComposeChartByNamespaceIDHandle(ctx context.Context, namespace_id uint64, handle string) (*types.Chart, error) {
 	return s.execLookupComposeChart(ctx, squirrel.Eq{
-		s.preprocessColumn("cch.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
-		s.preprocessColumn("cch.handle", "lower"):   s.preprocessValue(handle, "lower"),
+		s.preprocessColumn("cch.rel_namespace", ""): store.PreprocessValue(namespace_id, ""),
+		s.preprocessColumn("cch.handle", "lower"):   store.PreprocessValue(handle, "lower"),
 
 		"cch.deleted_at": nil,
 	})
@@ -270,7 +270,7 @@ func (s Store) partialComposeChartUpdate(ctx context.Context, onlyColumns []stri
 		err = s.execUpdateComposeCharts(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cch.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -303,7 +303,7 @@ func (s Store) DeleteComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 	for _, res := range rr {
 
 		err = s.execDeleteComposeCharts(ctx, squirrel.Eq{
-			s.preprocessColumn("cch.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cch.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -316,7 +316,7 @@ func (s Store) DeleteComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 // DeleteComposeChartByID Deletes row from the compose_chart table
 func (s Store) DeleteComposeChartByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposeCharts(ctx, squirrel.Eq{
-		s.preprocessColumn("cch.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cch.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

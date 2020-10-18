@@ -97,8 +97,8 @@ func (s Store) QuerySettings(
 // LookupSettingByNameOwnedBy searches for settings by name and owner
 func (s Store) LookupSettingByNameOwnedBy(ctx context.Context, name string, owned_by uint64) (*types.SettingValue, error) {
 	return s.execLookupSetting(ctx, squirrel.Eq{
-		s.preprocessColumn("st.name", ""):      s.preprocessValue(name, ""),
-		s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(owned_by, ""),
+		s.preprocessColumn("st.name", ""):      store.PreprocessValue(name, ""),
+		s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(owned_by, ""),
 	})
 }
 
@@ -135,7 +135,7 @@ func (s Store) partialSettingUpdate(ctx context.Context, onlyColumns []string, r
 		err = s.execUpdateSettings(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+				s.preprocessColumn("st.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
 			},
 			s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
 		if err != nil {
@@ -168,7 +168,7 @@ func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (er
 	for _, res := range rr {
 
 		err = s.execDeleteSettings(ctx, squirrel.Eq{
-			s.preprocessColumn("st.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(res.OwnedBy, ""),
+			s.preprocessColumn("st.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -181,8 +181,8 @@ func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (er
 // DeleteSettingByNameOwnedBy Deletes row from the settings table
 func (s Store) DeleteSettingByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
 	return s.execDeleteSettings(ctx, squirrel.Eq{
-		s.preprocessColumn("st.name", ""):      s.preprocessValue(name, ""),
-		s.preprocessColumn("st.rel_owner", ""): s.preprocessValue(ownedBy, ""),
+		s.preprocessColumn("st.name", ""):      store.PreprocessValue(name, ""),
+		s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(ownedBy, ""),
 	})
 }
 

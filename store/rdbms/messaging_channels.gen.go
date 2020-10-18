@@ -223,7 +223,7 @@ func (s Store) QueryMessagingChannels(
 // It returns attachment even if deleted
 func (s Store) LookupMessagingChannelByID(ctx context.Context, id uint64) (*types.Channel, error) {
 	return s.execLookupMessagingChannel(ctx, squirrel.Eq{
-		s.preprocessColumn("mch.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("mch.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -260,7 +260,7 @@ func (s Store) partialMessagingChannelUpdate(ctx context.Context, onlyColumns []
 		err = s.execUpdateMessagingChannels(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("mch.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("mch.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalMessagingChannelEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -293,7 +293,7 @@ func (s Store) DeleteMessagingChannel(ctx context.Context, rr ...*types.Channel)
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingChannels(ctx, squirrel.Eq{
-			s.preprocessColumn("mch.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("mch.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -306,7 +306,7 @@ func (s Store) DeleteMessagingChannel(ctx context.Context, rr ...*types.Channel)
 // DeleteMessagingChannelByID Deletes row from the messaging_channel table
 func (s Store) DeleteMessagingChannelByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteMessagingChannels(ctx, squirrel.Eq{
-		s.preprocessColumn("mch.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("mch.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

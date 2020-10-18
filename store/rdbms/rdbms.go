@@ -289,7 +289,7 @@ func (s Store) Config() *Config {
 // No preprocessor ("") is intentionally checked after checking registered list of preprocessors
 func (s Store) preprocessColumn(col string, p string) string {
 	if fn, has := s.config.ColumnPreprocessors[p]; has {
-		return fn(col, p)
+		return fn(col)
 	}
 
 	switch p {
@@ -299,31 +299,6 @@ func (s Store) preprocessColumn(col string, p string) string {
 		return fmt.Sprintf("LOWER(%s)", col)
 	default:
 		panic(fmt.Sprintf("unknown preprocessor %q used for column %q", p, col))
-	}
-}
-
-// value preprocessor logic to modify input value before using it in condition filters
-//
-// It checks registered ValuePreprocessors from config
-// and then the standard set
-//
-// No preprocessor ("") is intentionally checked after checking registered list of preprocessors
-func (s Store) preprocessValue(val interface{}, p string) interface{} {
-	if fn, has := s.config.ValuePreprocessors[p]; has {
-		return fn(val, p)
-	}
-
-	switch p {
-	case "":
-		return val
-	case "lower":
-		if str, ok := val.(string); ok {
-			return strings.ToLower(str)
-		}
-		panic(fmt.Sprintf("preprocessor %q not compatible with type %T (value: %v)", p, val, val))
-
-	default:
-		panic(fmt.Sprintf("unknown preprocessor %q used for value %v", p, val))
 	}
 }
 

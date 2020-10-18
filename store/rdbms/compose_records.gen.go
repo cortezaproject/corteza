@@ -225,7 +225,7 @@ func (s Store) QueryComposeRecords(
 // It returns compose record even if deleted
 func (s Store) lookupComposeRecordByID(ctx context.Context, _mod *types.Module, id uint64) (*types.Record, error) {
 	return s.execLookupComposeRecord(ctx, _mod, squirrel.Eq{
-		s.preprocessColumn("crd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("crd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -262,7 +262,7 @@ func (s Store) partialComposeRecordUpdate(ctx context.Context, _mod *types.Modul
 		err = s.execUpdateComposeRecords(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeRecordEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -295,7 +295,7 @@ func (s Store) deleteComposeRecord(ctx context.Context, _mod *types.Module, rr .
 	for _, res := range rr {
 
 		err = s.execDeleteComposeRecords(ctx, squirrel.Eq{
-			s.preprocessColumn("crd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -308,7 +308,7 @@ func (s Store) deleteComposeRecord(ctx context.Context, _mod *types.Module, rr .
 // deleteComposeRecordByID Deletes row from the compose_record table
 func (s Store) deleteComposeRecordByID(ctx context.Context, _mod *types.Module, ID uint64) error {
 	return s.execDeleteComposeRecords(ctx, squirrel.Eq{
-		s.preprocessColumn("crd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("crd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 
