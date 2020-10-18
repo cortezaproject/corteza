@@ -54,3 +54,6 @@ rdbms:
   alias: usr
   table: users
   customFilterConverter: true
+
+cache:
+  enable: true

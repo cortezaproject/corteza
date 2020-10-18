@@ -31,3 +31,4 @@ rdbms:
   alias: att
   table: attachments
   customFilterConverter: true
+

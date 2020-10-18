@@ -23,10 +23,15 @@ github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
+# github.com/cespare/xxhash v1.1.0
+github.com/cespare/xxhash
 # github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 github.com/crusttech/go-oidc
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/dgraph-io/ristretto v0.0.3
+github.com/dgraph-io/ristretto
+github.com/dgraph-io/ristretto/z
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
 # github.com/disintegration/imaging v1.6.0

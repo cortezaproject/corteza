@@ -51,3 +51,5 @@ rdbms:
   mapFields:
     SelfID: { column: self_id  }
 
+cache:
+  enable: true

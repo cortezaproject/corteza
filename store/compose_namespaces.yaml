@@ -32,3 +32,5 @@ rdbms:
   table: compose_namespace
   customFilterConverter: true
 
+cache:
+  enable: true

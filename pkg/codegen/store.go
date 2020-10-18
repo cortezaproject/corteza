@@ -30,7 +30,6 @@ type (
 		// To support that, a (sub)set will need to be defined under each implementation (rdbms, mysql, mongo...)
 		//
 		Fields    storeTypeFieldSetDef         `yaml:"fields"`
-		RDBMS     storeTypeRdbmsDef            `yaml:"rdbms"`
 		Functions []*storeTypeFunctionsDef     `yaml:"functions"`
 		Arguments []*storeTypeExtraArgumentDef `yaml:"arguments"`
 
@@ -44,6 +43,10 @@ type (
 
 		// Make interfaces and store functions
 		Publish bool `yaml:"publish"`
+
+		// Store implementations (types)
+		RDBMS storeTypeRdbmsDef `yaml:"rdbms"`
+		Cache storeTypeCacheDef `yaml:"cache"`
 	}
 
 	storeTypeDef struct {
@@ -92,6 +95,10 @@ type (
 
 		// map fields to columns
 		FieldMap map[string]*storeTypeRdbmsColumnDef `yaml:"mapFields"`
+	}
+
+	storeTypeCacheDef struct {
+		Enable bool `yaml:"enable"`
 	}
 
 	storeTypeFunctionsDef struct {
@@ -220,6 +227,10 @@ func procStore(mm ...string) ([]*storeDef, error) {
 				CustomRowScanner:      false,
 				CustomFilterConverter: false,
 				CustomEncoder:         false,
+			},
+
+			Cache: storeTypeCacheDef{
+				Enable: false,
 			},
 
 			Search: storeTypeSearchDef{
@@ -446,6 +457,10 @@ func genStore(tpl *template.Template, dd ...*storeDef) (err error) {
 		// rdbms specific
 		tplRdbms = tpl.Lookup("store_rdbms.gen.go.tpl")
 
+		// cache specific
+		tplCacheStruct = tpl.Lookup("store_cache_struct.gen.go.tpl")
+		tplCache       = tpl.Lookup("store_cache.gen.go.tpl")
+
 		// @todo redis
 		// @todo mongodb
 		// @todo elasticsearch
@@ -459,11 +474,24 @@ func genStore(tpl *template.Template, dd ...*storeDef) (err error) {
 		return
 	}
 
+	// Cache struct file
+	dst = path.Join(outputDir, "cache", "cache.gen.go")
+	if err = goTemplate(dst, tplCacheStruct, dd); err != nil {
+		return
+	}
+
 	// Multi-file output
 	for _, d := range dd {
 		dst = path.Join(outputDir, "rdbms", d.Filename+".gen.go")
 		if err = goTemplate(dst, tplRdbms, d); err != nil {
 			return
+		}
+
+		if d.Cache.Enable {
+			dst = path.Join(outputDir, "cache", d.Filename+".gen.go")
+			if err = goTemplate(dst, tplCache, d); err != nil {
+				return
+			}
 		}
 
 		dst = path.Join(outputDir, d.Filename+".gen.go")
@@ -596,6 +624,17 @@ func (d *storeTypeLookups) UnmarshalYAML(unmarshal func(interface{}) error) erro
 	var aux = (*dAux)(d)
 	aux.Export = true
 	return unmarshal(aux)
+}
+
+// IsPrimary checks if lookup uses only primary fields
+func (d *storeTypeLookups) IsPrimary() bool {
+	for _, field := range d.YamlFields {
+		if !d.columns.Find(field).IsPrimaryKey {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (d *storeTypeLookups) Fields() storeTypeFieldSetDef {

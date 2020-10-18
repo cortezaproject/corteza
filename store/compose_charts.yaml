@@ -29,3 +29,6 @@ rdbms:
   alias: cch
   table: compose_chart
   customFilterConverter: true
+
+cache:
+  enable: true

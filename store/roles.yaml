@@ -38,3 +38,6 @@ rdbms:
   alias: rl
   table: roles
   customFilterConverter: true
+
+cache:
+  enable: true

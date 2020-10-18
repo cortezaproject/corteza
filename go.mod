@@ -16,6 +16,7 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dgraph-io/ristretto v0.0.3
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.0
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b

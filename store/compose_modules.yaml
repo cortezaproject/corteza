@@ -37,3 +37,6 @@ rdbms:
   alias: cmd
   table: compose_module
   customFilterConverter: true
+
+cache:
+  enable: true
