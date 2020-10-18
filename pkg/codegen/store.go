@@ -39,7 +39,7 @@ type (
 		Create   storeTypeCreateDef   `yaml:"create"`
 		Update   storeTypeUpdateDef   `yaml:"update"`
 		Upsert   storeTypeUpsertDef   `yaml:"upsert"`
-		Delete   storeTypeDeleteDef   `yaml:"Delete"`
+		Delete   storeTypeDeleteDef   `yaml:"delete"`
 		Truncate storeTypeTruncateDef `yaml:"truncate"`
 
 		// Make interfaces and store functions
