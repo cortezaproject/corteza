@@ -42,5 +42,5 @@ update:
 upsert:
   enable: false
 
-Delete:
+delete:
   enable: false

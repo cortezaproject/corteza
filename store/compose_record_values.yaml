@@ -49,7 +49,7 @@ update:
 upsert:
   export: false
 
-Delete:
+delete:
   export: false
 
 truncate:
