@@ -221,8 +221,8 @@ func (s Store) QueryComposePages(
 // LookupComposePageByNamespaceIDHandle searches for page by handle (case-insensitive)
 func (s Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespace_id uint64, handle string) (*types.Page, error) {
 	return s.execLookupComposePage(ctx, squirrel.Eq{
-		s.preprocessColumn("cpg.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
-		s.preprocessColumn("cpg.handle", "lower"):   s.preprocessValue(handle, "lower"),
+		s.preprocessColumn("cpg.rel_namespace", ""): store.PreprocessValue(namespace_id, ""),
+		s.preprocessColumn("cpg.handle", "lower"):   store.PreprocessValue(handle, "lower"),
 
 		"cpg.deleted_at": nil,
 	})
@@ -231,8 +231,8 @@ func (s Store) LookupComposePageByNamespaceIDHandle(ctx context.Context, namespa
 // LookupComposePageByNamespaceIDModuleID searches for page by moduleID
 func (s Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespace_id uint64, module_id uint64) (*types.Page, error) {
 	return s.execLookupComposePage(ctx, squirrel.Eq{
-		s.preprocessColumn("cpg.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
-		s.preprocessColumn("cpg.rel_module", ""):    s.preprocessValue(module_id, ""),
+		s.preprocessColumn("cpg.rel_namespace", ""): store.PreprocessValue(namespace_id, ""),
+		s.preprocessColumn("cpg.rel_module", ""):    store.PreprocessValue(module_id, ""),
 
 		"cpg.deleted_at": nil,
 	})
@@ -243,7 +243,7 @@ func (s Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, names
 // It returns compose page even if deleted
 func (s Store) LookupComposePageByID(ctx context.Context, id uint64) (*types.Page, error) {
 	return s.execLookupComposePage(ctx, squirrel.Eq{
-		s.preprocessColumn("cpg.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cpg.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -280,7 +280,7 @@ func (s Store) partialComposePageUpdate(ctx context.Context, onlyColumns []strin
 		err = s.execUpdateComposePages(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cpg.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposePageEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -313,7 +313,7 @@ func (s Store) DeleteComposePage(ctx context.Context, rr ...*types.Page) (err er
 	for _, res := range rr {
 
 		err = s.execDeleteComposePages(ctx, squirrel.Eq{
-			s.preprocessColumn("cpg.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cpg.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -326,7 +326,7 @@ func (s Store) DeleteComposePage(ctx context.Context, rr ...*types.Page) (err er
 // DeleteComposePageByID Deletes row from the compose_page table
 func (s Store) DeleteComposePageByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposePages(ctx, squirrel.Eq{
-		s.preprocessColumn("cpg.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cpg.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

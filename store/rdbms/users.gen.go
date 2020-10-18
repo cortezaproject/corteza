@@ -223,7 +223,7 @@ func (s Store) QueryUsers(
 // It returns user even if deleted or suspended
 func (s Store) LookupUserByID(ctx context.Context, id uint64) (*types.User, error) {
 	return s.execLookupUser(ctx, squirrel.Eq{
-		s.preprocessColumn("usr.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("usr.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -232,7 +232,7 @@ func (s Store) LookupUserByID(ctx context.Context, id uint64) (*types.User, erro
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByEmail(ctx context.Context, email string) (*types.User, error) {
 	return s.execLookupUser(ctx, squirrel.Eq{
-		s.preprocessColumn("usr.email", "lower"): s.preprocessValue(email, "lower"),
+		s.preprocessColumn("usr.email", "lower"): store.PreprocessValue(email, "lower"),
 
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
@@ -244,7 +244,7 @@ func (s Store) LookupUserByEmail(ctx context.Context, email string) (*types.User
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByHandle(ctx context.Context, handle string) (*types.User, error) {
 	return s.execLookupUser(ctx, squirrel.Eq{
-		s.preprocessColumn("usr.handle", "lower"): s.preprocessValue(handle, "lower"),
+		s.preprocessColumn("usr.handle", "lower"): store.PreprocessValue(handle, "lower"),
 
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
@@ -256,7 +256,7 @@ func (s Store) LookupUserByHandle(ctx context.Context, handle string) (*types.Us
 // It returns only valid users (not deleted, not suspended)
 func (s Store) LookupUserByUsername(ctx context.Context, username string) (*types.User, error) {
 	return s.execLookupUser(ctx, squirrel.Eq{
-		s.preprocessColumn("usr.username", "lower"): s.preprocessValue(username, "lower"),
+		s.preprocessColumn("usr.username", "lower"): store.PreprocessValue(username, "lower"),
 
 		"usr.deleted_at":   nil,
 		"usr.suspended_at": nil,
@@ -296,7 +296,7 @@ func (s Store) partialUserUpdate(ctx context.Context, onlyColumns []string, rr .
 		err = s.execUpdateUsers(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("usr.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -329,7 +329,7 @@ func (s Store) DeleteUser(ctx context.Context, rr ...*types.User) (err error) {
 	for _, res := range rr {
 
 		err = s.execDeleteUsers(ctx, squirrel.Eq{
-			s.preprocessColumn("usr.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("usr.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -342,7 +342,7 @@ func (s Store) DeleteUser(ctx context.Context, rr ...*types.User) (err error) {
 // DeleteUserByID Deletes row from the users table
 func (s Store) DeleteUserByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteUsers(ctx, squirrel.Eq{
-		s.preprocessColumn("usr.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("usr.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

@@ -64,7 +64,7 @@ func (s Store) QueryMessagingMessageAttachments(
 // LookupMessagingMessageAttachmentByMessageID searches for message attachment by message ID
 func (s Store) LookupMessagingMessageAttachmentByMessageID(ctx context.Context, message_id uint64) (*types.MessageAttachment, error) {
 	return s.execLookupMessagingMessageAttachment(ctx, squirrel.Eq{
-		s.preprocessColumn("mma.rel_message", ""): s.preprocessValue(message_id, ""),
+		s.preprocessColumn("mma.rel_message", ""): store.PreprocessValue(message_id, ""),
 	})
 }
 
@@ -101,7 +101,7 @@ func (s Store) partialMessagingMessageAttachmentUpdate(ctx context.Context, only
 		err = s.execUpdateMessagingMessageAttachments(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("mma.rel_message", ""): s.preprocessValue(res.MessageID, ""),
+				s.preprocessColumn("mma.rel_message", ""): store.PreprocessValue(res.MessageID, ""),
 			},
 			s.internalMessagingMessageAttachmentEncoder(res).Skip("rel_message").Only(onlyColumns...))
 		if err != nil {
@@ -134,7 +134,7 @@ func (s Store) DeleteMessagingMessageAttachment(ctx context.Context, rr ...*type
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingMessageAttachments(ctx, squirrel.Eq{
-			s.preprocessColumn("mma.rel_message", ""): s.preprocessValue(res.MessageID, ""),
+			s.preprocessColumn("mma.rel_message", ""): store.PreprocessValue(res.MessageID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -147,7 +147,7 @@ func (s Store) DeleteMessagingMessageAttachment(ctx context.Context, rr ...*type
 // DeleteMessagingMessageAttachmentByMessageID Deletes row from the messaging_message_attachment table
 func (s Store) DeleteMessagingMessageAttachmentByMessageID(ctx context.Context, messageID uint64) error {
 	return s.execDeleteMessagingMessageAttachments(ctx, squirrel.Eq{
-		s.preprocessColumn("mma.rel_message", ""): s.preprocessValue(messageID, ""),
+		s.preprocessColumn("mma.rel_message", ""): store.PreprocessValue(messageID, ""),
 	})
 }
 

@@ -116,7 +116,7 @@ func (s Store) partialComposeRecordValueUpdate(ctx context.Context, _mod *types.
 		err = s.execUpdateComposeRecordValues(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("crv.record_id", ""): s.preprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): s.preprocessValue(res.Place, ""),
+				s.preprocessColumn("crv.record_id", ""): store.PreprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): store.PreprocessValue(res.Place, ""),
 			},
 			s.internalComposeRecordValueEncoder(res).Skip("record_id", "name", "place").Only(onlyColumns...))
 		if err != nil {
@@ -149,7 +149,7 @@ func (s Store) deleteComposeRecordValue(ctx context.Context, _mod *types.Module,
 	for _, res := range rr {
 
 		err = s.execDeleteComposeRecordValues(ctx, squirrel.Eq{
-			s.preprocessColumn("crv.record_id", ""): s.preprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): s.preprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): s.preprocessValue(res.Place, ""),
+			s.preprocessColumn("crv.record_id", ""): store.PreprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): store.PreprocessValue(res.Place, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -162,9 +162,9 @@ func (s Store) deleteComposeRecordValue(ctx context.Context, _mod *types.Module,
 // deleteComposeRecordValueByRecordIDNamePlace Deletes row from the compose_record_value table
 func (s Store) deleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, _mod *types.Module, recordID uint64, name string, place uint) error {
 	return s.execDeleteComposeRecordValues(ctx, squirrel.Eq{
-		s.preprocessColumn("crv.record_id", ""): s.preprocessValue(recordID, ""),
-		s.preprocessColumn("crv.name", ""):      s.preprocessValue(name, ""),
-		s.preprocessColumn("crv.place", ""):     s.preprocessValue(place, ""),
+		s.preprocessColumn("crv.record_id", ""): store.PreprocessValue(recordID, ""),
+		s.preprocessColumn("crv.name", ""):      store.PreprocessValue(name, ""),
+		s.preprocessColumn("crv.place", ""):     store.PreprocessValue(place, ""),
 	})
 }
 

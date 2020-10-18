@@ -223,7 +223,7 @@ func (s Store) QueryApplications(
 // It returns application even if deleted
 func (s Store) LookupApplicationByID(ctx context.Context, id uint64) (*types.Application, error) {
 	return s.execLookupApplication(ctx, squirrel.Eq{
-		s.preprocessColumn("app.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("app.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -260,7 +260,7 @@ func (s Store) partialApplicationUpdate(ctx context.Context, onlyColumns []strin
 		err = s.execUpdateApplications(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("app.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalApplicationEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -293,7 +293,7 @@ func (s Store) DeleteApplication(ctx context.Context, rr ...*types.Application) 
 	for _, res := range rr {
 
 		err = s.execDeleteApplications(ctx, squirrel.Eq{
-			s.preprocessColumn("app.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("app.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -306,7 +306,7 @@ func (s Store) DeleteApplication(ctx context.Context, rr ...*types.Application) 
 // DeleteApplicationByID Deletes row from the applications table
 func (s Store) DeleteApplicationByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteApplications(ctx, squirrel.Eq{
-		s.preprocessColumn("app.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("app.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

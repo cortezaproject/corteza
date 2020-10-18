@@ -113,7 +113,7 @@ func (s Store) partialRbacRuleUpdate(ctx context.Context, onlyColumns []string, 
 		err = s.execUpdateRbacRules(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): s.preprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+				s.preprocessColumn("rls.rel_role", ""): store.PreprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): store.PreprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): store.PreprocessValue(res.Operation, ""),
 			},
 			s.internalRbacRuleEncoder(res).Skip("rel_role", "resource", "operation").Only(onlyColumns...))
 		if err != nil {
@@ -146,7 +146,7 @@ func (s Store) DeleteRbacRule(ctx context.Context, rr ...*rbac.Rule) (err error)
 	for _, res := range rr {
 
 		err = s.execDeleteRbacRules(ctx, squirrel.Eq{
-			s.preprocessColumn("rls.rel_role", ""): s.preprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): s.preprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): s.preprocessValue(res.Operation, ""),
+			s.preprocessColumn("rls.rel_role", ""): store.PreprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): store.PreprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): store.PreprocessValue(res.Operation, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -159,9 +159,9 @@ func (s Store) DeleteRbacRule(ctx context.Context, rr ...*rbac.Rule) (err error)
 // DeleteRbacRuleByRoleIDResourceOperation Deletes row from the rbac_rules table
 func (s Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error {
 	return s.execDeleteRbacRules(ctx, squirrel.Eq{
-		s.preprocessColumn("rls.rel_role", ""):  s.preprocessValue(roleID, ""),
-		s.preprocessColumn("rls.resource", ""):  s.preprocessValue(resource, ""),
-		s.preprocessColumn("rls.operation", ""): s.preprocessValue(operation, ""),
+		s.preprocessColumn("rls.rel_role", ""):  store.PreprocessValue(roleID, ""),
+		s.preprocessColumn("rls.resource", ""):  store.PreprocessValue(resource, ""),
+		s.preprocessColumn("rls.operation", ""): store.PreprocessValue(operation, ""),
 	})
 }
 

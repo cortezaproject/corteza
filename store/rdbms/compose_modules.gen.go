@@ -221,8 +221,8 @@ func (s Store) QueryComposeModules(
 // LookupComposeModuleByNamespaceIDHandle searches for compose module by handle (case-insensitive)
 func (s Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespace_id uint64, handle string) (*types.Module, error) {
 	return s.execLookupComposeModule(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
-		s.preprocessColumn("cmd.handle", "lower"):   s.preprocessValue(handle, "lower"),
+		s.preprocessColumn("cmd.rel_namespace", ""): store.PreprocessValue(namespace_id, ""),
+		s.preprocessColumn("cmd.handle", "lower"):   store.PreprocessValue(handle, "lower"),
 
 		"cmd.deleted_at": nil,
 	})
@@ -231,8 +231,8 @@ func (s Store) LookupComposeModuleByNamespaceIDHandle(ctx context.Context, names
 // LookupComposeModuleByNamespaceIDName searches for compose module by name (case-insensitive)
 func (s Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespace_id uint64, name string) (*types.Module, error) {
 	return s.execLookupComposeModule(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.rel_namespace", ""): s.preprocessValue(namespace_id, ""),
-		s.preprocessColumn("cmd.name", "lower"):     s.preprocessValue(name, "lower"),
+		s.preprocessColumn("cmd.rel_namespace", ""): store.PreprocessValue(namespace_id, ""),
+		s.preprocessColumn("cmd.name", "lower"):     store.PreprocessValue(name, "lower"),
 
 		"cmd.deleted_at": nil,
 	})
@@ -243,7 +243,7 @@ func (s Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namespa
 // It returns compose module even if deleted
 func (s Store) LookupComposeModuleByID(ctx context.Context, id uint64) (*types.Module, error) {
 	return s.execLookupComposeModule(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -280,7 +280,7 @@ func (s Store) partialComposeModuleUpdate(ctx context.Context, onlyColumns []str
 		err = s.execUpdateComposeModules(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -313,7 +313,7 @@ func (s Store) DeleteComposeModule(ctx context.Context, rr ...*types.Module) (er
 	for _, res := range rr {
 
 		err = s.execDeleteComposeModules(ctx, squirrel.Eq{
-			s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -326,7 +326,7 @@ func (s Store) DeleteComposeModule(ctx context.Context, rr ...*types.Module) (er
 // DeleteComposeModuleByID Deletes row from the compose_module table
 func (s Store) DeleteComposeModuleByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposeModules(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

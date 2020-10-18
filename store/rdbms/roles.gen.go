@@ -223,7 +223,7 @@ func (s Store) QueryRoles(
 // It returns role even if deleted or suspended
 func (s Store) LookupRoleByID(ctx context.Context, id uint64) (*types.Role, error) {
 	return s.execLookupRole(ctx, squirrel.Eq{
-		s.preprocessColumn("rl.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("rl.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -232,7 +232,7 @@ func (s Store) LookupRoleByID(ctx context.Context, id uint64) (*types.Role, erro
 // It returns only valid roles (not deleted, not archived)
 func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (*types.Role, error) {
 	return s.execLookupRole(ctx, squirrel.Eq{
-		s.preprocessColumn("rl.handle", "lower"): s.preprocessValue(handle, "lower"),
+		s.preprocessColumn("rl.handle", "lower"): store.PreprocessValue(handle, "lower"),
 
 		"rl.archived_at": nil,
 		"rl.deleted_at":  nil,
@@ -244,7 +244,7 @@ func (s Store) LookupRoleByHandle(ctx context.Context, handle string) (*types.Ro
 // It returns only valid roles (not deleted, not archived)
 func (s Store) LookupRoleByName(ctx context.Context, name string) (*types.Role, error) {
 	return s.execLookupRole(ctx, squirrel.Eq{
-		s.preprocessColumn("rl.name", ""): s.preprocessValue(name, ""),
+		s.preprocessColumn("rl.name", ""): store.PreprocessValue(name, ""),
 
 		"rl.archived_at": nil,
 		"rl.deleted_at":  nil,
@@ -284,7 +284,7 @@ func (s Store) partialRoleUpdate(ctx context.Context, onlyColumns []string, rr .
 		err = s.execUpdateRoles(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("rl.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalRoleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -317,7 +317,7 @@ func (s Store) DeleteRole(ctx context.Context, rr ...*types.Role) (err error) {
 	for _, res := range rr {
 
 		err = s.execDeleteRoles(ctx, squirrel.Eq{
-			s.preprocessColumn("rl.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("rl.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -330,7 +330,7 @@ func (s Store) DeleteRole(ctx context.Context, rr ...*types.Role) (err error) {
 // DeleteRoleByID Deletes row from the roles table
 func (s Store) DeleteRoleByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteRoles(ctx, squirrel.Eq{
-		s.preprocessColumn("rl.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("rl.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

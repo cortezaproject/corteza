@@ -116,7 +116,7 @@ func (s Store) partialMessagingChannelMemberUpdate(ctx context.Context, onlyColu
 		err = s.execUpdateMessagingChannelMembers(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("mcm.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mcm.rel_user", ""): s.preprocessValue(res.UserID, ""),
+				s.preprocessColumn("mcm.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mcm.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 			},
 			s.internalMessagingChannelMemberEncoder(res).Skip("rel_channel", "rel_user").Only(onlyColumns...))
 		if err != nil {
@@ -149,7 +149,7 @@ func (s Store) DeleteMessagingChannelMember(ctx context.Context, rr ...*types.Ch
 	for _, res := range rr {
 
 		err = s.execDeleteMessagingChannelMembers(ctx, squirrel.Eq{
-			s.preprocessColumn("mcm.rel_channel", ""): s.preprocessValue(res.ChannelID, ""), s.preprocessColumn("mcm.rel_user", ""): s.preprocessValue(res.UserID, ""),
+			s.preprocessColumn("mcm.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mcm.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -162,8 +162,8 @@ func (s Store) DeleteMessagingChannelMember(ctx context.Context, rr ...*types.Ch
 // DeleteMessagingChannelMemberByChannelIDUserID Deletes row from the messaging_channel_member table
 func (s Store) DeleteMessagingChannelMemberByChannelIDUserID(ctx context.Context, channelID uint64, userID uint64) error {
 	return s.execDeleteMessagingChannelMembers(ctx, squirrel.Eq{
-		s.preprocessColumn("mcm.rel_channel", ""): s.preprocessValue(channelID, ""),
-		s.preprocessColumn("mcm.rel_user", ""):    s.preprocessValue(userID, ""),
+		s.preprocessColumn("mcm.rel_channel", ""): store.PreprocessValue(channelID, ""),
+		s.preprocessColumn("mcm.rel_user", ""):    store.PreprocessValue(userID, ""),
 	})
 }
 

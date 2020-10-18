@@ -99,7 +99,7 @@ func (s Store) QueryAttachments(
 // It returns attachment even if deleted
 func (s Store) LookupAttachmentByID(ctx context.Context, id uint64) (*types.Attachment, error) {
 	return s.execLookupAttachment(ctx, squirrel.Eq{
-		s.preprocessColumn("att.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("att.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -136,7 +136,7 @@ func (s Store) partialAttachmentUpdate(ctx context.Context, onlyColumns []string
 		err = s.execUpdateAttachments(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -169,7 +169,7 @@ func (s Store) DeleteAttachment(ctx context.Context, rr ...*types.Attachment) (e
 	for _, res := range rr {
 
 		err = s.execDeleteAttachments(ctx, squirrel.Eq{
-			s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -182,7 +182,7 @@ func (s Store) DeleteAttachment(ctx context.Context, rr ...*types.Attachment) (e
 // DeleteAttachmentByID Deletes row from the attachments table
 func (s Store) DeleteAttachmentByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteAttachments(ctx, squirrel.Eq{
-		s.preprocessColumn("att.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("att.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

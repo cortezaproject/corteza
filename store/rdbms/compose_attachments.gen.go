@@ -99,7 +99,7 @@ func (s Store) QueryComposeAttachments(
 // It returns attachment even if deleted
 func (s Store) LookupComposeAttachmentByID(ctx context.Context, id uint64) (*types.Attachment, error) {
 	return s.execLookupComposeAttachment(ctx, squirrel.Eq{
-		s.preprocessColumn("att.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("att.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -136,7 +136,7 @@ func (s Store) partialComposeAttachmentUpdate(ctx context.Context, onlyColumns [
 		err = s.execUpdateComposeAttachments(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalComposeAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -169,7 +169,7 @@ func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*types.Attachm
 	for _, res := range rr {
 
 		err = s.execDeleteComposeAttachments(ctx, squirrel.Eq{
-			s.preprocessColumn("att.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -182,7 +182,7 @@ func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*types.Attachm
 // DeleteComposeAttachmentByID Deletes row from the compose_attachment table
 func (s Store) DeleteComposeAttachmentByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteComposeAttachments(ctx, squirrel.Eq{
-		s.preprocessColumn("att.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("att.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 
