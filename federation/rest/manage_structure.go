@@ -17,14 +17,6 @@ func (ManageStructure) New() *ManageStructure {
 	return &ManageStructure{}
 }
 
-func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.ManageStructureRemoveExposed) (interface{}, error) {
-	return nil, (service.ExposedModule()).DeleteByID(ctx, r.NodeID, r.ModuleID)
-}
-
-func (ctrl ManageStructure) ReadExposed(ctx context.Context, r *request.ManageStructureReadExposed) (interface{}, error) {
-	return (service.ExposedModule()).FindByID(context.Background(), r.GetNodeID(), r.GetModuleID())
-}
-
 func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.ManageStructureCreateExposed) (interface{}, error) {
 	var (
 		mod = &types.ExposedModule{
@@ -44,6 +36,27 @@ func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.Manage
 	}
 
 	return (service.ExposedModule()).Create(context.Background(), mod)
+}
+
+func (ctrl ManageStructure) ReadExposed(ctx context.Context, r *request.ManageStructureReadExposed) (interface{}, error) {
+	return (service.ExposedModule()).FindByID(context.Background(), r.GetNodeID(), r.GetModuleID())
+}
+
+func (ctrl ManageStructure) UpdateExposed(ctx context.Context, r *request.ManageStructureUpdateExposed) (interface{}, error) {
+	var (
+		em = &types.ExposedModule{
+			ID:                 r.ModuleID,
+			NodeID:             r.NodeID,
+			ComposeModuleID:    r.ComposeModuleID,
+			ComposeNamespaceID: r.ComposeNamespaceID,
+			Fields:             r.Fields,
+		}
+	)
+	return (service.ExposedModule()).Update(context.Background(), em)
+}
+
+func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.ManageStructureRemoveExposed) (interface{}, error) {
+	return (service.ExposedModule()).DeleteByID(ctx, r.NodeID, r.ModuleID)
 }
 
 func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStructureReadShared) (interface{}, error) {

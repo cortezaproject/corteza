@@ -21,10 +21,12 @@ import (
 
 type (
 	exposedModuleActionProps struct {
-		module  *types.ExposedModule
-		changed *types.ExposedModule
-		filter  *types.ExposedModuleFilter
-		node    *types.Node
+		module *types.ExposedModule
+		update *types.ExposedModule
+		create *types.ExposedModule
+		delete *types.ExposedModule
+		filter *types.ExposedModuleFilter
+		node   *types.Node
 	}
 
 	exposedModuleAction struct {
@@ -74,14 +76,36 @@ func (p *exposedModuleActionProps) setModule(module *types.ExposedModule) *expos
 	return p
 }
 
-// setChanged updates exposedModuleActionProps's changed
+// setUpdate updates exposedModuleActionProps's update
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *exposedModuleActionProps) setChanged(changed *types.ExposedModule) *exposedModuleActionProps {
-	p.changed = changed
+func (p *exposedModuleActionProps) setUpdate(update *types.ExposedModule) *exposedModuleActionProps {
+	p.update = update
+	return p
+}
+
+// setCreate updates exposedModuleActionProps's create
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *exposedModuleActionProps) setCreate(create *types.ExposedModule) *exposedModuleActionProps {
+	p.create = create
+	return p
+}
+
+// setDelete updates exposedModuleActionProps's delete
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *exposedModuleActionProps) setDelete(delete *types.ExposedModule) *exposedModuleActionProps {
+	p.delete = delete
 	return p
 }
 
@@ -118,12 +142,27 @@ func (p exposedModuleActionProps) serialize() actionlog.Meta {
 
 	if p.module != nil {
 		m.Set("module.ID", p.module.ID, true)
+		m.Set("module.ComposeNamespaceID", p.module.ComposeNamespaceID, true)
 		m.Set("module.ComposeModuleID", p.module.ComposeModuleID, true)
 		m.Set("module.NodeID", p.module.NodeID, true)
 	}
-	if p.changed != nil {
-		m.Set("changed.ID", p.changed.ID, true)
-		m.Set("changed.ComposeModuleID", p.changed.ComposeModuleID, true)
+	if p.update != nil {
+		m.Set("update.ID", p.update.ID, true)
+		m.Set("update.ComposeNamespaceID", p.update.ComposeNamespaceID, true)
+		m.Set("update.ComposeModuleID", p.update.ComposeModuleID, true)
+		m.Set("update.NodeID", p.update.NodeID, true)
+	}
+	if p.create != nil {
+		m.Set("create.ID", p.create.ID, true)
+		m.Set("create.ComposeNamespaceID", p.create.ComposeNamespaceID, true)
+		m.Set("create.ComposeModuleID", p.create.ComposeModuleID, true)
+		m.Set("create.NodeID", p.create.NodeID, true)
+	}
+	if p.delete != nil {
+		m.Set("delete.ID", p.delete.ID, true)
+		m.Set("delete.ComposeNamespaceID", p.delete.ComposeNamespaceID, true)
+		m.Set("delete.ComposeModuleID", p.delete.ComposeModuleID, true)
+		m.Set("delete.NodeID", p.delete.NodeID, true)
 	}
 	if p.filter != nil {
 		m.Set("filter.query", p.filter.Query, true)
@@ -180,27 +219,69 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 			"{module}",
 			fns(
 				p.module.ID,
+				p.module.ComposeNamespaceID,
 				p.module.ComposeModuleID,
 				p.module.NodeID,
 			),
 		)
 		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
+		pairs = append(pairs, "{module.ComposeNamespaceID}", fns(p.module.ComposeNamespaceID))
 		pairs = append(pairs, "{module.ComposeModuleID}", fns(p.module.ComposeModuleID))
 		pairs = append(pairs, "{module.NodeID}", fns(p.module.NodeID))
 	}
 
-	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+	if p.update != nil {
+		// replacement for "{update}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{update}",
 			fns(
-				p.changed.ID,
-				p.changed.ComposeModuleID,
+				p.update.ID,
+				p.update.ComposeNamespaceID,
+				p.update.ComposeModuleID,
+				p.update.NodeID,
 			),
 		)
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.ComposeModuleID}", fns(p.changed.ComposeModuleID))
+		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{update.ComposeNamespaceID}", fns(p.update.ComposeNamespaceID))
+		pairs = append(pairs, "{update.ComposeModuleID}", fns(p.update.ComposeModuleID))
+		pairs = append(pairs, "{update.NodeID}", fns(p.update.NodeID))
+	}
+
+	if p.create != nil {
+		// replacement for "{create}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{create}",
+			fns(
+				p.create.ID,
+				p.create.ComposeNamespaceID,
+				p.create.ComposeModuleID,
+				p.create.NodeID,
+			),
+		)
+		pairs = append(pairs, "{create.ID}", fns(p.create.ID))
+		pairs = append(pairs, "{create.ComposeNamespaceID}", fns(p.create.ComposeNamespaceID))
+		pairs = append(pairs, "{create.ComposeModuleID}", fns(p.create.ComposeModuleID))
+		pairs = append(pairs, "{create.NodeID}", fns(p.create.NodeID))
+	}
+
+	if p.delete != nil {
+		// replacement for "{delete}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{delete}",
+			fns(
+				p.delete.ID,
+				p.delete.ComposeNamespaceID,
+				p.delete.ComposeModuleID,
+				p.delete.NodeID,
+			),
+		)
+		pairs = append(pairs, "{delete.ID}", fns(p.delete.ID))
+		pairs = append(pairs, "{delete.ComposeNamespaceID}", fns(p.delete.ComposeNamespaceID))
+		pairs = append(pairs, "{delete.ComposeModuleID}", fns(p.delete.ComposeModuleID))
+		pairs = append(pairs, "{delete.NodeID}", fns(p.delete.NodeID))
 	}
 
 	if p.filter != nil {
@@ -645,6 +726,36 @@ func ExposedModuleErrComposeModuleNotFound(props ...*exposedModuleActionProps) *
 		action:    "error",
 		message:   "compose module not found",
 		log:       "compose module not found",
+		severity:  actionlog.Warning,
+		props: func() *exposedModuleActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
+// ExposedModuleErrComposeNamespaceNotFound returns "federation:exposed_module.composeNamespaceNotFound" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func ExposedModuleErrComposeNamespaceNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
+	var e = &exposedModuleError{
+		timestamp: time.Now(),
+		resource:  "federation:exposed_module",
+		error:     "composeNamespaceNotFound",
+		action:    "error",
+		message:   "compose namespace not found",
+		log:       "compose namespace not found",
 		severity:  actionlog.Warning,
 		props: func() *exposedModuleActionProps {
 			if len(props) > 0 {

@@ -13,17 +13,19 @@ import (
 type (
 	exposedModule struct {
 		ctx       context.Context
-		compose   composeService.ModuleService
+		module    composeService.ModuleService
+		namespace composeService.NamespaceService
 		store     store.Storer
 		actionlog actionlog.Recorder
 	}
 
 	ExposedModuleService interface {
+		Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error)
+		Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error)
 		Find(ctx context.Context, filter types.ExposedModuleFilter) (types.ExposedModuleSet, types.ExposedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.ExposedModule, error)
 		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
-		DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
-		Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error)
+		DeleteByID(ctx context.Context, nodeID, moduleID uint64) (*types.ExposedModule, error)
 	}
 
 	moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.ExposedModule) (bool, bool, error)
@@ -32,7 +34,8 @@ type (
 func ExposedModule() ExposedModuleService {
 	return &exposedModule{
 		ctx:       context.Background(),
-		compose:   composeService.Module(),
+		module:    composeService.DefaultModule,
+		namespace: composeService.DefaultNamespace,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
 	}
@@ -71,17 +74,51 @@ func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID u
 	return module, err
 }
 
-func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64) error {
-	return trim1st(svc.updater(ctx, nodeID, moduleID, ExposedModuleActionDelete, svc.handleDelete))
+func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error) {
+	var (
+		aProps = &exposedModuleActionProps{update: updated}
+	)
+
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		// TODO
+		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
+		// 	return ExposedModuleErrNotAllowedToCreate()
+		// }
+
+		aProps.setNode(nil)
+
+		if _, err := svc.namespace.With(ctx).FindByID(updated.ComposeNamespaceID); err != nil {
+			return ExposedModuleErrComposeNamespaceNotFound()
+		}
+
+		if _, err := svc.module.With(ctx).FindByID(updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
+			return ExposedModuleErrComposeModuleNotFound()
+		}
+
+		if updated, err = svc.FindByID(ctx, updated.NodeID, updated.ID); err != nil {
+			return ExposedModuleErrNotFound()
+		}
+
+		updated.UpdatedAt = now()
+
+		aProps.setModule(updated)
+
+		if err = store.UpdateFederationExposedModule(ctx, s, updated); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return updated, svc.recordAction(ctx, aProps, ExposedModuleActionUpdate, err)
 }
 
 func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, action func(...*exposedModuleActionProps) *exposedModuleAction, fn moduleUpdateHandler) (*types.ExposedModule, error) {
 	var (
 		moduleChanged, fieldsChanged bool
 
-		n *types.Node
-		m *types.ExposedModule
-		// m, old *types.ExposedModule
+		n      *types.Node
+		m      *types.ExposedModule
 		aProps = &exposedModuleActionProps{module: &types.ExposedModule{ID: moduleID, NodeID: nodeID}}
 		err    error
 	)
@@ -105,12 +142,33 @@ func (svc exposedModule) updater(ctx context.Context, nodeID, moduleID uint64, a
 	return m, svc.recordAction(ctx, aProps, action, err)
 }
 
-func (svc exposedModule) handleDelete(ctx context.Context, n *types.Node, m *types.ExposedModule) (bool, bool, error) {
-	if err := store.DeleteFederationExposedModuleByID(ctx, svc.store, m.ID); err != nil {
-		return false, false, err
-	}
+func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64) (m *types.ExposedModule, err error) {
+	var (
+		aProps = &exposedModuleActionProps{}
+	)
 
-	return false, false, nil
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		// TODO
+		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
+		// 	return ExposedModuleErrNotAllowedToCreate()
+		// }
+
+		m, err := svc.FindByID(ctx, nodeID, moduleID)
+
+		if err != nil {
+			return ExposedModuleErrComposeNamespaceNotFound()
+		}
+
+		if err := store.DeleteFederationExposedModuleByID(ctx, svc.store, moduleID); err != nil {
+			return err
+		}
+
+		aProps.delete = m
+
+		return nil
+	})
+
+	return m, svc.recordAction(ctx, aProps, ExposedModuleActionDelete, err)
 }
 
 func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFilter) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
@@ -127,7 +185,7 @@ func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFil
 
 func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (*types.ExposedModule, error) {
 	var (
-		aProps = &exposedModuleActionProps{changed: new}
+		aProps = &exposedModuleActionProps{create: new}
 	)
 
 	// check if compose module actually exists
@@ -144,6 +202,19 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 		// TODO - fetch Node
 		aProps.setNode(nil)
+
+		if _, err := svc.namespace.FindByID(new.ComposeNamespaceID); err != nil {
+			return ExposedModuleErrComposeNamespaceNotFound()
+		}
+
+		if _, err := svc.module.FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
+			return ExposedModuleErrComposeNamespaceNotFound()
+		}
+
+		// Check for node - compose.Module combo
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return ExposedModuleErrNotUnique()
+		}
 
 		// Check for node - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
