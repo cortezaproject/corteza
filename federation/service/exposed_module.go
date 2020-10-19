@@ -95,11 +95,14 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
-		if updated, err = svc.FindByID(ctx, updated.NodeID, updated.ID); err != nil {
+		old, err := svc.FindByID(ctx, updated.NodeID, updated.ID)
+
+		if err != nil {
 			return ExposedModuleErrNotFound()
 		}
 
 		updated.UpdatedAt = now()
+		updated.CreatedAt = old.CreatedAt
 
 		aProps.setModule(updated)
 
