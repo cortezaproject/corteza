@@ -99,15 +99,15 @@ func (s Store) QueryFederationNodes(
 // It returns federation node
 func (s Store) LookupFederationNodeByID(ctx context.Context, id uint64) (*types.Node, error) {
 	return s.execLookupFederationNode(ctx, squirrel.Eq{
-		s.preprocessColumn("fdn.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("fdn.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
 // LookupFederationNodeByBaseURLSharedNodeID searches for node by shared-node-id and base-url
 func (s Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, base_url string, shared_node_id uint64) (*types.Node, error) {
 	return s.execLookupFederationNode(ctx, squirrel.Eq{
-		s.preprocessColumn("fdn.base_url", ""):       s.preprocessValue(base_url, ""),
-		s.preprocessColumn("fdn.shared_node_id", ""): s.preprocessValue(shared_node_id, ""),
+		s.preprocessColumn("fdn.base_url", ""):       store.PreprocessValue(base_url, ""),
+		s.preprocessColumn("fdn.shared_node_id", ""): store.PreprocessValue(shared_node_id, ""),
 	})
 }
 
@@ -144,7 +144,7 @@ func (s Store) partialFederationNodeUpdate(ctx context.Context, onlyColumns []st
 		err = s.execUpdateFederationNodes(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("fdn.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("fdn.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalFederationNodeEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -177,7 +177,7 @@ func (s Store) DeleteFederationNode(ctx context.Context, rr ...*types.Node) (err
 	for _, res := range rr {
 
 		err = s.execDeleteFederationNodes(ctx, squirrel.Eq{
-			s.preprocessColumn("fdn.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("fdn.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -190,7 +190,7 @@ func (s Store) DeleteFederationNode(ctx context.Context, rr ...*types.Node) (err
 // DeleteFederationNodeByID Deletes row from the federation_nodes table
 func (s Store) DeleteFederationNodeByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteFederationNodes(ctx, squirrel.Eq{
-		s.preprocessColumn("fdn.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("fdn.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 
