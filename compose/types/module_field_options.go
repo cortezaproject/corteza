@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -89,6 +90,19 @@ func (opt ModuleFieldOptions) Strings(key string) []string {
 	}
 
 	return nil
+}
+
+// String returns option value for key as single string
+//
+// Invalid, non-existing are returned as empty string ("")
+func (opt ModuleFieldOptions) String(key string) string {
+	if _, has := opt[key]; has {
+		if v, ok := opt[key].(string); ok {
+			return v
+		}
+	}
+
+	return ""
 }
 
 // IsUnique - should value in this field be unique across records?
