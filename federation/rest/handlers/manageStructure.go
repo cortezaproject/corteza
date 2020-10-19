@@ -23,6 +23,7 @@ type (
 	ManageStructureAPI interface {
 		ReadExposed(context.Context, *request.ManageStructureReadExposed) (interface{}, error)
 		CreateExposed(context.Context, *request.ManageStructureCreateExposed) (interface{}, error)
+		UpdateExposed(context.Context, *request.ManageStructureUpdateExposed) (interface{}, error)
 		RemoveExposed(context.Context, *request.ManageStructureRemoveExposed) (interface{}, error)
 		ReadShared(context.Context, *request.ManageStructureReadShared) (interface{}, error)
 		CreateMappings(context.Context, *request.ManageStructureCreateMappings) (interface{}, error)
@@ -34,6 +35,7 @@ type (
 	ManageStructure struct {
 		ReadExposed    func(http.ResponseWriter, *http.Request)
 		CreateExposed  func(http.ResponseWriter, *http.Request)
+		UpdateExposed  func(http.ResponseWriter, *http.Request)
 		RemoveExposed  func(http.ResponseWriter, *http.Request)
 		ReadShared     func(http.ResponseWriter, *http.Request)
 		CreateMappings func(http.ResponseWriter, *http.Request)
@@ -80,6 +82,26 @@ func NewManageStructure(h ManageStructureAPI) *ManageStructure {
 				return
 			}
 			logger.LogControllerCall("ManageStructure.CreateExposed", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		UpdateExposed: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewManageStructureUpdateExposed()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("ManageStructure.UpdateExposed", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.UpdateExposed(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("ManageStructure.UpdateExposed", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("ManageStructure.UpdateExposed", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -192,6 +214,7 @@ func (h ManageStructure) MountRoutes(r chi.Router, middlewares ...func(http.Hand
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/exposed", h.ReadExposed)
 		r.Put("/nodes/{nodeID}/modules/", h.CreateExposed)
+		r.Post("/nodes/{nodeID}/modules/{moduleID}/exposed", h.UpdateExposed)
 		r.Delete("/nodes/{nodeID}/modules/{moduleID}/exposed", h.RemoveExposed)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/shared", h.ReadShared)
 		r.Put("/nodes/{nodeID}/modules/{moduleID}/mapped", h.CreateMappings)

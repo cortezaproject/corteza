@@ -15,10 +15,16 @@ import:
 props:
   - name: module
     type: "*types.ExposedModule"
-    fields: [ ID, ComposeModuleID, NodeID ]
-  - name: changed
+    fields: [ ID, ComposeNamespaceID, ComposeModuleID, NodeID ]
+  - name: update
     type: "*types.ExposedModule"
-    fields: [ ID, ComposeModuleID ]
+    fields: [ ID, ComposeNamespaceID, ComposeModuleID, NodeID ]
+  - name: create
+    type: "*types.ExposedModule"
+    fields: [ ID, ComposeNamespaceID, ComposeModuleID, NodeID ]
+  - name: delete
+    type: "*types.ExposedModule"
+    fields: [ ID, ComposeNamespaceID, ComposeModuleID, NodeID ]
   - name: filter
     type: "*types.ExposedModuleFilter"
     fields: [ query, sort, limit ]
@@ -67,6 +73,10 @@ errors:
 
   - error: composeModuleNotFound
     message: "compose module not found"
+    severity: "warning"
+
+  - error: composeNamespaceNotFound
+    message: "compose namespace not found"
     severity: "warning"
 
   - error: notAllowedToRead

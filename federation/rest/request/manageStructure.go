@@ -64,6 +64,33 @@ type (
 		Fields types.ModuleFieldSet
 	}
 
+	ManageStructureUpdateExposed struct {
+		// NodeID PATH parameter
+		//
+		// Node ID
+		NodeID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// ComposeModuleID POST parameter
+		//
+		// Compose module id
+		ComposeModuleID uint64 `json:",string"`
+
+		// ComposeNamespaceID POST parameter
+		//
+		// Compose namespace id
+		ComposeNamespaceID uint64 `json:",string"`
+
+		// Fields POST parameter
+		//
+		// Exposed module fields
+		Fields types.ModuleFieldSet
+	}
+
 	ManageStructureRemoveExposed struct {
 		// NodeID PATH parameter
 		//
@@ -285,6 +312,110 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "nodeID")
 		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewManageStructureUpdateExposed request
+func NewManageStructureUpdateExposed() *ManageStructureUpdateExposed {
+	return &ManageStructureUpdateExposed{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID":             r.NodeID,
+		"moduleID":           r.ModuleID,
+		"composeModuleID":    r.ComposeModuleID,
+		"composeNamespaceID": r.ComposeNamespaceID,
+		"fields":             r.Fields,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetComposeModuleID() uint64 {
+	return r.ComposeModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetComposeNamespaceID() uint64 {
+	return r.ComposeNamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetFields() types.ModuleFieldSet {
+	return r.Fields
+}
+
+// Fill processes request and fills internal variables
+func (r *ManageStructureUpdateExposed) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["composeModuleID"]; ok && len(val) > 0 {
+			r.ComposeModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["composeNamespaceID"]; ok && len(val) > 0 {
+			r.ComposeNamespaceID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		//if val, ok := req.Form["fields[]"]; ok && len(val) > 0  {
+		//    r.Fields, err = types.ModuleFieldSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
