@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/jmoiron/sqlx/types"
 
@@ -11,17 +12,17 @@ import (
 
 type (
 	Module struct {
-		ID     uint64         `json:"moduleID,string"`
+		ID     uint64         `json:"moduleID,string"  yaml:"-"`
 		Handle string         `json:"handle"`
 		Name   string         `json:"name"`
-		Meta   types.JSONText `json:"meta"`
-		Fields ModuleFieldSet `json:"fields"`
+		Meta   types.JSONText `json:"meta" yaml:",omitempty"`
+		Fields ModuleFieldSet `json:"fields" yaml:"-"`
 
-		NamespaceID uint64 `json:"namespaceID,string"`
+		NamespaceID uint64 `json:"namespaceID,string" yaml:"-"`
 
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty" yaml:",omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty" yaml:",omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty" yaml:",omitempty"`
 	}
 
 	ModuleFilter struct {
