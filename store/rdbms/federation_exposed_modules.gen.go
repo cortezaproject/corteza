@@ -223,7 +223,7 @@ func (s Store) QueryFederationExposedModules(
 // It returns federation module
 func (s Store) LookupFederationExposedModuleByID(ctx context.Context, id uint64) (*types.ExposedModule, error) {
 	return s.execLookupFederationExposedModule(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -260,7 +260,7 @@ func (s Store) partialFederationExposedModuleUpdate(ctx context.Context, onlyCol
 		err = s.execUpdateFederationExposedModules(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalFederationExposedModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -293,7 +293,7 @@ func (s Store) DeleteFederationExposedModule(ctx context.Context, rr ...*types.E
 	for _, res := range rr {
 
 		err = s.execDeleteFederationExposedModules(ctx, squirrel.Eq{
-			s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -306,7 +306,7 @@ func (s Store) DeleteFederationExposedModule(ctx context.Context, rr ...*types.E
 // DeleteFederationExposedModuleByID Deletes row from the federation_module_exposed table
 func (s Store) DeleteFederationExposedModuleByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteFederationExposedModules(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 

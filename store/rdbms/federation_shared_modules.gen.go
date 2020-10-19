@@ -223,7 +223,7 @@ func (s Store) QueryFederationSharedModules(
 // It returns shared federation module
 func (s Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64) (*types.SharedModule, error) {
 	return s.execLookupFederationSharedModule(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(id, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(id, ""),
 	})
 }
 
@@ -260,7 +260,7 @@ func (s Store) partialFederationSharedModuleUpdate(ctx context.Context, onlyColu
 		err = s.execUpdateFederationSharedModules(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+				s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 			},
 			s.internalFederationSharedModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
@@ -293,7 +293,7 @@ func (s Store) DeleteFederationSharedModule(ctx context.Context, rr ...*types.Sh
 	for _, res := range rr {
 
 		err = s.execDeleteFederationSharedModules(ctx, squirrel.Eq{
-			s.preprocessColumn("cmd.id", ""): s.preprocessValue(res.ID, ""),
+			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -306,7 +306,7 @@ func (s Store) DeleteFederationSharedModule(ctx context.Context, rr ...*types.Sh
 // DeleteFederationSharedModuleByID Deletes row from the federation_module_shared table
 func (s Store) DeleteFederationSharedModuleByID(ctx context.Context, ID uint64) error {
 	return s.execDeleteFederationSharedModules(ctx, squirrel.Eq{
-		s.preprocessColumn("cmd.id", ""): s.preprocessValue(ID, ""),
+		s.preprocessColumn("cmd.id", ""): store.PreprocessValue(ID, ""),
 	})
 }
 
