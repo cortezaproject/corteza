@@ -3,9 +3,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
@@ -35,7 +36,7 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
-		Values RecordValueSet `json:"values,omitempty"`
+		Values RecordValueSet `json:"values,omitempty" yaml:"-"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
