@@ -1,17 +1,18 @@
-package types
+package envoy
 
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"strconv"
 )
 
 type (
-	RecordIterator func(func(*ComposeRecord) error) error
+	RecordIterator func(func(record *types.Record) error) error
 
 	ComposeRecordNode struct {
 		Walk RecordIterator
 
 		// Metafields for relationship management
-		Mod *ComposeModule
+		Mod *types.Module
 	}
 )
 
@@ -73,4 +74,25 @@ func (n *ComposeRecordNode) Update(mm ...Node) {
 			}
 		}
 	}
+}
+
+// A little helper to extract identifiers for a given module
+func identifiersForModule(m *types.Module) NodeIdentifiers {
+	ii := make(NodeIdentifiers, 0)
+
+	if m == nil {
+		return ii
+	}
+
+	if m.Handle != "" {
+		ii = ii.Add(m.Handle)
+	}
+	if m.Name != "" {
+		ii = ii.Add(m.Name)
+	}
+	if m.ID > 0 {
+		ii = ii.Add(strconv.FormatUint(m.ID, 10))
+	}
+
+	return ii
 }

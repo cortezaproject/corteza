@@ -43,8 +43,8 @@ type (
 	}
 
 	NamespaceMeta struct {
-		Subtitle    string `json:"subtitle,omitempty"    yaml:",omitempty"`
-		Description string `json:"description,omitempty" yaml:",omitempty"`
+		Subtitle    string `json:"subtitle,omitempty"`
+		Description string `json:"description,omitempty"`
 	}
 )
 

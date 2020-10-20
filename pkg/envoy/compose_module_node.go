@@ -1,4 +1,4 @@
-package types
+package envoy
 
 import (
 	"strconv"
@@ -9,10 +9,10 @@ import (
 type (
 	// ComposeModuleNode represents a ComposeModule
 	ComposeModuleNode struct {
-		Mod *ComposeModule
+		Mod *types.Module
 
 		// Related namespace
-		Ns *ComposeNamespace
+		Ns *types.Namespace
 	}
 )
 

@@ -1,0 +1,10 @@
+namespace:
+  name: CRM
+  slug: crm
+  allow:
+    everyone:
+    - module.create
+    - read
+  deny:
+    everyone:
+    - delete

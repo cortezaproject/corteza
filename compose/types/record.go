@@ -36,7 +36,7 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
-		Values RecordValueSet `json:"values,omitempty" yaml:"-"`
+		Values RecordValueSet `json:"values,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"math"
-
-	"github.com/cortezaproject/corteza-server/pkg/envoy/types"
 )
 
 type (
@@ -15,7 +13,7 @@ type (
 	// based on the node properties.
 	// Refer to the documentation for additional details.
 	Graph struct {
-		nodes []types.Node
+		nodes []Node
 
 		// Since it's calculated on the fly, this is all we need
 		invert bool
@@ -23,10 +21,10 @@ type (
 		// A cycle is interpreted as a dependency conflict (deadlock).
 		// It's up to the graph's discretion to determine what node in the cycle will be used.
 		// There is no guarantee that this list will be consistent across multiple runs.
-		conflicts types.NodeSet
+		conflicts NodeSet
 
 		// Nodes aren't immediately removed from the graph, so they are firstly marked as processed
-		processed types.NodeSet
+		processed NodeSet
 	}
 )
 
@@ -40,9 +38,9 @@ var (
 // making one yourself.
 func NewGraph() *Graph {
 	return &Graph{
-		conflicts: make(types.NodeSet, 0, 100),
-		processed: make(types.NodeSet, 0, 100),
-		nodes:     make([]types.Node, 0, 100),
+		conflicts: make(NodeSet, 0, 100),
+		processed: make(NodeSet, 0, 100),
+		nodes:     make([]Node, 0, 100),
 		invert:    false,
 	}
 }
@@ -51,19 +49,19 @@ func NewGraph() *Graph {
 //
 // The method doesn't do any existence checks for duplicates.
 // It simply pushes the provided nodes.
-func (g *Graph) Add(nn ...types.Node) {
+func (g *Graph) Add(nn ...Node) {
 	g.nodes = append(g.nodes, nn...)
 }
 
 // Remove removes the set of nodes nn from the graph h
 //
 // The nodes can only be removed if it doesn't have any unprocessed dependencies (child nodes)
-func (g *Graph) Remove(nn ...types.Node) {
+func (g *Graph) Remove(nn ...Node) {
 	if len(nn) <= 0 {
 		return
 	}
 
-	mm := make([]types.Node, 0, len(g.nodes))
+	mm := make([]Node, 0, len(g.nodes))
 	for _, m := range g.nodes {
 		for _, n := range nn {
 			if g.nodesMatch(m, n) && g.canRemove(n) {
@@ -78,8 +76,8 @@ func (g *Graph) Remove(nn ...types.Node) {
 }
 
 // FindNode returns all nodes that match the given resource and identifiers
-func (g *Graph) FindNode(res string, identifiers ...string) []types.Node {
-	nn := make([]types.Node, 0, len(identifiers))
+func (g *Graph) FindNode(res string, identifiers ...string) []Node {
+	nn := make([]Node, 0, len(identifiers))
 	for _, n := range g.nodes {
 		if n.Matches(res, identifiers...) {
 			nn = append(nn, n)
@@ -97,7 +95,7 @@ func (g *Graph) Invert() {
 }
 
 // Children provides node n child nodes **excluding** processed nodes
-func (g *Graph) Children(n types.Node) []types.Node {
+func (g *Graph) Children(n Node) []Node {
 	if !g.invert {
 		return g.removeProcessedNodes(g.children(n))
 	}
@@ -105,7 +103,7 @@ func (g *Graph) Children(n types.Node) []types.Node {
 }
 
 // ChildrenA provides node n child nodes **including** processed nodes
-func (g *Graph) ChildrenA(n types.Node) []types.Node {
+func (g *Graph) ChildrenA(n Node) []Node {
 	if !g.invert {
 		return g.children(n)
 	}
@@ -113,7 +111,7 @@ func (g *Graph) ChildrenA(n types.Node) []types.Node {
 }
 
 // Parents provides node n parent nodes **excluding** processed nodes
-func (g *Graph) Parents(n types.Node) []types.Node {
+func (g *Graph) Parents(n Node) []Node {
 	if !g.invert {
 		return g.removeProcessedNodes(g.parents(n))
 	}
@@ -121,7 +119,7 @@ func (g *Graph) Parents(n types.Node) []types.Node {
 }
 
 // ParentsA provides node n parent nodes **incliding** processed nodes
-func (g *Graph) ParentsA(n types.Node) []types.Node {
+func (g *Graph) ParentsA(n Node) []Node {
 	if !g.invert {
 		return g.parents(n)
 	}
@@ -129,9 +127,9 @@ func (g *Graph) ParentsA(n types.Node) []types.Node {
 }
 
 // ParentsAC provides node n parent nodes **including** processed nodes, **excluding** conflicting nodes
-func (g *Graph) ParentsAC(n types.Node) []types.Node {
+func (g *Graph) ParentsAC(n Node) []Node {
 	pp := g.Parents(n)
-	mm := make([]types.Node, 0, int(math.Max(float64(len(pp)-len(g.conflicts)), 1.0)))
+	mm := make([]Node, 0, int(math.Max(float64(len(pp)-len(g.conflicts)), 1.0)))
 	for _, p := range pp {
 		if !g.conflicts.Has(p) {
 			mm = append(mm, p)
@@ -149,8 +147,8 @@ func (g *Graph) Validate() error {
 }
 
 // Nodes returns all unprocessed nodes in the given graph g
-func (g *Graph) Nodes() []types.Node {
-	nn := make([]types.Node, 0, len(g.nodes))
+func (g *Graph) Nodes() []Node {
+	nn := make([]Node, 0, len(g.nodes))
 	for _, n := range g.nodes {
 		if !g.processed.Has(n) {
 			nn = append(nn, n)
@@ -166,7 +164,7 @@ func (g *Graph) Nodes() []types.Node {
 //  * If there is a node with no parent nodes; select that as the next node.
 //  * If there is no node with no parent nodes; determine a conflicting node.
 //    This returns the conflicting node n, it's parents, it's children and an ErrorDependencyConflict.
-func (g *Graph) Next(ctx context.Context) (n types.Node, pp []types.Node, cc []types.Node, err error) {
+func (g *Graph) Next(ctx context.Context) (n Node, pp []Node, cc []Node, err error) {
 	if len(g.Nodes()) <= 0 {
 		return nil, nil, nil, nil
 	}
@@ -211,14 +209,14 @@ func (g *Graph) Next(ctx context.Context) (n types.Node, pp []types.Node, cc []t
 // Helper methods
 // ------------------------------------------------------------------------
 
-func (g *Graph) nodesMatch(n, m types.Node) bool {
+func (g *Graph) nodesMatch(n, m Node) bool {
 	mRes := m.Resource()
 	mIdd := m.Identifiers()
 
 	return n.Matches(mRes, mIdd...)
 }
 
-func (g *Graph) canRemove(n types.Node) bool {
+func (g *Graph) canRemove(n Node) bool {
 	if len(g.nodes) <= 1 {
 		return true
 	}
@@ -233,9 +231,9 @@ func (g *Graph) canRemove(n types.Node) bool {
 	return true
 }
 
-func (g *Graph) markProcessed(nn ...types.Node) {
+func (g *Graph) markProcessed(nn ...Node) {
 	if g.processed == nil {
-		g.processed = make(types.NodeSet, 0, len(nn))
+		g.processed = make(NodeSet, 0, len(nn))
 	}
 
 	for _, n := range nn {
@@ -246,9 +244,9 @@ func (g *Graph) markProcessed(nn ...types.Node) {
 }
 
 // helper to mark the node as a conflicting node
-func (g *Graph) markConflicting(n types.Node) {
+func (g *Graph) markConflicting(n Node) {
 	if g.conflicts == nil {
-		g.conflicts = make(types.NodeSet, 0, 1)
+		g.conflicts = make(NodeSet, 0, 1)
 	}
 
 	if !g.conflicts.Has(n) {
@@ -256,8 +254,8 @@ func (g *Graph) markConflicting(n types.Node) {
 	}
 }
 
-func (g *Graph) removeProcessedNodes(nn []types.Node) []types.Node {
-	mm := make([]types.Node, 0, len(nn))
+func (g *Graph) removeProcessedNodes(nn []Node) []Node {
+	mm := make([]Node, 0, len(nn))
 	for _, n := range nn {
 		if !g.processed.Has(n) {
 			mm = append(mm, n)
@@ -266,8 +264,8 @@ func (g *Graph) removeProcessedNodes(nn []types.Node) []types.Node {
 	return mm
 }
 
-func (g *Graph) children(n types.Node) []types.Node {
-	nn := make([]types.Node, 0)
+func (g *Graph) children(n Node) []Node {
+	nn := make([]Node, 0)
 	// A simple find all nodes that n is in a relationship with will do the trick
 	for res, IDs := range n.Relations() {
 		nn = append(nn, g.FindNode(res, IDs...)...)
@@ -276,8 +274,8 @@ func (g *Graph) children(n types.Node) []types.Node {
 	return nn
 }
 
-func (g *Graph) parents(n types.Node) []types.Node {
-	nn := make([]types.Node, 0)
+func (g *Graph) parents(n Node) []Node {
+	nn := make([]Node, 0)
 
 	// A more complex, find all nodes that have n in their relationship.
 	// @note can we make this nicer?

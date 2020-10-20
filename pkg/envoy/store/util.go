@@ -1,4 +1,4 @@
-package encoder
+package store
 
 import "github.com/cortezaproject/corteza-server/pkg/id"
 

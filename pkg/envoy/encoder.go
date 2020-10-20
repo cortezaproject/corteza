@@ -1,18 +1,16 @@
-package encoder
+package envoy
 
 import (
 	"context"
-
-	"github.com/cortezaproject/corteza-server/pkg/envoy/types"
 )
 
 type (
 	Encoder interface {
-		Encode(context.Context, ...types.Node) error
+		Encode(context.Context, ...Node) error
 	}
 
 	Provider interface {
-		Next(context.Context) (node types.Node, parentNodes []types.Node, childNodes []types.Node, err error)
+		Next(context.Context) (node Node, parentNodes []Node, childNodes []Node, err error)
 	}
 )
 
@@ -34,7 +32,7 @@ func Encode(ctx context.Context, p Provider, ee ...Encoder) error {
 		}
 
 		// Upgradable nodes need to be processed based on their parent nodes
-		if un, is := node.(types.NodeUpdater); is {
+		if un, is := node.(NodeUpdater); is {
 			un.Update(pp...)
 		}
 

@@ -40,16 +40,16 @@ type (
 	PageBlocks []PageBlock
 
 	PageBlock struct {
-		Title       string                 `json:"title,omitempty"        yaml:",omitempty"`
-		Description string                 `json:"description,omitempty"  yaml:",omitempty"`
-		Options     map[string]interface{} `json:"options,omitempty"      yaml:",omitempty"`
-		Style       PageBlockStyle         `json:"style,omitempty"        yaml:",omitempty"`
+		Title       string                 `json:"title,omitempty"`
+		Description string                 `json:"description,omitempty"`
+		Options     map[string]interface{} `json:"options,omitempty"`
+		Style       PageBlockStyle         `json:"style,omitempty"`
 		Kind        string                 `json:"kind"`
-		XYWH        [4]int                 `json:"xywh"                    yaml:"xywh,flow"` // x,y,w,h
+		XYWH        [4]int                 `json:"xywh"` // x,y,w,h
 	}
 
 	PageBlockStyle struct {
-		Variants map[string]string `json:"variants,omitempty" yaml:",omitempty,flow"`
+		Variants map[string]string `json:"variants,omitempty"`
 	}
 
 	PageFilter struct {
@@ -122,10 +122,10 @@ func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
 	type internalPageBlock PageBlock
 	i := struct {
 		internalPageBlock
-		X      int `json:"x,omitempty"            yaml:"-"`
-		Y      int `json:"y,omitempty"            yaml:"-"`
-		Width  int `json:"width,omitempty"        yaml:"-"`
-		Height int `json:"height,omitempty"       yaml:"-"`
+		X      int `json:"x,omitempty"`
+		Y      int `json:"y,omitempty"`
+		Width  int `json:"width,omitempty"`
+		Height int `json:"height,omitempty"`
 	}{}
 
 	if err = json.Unmarshal(data, &i); err != nil {
