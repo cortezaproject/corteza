@@ -98,7 +98,8 @@ type (
 	}
 
 	storeTypeCacheDef struct {
-		Enable bool `yaml:"enable"`
+		Enable  bool `yaml:"enable"`
+		Codegen bool `yaml:"codegen"`
 	}
 
 	storeTypeFunctionsDef struct {
@@ -230,7 +231,8 @@ func procStore(mm ...string) ([]*storeDef, error) {
 			},
 
 			Cache: storeTypeCacheDef{
-				Enable: false,
+				Enable:  false,
+				Codegen: true,
 			},
 
 			Search: storeTypeSearchDef{
@@ -487,7 +489,7 @@ func genStore(tpl *template.Template, dd ...*storeDef) (err error) {
 			return
 		}
 
-		if d.Cache.Enable {
+		if d.Cache.Enable && d.Cache.Codegen {
 			dst = path.Join(outputDir, "cache", d.Filename+".gen.go")
 			if err = goTemplate(dst, tplCache, d); err != nil {
 				return
