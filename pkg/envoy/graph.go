@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	// Graph struct handless and prcesses all of the dependency related operations
+	// Graph struct handles and processes all of the dependency related operations
 	//
 	// This is a cyclic graph where node relationships are determined on-the-fly
 	// based on the node properties.
@@ -21,7 +21,7 @@ type (
 		invert bool
 
 		// A cycle is interpreted as a dependency conflict (deadlock).
-		// It's up to the graph's discression to determine what node in the cycle will be used.
+		// It's up to the graph's discretion to determine what node in the cycle will be used.
 		// There is no guarantee that this list will be consistent across multiple runs.
 		conflicts types.NodeSet
 
@@ -57,7 +57,7 @@ func (g *Graph) Add(nn ...types.Node) {
 
 // Remove removes the set of nodes nn from the graph h
 //
-// The nodes canonly be removed if it doesn't have any unprocessed dependencies (child nodes)
+// The nodes can only be removed if it doesn't have any unprocessed dependencies (child nodes)
 func (g *Graph) Remove(nn ...types.Node) {
 	if len(nn) <= 0 {
 		return
