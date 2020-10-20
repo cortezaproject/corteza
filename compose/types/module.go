@@ -10,19 +10,19 @@ import (
 
 type (
 	Module struct {
-		ID     uint64         `json:"moduleID,string"  yaml:"-"`
+		ID     uint64         `json:"moduleID,string"`
 		Handle string         `json:"handle"`
 		Name   string         `json:"name"`
-		Meta   types.JSONText `json:"meta" yaml:",omitempty"`
-		Fields ModuleFieldSet `json:"fields" yaml:"-"`
+		Meta   types.JSONText `json:"meta"`
+		Fields ModuleFieldSet `json:"fields"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
-		CreatedAt time.Time  `json:"createdAt,omitempty" yaml:",omitempty"`
-		UpdatedAt *time.Time `json:"updatedAt,omitempty" yaml:",omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty" yaml:",omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
 	}
 
 	ModuleFilter struct {

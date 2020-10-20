@@ -1,14 +1,13 @@
-package types
+package envoy
 
 import (
-	"strconv"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"strconv"
 )
 
 type (
 	ComposeNamespaceNode struct {
-		Ns *ComposeNamespace
+		Ns *types.Namespace
 	}
 )
 

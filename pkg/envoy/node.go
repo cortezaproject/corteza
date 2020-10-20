@@ -1,4 +1,4 @@
-package types
+package envoy
 
 type (
 	// Node defines the signature of any valid graph node

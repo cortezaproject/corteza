@@ -1,17 +1,26 @@
-package decoder
+package csv
 
 import (
 	"context"
 	"encoding/csv"
 	"errors"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"io"
 	"regexp"
-
-	"github.com/cortezaproject/corteza-server/pkg/envoy/types"
 )
 
 type (
 	CsvDecoder struct{}
+
+	RecordIterator func(func(*types.Record) error) error
+
+	ComposeRecordNode struct {
+		Walk RecordIterator
+
+		// Metafields for relationship management
+		Mod *types.Module
+	}
 )
 
 var (
@@ -40,15 +49,15 @@ func (c *CsvDecoder) validateHeader(header []string) error {
 	return nil
 }
 
-func (c *CsvDecoder) Decode(ctx context.Context, r io.Reader, filename string) ([]types.Node, error) {
-	n := &types.ComposeRecordNode{}
+func (c *CsvDecoder) Decode(ctx context.Context, r io.Reader, filename string) ([]envoy.Node, error) {
+	n := &envoy.ComposeRecordNode{}
 
 	// Determine base module for dependency resolution
 	// -4 is to remove .csv ext
 	//
 	// @todo tweak this a bit
 	modRes := filename[0 : len(filename)-4]
-	mod := &types.ComposeModule{}
+	mod := &types.Module{}
 	mod.Handle = modRes
 	mod.Name = modRes
 	n.Mod = mod
@@ -79,7 +88,7 @@ func (c *CsvDecoder) Decode(ctx context.Context, r io.Reader, filename string) (
 
 	// Iterator function for providing records to be imported.
 	// This doesn't do any validation; that should be handled by other layers.
-	n.Walk = func(f func(*types.ComposeRecord) error) error {
+	n.Walk = func(f func(*types.Record) error) error {
 		for {
 			record, err := cr.Read()
 			if err == io.EOF {
@@ -89,16 +98,16 @@ func (c *CsvDecoder) Decode(ctx context.Context, r io.Reader, filename string) (
 				return err
 			}
 
-			rvs := make(types.ComposeRecordValueSet, 0)
+			rvs := make(types.RecordValueSet, 0)
 			for i, h := range header {
-				v := &types.ComposeRecordValue{}
+				v := &types.RecordValue{}
 				v.Name = h
 				v.Value = record[i]
 
 				rvs = append(rvs, v)
 			}
 
-			rec := &types.ComposeRecord{}
+			rec := &types.Record{}
 			rec.Values = rvs
 
 			err = f(rec)
@@ -108,5 +117,5 @@ func (c *CsvDecoder) Decode(ctx context.Context, r io.Reader, filename string) (
 		}
 	}
 
-	return []types.Node{n}, nil
+	return []envoy.Node{n}, nil
 }
