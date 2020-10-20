@@ -25,6 +25,7 @@ import (
 	"github.com/cortezaproject/corteza-server/provision/messaging"
 	"github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/cache"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
@@ -162,6 +163,10 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		if err = upgradableStore.Upgrade(ctx, log); err != nil {
 			return err
 		}
+	}
+
+	if app.Store, err = cache.Connect(app.Store); err != nil {
+		return err
 	}
 
 	app.lvl = bootLevelStoreInitialized
