@@ -14,6 +14,25 @@ search:
   enablePaging: false
   customFilterConverter: true
   enableFilterCheckFunction: false
+  enable: false
+
+update:
+  enable: false
+
+upsert:
+  enable: false
 
 cache:
   enable: true
+  codegen: false
+
+functions:
+  - name: SearchRoleMembers
+    arguments:
+      - { name: roleID, type: uint64 }
+    return: [ "[]uint64", error ]
+
+  - name: SearchUserMemberships
+    arguments:
+      - { name: userID, type: uint64 }
+    return: [ "[]uint64", error ]

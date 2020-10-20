@@ -420,8 +420,15 @@ func (svc role) Unarchive(roleID uint64) (err error) {
 }
 
 func (svc role) Membership(userID uint64) (types.RoleMemberSet, error) {
-	mm, _, err := store.SearchRoleMembers(svc.ctx, svc.store, types.RoleMemberFilter{UserID: userID})
-	return mm, err
+	var (
+		rr, err = store.SearchUserMemberships(svc.ctx, svc.store, userID)
+		set     = types.RoleMemberSet{}
+	)
+
+	for _, roleID := range rr {
+		set = append(set, &types.RoleMember{RoleID: roleID, UserID: userID})
+	}
+	return set, err
 }
 
 func (svc role) MemberList(roleID uint64) (mm types.RoleMemberSet, err error) {
@@ -446,7 +453,14 @@ func (svc role) MemberList(roleID uint64) (mm types.RoleMemberSet, err error) {
 			return RoleErrNotAllowedToRead()
 		}
 
-		mm, _, err = store.SearchRoleMembers(svc.ctx, svc.store, types.RoleMemberFilter{RoleID: roleID})
+		var (
+			rr, err = store.SearchRoleMembers(svc.ctx, svc.store, roleID)
+		)
+
+		for _, userID := range rr {
+			mm = append(mm, &types.RoleMember{RoleID: roleID, UserID: userID})
+		}
+
 		return err
 	}()
 

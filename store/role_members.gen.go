@@ -15,42 +15,29 @@ import (
 
 type (
 	RoleMembers interface {
-		SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error)
-
 		CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) error
-
-		UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) error
-
-		UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) error
 
 		DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) error
 		DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error
 
 		TruncateRoleMembers(ctx context.Context) error
+
+		// Additional custom functions
+
+		// SearchRoleMembers (custom function)
+		SearchRoleMembers(ctx context.Context, _roleID uint64) ([]uint64, error)
+
+		// SearchUserMemberships (custom function)
+		SearchUserMemberships(ctx context.Context, _userID uint64) ([]uint64, error)
 	}
 )
 
 var _ *types.RoleMember
 var _ context.Context
 
-// SearchRoleMembers returns all matching RoleMembers from store
-func SearchRoleMembers(ctx context.Context, s RoleMembers, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error) {
-	return s.SearchRoleMembers(ctx, f)
-}
-
 // CreateRoleMember creates one or more RoleMembers in store
 func CreateRoleMember(ctx context.Context, s RoleMembers, rr ...*types.RoleMember) error {
 	return s.CreateRoleMember(ctx, rr...)
-}
-
-// UpdateRoleMember updates one or more (existing) RoleMembers in store
-func UpdateRoleMember(ctx context.Context, s RoleMembers, rr ...*types.RoleMember) error {
-	return s.UpdateRoleMember(ctx, rr...)
-}
-
-// UpsertRoleMember creates new or updates existing one or more RoleMembers in store
-func UpsertRoleMember(ctx context.Context, s RoleMembers, rr ...*types.RoleMember) error {
-	return s.UpsertRoleMember(ctx, rr...)
 }
 
 // DeleteRoleMember Deletes one or more RoleMembers from store
@@ -66,4 +53,12 @@ func DeleteRoleMemberByUserIDRoleID(ctx context.Context, s RoleMembers, userID u
 // TruncateRoleMembers Deletes all RoleMembers from store
 func TruncateRoleMembers(ctx context.Context, s RoleMembers) error {
 	return s.TruncateRoleMembers(ctx)
+}
+
+func SearchRoleMembers(ctx context.Context, s RoleMembers, _roleID uint64) ([]uint64, error) {
+	return s.SearchRoleMembers(ctx, _roleID)
+}
+
+func SearchUserMemberships(ctx context.Context, s RoleMembers, _userID uint64) ([]uint64, error) {
+	return s.SearchUserMemberships(ctx, _userID)
 }

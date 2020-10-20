@@ -20,25 +20,6 @@ import (
 
 var _ = errors.Is
 
-// SearchRoleMembers returns all matching rows
-//
-// This function calls convertRoleMemberFilter with the given
-// types.RoleMemberFilter and expects to receive a working squirrel.SelectBuilder
-func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) (types.RoleMemberSet, types.RoleMemberFilter, error) {
-	var (
-		err error
-		set []*types.RoleMember
-		q   squirrel.SelectBuilder
-	)
-	q = s.roleMembersSelectBuilder()
-
-	return set, f, s.config.ErrorHandler(func() error {
-		set, _, _, err = s.QueryRoleMembers(ctx, q, nil)
-		return err
-
-	}())
-}
-
 // QueryRoleMembers queries the database, converts and checks each row and
 // returns collected set
 //
@@ -97,50 +78,6 @@ func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 	return
 }
 
-// UpdateRoleMember updates one or more existing rows in role_members
-func (s Store) UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) error {
-	return s.config.ErrorHandler(s.partialRoleMemberUpdate(ctx, nil, rr...))
-}
-
-// partialRoleMemberUpdate updates one or more existing rows in role_members
-func (s Store) partialRoleMemberUpdate(ctx context.Context, onlyColumns []string, rr ...*types.RoleMember) (err error) {
-	for _, res := range rr {
-		err = s.checkRoleMemberConstraints(ctx, res)
-		if err != nil {
-			return err
-		}
-
-		err = s.execUpdateRoleMembers(
-			ctx,
-			squirrel.Eq{
-				s.preprocessColumn("rm.rel_user", ""): store.PreprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): store.PreprocessValue(res.RoleID, ""),
-			},
-			s.internalRoleMemberEncoder(res).Skip("rel_user", "rel_role").Only(onlyColumns...))
-		if err != nil {
-			return s.config.ErrorHandler(err)
-		}
-	}
-
-	return
-}
-
-// UpsertRoleMember updates one or more existing rows in role_members
-func (s Store) UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) (err error) {
-	for _, res := range rr {
-		err = s.checkRoleMemberConstraints(ctx, res)
-		if err != nil {
-			return err
-		}
-
-		err = s.config.ErrorHandler(s.execUpsertRoleMembers(ctx, s.internalRoleMemberEncoder(res)))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // DeleteRoleMember Deletes one or more rows from role_members table
 func (s Store) DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) (err error) {
 	for _, res := range rr {
@@ -192,28 +129,6 @@ func (s Store) execLookupRoleMember(ctx context.Context, cnd squirrel.Sqlizer) (
 // execCreateRoleMembers updates all matched (by cnd) rows in role_members with given data
 func (s Store) execCreateRoleMembers(ctx context.Context, payload store.Payload) error {
 	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.roleMemberTable()).SetMap(payload)))
-}
-
-// execUpdateRoleMembers updates all matched (by cnd) rows in role_members with given data
-func (s Store) execUpdateRoleMembers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.roleMemberTable("rm")).Where(cnd).SetMap(set)))
-}
-
-// execUpsertRoleMembers inserts new or updates matching (by-primary-key) rows in role_members with given data
-func (s Store) execUpsertRoleMembers(ctx context.Context, set store.Payload) error {
-	upsert, err := s.config.UpsertBuilder(
-		s.config,
-		s.roleMemberTable(),
-		set,
-		"rel_user",
-		"rel_role",
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
 }
 
 // execDeleteRoleMembers Deletes all matched (by cnd) rows in role_members with given data
@@ -275,7 +190,7 @@ func (Store) roleMemberColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {false true false false false}
 
 // internalRoleMemberEncoder encodes fields from types.RoleMember to store.Payload (map)
 //
