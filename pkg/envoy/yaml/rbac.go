@@ -1,4 +1,4 @@
-package types
+package yaml
 
 type (
 	RbacRules map[string][]string
