@@ -35,6 +35,10 @@ type (
 		desc    []bool
 		Reverse bool
 	}
+
+	pagingCursorValue struct {
+		v interface{}
+	}
 )
 
 func NewPaging(limit uint, cursor string) (p Paging, err error) {
@@ -68,6 +72,7 @@ func (p *PagingCursor) Values() []interface{} {
 	return p.values
 }
 
+// Stirng to implement Stringer and to get human-readable representation of the cursor
 func (p *PagingCursor) String() string {
 	var o = "<"
 
@@ -84,6 +89,7 @@ func (p *PagingCursor) String() string {
 	return o + ">"
 }
 
+// MarshalJSON serializes cursor struct as JSON and encodes it as base64 + adds quotes to be treated as JSON string
 func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 	buf, err := json.Marshal(struct {
 		K []string
@@ -117,7 +123,7 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	var (
 		aux struct {
 			K []string
-			V []interface{}
+			V []pagingCursorValue
 			D []bool
 			R bool
 		}
@@ -128,9 +134,14 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	}
 
 	p.keys = aux.K
-	p.values = aux.V
 	p.desc = aux.D
 	p.Reverse = aux.R
+
+	// json.Unmarshal treats uint64 in values ([]interface{}) as float64 and we don't like that.
+	p.values = make([]interface{}, len(aux.V))
+	for i, v := range aux.V {
+		p.values[i] = v.v
+	}
 
 	return nil
 }
@@ -165,4 +176,24 @@ func parseCursor(in string) (p *PagingCursor, err error) {
 	}
 
 	return p, nil
+}
+
+// Making sure uint64 other int* values are properly unmarshaled
+func (v *pagingCursorValue) UnmarshalJSON(in []byte) (err error) {
+	var (
+		u uint64
+		i int64
+	)
+
+	if err = json.Unmarshal(in, &u); err == nil {
+		v.v = u
+		return
+	}
+
+	if err = json.Unmarshal(in, &i); err == nil {
+		v.v = i
+		return
+	}
+
+	return json.Unmarshal(in, &v.v)
 }
