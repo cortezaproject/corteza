@@ -45,3 +45,4 @@ charts:
         module: Opportunity
         renderer: {}
       colorScheme: tableau.Traffic9
+    allow: { somerole: [ read ] }

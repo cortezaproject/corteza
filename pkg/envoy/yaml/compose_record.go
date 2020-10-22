@@ -17,6 +17,7 @@ type (
 		refUpdatedBy string
 		refDeletedBy string
 		refOwnedBy   string
+		*rbacRules
 	}
 	ComposeRecordSet []*ComposeRecord
 
@@ -106,6 +107,7 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Record{}
 	}
 
@@ -138,6 +140,10 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 			return decodeRef(v, "deletedBy user", &wrap.refDeletedBy)
 		case "ownedBy":
 			return decodeRef(v, "ownedBy user", &wrap.refOwnedBy)
+
+		case "allow", "deny":
+			// @todo enable when records are ready for RBAC
+			//	return wrap.rbacRules.DecodeResourceRules(types.RecordRBACResource, k, v)
 
 		default:
 			return nodeErr(k, "unsupported key %s used for record definition", k.Value)

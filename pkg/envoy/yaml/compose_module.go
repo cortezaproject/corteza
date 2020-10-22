@@ -84,6 +84,7 @@ func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Module{}
 	}
 
@@ -116,7 +117,7 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 			return nil
 
 		case "allow", "deny":
-			return decodeAccessRoleOps(wrap.rbacRules, types.ModuleRBACResource, k, v)
+			return wrap.rbacRules.DecodeResourceRules(types.ModuleRBACResource, k, v)
 
 		}
 
@@ -169,6 +170,7 @@ func (set ComposeModuleFieldSet) set() (out types.ModuleFieldSet) {
 
 func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.ModuleField{}
 	}
 
@@ -215,7 +217,7 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
 			//})
 
 		case "allow", "deny":
-			return decodeAccessRoleOps(wrap.rbacRules, types.ModuleFieldRBACResource, k, v)
+			return wrap.rbacRules.DecodeResourceRules(types.ModuleFieldRBACResource, k, v)
 
 		}
 

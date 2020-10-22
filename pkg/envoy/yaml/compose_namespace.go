@@ -12,9 +12,6 @@ type (
 		// when namespace is at least partially defined
 		res *types.Namespace `yaml:",inline"`
 
-		// when we only have reference (slug) to namespace
-		ref string
-
 		// all known modules on a namespace
 		modules ComposeModuleSet
 
@@ -77,17 +74,12 @@ func (wset ComposeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) error {
-
-	if isKind(n, yaml.ScalarNode) {
-		wrap.ref = n.Value
-		return nil
-	}
-
 	if !isKind(n, yaml.MappingNode) {
 		return nodeErr(n, "namespace definition must be a map or scalar")
 	}
 
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Namespace{
 			// namespaces are enabled by default
 			Enabled: true,
@@ -109,10 +101,7 @@ func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) error {
 			return v.Decode(&wrap.modules)
 
 		case "allow", "deny":
-			if wrap.rbacRules == nil {
-				wrap.rbacRules = &rbacRules{}
-			}
-			return decodeAccessRoleOps(wrap.rbacRules, types.NamespaceRBACResource, k, v)
+			return wrap.rbacRules.DecodeResourceRules(types.NamespaceRBACResource, k, v)
 
 		}
 

@@ -13,7 +13,7 @@ type (
 )
 
 // Decodes RBAC rules defined as access/role/ops...
-func decodeAccessRoleOps(wrap *rbacRules, res rbac.Resource, k, v *yaml.Node) error {
+func (wrap *rbacRules) DecodeResourceRules(res rbac.Resource, k, v *yaml.Node) error {
 	var (
 		access rbac.Access
 	)
@@ -23,7 +23,7 @@ func decodeAccessRoleOps(wrap *rbacRules, res rbac.Resource, k, v *yaml.Node) er
 	}
 
 	if !isKind(v, yaml.MappingNode) {
-		return nodeErr(v, "rbac rule definition must be a map")
+		return nodeErr(v, "rbac per access rule definition must be a map")
 	}
 
 	if k.Value == "allow" {
@@ -48,6 +48,57 @@ func decodeAccessRoleOps(wrap *rbacRules, res rbac.Resource, k, v *yaml.Node) er
 			rule := &rbac.Rule{Resource: res, Operation: rbac.Operation(v.Value), Access: access}
 			wrap.rules[role] = append(wrap.rules[role], rule)
 			return nil
+		})
+	})
+}
+
+// Decodes RBAC rules defined as access/role/resource/ops...
+func (wrap *rbacRules) DecodeGlobalRules(k, v *yaml.Node) error {
+	var (
+		access rbac.Access
+	)
+
+	if wrap.rules == nil {
+		wrap.rules = make(map[string]rbac.RuleSet)
+	}
+
+	if !isKind(v, yaml.MappingNode) {
+		return nodeErr(v, "rbac per access rule definition must be a map")
+	}
+
+	if k.Value == "allow" {
+		access = rbac.Allow
+	}
+
+	return iterator(v, func(k, v *yaml.Node) error {
+
+		var (
+			role = k.Value
+		)
+
+		if _, set := wrap.rules[role]; !set {
+			wrap.rules[role] = rbac.RuleSet{}
+		}
+
+		if !isKind(v, yaml.MappingNode) {
+			return nodeErr(v, "rbac per role rule definition must be a map")
+		}
+
+		return iterator(v, func(k, v *yaml.Node) error {
+			var res = rbac.Resource(k.Value)
+			if !res.IsValid() {
+				return nodeErr(k, "rbac resource %s invalid", k.Value)
+			}
+
+			if !isKind(v, yaml.SequenceNode) {
+				return nodeErr(v, "rbac rule operations list must be a sequence")
+			}
+
+			return iterator(v, func(_, v *yaml.Node) error {
+				rule := &rbac.Rule{Resource: res, Operation: rbac.Operation(v.Value), Access: access}
+				wrap.rules[role] = append(wrap.rules[role], rule)
+				return nil
+			})
 		})
 	})
 }

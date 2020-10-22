@@ -1,34 +1,22 @@
 package yaml
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"os"
 	"testing"
 )
 
 func TestComposeModule_UnmarshalYAML(t *testing.T) {
 	var (
-		req = require.New(t)
-
 		parseString = func(src string) (*ComposeModule, error) {
 			w := &ComposeModule{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
-
-		parseDocument = func(i int) (*Document, error) {
-			doc := &Document{}
-			f, err := os.Open(fmt.Sprintf("testdata/compose_module_%d.yaml", i))
-			if err != nil {
-				return nil, err
-			}
-
-			return doc, yaml.NewDecoder(f).Decode(doc)
-		}
 	)
 
 	t.Run("empty", func(t *testing.T) {
+		req := require.New(t)
+
 		w, err := parseString(``)
 		req.NoError(err)
 		req.NotNil(w)
@@ -36,6 +24,8 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 	})
 
 	t.Run("simple name", func(t *testing.T) {
+		req := require.New(t)
+
 		w, err := parseString(`{ name: Test }`)
 		req.NoError(err)
 		req.NotNil(w)
@@ -43,8 +33,10 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NotEmpty(w.res.Name)
 	})
 
-	t.Run("compose module file 1", func(t *testing.T) {
-		doc, err := parseDocument(1)
+	t.Run("doc 1", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_1")
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
@@ -52,5 +44,7 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.Equal(30, len(doc.compose.modules[0].res.Fields))
 		req.Equal(21, len(doc.compose.modules[1].res.Fields))
 		req.Equal(23, len(doc.compose.modules[2].res.Fields))
+		req.NotNil(doc.compose.modules[0].rbacRules)
+		req.NotEmpty(doc.compose.modules[0].rbacRules.rules)
 	})
 }
