@@ -14,16 +14,42 @@ func nodeErr(n *yaml.Node, format string, aa ...interface{}) error {
 	return fmt.Errorf(format, aa...)
 }
 
-// iterator helps iterate over mapping and sequence nodes fairly trivially
-func iterator(n *yaml.Node, fn func(*yaml.Node, *yaml.Node) error) error {
-	if isKind(n, yaml.MappingNode) {
-		for i := 0; i < len(n.Content); i += 2 {
-			if err := fn(n.Content[i], n.Content[i+1]); err != nil {
-				return err
-			}
-		}
+// eachKV iterates over map node
+func eachMap(n *yaml.Node, fn func(*yaml.Node, *yaml.Node) error) error {
+	if !isKind(n, yaml.MappingNode) {
+		// root node kind be mapping
+		return nodeErr(n, "expecting mapping node")
+	}
 
-		return nil
+	for i := 0; i < len(n.Content); i += 2 {
+		if err := fn(n.Content[i], n.Content[i+1]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// eachKV iterates over sequence node
+func eachSeq(n *yaml.Node, fn func(*yaml.Node) error) error {
+	if !isKind(n, yaml.SequenceNode) {
+		// root node kind be mapping
+		return nodeErr(n, "expecting sequence node")
+	}
+
+	for i := 0; i < len(n.Content); i++ {
+		if err := fn(n.Content[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// each helps iterate over mapping and sequence nodes fairly trivially
+func each(n *yaml.Node, fn func(*yaml.Node, *yaml.Node) error) error {
+	if isKind(n, yaml.MappingNode) {
+		return eachMap(n, fn)
 	}
 
 	if isKind(n, yaml.SequenceNode) {

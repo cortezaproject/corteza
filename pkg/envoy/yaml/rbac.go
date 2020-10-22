@@ -12,12 +12,12 @@ type (
 	}
 )
 
-func decodeRbacOperations(rr *rbacRules, access rbac.Access, role string, res rbac.Resource) func(_, _ *yaml.Node) error {
+func decodeRbacOperations(rr *rbacRules, access rbac.Access, role string, res rbac.Resource) func(*yaml.Node) error {
 	if _, set := rr.rules[role]; !set {
 		rr.rules[role] = rbac.RuleSet{}
 	}
 
-	return func(_, v *yaml.Node) error {
+	return func(v *yaml.Node) error {
 		rule := &rbac.Rule{Resource: res, Operation: rbac.Operation(v.Value), Access: access}
 		rr.rules[role] = append(rr.rules[role], rule)
 		return nil
@@ -29,7 +29,7 @@ func decodeResourceAccessControl(res rbac.Resource, n *yaml.Node) (*rbacRules, e
 		rr = &rbacRules{rules: make(map[string]rbac.RuleSet)}
 	)
 
-	return rr, iterator(n, func(k, v *yaml.Node) (err error) {
+	return rr, eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "allow":
 			return rr.decodeResourceAccessControl(rbac.Allow, res, v)
@@ -46,7 +46,7 @@ func decodeGlobalAccessControl(n *yaml.Node) (*rbacRules, error) {
 		rr = &rbacRules{rules: make(map[string]rbac.RuleSet)}
 	)
 
-	return rr, iterator(n, func(k, v *yaml.Node) (err error) {
+	return rr, eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "allow":
 			return rr.decodeGlobalAccessControl(rbac.Allow, v)
@@ -60,42 +60,23 @@ func decodeGlobalAccessControl(n *yaml.Node) (*rbacRules, error) {
 
 // Decodes RBAC rules defined as access/role/ops...
 func (wrap *rbacRules) decodeResourceAccessControl(access rbac.Access, res rbac.Resource, v *yaml.Node) error {
-	if !isKind(v, yaml.MappingNode) {
-		return nodeErr(v, "RBAC per access rule definition must be a map")
-	}
-
-	return iterator(v, func(k, v *yaml.Node) error {
-		if !isKind(v, yaml.SequenceNode) {
-			return nodeErr(v, "RBAC rule operations list must be a sequence")
-		}
-
-		return iterator(v, decodeRbacOperations(wrap, access, k.Value, res))
+	return eachMap(v, func(k, v *yaml.Node) error {
+		return eachSeq(v, decodeRbacOperations(wrap, access, k.Value, res))
 	})
 }
 
 // Decodes RBAC rules defined as access/role/resource/ops...
 func (wrap *rbacRules) decodeGlobalAccessControl(access rbac.Access, v *yaml.Node) error {
-	if !isKind(v, yaml.MappingNode) {
-		return nodeErr(v, "RBAC per access rule definition must be a map")
-	}
-
-	return iterator(v, func(k, v *yaml.Node) error {
+	return eachMap(v, func(k, v *yaml.Node) error {
 		var role = k.Value
-		if !isKind(v, yaml.MappingNode) {
-			return nodeErr(v, "RBAC per role rule definition must be a map")
-		}
 
-		return iterator(v, func(k, v *yaml.Node) error {
+		return eachMap(v, func(k, v *yaml.Node) error {
 			var res = rbac.Resource(k.Value)
 			if !res.IsValid() {
 				return nodeErr(k, "RBAC resource %s invalid", k.Value)
 			}
 
-			if !isKind(v, yaml.SequenceNode) {
-				return nodeErr(v, "RBAC rule operations list must be a sequence")
-			}
-
-			return iterator(v, decodeRbacOperations(wrap, access, role, res))
+			return eachSeq(v, decodeRbacOperations(wrap, access, role, res))
 		})
 	})
 }

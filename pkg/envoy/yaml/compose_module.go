@@ -24,7 +24,7 @@ type (
 )
 
 func (wset *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &ComposeModule{}
 		)
@@ -83,10 +83,6 @@ func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "module definition must be a map")
-	}
-
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Module{}
@@ -96,7 +92,7 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
 			return decodeScalar(v, "module name", &wrap.res.Name)
@@ -134,7 +130,7 @@ func (wrap ComposeModule) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (set *ComposeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &ComposeModuleField{}
 		)
@@ -170,10 +166,6 @@ func (set ComposeModuleFieldSet) set() (out types.ModuleFieldSet) {
 }
 
 func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "module field definition must be a map")
-	}
-
 	if wrap.res == nil {
 		wrap.res = &types.ModuleField{}
 	}
@@ -186,7 +178,7 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
 			return fmt.Errorf("name should be encoded as field definition key")

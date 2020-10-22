@@ -23,7 +23,7 @@ type (
 )
 
 func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composePage{}
 		)
@@ -82,10 +82,6 @@ func (wset composePageSet) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "page definition must be a map")
-	}
-
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Page{
@@ -98,7 +94,7 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "title":
 			return decodeScalar(v, "page title", &wrap.res.Title)

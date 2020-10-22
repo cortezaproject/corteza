@@ -32,7 +32,7 @@ type (
 )
 
 func (wset *composeChartSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composeChart{}
 		)
@@ -91,10 +91,6 @@ func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "chart definition must be a map")
-	}
-
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Chart{}
@@ -104,7 +100,7 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "handle":
 			return decodeScalar(v, "chart handle", &wrap.res.Handle)
@@ -139,11 +135,7 @@ func (wrap composeChart) MarshalEnvoy() ([]envoy.Node, error) {
 }
 
 func (wrap *composeChartConfig) UnmarshalYAML(n *yaml.Node) error {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "chart configuration must be a map")
-	}
-
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "reports":
 			reports := make([]composeChartConfigReport, 0)
@@ -177,7 +169,7 @@ func (wrap *composeChartConfigReport) UnmarshalYAML(n *yaml.Node) error {
 		return err
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "module":
 			// custom decoder for referenced module
