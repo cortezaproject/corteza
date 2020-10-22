@@ -34,13 +34,10 @@ func TestCompose_UnmarshalYAML(t *testing.T) {
 	req.Len(c.namespaces, 1)
 
 	c, err = parse(&compose{}, `namespace: { }`)
-	req.NoError(err)
-	req.NotNil(c)
-	req.Len(c.namespaces, 1)
+	req.Error(err)
 
 	c, err = parse(&compose{}, `namespace: foo`)
 	req.NoError(err)
 	req.NotNil(c)
-	req.Len(c.namespaces, 1)
-	req.Equal("foo", c.namespaces[0].ref)
+	req.Empty(c.namespaces, "namespace ref should not result in namespace definition")
 }

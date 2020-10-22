@@ -2,7 +2,8 @@ package yaml
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -64,17 +65,17 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 		req.Equal("crm", doc.compose.namespaces[0].res.Slug)
 	})
 
-	t.Run("compose namespace file 2", func(t *testing.T) {
-		doc, err := file(2)
-		req.NoError(err)
-		req.NotNil(doc)
-		spew.Dump(doc.compose)
-		req.NotNil(doc.compose)
-		req.Len(doc.compose.namespaces, 1)
-		req.NotNil(doc.compose.namespaces[0])
+}
 
-		req.Equal("CRM", doc.compose.namespaces[0].res.Name)
-		req.Equal("crm", doc.compose.namespaces[0].res.Slug)
-	})
+func TestComposeNamespace_MarshalEnvoy(t *testing.T) {
+	var (
+		req = require.New(t)
 
+		wrap    = ComposeNamespace{res: &types.Namespace{ID: 42}}
+		nn, err = wrap.MarshalEnvoy()
+	)
+
+	req.NoError(err)
+	req.NotEmpty(nn)
+	req.Equal(uint64(42), nn[0].(*envoy.ComposeNamespaceNode).Ns.ID)
 }

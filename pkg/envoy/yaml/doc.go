@@ -30,6 +30,16 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) error {
 func (doc *Document) Decode(ctx context.Context, l loader) ([]envoy.Node, error) {
 	nn := make([]envoy.Node, 0, 100)
 
+	if doc.compose != nil {
+		if tmp, err := doc.compose.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
+
 	//// In case of namespaces...
 	//if doc.Namespaces != nil {
 	//	nodes, err := doc.Namespaces.Decode(ctx, l)
@@ -67,7 +77,7 @@ func (doc *Document) Decode(ctx context.Context, l loader) ([]envoy.Node, error)
 	//	for modRef, rr := range doc.Records {
 	//		// We can define a basic module representation as it will be updated later
 	//		// during validation/runtime
-	//		mod := &types.Module{}
+	//		mod := &types.module{}
 	//		mod.Handle = modRef
 	//		mod.Name = modRef
 	//

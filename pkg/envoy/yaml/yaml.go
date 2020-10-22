@@ -84,9 +84,9 @@ func findKeyNode(n *yaml.Node, key string) *yaml.Node {
 }
 
 // Checks validity of ref node and sets the value to given arg ptr
-func decodeScalar(n *yaml.Node, val interface{}) error {
+func decodeScalar(n *yaml.Node, name string, val interface{}) error {
 	if !isKind(n, yaml.ScalarNode) {
-		return nodeErr(n, "expecting scalar value")
+		return nodeErr(n, "expecting scalar value for %s", name)
 	}
 
 	return n.Decode(val)
