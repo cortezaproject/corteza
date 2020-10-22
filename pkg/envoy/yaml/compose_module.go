@@ -96,6 +96,9 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 		case "name":
 			return decodeScalar(v, "module name", &wrap.res.Name)
 
+		case "handle":
+			return decodeScalar(v, "module handle", &wrap.res.Handle)
+
 		case "fields":
 			if !isKind(v, yaml.MappingNode) {
 				return nodeErr(n, "field definition must be a map")

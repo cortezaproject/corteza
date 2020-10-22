@@ -10,8 +10,7 @@ import (
 
 type (
 	ComposeRecord struct {
-		res          *types.Record       `yaml:",inline"`
-		values       ComposeRecordValues `yaml:"values"`
+		res          *types.Record `yaml:",inline"`
 		refModule    string
 		refNamespace string
 		refCreatedBy string

@@ -8,18 +8,18 @@ import (
 	"testing"
 )
 
-func TestComposeModule_UnmarshalYAML(t *testing.T) {
+func TestComposeChart_UnmarshalYAML(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		parseString = func(src string) (*ComposeModule, error) {
-			w := &ComposeModule{}
+		parseString = func(src string) (*composeChart, error) {
+			w := &composeChart{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 
 		parseDocument = func(i int) (*Document, error) {
 			doc := &Document{}
-			f, err := os.Open(fmt.Sprintf("testdata/compose_module_%d.yaml", i))
+			f, err := os.Open(fmt.Sprintf("testdata/compose_chart_%d.yaml", i))
 			if err != nil {
 				return nil, err
 			}
@@ -48,9 +48,7 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.modules, 3)
-		req.Equal(30, len(doc.compose.modules[0].res.Fields))
-		req.Equal(21, len(doc.compose.modules[1].res.Fields))
-		req.Equal(23, len(doc.compose.modules[2].res.Fields))
+		req.Len(doc.compose.charts, 2)
+		req.Equal(1, len(doc.compose.charts[0].res.Config.Reports))
 	})
 }

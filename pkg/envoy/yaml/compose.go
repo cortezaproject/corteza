@@ -10,8 +10,8 @@ type (
 		namespaces ComposeNamespaceSet
 		modules    ComposeModuleSet
 		records    ComposeRecordSet
-		// pages ComposePagesSet
-		// charts ComposeChartsSet
+		pages      composePageSet
+		charts     composeChartSet
 	}
 )
 
@@ -34,7 +34,7 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 				return nodeErr(def, "cannot combine namespace reference and namespaces definition")
 			}
 
-			if err := decodeScalar(v, "namespace ref", &nsRef); err != nil {
+			if err := decodeRef(v, "namespace", &nsRef); err != nil {
 				return err
 			}
 		}
@@ -59,6 +59,20 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 
 			return c.modules.setNamespaceRef(nsRef)
 
+		case "pages":
+			if err = v.Decode(&c.pages); err != nil {
+				return err
+			}
+
+			return c.pages.setNamespaceRef(nsRef)
+
+		case "charts":
+			if err = v.Decode(&c.charts); err != nil {
+				return err
+			}
+
+			return c.charts.setNamespaceRef(nsRef)
+
 		case "records":
 			if err = v.Decode(&c.records); err != nil {
 				return err
@@ -71,19 +85,19 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wrap compose) MarshalEnvoy() ([]envoy.Node, error) {
+func (c compose) MarshalEnvoy() ([]envoy.Node, error) {
 	nn := make([]envoy.Node, 0, 100)
 
-	if wrap.namespaces != nil {
-		if tmp, err := wrap.namespaces.MarshalEnvoy(); err != nil {
+	if c.namespaces != nil {
+		if tmp, err := c.namespaces.MarshalEnvoy(); err != nil {
 			return nil, err
 		} else {
 			nn = append(nn, tmp...)
 		}
 	}
 
-	if wrap.modules != nil {
-		if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
+	if c.modules != nil {
+		if tmp, err := c.modules.MarshalEnvoy(); err != nil {
 			return nil, err
 		} else {
 			nn = append(nn, tmp...)
