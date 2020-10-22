@@ -2,16 +2,24 @@ package yaml
 
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	ComposeNamespace struct {
-		res     *types.Namespace `yaml:",inline"`
-		ref     string
-		Modules ComposeModuleSet
-		Rbac    `yaml:",inline"`
+		// when namespace is at least partially defined
+		res *types.Namespace `yaml:",inline"`
+
+		// when we only have reference (slug) to namespace
+		ref string
+
+		// all known modules on a namespace
+		modules ComposeModuleSet
+
+		// module's RBAC rules
+		*rbacRules
 	}
 	ComposeNamespaceSet []*ComposeNamespace
 )
@@ -53,7 +61,23 @@ func (wset *ComposeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
+func (wset ComposeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
+	// namespace usually have bunch of sub-resources defined
+	nn := make([]envoy.Node, 0, len(wset)*10)
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
+}
+
 func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) error {
+
 	if isKind(n, yaml.ScalarNode) {
 		wrap.ref = n.Value
 		return nil
@@ -73,16 +97,46 @@ func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) error {
 	return iterator(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "slug":
-			return decodeScalar(v, &wrap.res.Slug)
+			return decodeScalar(v, "namespace slug", &wrap.res.Slug)
 
 		case "name":
-			return decodeScalar(v, &wrap.res.Name)
+			return decodeScalar(v, "namespace name", &wrap.res.Name)
 
 		case "enabled":
-			return decodeScalar(v, &wrap.res.Enabled)
+			return decodeScalar(v, "namespace enabled", &wrap.res.Enabled)
+
+		case "modules":
+			return v.Decode(&wrap.modules)
+
+		case "allow", "deny":
+			if wrap.rbacRules == nil {
+				wrap.rbacRules = &rbacRules{}
+			}
+			return decodeAccessRoleOps(wrap.rbacRules, types.NamespaceRBACResource, k, v)
 
 		}
 
 		return nil
 	})
+}
+
+func (wrap ComposeNamespace) MarshalEnvoy() ([]envoy.Node, error) {
+	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
+	nn = append(nn, &envoy.ComposeNamespaceNode{Ns: wrap.res})
+
+	if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
+		return nil, err
+	} else {
+		nn = append(nn, tmp...)
+	}
+
+	// @todo rbac
+
+	//if tmp, err := wrap.rules.MarshalEnvoy(); err != nil {
+	//	return nil, err
+	//} else {
+	//	nn = append(nn, tmp...)
+	//}
+
+	return nn, nil
 }

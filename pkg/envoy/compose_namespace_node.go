@@ -17,9 +17,7 @@ func (n *ComposeNamespaceNode) Identifiers() NodeIdentifiers {
 	if n.Ns.Slug != "" {
 		ii = ii.Add(n.Ns.Slug)
 	}
-	if n.Ns.Name != "" {
-		ii = ii.Add(n.Ns.Name)
-	}
+
 	if n.Ns.ID > 0 {
 		ii = ii.Add(strconv.FormatUint(n.Ns.ID, 10))
 	}

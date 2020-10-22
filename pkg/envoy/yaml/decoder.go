@@ -3,7 +3,6 @@ package yaml
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"gopkg.in/yaml.v3"
 	"io"
@@ -94,7 +93,7 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //		for modRef, rr := range c.Records {
 //			// We can define a basic module representation as it will be updated later
 //			// during validation/runtime
-//			mod := &types.Module{}
+//			mod := &types.module{}
 //			mod.Handle = modRef
 //			mod.Name = modRef
 //
@@ -109,55 +108,55 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 
-func (y *decoder) convertNamespaces(nss ComposeNamespaceSet) ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 2)
-
-	for _, ns := range nss {
-		nn = append(nn, &envoy.ComposeNamespaceNode{Ns: ns.res})
-
-		// Nested modules
-		if ns.Modules != nil {
-			mm, err := y.convertModules(ns.Modules, ns.res)
-			if err != nil {
-				return nil, err
-			}
-			nn = append(nn, mm...)
-		}
-
-		// @todo nested RBAC
-	}
-
-	return nn, nil
-}
-
-func (y *decoder) convertModules(mm ComposeModuleSet, ns *types.Namespace) ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0)
-
-	for _, m := range mm {
-		nn = append(nn, &envoy.ComposeModuleNode{
-			Mod: m.res,
-			Ns:  ns,
-		})
-
-		// @todo nested resources; should there be any?
-	}
-
-	return nn, nil
-}
-
-func (y *decoder) convertRecords(rr ComposeRecordSet, m *types.Module) ([]envoy.Node, error) {
-	// Iterator function for providing records to be imported.
-	// This doesn't do any validation; that should be handled by other layers.
-	f := func(f func(record *types.Record) error) error {
-		//for _, r := range rr {
-		//err := f(r.res)
-		//if err != nil {
-		//	return err
-		//}
-		//}
-
-		return nil
-	}
-
-	return []envoy.Node{&envoy.ComposeRecordNode{Mod: m, Walk: f}}, nil
-}
+//func (y *decoder) convertNamespaces(nss ComposeNamespaceSet) ([]envoy.Node, error) {
+//	nn := make([]envoy.Node, 0, 2)
+//
+//	for _, ns := range nss {
+//		nn = append(nn, &envoy.ComposeNamespaceNode{Ns: ns.res})
+//
+//		// Nested modules
+//		if ns.modules != nil {
+//			mm, err := y.convertModules(ns.modules, ns.res)
+//			if err != nil {
+//				return nil, err
+//			}
+//			nn = append(nn, mm...)
+//		}
+//
+//		// @todo nested RBAC
+//	}
+//
+//	return nn, nil
+//}
+//
+//func (y *decoder) convertModules(mm ComposeModuleSet, ns *types.Namespace) ([]envoy.Node, error) {
+//	nn := make([]envoy.Node, 0)
+//
+//	for _, m := range mm {
+//		nn = append(nn, &envoy.ComposeModuleNode{
+//			module: m.res,
+//			Ns:     ns,
+//		})
+//
+//		// @todo nested resources; should there be any?
+//	}
+//
+//	return nn, nil
+//}
+//
+//func (y *decoder) convertRecords(rr ComposeRecordSet, m *types.Module) ([]envoy.Node, error) {
+//	// Iterator function for providing records to be imported.
+//	// This doesn't do any validation; that should be handled by other layers.
+//	f := func(f func(record *types.Record) error) error {
+//		//for _, r := range rr {
+//		//err := f(r.res)
+//		//if err != nil {
+//		//	return err
+//		//}
+//		//}
+//
+//		return nil
+//	}
+//
+//	return []envoy.Node{&envoy.ComposeRecordNode{Mod: m, Walk: f}}, nil
+//}
