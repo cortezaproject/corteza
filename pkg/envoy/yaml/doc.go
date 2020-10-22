@@ -10,6 +10,7 @@ type (
 	// Document defines the supported yaml structure
 	Document struct {
 		compose *compose
+		*rbacRules
 	}
 )
 
@@ -23,7 +24,16 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) error {
 		return err
 	}
 
-	return nil
+	doc.rbacRules = &rbacRules{}
+	return iterator(n, func(k, v *yaml.Node) error {
+		switch k.Value {
+		case "allow", "deny":
+			return doc.rbacRules.DecodeGlobalRules(k, v)
+
+		}
+
+		return nil
+	})
 }
 
 //

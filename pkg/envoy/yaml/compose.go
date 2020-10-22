@@ -79,6 +79,7 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 			return c.records.setNamespaceRef(nsRef)
+
 		}
 
 		return nil

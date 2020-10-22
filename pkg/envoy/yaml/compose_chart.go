@@ -92,6 +92,7 @@ func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) error {
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Chart{}
 	}
 
@@ -121,7 +122,7 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) error {
 			wrap.refReportModules = cfg.refReportModules
 
 		case "allow", "deny":
-			return decodeAccessRoleOps(wrap.rbacRules, types.ChartRBACResource, k, v)
+			return wrap.rbacRules.DecodeResourceRules(types.ChartRBACResource, k, v)
 
 		}
 

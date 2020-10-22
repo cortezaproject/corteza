@@ -1,6 +1,7 @@
 namespace: crm
 modules:
   Account:
+    allow: { somerole: [ read ] }
     name: Account
     fields:
       AccountName:
