@@ -37,9 +37,7 @@ func makeMockAuthService() *auth {
 		panic(err)
 	}
 
-	if err = mem.(interface {
-		Upgrade(context.Context, *zap.Logger) error
-	}).Upgrade(ctx, zap.NewNop()); err != nil {
+	if err = store.Upgrade(ctx, zap.NewNop(), mem); err != nil {
 		panic(err)
 	}
 

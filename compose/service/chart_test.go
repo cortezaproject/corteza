@@ -25,14 +25,9 @@ func TestCharts(t *testing.T) {
 		t.Fatalf("failed to init sqlite in-memory db: %v", err)
 	}
 
-	func(s interface{}) {
-		err = s.(interface {
-			Upgrade(context.Context, *zap.Logger) error
-		}).Upgrade(ctx, zap.NewNop())
-		if err != nil {
-			t.Fatalf("failed to upgrade store: %v", err)
-		}
-	}(s)
+	if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
+		t.Fatalf("failed to upgrade store: %v", err)
+	}
 
 	if err = s.TruncateComposeNamespaces(ctx); err != nil {
 		t.Fatalf("failed to truncate compose namespaces: %v", err)
