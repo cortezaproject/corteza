@@ -92,3 +92,24 @@ func (ss NodeSet) Has(n Node) bool {
 	}
 	return has
 }
+
+func (ss NodeSet) Remove(nn ...Node) NodeSet {
+	mm := make(NodeSet, 0, len(ss))
+
+	if len(nn) <= 0 {
+		return ss
+	}
+
+	for _, s := range ss {
+		for _, n := range nn {
+			if s.Matches(n.Resource(), n.Identifiers()...) {
+				goto skip
+			}
+		}
+		mm = append(mm, s)
+
+	skip:
+	}
+
+	return mm
+}
