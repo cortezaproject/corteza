@@ -8,18 +8,18 @@ import (
 	"testing"
 )
 
-func TestComposeModule_UnmarshalYAML(t *testing.T) {
+func TestComposePage_UnmarshalYAML(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		parseString = func(src string) (*ComposeModule, error) {
-			w := &ComposeModule{}
+		parseString = func(src string) (*composePage, error) {
+			w := &composePage{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 
 		parseDocument = func(i int) (*Document, error) {
 			doc := &Document{}
-			f, err := os.Open(fmt.Sprintf("testdata/compose_module_%d.yaml", i))
+			f, err := os.Open(fmt.Sprintf("testdata/compose_page_%d.yaml", i))
 			if err != nil {
 				return nil, err
 			}
@@ -36,11 +36,11 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 	})
 
 	t.Run("simple name", func(t *testing.T) {
-		w, err := parseString(`{ name: Test }`)
+		w, err := parseString(`{ title: Test }`)
 		req.NoError(err)
 		req.NotNil(w)
 		req.NotNil(w.res)
-		req.NotEmpty(w.res.Name)
+		req.NotEmpty(w.res.Title)
 	})
 
 	t.Run("compose module file 1", func(t *testing.T) {
@@ -48,9 +48,8 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.modules, 3)
-		req.Equal(30, len(doc.compose.modules[0].res.Fields))
-		req.Equal(21, len(doc.compose.modules[1].res.Fields))
-		req.Equal(23, len(doc.compose.modules[2].res.Fields))
+		req.Len(doc.compose.pages, 1)
+		req.Len(doc.compose.pages[0].pages, 1)
+		req.Equal(3, len(doc.compose.pages[0].res.Blocks))
 	})
 }
