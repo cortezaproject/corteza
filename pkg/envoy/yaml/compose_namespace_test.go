@@ -14,12 +14,12 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		string = func(src string) (*ComposeNamespace, error) {
+		parseString = func(src string) (*ComposeNamespace, error) {
 			w := &ComposeNamespace{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 
-		file = func(i int) (*Document, error) {
+		parseDocument = func(i int) (*Document, error) {
 			doc := &Document{}
 			f, err := os.Open(fmt.Sprintf("testdata/compose_namespace_%d.yaml", i))
 			if err != nil {
@@ -31,14 +31,14 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 	)
 
 	t.Run("empty", func(t *testing.T) {
-		w, err := string(``)
+		w, err := parseString(``)
 		req.NoError(err)
 		req.NotNil(w)
 		req.Nil(w.res)
 	})
 
 	t.Run("simple name", func(t *testing.T) {
-		w, err := string(`{ name: Test }`)
+		w, err := parseString(`{ name: Test }`)
 		req.NoError(err)
 		req.NotNil(w)
 		req.NotNil(w.res)
@@ -47,15 +47,15 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 	})
 
 	t.Run("disabled", func(t *testing.T) {
-		w, err := string(`{ enabled: false }`)
+		w, err := parseString(`{ enabled: false }`)
 		req.NoError(err)
 		req.NotNil(w)
 		req.NotNil(w.res)
 		req.False(w.res.Enabled)
 	})
 
-	t.Run("compose namespace file 1", func(t *testing.T) {
-		doc, err := file(1)
+	t.Run("compose namespace 1", func(t *testing.T) {
+		doc, err := parseDocument(1)
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
