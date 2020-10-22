@@ -1,0 +1,18 @@
+namespace: service-solution
+records:
+  Department:
+  - values:
+      Name: "Service"
+      HourCost: "50"
+  EmailTemplate:
+  - values:
+      Name: "Case Update"
+      Description: "This is the default case update template"
+      Subject: "Case: [{{Case.Number}}] {{Case.Subject}}"
+      Body: |-
+        <p><strong>Dear {{Contact.FirstName}}</strong></p>
+  Settings:
+  - values:
+      KBNextNumber: "1"
+      DefaultCostPerHour: "50"
+      DefaultTimeUpdate: "0.25"
