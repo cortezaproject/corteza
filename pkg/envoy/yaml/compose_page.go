@@ -81,7 +81,11 @@ func (wset composePageSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *composePage) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
+	if !isKind(n, yaml.MappingNode) {
+		return nodeErr(n, "page definition must be a map")
+	}
+
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Page{
@@ -90,8 +94,8 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) error {
 		}
 	}
 
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "page definition must be a map")
+	if wrap.rbacRules, err = decodeResourceAccessControl(types.PageRBACResource, n); err != nil {
+		return
 	}
 
 	return iterator(n, func(k, v *yaml.Node) (err error) {
@@ -122,16 +126,8 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) error {
 				wrap.res.Blocks[i] = b
 			}
 
-		// @todo
-		//	return decodeScalar(v, "page blocks", &wrap.res.Visible)
-
 		case "pages":
 			return v.Decode(&wrap.pages)
-
-		// return decodeScalar(v, "page pages", &wrap.res.Visible)
-
-		case "allow", "deny":
-			return wrap.rbacRules.DecodeResourceRules(types.PageRBACResource, k, v)
 
 		}
 
