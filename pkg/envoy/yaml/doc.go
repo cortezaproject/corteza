@@ -10,16 +10,12 @@ type (
 	// Document defines the supported yaml structure
 	Document struct {
 		compose *compose
+		roles   roleSet
 		*rbacRules
 	}
 )
 
 func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		// root node kind be mapping
-		return nodeErr(n, "expecting mapping node")
-	}
-
 	if err = n.Decode(&doc.compose); err != nil {
 		return
 	}
@@ -28,7 +24,14 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return nil
+	return eachMap(n, func(k, v *yaml.Node) error {
+		switch k.Value {
+		case "roles":
+			return v.Decode(&doc.roles)
+		}
+
+		return nil
+	})
 }
 
 //
