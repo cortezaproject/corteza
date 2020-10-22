@@ -33,7 +33,7 @@ type (
 // { module-handle: [ { ... values ... } ] }
 // [ { module: module-handle, ... values ... } ]
 func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			moduleRef string
 		)
@@ -53,7 +53,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 
 		if isKind(v, yaml.SequenceNode) {
 			// multiple records defined
-			return iterator(v, func(_, r *yaml.Node) error {
+			return eachSeq(v, func(r *yaml.Node) error {
 				var wrap = &ComposeRecord{refModule: moduleRef}
 				if err = r.Decode(&wrap); err != nil {
 					return err
@@ -102,10 +102,6 @@ func (set ComposeRecordSet) setNamespaceRef(ref string) error {
 }
 
 func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "expecting mapping node for record definition")
-	}
-
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Record{}
@@ -116,7 +112,7 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	//	return
 	//}
 
-	return iterator(n, func(k, v *yaml.Node) error {
+	return eachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "module":
 			return decodeRef(v, "module", &wrap.refModule)
@@ -157,13 +153,9 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 // { <field name>: ... <scalar value>, .... }
 // { <field name>: [ <scalar value> ], .... }
 func (wset *ComposeRecordValues) UnmarshalYAML(n *yaml.Node) error {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "expecting mapping node for record value definition")
-	}
-
 	wset.rvs = types.RecordValueSet{}
 
-	return iterator(n, func(k, v *yaml.Node) error {
+	return eachMap(n, func(k, v *yaml.Node) error {
 		if isKind(v, yaml.ScalarNode) {
 			wset.rvs = append(wset.rvs, &types.RecordValue{
 				Name:  k.Value,
