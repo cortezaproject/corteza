@@ -9,26 +9,27 @@ import (
 type (
 	// ComposeModuleNode represents a ComposeModule
 	ComposeModuleNode struct {
-		Mod *types.Module
+		Module *types.Module
 
 		// Related namespace
-		Ns *types.Namespace
+		RefNamespaceSlug string
+		RefNamespaceID   uint64
 	}
 )
 
 func (n *ComposeModuleNode) Identifiers() NodeIdentifiers {
 	ii := make(NodeIdentifiers, 0)
 
-	if n.Mod.Handle != "" {
-		ii = ii.Add(n.Mod.Handle)
+	if n.Module.Handle != "" {
+		ii = ii.Add(n.Module.Handle)
 	}
 
-	if n.Mod.Name != "" {
-		ii = ii.Add(n.Mod.Name)
+	if n.Module.Name != "" {
+		ii = ii.Add(n.Module.Name)
 	}
 
-	if n.Mod.ID > 0 {
-		ii = ii.Add(strconv.FormatUint(n.Mod.ID, 10))
+	if n.Module.ID > 0 {
+		ii = ii.Add(strconv.FormatUint(n.Module.ID, 10))
 	}
 
 	return ii
@@ -51,19 +52,17 @@ func (n *ComposeModuleNode) Relations() NodeRelationships {
 
 	// Related namespace
 	nsr := types.NamespaceRBACResource.String()
-	if n.Ns.Slug != "" {
-		rel.Add(nsr, n.Ns.Slug)
+	if n.RefNamespaceSlug != "" {
+		rel.Add(nsr, n.RefNamespaceSlug)
 	}
-	if n.Ns.Name != "" {
-		rel.Add(nsr, n.Ns.Name)
-	}
-	if n.Ns.ID > 0 {
-		rel.Add(nsr, strconv.FormatUint(n.Ns.ID, 10))
+
+	if n.RefNamespaceID > 0 {
+		rel.Add(nsr, strconv.FormatUint(n.RefNamespaceID, 10))
 	}
 
 	// Related modules via Record module fields
 	mdr := types.ModuleRBACResource.String()
-	for _, f := range n.Mod.Fields {
+	for _, f := range n.Module.Fields {
 		// @todo should a missing module property raise an error?
 		if f.Kind == "Record" && f.Options.String("module") != "" {
 			rel.Add(mdr, f.Options.String("module"))
@@ -86,25 +85,24 @@ func (n *ComposeModuleNode) updateNamespace(m Node) {
 	}
 
 	mn := m.(*ComposeNamespaceNode)
-	n.Ns = mn.Ns
+	n.Module.NamespaceID = mn.Ns.ID
 }
 
 func (n *ComposeModuleNode) updateRecFields(m Node) {
 	if m.Resource() != types.ModuleRBACResource.String() {
 		return
 	}
+
 	mn := m.(*ComposeModuleNode)
 
 	// Check what record module field we can link this to
-	for _, f := range n.Mod.Fields {
+	for _, f := range n.Module.Fields {
 		if f.Kind != "Record" {
 			continue
 		}
 
 		if mn.Identifiers().HasAny(f.Options.String("module")) {
-			f.Options["module"] = strconv.FormatUint(mn.Mod.ID, 10)
+			f.Options["module"] = strconv.FormatUint(mn.Module.ID, 10)
 		}
 	}
-
-	n.Ns = mn.Ns
 }

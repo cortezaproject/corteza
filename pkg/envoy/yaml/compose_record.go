@@ -1,7 +1,9 @@
 package yaml
 
 import (
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
@@ -10,11 +12,12 @@ type (
 	ComposeRecord struct {
 		res          *types.Record       `yaml:",inline"`
 		values       ComposeRecordValues `yaml:"values"`
-		moduleRef    string
-		createdByRef string
-		updatedByRef string
-		deletedByRef string
-		ownedByRef   string
+		refModule    string
+		refNamespace string
+		refCreatedBy string
+		refUpdatedBy string
+		refDeletedBy string
+		refOwnedBy   string
 	}
 	ComposeRecordSet []*ComposeRecord
 
@@ -51,7 +54,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 		if isKind(v, yaml.SequenceNode) {
 			// multiple records defined
 			return iterator(v, func(_, r *yaml.Node) error {
-				var wrap = &ComposeRecord{moduleRef: moduleRef}
+				var wrap = &ComposeRecord{refModule: moduleRef}
 				if err = r.Decode(&wrap); err != nil {
 					return err
 				}
@@ -63,7 +66,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 
 		if isKind(v, yaml.MappingNode) {
 			// one record defined
-			var wrap = &ComposeRecord{moduleRef: moduleRef}
+			var wrap = &ComposeRecord{refModule: moduleRef}
 			if err = v.Decode(&wrap); err != nil {
 				return
 			}
@@ -73,6 +76,29 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 
 		return nil
 	})
+}
+
+func (wset ComposeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
+	// namespace usually have bunch of sub-resources defined
+	var (
+		nn = []envoy.Node{}
+	)
+
+	// @todo
+
+	return nn, nil
+}
+
+func (set ComposeRecordSet) setNamespaceRef(ref string) error {
+	for _, res := range set {
+		if res.refNamespace != "" && ref != res.refNamespace {
+			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
+		}
+
+		res.refNamespace = ref
+	}
+
+	return nil
 }
 
 func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
@@ -87,7 +113,7 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 	return iterator(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "module":
-			return decodeRef(v, "module", &wrap.moduleRef)
+			return decodeRef(v, "module", &wrap.refModule)
 
 		case "values":
 			// Use aux structure to decode record values into RVS
@@ -106,13 +132,13 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 		case "deletedAt":
 			return v.Decode(&wrap.res.DeletedAt)
 		case "createdBy":
-			return decodeRef(v, "user", &wrap.createdByRef)
+			return decodeRef(v, "createdBy user", &wrap.refCreatedBy)
 		case "updatedBy":
-			return decodeRef(v, "user", &wrap.updatedByRef)
+			return decodeRef(v, "updatedBy user", &wrap.refUpdatedBy)
 		case "deletedBy":
-			return decodeRef(v, "user", &wrap.deletedByRef)
+			return decodeRef(v, "deletedBy user", &wrap.refDeletedBy)
 		case "ownedBy":
-			return decodeRef(v, "user", &wrap.ownedByRef)
+			return decodeRef(v, "ownedBy user", &wrap.refOwnedBy)
 
 		default:
 			return nodeErr(k, "unsupported key %s used for record definition", k.Value)

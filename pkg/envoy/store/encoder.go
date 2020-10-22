@@ -26,30 +26,28 @@ func NewStoreEncoder(s store.Storer) *StoreEncoder {
 	}
 }
 
-func (se *StoreEncoder) Encode(ctx context.Context, s store.Storer, nn ...envoy.Node) error {
-	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) error {
+func (se *StoreEncoder) Encode(ctx context.Context, nn ...envoy.Node) error {
+	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
 		for _, n := range nn {
 			switch n.Resource() {
 			case types.NamespaceRBACResource.String():
 				ns := n.(*envoy.ComposeNamespaceNode)
-				_, err := se.encodeNamespace(ctx, s, ns)
-				if err != nil {
-					return err
+				if ns.Ns, err = se.encodeNamespace(ctx, s, ns); err != nil {
+					return
 				}
 
 			case types.ModuleRBACResource.String():
 				mod := n.(*envoy.ComposeModuleNode)
-				_, err := se.encodeModule(ctx, s, mod)
-				if err != nil {
-					return err
+				if mod.Module, err = se.encodeModule(ctx, s, mod); err != nil {
+					return
 				}
 
-			case "compose:record:":
-				rec := n.(*envoy.ComposeRecordNode)
-				err := se.encodeRecord(ctx, s, rec)
-				if err != nil {
-					return err
-				}
+				//case "compose:record:":
+				//	rec := n.(*envoy.ComposeRecordNode)
+				//
+				//	if err = se.encodeRecord(ctx, s, rec); err != nil {
+				//		return
+				//	}
 			}
 		}
 
@@ -60,6 +58,8 @@ func (se *StoreEncoder) Encode(ctx context.Context, s store.Storer, nn ...envoy.
 func (se *StoreEncoder) encodeNamespace(ctx context.Context, s store.Storer, n *envoy.ComposeNamespaceNode) (*types.Namespace, error) {
 	cns := n.Ns
 
+	// @todo this should probably be refactored (together with services)
+	//       so that core logic is handled in one place
 	cns.ID = nextID()
 	if cns.CreatedAt.IsZero() {
 		cns.CreatedAt = time.Now()
@@ -73,11 +73,11 @@ func (se *StoreEncoder) encodeNamespace(ctx context.Context, s store.Storer, n *
 }
 
 func (se *StoreEncoder) encodeModule(ctx context.Context, s store.Storer, m *envoy.ComposeModuleNode) (*types.Module, error) {
-	mod := m.Mod
-	cns := m.Ns
+	mod := m.Module
 
+	// @todo this should probably be refactored (together with services)
+	//       so that core logic is handled in one place
 	mod.ID = nextID()
-	mod.NamespaceID = cns.ID
 
 	if mod.CreatedAt.IsZero() {
 		mod.CreatedAt = time.Now()
@@ -104,40 +104,44 @@ func (se *StoreEncoder) encodeModule(ctx context.Context, s store.Storer, m *env
 	return mod, nil
 }
 
-func (se *StoreEncoder) encodeRecord(ctx context.Context, s store.Storer, m *envoy.ComposeRecordNode) error {
-	mod := m.Mod
-
-	return m.Walk(func(rec *types.Record) error {
-		rec.ID = nextID()
-		rec.ModuleID = mod.ID
-		rec.NamespaceID = mod.NamespaceID
-
-		if rec.CreatedAt.IsZero() {
-			rec.CreatedAt = time.Now()
-		}
-
-		rec.Values = make(types.RecordValueSet, 0, 100)
-
-		// Process record values
-		for _, crv := range rec.Values {
-			crv.RecordID = rec.ID
-			rec.Values = append(rec.Values, crv)
-		}
-		rec.Values.SetUpdatedFlag(true)
-		rec.Values = se.setDefaultComposeRecordValues(mod, rec.Values)
-		rec.Values = rvSanitizer.Run(mod, rec.Values)
-		err := rvValidator.Run(ctx, s, mod, rec)
-		if err != nil {
-			return err
-		}
-
-		if err := store.CreateComposeRecord(ctx, s, m.Mod, rec); err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
+//func (se *StoreEncoder) encodeRecord(ctx context.Context, s store.Storer, m *envoy.ComposeRecordNode) error {
+//	mod := m.Mod
+//
+//	// @todo a bit less ad-hoc-ish solution
+//	return m.Walk(func(rec *types.Record) error {
+//		// @todo this should probably be refactored (together with services)
+//		//       so that core logic is handled in one place
+//
+//		rec.ID = nextID()
+//		rec.ModuleID = mod.ID
+//		rec.NamespaceID = mod.NamespaceID
+//
+//		if rec.CreatedAt.IsZero() {
+//			rec.CreatedAt = time.Now()
+//		}
+//
+//		rec.Values = make(types.RecordValueSet, 0, 100)
+//
+//		// Process record values
+//		for _, crv := range rec.Values {
+//			crv.RecordID = rec.ID
+//			rec.Values = append(rec.Values, crv)
+//		}
+//		rec.Values.SetUpdatedFlag(true)
+//		rec.Values = se.setDefaultComposeRecordValues(mod, rec.Values)
+//		rec.Values = rvSanitizer.Run(mod, rec.Values)
+//		err := rvValidator.Run(ctx, s, mod, rec)
+//		if err != nil {
+//			return err
+//		}
+//
+//		if err := store.CreateComposeRecord(ctx, s, m.Mod, rec); err != nil {
+//			return err
+//		}
+//
+//		return nil
+//	})
+//}
 
 // @note this method is coppied over from the compose/service/record.
 // Would it be better to unify the two methods?

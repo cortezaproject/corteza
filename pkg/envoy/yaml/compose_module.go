@@ -3,25 +3,27 @@ package yaml
 import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	ComposeModule struct {
-		res  *types.Module
-		Rbac `yaml:",inline"`
+		res          *types.Module
+		refNamespace string
+		*rbacRules
 	}
 	ComposeModuleSet []*ComposeModule
 
 	ComposeModuleField struct {
-		res  *types.ModuleField `yaml:",inline"`
-		Rbac `yaml:",inline"`
+		res *types.ModuleField `yaml:",inline"`
+		*rbacRules
 	}
 	ComposeModuleFieldSet []*ComposeModuleField
 )
 
-func (set *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
+func (wset *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
 	return iterator(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &ComposeModule{}
@@ -48,9 +50,36 @@ func (set *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
 			wrap.res.Name = k.Value
 		}
 
-		*set = append(*set, wrap)
+		*wset = append(*wset, wrap)
 		return
 	})
+}
+
+func (wset ComposeModuleSet) setNamespaceRef(ref string) error {
+	for _, res := range wset {
+		if res.refNamespace != "" && ref != res.refNamespace {
+			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
+		}
+
+		res.refNamespace = ref
+	}
+
+	return nil
+}
+
+func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
+	// namespace usually have bunch of sub-resources defined
+	nn := make([]envoy.Node, 0, len(wset)*10)
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
 }
 
 func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
@@ -65,7 +94,8 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 	return iterator(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
-			return decodeScalar(v, &wrap.res.Name)
+			return decodeScalar(v, "module name", &wrap.res.Name)
+
 		case "fields":
 			if !isKind(v, yaml.MappingNode) {
 				return nodeErr(n, "field definition must be a map")
@@ -81,10 +111,21 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 
 			wrap.res.Fields = aux.set()
 			return nil
+
+		case "allow", "deny":
+			return decodeAccessRoleOps(wrap.rbacRules, types.ModuleRBACResource, k, v)
+
 		}
 
 		return nil
 	})
+}
+
+func (wrap ComposeModule) MarshalEnvoy() ([]envoy.Node, error) {
+	nn := make([]envoy.Node, 0, 16)
+	nn = append(nn, &envoy.ComposeModuleNode{Module: wrap.res})
+
+	return nn, nil
 }
 
 func (set *ComposeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
@@ -138,25 +179,25 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
 			return fmt.Errorf("name should be encoded as field definition key")
 
 		case "label":
-			return decodeScalar(v, &wrap.res.Label)
+			return decodeScalar(v, "module field label", &wrap.res.Label)
 
 		case "kind", "type":
-			return decodeScalar(v, &wrap.res.Kind)
+			return decodeScalar(v, "module field kind", &wrap.res.Kind)
 
 		case "options":
 			return v.Decode(&wrap.res.Options)
 
 		case "private":
-			return decodeScalar(v, &wrap.res.Private)
+			return decodeScalar(v, "module field private", &wrap.res.Private)
 
 		case "required":
-			return decodeScalar(v, &wrap.res.Required)
+			return decodeScalar(v, "module field required", &wrap.res.Required)
 
 		case "visible":
-			return decodeScalar(v, &wrap.res.Visible)
+			return decodeScalar(v, "module field visible", &wrap.res.Visible)
 
 		case "multi":
-			return decodeScalar(v, &wrap.res.Multi)
+			return decodeScalar(v, "module field multi", &wrap.res.Multi)
 
 		case "default":
 			return fmt.Errorf("field.default /// to be imple,emted")
@@ -169,6 +210,10 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
 			//
 			//	return
 			//})
+
+		case "allow", "deny":
+			return decodeAccessRoleOps(wrap.rbacRules, types.ModuleFieldRBACResource, k, v)
+
 		}
 
 		return nil
