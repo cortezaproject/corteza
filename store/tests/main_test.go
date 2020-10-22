@@ -33,10 +33,6 @@ func Test_Store(t *testing.T) {
 			dsnEnvKey string
 			init      store.ConnectorFn
 		}
-
-		upgrader interface {
-			Upgrade(context.Context, *zap.Logger) error
-		}
 	)
 
 	logger.Init()
@@ -97,12 +93,10 @@ func Test_Store(t *testing.T) {
 				return
 			}
 
-			if up, ok := genericStore.(upgrader); ok {
-				err = up.Upgrade(ctx, zap.NewNop())
-				if err != nil {
-					t.Errorf("failed to upgrade %s store: %s", s.name, err.Error())
-					return
-				}
+			err = store.Upgrade(ctx, zap.NewNop(), genericStore)
+			if err != nil {
+				t.Errorf("failed to upgrade %s store: %s", s.name, err.Error())
+				return
 			}
 
 			testAllGenerated(t, genericStore)

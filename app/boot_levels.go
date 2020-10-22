@@ -33,12 +33,6 @@ import (
 	"time"
 )
 
-type (
-	storeUpgrader interface {
-		Upgrade(context.Context, *zap.Logger) error
-	}
-)
-
 const (
 	bootLevelWaiting = iota
 	bootLevelSetup
@@ -141,10 +135,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 			return err
 		}
 	}
-
-	if upgradableStore, ok := app.Store.(storeUpgrader); !ok {
-		app.Log.Debug("store does not support upgrades")
-	} else if !app.Opt.Upgrade.Always {
+	if !app.Opt.Upgrade.Always {
 		app.Log.Debug("store upgrade skipped (UPGRADE_ALWAYS=false)")
 	} else {
 		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
@@ -159,7 +150,7 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 
 		}
 
-		if err = upgradableStore.Upgrade(ctx, log); err != nil {
+		if err = store.Upgrade(ctx, log, app.Store); err != nil {
 			return err
 		}
 	}
