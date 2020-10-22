@@ -82,14 +82,18 @@ func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
+	if !isKind(n, yaml.MappingNode) {
+		return nodeErr(n, "module definition must be a map")
+	}
+
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Module{}
 	}
 
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "module definition must be a map")
+	if wrap.rbacRules, err = decodeResourceAccessControl(types.ModuleRBACResource, n); err != nil {
+		return
 	}
 
 	return iterator(n, func(k, v *yaml.Node) (err error) {
@@ -115,9 +119,6 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) error {
 
 			wrap.res.Fields = aux.set()
 			return nil
-
-		case "allow", "deny":
-			return wrap.rbacRules.DecodeResourceRules(types.ModuleRBACResource, k, v)
 
 		}
 
@@ -168,41 +169,27 @@ func (set ComposeModuleFieldSet) set() (out types.ModuleFieldSet) {
 	return out
 }
 
-func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
+	if !isKind(n, yaml.MappingNode) {
+		return nodeErr(n, "module field definition must be a map")
+	}
+
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.ModuleField{}
 	}
 
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "module field definition must be a map")
+	if err = n.Decode(&wrap.res); err != nil {
+		return
+	}
+
+	if wrap.rbacRules, err = decodeResourceAccessControl(types.ModuleFieldRBACResource, n); err != nil {
+		return
 	}
 
 	return iterator(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
 			return fmt.Errorf("name should be encoded as field definition key")
-
-		case "label":
-			return decodeScalar(v, "module field label", &wrap.res.Label)
-
-		case "kind", "type":
-			return decodeScalar(v, "module field kind", &wrap.res.Kind)
-
-		case "options":
-			return v.Decode(&wrap.res.Options)
-
-		case "private":
-			return decodeScalar(v, "module field private", &wrap.res.Private)
-
-		case "required":
-			return decodeScalar(v, "module field required", &wrap.res.Required)
-
-		case "visible":
-			return decodeScalar(v, "module field visible", &wrap.res.Visible)
-
-		case "multi":
-			return decodeScalar(v, "module field multi", &wrap.res.Multi)
 
 		case "default":
 			return fmt.Errorf("field.default /// to be imple,emted")
@@ -215,10 +202,6 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) error {
 			//
 			//	return
 			//})
-
-		case "allow", "deny":
-			return wrap.rbacRules.DecodeResourceRules(types.ModuleFieldRBACResource, k, v)
-
 		}
 
 		return nil

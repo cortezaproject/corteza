@@ -90,14 +90,18 @@ func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
+	if !isKind(n, yaml.MappingNode) {
+		return nodeErr(n, "chart definition must be a map")
+	}
+
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Chart{}
 	}
 
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "chart definition must be a map")
+	if wrap.rbacRules, err = decodeResourceAccessControl(types.ChartRBACResource, n); err != nil {
+		return
 	}
 
 	return iterator(n, func(k, v *yaml.Node) (err error) {
@@ -120,9 +124,6 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) error {
 			// copy decoded values from aux type
 			wrap.res.Config = cfg.config
 			wrap.refReportModules = cfg.refReportModules
-
-		case "allow", "deny":
-			return wrap.rbacRules.DecodeResourceRules(types.ChartRBACResource, k, v)
 
 		}
 
