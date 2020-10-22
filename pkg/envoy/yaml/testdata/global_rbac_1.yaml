@@ -1,0 +1,52 @@
+allow:
+  everyone:
+    compose:
+      - access
+
+    compose:namespace:
+      - read
+
+    compose:module:
+      - read
+
+    compose:page:
+      - read
+
+    compose:chart:
+      - read
+
+  admins:
+    compose:
+      - access
+      - grant
+      - settings.read
+      - settings.manage
+      - namespace.create
+
+    compose:namespace:
+      - read
+      - update
+      - delete
+      - manage
+      - page.create
+      - module.create
+      - chart.create
+
+    compose:module:
+      - read
+      - update
+      - delete
+      - record.create
+      - record.read
+      - record.update
+      - record.delete
+
+    compose:chart:
+      - read
+      - update
+      - delete
+
+    compose:page:
+      - read
+      - update
+      - delete

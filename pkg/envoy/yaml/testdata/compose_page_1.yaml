@@ -2,6 +2,7 @@ namespace: crm
 pages:
   - handle: Leads
     title: Leads
+    allow: { somerole: [ read ] }
     blocks:
     - title: Leads by type
       options:

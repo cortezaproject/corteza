@@ -83,6 +83,7 @@ func (wset composePageSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *composePage) UnmarshalYAML(n *yaml.Node) error {
 	if wrap.res == nil {
+		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Page{
 			// Pages are visible by default
 			Visible: true,
@@ -130,7 +131,7 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) error {
 		// return decodeScalar(v, "page pages", &wrap.res.Visible)
 
 		case "allow", "deny":
-			return decodeAccessRoleOps(wrap.rbacRules, types.PageRBACResource, k, v)
+			return wrap.rbacRules.DecodeResourceRules(types.PageRBACResource, k, v)
 
 		}
 
