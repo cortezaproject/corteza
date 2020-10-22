@@ -73,36 +73,30 @@ func (wset ComposeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
 		return nodeErr(n, "namespace definition must be a map or scalar")
 	}
 
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Namespace{
 			// namespaces are enabled by default
 			Enabled: true,
 		}
 	}
 
+	if err = n.Decode(&wrap.res); err != nil {
+		return
+	}
+
+	if wrap.rbacRules, err = decodeResourceAccessControl(types.NamespaceRBACResource, n); err != nil {
+		return
+	}
+
 	return iterator(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
-		case "slug":
-			return decodeScalar(v, "namespace slug", &wrap.res.Slug)
-
-		case "name":
-			return decodeScalar(v, "namespace name", &wrap.res.Name)
-
-		case "enabled":
-			return decodeScalar(v, "namespace enabled", &wrap.res.Enabled)
-
 		case "modules":
 			return v.Decode(&wrap.modules)
-
-		case "allow", "deny":
-			return wrap.rbacRules.DecodeResourceRules(types.NamespaceRBACResource, k, v)
-
 		}
 
 		return nil

@@ -101,7 +101,7 @@ func (set ComposeRecordSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
+func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
 		return nodeErr(n, "expecting mapping node for record definition")
 	}
@@ -110,6 +110,11 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Record{}
 	}
+
+	// @todo enable when records are ready for RBAC
+	//if wrap.rbacRules, err = decodeResourceAccessControl(types.RecordRBACResource, n); err != nil {
+	//	return
+	//}
 
 	return iterator(n, func(k, v *yaml.Node) error {
 		switch k.Value {
@@ -141,12 +146,6 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) error {
 		case "ownedBy":
 			return decodeRef(v, "ownedBy user", &wrap.refOwnedBy)
 
-		case "allow", "deny":
-			// @todo enable when records are ready for RBAC
-			//	return wrap.rbacRules.DecodeResourceRules(types.RecordRBACResource, k, v)
-
-		default:
-			return nodeErr(k, "unsupported key %s used for record definition", k.Value)
 		}
 
 		return nil

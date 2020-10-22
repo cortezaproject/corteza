@@ -14,26 +14,21 @@ type (
 	}
 )
 
-func (doc *Document) UnmarshalYAML(n *yaml.Node) error {
+func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
 		// root node kind be mapping
 		return nodeErr(n, "expecting mapping node")
 	}
 
-	if err := n.Decode(&doc.compose); err != nil {
-		return err
+	if err = n.Decode(&doc.compose); err != nil {
+		return
 	}
 
-	doc.rbacRules = &rbacRules{}
-	return iterator(n, func(k, v *yaml.Node) error {
-		switch k.Value {
-		case "allow", "deny":
-			return doc.rbacRules.DecodeGlobalRules(k, v)
+	if doc.rbacRules, err = decodeGlobalAccessControl(n); err != nil {
+		return
+	}
 
-		}
-
-		return nil
-	})
+	return nil
 }
 
 //
