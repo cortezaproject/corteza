@@ -13,7 +13,7 @@ type (
 	// based on the node properties.
 	// Refer to the documentation for additional details.
 	Graph struct {
-		nodes []Node
+		nodes NodeSet
 
 		// Since it's calculated on the fly, this is all we need
 		invert bool
@@ -61,18 +61,16 @@ func (g *Graph) Remove(nn ...Node) {
 		return
 	}
 
-	mm := make([]Node, 0, len(g.nodes))
-	for _, m := range g.nodes {
-		for _, n := range nn {
-			if g.nodesMatch(m, n) && g.canRemove(n) {
-				goto skip
-			}
+	rn := make(NodeSet, 0, len(nn))
+	for _, n := range nn {
+		if g.canRemove(n) {
+			rn = append(rn, n)
 		}
-		mm = append(mm, m)
-
-	skip:
 	}
-	g.nodes = mm
+
+	g.nodes = g.nodes.Remove(rn...)
+	g.processed = g.processed.Remove(rn...)
+	g.conflicts = g.conflicts.Remove(rn...)
 }
 
 // FindNode returns all nodes that match the given resource and identifiers
