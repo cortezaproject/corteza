@@ -16,18 +16,13 @@ type (
 )
 
 func (c *compose) UnmarshalYAML(n *yaml.Node) error {
-	if !isKind(n, yaml.MappingNode) {
-		// root node kind be mapping
-		return nodeErr(n, "expecting mapping node")
-	}
-
 	var (
 		nsRef string
 		err   error
 	)
 
 	// 1st pass: handle doc-level references
-	err = iterator(n, func(k, v *yaml.Node) error {
+	err = eachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespace":
 			if def := findKeyNode(n, "namespaces"); def != nil {
@@ -47,7 +42,7 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	// 2nd pass: handle definitions
-	return iterator(n, func(k, v *yaml.Node) error {
+	return eachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespaces":
 			return v.Decode(&c.namespaces)

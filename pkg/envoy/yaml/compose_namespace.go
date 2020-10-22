@@ -27,7 +27,7 @@ type (
 //
 //
 func (wset *ComposeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &ComposeNamespace{}
 		)
@@ -93,7 +93,7 @@ func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return iterator(n, func(k, v *yaml.Node) (err error) {
+	return each(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "modules":
 			return v.Decode(&wrap.modules)
