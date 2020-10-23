@@ -80,7 +80,7 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 
 func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "user definition must be a map or scalar")
+		return nodeErr(n, "user definition must be a map")
 	}
 
 	if wrap.res == nil {
