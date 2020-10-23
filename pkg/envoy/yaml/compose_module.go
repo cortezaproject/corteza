@@ -180,16 +180,19 @@ func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 			return fmt.Errorf("name should be encoded as field definition key")
 
 		case "default":
-			return fmt.Errorf("field.default /// to be imple,emted")
-			//wrap.res.DefaultValue = types.RecordValueSet{}
-			//return deinterfacer.Each(val, func(place int, _ string, val interface{}) (err error) {
-			//	field.DefaultValue = append(field.DefaultValue, &types.RecordValue{
-			//		Value: deinterfacer.ToString(val),
-			//		Place: uint(place),
-			//	})
-			//
-			//	return
-			//})
+			var rvs = types.RecordValueSet{}
+			switch v.Kind {
+			case yaml.ScalarNode:
+				rvs = rvs.Set(&types.RecordValue{Value: v.Value})
+
+			case yaml.SequenceNode:
+				_ = eachSeq(v, func(v *yaml.Node) error {
+					rvs = rvs.Set(&types.RecordValue{Value: v.Value, Place: uint(len(rvs))})
+					return nil
+				})
+			}
+
+			wrap.res.DefaultValue = rvs
 		}
 
 		return nil
