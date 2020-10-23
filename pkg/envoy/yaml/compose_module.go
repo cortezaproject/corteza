@@ -9,24 +9,24 @@ import (
 )
 
 type (
-	ComposeModule struct {
+	composeModule struct {
 		res          *types.Module
 		refNamespace string
 		*rbacRules
 	}
-	ComposeModuleSet []*ComposeModule
+	composeModuleSet []*composeModule
 
-	ComposeModuleField struct {
+	composeModuleField struct {
 		res *types.ModuleField `yaml:",inline"`
 		*rbacRules
 	}
-	ComposeModuleFieldSet []*ComposeModuleField
+	composeModuleFieldSet []*composeModuleField
 )
 
-func (wset *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
+func (wset *composeModuleSet) UnmarshalYAML(n *yaml.Node) error {
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
-			wrap = &ComposeModule{}
+			wrap = &composeModule{}
 		)
 
 		if v == nil {
@@ -51,7 +51,7 @@ func (wset *ComposeModuleSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset ComposeModuleSet) setNamespaceRef(ref string) error {
+func (wset composeModuleSet) setNamespaceRef(ref string) error {
 	for _, res := range wset {
 		if res.refNamespace != "" && ref != res.refNamespace {
 			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
@@ -63,7 +63,7 @@ func (wset ComposeModuleSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
+func (wset composeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 	// namespace usually have bunch of sub-resources defined
 	nn := make([]envoy.Node, 0, len(wset)*10)
 
@@ -78,7 +78,7 @@ func (wset ComposeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
+func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Module{}
@@ -102,7 +102,7 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 			}
 
 			var (
-				aux = ComposeModuleFieldSet{}
+				aux = composeModuleFieldSet{}
 			)
 
 			if err = v.Decode(&aux); err != nil {
@@ -118,17 +118,17 @@ func (wrap *ComposeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 	})
 }
 
-func (wrap ComposeModule) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap composeModule) MarshalEnvoy() ([]envoy.Node, error) {
 	nn := make([]envoy.Node, 0, 16)
 	nn = append(nn, &envoy.ComposeModuleNode{Module: wrap.res})
 
 	return nn, nil
 }
 
-func (set *ComposeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
+func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
-			wrap = &ComposeModuleField{}
+			wrap = &composeModuleField{}
 		)
 
 		if v == nil {
@@ -153,7 +153,7 @@ func (set *ComposeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (set ComposeModuleFieldSet) set() (out types.ModuleFieldSet) {
+func (set composeModuleFieldSet) set() (out types.ModuleFieldSet) {
 	for _, i := range set {
 		out = append(out, i.res)
 	}
@@ -161,7 +161,7 @@ func (set ComposeModuleFieldSet) set() (out types.ModuleFieldSet) {
 	return out
 }
 
-func (wrap *ComposeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
+func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.res = &types.ModuleField{}
 	}

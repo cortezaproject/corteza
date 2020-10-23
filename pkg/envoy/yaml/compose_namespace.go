@@ -8,18 +8,18 @@ import (
 )
 
 type (
-	ComposeNamespace struct {
+	composeNamespace struct {
 		// when namespace is at least partially defined
 		res *types.Namespace `yaml:",inline"`
 
 		// all known modules on a namespace
-		modules ComposeModuleSet
+		modules composeModuleSet
 
 		// all known charts on a namespace
 		charts composeChartSet
 
 		// all known records on a namespace
-		records ComposeRecordSet
+		records composeRecordSet
 
 		// all known pages on a namespace
 		pages composePageSet
@@ -27,7 +27,7 @@ type (
 		// module's RBAC rules
 		*rbacRules
 	}
-	ComposeNamespaceSet []*ComposeNamespace
+	composeNamespaceSet []*composeNamespace
 )
 
 // UnmarshalYAML resolves set of namespace definitions, either sequence or map
@@ -35,10 +35,10 @@ type (
 // When resolving map, key is used as slug
 //
 //
-func (wset *ComposeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
+func (wset *composeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
-			wrap = &ComposeNamespace{}
+			wrap = &composeNamespace{}
 		)
 
 		if v == nil {
@@ -67,7 +67,7 @@ func (wset *ComposeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset ComposeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
+func (wset composeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
 	// namespace usually have bunch of sub-resources defined
 	nn := make([]envoy.Node, 0, len(wset)*10)
 
@@ -82,7 +82,7 @@ func (wset ComposeNamespaceSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
+func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
 		return nodeErr(n, "namespace definition must be a map or scalar")
 	}
@@ -122,7 +122,7 @@ func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 	})
 }
 
-func (wrap ComposeNamespace) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap composeNamespace) MarshalEnvoy() ([]envoy.Node, error) {
 	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
 	nn = append(nn, &envoy.ComposeNamespaceNode{Ns: wrap.res})
 

@@ -11,7 +11,7 @@ type (
 		res *types.User `yaml:",inline"`
 
 		// all known modules on a user
-		modules ComposeModuleSet
+		modules composeModuleSet
 
 		// module's RBAC rules
 		*rbacRules
