@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
 
@@ -38,17 +37,12 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 			moduleRef string
 		)
 
-		if k != nil {
-			// processing mapping node, expecting module handle
-			if !handle.IsValid(k.Value) {
-				return nodeErr(k, "module reference must be a valid handle")
-			}
-
-			moduleRef = k.Value
-		}
-
 		if v == nil {
 			return nodeErr(n, "malformed record definition")
+		}
+
+		if err = decodeRef(k, "module", &moduleRef); err != nil {
+			return
 		}
 
 		if isKind(v, yaml.SequenceNode) {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
 
@@ -45,17 +44,13 @@ func (wset *composeChartSet) UnmarshalYAML(n *yaml.Node) error {
 			return
 		}
 
-		if k != nil {
-			if wrap.res.Handle != "" {
-				return nodeErr(k, "cannot define handle in mapped chart definition")
-			}
+		if err = decodeRef(k, "chart", &wrap.res.Handle); err != nil {
+			return
+		}
 
-			if !handle.IsValid(k.Value) {
-				return nodeErr(n, "Chart reference must be a valid handle")
-			}
-
-			wrap.res.Handle = k.Value
-			wrap.res.Name = k.Value
+		if wrap.res.Name == "" {
+			// if name is not set, use handle
+			wrap.res.Name = wrap.res.Handle
 		}
 
 		*wset = append(*wset, wrap)

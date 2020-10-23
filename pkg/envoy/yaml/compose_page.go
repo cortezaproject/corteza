@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
 
@@ -36,17 +35,13 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 			return
 		}
 
-		if k != nil {
-			if wrap.res.Handle != "" {
-				return nodeErr(k, "cannot define handle in mapped page definition")
-			}
+		if err = decodeRef(k, "page", &wrap.res.Handle); err != nil {
+			return
+		}
 
-			if !handle.IsValid(k.Value) {
-				return nodeErr(n, "page reference must be a valid handle")
-			}
-
-			wrap.res.Handle = k.Value
-			wrap.res.Title = k.Value
+		if wrap.res.Title == "" {
+			// if name is not set, use handle
+			wrap.res.Title = wrap.res.Handle
 		}
 
 		*wset = append(*wset, wrap)
