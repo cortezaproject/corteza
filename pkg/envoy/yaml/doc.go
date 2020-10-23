@@ -38,6 +38,7 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 			return v.Decode(&doc.applications)
 
 		}
+
 		return nil
 	})
 }

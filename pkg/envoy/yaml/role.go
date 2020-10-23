@@ -34,34 +34,24 @@ func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
 			return nodeErr(n, "malformed role definition")
 		}
 
-		wrap.res = &types.Role{}
+		wrap.res = &types.Role{
+			// no special defaults
+		}
 
-		if isKind(v, yaml.ScalarNode) {
-
-			if k != nil {
-				wrap.res.Handle = k.Value
-			}
-
+		switch v.Kind {
+		case yaml.ScalarNode:
 			if err = decodeScalar(v, "role name", &wrap.res.Name); err != nil {
 				return
 			}
 
-			*wset = append(*wset, wrap)
-			return
+		case yaml.MappingNode:
+			if err = v.Decode(&wrap.res); err != nil {
+				return
+			}
 		}
 
-		if err = v.Decode(&wrap.res); err != nil {
-			return
-		}
-
-		if k != nil {
-			if wrap.res.Handle != "" {
-				return nodeErr(k, "cannot define handle in mapped role definition")
-			}
-
-			if err = decodeRef(k, "role", &wrap.res.Handle); err != nil {
-				return err
-			}
+		if err = decodeRef(k, "role", &wrap.res.Handle); err != nil {
+			return err
 		}
 
 		*wset = append(*wset, wrap)

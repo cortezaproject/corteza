@@ -34,34 +34,28 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 			return nodeErr(n, "malformed user definition")
 		}
 
-		wrap.res = &types.User{EmailConfirmed: true}
+		wrap.res = &types.User{
+			EmailConfirmed: true,
+		}
 
-		if isKind(v, yaml.ScalarNode) {
-
-			if k != nil {
-				wrap.res.Handle = k.Value
-			}
-
+		switch v.Kind {
+		case yaml.ScalarNode:
 			if err = decodeScalar(v, "user email", &wrap.res.Email); err != nil {
 				return
 			}
 
-			*wset = append(*wset, wrap)
-			return
-		}
-
-		if err = v.Decode(&wrap.res); err != nil {
-			return
-		}
-
-		if k != nil {
-			if wrap.res.Handle != "" {
-				return nodeErr(k, "cannot define handle in mapped user definition")
+		case yaml.MappingNode:
+			if err = v.Decode(&wrap.res); err != nil {
+				return
 			}
 
-			if err = decodeRef(k, "user", &wrap.res.Handle); err != nil {
-				return err
-			}
+		default:
+			return nodeErr(n, "expecting scalar or map with user definitions")
+
+		}
+
+		if err = decodeRef(k, "user", &wrap.res.Handle); err != nil {
+			return err
 		}
 
 		*wset = append(*wset, wrap)
