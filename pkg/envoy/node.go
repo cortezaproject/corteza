@@ -1,5 +1,11 @@
 package envoy
 
+import (
+	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"strconv"
+)
+
 type (
 	// Node defines the signature of any valid graph node
 	Node interface {
@@ -44,25 +50,27 @@ type (
 )
 
 // Add adds a new identifier for the given resource
-func (n NodeRelationships) Add(resource string, identifier ...string) {
+func (n NodeRelationships) Add(resource string, ii ...string) {
 	if _, has := n[resource]; !has {
 		n[resource] = make(NodeIdentifiers, 0, 1)
 	}
 
-	n[resource] = n[resource].Add(identifier...)
+	n[resource] = n[resource].Add(ii...)
 }
 
 // Add adds a new identifiers
-func (ii NodeIdentifiers) Add(identifier ...string) NodeIdentifiers {
-	exists := false
-	for _, i := range ii {
-		for _, j := range identifier {
-			exists = exists || i == j
-		}
-	}
+//
+// Identifier can be string, Stringer or uint64 and should not be empty (zero)
+func (ii NodeIdentifiers) Add(idents ...string) NodeIdentifiers {
+	m := slice.ToStringBoolMap(ii)
 
-	if !exists {
-		ii = append(ii, identifier...)
+	for _, i := range idents {
+		if len(i) == 0 || m[i] {
+			// skip all empty and existing identifiers
+			continue
+		}
+
+		ii = append(ii, i)
 	}
 
 	return ii
@@ -70,11 +78,11 @@ func (ii NodeIdentifiers) Add(identifier ...string) NodeIdentifiers {
 
 // HasAny checks if any of the provided identifiers appear in the given set of identifiers
 func (ii NodeIdentifiers) HasAny(jj ...string) bool {
-	for _, i := range ii {
-		for _, j := range jj {
-			if i == j {
-				return true
-			}
+	m := slice.ToStringBoolMap(ii)
+
+	for _, j := range jj {
+		if m[j] {
+			return true
 		}
 	}
 
@@ -112,4 +120,39 @@ func (ss NodeSet) Remove(nn ...Node) NodeSet {
 	}
 
 	return mm
+}
+
+// Identifiers fn converts identifier values (string, fmt.Stringer, uint64) to string slice
+//
+// Each value is checked and should not be empty or zero
+func Identifiers(ii ...interface{}) []string {
+	ss := make([]string, 0, len(ii))
+
+	for _, i := range ii {
+		switch c := i.(type) {
+		case uint64:
+			if c == 0 {
+				continue
+			}
+
+			ss = append(ss, strconv.FormatUint(c, 10))
+
+		case fmt.Stringer:
+			if c.String() == "" {
+				continue
+			}
+
+			ss = append(ss, c.String())
+
+		case string:
+			if c == "" {
+				continue
+			}
+
+			ss = append(ss, c)
+
+		}
+	}
+
+	return ss
 }
