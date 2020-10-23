@@ -73,7 +73,7 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 
 func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "application definition must be a map or scalar")
+		return nodeErr(n, "application definition must be a map")
 	}
 
 	if wrap.res == nil {

@@ -76,7 +76,7 @@ func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
 
 func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "role definition must be a map or scalar")
+		return nodeErr(n, "role definition must be a map")
 	}
 
 	if wrap.res == nil {
