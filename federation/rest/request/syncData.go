@@ -52,10 +52,20 @@ type (
 	}
 
 	SyncDataReadExposed struct {
+		// NodeID PATH parameter
+		//
+		// Node ID
+		NodeID uint64 `json:",string"`
+
 		// ModuleID PATH parameter
 		//
 		// Module ID
 		ModuleID uint64 `json:",string"`
+
+		// LastSync GET parameter
+		//
+		// Last sync timestamp
+		LastSync string
 
 		// Query GET parameter
 		//
@@ -168,7 +178,9 @@ func NewSyncDataReadExposed() *SyncDataReadExposed {
 // Auditable returns all auditable/loggable parameters
 func (r SyncDataReadExposed) Auditable() map[string]interface{} {
 	return map[string]interface{}{
+		"nodeID":     r.NodeID,
 		"moduleID":   r.ModuleID,
+		"lastSync":   r.LastSync,
 		"query":      r.Query,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
@@ -177,8 +189,18 @@ func (r SyncDataReadExposed) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
+func (r SyncDataReadExposed) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
 func (r SyncDataReadExposed) GetModuleID() uint64 {
 	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SyncDataReadExposed) GetLastSync() string {
+	return r.LastSync
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -218,6 +240,12 @@ func (r *SyncDataReadExposed) Fill(req *http.Request) (err error) {
 		// GET params
 		tmp := req.URL.Query()
 
+		if val, ok := tmp["lastSync"]; ok && len(val) > 0 {
+			r.LastSync, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
 			if err != nil {
@@ -247,6 +275,12 @@ func (r *SyncDataReadExposed) Fill(req *http.Request) (err error) {
 	{
 		var val string
 		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
 
 		val = chi.URLParam(req, "moduleID")
 		r.ModuleID, err = payload.ParseUint64(val), nil
