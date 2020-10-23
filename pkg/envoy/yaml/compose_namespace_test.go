@@ -10,8 +10,8 @@ import (
 
 func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 	var (
-		parseString = func(src string) (*ComposeNamespace, error) {
-			w := &ComposeNamespace{}
+		parseString = func(src string) (*composeNamespace, error) {
+			w := &composeNamespace{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 	)
@@ -67,7 +67,7 @@ func TestComposeNamespace_MarshalEnvoy(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		wrap    = ComposeNamespace{res: &types.Namespace{ID: 42}}
+		wrap    = composeNamespace{res: &types.Namespace{ID: 42}}
 		nn, err = wrap.MarshalEnvoy()
 	)
 

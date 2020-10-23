@@ -8,7 +8,7 @@ import (
 )
 
 type (
-	ComposeRecord struct {
+	composeRecord struct {
 		res          *types.Record `yaml:",inline"`
 		refModule    string
 		refNamespace string
@@ -18,9 +18,9 @@ type (
 		refOwnedBy   string
 		*rbacRules
 	}
-	ComposeRecordSet []*ComposeRecord
+	composeRecordSet []*composeRecord
 
-	ComposeRecordValues struct {
+	composeRecordValues struct {
 		rvs types.RecordValueSet
 	}
 )
@@ -31,7 +31,7 @@ type (
 //
 // { module-handle: [ { ... values ... } ] }
 // [ { module: module-handle, ... values ... } ]
-func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
+func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			moduleRef string
@@ -48,7 +48,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 		if isKind(v, yaml.SequenceNode) {
 			// multiple records defined
 			return eachSeq(v, func(r *yaml.Node) error {
-				var wrap = &ComposeRecord{refModule: moduleRef}
+				var wrap = &composeRecord{refModule: moduleRef}
 				if err = r.Decode(&wrap); err != nil {
 					return err
 				}
@@ -60,7 +60,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 
 		if isKind(v, yaml.MappingNode) {
 			// one record defined
-			var wrap = &ComposeRecord{refModule: moduleRef}
+			var wrap = &composeRecord{refModule: moduleRef}
 			if err = v.Decode(&wrap); err != nil {
 				return
 			}
@@ -72,7 +72,7 @@ func (wset *ComposeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset ComposeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
+func (wset composeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
 	// namespace usually have bunch of sub-resources defined
 	var (
 		nn = []envoy.Node{}
@@ -83,7 +83,7 @@ func (wset ComposeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
 	return nn, nil
 }
 
-func (set ComposeRecordSet) setNamespaceRef(ref string) error {
+func (set composeRecordSet) setNamespaceRef(ref string) error {
 	for _, res := range set {
 		if res.refNamespace != "" && ref != res.refNamespace {
 			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
@@ -95,7 +95,7 @@ func (set ComposeRecordSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
+func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Record{}
@@ -113,7 +113,7 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "values":
 			// Use aux structure to decode record values into RVS
-			aux := ComposeRecordValues{}
+			aux := composeRecordValues{}
 			if err := v.Decode(&aux); err != nil {
 				return err
 			}
@@ -146,7 +146,7 @@ func (wrap *ComposeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 //
 // { <field name>: ... <scalar value>, .... }
 // { <field name>: [ <scalar value> ], .... }
-func (wset *ComposeRecordValues) UnmarshalYAML(n *yaml.Node) error {
+func (wset *composeRecordValues) UnmarshalYAML(n *yaml.Node) error {
 	wset.rvs = types.RecordValueSet{}
 
 	return eachMap(n, func(k, v *yaml.Node) error {
