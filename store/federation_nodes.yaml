@@ -31,6 +31,10 @@ lookups:
     description: |-
       searches for node by shared-node-id and base-url
 
+  - fields: [SharedNodeID]
+    description: |-
+      searches for node by shared-node-id
+
 search:
   enablePaging: false
   enableSorting: false

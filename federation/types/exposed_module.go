@@ -20,9 +20,9 @@ type (
 	}
 
 	ExposedModuleFilter struct {
-		NodeID             uint64 `json:"node"`
-		ComposeModuleID    uint64 `json:"composeModuleID"`
-		ComposeNamespaceID uint64 `json:"composeNamespaceID"`
+		NodeID             uint64 `json:"nodeID,string"`
+		ComposeModuleID    uint64 `json:"composeModuleID,string"`
+		ComposeNamespaceID uint64 `json:"composeNamespaceID,string"`
 		Query              string `json:"query"`
 
 		Check func(*ExposedModule) (bool, error) `json:"-"`

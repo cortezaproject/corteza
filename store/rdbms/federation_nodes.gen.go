@@ -111,6 +111,13 @@ func (s Store) LookupFederationNodeByBaseURLSharedNodeID(ctx context.Context, ba
 	})
 }
 
+// LookupFederationNodeBySharedNodeID searches for node by shared-node-id
+func (s Store) LookupFederationNodeBySharedNodeID(ctx context.Context, shared_node_id uint64) (*types.Node, error) {
+	return s.execLookupFederationNode(ctx, squirrel.Eq{
+		s.preprocessColumn("fdn.shared_node_id", ""): store.PreprocessValue(shared_node_id, ""),
+	})
+}
+
 // CreateFederationNode creates one or more rows in federation_nodes table
 func (s Store) CreateFederationNode(ctx context.Context, rr ...*types.Node) (err error) {
 	for _, res := range rr {

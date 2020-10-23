@@ -291,14 +291,19 @@ endpoints:
   - title: Sync structure
     description: Sync structure
     entrypoint: syncStructure
-    path: ""
+    path: "/nodes/{nodeID}/modules/exposed"
     authentication: []
     apis:
       - name: readExposedAll
         method: GET
         title: List all exposed modules changes
-        path: "/exposed/modules/"
+        path: "/"
         parameters:
+          path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
           get:
           - type: string
             name: query

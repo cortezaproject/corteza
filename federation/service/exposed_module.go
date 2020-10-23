@@ -12,7 +12,6 @@ import (
 
 type (
 	exposedModule struct {
-		ctx       context.Context
 		module    composeService.ModuleService
 		namespace composeService.NamespaceService
 		store     store.Storer
@@ -33,7 +32,6 @@ type (
 
 func ExposedModule() ExposedModuleService {
 	return &exposedModule{
-		ctx:       context.Background(),
 		module:    composeService.DefaultModule,
 		namespace: composeService.DefaultNamespace,
 		store:     DefaultStore,
@@ -211,7 +209,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		}
 
 		if _, err := svc.module.FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
-			return ExposedModuleErrComposeNamespaceNotFound()
+			return ExposedModuleErrComposeModuleNotFound()
 		}
 
 		// Check for node - compose.Module combo

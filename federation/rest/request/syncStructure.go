@@ -30,6 +30,11 @@ var (
 type (
 	// Internal API interface
 	SyncStructureReadExposedAll struct {
+		// NodeID PATH parameter
+		//
+		// Node ID
+		NodeID uint64 `json:",string"`
+
 		// Query GET parameter
 		//
 		// Search query
@@ -60,11 +65,17 @@ func NewSyncStructureReadExposedAll() *SyncStructureReadExposedAll {
 // Auditable returns all auditable/loggable parameters
 func (r SyncStructureReadExposedAll) Auditable() map[string]interface{} {
 	return map[string]interface{}{
+		"nodeID":     r.NodeID,
 		"query":      r.Query,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
 	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SyncStructureReadExposedAll) GetNodeID() uint64 {
+	return r.NodeID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -128,6 +139,18 @@ func (r *SyncStructureReadExposedAll) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err

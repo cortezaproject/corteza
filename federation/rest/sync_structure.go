@@ -12,9 +12,9 @@ import (
 type (
 	SyncStructure struct{}
 
-	TempStruct struct {
-		Filter types.ExposedModuleFilter `json:"filter"`
-		Set    types.ExposedModuleSet    `json:"set"`
+	listResponse struct {
+		Filter *types.ExposedModuleFilter `json:"filter"`
+		Set    *types.ExposedModuleSet    `json:"set"`
 	}
 )
 
@@ -23,14 +23,18 @@ func (SyncStructure) New() *SyncStructure {
 }
 
 func (ctrl SyncStructure) ReadExposedAll(ctx context.Context, r *request.SyncStructureReadExposedAll) (interface{}, error) {
-	// TODO - fixed values for now
-
 	var (
-		err error
-		f   = types.ExposedModuleFilter{
-			NodeID: 276342359342989444,
-		}
+		err  error
+		node *types.Node
 	)
+
+	if node, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
+		return nil, err
+	}
+
+	f := types.ExposedModuleFilter{
+		NodeID: node.ID,
+	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
@@ -42,8 +46,8 @@ func (ctrl SyncStructure) ReadExposedAll(ctx context.Context, r *request.SyncStr
 
 	list, f, err := (service.ExposedModule()).Find(context.Background(), f)
 
-	return TempStruct{
-		Set:    list,
-		Filter: f,
-	}, err
+	return listResponse{
+		Set:    &list,
+		Filter: &f,
+	}, nil
 }

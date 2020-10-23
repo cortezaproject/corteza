@@ -58,6 +58,6 @@ func NewSyncStructure(h SyncStructureAPI) *SyncStructure {
 func (h SyncStructure) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/exposed/modules/", h.ReadExposedAll)
+		r.Get("/nodes/{nodeID}/modules/exposed/", h.ReadExposedAll)
 	})
 }

@@ -40,7 +40,9 @@ var (
 
 	DefaultActionlog actionlog.Recorder
 
-	DefaultNode *node
+	DefaultNode          *node
+	DefaultExposedModule ExposedModuleService
+	DefaultSharedModule  SharedModuleService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -117,6 +119,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Federation")
 
 	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler)
+	DefaultExposedModule = ExposedModule()
+	DefaultSharedModule = SharedModule()
 
 	return
 }

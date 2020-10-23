@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -11,10 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -353,6 +354,10 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 	}()
 
 	return n, svc.recordAction(ctx, aProps, action, err)
+}
+
+func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*types.Node, error) {
+	return svc.store.LookupFederationNodeBySharedNodeID(ctx, sharedNodeID)
 }
 
 // Looks for existing user or crates a new one
