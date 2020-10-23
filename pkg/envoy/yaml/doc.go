@@ -9,9 +9,10 @@ import (
 type (
 	// Document defines the supported yaml structure
 	Document struct {
-		compose *compose
-		roles   roleSet
-		users   userSet
+		compose      *compose
+		roles        roleSet
+		users        userSet
+		applications applicationSet
 		*rbacRules
 	}
 )
@@ -32,6 +33,9 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "users":
 			return v.Decode(&doc.users)
+
+		case "applications":
+			return v.Decode(&doc.applications)
 
 		}
 		return nil
