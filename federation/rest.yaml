@@ -322,13 +322,13 @@ endpoints:
   - title: Sync data
     description: Sync data
     entrypoint: syncData
-    path: "/exposed"
+    path: "/nodes/{nodeID}/modules"
     authentication: []
     apis:
       - name: readExposedAll
         method: GET
         title: List all record changes
-        path: "/records/"
+        path: "/exposed/records/"
         parameters:
           get:
           - type: string
@@ -347,24 +347,35 @@ endpoints:
       - name: readExposed
         method: GET
         title: List all records per module
-        path: "/modules/{moduleID}/records/"
+        path: "/{moduleID}/records/"
         parameters:
           path:
+            - type: uint64
+              name: nodeID
+              required: true
+              title: Node ID
             - type: uint64
               name: moduleID
               required: true
               title: Module ID
           get:
           - type: string
+            name: lastSync
+            required: false
+            title: Last sync timestamp
+          - type: string
             name: query
             required: false
             title: Search query
           - type: uint
             name: limit
+            required: false
             title: Limit
           - type: string
             name: pageCursor
+            required: false
             title: Page cursor
           - type: string
             name: sort
+            required: false
             title: Sort items

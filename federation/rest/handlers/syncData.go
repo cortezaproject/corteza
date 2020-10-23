@@ -80,7 +80,7 @@ func NewSyncData(h SyncDataAPI) *SyncData {
 func (h SyncData) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/exposed/records/", h.ReadExposedAll)
-		r.Get("/exposed/modules/{moduleID}/records/", h.ReadExposed)
+		r.Get("/nodes/{nodeID}/modules/exposed/records/", h.ReadExposedAll)
+		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/", h.ReadExposed)
 	})
 }
