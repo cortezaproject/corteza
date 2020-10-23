@@ -13,6 +13,7 @@ type (
 		roles        roleSet
 		users        userSet
 		applications applicationSet
+		settings     settings
 		*rbacRules
 	}
 )
@@ -36,6 +37,9 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "applications":
 			return v.Decode(&doc.applications)
+
+		case "settings":
+			return v.Decode(&doc.settings)
 
 		}
 
