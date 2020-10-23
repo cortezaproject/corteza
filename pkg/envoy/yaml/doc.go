@@ -11,6 +11,7 @@ type (
 	Document struct {
 		compose *compose
 		roles   roleSet
+		users   userSet
 		*rbacRules
 	}
 )
@@ -28,8 +29,11 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 		switch k.Value {
 		case "roles":
 			return v.Decode(&doc.roles)
-		}
 
+		case "users":
+			return v.Decode(&doc.users)
+
+		}
 		return nil
 	})
 }
