@@ -33,6 +33,21 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NotEmpty(w.res.Name)
 	})
 
+	t.Run("field with default value", func(t *testing.T) {
+		req := require.New(t)
+
+		w, err := parseString(`{ fields: { one: { default: foo }, two: { default: [ foo, bar ] } } }`)
+		req.NoError(err)
+		req.NotNil(w)
+		req.NotNil(w.res)
+		req.Len(w.res.Fields, 2)
+		req.Len(w.res.Fields[0].DefaultValue, 1)
+		req.Equal("foo", w.res.Fields[0].DefaultValue[0].Value)
+		req.Len(w.res.Fields[1].DefaultValue, 2)
+		req.Equal("foo", w.res.Fields[1].DefaultValue[0].Value)
+		req.Equal("bar", w.res.Fields[1].DefaultValue[1].Value)
+	})
+
 	t.Run("doc 1", func(t *testing.T) {
 		req := require.New(t)
 
