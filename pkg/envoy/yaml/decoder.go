@@ -108,7 +108,7 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 
-//func (y *decoder) convertNamespaces(nss ComposeNamespaceSet) ([]envoy.Node, error) {
+//func (y *decoder) convertNamespaces(nss composeNamespaceSet) ([]envoy.Node, error) {
 //	nn := make([]envoy.Node, 0, 2)
 //
 //	for _, ns := range nss {
@@ -129,7 +129,7 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 //
-//func (y *decoder) convertModules(mm ComposeModuleSet, ns *types.Namespace) ([]envoy.Node, error) {
+//func (y *decoder) convertModules(mm composeModuleSet, ns *types.Namespace) ([]envoy.Node, error) {
 //	nn := make([]envoy.Node, 0)
 //
 //	for _, m := range mm {
@@ -144,7 +144,7 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 //
-//func (y *decoder) convertRecords(rr ComposeRecordSet, m *types.Module) ([]envoy.Node, error) {
+//func (y *decoder) convertRecords(rr composeRecordSet, m *types.Module) ([]envoy.Node, error) {
 //	// Iterator function for providing records to be imported.
 //	// This doesn't do any validation; that should be handled by other layers.
 //	f := func(f func(record *types.Record) error) error {

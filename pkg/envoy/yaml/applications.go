@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -11,7 +12,7 @@ type (
 		res *types.Application `yaml:",inline"`
 
 		// all known modules on a application
-		modules ComposeModuleSet
+		modules composeModuleSet
 
 		// module's RBAC rules
 		*rbacRules
@@ -56,20 +57,19 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-//func (wset applicationSet) MarshalEnvoy() ([]envoy.Node, error) {
-//	// application usually have bunch of sub-resources defined
-//	nn := make([]envoy.Node, 0, len(wset)*10)
-//
-//	for _, res := range wset {
-//		if tmp, err := res.MarshalEnvoy(); err != nil {
-//			return nil, err
-//		} else {
-//			nn = append(nn, tmp...)
-//		}
-//	}
-//
-//	return nn, nil
-//}
+func (wset applicationSet) MarshalEnvoy() ([]envoy.Node, error) {
+	nn := make([]envoy.Node, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
+}
 
 func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
@@ -91,23 +91,23 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	return nil
 }
 
-//func (wrap application) MarshalEnvoy() ([]envoy.Node, error) {
-//	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
-//	nn = append(nn, &envoy.ApplicationNode{Ns: wrap.res})
-//
-//	if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
-//		return nil, err
-//	} else {
-//		nn = append(nn, tmp...)
-//	}
-//
-//	// @todo rbac
-//
-//	//if tmp, err := wrap.rules.MarshalEnvoy(); err != nil {
-//	//	return nil, err
-//	//} else {
-//	//	nn = append(nn, tmp...)
-//	//}
-//
-//	return nn, nil
-//}
+func (wrap application) MarshalEnvoy() ([]envoy.Node, error) {
+	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
+	nn = append(nn, &envoy.ApplicationNode{Ns: wrap.res})
+
+	if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
+		return nil, err
+	} else {
+		nn = append(nn, tmp...)
+	}
+
+	// @todo rbac
+
+	//if tmp, err := wrap.rules.MarshalEnvoy(); err != nil {
+	//	return nil, err
+	//} else {
+	//	nn = append(nn, tmp...)
+	//}
+
+	return nn, nil
+}

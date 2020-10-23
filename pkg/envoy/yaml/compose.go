@@ -7,9 +7,9 @@ import (
 
 type (
 	compose struct {
-		namespaces ComposeNamespaceSet
-		modules    ComposeModuleSet
-		records    ComposeRecordSet
+		namespaces composeNamespaceSet
+		modules    composeModuleSet
+		records    composeRecordSet
 		pages      composePageSet
 		charts     composeChartSet
 	}

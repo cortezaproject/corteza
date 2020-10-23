@@ -8,8 +8,8 @@ import (
 
 func TestComposeModule_UnmarshalYAML(t *testing.T) {
 	var (
-		parseString = func(src string) (*ComposeModule, error) {
-			w := &ComposeModule{}
+		parseString = func(src string) (*composeModule, error) {
+			w := &composeModule{}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 	)

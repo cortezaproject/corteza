@@ -11,7 +11,7 @@ type (
 		res *types.Role
 
 		// all known modules on a role
-		modules ComposeModuleSet
+		modules composeModuleSet
 
 		// module's RBAC rules
 		*rbacRules
