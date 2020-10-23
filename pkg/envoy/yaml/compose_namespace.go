@@ -15,6 +15,15 @@ type (
 		// all known modules on a namespace
 		modules ComposeModuleSet
 
+		// all known charts on a namespace
+		charts composeChartSet
+
+		// all known records on a namespace
+		records ComposeRecordSet
+
+		// all known pages on a namespace
+		pages composePageSet
+
 		// module's RBAC rules
 		*rbacRules
 	}
@@ -97,6 +106,16 @@ func (wrap *ComposeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		switch k.Value {
 		case "modules":
 			return v.Decode(&wrap.modules)
+
+		case "records":
+			return v.Decode(&wrap.records)
+
+		case "charts":
+			return v.Decode(&wrap.charts)
+
+		case "pages":
+			return v.Decode(&wrap.pages)
+
 		}
 
 		return nil

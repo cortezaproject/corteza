@@ -3,8 +3,6 @@ package yaml
 import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"strings"
-
 	"gopkg.in/yaml.v3"
 )
 
@@ -78,24 +76,6 @@ func isKind(n *yaml.Node, tt ...yaml.Kind) bool {
 	return false
 }
 
-// returns true if one or more keys passed in as argument are present under mapping node
-func anyKeysPresent(n *yaml.Node, kk ...string) bool {
-	// make a map with lowercase strings
-	h := make(map[string]bool)
-	for i := 0; i < len(kk); i++ {
-		h[strings.ToLower(kk[i])] = true
-	}
-
-	// compare it with lowercase values
-	for i := 0; i < len(n.Content); i += 2 {
-		if !h[n.Content[i+1].Value] {
-			return false
-		}
-	}
-
-	return true
-}
-
 // findKeyNode returns key node from mapping
 // key value checked in lower case
 func findKeyNode(n *yaml.Node, key string) *yaml.Node {
@@ -120,6 +100,10 @@ func decodeScalar(n *yaml.Node, name string, val interface{}) error {
 
 // Checks validity of ref node and sets the value to given arg ptr
 func decodeRef(n *yaml.Node, refType string, ref *string) error {
+	if n == nil {
+		return nil
+	}
+
 	if !isKind(n, yaml.ScalarNode) {
 		return nodeErr(n, "%s reference must be scalar", refType)
 	}

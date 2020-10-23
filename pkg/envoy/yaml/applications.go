@@ -34,19 +34,21 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 			return nodeErr(n, "malformed application definition")
 		}
 
-		wrap.res = &types.Application{Enabled: true}
+		wrap.res = &types.Application{
+			Enabled: true,
+		}
 
-		if isKind(v, yaml.ScalarNode) {
+		switch v.Kind {
+		case yaml.ScalarNode:
 			if err = decodeScalar(v, "application name", &wrap.res.Name); err != nil {
 				return
 			}
 
-			*wset = append(*wset, wrap)
-			return
-		}
+		case yaml.MappingNode:
+			if err = v.Decode(&wrap.res); err != nil {
+				return
+			}
 
-		if err = v.Decode(&wrap.res); err != nil {
-			return
 		}
 
 		*wset = append(*wset, wrap)
