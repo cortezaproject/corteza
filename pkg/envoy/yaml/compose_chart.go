@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,7 +16,7 @@ type (
 		// pointer to report and module reference
 		refReportModules map[int]string
 
-		*rbacRules
+		rbac *rbacRules
 	}
 	composeChartSet []*composeChart
 
@@ -72,7 +73,7 @@ func (wset composeChartSet) setNamespaceRef(ref string) error {
 
 func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
 	// namespace usually have bunch of sub-resources defined
-	nn := make([]envoy.Node, 0, len(wset)*10)
+	nn := make([]envoy.Node, 0, len(wset))
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -87,11 +88,11 @@ func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
+		wrap.rbac = &rbacRules{}
 		wrap.res = &types.Chart{}
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.ChartRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.ChartRBACResource, n); err != nil {
 		return
 	}
 
@@ -123,10 +124,9 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeChart) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 16)
-	//nn = append(nn, &envoy.ComposeChartNode{Chart: wrap.res})
-
-	return nn, nil
+	return []envoy.Node{&node.ComposeChart{
+		Res: wrap.res,
+	}}, nil
 }
 
 func (wrap *composeChartConfig) UnmarshalYAML(n *yaml.Node) error {

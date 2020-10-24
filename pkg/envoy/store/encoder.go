@@ -5,8 +5,8 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/store"
-	"time"
 )
 
 type (
@@ -29,82 +29,109 @@ func NewStoreEncoder(s store.Storer) *StoreEncoder {
 func (se *StoreEncoder) Encode(ctx context.Context, nn ...envoy.Node) error {
 	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
 		for _, n := range nn {
-			switch n.Resource() {
-			case types.NamespaceRBACResource.String():
-				ns := n.(*envoy.ComposeNamespaceNode)
-				if ns.Ns, err = se.encodeNamespace(ctx, s, ns); err != nil {
-					return
-				}
+			switch n := n.(type) {
+			case *node.Application:
+				err = storeApplication(ctx, s, n)
 
-			case types.ModuleRBACResource.String():
-				mod := n.(*envoy.ComposeModuleNode)
-				if mod.Module, err = se.encodeModule(ctx, s, mod); err != nil {
-					return
-				}
+			case *node.Role:
+				err = storeRole(ctx, s, n)
 
-				//case "compose:record:":
-				//	rec := n.(*envoy.ComposeRecordNode)
-				//
-				//	if err = se.encodeRecord(ctx, s, rec); err != nil {
-				//		return
-				//	}
+			case *node.User:
+				err = storeUser(ctx, s, n)
+
+			case *node.ComposeChart:
+				err = storeComposeChart(ctx, s, n)
+
+			case *node.ComposeModule:
+				err = storeComposeModule(ctx, s, n)
+
+			case *node.ComposePage:
+				err = storeComposePage(ctx, s, n)
+
+			case *node.ComposeNamespace:
+				err = storeComposeNamespace(ctx, s, n)
+
+			case *node.ComposeRecordSet:
+				err = storeComposeRecord(ctx, s, n)
+
 			}
+
+			//switch n.Resource() {
+			//case types.NamespaceRBACResource.String():
+			//	ns := n.(*node.ComposeNamespace)
+			//	if ns.Ns, err = se.encodeNamespace(ctx, s, ns); err != nil {
+			//		return
+			//	}
+			//
+			//case types.ModuleRBACResource.String():
+			//	mod := n.(*node.ComposeModule)
+			//	if mod.Module, err = se.encodeModule(ctx, s, mod); err != nil {
+			//		return
+			//	}
+			//
+			//	//case "compose:record:":
+			//	//	rec := n.(*envoy.ComposeRecordSet)
+			//	//
+			//	//	if err = se.encodeRecord(ctx, s, rec); err != nil {
+			//	//		return
+			//	//	}
+			//}
 		}
 
 		return nil
 	})
 }
 
-func (se *StoreEncoder) encodeNamespace(ctx context.Context, s store.Storer, n *envoy.ComposeNamespaceNode) (*types.Namespace, error) {
-	cns := n.Ns
+//func (se *StoreEncoder) encodeNamespace(ctx context.Context, s store.Storer, n *envoy.ComposeNamespaceNode) (*types.Namespace, error) {
+//	cns := n.Ns
+//
+//	// @todo this should probably be refactored (together with services)
+//	//       so that core logic is handled in one place
+//	cns.ID = nextID()
+//	if cns.CreatedAt.IsZero() {
+//		cns.CreatedAt = time.Now()
+//	}
+//
+//	if err := store.CreateComposeNamespace(ctx, s, cns); err != nil {
+//		return nil, err
+//	}
+//
+//	return cns, nil
+//}
+//
+//func (se *StoreEncoder) encodeModule(ctx context.Context, s store.Storer, m *envoy.ComposeModuleNode) (*types.Module, error) {
+//	mod := m.Module
+//
+//	// @todo this should probably be refactored (together with services)
+//	//       so that core logic is handled in one place
+//	mod.ID = nextID()
+//
+//	if mod.CreatedAt.IsZero() {
+//		mod.CreatedAt = time.Now()
+//	}
+//
+//	// Store the module
+//	if err := store.CreateComposeModule(ctx, s, mod); err != nil {
+//		return nil, err
+//	}
+//
+//	// Store module fields
+//	for _, f := range mod.Fields {
+//		f.ID = nextID()
+//		f.ModuleID = mod.ID
+//
+//		if err := store.CreateComposeModuleField(ctx, s, f); err != nil {
+//			return nil, err
+//		}
+//
+//		// Update the original module fields so dependant resources can proceed without issues
+//		mod.Fields = append(mod.Fields, f)
+//	}
+//
+//	return mod, nil
+//}
 
-	// @todo this should probably be refactored (together with services)
-	//       so that core logic is handled in one place
-	cns.ID = nextID()
-	if cns.CreatedAt.IsZero() {
-		cns.CreatedAt = time.Now()
-	}
-
-	if err := store.CreateComposeNamespace(ctx, s, cns); err != nil {
-		return nil, err
-	}
-
-	return cns, nil
-}
-
-func (se *StoreEncoder) encodeModule(ctx context.Context, s store.Storer, m *envoy.ComposeModuleNode) (*types.Module, error) {
-	mod := m.Module
-
-	// @todo this should probably be refactored (together with services)
-	//       so that core logic is handled in one place
-	mod.ID = nextID()
-
-	if mod.CreatedAt.IsZero() {
-		mod.CreatedAt = time.Now()
-	}
-
-	// Store the module
-	if err := store.CreateComposeModule(ctx, s, mod); err != nil {
-		return nil, err
-	}
-
-	// Store module fields
-	for _, f := range mod.Fields {
-		f.ID = nextID()
-		f.ModuleID = mod.ID
-
-		if err := store.CreateComposeModuleField(ctx, s, f); err != nil {
-			return nil, err
-		}
-
-		// Update the original module fields so dependant resources can proceed without issues
-		mod.Fields = append(mod.Fields, f)
-	}
-
-	return mod, nil
-}
-
-//func (se *StoreEncoder) encodeRecord(ctx context.Context, s store.Storer, m *envoy.ComposeRecordNode) error {
+//func (se *StoreEncoder) encodeRecord(ctx context.Context, s store.Storer, m *envoy.ComposeRecordSet) error {
 //	mod := m.Mod
 //
 //	// @todo a bit less ad-hoc-ish solution

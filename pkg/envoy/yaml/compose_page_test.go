@@ -43,7 +43,7 @@ func TestComposePage_UnmarshalYAML(t *testing.T) {
 		req.Len(doc.compose.pages, 1)
 		req.Len(doc.compose.pages[0].pages, 1)
 		req.Equal(3, len(doc.compose.pages[0].res.Blocks))
-		req.NotNil(doc.compose.pages[0].rbacRules)
-		req.NotEmpty(doc.compose.pages[0].rbacRules.rules)
+		req.NotNil(doc.compose.pages[0].rbac)
+		req.NotEmpty(doc.compose.pages[0].rbac.rules)
 	})
 }

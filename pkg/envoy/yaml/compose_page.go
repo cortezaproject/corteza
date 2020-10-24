@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,7 +14,7 @@ type (
 		pages        composePageSet
 		refNamespace string
 		refModule    string
-		*rbacRules
+		rbac         *rbacRules
 	}
 	composePageSet []*composePage
 
@@ -78,14 +79,14 @@ func (wset composePageSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
+		wrap.rbac = &rbacRules{}
 		wrap.res = &types.Page{
 			// Pages are visible by default
 			Visible: true,
 		}
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.PageRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.PageRBACResource, n); err != nil {
 		return
 	}
 
@@ -127,8 +128,8 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composePage) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 16)
-	//nn = append(nn, &envoy.ComposePageNode{Page: wrap.res})
-
-	return nn, nil
+	return envoy.CollectNodes(
+		&node.ComposePage{Res: wrap.res, RefNamespace: wrap.refNamespace},
+		wrap.pages,
+	)
 }

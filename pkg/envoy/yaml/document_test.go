@@ -11,7 +11,7 @@ func TestDocument_UnmarshalYAML(t *testing.T) {
 		doc, err := parseDocument("global_rbac_1")
 		req.NoError(err)
 		req.NotNil(doc)
-		req.NotNil(doc.rbacRules)
-		req.NotEmpty(doc.rbacRules.rules)
+		req.NotNil(doc.rbac)
+		req.NotEmpty(doc.rbac.rules)
 	})
 }

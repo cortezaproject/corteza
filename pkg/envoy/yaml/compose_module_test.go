@@ -59,7 +59,7 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.Equal(30, len(doc.compose.modules[0].res.Fields))
 		req.Equal(21, len(doc.compose.modules[1].res.Fields))
 		req.Equal(23, len(doc.compose.modules[2].res.Fields))
-		req.NotNil(doc.compose.modules[0].rbacRules)
-		req.NotEmpty(doc.compose.modules[0].rbacRules.rules)
+		req.NotNil(doc.compose.modules[0].rbac)
+		req.NotEmpty(doc.compose.modules[0].rbac.rules)
 	})
 }
