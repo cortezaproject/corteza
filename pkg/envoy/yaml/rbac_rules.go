@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"gopkg.in/yaml.v3"
 )
@@ -79,4 +81,25 @@ func (wrap *rbacRules) decodeGlobalAccessControl(access rbac.Access, v *yaml.Nod
 			return eachSeq(v, decodeRbacOperations(wrap, access, role, res))
 		})
 	})
+}
+
+func (wrap rbacRules) MarshalEnvoy() ([]envoy.Node, error) {
+	var nn = make([]envoy.Node, 0, len(wrap.rules)*2)
+
+	for role, rr := range wrap.rules {
+		for _, rule := range rr {
+			nn = append(nn, &node.RbacRule{Res: rule, RefRole: role})
+		}
+	}
+	return nn, nil
+}
+
+// Ensure always returns rbacRules struct, event if wrap==nil
+// this will prevent nil pointer panics
+func (wrap *rbacRules) Ensure() *rbacRules {
+	if wrap == nil {
+		return &rbacRules{}
+	}
+
+	return wrap
 }

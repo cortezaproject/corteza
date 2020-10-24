@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -14,7 +16,7 @@ type (
 		modules composeModuleSet
 
 		// module's RBAC rules
-		*rbacRules
+		rbac *rbacRules
 	}
 	userSet []*user
 )
@@ -63,20 +65,20 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-//func (wset userSet) MarshalEnvoy() ([]envoy.Node, error) {
-//	// user usually have bunch of sub-resources defined
-//	nn := make([]envoy.Node, 0, len(wset)*10)
-//
-//	for _, res := range wset {
-//		if tmp, err := res.MarshalEnvoy(); err != nil {
-//			return nil, err
-//		} else {
-//			nn = append(nn, tmp...)
-//		}
-//	}
-//
-//	return nn, nil
-//}
+func (wset userSet) MarshalEnvoy() ([]envoy.Node, error) {
+	nn := make([]envoy.Node, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+
+	}
+
+	return nn, nil
+}
 
 func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !isKind(n, yaml.MappingNode) {
@@ -91,30 +93,18 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.UserRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.UserRBACResource, n); err != nil {
 		return
 	}
 
 	return nil
 }
 
-//func (wrap user) MarshalEnvoy() ([]envoy.Node, error) {
-//	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
-//	nn = append(nn, &envoy.UserNode{Ns: wrap.res})
-//
-//	if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
-//		return nil, err
-//	} else {
-//		nn = append(nn, tmp...)
-//	}
-//
-//	// @todo rbac
-//
-//	//if tmp, err := wrap.rules.MarshalEnvoy(); err != nil {
-//	//	return nil, err
-//	//} else {
-//	//	nn = append(nn, tmp...)
-//	//}
-//
-//	return nn, nil
-//}
+func (wrap user) MarshalEnvoy() ([]envoy.Node, error) {
+	return envoy.CollectNodes(
+		&node.User{
+			Res: wrap.res,
+		},
+		wrap.rbac.Ensure(),
+	)
+}

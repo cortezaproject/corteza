@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
@@ -12,13 +13,13 @@ type (
 	composeModule struct {
 		res          *types.Module
 		refNamespace string
-		*rbacRules
+		rbac         *rbacRules
 	}
 	composeModuleSet []*composeModule
 
 	composeModuleField struct {
-		res *types.ModuleField `yaml:",inline"`
-		*rbacRules
+		res  *types.ModuleField `yaml:",inline"`
+		rbac *rbacRules
 	}
 	composeModuleFieldSet []*composeModuleField
 )
@@ -80,11 +81,11 @@ func (wset composeModuleSet) MarshalEnvoy() ([]envoy.Node, error) {
 
 func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
+		wrap.rbac = &rbacRules{}
 		wrap.res = &types.Module{}
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.ModuleRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.ModuleRBACResource, n); err != nil {
 		return
 	}
 
@@ -119,10 +120,13 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeModule) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 16)
-	nn = append(nn, &envoy.ComposeModuleNode{Module: wrap.res})
-
-	return nn, nil
+	return envoy.CollectNodes(
+		&node.ComposeModule{
+			Res:          wrap.res,
+			RefNamespace: wrap.refNamespace,
+		},
+		wrap.rbac.Ensure(),
+	)
 }
 
 func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
@@ -170,7 +174,7 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.ModuleFieldRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.ModuleFieldRBACResource, n); err != nil {
 		return
 	}
 

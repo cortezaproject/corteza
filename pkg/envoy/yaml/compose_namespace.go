@@ -3,6 +3,7 @@ package yaml
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"gopkg.in/yaml.v3"
 )
@@ -25,7 +26,7 @@ type (
 		pages composePageSet
 
 		// module's RBAC rules
-		*rbacRules
+		rbac *rbacRules
 	}
 	composeNamespaceSet []*composeNamespace
 )
@@ -98,7 +99,7 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbacRules, err = decodeResourceAccessControl(types.NamespaceRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeResourceAccessControl(types.NamespaceRBACResource, n); err != nil {
 		return
 	}
 
@@ -123,22 +124,12 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeNamespace) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 1+len(wrap.modules))
-	nn = append(nn, &envoy.ComposeNamespaceNode{Ns: wrap.res})
-
-	if tmp, err := wrap.modules.MarshalEnvoy(); err != nil {
-		return nil, err
-	} else {
-		nn = append(nn, tmp...)
-	}
-
-	// @todo rbac
-
-	//if tmp, err := wrap.rules.MarshalEnvoy(); err != nil {
-	//	return nil, err
-	//} else {
-	//	nn = append(nn, tmp...)
-	//}
-
-	return nn, nil
+	return envoy.CollectNodes(
+		&node.ComposeNamespace{Res: wrap.res},
+		wrap.modules,
+		wrap.pages,
+		wrap.records,
+		wrap.charts,
+		wrap.rbac.Ensure(),
+	)
 }
