@@ -2,7 +2,7 @@ package yaml
 
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	"testing"
@@ -57,8 +57,8 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 		req.NotNil(doc.compose.namespaces[0])
 		req.Equal("CRM", doc.compose.namespaces[0].res.Name)
 		req.Equal("crm", doc.compose.namespaces[0].res.Slug)
-		req.NotNil(doc.compose.namespaces[0].rbacRules)
-		req.NotEmpty(doc.compose.namespaces[0].rbacRules.rules)
+		req.NotNil(doc.compose.namespaces[0].rbac)
+		req.NotEmpty(doc.compose.namespaces[0].rbac.rules)
 	})
 
 }
@@ -72,6 +72,7 @@ func TestComposeNamespace_MarshalEnvoy(t *testing.T) {
 	)
 
 	req.NoError(err)
-	req.NotEmpty(nn)
-	req.Equal(uint64(42), nn[0].(*envoy.ComposeNamespaceNode).Ns.ID)
+	req.Len(nn, 1)
+	req.IsType(&node.ComposeNamespace{}, nn[0])
+	req.Equal(uint64(42), nn[0].(*node.ComposeNamespace).Res.ID)
 }

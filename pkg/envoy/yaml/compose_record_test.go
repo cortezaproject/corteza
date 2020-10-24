@@ -56,7 +56,7 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 		req.NotNil(doc.compose.records[2].res)
 		req.Equal("Settings", doc.compose.records[2].refModule)
 
-		//req.NotNil(doc.compose.records[0].rbacRules)
-		//req.NotEmpty(doc.compose.records[0].rbacRules.rules)
+		//req.NotNil(doc.compose.records[0].rbac)
+		//req.NotEmpty(doc.compose.records[0].rbac.rules)
 	})
 }

@@ -14,7 +14,7 @@ type (
 		users        userSet
 		applications applicationSet
 		settings     settings
-		*rbacRules
+		rbac         *rbacRules
 	}
 )
 
@@ -23,7 +23,7 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if doc.rbacRules, err = decodeGlobalAccessControl(n); err != nil {
+	if doc.rbac, err = decodeGlobalAccessControl(n); err != nil {
 		return
 	}
 

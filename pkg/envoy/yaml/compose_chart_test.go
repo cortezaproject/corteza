@@ -42,7 +42,7 @@ func TestComposeChart_UnmarshalYAML(t *testing.T) {
 		req.NotNil(doc.compose)
 		req.Len(doc.compose.charts, 2)
 		req.Equal(1, len(doc.compose.charts[0].res.Config.Reports))
-		req.NotNil(doc.compose.charts[1].rbacRules)
-		req.NotEmpty(doc.compose.charts[1].rbacRules.rules)
+		req.NotNil(doc.compose.charts[1].rbac)
+		req.NotEmpty(doc.compose.charts[1].rbac.rules)
 	})
 }

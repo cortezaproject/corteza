@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,7 +17,8 @@ type (
 		refUpdatedBy string
 		refDeletedBy string
 		refOwnedBy   string
-		*rbacRules
+
+		rbac *rbacRules
 	}
 	composeRecordSet []*composeRecord
 
@@ -72,19 +74,24 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
+// MarshalEnvoy works a bit differenlty
 func (wset composeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
-	// namespace usually have bunch of sub-resources defined
-	var (
-		nn = []envoy.Node{}
-	)
+	nn := make([]envoy.Node, 0, len(wset))
 
-	// @todo
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+
+	}
 
 	return nn, nil
 }
 
-func (set composeRecordSet) setNamespaceRef(ref string) error {
-	for _, res := range set {
+func (wset composeRecordSet) setNamespaceRef(ref string) error {
+	for _, res := range wset {
 		if res.refNamespace != "" && ref != res.refNamespace {
 			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
 		}
@@ -95,14 +102,32 @@ func (set composeRecordSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
+func (wrap composeRecord) MarshalEnvoy() ([]envoy.Node, error) {
+	var refUsers = []string{}
+	for _, u := range []string{wrap.refCreatedBy, wrap.refUpdatedBy, wrap.refDeletedBy, wrap.refOwnedBy} {
+		if len(u) > 0 {
+			// emails and handles
+			refUsers = append(refUsers, u)
+		}
+	}
+
+	return envoy.CollectNodes(
+		&node.ComposeRecord{
+			Res:       wrap.res,
+			RefModule: wrap.refModule,
+			RefUsers:  refUsers,
+		},
+		wrap.rbac.Ensure(),
+	)
+}
+
 func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbacRules = &rbacRules{}
 		wrap.res = &types.Record{}
 	}
 
 	// @todo enable when records are ready for RBAC
-	//if wrap.rbacRules, err = decodeResourceAccessControl(types.RecordRBACResource, n); err != nil {
+	//if wrap.rbac, err = decodeResourceAccessControl(types.RecordRBACResource, n); err != nil {
 	//	return
 	//}
 
