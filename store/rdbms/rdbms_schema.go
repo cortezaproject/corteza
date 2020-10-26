@@ -56,6 +56,7 @@ func (s Schema) Tables() []*Table {
 		s.ActionLog(),
 		s.RbacRules(),
 		s.Settings(),
+		s.Labels(),
 		s.ComposeAttachment(),
 		s.ComposeChart(),
 		s.ComposeModule(),
@@ -217,6 +218,17 @@ func (Schema) Settings() *Table {
 		ColumnDef("updated_at", ColumnTypeTimestamp),
 
 		AddIndex("unique_name", IExpr("LOWER(name)"), IColumn("rel_owner")),
+	)
+}
+
+func (Schema) Labels() *Table {
+	return TableDef("labels",
+		ColumnDef("kind", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("rel_resource", ColumnTypeIdentifier),
+		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(resourceLength)),
+		ColumnDef("value", ColumnTypeText),
+
+		PrimaryKey(IColumn("kind", "rel_resource", "name")),
 	)
 }
 
