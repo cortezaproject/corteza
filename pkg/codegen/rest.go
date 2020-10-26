@@ -55,6 +55,8 @@ type (
 		Required bool   `yaml:"required"`
 		Title    string `yaml:"title"`
 		Origin   string
+
+		DefinedParser string `yaml:"parser"`
 	}
 )
 
@@ -191,7 +193,15 @@ func (d *restEndpointParamDef) FieldTag() string {
 	return ""
 }
 
+func (d *restEndpointParamDef) HasExplicitParser() bool {
+	return d.DefinedParser != ""
+}
+
 func (d *restEndpointParamDef) Parser(arg string) string {
+	if d.HasExplicitParser() {
+		return fmt.Sprintf("%s(%s)", d.DefinedParser, arg)
+	}
+
 	switch d.Type {
 	case "[]uint64":
 		return fmt.Sprintf("payload.ParseUint64s(%s), nil", arg)
