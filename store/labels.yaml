@@ -1,0 +1,39 @@
+import:
+  - github.com/cortezaproject/corteza-server/pkg/label/types
+
+types:
+  type: types.Label
+
+fields:
+  - { field: Kind,       isPrimaryKey: true }
+  - { field: ResourceID, isPrimaryKey: true }
+  - { field: Name,       isPrimaryKey: true, lookupFilterPreprocessor: lower }
+  - { field: Value }
+
+lookups:
+  - fields: [ Kind, ResourceID, Name ]
+    uniqueConstraintCheck: true
+    description: |-
+      Label lookup by kind, resource, name
+
+functions:
+  - name: DeleteExtraLabels
+    arguments:
+      - { name: kind,        type: string }
+      - { name: resourceID,  type: uint64 }
+      - { name: names,        type: ...string }
+    return: [ error ]
+
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
+
+upsert:
+  enable: true
+
+rdbms:
+  alias: lbl
+  table: labels
+  customFilterConverter: true
