@@ -87,15 +87,7 @@ func (r *{{ export $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (er
         // GET params
 	    tmp := req.URL.Query()
 	{{ range $p := $a.Params.Get }}
-        {{- if not $p.IsSlice }}
-        if val, ok := tmp["{{ $p.Name }}"]; ok && len(val) > 0  {
-            r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
-            if err != nil {
-                return err
-            }
-        }
-        {{- end }}
-        {{- if $p.IsSlice }}
+        {{- if or $p.IsSlice $p.HasExplicitParser }}
         if val, ok := tmp["{{ $p.Name }}[]"]; ok   {
             r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
             if err != nil {
@@ -103,6 +95,13 @@ func (r *{{ export $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (er
             }
         } else if val, ok := tmp["{{ $p.Name }}"]; ok   {
             r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
+            if err != nil {
+                return err
+            }
+        }
+        {{- else }}
+        if val, ok := tmp["{{ $p.Name }}"]; ok && len(val) > 0  {
+            r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
             if err != nil {
                 return err
             }
@@ -125,21 +124,32 @@ func (r *{{ export $.Endpoint.Entrypoint $a.Name }}) Fill(req *http.Request) (er
                 return fmt.Errorf("error processing uploaded file: %w", err)
             }
             {{ else }}
-                {{- if not $p.IsSlice }}
-                if val, ok := req.Form["{{ $p.Name }}"]; ok && len(val) > 0  {
-                    r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
+                {{- if or $p.HasExplicitParser }}
+                if val, ok := req.Form["{{ $p.Name }}[]"]; ok {
+                    r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
                     if err != nil {
                         return err
                     }
-                }
-                {{- end }}
-                {{- if $p.IsSlice }}
+                } else if val, ok := req.Form["{{ $p.Name }}"]; ok   {
+					r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
+					if err != nil {
+						return err
+					}
+				}
+                {{- else if or $p.IsSlice }}
                 //if val, ok := req.Form["{{ $p.Name }}[]"]; ok && len(val) > 0  {
                 //    r.{{ export $p.Name }}, err = {{ $p.Parser "val" }}
                 //    if err != nil {
                 //        return err
                 //    }
                 //}
+                {{- else }}
+                if val, ok := req.Form["{{ $p.Name }}"]; ok && len(val) > 0  {
+                    r.{{ export $p.Name }}, err = {{ $p.Parser "val[0]" }}
+                    if err != nil {
+                        return err
+                    }
+                }
                 {{- end }}
             {{- end }}
 
