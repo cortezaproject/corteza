@@ -5,6 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"os"
 	"path"
+	"syscall"
 	"text/template"
 )
 
@@ -23,7 +24,8 @@ type (
 	}
 
 	typeDef struct {
-		NoIdField bool `yaml:"noIdField"`
+		NoIdField         bool   `yaml:"noIdField"`
+		LabelResourceType string `yaml:"labelResourceType"`
 	}
 )
 
@@ -65,6 +67,8 @@ func genTypes(tpl *template.Template, dd ...*typesDef) (err error) {
 	var (
 		typeGen     = tpl.Lookup("type_set.gen.go.tpl")
 		typeGenTest = tpl.Lookup("type_set.gen_test.go.tpl")
+
+		typeLabelsGen = tpl.Lookup("type_labels.gen.go.tpl")
 	)
 
 	for _, d := range dd {
@@ -79,7 +83,27 @@ func genTypes(tpl *template.Template, dd ...*typesDef) (err error) {
 		if err != nil {
 			return
 		}
+
+		labelsOutput := path.Join(d.outputDir, "type_labels.gen.go")
+		if d.HasLabels() {
+			err = goTemplate(labelsOutput, typeLabelsGen, d)
+		} else if err = syscall.Unlink(labelsOutput); os.IsNotExist(err) {
+			err = nil
+		}
+
+		if err != nil {
+			return
+		}
 	}
 
 	return nil
+}
+
+func (d typesDef) HasLabels() bool {
+	for _, t := range d.Types {
+		if len(t.LabelResourceType) > 0 {
+			return true
+		}
+	}
+	return false
 }
