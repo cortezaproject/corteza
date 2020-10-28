@@ -12,7 +12,7 @@ import (
 type (
 	SyncStructure struct{}
 
-	listResponse struct {
+	listModuleResponse struct {
 		Filter *types.ExposedModuleFilter `json:"filter"`
 		Set    *types.ExposedModuleSet    `json:"set"`
 	}
@@ -33,7 +33,8 @@ func (ctrl SyncStructure) ReadExposedAll(ctx context.Context, r *request.SyncStr
 	}
 
 	f := types.ExposedModuleFilter{
-		NodeID: node.ID,
+		NodeID:   node.ID,
+		LastSync: r.LastSync,
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
@@ -44,9 +45,13 @@ func (ctrl SyncStructure) ReadExposedAll(ctx context.Context, r *request.SyncStr
 		return nil, err
 	}
 
-	list, f, err := (service.ExposedModule()).Find(context.Background(), f)
+	list, f, err := (service.ExposedModule()).Find(ctx, f)
 
-	return listResponse{
+	if err != nil {
+		return nil, err
+	}
+
+	return listModuleResponse{
 		Set:    &list,
 		Filter: &f,
 	}, nil

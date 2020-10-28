@@ -23,7 +23,9 @@ type (
 		NodeID             uint64 `json:"nodeID,string"`
 		ComposeModuleID    uint64 `json:"composeModuleID,string"`
 		ComposeNamespaceID uint64 `json:"composeNamespaceID,string"`
-		Query              string `json:"query"`
+
+		LastSync uint64 `json:"lastSync"`
+		Query    string `json:"query"`
 
 		Check func(*ExposedModule) (bool, error) `json:"-"`
 
