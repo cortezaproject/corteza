@@ -59,6 +59,7 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 		f   = types.PageFilter{
 			NamespaceID: r.NamespaceID,
 			ParentID:    r.SelfID,
+			Labels:      r.Labels,
 
 			Handle: r.Handle,
 			Query:  r.Query,
@@ -94,6 +95,7 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			Description: r.Description,
 			Visible:     r.Visible,
 			Weight:      r.Weight,
+			Labels:      r.Labels,
 		}
 	)
 
@@ -129,6 +131,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			Description: r.Description,
 			Visible:     r.Visible,
 			Weight:      r.Weight,
+			Labels:      r.Labels,
 		}
 	)
 

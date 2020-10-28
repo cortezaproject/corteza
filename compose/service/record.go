@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
 	"regexp"
 	"strconv"
@@ -226,6 +227,10 @@ func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module
 
 		trimUnreadableRecordFields(svc.ctx, svc.ac, m, r)
 
+		if err = label.Load(svc.ctx, svc.store, r); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
@@ -273,8 +278,25 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 			return err
 		}
 
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.Record{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
 		set, f, err = store.SearchComposeRecords(svc.ctx, svc.store, m, filter)
 		if err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledRecords(set)...); err != nil {
 			return err
 		}
 
@@ -540,6 +562,10 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		return nil, err
 	}
 
+	if err = label.Create(svc.ctx, svc.store, new); err != nil {
+		return
+	}
+
 	// At this point we can return the value
 	rec = new
 
@@ -628,8 +654,13 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	}
 
 	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
-		return store.UpdateComposeRecord(ctx, s, m, upd)
+		if label.Changed(old.Labels, upd.Labels) {
+			if err = label.Update(ctx, s, upd); err != nil {
+				return err
+			}
+		}
 
+		return store.UpdateComposeRecord(ctx, s, m, upd)
 	})
 
 	if err != nil {
@@ -1329,4 +1360,20 @@ func loadRecordCombo(ctx context.Context, s store.Storer, namespaceID, moduleID,
 	}
 
 	return
+}
+
+// toLabeledRecords converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledRecords(set []*types.Record) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

@@ -81,6 +81,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		f = types.RecordFilter{
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
+			Labels:      r.Labels,
 			Deleted:     filter.State(r.Deleted),
 		}
 	)
@@ -153,6 +154,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
+			Labels:      r.Labels,
 		}
 		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
@@ -201,6 +203,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
 			Values:      r.Values,
+			Labels:      r.Labels,
 		}
 		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,

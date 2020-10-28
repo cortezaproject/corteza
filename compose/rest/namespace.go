@@ -59,8 +59,9 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 	var (
 		err error
 		f   = types.NamespaceFilter{
-			Query: r.Query,
-			Slug:  r.Slug,
+			Query:  r.Query,
+			Slug:   r.Slug,
+			Labels: r.Labels,
 		}
 	)
 
@@ -83,6 +84,7 @@ func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (i
 			Name:    r.Name,
 			Slug:    r.Slug,
 			Enabled: r.Enabled,
+			Labels:  r.Labels,
 		}
 	)
 
@@ -107,6 +109,7 @@ func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (i
 			Name:      r.Name,
 			Slug:      r.Slug,
 			Enabled:   r.Enabled,
+			Labels:    r.Labels,
 			UpdatedAt: r.UpdatedAt,
 		}
 	)

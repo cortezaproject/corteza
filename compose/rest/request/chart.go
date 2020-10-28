@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -46,6 +47,11 @@ type (
 		//
 		// Search charts by handle
 		Handle string
+
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Limit GET parameter
 		//
@@ -83,6 +89,11 @@ type (
 		//
 		// Chart handle
 		Handle string
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	ChartRead struct {
@@ -123,6 +134,11 @@ type (
 		// Chart handle
 		Handle string
 
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// UpdatedAt POST parameter
 		//
 		// Last update (or creation) date
@@ -153,6 +169,7 @@ func (r ChartList) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"query":       r.Query,
 		"handle":      r.Handle,
+		"labels":      r.Labels,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
 		"sort":        r.Sort,
@@ -172,6 +189,11 @@ func (r ChartList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r ChartList) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChartList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -214,6 +236,17 @@ func (r *ChartList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -265,6 +298,7 @@ func (r ChartCreate) Auditable() map[string]interface{} {
 		"config":      r.Config,
 		"name":        r.Name,
 		"handle":      r.Handle,
+		"labels":      r.Labels,
 	}
 }
 
@@ -286,6 +320,11 @@ func (r ChartCreate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ChartCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChartCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -324,6 +363,18 @@ func (r *ChartCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -415,6 +466,7 @@ func (r ChartUpdate) Auditable() map[string]interface{} {
 		"config":      r.Config,
 		"name":        r.Name,
 		"handle":      r.Handle,
+		"labels":      r.Labels,
 		"updatedAt":   r.UpdatedAt,
 	}
 }
@@ -442,6 +494,11 @@ func (r ChartUpdate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ChartUpdate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ChartUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -485,6 +542,18 @@ func (r *ChartUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

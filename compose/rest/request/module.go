@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -63,6 +64,11 @@ type (
 		// Page cursor
 		PageCursor string
 
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// Sort GET parameter
 		//
 		// Sort items
@@ -94,6 +100,11 @@ type (
 		//
 		// Module meta data
 		Meta sqlxTypes.JSONText
+
+		// Labels POST parameter
+		//
+		// Module labels
+		Labels map[string]string
 	}
 
 	ModuleRead struct {
@@ -143,6 +154,11 @@ type (
 		//
 		// Last update (or creation) date
 		UpdatedAt *time.Time
+
+		// Labels POST parameter
+		//
+		// Module labels
+		Labels map[string]string
 	}
 
 	ModuleDelete struct {
@@ -189,6 +205,7 @@ func (r ModuleList) Auditable() map[string]interface{} {
 		"handle":      r.Handle,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
+		"labels":      r.Labels,
 		"sort":        r.Sort,
 	}
 }
@@ -221,6 +238,11 @@ func (r ModuleList) GetLimit() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleList) GetPageCursor() string {
 	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -275,6 +297,17 @@ func (r *ModuleList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
 			if err != nil {
@@ -311,6 +344,7 @@ func (r ModuleCreate) Auditable() map[string]interface{} {
 		"handle":      r.Handle,
 		"fields":      r.Fields,
 		"meta":        r.Meta,
+		"labels":      r.Labels,
 	}
 }
 
@@ -337,6 +371,11 @@ func (r ModuleCreate) GetFields() types.ModuleFieldSet {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleCreate) GetMeta() sqlxTypes.JSONText {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -382,6 +421,18 @@ func (r *ModuleCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
 			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -475,6 +526,7 @@ func (r ModuleUpdate) Auditable() map[string]interface{} {
 		"fields":      r.Fields,
 		"meta":        r.Meta,
 		"updatedAt":   r.UpdatedAt,
+		"labels":      r.Labels,
 	}
 }
 
@@ -511,6 +563,11 @@ func (r ModuleUpdate) GetMeta() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r ModuleUpdate) GetUpdatedAt() *time.Time {
 	return r.UpdatedAt
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ModuleUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -563,6 +620,18 @@ func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
 			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

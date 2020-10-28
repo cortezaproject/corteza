@@ -55,6 +55,7 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 
 			Handle: r.Handle,
 			Query:  r.Query,
+			Labels: r.Labels,
 		}
 	)
 
@@ -76,6 +77,7 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 		NamespaceID: r.NamespaceID,
 		Name:        r.Name,
 		Handle:      r.Handle,
+		Labels:      r.Labels,
 	}
 
 	if len(r.Config) > 2 {
@@ -102,6 +104,7 @@ func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface
 			Handle:      r.Handle,
 			NamespaceID: r.NamespaceID,
 			UpdatedAt:   r.UpdatedAt,
+			Labels:      r.Labels,
 		}
 	)
 

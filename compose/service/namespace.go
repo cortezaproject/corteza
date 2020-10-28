@@ -8,8 +8,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"reflect"
 	"strconv"
 )
 
@@ -44,7 +46,14 @@ type (
 		DeleteByID(namespaceID uint64) error
 	}
 
-	namespaceUpdateHandler func(ctx context.Context, ns *types.Namespace) (bool, error)
+	namespaceUpdateHandler func(ctx context.Context, ns *types.Namespace) (namespaceChanges, error)
+	namespaceChanges       uint8
+)
+
+const (
+	namespaceUnchanged     namespaceChanges = 0
+	namespaceChanged       namespaceChanges = 1
+	namespaceLabelsChanged namespaceChanges = 2
 )
 
 func Namespace() NamespaceService {
@@ -80,7 +89,24 @@ func (svc namespace) Find(filter types.NamespaceFilter) (set types.NamespaceSet,
 	}
 
 	err = func() error {
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.Namespace{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
 		if set, f, err = store.SearchComposeNamespaces(svc.ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledNamespaces(set)...); err != nil {
 			return err
 		}
 
@@ -173,6 +199,10 @@ func (svc namespace) Create(new *types.Namespace) (*types.Namespace, error) {
 			return err
 		}
 
+		if err = label.Create(ctx, s, new); err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(svc.ctx, event.NamespaceAfterCreate(new, nil))
 		return nil
 	})
@@ -194,7 +224,7 @@ func (svc namespace) UndeleteByID(namespaceID uint64) error {
 
 func (svc namespace) updater(namespaceID uint64, action func(...*namespaceActionProps) *namespaceAction, fn namespaceUpdateHandler) (*types.Namespace, error) {
 	var (
-		changed bool
+		changes namespaceChanges
 		ns, old *types.Namespace
 		aProps  = &namespaceActionProps{namespace: &types.Namespace{ID: namespaceID}}
 		err     error
@@ -204,6 +234,10 @@ func (svc namespace) updater(namespaceID uint64, action func(...*namespaceAction
 		ns, err = loadNamespace(svc.ctx, s, namespaceID)
 		if err != nil {
 			return
+		}
+
+		if err = label.Load(svc.ctx, svc.store, ns); err != nil {
+			return err
 		}
 
 		old = ns.Clone()
@@ -221,13 +255,19 @@ func (svc namespace) updater(namespaceID uint64, action func(...*namespaceAction
 			return
 		}
 
-		if changed, err = fn(svc.ctx, ns); err != nil {
+		if changes, err = fn(svc.ctx, ns); err != nil {
 			return err
 		}
 
-		if changed {
+		if changes&namespaceChanged > 0 {
 			if err = store.UpdateComposeNamespace(svc.ctx, svc.store, ns); err != nil {
 				return err
+			}
+		}
+
+		if changes&namespaceLabelsChanged > 0 {
+			if err = label.Update(ctx, s, ns); err != nil {
+				return
 			}
 		}
 
@@ -260,6 +300,10 @@ func (svc namespace) lookup(lookup func(*namespaceActionProps) (*types.Namespace
 			return NamespaceErrNotAllowedToRead()
 		}
 
+		if err = label.Load(svc.ctx, svc.store, ns); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
@@ -277,59 +321,84 @@ func (svc namespace) uniqueCheck(ns *types.Namespace) (err error) {
 }
 
 func (svc namespace) handleUpdate(upd *types.Namespace) namespaceUpdateHandler {
-	return func(ctx context.Context, ns *types.Namespace) (bool, error) {
-		if isStale(upd.UpdatedAt, ns.UpdatedAt, ns.CreatedAt) {
-			return false, NamespaceErrStaleData()
+	return func(ctx context.Context, res *types.Namespace) (changes namespaceChanges, err error) {
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return namespaceUnchanged, NamespaceErrStaleData()
 		}
 
-		if upd.Slug != ns.Slug && !handle.IsValid(upd.Slug) {
-			return false, NamespaceErrInvalidHandle()
+		if upd.Slug != res.Slug && !handle.IsValid(upd.Slug) {
+			return namespaceUnchanged, NamespaceErrInvalidHandle()
 		}
 
 		if err := svc.uniqueCheck(upd); err != nil {
-			return false, err
+			return namespaceUnchanged, err
 		}
 
-		if !svc.ac.CanUpdateNamespace(svc.ctx, ns) {
-			return false, NamespaceErrNotAllowedToUpdate()
+		if !svc.ac.CanUpdateNamespace(svc.ctx, res) {
+			return namespaceUnchanged, NamespaceErrNotAllowedToUpdate()
 		}
 
-		ns.Name = upd.Name
-		ns.Slug = upd.Slug
-		ns.Meta = upd.Meta
-		ns.Enabled = upd.Enabled
-		ns.UpdatedAt = now()
+		if res.Name != upd.Name {
+			changes |= namespaceChanged
+			res.Name = upd.Name
+		}
 
-		return true, nil
+		if res.Slug != upd.Slug {
+			changes |= namespaceChanged
+			res.Slug = upd.Slug
+		}
+
+		if res.Enabled != upd.Enabled {
+			changes |= namespaceChanged
+			res.Enabled = upd.Enabled
+		}
+
+		if !reflect.DeepEqual(upd.Meta, res.Meta) {
+			changes |= namespaceChanged
+			res.Meta = upd.Meta
+		}
+
+		if upd.Labels != nil {
+			if label.Changed(res.Labels, upd.Labels) {
+				changes |= namespaceLabelsChanged
+				res.Labels = upd.Labels
+			}
+		}
+
+		if changes&namespaceChanged > 0 {
+			res.UpdatedAt = now()
+		}
+
+		return
 	}
 }
 
-func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (bool, error) {
+func (svc namespace) handleDelete(ctx context.Context, ns *types.Namespace) (namespaceChanges, error) {
 	if !svc.ac.CanDeleteNamespace(ctx, ns) {
-		return false, NamespaceErrNotAllowedToDelete()
+		return namespaceUnchanged, NamespaceErrNotAllowedToDelete()
 	}
 
 	if ns.DeletedAt != nil {
 		// namespace already deleted
-		return false, nil
+		return namespaceUnchanged, nil
 	}
 
 	ns.DeletedAt = now()
-	return true, nil
+	return namespaceChanged, nil
 }
 
-func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (bool, error) {
+func (svc namespace) handleUndelete(ctx context.Context, ns *types.Namespace) (namespaceChanges, error) {
 	if !svc.ac.CanDeleteNamespace(ctx, ns) {
-		return false, NamespaceErrNotAllowedToUndelete()
+		return namespaceUnchanged, NamespaceErrNotAllowedToUndelete()
 	}
 
 	if ns.DeletedAt == nil {
 		// namespace not deleted
-		return false, nil
+		return namespaceUnchanged, nil
 	}
 
 	ns.DeletedAt = nil
-	return true, nil
+	return namespaceChanged, nil
 }
 
 func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns *types.Namespace, err error) {
@@ -342,4 +411,20 @@ func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns 
 	}
 
 	return
+}
+
+// toLabeledNamespaces converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledNamespaces(set []*types.Namespace) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

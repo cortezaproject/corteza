@@ -8,7 +8,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
+	"reflect"
 )
 
 type (
@@ -45,7 +47,14 @@ type (
 		Reorder(namespaceID, selfID uint64, pageIDs []uint64) error
 	}
 
-	pageUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Page) (bool, error)
+	pageUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Page) (pageChanges, error)
+	pageChanges       uint8
+)
+
+const (
+	pageUnchanged     pageChanges = 0
+	pageChanged       pageChanges = 1
+	pageLabelsChanged pageChanges = 2
 )
 
 func Page() PageService {
@@ -125,7 +134,24 @@ func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.Page
 			aProps.setNamespace(ns)
 		}
 
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.Page{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
 		if set, f, err = store.SearchComposePages(svc.ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledPages(set)...); err != nil {
 			return err
 		}
 
@@ -271,6 +297,10 @@ func (svc page) Create(new *types.Page) (*types.Page, error) {
 			return err
 		}
 
+		if err = label.Create(ctx, s, new); err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(svc.ctx, event.PageAfterCreate(new, nil, ns))
 		return err
 	})
@@ -292,7 +322,7 @@ func (svc page) UndeleteByID(namespaceID, pageID uint64) error {
 
 func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
 	var (
-		changed bool
+		changes pageChanges
 
 		ns     *types.Namespace
 		p, old *types.Page
@@ -304,6 +334,10 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		ns, p, err = loadPage(svc.ctx, s, namespaceID, pageID)
 		if err != nil {
 			return
+		}
+
+		if err = label.Load(svc.ctx, svc.store, p); err != nil {
+			return err
 		}
 
 		old = p.Clone()
@@ -321,13 +355,19 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 			return
 		}
 
-		if changed, err = fn(svc.ctx, ns, p); err != nil {
+		if changes, err = fn(svc.ctx, ns, p); err != nil {
 			return err
 		}
 
-		if changed {
+		if changes&pageChanged > 0 {
 			if err = store.UpdateComposePage(svc.ctx, svc.store, p); err != nil {
 				return err
+			}
+		}
+
+		if changes&pageLabelsChanged > 0 {
+			if err = label.Update(ctx, s, p); err != nil {
+				return
 			}
 		}
 
@@ -366,6 +406,10 @@ func (svc page) lookup(namespaceID uint64, lookup func(*pageActionProps) (*types
 			return PageErrNotAllowedToRead()
 		}
 
+		if err = label.Load(svc.ctx, svc.store, p); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
@@ -389,63 +433,104 @@ func (svc page) uniqueCheck(p *types.Page) (err error) {
 }
 
 func (svc page) handleUpdate(upd *types.Page) pageUpdateHandler {
-	return func(ctx context.Context, ns *types.Namespace, p *types.Page) (bool, error) {
-		if isStale(upd.UpdatedAt, p.UpdatedAt, p.CreatedAt) {
-			return false, PageErrStaleData()
+	return func(ctx context.Context, ns *types.Namespace, res *types.Page) (changes pageChanges, err error) {
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return pageUnchanged, PageErrStaleData()
 		}
 
-		if upd.Handle != p.Handle && !handle.IsValid(upd.Handle) {
-			return false, PageErrInvalidHandle()
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return pageUnchanged, PageErrInvalidHandle()
 		}
 
 		if err := svc.uniqueCheck(upd); err != nil {
-			return false, err
+			return pageUnchanged, err
 		}
 
-		if !svc.ac.CanUpdatePage(svc.ctx, p) {
-			return false, PageErrNotAllowedToUpdate()
+		if !svc.ac.CanUpdatePage(svc.ctx, res) {
+			return pageUnchanged, PageErrNotAllowedToUpdate()
 		}
 
-		p.ID = upd.ID
-		p.SelfID = upd.SelfID
-		p.Blocks = upd.Blocks
-		p.Title = upd.Title
-		p.Handle = upd.Handle
-		p.Description = upd.Description
-		p.Visible = upd.Visible
-		p.Weight = upd.Weight
-		p.UpdatedAt = now()
+		if res.ID != upd.ID {
+			res.ID = upd.ID
+			changes |= pageChanged
+		}
 
-		return true, nil
+		if res.SelfID != upd.SelfID {
+			res.SelfID = upd.SelfID
+			changes |= pageChanged
+		}
+
+		if !reflect.DeepEqual(res.Blocks, upd.Blocks) {
+			res.Blocks = upd.Blocks
+			changes |= pageChanged
+		}
+
+		if res.Title != upd.Title {
+			res.Title = upd.Title
+			changes |= pageChanged
+		}
+
+		if res.Handle != upd.Handle {
+			res.Handle = upd.Handle
+			changes |= pageChanged
+		}
+
+		if res.Description != upd.Description {
+			res.Description = upd.Description
+			changes |= pageChanged
+		}
+
+		if res.Visible != upd.Visible {
+			res.Visible = upd.Visible
+			changes |= pageChanged
+		}
+
+		if res.Weight != upd.Weight {
+			res.Weight = upd.Weight
+			changes |= pageChanged
+		}
+
+		if upd.Labels != nil {
+			if label.Changed(res.Labels, upd.Labels) {
+				changes |= pageLabelsChanged
+				res.Labels = upd.Labels
+			}
+		}
+
+		if changes&pageChanged > 0 {
+			res.UpdatedAt = now()
+		}
+
+		return
 	}
 }
 
-func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Page) (bool, error) {
+func (svc page) handleDelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
 	if !svc.ac.CanDeletePage(ctx, m) {
-		return false, PageErrNotAllowedToDelete()
+		return pageUnchanged, PageErrNotAllowedToDelete()
 	}
 
 	if m.DeletedAt != nil {
 		// page already deleted
-		return false, nil
+		return pageUnchanged, nil
 	}
 
 	m.DeletedAt = now()
-	return true, nil
+	return pageChanged, nil
 }
 
-func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Page) (bool, error) {
+func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.Page) (pageChanges, error) {
 	if !svc.ac.CanDeletePage(ctx, m) {
-		return false, PageErrNotAllowedToUndelete()
+		return pageUnchanged, PageErrNotAllowedToUndelete()
 	}
 
 	if m.DeletedAt == nil {
 		// page not deleted
-		return false, nil
+		return pageUnchanged, nil
 	}
 
 	m.DeletedAt = nil
-	return true, nil
+	return pageChanged, nil
 }
 
 func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (ns *types.Namespace, m *types.Page, err error) {
@@ -469,4 +554,20 @@ func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (
 	}
 
 	return
+}
+
+// toLabeledPages converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledPages(set []*types.Page) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }
