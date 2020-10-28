@@ -16,6 +16,8 @@ type (
 		Name   string      `json:"name"`
 		Config ChartConfig `json:"config"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		NamespaceID uint64 `json:"namespaceID,string"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -40,9 +42,13 @@ type (
 	}
 
 	ChartFilter struct {
-		NamespaceID uint64 `json:"namespaceID,string"`
-		Handle      string `json:"handle"`
-		Query       string `json:"query"`
+		NamespaceID uint64   `json:"namespaceID,string"`
+		ChartID     []uint64 `json:"chartID"`
+		Handle      string   `json:"handle"`
+		Query       string   `json:"query"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

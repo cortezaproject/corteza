@@ -29,6 +29,8 @@ type (
 
 		Children PageSet `json:"children,omitempty"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		Visible bool `json:"visible"`
 		Weight  int  `json:"weight"`
 
@@ -58,6 +60,9 @@ type (
 		Root        bool   `json:"root,omitempty"`
 		Handle      string `json:"handle"`
 		Query       string `json:"query"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

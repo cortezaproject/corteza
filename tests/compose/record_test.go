@@ -11,9 +11,11 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest"
 	"github.com/steinfletcher/apitest-jsonpath"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -558,5 +560,124 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 			})
 		})
 	}
+}
 
+func TestRecordLabels(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
+
+	var (
+		ns  = h.makeNamespace("some-namespace")
+		mod = h.makeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "dummy"})
+		ID  uint64
+	)
+
+	t.Run("create", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			payload = struct {
+				Response *types.Record
+			}{}
+
+			rec = &types.Record{
+				Values: types.RecordValueSet{&types.RecordValue{Name: "dummy", Value: "dummy"}},
+				Labels: map[string]string{
+					"foo": "bar",
+					"bar": "42",
+				},
+			}
+		)
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d/record/", ns.ID, mod.ID)).
+			JSON(helpers.JSON(rec)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End().
+			JSON(&payload)
+
+		req.NotNil(payload.Response)
+		req.NotZero(payload.Response.ID)
+
+		h.a.Equal(payload.Response.Labels["foo"], "bar",
+			"labels must contain foo with value bar")
+		h.a.Equal(payload.Response.Labels["bar"], "42",
+			"labels must contain bar with value 42")
+		req.Equal(payload.Response.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.Response.LabelResourceKind(), payload.Response.ID),
+			"response must match stored labels")
+
+		ID = payload.Response.ID
+	})
+
+	t.Run("update", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req = require.New(t)
+
+			payload = struct {
+				Response *types.Record
+			}{}
+
+			rec = &types.Record{
+				ID:     ID,
+				Values: types.RecordValueSet{&types.RecordValue{Name: "dummy", Value: "dummy"}},
+				Labels: map[string]string{
+					"foo": "baz",
+					"baz": "123",
+				},
+			}
+		)
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", ns.ID, mod.ID, ID)).
+			JSON(helpers.JSON(rec)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End().
+			JSON(&payload)
+		req.NotZero(payload.Response.ID)
+
+		// disabled for now
+		//req.Nil(payload.Response.UpdatedAt, "updatedAt must not change after changing labels")
+
+		req.Equal(payload.Response.Labels["foo"], "baz",
+			"labels must contain foo with value baz")
+		req.NotContains(payload.Response.Labels, "bar",
+			"labels must not contain bar")
+		req.Equal(payload.Response.Labels["baz"], "123",
+			"labels must contain baz with value 123")
+		req.Equal(payload.Response.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.Response.LabelResourceKind(), payload.Response.ID),
+			"response must match stored labels")
+	})
+
+	t.Run("search", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req = require.New(t)
+			set = types.RecordSet{}
+		)
+
+		helpers.SearchWithLabelsViaAPI(h.apiInit(), t,
+			fmt.Sprintf("/namespace/%d/module/%d/record/", ns.ID, mod.ID),
+			&set, url.Values{"labels": []string{"baz=123"}},
+		)
+		req.NotEmpty(set)
+		req.NotNil(set.FindByID(ID))
+		req.NotNil(set.FindByID(ID).Labels)
+	})
 }

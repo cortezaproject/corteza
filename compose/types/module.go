@@ -2,11 +2,9 @@ package types
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"time"
-
-	"github.com/jmoiron/sqlx/types"
-
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/jmoiron/sqlx/types"
+	"time"
 )
 
 type (
@@ -17,6 +15,8 @@ type (
 		Meta   types.JSONText `json:"meta"`
 		Fields ModuleFieldSet `json:"fields"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		NamespaceID uint64 `json:"namespaceID,string"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -25,10 +25,14 @@ type (
 	}
 
 	ModuleFilter struct {
-		NamespaceID uint64 `json:"namespaceID,string"`
-		Query       string `json:"query"`
-		Handle      string `json:"handle"`
-		Name        string `json:"name"`
+		ModuleID    []uint64 `json:"moduleID"`
+		NamespaceID uint64   `json:"namespaceID,string"`
+		Query       string   `json:"query"`
+		Handle      string   `json:"handle"`
+		Name        string   `json:"name"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

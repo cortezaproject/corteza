@@ -28,6 +28,8 @@ type (
 		Multi        bool           `json:"isMulti"`
 		DefaultValue RecordValueSet `json:"defaultValue"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`

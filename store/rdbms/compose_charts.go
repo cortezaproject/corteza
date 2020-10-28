@@ -12,6 +12,14 @@ func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.Se
 
 	query = filter.StateCondition(query, "cch.deleted_at", f.Deleted)
 
+	if len(f.ChartID) > 0 {
+		query = query.Where(squirrel.Eq{"cch.id": f.ChartID})
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		query = query.Where(squirrel.Eq{"cch.id": f.LabeledIDs})
+	}
+
 	if f.NamespaceID > 0 {
 		query = query.Where("cch.rel_namespace = ?", f.NamespaceID)
 	}
