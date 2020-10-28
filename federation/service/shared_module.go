@@ -12,7 +12,6 @@ import (
 
 type (
 	sharedModule struct {
-		ctx       context.Context
 		compose   composeService.ModuleService
 		store     store.Storer
 		actionlog actionlog.Recorder
@@ -31,8 +30,7 @@ type (
 
 func SharedModule() SharedModuleService {
 	return &sharedModule{
-		ctx:       context.Background(),
-		compose:   composeService.Module(),
+		compose:   composeService.DefaultModule,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
 	}

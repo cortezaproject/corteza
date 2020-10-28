@@ -35,6 +35,11 @@ type (
 		// Node ID
 		NodeID uint64 `json:",string"`
 
+		// LastSync GET parameter
+		//
+		// Last sync timestamp
+		LastSync uint64 `json:",string"`
+
 		// Query GET parameter
 		//
 		// Search query
@@ -66,6 +71,7 @@ func NewSyncStructureReadExposedAll() *SyncStructureReadExposedAll {
 func (r SyncStructureReadExposedAll) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"nodeID":     r.NodeID,
+		"lastSync":   r.LastSync,
 		"query":      r.Query,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
@@ -76,6 +82,11 @@ func (r SyncStructureReadExposedAll) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r SyncStructureReadExposedAll) GetNodeID() uint64 {
 	return r.NodeID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SyncStructureReadExposedAll) GetLastSync() uint64 {
+	return r.LastSync
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -115,6 +126,12 @@ func (r *SyncStructureReadExposedAll) Fill(req *http.Request) (err error) {
 		// GET params
 		tmp := req.URL.Query()
 
+		if val, ok := tmp["lastSync"]; ok && len(val) > 0 {
+			r.LastSync, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
 			if err != nil {

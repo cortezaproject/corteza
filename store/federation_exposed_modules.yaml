@@ -5,7 +5,7 @@ types:
   type: types.ExposedModule
 
 fields:
-  - { field: ID }
+  - { field: ID, isPrimaryKey: true, sortable: true }
   - { field: NodeID }
   - { field: ComposeModuleID }
   - { field: ComposeNamespaceID }
