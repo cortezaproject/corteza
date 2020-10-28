@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 
+	federationCommands "github.com/cortezaproject/corteza-server/federation/commands"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
@@ -57,6 +58,7 @@ func (app *CortezaApp) InitCLI() {
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
+		federationCommands.Sync(app),
 		cli.VersionCommand(),
 	)
 
