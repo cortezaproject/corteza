@@ -3,7 +3,6 @@ package rest
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
@@ -12,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -31,6 +29,18 @@ type (
 		Filter *ct.RecordFilter `json:"filter,omitempty"`
 		Set    *ct.RecordSet    `json:"set"`
 	}
+
+	listResponse struct {
+		Set *responseSet `json:"set"`
+	}
+
+	responseSet []*moduleResponse
+
+	moduleResponse struct {
+		Type string `json:"type"`
+		Rel  string `json:"rel"`
+		Href string `json:"href"`
+	}
 )
 
 func (SyncData) New() *SyncData {
@@ -38,10 +48,60 @@ func (SyncData) New() *SyncData {
 }
 
 func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataReadExposedAll) (interface{}, error) {
-	// /exposed/records/
-	// fetch the node info here so we can use the node ID in the filtering
+	// todo - handle paging
+	var (
+		err  error
+		node *types.Node
+	)
 
-	return nil, nil
+	if node, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
+		return nil, err
+	}
+
+	s, _, err := service.DefaultExposedModule.Find(ctx, types.ExposedModuleFilter{NodeID: node.ID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	composeModuleList := make(map[uint64][]uint64, len(s))
+
+	err = s.Walk(func(em *types.ExposedModule) error {
+		composeModuleList[em.ComposeModuleID] = []uint64{em.ComposeNamespaceID, em.ID}
+		return nil
+	})
+
+	if err != nil || len(composeModuleList) == 0 {
+		return nil, err
+	}
+
+	recordQuery := buildLastSyncQuery(r.LastSync)
+	responseSet := responseSet{}
+
+	for composeModuleID, idList := range composeModuleList {
+		rf := ct.RecordFilter{
+			NamespaceID: idList[0],
+			ModuleID:    composeModuleID,
+			Query:       recordQuery,
+			Paging:      filter.Paging{Limit: 1},
+		}
+
+		// todo - handle error properly
+		if list, _, err := (cs.Record()).Find(rf); err != nil || len(list) == 0 {
+			continue
+		}
+
+		// generate url
+		moduleResponse := &moduleResponse{
+			Type: "GET",
+			Rel:  "Federation Module",
+			Href: fmt.Sprintf("/nodes/%d/modules/%d/records/", node.ID, idList[1]),
+		}
+
+		responseSet = append(responseSet, moduleResponse)
+	}
+
+	return listResponse{&responseSet}, nil
 }
 
 func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExposed) (interface{}, error) {
@@ -72,15 +132,7 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
-	if r.LastSync != "" {
-		ls, err := parseLastSync(r.LastSync)
-
-		if err != nil {
-			return nil, err
-		}
-
-		f.Query = fmt.Sprintf("updated_at >= '%s' OR created_at >= '%s'", ls, ls)
-	}
+	f.Query = buildLastSyncQuery(r.LastSync)
 
 	list, f, err := (cs.Record()).Find(f)
 
@@ -107,23 +159,19 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 	}, nil
 }
 
-func parseLastSync(lastSync string) (*time.Time, error) {
-	spew.Dump("LASTSYNC", lastSync)
-	if i, err := strconv.ParseInt(lastSync, 10, 64); err == nil {
-		t := time.Unix(i, 0)
-		return &t, nil
+func buildLastSyncQuery(ts uint64) string {
+	if ts == 0 {
+		return ""
 	}
 
-	// try different format if above fails
-	if t, err := time.Parse("2006-01-02 15:04:05", lastSync); err == nil {
-		return &t, nil
+	t := time.Unix(int64(ts), 0)
+
+	if t.IsZero() {
+		return ""
 	}
 
-	t, err := time.Parse("2006-01-02", lastSync)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &t, nil
+	return fmt.Sprintf(
+		"(updated_at >= '%s' OR created_at >= '%s')",
+		t.UTC().Format(time.RFC3339),
+		t.UTC().Format(time.RFC3339))
 }
