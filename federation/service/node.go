@@ -360,6 +360,10 @@ func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*t
 	return svc.store.LookupFederationNodeBySharedNodeID(ctx, sharedNodeID)
 }
 
+func (svc node) FindByID(ctx context.Context, nodeID uint64) (*types.Node, error) {
+	return svc.store.LookupFederationNodeByID(ctx, nodeID)
+}
+
 // Looks for existing user or crates a new one
 func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysTypes.User, error) {
 	// Generate handle for user that se this node
