@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -112,8 +113,28 @@ func (svc role) Find(filter types.RoleFilter) (rr types.RoleSet, f types.RoleFil
 			}
 		}
 
-		rr, f, err = store.SearchRoles(svc.ctx, svc.store, filter)
-		return err
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.Role{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if rr, f, err = store.SearchRoles(svc.ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledRoles(rr)...); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return rr, f, svc.recordAction(svc.ctx, raProps, RoleActionSearch, err)
@@ -125,9 +146,17 @@ func (svc role) FindByID(roleID uint64) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		r, err = svc.findByID(roleID)
+		if r, err = svc.findByID(roleID); err != nil {
+			return err
+		}
+
 		raProps.setRole(r)
-		return err
+
+		if err = label.Load(svc.ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
@@ -147,9 +176,17 @@ func (svc role) FindByName(name string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		r, err = store.LookupRoleByName(svc.ctx, svc.store, name)
+		if r, err = store.LookupRoleByName(svc.ctx, svc.store, name); err != nil {
+			return err
+		}
+
 		raProps.setRole(r)
-		return err
+
+		if err = label.Load(svc.ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
@@ -161,9 +198,17 @@ func (svc role) FindByHandle(h string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		r, err = store.LookupRoleByName(svc.ctx, svc.store, h)
+		if r, err = store.LookupRoleByHandle(svc.ctx, svc.store, h); err != nil {
+			return err
+		}
+
 		raProps.setRole(r)
-		return err
+
+		if err = label.Load(svc.ctx, svc.store, r); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return r, svc.recordAction(svc.ctx, raProps, RoleActionLookup, err)
@@ -218,7 +263,11 @@ func (svc role) Create(new *types.Role) (r *types.Role, err error) {
 			return
 		}
 
-		raProps.setRole(r)
+		if err = label.Create(svc.ctx, svc.store, new); err != nil {
+			return
+		}
+
+		r = new
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterCreate(new, r))
 		return
@@ -267,6 +316,14 @@ func (svc role) Update(upd *types.Role) (r *types.Role, err error) {
 		// Assign changed values
 		if err = store.UpdateRole(svc.ctx, svc.store, r); err != nil {
 			return err
+		}
+
+		if label.Changed(r.Labels, upd.Labels) {
+			if err = label.Update(svc.ctx, svc.store, upd); err != nil {
+				return
+			}
+
+			r.Labels = upd.Labels
 		}
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.RoleAfterUpdate(upd, r))
@@ -546,4 +603,20 @@ func (svc role) MemberRemove(roleID, memberID uint64) (err error) {
 	}()
 
 	return svc.recordAction(svc.ctx, raProps, RoleActionMemberRemove, err)
+}
+
+// toLabeledRoles converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledRoles(set []*types.Role) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

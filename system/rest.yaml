@@ -233,6 +233,8 @@ endpoints:
   authentication:
   - Client ID
   - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
   apis:
   - name: list
     method: GET
@@ -252,6 +254,10 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) achived roles
         type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: uint
         name: limit
         title: Limit
@@ -279,6 +285,10 @@ endpoints:
         name: members
         required: false
         title: Role member IDs
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: update
     method: PUT
     title: Update role details
@@ -302,6 +312,10 @@ endpoints:
         name: members
         required: false
         title: Role member IDs
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read role details and memberships
@@ -442,6 +456,7 @@ endpoints:
   - Client ID
   - Session ID
   imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
     - github.com/cortezaproject/corteza-server/system/types
   apis:
   - name: list
@@ -494,6 +509,10 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) suspended users
         type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: uint
         name: limit
         title: Limit
@@ -525,6 +544,10 @@ endpoints:
         type: types.UserKind
         required: false
         title: Kind (normal, bot)
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: update
     method: PUT
     title: Update user details
@@ -552,6 +575,10 @@ endpoints:
         type: types.UserKind
         required: false
         title: Kind (normal, bot)
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read user details
@@ -676,6 +703,7 @@ endpoints:
   entrypoint: application
   authentication: []
   imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
     - sqlxTypes github.com/jmoiron/sqlx/types
   apis:
   - name: list
@@ -696,6 +724,10 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted roles
         type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: uint
         name: limit
         title: Limit
@@ -727,6 +759,10 @@ endpoints:
         type: sqlxTypes.JSONText
         required: false
         title: Arbitrary JSON holding application configuration
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: update
     method: PUT
     title: Update user details
@@ -754,6 +790,10 @@ endpoints:
         type: sqlxTypes.JSONText
         required: false
         title: Arbitrary JSON holding application configuration
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read application details

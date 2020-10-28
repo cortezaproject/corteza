@@ -59,7 +59,8 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 	var (
 		err error
 		f   = types.RoleFilter{
-			Query: r.Query,
+			Query:  r.Query,
+			Labels: r.Labels,
 
 			Archived: filter.State(r.Archived),
 			Deleted:  filter.State(r.Deleted),
@@ -84,6 +85,7 @@ func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}
 		role = &types.Role{
 			Name:   r.Name,
 			Handle: r.Handle,
+			Labels: r.Labels,
 		}
 	)
 
@@ -108,6 +110,7 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 			ID:     r.RoleID,
 			Name:   r.Name,
 			Handle: r.Handle,
+			Labels: r.Labels,
 		}
 	)
 
