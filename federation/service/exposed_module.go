@@ -204,11 +204,11 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		// TODO - fetch Node
 		aProps.setNode(nil)
 
-		if _, err := svc.namespace.FindByID(new.ComposeNamespaceID); err != nil {
+		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
 			return ExposedModuleErrComposeNamespaceNotFound()
 		}
 
-		if _, err := svc.module.FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
+		if _, err := svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
