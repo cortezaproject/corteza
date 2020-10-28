@@ -35,11 +35,11 @@ func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.Manage
 		return nil, errors.New("TODO - http 400 bad request - use compose namespace id in request")
 	}
 
-	return (service.ExposedModule()).Create(context.Background(), mod)
+	return (service.ExposedModule()).Create(ctx, mod)
 }
 
 func (ctrl ManageStructure) ReadExposed(ctx context.Context, r *request.ManageStructureReadExposed) (interface{}, error) {
-	return (service.ExposedModule()).FindByID(context.Background(), r.GetNodeID(), r.GetModuleID())
+	return (service.ExposedModule()).FindByID(ctx, r.GetNodeID(), r.GetModuleID())
 }
 
 func (ctrl ManageStructure) UpdateExposed(ctx context.Context, r *request.ManageStructureUpdateExposed) (interface{}, error) {
@@ -52,7 +52,7 @@ func (ctrl ManageStructure) UpdateExposed(ctx context.Context, r *request.Manage
 			Fields:             r.Fields,
 		}
 	)
-	return (service.ExposedModule()).Update(context.Background(), em)
+	return (service.ExposedModule()).Update(ctx, em)
 }
 
 func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.ManageStructureRemoveExposed) (interface{}, error) {
@@ -60,7 +60,7 @@ func (ctrl ManageStructure) RemoveExposed(ctx context.Context, r *request.Manage
 }
 
 func (ctrl ManageStructure) ReadShared(ctx context.Context, r *request.ManageStructureReadShared) (interface{}, error) {
-	return (service.SharedModule()).FindByID(context.Background(), r.GetNodeID(), r.GetModuleID())
+	return (service.SharedModule()).FindByID(ctx, r.GetNodeID(), r.GetModuleID())
 }
 
 func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.ManageStructureCreateMappings) (interface{}, error) {
@@ -71,11 +71,11 @@ func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.Manag
 		FieldMapping:       r.Fields,
 	}
 
-	return (service.ModuleMapping()).Create(context.Background(), mm)
+	return (service.ModuleMapping()).Create(ctx, mm)
 }
 
 func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageStructureReadMappings) (interface{}, error) {
-	return (service.ModuleMapping()).FindByID(context.Background(), r.ModuleID)
+	return (service.ModuleMapping()).FindByID(ctx, r.ModuleID)
 }
 
 func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStructureListAll) (interface{}, error) {
@@ -86,12 +86,12 @@ func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStruct
 
 	switch true {
 	case r.Exposed:
-		list, _, err = (service.ExposedModule()).Find(context.Background(), types.ExposedModuleFilter{
+		list, _, err = (service.ExposedModule()).Find(ctx, types.ExposedModuleFilter{
 			NodeID: r.NodeID,
 		})
 		break
 	case r.Shared:
-		list, _, err = (service.SharedModule()).Find(context.Background(), types.SharedModuleFilter{
+		list, _, err = (service.SharedModule()).Find(ctx, types.SharedModuleFilter{
 			NodeID: r.NodeID,
 		})
 		break
