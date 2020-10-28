@@ -1,10 +1,17 @@
 types:
   Namespace:
+    labelResourceType: compose:namespace
   Attachment:
   Module:
-  Page:
-  Chart:
-  Record:
+    labelResourceType: compose:module
   ModuleField:
+    labelResourceType: compose:module:field
+  Page:
+    labelResourceType: compose:page
+  Chart:
+    labelResourceType: compose:chart
+  Record:
+    labelResourceType: compose:record
   RecordValue:
     noIdField: true
+

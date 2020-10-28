@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -50,6 +51,11 @@ type (
 		//
 		// Search by handle
 		Handle string
+
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Limit GET parameter
 		//
@@ -102,6 +108,11 @@ type (
 		//
 		// Page tree weight
 		Weight int
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Visible POST parameter
 		//
@@ -173,6 +184,11 @@ type (
 		//
 		// Page tree weight
 		Weight int
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Visible POST parameter
 		//
@@ -261,6 +277,7 @@ func (r PageList) Auditable() map[string]interface{} {
 		"selfID":      r.SelfID,
 		"query":       r.Query,
 		"handle":      r.Handle,
+		"labels":      r.Labels,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
 		"sort":        r.Sort,
@@ -285,6 +302,11 @@ func (r PageList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r PageList) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -333,6 +355,17 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -387,6 +420,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 		"handle":      r.Handle,
 		"description": r.Description,
 		"weight":      r.Weight,
+		"labels":      r.Labels,
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
 	}
@@ -425,6 +459,11 @@ func (r PageCreate) GetDescription() string {
 // Auditable returns all auditable/loggable parameters
 func (r PageCreate) GetWeight() int {
 	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -494,6 +533,18 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
 			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -647,6 +698,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 		"handle":      r.Handle,
 		"description": r.Description,
 		"weight":      r.Weight,
+		"labels":      r.Labels,
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
 	}
@@ -690,6 +742,11 @@ func (r PageUpdate) GetDescription() string {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) GetWeight() int {
 	return r.Weight
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -759,6 +816,18 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
 			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

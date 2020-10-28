@@ -247,6 +247,10 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 	// Inc/exclude deleted records according to filter settings
 	query = filter.StateCondition(query, "crd.deleted_at", f.Deleted)
 
+	if len(f.LabeledIDs) > 0 {
+		query = query.Where(squirrel.Eq{"crd.id": f.LabeledIDs})
+	}
+
 	// Parse filters.
 	if f.Query != "" {
 		var (

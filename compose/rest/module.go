@@ -79,6 +79,7 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 			Query:       r.Query,
 			Name:        r.Name,
 			Handle:      r.Handle,
+			Labels:      r.Labels,
 		}
 	)
 
@@ -108,6 +109,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 			Handle:      r.Handle,
 			Fields:      r.Fields,
 			Meta:        r.Meta,
+			Labels:      r.Labels,
 		}
 	)
 
@@ -125,6 +127,7 @@ func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interf
 			Handle:      r.Handle,
 			Fields:      r.Fields,
 			Meta:        r.Meta,
+			Labels:      r.Labels,
 			UpdatedAt:   r.UpdatedAt,
 		}
 	)

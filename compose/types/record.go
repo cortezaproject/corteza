@@ -37,6 +37,8 @@ type (
 
 		Values RecordValueSet `json:"values,omitempty"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		NamespaceID uint64 `json:"namespaceID,string"`
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
@@ -53,8 +55,8 @@ type (
 		NamespaceID uint64 `json:"namespaceID,string"`
 		Query       string `json:"query"`
 
-		// Preloaded set of additional modules that are used for record filtering
-		// Modules ModuleSet
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

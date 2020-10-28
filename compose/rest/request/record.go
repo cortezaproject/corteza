@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	"io"
@@ -77,6 +78,11 @@ type (
 		//
 		// Filtering condition (same as query, deprecated)
 		Filter string
+
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Deleted GET parameter
 		//
@@ -239,6 +245,11 @@ type (
 		//
 		// Records
 		Records types.RecordBulkSet
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	RecordRead struct {
@@ -283,6 +294,11 @@ type (
 		//
 		// Records
 		Records types.RecordBulkSet
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	RecordBulkDelete struct {
@@ -507,6 +523,7 @@ func (r RecordList) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"query":       r.Query,
 		"filter":      r.Filter,
+		"labels":      r.Labels,
 		"deleted":     r.Deleted,
 		"limit":       r.Limit,
 		"pageCursor":  r.PageCursor,
@@ -532,6 +549,11 @@ func (r RecordList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r RecordList) GetFilter() string {
 	return r.Filter
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -579,6 +601,17 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["filter"]; ok && len(val) > 0 {
 			r.Filter, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -1108,6 +1141,7 @@ func (r RecordCreate) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"values":      r.Values,
 		"records":     r.Records,
+		"labels":      r.Labels,
 	}
 }
 
@@ -1129,6 +1163,11 @@ func (r RecordCreate) GetValues() types.RecordValueSet {
 // Auditable returns all auditable/loggable parameters
 func (r RecordCreate) GetRecords() types.RecordBulkSet {
 	return r.Records
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -1164,6 +1203,18 @@ func (r *RecordCreate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
@@ -1269,6 +1320,7 @@ func (r RecordUpdate) Auditable() map[string]interface{} {
 		"recordID":    r.RecordID,
 		"values":      r.Values,
 		"records":     r.Records,
+		"labels":      r.Labels,
 	}
 }
 
@@ -1295,6 +1347,11 @@ func (r RecordUpdate) GetValues() types.RecordValueSet {
 // Auditable returns all auditable/loggable parameters
 func (r RecordUpdate) GetRecords() types.RecordBulkSet {
 	return r.Records
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -1330,6 +1387,18 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{
