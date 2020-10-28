@@ -41,6 +41,7 @@ var (
 	DefaultActionlog actionlog.Recorder
 
 	DefaultNode          *node
+	DefaultNodeSync      NodeSyncService
 	DefaultExposedModule ExposedModuleService
 	DefaultSharedModule  SharedModuleService
 
@@ -119,6 +120,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Federation")
 
 	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler)
+	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()
 

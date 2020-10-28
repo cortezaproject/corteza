@@ -78,6 +78,7 @@ func (s Schema) Tables() []*Table {
 		s.FederationModuleExposed(),
 		s.FederationModuleMapping(),
 		s.FederationNodes(),
+		s.FederationNodesSync(),
 	}
 }
 
@@ -540,5 +541,14 @@ func (Schema) FederationNodes() *Table {
 
 		CUDTimestamps,
 		CUDUsers,
+	)
+}
+
+func (Schema) FederationNodesSync() *Table {
+	return TableDef("federation_nodes_sync",
+		ColumnDef("node_id", ColumnTypeIdentifier),
+		ColumnDef("sync_type", ColumnTypeText),
+		ColumnDef("sync_status", ColumnTypeText),
+		ColumnDef("time_action", ColumnTypeTimestamp),
 	)
 }

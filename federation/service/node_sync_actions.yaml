@@ -1,0 +1,38 @@
+# List of loggable service actions
+
+resource: federation:node_sync
+service: nodeSync
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: nodeSync
+    type: "*types.NodeSync"
+    fields: [ NodeID, SyncStatus, SyncType, TimeOfAction ]
+  - name: nodeSyncFilter
+    type: "*types.NodeSyncFilter"
+    fields: [ Query ]
+
+actions:
+  - action: lookup
+    log: "looked-up for the last successful sync"
+    severity: info
+
+  - action: create
+    log: "created node_sync"
+
+errors:
+  - error: notFound
+    message: "node_sync does not exist"
+    severity: warning
+
+  - error: nodeNotFound
+    message: "node does not exist"
+    severity: warning

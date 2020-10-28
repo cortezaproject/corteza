@@ -25,6 +25,11 @@ type (
 	// This type is auto-generated.
 	NodeSet []*Node
 
+	// NodeSyncSet slice of NodeSync
+	//
+	// This type is auto-generated.
+	NodeSyncSet []*NodeSync
+
 	// SharedModuleSet slice of SharedModule
 	//
 	// This type is auto-generated.
@@ -168,6 +173,36 @@ func (set NodeSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(NodeSync) err
+//
+// This function is auto-generated.
+func (set NodeSyncSet) Walk(w func(*NodeSync) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NodeSync) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NodeSyncSet) Filter(f func(*NodeSync) (bool, error)) (out NodeSyncSet, err error) {
+	var ok bool
+	out = NodeSyncSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

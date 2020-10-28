@@ -1,5 +1,7 @@
 types:
   Node:
+  NodeSync:
+    noIdField: true
   ExposedModule:
   SharedModule:
   ModuleMapping:
