@@ -1,85 +1,50 @@
 package envoy
 
-import (
-	"github.com/cortezaproject/corteza-server/pkg/slice"
-)
-
 type (
-	// Node defines the signature of any valid graph node
-	Node interface {
-		// Matches checks if the node matches the given resources and **any** of the identifiers.
-		Matches(resource string, identifiers ...string) bool
+	// the node struct is used for nicer graph state management
+	nodeSet []*node
+	node    struct {
+		res Resource
 
-		// Identifiers returns a set of values that identify the node.
-		//
-		// The identifiers may **not** be unique across all resources, but
-		// they **must** be unique inside a given resource.
-		Identifiers() NodeIdentifiers
+		pp nodeSet
+		cc nodeSet
 
-		// Resource returns the Corteza resource identifier that this node handles
-		Resource() string
-
-		// Relations returns a set of NodeRelationships regarding this node
-		//
-		// The graph layer **must** be able to handle dynamic relationships (changed in runtime).
-		Relations() NodeRelationships
+		state NodeState
 	}
 
-	// NodeUpdater defines a node that can update its state based on the given set of Nodes
-	//
-	// For example, a ComposeRecordNode should know how to update the referenced ComposeModule resource.
-	NodeUpdater interface {
-		Node
-
-		// Update receives a set of nodes that should be used when updating the given node n
-		//
-		// The caller **must** only provide nodes that the given node n is dependent of (it's parent nodes).
-		Update(...Node)
-	}
-
-	// NodeSet is a set of Nodes
-	NodeSet []Node
-
-	// NodeRelationships holds relationships for a specific node
-	NodeRelationships map[string]NodeIdentifiers
-
-	// NodeIdentifiers represents a set of node identifiers
-	NodeIdentifiers []string
+	// @tbd
+	// stateLegacyID: stateSysID
+	nodeStateEntry map[string]string
+	// stateResourceType: nodeStateEntry
+	NodeState map[string]nodeStateEntry
 )
 
-// Add adds a new identifier for the given resource
-func (n NodeRelationships) Add(resource string, ii ...string) {
-	if _, has := n[resource]; !has {
-		n[resource] = make(NodeIdentifiers, 0, 1)
+func newNode(res Resource) *node {
+	return &node{
+		res:   res,
+		cc:    make(nodeSet, 0, 10),
+		pp:    make(nodeSet, 0, 10),
+		state: make(NodeState),
 	}
-
-	n[resource] = n[resource].Add(ii...)
 }
 
-// Add adds a new identifiers
-//
-// Identifier can be string, Stringer or uint64 and should not be empty (zero)
-func (ii NodeIdentifiers) Add(idents ...string) NodeIdentifiers {
-	m := slice.ToStringBoolMap(ii)
+func (nn nodeSet) add(mm ...*node) nodeSet {
+	return append(nn, mm...)
+}
 
-	for _, i := range idents {
-		if len(i) == 0 || m[i] {
-			// skip all empty and existing identifiers
-			continue
+func (nn nodeSet) filter(f func(n *node) bool) nodeSet {
+	mm := make(nodeSet, 0, len(nn))
+	for _, n := range nn {
+		if f(n) {
+			mm = append(mm, n)
 		}
-
-		ii = append(ii, i)
 	}
-
-	return ii
+	return mm
 }
 
-// HasAny checks if any of the provided identifiers appear in the given set of identifiers
-func (ii NodeIdentifiers) HasAny(jj ...string) bool {
-	m := slice.ToStringBoolMap(ii)
-
-	for _, j := range jj {
-		if m[j] {
+func (nn nodeSet) has(m *node) bool {
+	for _, n := range nn {
+		if n == m {
 			return true
 		}
 	}
@@ -87,35 +52,48 @@ func (ii NodeIdentifiers) HasAny(jj ...string) bool {
 	return false
 }
 
-// Has checks if the given NodeSet contains a specific Node
-func (ss NodeSet) Has(n Node) bool {
-	has := false
-	for _, s := range ss {
-		mRes := n.Resource()
-		mIdd := n.Identifiers()
-
-		has = has || s.Matches(mRes, mIdd...)
+func (nn nodeSet) remove(mm ...*node) nodeSet {
+	if len(mm) <= 0 {
+		return nn
 	}
-	return has
+
+	nClean := make(nodeSet, 0, len(nn))
+	mmSet := make(nodeSet, 0, len(mm))
+	mmSet = append(mmSet, mm...)
+
+	for _, n := range nn {
+		if !mmSet.has(n) {
+			nClean = append(nClean, n)
+		}
+	}
+
+	return nClean
 }
 
-func (ss NodeSet) Remove(nn ...Node) NodeSet {
-	mm := make(NodeSet, 0, len(ss))
-
-	if len(nn) <= 0 {
-		return ss
+func (s NodeState) addEntry(res string, e nodeStateEntry) {
+	if s[res] == nil {
+		s[res] = make(nodeStateEntry)
 	}
 
-	for _, s := range ss {
-		for _, n := range nn {
-			if s.Matches(n.Resource(), n.Identifiers()...) {
-				goto skip
-			}
+	s[res] = s[res].merge(e)
+}
+
+func (s NodeState) merge(e NodeState) NodeState {
+	for k, v := range e {
+		if s[k] == nil {
+			s[k] = v
+		} else {
+			s[k].merge(v)
 		}
-		mm = append(mm, s)
-
-	skip:
 	}
 
-	return mm
+	return s
+}
+
+func (se nodeStateEntry) merge(e nodeStateEntry) nodeStateEntry {
+	for k, v := range e {
+		se[k] = v
+	}
+
+	return se
 }
