@@ -73,13 +73,17 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
 {{ end }}
 
-{{ if $.Search.EnableSorting }}
+{{ if and $.Search.EnableSorting $.Search.EnablePaging }}
+	// Sorting and paging are both enabled in definition yaml file
+	// {search: {enableSorting:true, enablePaging:true}}
+	curSort := f.Sort.Clone()
+
 	// If paging with reverse cursor, change the sorting
 	// direction for all columns we're sorting by
-	curSort := f.Sort.Clone()
 	if reversedCursor {
 		curSort.Reverse()
 	}
+
 {{ else if $.Search.EnablePaging }}
 	// Sorting is disabled in definition yaml file
 	// {search: {enableSorting:false}}
@@ -93,7 +97,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 {{ end }}
 
 	return set, f, s.config.ErrorHandler(func() error {
-	{{- if $.Search.EnablePaging }}
+	{{- if $.Search.EnablePaging -}}
 		set, err = s.{{ unexport "fetchFullPageOf" $.Types.Plural  }}(ctx{{ template "extraArgsCall" . }}, q, curSort, f.PageCursor, f.Limit, {{ if $.Search.EnableFilterCheckFn }}f.Check{{ else }}nil{{ end }},)
 
 		if err != nil {
@@ -114,6 +118,13 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 		f.PageCursor = nil
 		return nil
 	{{- else }}
+		{{- if $.Search.EnableSorting }}
+		// Apply sorting expr from filter to query
+		if q, err = setOrderBy(q, f.Sort, s.sortable{{ export $.Types.Singular }}Columns()...); err != nil {
+			return err
+		}
+		{{ end -}}
+
 		set, _, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, q, {{ if $.Search.EnableFilterCheckFn }}f.Check{{else}}nil{{ end }})
 		return err
 	{{ end }}
