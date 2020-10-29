@@ -194,7 +194,7 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 
 	out = make([]*RecordValue, 0)
 	for s := range set {
-		// Mark all old as deleted
+		// Mark all old as updated
 		out = append(out, &RecordValue{
 			Name:      set[s].Name,
 			Value:     set[s].Value,
@@ -212,9 +212,11 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 			ex.DeletedAt = new[n].DeletedAt
 
 			if ex.OldValue == new[n].Value {
+				// Value is the same
 				ex.Updated = false
 			} else if !ex.Updated {
-				// Did value change?
+				// Value changed and old one was not marked as updated before
+				// See if values really changed and update old value on existing value
 				ex.Updated = ex.Value != new[n].Value
 				ex.OldValue = ex.Value
 			}
