@@ -450,7 +450,7 @@ func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
 func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	h := newHelper(t)
 
-	// make a standad module, and prevent current user to
+	// make a standard module, and prevent (DENY) current user to
 	// read from "name" and update "email" fields
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	h.deny(module.Fields.FindByName("name").PermissionResource(), "record.value.read")
@@ -495,7 +495,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 				b().JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "changed-email"}]}`)).
 					Expect(t).
 					Status(http.StatusOK).
-					Assert(helpers.AssertError("not allowed to change value of field email")).
+					Assert(helpers.AssertError("1 issue(s) found")).
 					End()
 			})
 
