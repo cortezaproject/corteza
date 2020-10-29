@@ -697,6 +697,19 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 		new.OwnedBy = invokerID
 	}
 
+	rve := &types.RecordValueErrorSet{}
+	_ = new.Values.Walk(func(v *types.RecordValue) error {
+		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(v.Name)) {
+			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
+		}
+
+		return nil
+	})
+
+	if !rve.IsValid() {
+		return rve
+	}
+
 	// Run validation of the updated records
 	return svc.validator.Run(ctx, s, m, new)
 }
@@ -742,11 +755,6 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
 
-	// Merge new (updated) values with old ones
-	// This way we get list of updated, stale and deleted values
-	// that we can selectively update in the repository
-	upd.Values = old.Values.Merge(upd.Values)
-
 	if upd.OwnedBy == 0 {
 		if old.OwnedBy > 0 {
 			// Owner not set/send in the payload
@@ -758,6 +766,34 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 			// the owner of the record
 			upd.OwnedBy = invokerID
 		}
+	}
+
+	// Value merge process does not know anything about permissions so
+	// in case when new values are missing but do exist in the old set and their update/read is denied
+	// we need to copy them to ensure value merge process them correctly
+	for _, f := range m.Fields {
+		if len(upd.Values.FilterByName(f.Name)) == 0 && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(f.Name)) {
+			// copy all fields from old to new
+			upd.Values = append(upd.Values, old.Values.FilterByName(f.Name).GetClean()...)
+		}
+	}
+
+	// Merge new (updated) values with old ones
+	// This way we get list of updated, stale and deleted values
+	// that we can selectively update in the repository
+	upd.Values = old.Values.Merge(upd.Values)
+
+	rve := &types.RecordValueErrorSet{}
+	_ = upd.Values.Walk(func(v *types.RecordValue) error {
+		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(v.Name)) {
+			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
+		}
+
+		return nil
+	})
+
+	if !rve.IsValid() {
+		return rve
 	}
 
 	// Run validation of the updated records
@@ -1258,10 +1294,6 @@ func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValu
 		var field = m.Fields.FindByName(v.Name)
 		if field == nil {
 			return RecordErrFieldNotFound(aProps.setField(v.Name))
-		}
-
-		if !svc.ac.CanUpdateRecordValue(svc.ctx, field) {
-			return RecordErrNotAllowedToChangeFieldValue(aProps.setField(v.Name))
 		}
 
 		if field.IsRef() {
