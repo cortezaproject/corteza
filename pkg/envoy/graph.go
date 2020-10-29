@@ -3,292 +3,251 @@ package envoy
 import (
 	"context"
 	"errors"
-	"math"
 )
 
 type (
-	// Graph struct handles and processes all of the dependency related operations
-	//
-	// This is a cyclic graph where node relationships are determined on-the-fly
-	// based on the node properties.
-	// Refer to the documentation for additional details.
-	Graph struct {
-		nodes NodeSet
+	graph struct {
+		nn nodeSet
 
-		// Since it's calculated on the fly, this is all we need
-		invert bool
+		// Config flags
+		inverted bool
 
-		// A cycle is interpreted as a dependency conflict (deadlock).
-		// It's up to the graph's discretion to determine what node in the cycle will be used.
-		// There is no guarantee that this list will be consistent across multiple runs.
-		conflicts NodeSet
-
-		// Nodes aren't immediately removed from the graph, so they are firstly marked as processed
-		processed NodeSet
+		processed   nodeSet
+		conflicting nodeSet
 	}
+
+	// @tbd
+	ExecState struct {
+		Res       Resource
+		NodeState NodeState
+	}
+
+	execFunc func(ctx context.Context, s *ExecState) (NodeState, error)
 )
 
-var (
-	ErrorDependencyConflict = errors.New("graph: dependency conflict")
-)
-
-// NewGraph returns a new Graph struct
-//
-// It handles some initialization bits, so it's better to use it instead of
-// making one yourself.
-func NewGraph() *Graph {
-	return &Graph{
-		conflicts: make(NodeSet, 0, 100),
-		processed: make(NodeSet, 0, 100),
-		nodes:     make([]Node, 0, 100),
-		invert:    false,
+func newGraph() *graph {
+	return &graph{
+		nn:          make(nodeSet, 0, 100),
+		inverted:    false,
+		processed:   make(nodeSet, 0, 100),
+		conflicting: make(nodeSet, 0, 100),
 	}
 }
 
-// Add adds the provided set of nodes into the given graph g
-//
-// The method doesn't do any existence checks for duplicates.
-// It simply pushes the provided nodes.
-func (g *Graph) Add(nn ...Node) {
-	g.nodes = append(g.nodes, nn...)
+func (g *graph) addNode(nn ...*node) {
+	g.nn = g.nn.add(nn...)
 }
 
-// Remove removes the set of nodes nn from the graph h
-//
-// The nodes can only be removed if it doesn't have any unprocessed dependencies (child nodes)
-func (g *Graph) Remove(nn ...Node) {
-	if len(nn) <= 0 {
-		return
+func (g *graph) removeNode(nn ...*node) {
+	g.nn = g.nn.remove(nn...)
+}
+
+func (g *graph) invert() {
+	g.inverted = !g.inverted
+}
+
+func (g *graph) childNodes(n *node) nodeSet {
+	if g.inverted {
+		return n.pp
 	}
 
-	rn := make(NodeSet, 0, len(nn))
-	for _, n := range nn {
-		if g.canRemove(n) {
-			rn = append(rn, n)
+	return n.cc
+}
+
+func (g *graph) parentNodes(n *node) nodeSet {
+	if g.inverted {
+		return n.cc
+	}
+
+	return n.pp
+}
+
+func (g *graph) nodes() nodeSet {
+	return g.nn
+}
+
+func (g *graph) markProcessed(n *node) {
+	g.processed = g.processed.add(n)
+}
+func (g *graph) markConflicting(n *node) {
+	g.conflicting = g.conflicting.add(n)
+}
+
+func (g *graph) Walk(ctx context.Context, f execFunc) (err error) {
+	// We'll do a "better safe then sorry" infinite loop checker.
+	// If the loop repeatted over n * 2 times (in worst case each node is conflicting),
+	// the loop is infinite.
+	maxRep := len(g.nodes()) * 2
+	cRep := 0
+
+	stater := func(n *node, s NodeState) {
+		for _, c := range g.childNodes(n) {
+			c.state.merge(s)
 		}
 	}
 
-	g.nodes = g.nodes.Remove(rn...)
-	g.processed = g.processed.Remove(rn...)
-	g.conflicts = g.conflicts.Remove(rn...)
-}
+	for {
+		upNN := g.removeProcessed(g.nodes())
 
-// FindNode returns all nodes that match the given resource and identifiers
-func (g *Graph) FindNode(res string, identifiers ...string) []Node {
-	nn := make([]Node, 0, len(identifiers))
-	for _, n := range g.nodes {
-		if n.Matches(res, identifiers...) {
-			nn = append(nn, n)
+		// We are done here
+		if len(upNN) <= 0 {
+			g.purge()
+			return nil
 		}
-	}
 
-	return nn
-}
-
-// Invert inverts the graph
-//
-// Since relationships are calculated on-the-fly, this is a simple bit switch
-func (g *Graph) Invert() {
-	g.invert = !g.invert
-}
-
-// Children provides node n child nodes **excluding** processed nodes
-func (g *Graph) Children(n Node) []Node {
-	if !g.invert {
-		return g.removeProcessedNodes(g.children(n))
-	}
-	return g.removeProcessedNodes(g.parents(n))
-}
-
-// ChildrenA provides node n child nodes **including** processed nodes
-func (g *Graph) ChildrenA(n Node) []Node {
-	if !g.invert {
-		return g.children(n)
-	}
-	return g.parents(n)
-}
-
-// Parents provides node n parent nodes **excluding** processed nodes
-func (g *Graph) Parents(n Node) []Node {
-	if !g.invert {
-		return g.removeProcessedNodes(g.parents(n))
-	}
-	return g.removeProcessedNodes(g.children(n))
-}
-
-// ParentsA provides node n parent nodes **incliding** processed nodes
-func (g *Graph) ParentsA(n Node) []Node {
-	if !g.invert {
-		return g.parents(n)
-	}
-	return g.children(n)
-}
-
-// ParentsAC provides node n parent nodes **including** processed nodes, **excluding** conflicting nodes
-func (g *Graph) ParentsAC(n Node) []Node {
-	pp := g.Parents(n)
-	mm := make([]Node, 0, int(math.Max(float64(len(pp)-len(g.conflicts)), 1.0)))
-	for _, p := range pp {
-		if !g.conflicts.Has(p) {
-			mm = append(mm, p)
+		if cRep > maxRep {
+			return errors.New("Inf. loop; @todo error")
 		}
-	}
 
-	return mm
-}
+		var nx *node
 
-// Validate performs a basic data validation over all the nodes.
-//
-// @todo Do we need this on the graph layer?
-func (g *Graph) Validate() error {
-	return nil
-}
-
-// Nodes returns all unprocessed nodes in the given graph g
-func (g *Graph) Nodes() []Node {
-	nn := make([]Node, 0, len(g.nodes))
-	for _, n := range g.nodes {
-		if !g.processed.Has(n) {
-			nn = append(nn, n)
+		for _, upN := range upNN {
+			// We should not take into account conflicted parent nodes,
+			// as they already resolved the conflict.
+			if len(g.removeProcessed(g.removeConflicting(g.parentNodes(upN)))) <= 0 {
+				nx = upN
+				break
+			}
 		}
-	}
-	return nn
-}
 
-// Next provides the next node that should be processed (inclide the nodes context)
-//
-// Flow outline:
-//  * If there are no more nodes, return nothing (all nil values).
-//  * If there is a node with no parent nodes; select that as the next node.
-//  * If there is no node with no parent nodes; determine a conflicting node.
-//    This returns the conflicting node n, it's parents, it's children and an ErrorDependencyConflict.
-func (g *Graph) Next(ctx context.Context) (n Node, pp []Node, cc []Node, err error) {
-	if len(g.Nodes()) <= 0 {
-		return nil, nil, nil, nil
-	}
+		if nx != nil {
+			// Prepare the required context for the processing.
+			// Perform some basic cleanup.
+			es := &ExecState{
+				Res:       nx.res,
+				NodeState: nx.state,
+			}
 
-	for _, m := range g.Nodes() {
-		// We should not take into account conflicted parent nodes,
-		// as they already resolved the conflict.
-		if len(g.ParentsAC(m)) == 0 {
-			n = m
-			break
-		}
-	}
+			s, err := f(ctx, es)
+			if err != nil {
+				return err
+			}
 
-	if n != nil {
-		// Get the node's child and parent nodes.
-		// Attempt parent cleanup
-		cc = g.Children(n)
-		pp = g.ParentsA(n)
-		g.markProcessed(n)
-		g.Remove(g.ParentsA(n)...)
-		g.Remove(n)
+			g.markProcessed(nx)
 
-		return n, pp, cc, nil
-	}
+			pp := g.parentNodes(nx)
+			g.removeParent(nx)
 
-	// Determine a conflicting node if we stumbled on a conflict
-	for _, m := range g.Nodes() {
-		if !g.conflicts.Has(m) {
-			n = m
-			break
-		}
-	}
+			for _, p := range pp {
+				g.removeChild(p, nx)
+				if len(g.childNodes(p)) <= 0 && g.processed.has(p) {
+					g.removeNode(p)
+					g.processed = g.processed.remove(p)
+					g.conflicting = g.conflicting.remove(p)
+				}
+			}
 
-	// Get the node's child and parent nodes.
-	// No cleanup should be done here since the node isn't yet fully processed.
-	cc = g.Children(n)
-	pp = g.ParentsA(n)
-	g.markConflicting(n)
-	return n, pp, cc, ErrorDependencyConflict
-}
-
-// Helper methods
-// ------------------------------------------------------------------------
-
-func (g *Graph) nodesMatch(n, m Node) bool {
-	mRes := m.Resource()
-	mIdd := m.Identifiers()
-
-	return n.Matches(mRes, mIdd...)
-}
-
-func (g *Graph) canRemove(n Node) bool {
-	if len(g.nodes) <= 1 {
-		return true
-	}
-
-	// A node can only be removed if all of it's child nodes are processed
-	for _, m := range g.Children(n) {
-		if !g.processed.Has(m) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func (g *Graph) markProcessed(nn ...Node) {
-	if g.processed == nil {
-		g.processed = make(NodeSet, 0, len(nn))
-	}
-
-	for _, n := range nn {
-		if !g.processed.Has(n) {
-			g.processed = append(g.processed, n)
-		}
-	}
-}
-
-// helper to mark the node as a conflicting node
-func (g *Graph) markConflicting(n Node) {
-	if g.conflicts == nil {
-		g.conflicts = make(NodeSet, 0, 1)
-	}
-
-	if !g.conflicts.Has(n) {
-		g.conflicts = append(g.conflicts, n)
-	}
-}
-
-func (g *Graph) removeProcessedNodes(nn []Node) []Node {
-	mm := make([]Node, 0, len(nn))
-	for _, n := range nn {
-		if !g.processed.Has(n) {
-			mm = append(mm, n)
-		}
-	}
-	return mm
-}
-
-func (g *Graph) children(n Node) []Node {
-	nn := make([]Node, 0)
-	// A simple find all nodes that n is in a relationship with will do the trick
-	for res, IDs := range n.Relations() {
-		nn = append(nn, g.FindNode(res, IDs...)...)
-	}
-
-	return nn
-}
-
-func (g *Graph) parents(n Node) []Node {
-	nn := make([]Node, 0)
-
-	// A more complex, find all nodes that have n in their relationship.
-	// @note can we make this nicer?
-	for _, m := range g.nodes {
-		r := m.Relations()
-		if r == nil {
+			stater(nx, s)
 			continue
 		}
 
-		if IDs, has := r[n.Resource()]; has {
-			if n.Matches(n.Resource(), IDs...) {
-				nn = append(nn, m)
+		// Determine a conflicting node that should be partially resolved
+		for _, upN := range upNN {
+			if !g.conflicting.has(upN) {
+				nx = upN
+				break
 			}
+		}
+
+		if nx != nil {
+			// Prepare the required context for the processing.
+			es := &ExecState{
+				Res:       nx.res,
+				NodeState: nx.state,
+			}
+
+			s, err := f(ctx, es)
+			if err != nil {
+				return err
+			}
+
+			g.markConflicting(nx)
+
+			stater(nx, s)
+		} else {
+			return errors.New("Uhoh, couldn't determine node; @todo error")
+		}
+
+		cRep++
+	}
+}
+
+func (g *graph) purge() {
+	g.nn = nil
+	g.conflicting = nil
+	g.processed = nil
+}
+
+// util
+
+func (g *graph) removeProcessed(nn nodeSet) nodeSet {
+	mm := make(nodeSet, 0, len(nn))
+
+	for _, n := range nn {
+		if !g.processed.has(n) {
+			mm = mm.add(n)
 		}
 	}
 
-	return nn
+	return mm
+}
+
+func (g *graph) removeConflicting(nn nodeSet) nodeSet {
+	mm := make(nodeSet, 0, len(nn))
+
+	for _, n := range nn {
+		if !g.conflicting.has(n) {
+			mm = mm.add(n)
+		}
+	}
+
+	return mm
+}
+
+func (g *graph) addChild(n *node, mm ...*node) {
+	if g.inverted {
+		n.pp = n.pp.add(mm...)
+	} else {
+		n.cc = n.cc.add(mm...)
+	}
+}
+
+func (g *graph) removeChild(n *node, mm ...*node) {
+	if len(mm) <= 0 {
+		if g.inverted {
+			n.pp = make(nodeSet, 0, 10)
+		} else {
+			n.cc = make(nodeSet, 0, 10)
+		}
+	} else {
+		if g.inverted {
+			n.pp = n.pp.remove(mm...)
+		} else {
+			n.cc = n.cc.remove(mm...)
+		}
+	}
+}
+
+func (g *graph) addParent(n *node, mm ...*node) {
+	if g.inverted {
+		n.cc = n.cc.add(mm...)
+	} else {
+		n.pp = n.pp.add(mm...)
+	}
+}
+
+func (g *graph) removeParent(n *node, mm ...*node) {
+	if len(mm) <= 0 {
+		if g.inverted {
+			n.cc = make(nodeSet, 0, 10)
+		} else {
+			n.pp = make(nodeSet, 0, 10)
+		}
+	} else {
+		if g.inverted {
+			n.cc = n.cc.remove(mm...)
+		} else {
+			n.pp = n.pp.remove(mm...)
+		}
+	}
 }
