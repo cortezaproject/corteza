@@ -106,23 +106,22 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExposed) (interface{}, error) {
 	var (
-		err  error
-		node *types.Node
-		f    = ct.RecordFilter{}
-		em   *types.ExposedModule
+		err error
+		em  *types.ExposedModule
 	)
 
-	if node, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
+	if _, err := service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
 		return nil, err
 	}
 
-	// use the fetched node
-	if em, err = (service.ExposedModule()).FindByID(ctx, node.ID, r.ModuleID); err != nil {
+	if em, err = service.DefaultExposedModule.FindByID(ctx, r.NodeID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
-	f.ModuleID = em.ComposeModuleID
-	f.Query = r.Query
+	f := ct.RecordFilter{
+		ModuleID: em.ComposeModuleID,
+		Query:    buildLastSyncQuery(r.LastSync),
+	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
@@ -131,8 +130,6 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
-
-	f.Query = buildLastSyncQuery(r.LastSync)
 
 	list, f, err := (cs.Record()).Find(f)
 

@@ -13,11 +13,11 @@ func (s Store) convertFederationNodesSyncFilter(f types.NodeSyncFilter) (query s
 	}
 
 	if f.SyncStatus != "" {
-		query = query.Where("fdns.rel_compose_module = ?", f.SyncStatus)
+		query = query.Where("fdns.sync_status = ?", f.SyncStatus)
 	}
 
 	if f.SyncType != "" {
-		query = query.Where("fdns.rel_compose_namespace = ?", f.SyncType)
+		query = query.Where("fdns.sync_type = ?", f.SyncType)
 	}
 
 	return

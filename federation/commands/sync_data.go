@@ -6,77 +6,45 @@ import (
 	"io/ioutil"
 	"time"
 
+	cs "github.com/cortezaproject/corteza-server/compose/service"
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/decoder"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 )
 
-var (
-	dataSyncer *service.Syncer
+type (
+	dataProcesser struct {
+		ID                  uint64
+		NodeID              uint64
+		ComposeModuleID     uint64
+		ComposeNamespaceID  uint64
+		ModuleMappingValues *ct.RecordValueSet
+	}
 )
 
 func commandSyncData(ctx context.Context) func(*cobra.Command, []string) {
 
-	// from
-	//   - module id (Account) = 167296235227578369
-	//   - namespace id = 167296235059806209
-
-	// to
-	//   - module id (Account) = 167296265594339329
-	//   - namespace id = 167296264570929153
+	const syncDelay = 10
 
 	return func(_ *cobra.Command, _ []string) {
-
-		// todo
-		//  - get all nodes and loop
-		//  - get all shared modules that have a field mapping
-		//  - for each shared module, the add method needs shared module info as payload
-
-		// todo - get node by id
-		const (
-			nodeID    = 276342359342989444
-			moduleID  = 376342359342989444
-			limit     = 5
-			syncDelay = 10
-		)
-
-		node, err := service.DefaultNode.FindByID(ctx, nodeID)
-
-		if err != nil {
-			service.DefaultLogger.Info("could not find any nodes to sync")
-			return
-		}
-
-		ticker := time.NewTicker(time.Second * syncDelay)
-		basePath := fmt.Sprintf("/federation/nodes/%d/modules/%d/records/", node.SharedNodeID, moduleID)
-
-		dataSyncer = service.NewSyncer()
 
 		// todo - get auth from the node
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		// get the last sync per-node
-		lastSync := getLastSyncTime(ctx, nodeID, types.NodeSyncTypeData)
+		ticker := time.NewTicker(time.Second * syncDelay)
 
-		ex := ""
-		if lastSync != nil {
-			ex = fmt.Sprintf(" from last sync on (%s)", lastSync.Format(time.RFC3339))
-		}
+		mapper = &service.Mapper{}
 
-		service.DefaultLogger.Info(fmt.Sprintf("Starting structure sync%s", ex))
+		sync = service.NewSync(
+			&service.Syncer{},
+			&service.Mapper{},
+			service.DefaultSharedModule,
+			cs.DefaultRecord)
 
-		url := types.SyncerURI{
-			BaseURL:  baseURL,
-			Path:     basePath,
-			Limit:    limit,
-			LastSync: lastSync,
-		}
-
-		go queueUrl(&url, urls, dataSyncer)
+		queueDataForNodes(ctx, sync)
 
 		for {
 			select {
@@ -85,23 +53,9 @@ func commandSyncData(ctx context.Context) func(*cobra.Command, []string) {
 				service.DefaultLogger.Info(fmt.Sprintf("Stopping sync [processed: %d, persisted: %d]", countProcess, countPersist))
 				return
 			case <-ticker.C:
-				lastSync := getLastSyncTime(ctx, nodeID, types.NodeSyncTypeStructure)
-
-				url := types.SyncerURI{
-					BaseURL:  baseURL,
-					Path:     basePath,
-					Limit:    limit,
-					LastSync: lastSync,
-				}
-
-				if lastSync == nil {
-					service.DefaultLogger.Info(fmt.Sprintf("Start fetching modules from beginning of time, since lastSync == nil"))
-				} else {
-					service.DefaultLogger.Info(fmt.Sprintf("Start fetching modules, start with time: %s", lastSync.Format(time.RFC3339)))
-				}
-
-				go queueUrl(&url, urls, dataSyncer)
-			case url := <-urls:
+				// do the whole process again
+				queueDataForNodes(ctx, sync)
+			case url := <-surls:
 				select {
 				case <-ctx.Done():
 					// do any cleanup here
@@ -110,26 +64,34 @@ func commandSyncData(ctx context.Context) func(*cobra.Command, []string) {
 				default:
 				}
 
-				s, err := url.String()
+				s, err := url.Url.String()
 
 				if err != nil {
 					continue
 				}
 
-				responseBody, err := dataSyncer.Fetch(ctx, s)
+				responseBody, err := sync.FetchUrl(ctx, s)
 
 				if err != nil {
 					continue
 				}
 
-				payloads <- responseBody
-			case p := <-payloads:
-				body, err := ioutil.ReadAll(p)
+				spayload := service.Spayload{
+					Payload: responseBody,
+					Meta:    url.Meta,
+				}
+
+				spayloads <- spayload
+				// payloads <- responseBody
+			case p := <-spayloads:
+				body, err := ioutil.ReadAll(p.Payload)
 
 				// handle error
 				if err != nil {
 					continue
 				}
+
+				basePath := fmt.Sprintf("/federation/nodes/%d/modules/%d/records/", p.Meta.(*dataProcesser).NodeID, p.Meta.(*dataProcesser).ID)
 
 				u := types.SyncerURI{
 					BaseURL: baseURL,
@@ -137,30 +99,30 @@ func commandSyncData(ctx context.Context) func(*cobra.Command, []string) {
 					Limit:   limit,
 				}
 
-				// method needs:
-				//  - compose module ID (from module_mapping)
-				//  - namespace ID (from module mapping)
-
-				err = dataSyncer.Process(ctx, body, node.ID, urls, u, dataSyncer, persistExposedRecordData)
+				err = sync.ProcessPayload(ctx, body, surls, u, p.Meta.(*dataProcesser))
 
 				if err != nil {
 					// handle error
-					service.DefaultLogger.Error(fmt.Sprintf("error on handling payload: %s", err))
+					service.DefaultLogger.Info(fmt.Sprintf("error on handling payload: %s", err))
 				} else {
-					n := time.Now().UTC()
+					n, err := service.DefaultNode.FindBySharedNodeID(ctx, p.Meta.(*dataProcesser).NodeID)
+
+					if err != nil {
+						service.DefaultLogger.Info(fmt.Sprintf("could not update sync status: %s", err))
+					}
 
 					// add to db - nodes_sync
 					new := &types.NodeSync{
-						NodeID:       node.ID,
+						NodeID:       (*n).ID,
 						SyncStatus:   types.NodeSyncStatusSuccess,
-						SyncType:     types.NodeSyncTypeStructure,
-						TimeOfAction: n,
+						SyncType:     types.NodeSyncTypeData,
+						TimeOfAction: time.Now().UTC(),
 					}
 
-					new, err := service.DefaultNodeSync.Create(ctx, new)
+					new, err = service.DefaultNodeSync.Create(ctx, new)
 
 					if err != nil {
-						service.DefaultLogger.Warn(fmt.Sprintf("could not update sync status: %s", err))
+						service.DefaultLogger.Info(fmt.Sprintf("could not update sync status: %s", err))
 					}
 				}
 			}
@@ -168,13 +130,75 @@ func commandSyncData(ctx context.Context) func(*cobra.Command, []string) {
 	}
 }
 
-// persistExposedRecordData gets the payload from syncer and
+func queueDataForNodes(ctx context.Context, sync *service.Sync) {
+	nodes, err := sync.GetPairedNodes(ctx)
+
+	if err != nil {
+		return
+	}
+
+	// get all shared modules and their module mappings
+	for _, n := range nodes {
+		set, err := sync.GetSharedModules(ctx, n.ID)
+
+		if err != nil {
+			service.DefaultLogger.Warn(fmt.Sprintf("could not get shared modules for node: %d, skipping", n.ID))
+			continue
+		}
+
+		// go through set and prepare module mappings for it
+		for _, sm := range set {
+			mappings, _ := sync.GetModuleMappings(ctx, sm.ID)
+
+			if mappings == nil {
+				service.DefaultLogger.Info(fmt.Sprintf("could not prepare module mappings for shared module: %d, skipping", sm.ID))
+				continue
+			}
+
+			mappingValues, err := sync.PrepareModuleMappings(ctx, mappings)
+
+			if err != nil || mappingValues == nil {
+				service.DefaultLogger.Info(fmt.Sprintf("could not prepare module mappings for shared module: %d, skipping", sm.ID))
+				continue
+			}
+
+			// get the last sync per-node
+			lastSync, _ := sync.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeData)
+			basePath := fmt.Sprintf("/federation/nodes/%d/modules/%d/records/", n.SharedNodeID, sm.ExternalFederationModuleID)
+
+			ex := ""
+			if lastSync != nil {
+				ex = fmt.Sprintf(" from last sync on (%s)", lastSync.Format(time.RFC3339))
+			}
+
+			service.DefaultLogger.Info(fmt.Sprintf("starting structure sync%s for node %d, module %d", ex, n.ID, sm.ID))
+
+			url := types.SyncerURI{
+				BaseURL:  baseURL,
+				Path:     basePath,
+				Limit:    limit,
+				LastSync: lastSync,
+			}
+
+			processer := &dataProcesser{
+				ID:                  sm.ExternalFederationModuleID,
+				NodeID:              n.SharedNodeID,
+				ComposeModuleID:     mappings.ComposeModuleID,
+				ComposeNamespaceID:  mappings.ComposeNamespaceID,
+				ModuleMappingValues: &mappingValues,
+			}
+
+			go queueUrl(&url, surls, processer)
+		}
+	}
+}
+
+// Process gets the payload from syncer and
 // uses the decode package to decode the whole set, depending on
 // the filtering that was used (limit)
-func persistExposedRecordData(ctx context.Context, payload []byte, nodeID uint64, dataSyncer *service.Syncer) error {
+func (dp *dataProcesser) Process(ctx context.Context, payload []byte) error {
 	countProcess = countProcess + 1
 
-	// now := time.Now()
 	o, err := decoder.DecodeFederationRecordSync([]byte(payload))
 
 	if err != nil {
@@ -188,58 +212,15 @@ func persistExposedRecordData(ctx context.Context, payload []byte, nodeID uint64
 	service.DefaultLogger.Info(fmt.Sprintf("Adding %d objects", len(o)))
 
 	for _, er := range o {
-		// spew.Dump(o)
-		// create a new compose record
-		// get the compose module for this record
-		// fill in the values
-
-		// tmp
-		vals := []*ct.RecordValue{
-			&ct.RecordValue{
-				Name:  "AccountName",
-				Value: "Accout name is required",
-			},
-		}
-
-		for _, v := range er.Values {
-			if v.Name == "AccountName" {
-				vv := &ct.RecordValue{
-					Name:  "Name",
-					Value: v.Value,
-				}
-				vals = append(vals, vv)
-			}
-
-			if v.Name == "Facebook" {
-				vv := &ct.RecordValue{
-					Name:  "Facebook",
-					Value: v.Value,
-				}
-				vals = append(vals, vv)
-			}
-
-			if v.Name == "Phone" {
-				vv := &ct.RecordValue{
-					Name:  "Phone",
-					Value: v.Value,
-				}
-				vals = append(vals, vv)
-			}
-		}
-
-		//   - module id (Account) = 167296265594339329
-		//   - namespace id = 167296264570929153
+		mapper.Merge(&er.Values, dp.ModuleMappingValues)
 
 		rec := &ct.Record{
-			ModuleID:    167296265594339329,
-			NamespaceID: 167296264570929153,
-			Values:      vals,
+			ModuleID:    dp.ComposeModuleID,
+			NamespaceID: dp.ComposeNamespaceID,
+			Values:      *dp.ModuleMappingValues,
 		}
 
-		rc, err := dataSyncer.CService.With(ctx).Create(rec)
-
-		spew.Dump(rc, err)
-
+		sync.CreateRecord(ctx, rec)
 	}
 
 	return nil

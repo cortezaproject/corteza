@@ -3,69 +3,41 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"time"
 
+	cs "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/decoder"
 	"github.com/spf13/cobra"
 )
 
-var (
-	urls            = make(chan types.SyncerURI, 1)
-	payloads        = make(chan io.Reader, 1)
-	countProcess    = 0
-	countPersist    = 0
-	structureSyncer *service.Syncer
+type (
+	structureProcesser struct {
+		NodeID uint64
+	}
 )
 
 func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 
+	const syncDelay = 10
+
 	return func(_ *cobra.Command, _ []string) {
-
-		// todo - get node by id
-		const (
-			nodeID    = 276342359342989444
-			limit     = 5
-			syncDelay = 10
-		)
-
-		node, err := service.DefaultNode.FindByID(ctx, nodeID)
-
-		if err != nil {
-			service.DefaultLogger.Info("could not find any nodes to sync")
-			return
-		}
-
-		ticker := time.NewTicker(time.Second * syncDelay)
-		basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", node.SharedNodeID)
-
-		structureSyncer = service.NewSyncer()
 
 		// todo - get auth from the node
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		// get the last sync per-node
-		lastSync := getLastSyncTime(ctx, nodeID, types.NodeSyncTypeStructure)
+		ticker := time.NewTicker(time.Second * syncDelay)
 
-		ex := ""
-		if lastSync != nil {
-			ex = fmt.Sprintf(" from last sync on (%s)", lastSync.Format(time.RFC3339))
-		}
+		sync = service.NewSync(
+			&service.Syncer{},
+			&service.Mapper{},
+			service.DefaultSharedModule,
+			cs.DefaultRecord)
 
-		service.DefaultLogger.Info(fmt.Sprintf("Starting structure sync%s", ex))
-
-		url := types.SyncerURI{
-			BaseURL:  baseURL,
-			Path:     basePath,
-			Limit:    limit,
-			LastSync: lastSync,
-		}
-
-		go queueUrl(&url, urls, structureSyncer)
+		queueStructureForNodes(ctx, sync)
 
 		for {
 			select {
@@ -74,23 +46,9 @@ func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 				service.DefaultLogger.Info(fmt.Sprintf("Stopping sync [processed: %d, persisted: %d]", countProcess, countPersist))
 				return
 			case <-ticker.C:
-				lastSync := getLastSyncTime(ctx, nodeID, types.NodeSyncTypeStructure)
-
-				url := types.SyncerURI{
-					BaseURL:  baseURL,
-					Path:     basePath,
-					Limit:    limit,
-					LastSync: lastSync,
-				}
-
-				if lastSync == nil {
-					service.DefaultLogger.Info(fmt.Sprintf("Start fetching modules from beginning of time, since lastSync == nil"))
-				} else {
-					service.DefaultLogger.Info(fmt.Sprintf("Start fetching modules, start with time: %s", lastSync.Format(time.RFC3339)))
-				}
-
-				go queueUrl(&url, urls, structureSyncer)
-			case url := <-urls:
+				// do the whole process again
+				queueStructureForNodes(ctx, sync)
+			case url := <-surls:
 				select {
 				case <-ctx.Done():
 					// do any cleanup here
@@ -99,26 +57,33 @@ func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 				default:
 				}
 
-				s, err := url.String()
+				s, err := url.Url.String()
 
 				if err != nil {
 					continue
 				}
 
-				responseBody, err := structureSyncer.Fetch(ctx, s)
+				responseBody, err := sync.FetchUrl(ctx, s)
 
 				if err != nil {
 					continue
 				}
 
-				payloads <- responseBody
-			case p := <-payloads:
-				body, err := ioutil.ReadAll(p)
+				spayload := service.Spayload{
+					Payload: responseBody,
+					Meta:    url.Meta,
+				}
+
+				spayloads <- spayload
+			case p := <-spayloads:
+				body, err := ioutil.ReadAll(p.Payload)
 
 				// handle error
 				if err != nil {
 					continue
 				}
+
+				basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", p.Meta.(*structureProcesser).NodeID)
 
 				u := types.SyncerURI{
 					BaseURL: baseURL,
@@ -126,26 +91,30 @@ func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 					Limit:   limit,
 				}
 
-				err = structureSyncer.Process(ctx, body, node.ID, urls, u, structureSyncer, persistExposedModuleStructure)
+				err = sync.ProcessPayload(ctx, body, surls, u, p.Meta.(*structureProcesser))
 
 				if err != nil {
 					// handle error
-					service.DefaultLogger.Error(fmt.Sprintf("error on handling payload: %s", err))
+					service.DefaultLogger.Info(fmt.Sprintf("error on handling payload: %s", err))
 				} else {
-					n := time.Now().UTC()
+					n, err := service.DefaultNode.FindBySharedNodeID(ctx, p.Meta.(*structureProcesser).NodeID)
+
+					if err != nil {
+						service.DefaultLogger.Info(fmt.Sprintf("could not update sync status: %s", err))
+					}
 
 					// add to db - nodes_sync
 					new := &types.NodeSync{
-						NodeID:       node.ID,
+						NodeID:       (*n).ID,
 						SyncStatus:   types.NodeSyncStatusSuccess,
 						SyncType:     types.NodeSyncTypeStructure,
-						TimeOfAction: n,
+						TimeOfAction: time.Now().UTC(),
 					}
 
-					new, err := service.DefaultNodeSync.Create(ctx, new)
+					new, err = service.DefaultNodeSync.Create(ctx, new)
 
 					if err != nil {
-						service.DefaultLogger.Warn(fmt.Sprintf("could not update sync status: %s", err))
+						service.DefaultLogger.Info(fmt.Sprintf("could not update sync status: %s", err))
 					}
 				}
 			}
@@ -153,10 +122,45 @@ func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 	}
 }
 
-// persistExposedModuleStructure gets the payload from syncer and
+func queueStructureForNodes(ctx context.Context, sync *service.Sync) {
+	nodes, err := sync.GetPairedNodes(ctx)
+
+	if err != nil {
+		return
+	}
+
+	// get all shared modules and their module mappings
+	for _, n := range nodes {
+		// get the last sync per-node
+		lastSync, _ := sync.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeStructure)
+		basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", n.SharedNodeID)
+
+		ex := ""
+		if lastSync != nil {
+			ex = fmt.Sprintf(" from last sync on (%s)", lastSync.Format(time.RFC3339))
+		}
+
+		service.DefaultLogger.Info(fmt.Sprintf("starting structure sync%s for node %d", ex, n.ID))
+
+		url := types.SyncerURI{
+			BaseURL:  baseURL,
+			Path:     basePath,
+			Limit:    limit,
+			LastSync: lastSync,
+		}
+
+		processer := &structureProcesser{
+			NodeID: n.SharedNodeID,
+		}
+
+		go queueUrl(&url, surls, processer)
+	}
+}
+
+// Process gets the payload from syncer and
 // uses the decode package to decode the whole set, depending on
 // the filtering that was used (limit)
-func persistExposedModuleStructure(ctx context.Context, payload []byte, nodeID uint64, structureSyncer *service.Syncer) error {
+func (dp *structureProcesser) Process(ctx context.Context, payload []byte) error {
 	countProcess = countProcess + 1
 
 	now := time.Now()
@@ -174,14 +178,14 @@ func persistExposedModuleStructure(ctx context.Context, payload []byte, nodeID u
 
 	for i, em := range o {
 		n := &types.SharedModule{
-			NodeID:                     nodeID,
+			NodeID:                     dp.NodeID,
 			ExternalFederationModuleID: em.ID,
 			Fields:                     em.Fields,
 			Handle:                     fmt.Sprintf("Handle %d %d", i, now.Unix()),
 			Name:                       fmt.Sprintf("Name %d %d", i, now.Unix()),
 		}
 
-		n, err := structureSyncer.Service.Create(ctx, n)
+		n, err := sync.CreateSharedModule(ctx, n)
 
 		service.DefaultLogger.Info(fmt.Sprintf("Added shared module: %d", n.ID))
 

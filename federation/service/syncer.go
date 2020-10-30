@@ -8,14 +8,19 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 )
 
 type (
-	Syncer struct {
-		Service  SharedModuleService
-		CService service.RecordService
+	Syncer struct{}
+
+	Surl struct {
+		Url  types.SyncerURI
+		Meta Processer
+	}
+	Spayload struct {
+		Payload io.Reader
+		Meta    Processer
 	}
 
 	AuxResponseSet struct {
@@ -32,7 +37,7 @@ type (
 	}
 )
 
-func (h *Syncer) Queue(url types.SyncerURI, out chan types.SyncerURI) {
+func (h *Syncer) Queue(url Surl, out chan Surl) {
 	out <- url
 }
 
@@ -58,9 +63,8 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 	return resp.Body, nil
 }
 
-func (h *Syncer) Process(ctx context.Context, payload []byte, nodeID uint64, out chan types.SyncerURI, url types.SyncerURI, handler *Syncer, fn func(ctx context.Context, payload []byte, nodeID uint64, handler *Syncer) error) error {
-	aux := AuxResponseSet{}
-	err := json.Unmarshal(payload, &aux)
+func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Surl, url types.SyncerURI, processer Processer) error {
+	aux, err := h.ParseHeader(ctx, payload)
 
 	if err != nil {
 		return err
@@ -69,18 +73,16 @@ func (h *Syncer) Process(ctx context.Context, payload []byte, nodeID uint64, out
 	if aux.Response.Filter.NextPage != "" {
 		url.NextPage = aux.Response.Filter.NextPage
 
-		// out <- url
-
-		// sync data
-		// out <- fmt.Sprintf("%s/federation/exposed/modules/196342359342989002/records/?limit=%d&pageCursor=%s", "http://localhost:8084", aux.Response.Filter.Limit, aux.Response.Filter.NextPage)
+		out <- Surl{
+			Url:  url,
+			Meta: processer,
+		}
 	}
 
-	return fn(ctx, payload, nodeID, handler)
+	return processer.Process(ctx, payload)
 }
 
-func NewSyncer() *Syncer {
-	return &Syncer{
-		Service:  DefaultSharedModule,
-		CService: service.DefaultRecord,
-	}
+func (h *Syncer) ParseHeader(ctx context.Context, payload []byte) (aux AuxResponseSet, err error) {
+	err = json.Unmarshal(payload, &aux)
+	return
 }

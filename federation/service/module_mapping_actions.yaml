@@ -53,6 +53,10 @@ errors:
     message: "compose module not found"
     severity: "warning"
 
+  - error: composeNamespaceNotFound
+    message: "compose namespace not found"
+    severity: "warning"
+
   - error: federationModuleNotFound
     message: "federation module not found"
     severity: "warning"

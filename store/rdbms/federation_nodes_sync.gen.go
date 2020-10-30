@@ -107,8 +107,8 @@ func (s Store) fetchFullPageOfFederationNodesSyncs(
 	)
 
 	// Make sure we always end our sort by primary keys
-	if sort.Get("node_id") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "node_id"})
+	if sort.Get("rel_node") == nil {
+		sort = append(sort, &filter.SortExpr{Column: "rel_node"})
 	}
 
 	// Apply sorting expr from filter to query
@@ -223,7 +223,7 @@ func (s Store) QueryFederationNodesSyncs(
 // It returns sync activity
 func (s Store) LookupFederationNodesSyncByNodeID(ctx context.Context, node_id uint64) (*types.NodeSync, error) {
 	return s.execLookupFederationNodesSync(ctx, squirrel.Eq{
-		s.preprocessColumn("fdns.node_id", ""): store.PreprocessValue(node_id, ""),
+		s.preprocessColumn("fdns.rel_node", ""): store.PreprocessValue(node_id, ""),
 	})
 }
 
@@ -232,7 +232,7 @@ func (s Store) LookupFederationNodesSyncByNodeID(ctx context.Context, node_id ui
 // It returns sync activity
 func (s Store) LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus(ctx context.Context, node_id uint64, sync_type string, sync_status string) (*types.NodeSync, error) {
 	return s.execLookupFederationNodesSync(ctx, squirrel.Eq{
-		s.preprocessColumn("fdns.node_id", ""):     store.PreprocessValue(node_id, ""),
+		s.preprocessColumn("fdns.rel_node", ""):    store.PreprocessValue(node_id, ""),
 		s.preprocessColumn("fdns.sync_type", ""):   store.PreprocessValue(sync_type, ""),
 		s.preprocessColumn("fdns.sync_status", ""): store.PreprocessValue(sync_status, ""),
 	})
@@ -271,9 +271,9 @@ func (s Store) partialFederationNodesSyncUpdate(ctx context.Context, onlyColumns
 		err = s.execUpdateFederationNodesSyncs(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("fdns.node_id", ""): store.PreprocessValue(res.NodeID, ""),
+				s.preprocessColumn("fdns.rel_node", ""): store.PreprocessValue(res.NodeID, ""),
 			},
-			s.internalFederationNodesSyncEncoder(res).Skip("node_id").Only(onlyColumns...))
+			s.internalFederationNodesSyncEncoder(res).Skip("rel_node").Only(onlyColumns...))
 		if err != nil {
 			return s.config.ErrorHandler(err)
 		}
@@ -304,7 +304,7 @@ func (s Store) DeleteFederationNodesSync(ctx context.Context, rr ...*types.NodeS
 	for _, res := range rr {
 
 		err = s.execDeleteFederationNodesSyncs(ctx, squirrel.Eq{
-			s.preprocessColumn("fdns.node_id", ""): store.PreprocessValue(res.NodeID, ""),
+			s.preprocessColumn("fdns.rel_node", ""): store.PreprocessValue(res.NodeID, ""),
 		})
 		if err != nil {
 			return s.config.ErrorHandler(err)
@@ -317,7 +317,7 @@ func (s Store) DeleteFederationNodesSync(ctx context.Context, rr ...*types.NodeS
 // DeleteFederationNodesSyncByNodeID Deletes row from the federation_nodes_sync table
 func (s Store) DeleteFederationNodesSyncByNodeID(ctx context.Context, nodeID uint64) error {
 	return s.execDeleteFederationNodesSyncs(ctx, squirrel.Eq{
-		s.preprocessColumn("fdns.node_id", ""): store.PreprocessValue(nodeID, ""),
+		s.preprocessColumn("fdns.rel_node", ""): store.PreprocessValue(nodeID, ""),
 	})
 }
 
@@ -362,7 +362,7 @@ func (s Store) execUpsertFederationNodesSyncs(ctx context.Context, set store.Pay
 		s.config,
 		s.federationNodesSyncTable(),
 		set,
-		"node_id",
+		"rel_node",
 	)
 
 	if err != nil {
@@ -428,7 +428,7 @@ func (Store) federationNodesSyncColumns(aa ...string) []string {
 	}
 
 	return []string{
-		alias + "node_id",
+		alias + "rel_node",
 		alias + "sync_type",
 		alias + "sync_status",
 		alias + "time_action",
@@ -442,7 +442,7 @@ func (Store) federationNodesSyncColumns(aa ...string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortableFederationNodesSyncColumns() []string {
 	return []string{
-		"node_id",
+		"rel_node",
 		"time_action",
 	}
 }
@@ -453,7 +453,7 @@ func (Store) sortableFederationNodesSyncColumns() []string {
 // func when rdbms.customEncoder=true
 func (s Store) internalFederationNodesSyncEncoder(res *types.NodeSync) store.Payload {
 	return store.Payload{
-		"node_id":     res.NodeID,
+		"rel_node":    res.NodeID,
 		"sync_type":   res.SyncType,
 		"sync_status": res.SyncStatus,
 		"time_action": res.TimeOfAction,
@@ -477,15 +477,15 @@ func (s Store) collectFederationNodesSyncCursorValues(res *types.NodeSync, cc ..
 
 		// All known primary key columns
 
-		pkNode_id bool
+		pkRel_node bool
 
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
-				case "node_id":
+				case "rel_node":
 					cursor.Set(c, res.NodeID, false)
 
-					pkNode_id = true
+					pkRel_node = true
 				case "time_action":
 					cursor.Set(c, res.TimeOfAction, false)
 
@@ -495,8 +495,8 @@ func (s Store) collectFederationNodesSyncCursorValues(res *types.NodeSync, cc ..
 	)
 
 	collect(cc...)
-	if !hasUnique || !(pkNode_id && true) {
-		collect("node_id")
+	if !hasUnique || !(pkRel_node && true) {
+		collect("rel_node")
 	}
 
 	return cursor

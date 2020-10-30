@@ -32,7 +32,7 @@ rdbms:
   table: federation_nodes_sync
   customFilterConverter: true
   mapFields:
-    NodeID: { column: node_id }
+    NodeID: { column: rel_node }
     SyncType: { column: sync_type }
     SyncStatus: { column: sync_status }
     TimeOfAction: { column: time_action }

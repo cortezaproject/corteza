@@ -11,7 +11,7 @@ import (
 type (
 	ExposedRecord struct {
 		ID     uint64               `json:"recordID,string"`
-		Values []*types.RecordValue `json:"values"`
+		Values types.RecordValueSet `json:"values"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
