@@ -549,6 +549,36 @@ func ModuleMappingErrComposeModuleNotFound(props ...*moduleMappingActionProps) *
 
 }
 
+// ModuleMappingErrComposeNamespaceNotFound returns "federation:module_mapping.composeNamespaceNotFound" audit event as actionlog.Warning
+//
+//
+// This function is auto-generated.
+//
+func ModuleMappingErrComposeNamespaceNotFound(props ...*moduleMappingActionProps) *moduleMappingError {
+	var e = &moduleMappingError{
+		timestamp: time.Now(),
+		resource:  "federation:module_mapping",
+		error:     "composeNamespaceNotFound",
+		action:    "error",
+		message:   "compose namespace not found",
+		log:       "compose namespace not found",
+		severity:  actionlog.Warning,
+		props: func() *moduleMappingActionProps {
+			if len(props) > 0 {
+				return props[0]
+			}
+			return nil
+		}(),
+	}
+
+	if len(props) > 0 {
+		e.props = props[0]
+	}
+
+	return e
+
+}
+
 // ModuleMappingErrFederationModuleNotFound returns "federation:module_mapping.federationModuleNotFound" audit event as actionlog.Warning
 //
 //

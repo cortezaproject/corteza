@@ -44,6 +44,7 @@ var (
 	DefaultNodeSync      NodeSyncService
 	DefaultExposedModule ExposedModuleService
 	DefaultSharedModule  SharedModuleService
+	DefaultModuleMapping ModuleMappingService
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
@@ -123,6 +124,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()
+	DefaultModuleMapping = ModuleMapping()
 
 	return
 }

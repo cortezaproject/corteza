@@ -13,8 +13,21 @@ import (
 )
 
 const (
+	limit = 100
+
 	httpTimeout time.Duration = 10
 	baseURL     string        = "http://localhost:8084"
+)
+
+var (
+	sync   *service.Sync
+	mapper *service.Mapper
+
+	surls     = make(chan service.Surl, 1)
+	spayloads = make(chan service.Spayload, 1)
+
+	countProcess = 0
+	countPersist = 0
 )
 
 type (
@@ -58,21 +71,17 @@ func Sync(app serviceInitializer) *cobra.Command {
 	return cmd
 }
 
-func queueUrl(url *types.SyncerURI, urls chan types.SyncerURI, handler *service.Syncer) {
+func queueUrl(url *types.SyncerURI, urls chan service.Surl, meta service.Processer) {
 	s, _ := url.String()
 
 	service.DefaultLogger.Info(fmt.Sprintf("Adding %s to queue", s))
-	handler.Queue(*url, urls)
-}
 
-func getLastSyncTime(ctx context.Context, nodeID uint64, syncType string) *time.Time {
-	ns, _ := service.DefaultNodeSync.LookupLastSuccessfulSync(ctx, nodeID, syncType)
-
-	if ns != nil {
-		return &ns.TimeOfAction
+	t := service.Surl{
+		Url:  *url,
+		Meta: meta,
 	}
 
-	return nil
+	sync.QueueUrl(t, urls)
 }
 
 func commandPreRunInitService(ctx context.Context, app serviceInitializer) func(*cobra.Command, []string) error {

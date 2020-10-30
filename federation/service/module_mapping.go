@@ -11,9 +11,9 @@ import (
 
 type (
 	moduleMapping struct {
-		ctx       context.Context
 		store     store.Storer
-		compose   composeService.ModuleService
+		module    composeService.ModuleService
+		namespace composeService.NamespaceService
 		actionlog actionlog.Recorder
 	}
 
@@ -30,10 +30,10 @@ type (
 
 func ModuleMapping() ModuleMappingService {
 	return &moduleMapping{
-		ctx:       context.Background(),
 		store:     DefaultStore,
-		compose:   composeService.Module(),
 		actionlog: DefaultActionlog,
+		module:    composeService.DefaultModule,
+		namespace: composeService.DefaultNamespace,
 	}
 }
 
@@ -103,17 +103,19 @@ func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (
 		aProps = &moduleMappingActionProps{created: new}
 	)
 
-	// check if compose module actually exists
-	// TODO - how do we handle namespace?
-	// if _, err := svc.compose.With(ctx).FindByID(r.NamespaceID, new.ComposeModuleID); err == nil {
-	// 	return nil, ExposedModuleErrComposeModuleNotFound()
-	// }
-
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// TODO
 		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
+
+		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
+			return ModuleMappingErrComposeNamespaceNotFound()
+		}
+
+		if _, err := svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
+			return ModuleMappingErrComposeModuleNotFound()
+		}
 
 		// Check for federation module - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
