@@ -1,19 +1,17 @@
-package api
+package server
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
@@ -40,14 +38,6 @@ func (s *server) MountRoutes(mm ...func(chi.Router)) {
 
 func (s server) Serve(ctx context.Context) {
 	s.log.Info("Starting HTTP server with REST API", zap.String("address", s.httpOpt.Addr))
-
-	// configure resputil options
-	resputil.SetConfig(resputil.Options{
-		Trace: s.httpOpt.Tracing,
-		Logger: func(err error) {
-			// @todo: error logging
-		},
-	})
 
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
@@ -139,7 +129,12 @@ func (s server) bindMiscRoutes(router chi.Router) {
 	}
 
 	if s.httpOpt.EnableVersionRoute {
-		router.Get("/version", version.HttpHandler)
+		router.Get("/version", func(w http.ResponseWriter, r *http.Request) {
+			api.Send(w, r, struct {
+				BuildTime string `json:"buildTime"`
+				Version   string `json:"version"`
+			}{version.BuildTime, version.Version})
+		})
 	}
 
 	if s.httpOpt.EnableHealthcheckRoute {

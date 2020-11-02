@@ -24,6 +24,7 @@ func (h helper) apiChCreate(name string, t types.ChannelType) *apitest.Response 
 
 	return h.apiInit().
 		Post("/channels/").
+		Header("Accept", "application/json").
 		JSON(string(payload)).
 		Expect(h.t).
 		Status(http.StatusOK)

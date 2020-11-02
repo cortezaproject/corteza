@@ -20,6 +20,7 @@ func (h helper) chUpdate(ch *request.ChannelUpdate) *apitest.Response {
 
 	return h.apiInit().
 		Put(fmt.Sprintf("/channels/%v", ch.ChannelID)).
+		Header("Accept", "application/json").
 		JSON(string(payload)).
 		Expect(h.t).
 		Status(http.StatusOK)

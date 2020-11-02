@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -110,7 +110,7 @@ func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
 func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
 
 	if ch, err = store.LookupMessagingChannelByID(svc.ctx, svc.store, ID); err != nil {
-		if errors.Is(err, store.ErrNotFound) {
+		if errors.IsNotFound(err) {
 			return nil, ChannelErrNotFound()
 		}
 

@@ -1,10 +1,7 @@
 package version
 
 import (
-	"net/http"
 	"time"
-
-	"github.com/titpetric/factory/resputil"
 )
 
 var (
@@ -16,10 +13,3 @@ var (
 	// See Makefile for details
 	Version = "development"
 )
-
-func HttpHandler(w http.ResponseWriter, r *http.Request) {
-	resputil.JSON(w, struct {
-		BuildTime string `json:"buildTime"`
-		Version   string `json:"version"`
-	}{BuildTime, Version})
-}

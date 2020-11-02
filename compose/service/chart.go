@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -169,7 +169,7 @@ func (svc chart) lookup(namespaceID uint64, lookup func(*chartActionProps) (*typ
 			aProps.setNamespace(ns)
 		}
 
-		if c, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+		if c, err = lookup(aProps); errors.IsNotFound(err) {
 			return ChartErrNotFound()
 		} else if err != nil {
 			return err
@@ -287,7 +287,7 @@ func loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64)
 	}
 
 	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		if c, err = store.LookupComposeChartByID(ctx, s, chartID); errors.Is(err, store.ErrNotFound) {
+		if c, err = store.LookupComposeChartByID(ctx, s, chartID); errors.IsNotFound(err) {
 			err = ChartErrNotFound()
 		}
 	}

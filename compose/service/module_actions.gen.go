@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *moduleActionProps
 	}
 
-	moduleError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *moduleActionProps
-	}
+	moduleLogMetaKey   struct{}
+	modulePropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *moduleActionProps) setNamespace(namespace *types.Namespace) *moduleActi
 	return p
 }
 
-// serialize converts moduleActionProps to actionlog.Meta
+// Serialize converts moduleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p moduleActionProps) serialize() actionlog.Meta {
+func (p moduleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -152,7 +140,7 @@ func (p moduleActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p moduleActionProps) tr(in string, err error) string {
+func (p moduleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -168,16 +156,6 @@ func (p moduleActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -280,107 +258,16 @@ func (a *moduleAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *moduleAction) LoggableAction() *actionlog.Action {
+func (e *moduleAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *moduleError) String() string {
-	var props = &moduleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *moduleError) Error() string {
-	var props = &moduleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *moduleError) Is(err error) bool {
-	t, ok := err.(*moduleError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *moduleError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps moduleError around another error
-//
-// This function is auto-generated.
-//
-func (e *moduleError) Wrap(err error) *moduleError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *moduleError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *moduleError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -388,7 +275,7 @@ func (e *moduleError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ModuleActionSearch returns "compose:module.search" error
+// ModuleActionSearch returns "compose:module.search" action
 //
 // This function is auto-generated.
 //
@@ -408,7 +295,7 @@ func ModuleActionSearch(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
-// ModuleActionLookup returns "compose:module.lookup" error
+// ModuleActionLookup returns "compose:module.lookup" action
 //
 // This function is auto-generated.
 //
@@ -428,7 +315,7 @@ func ModuleActionLookup(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
-// ModuleActionCreate returns "compose:module.create" error
+// ModuleActionCreate returns "compose:module.create" action
 //
 // This function is auto-generated.
 //
@@ -448,7 +335,7 @@ func ModuleActionCreate(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
-// ModuleActionUpdate returns "compose:module.update" error
+// ModuleActionUpdate returns "compose:module.update" action
 //
 // This function is auto-generated.
 //
@@ -468,7 +355,7 @@ func ModuleActionUpdate(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
-// ModuleActionDelete returns "compose:module.delete" error
+// ModuleActionDelete returns "compose:module.delete" action
 //
 // This function is auto-generated.
 //
@@ -488,7 +375,7 @@ func ModuleActionDelete(props ...*moduleActionProps) *moduleAction {
 	return a
 }
 
-// ModuleActionUndelete returns "compose:module.undelete" error
+// ModuleActionUndelete returns "compose:module.undelete" action
 //
 // This function is auto-generated.
 //
@@ -512,484 +399,504 @@ func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// ModuleErrGeneric returns "compose:module.generic" audit event as actionlog.Error
+// ModuleErrGeneric returns "compose:module.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrGeneric(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrGeneric(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "{err}"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotFound returns "compose:module.notFound" audit event as actionlog.Warning
+// ModuleErrNotFound returns "compose:module.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotFound(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notFound",
-		action:    "error",
-		message:   "module does not exist",
-		log:       "module does not exist",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotFound(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNamespaceNotFound returns "compose:module.namespaceNotFound" audit event as actionlog.Warning
+// ModuleErrNamespaceNotFound returns "compose:module.namespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNamespaceNotFound(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "namespaceNotFound",
-		action:    "error",
-		message:   "namespace does not exist",
-		log:       "namespace does not exist",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNamespaceNotFound(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("namespace does not exist", nil),
+
+		errors.Meta("type", "namespaceNotFound"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrInvalidID returns "compose:module.invalidID" audit event as actionlog.Warning
+// ModuleErrInvalidID returns "compose:module.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrInvalidID(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrInvalidID(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrInvalidHandle returns "compose:module.invalidHandle" audit event as actionlog.Warning
+// ModuleErrInvalidHandle returns "compose:module.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrInvalidHandle(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "invalidHandle",
-		action:    "error",
-		message:   "invalid handle",
-		log:       "invalid handle",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrInvalidHandle(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrHandleNotUnique returns "compose:module.handleNotUnique" audit event as actionlog.Warning
+// ModuleErrHandleNotUnique returns "compose:module.handleNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrHandleNotUnique(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "handleNotUnique",
-		action:    "error",
-		message:   "handle not unique",
-		log:       "used duplicate handle ({module.handle}) for module",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrHandleNotUnique(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("handle not unique", nil),
+
+		errors.Meta("type", "handleNotUnique"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "used duplicate handle ({module.handle}) for module"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNameNotUnique returns "compose:module.nameNotUnique" audit event as actionlog.Warning
+// ModuleErrNameNotUnique returns "compose:module.nameNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNameNotUnique(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "nameNotUnique",
-		action:    "error",
-		message:   "name not unique",
-		log:       "used duplicate username ({module.name}) for module",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNameNotUnique(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("name not unique", nil),
+
+		errors.Meta("type", "nameNotUnique"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "used duplicate username ({module.name}) for module"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrStaleData returns "compose:module.staleData" audit event as actionlog.Warning
+// ModuleErrStaleData returns "compose:module.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrStaleData(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrStaleData(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrInvalidNamespaceID returns "compose:module.invalidNamespaceID" audit event as actionlog.Warning
+// ModuleErrInvalidNamespaceID returns "compose:module.invalidNamespaceID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrInvalidNamespaceID(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "invalidNamespaceID",
-		action:    "error",
-		message:   "invalid or missing namespace ID",
-		log:       "invalid or missing namespace ID",
-		severity:  actionlog.Warning,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrInvalidNamespaceID(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid or missing namespace ID", nil),
+
+		errors.Meta("type", "invalidNamespaceID"),
+		errors.Meta("resource", "compose:module"),
+
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToRead returns "compose:module.notAllowedToRead" audit event as actionlog.Error
+// ModuleErrNotAllowedToRead returns "compose:module.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToRead(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this module",
-		log:       "could not read {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToRead(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this module", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not read {module}; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToReadNamespace returns "compose:module.notAllowedToReadNamespace" audit event as actionlog.Error
+// ModuleErrNotAllowedToReadNamespace returns "compose:module.notAllowedToReadNamespace" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToReadNamespace(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToReadNamespace",
-		action:    "error",
-		message:   "not allowed to read this namespace",
-		log:       "could not read namespace {namespace}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToReadNamespace(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this namespace", nil),
+
+		errors.Meta("type", "notAllowedToReadNamespace"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToListModules returns "compose:module.notAllowedToListModules" audit event as actionlog.Error
+// ModuleErrNotAllowedToListModules returns "compose:module.notAllowedToListModules" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToListModules(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToListModules",
-		action:    "error",
-		message:   "not allowed to list modules",
-		log:       "could not list modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToListModules(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list modules", nil),
+
+		errors.Meta("type", "notAllowedToListModules"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not list modules; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToCreate returns "compose:module.notAllowedToCreate" audit event as actionlog.Error
+// ModuleErrNotAllowedToCreate returns "compose:module.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToCreate(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create modules",
-		log:       "could not create modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToCreate(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create modules", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not create modules; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToUpdate returns "compose:module.notAllowedToUpdate" audit event as actionlog.Error
+// ModuleErrNotAllowedToUpdate returns "compose:module.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToUpdate(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this module",
-		log:       "could not update {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToUpdate(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this module", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not update {module}; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToDelete returns "compose:module.notAllowedToDelete" audit event as actionlog.Error
+// ModuleErrNotAllowedToDelete returns "compose:module.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToDelete(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this module",
-		log:       "could not delete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToDelete(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this module", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleErrNotAllowedToUndelete returns "compose:module.notAllowedToUndelete" audit event as actionlog.Error
+// ModuleErrNotAllowedToUndelete returns "compose:module.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleErrNotAllowedToUndelete(props ...*moduleActionProps) *moduleError {
-	var e = &moduleError{
-		timestamp: time.Now(),
-		resource:  "compose:module",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this module",
-		log:       "could not undelete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleErrNotAllowedToUndelete(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this module", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -997,94 +904,42 @@ func ModuleErrNotAllowedToUndelete(props ...*moduleActionProps) *moduleError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct moduleAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc module) recordAction(ctx context.Context, props *moduleActionProps, action func(...*moduleActionProps) *moduleAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *moduleError
-
-		// Recorder error
-		recError *moduleError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*moduleError); !ok {
-			// got non-module error, wrap it with ModuleErrGeneric
-			retError = ModuleErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use ModuleErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type moduleError
-				if unwrappedSinkError, ok := unwrappedError.(*moduleError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc module) recordAction(ctx context.Context, props *moduleActionProps, actionFn func(...*moduleActionProps) *moduleAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(moduleLogMetaKey{}), err)
+
+		if p, has := m[modulePropsMetaKey{}]; has {
+			a.Meta = p.(*moduleActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

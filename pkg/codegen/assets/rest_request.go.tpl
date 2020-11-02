@@ -54,7 +54,9 @@ func {{ export "New" $.Endpoint.Entrypoint $a.Name }}() *{{ export $.Endpoint.En
 func (r {{ export $.Endpoint.Entrypoint $a.Name }}) Auditable() map[string]interface{} {
 	return map[string]interface{}{
     {{- range $p := $a.Params.All }}
+    {{- if not $p.Sensitive }}
     	"{{ $p.Name }}": r.{{ export $p.Name }},
+    {{- end }}
     {{- end }}
 	}
 }

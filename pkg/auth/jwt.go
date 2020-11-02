@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/jwtauth"
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
 )
 
 type (
@@ -113,7 +113,7 @@ func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 			if jwt != nil {
 				if err != nil {
 					// But if token is present, the shouldn't be an error
-					resputil.JSON(w, err)
+					api.Send(w, r, err)
 					return
 				}
 

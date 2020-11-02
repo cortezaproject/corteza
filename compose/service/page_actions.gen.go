@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *pageActionProps
 	}
 
-	pageError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *pageActionProps
-	}
+	pageLogMetaKey   struct{}
+	pagePropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *pageActionProps) setNamespace(namespace *types.Namespace) *pageActionPr
 	return p
 }
 
-// serialize converts pageActionProps to actionlog.Meta
+// Serialize converts pageActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p pageActionProps) serialize() actionlog.Meta {
+func (p pageActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -156,7 +144,7 @@ func (p pageActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p pageActionProps) tr(in string, err error) string {
+func (p pageActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -172,16 +160,6 @@ func (p pageActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -292,107 +270,16 @@ func (a *pageAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *pageAction) LoggableAction() *actionlog.Action {
+func (e *pageAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *pageError) String() string {
-	var props = &pageActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *pageError) Error() string {
-	var props = &pageActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *pageError) Is(err error) bool {
-	t, ok := err.(*pageError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *pageError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps pageError around another error
-//
-// This function is auto-generated.
-//
-func (e *pageError) Wrap(err error) *pageError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *pageError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *pageError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -400,7 +287,7 @@ func (e *pageError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// PageActionSearch returns "compose:page.search" error
+// PageActionSearch returns "compose:page.search" action
 //
 // This function is auto-generated.
 //
@@ -420,7 +307,7 @@ func PageActionSearch(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionLookup returns "compose:page.lookup" error
+// PageActionLookup returns "compose:page.lookup" action
 //
 // This function is auto-generated.
 //
@@ -440,7 +327,7 @@ func PageActionLookup(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionCreate returns "compose:page.create" error
+// PageActionCreate returns "compose:page.create" action
 //
 // This function is auto-generated.
 //
@@ -460,7 +347,7 @@ func PageActionCreate(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionUpdate returns "compose:page.update" error
+// PageActionUpdate returns "compose:page.update" action
 //
 // This function is auto-generated.
 //
@@ -480,7 +367,7 @@ func PageActionUpdate(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionDelete returns "compose:page.delete" error
+// PageActionDelete returns "compose:page.delete" action
 //
 // This function is auto-generated.
 //
@@ -500,7 +387,7 @@ func PageActionDelete(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionUndelete returns "compose:page.undelete" error
+// PageActionUndelete returns "compose:page.undelete" action
 //
 // This function is auto-generated.
 //
@@ -520,7 +407,7 @@ func PageActionUndelete(props ...*pageActionProps) *pageAction {
 	return a
 }
 
-// PageActionReorder returns "compose:page.reorder" error
+// PageActionReorder returns "compose:page.reorder" action
 //
 // This function is auto-generated.
 //
@@ -544,484 +431,502 @@ func PageActionReorder(props ...*pageActionProps) *pageAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// PageErrGeneric returns "compose:page.generic" audit event as actionlog.Error
+// PageErrGeneric returns "compose:page.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrGeneric(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrGeneric(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "{err}"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotFound returns "compose:page.notFound" audit event as actionlog.Warning
+// PageErrNotFound returns "compose:page.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotFound(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notFound",
-		action:    "error",
-		message:   "page does not exist",
-		log:       "page does not exist",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotFound(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("page does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNamespaceNotFound returns "compose:page.namespaceNotFound" audit event as actionlog.Warning
+// PageErrNamespaceNotFound returns "compose:page.namespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNamespaceNotFound(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "namespaceNotFound",
-		action:    "error",
-		message:   "namespace does not exist",
-		log:       "namespace does not exist",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNamespaceNotFound(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("namespace does not exist", nil),
+
+		errors.Meta("type", "namespaceNotFound"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrModuleNotFound returns "compose:page.moduleNotFound" audit event as actionlog.Warning
+// PageErrModuleNotFound returns "compose:page.moduleNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrModuleNotFound(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "moduleNotFound",
-		action:    "error",
-		message:   "module does not exist",
-		log:       "module does not exist",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrModuleNotFound(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module does not exist", nil),
+
+		errors.Meta("type", "moduleNotFound"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrInvalidID returns "compose:page.invalidID" audit event as actionlog.Warning
+// PageErrInvalidID returns "compose:page.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrInvalidID(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrInvalidID(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrInvalidHandle returns "compose:page.invalidHandle" audit event as actionlog.Warning
+// PageErrInvalidHandle returns "compose:page.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrInvalidHandle(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "invalidHandle",
-		action:    "error",
-		message:   "invalid handle",
-		log:       "invalid handle",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrInvalidHandle(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrHandleNotUnique returns "compose:page.handleNotUnique" audit event as actionlog.Warning
+// PageErrHandleNotUnique returns "compose:page.handleNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrHandleNotUnique(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "handleNotUnique",
-		action:    "error",
-		message:   "handle not unique",
-		log:       "used duplicate handle ({page.handle}) for page",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrHandleNotUnique(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("handle not unique", nil),
+
+		errors.Meta("type", "handleNotUnique"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "used duplicate handle ({page.handle}) for page"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrStaleData returns "compose:page.staleData" audit event as actionlog.Warning
+// PageErrStaleData returns "compose:page.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrStaleData(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrStaleData(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrInvalidNamespaceID returns "compose:page.invalidNamespaceID" audit event as actionlog.Warning
+// PageErrInvalidNamespaceID returns "compose:page.invalidNamespaceID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrInvalidNamespaceID(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "invalidNamespaceID",
-		action:    "error",
-		message:   "invalid or missing namespace ID",
-		log:       "invalid or missing namespace ID",
-		severity:  actionlog.Warning,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrInvalidNamespaceID(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid or missing namespace ID", nil),
+
+		errors.Meta("type", "invalidNamespaceID"),
+		errors.Meta("resource", "compose:page"),
+
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToRead returns "compose:page.notAllowedToRead" audit event as actionlog.Error
+// PageErrNotAllowedToRead returns "compose:page.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToRead(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this page",
-		log:       "could not read {page}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToRead(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this page", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not read {page}; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToReadNamespace returns "compose:page.notAllowedToReadNamespace" audit event as actionlog.Error
+// PageErrNotAllowedToReadNamespace returns "compose:page.notAllowedToReadNamespace" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToReadNamespace(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToReadNamespace",
-		action:    "error",
-		message:   "not allowed to read this namespace",
-		log:       "could not read namespace {namespace}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToReadNamespace(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this namespace", nil),
+
+		errors.Meta("type", "notAllowedToReadNamespace"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToListPages returns "compose:page.notAllowedToListPages" audit event as actionlog.Error
+// PageErrNotAllowedToListPages returns "compose:page.notAllowedToListPages" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToListPages(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToListPages",
-		action:    "error",
-		message:   "not allowed to list pages",
-		log:       "could not list pages; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToListPages(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list pages", nil),
+
+		errors.Meta("type", "notAllowedToListPages"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not list pages; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToCreate returns "compose:page.notAllowedToCreate" audit event as actionlog.Error
+// PageErrNotAllowedToCreate returns "compose:page.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToCreate(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create pages",
-		log:       "could not create pages; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToCreate(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create pages", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not create pages; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToUpdate returns "compose:page.notAllowedToUpdate" audit event as actionlog.Error
+// PageErrNotAllowedToUpdate returns "compose:page.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToUpdate(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this page",
-		log:       "could not update {page}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToUpdate(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this page", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not update {page}; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToDelete returns "compose:page.notAllowedToDelete" audit event as actionlog.Error
+// PageErrNotAllowedToDelete returns "compose:page.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToDelete(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this page",
-		log:       "could not delete {page}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToDelete(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this page", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not delete {page}; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// PageErrNotAllowedToUndelete returns "compose:page.notAllowedToUndelete" audit event as actionlog.Error
+// PageErrNotAllowedToUndelete returns "compose:page.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func PageErrNotAllowedToUndelete(props ...*pageActionProps) *pageError {
-	var e = &pageError{
-		timestamp: time.Now(),
-		resource:  "compose:page",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this page",
-		log:       "could not undelete {page}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *pageActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func PageErrNotAllowedToUndelete(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this page", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not undelete {page}; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -1029,94 +934,42 @@ func PageErrNotAllowedToUndelete(props ...*pageActionProps) *pageError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct pageAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc page) recordAction(ctx context.Context, props *pageActionProps, action func(...*pageActionProps) *pageAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *pageError
-
-		// Recorder error
-		recError *pageError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*pageError); !ok {
-			// got non-page error, wrap it with PageErrGeneric
-			retError = PageErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use PageErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type pageError
-				if unwrappedSinkError, ok := unwrappedError.(*pageError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc page) recordAction(ctx context.Context, props *pageActionProps, actionFn func(...*pageActionProps) *pageAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(pageLogMetaKey{}), err)
+
+		if p, has := m[pagePropsMetaKey{}]; has {
+			a.Meta = p.(*pageActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

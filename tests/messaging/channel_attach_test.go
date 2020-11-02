@@ -29,6 +29,7 @@ func (h helper) apiChAttach(ch *types.Channel, file []byte) *apitest.Response {
 
 	return h.apiInit().
 		Post(fmt.Sprintf("/channels/%v/attach", ch.ID)).
+		Header("Accept", "application/json").
 		Body(body.String()).
 		ContentType(writer.FormDataContentType()).
 		Expect(h.t).
@@ -99,6 +100,7 @@ func TestChannelAttachAndDelete(t *testing.T) {
 
 	h.apiInit().
 		Get("/search/messages").
+		Header("Accept", "application/json").
 		Query("channelID", fmt.Sprintf("%d", ch.ID)).
 		Expect(t).
 		Assert(helpers.AssertNoErrors).
@@ -109,6 +111,7 @@ func TestChannelAttachAndDelete(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%s", ch.ID, rval.Response[0].MessageID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

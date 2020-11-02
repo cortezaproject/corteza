@@ -126,4 +126,6 @@ errors:
 
   - error: passwordNotSecure
     message: "provided password is not secure; use longer password with more non-alphanumeric character"
+    documentation: foo
+    details: foo bar
 

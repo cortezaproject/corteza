@@ -2,9 +2,8 @@ package auth
 
 import (
 	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"net/http"
-
-	"github.com/titpetric/factory/resputil"
 )
 
 func MiddlewareValidOnly(next http.Handler) http.Handler {
@@ -12,7 +11,7 @@ func MiddlewareValidOnly(next http.Handler) http.Handler {
 		var ctx = r.Context()
 
 		if !GetIdentityFromContext(ctx).Valid() {
-			resputil.JSON(w, errors.New("Unauthorized"))
+			api.Send(w, r, errors.New("Unauthorized"))
 			return
 		}
 

@@ -2,14 +2,13 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -140,7 +139,7 @@ func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interf
 		return nil, err
 	}
 
-	return resputil.OK(), ctrl.module.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID)
+	return api.OK(), ctrl.module.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID)
 }
 
 func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerScript) (rsp interface{}, err error) {

@@ -1,11 +1,11 @@
 package websocket
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -41,16 +41,16 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	// Disallow all unauthorized!
 	identity := auth.GetIdentityFromContext(ctx)
 	if !identity.Valid() {
-		resputil.JSON(w, errors.New("Unauthorized"))
+		api.Send(w, r, errors.New("Unauthorized"))
 		return
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if _, ok := err.(websocket.HandshakeError); ok {
-		resputil.JSON(w, errors.Wrap(err, "ws: need a websocket handshake"))
+		api.Send(w, r, errors.Wrap(err, "ws: need a websocket handshake"))
 		return
 	} else if err != nil {
-		resputil.JSON(w, errors.Wrap(err, "ws: failed to upgrade connection"))
+		api.Send(w, r, errors.Wrap(err, "ws: failed to upgrade connection"))
 		return
 	}
 

@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -312,7 +312,7 @@ func (svc module) lookup(namespaceID uint64, lookup func(*moduleActionProps) (*t
 			aProps.setNamespace(ns)
 		}
 
-		if m, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+		if m, err = lookup(aProps); errors.IsNotFound(err) {
 			return ModuleErrNotFound()
 		} else if err != nil {
 			return err
@@ -537,7 +537,7 @@ func loadModule(ctx context.Context, s store.Storer, moduleID uint64) (m *types.
 		return nil, ModuleErrInvalidID()
 	}
 
-	if m, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.Is(err, store.ErrNotFound) {
+	if m, err = store.LookupComposeModuleByID(ctx, s, moduleID); errors.IsNotFound(err) {
 		err = ModuleErrNotFound()
 	}
 

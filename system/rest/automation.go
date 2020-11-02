@@ -2,13 +2,11 @@ package rest
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service/event"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -48,5 +46,5 @@ func (ctrl *Automation) Bundle(ctx context.Context, r *request.AutomationBundle)
 }
 
 func (ctrl *Automation) TriggerScript(ctx context.Context, r *request.AutomationTriggerScript) (interface{}, error) {
-	return resputil.OK(), corredor.Service().Exec(ctx, r.Script, event.SystemOnManual())
+	return api.OK(), corredor.Service().Exec(ctx, r.Script, event.SystemOnManual())
 }

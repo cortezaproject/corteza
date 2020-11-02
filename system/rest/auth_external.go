@@ -3,22 +3,20 @@ package rest
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
-
-	"github.com/go-chi/chi"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/titpetric/factory/resputil"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/go-chi/chi"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 type (
@@ -133,7 +131,7 @@ func (ctrl *ExternalAuth) handleSuccessfulAuth(w http.ResponseWriter, r *http.Re
 
 	// Try to login/sign-up external user
 	if u, err = ctrl.auth.External(ctx, cred); err != nil {
-		resputil.JSON(w, err)
+		api.Send(w, r, err)
 		return
 	}
 

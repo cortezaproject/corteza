@@ -2,19 +2,14 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"time"
-
-	"github.com/titpetric/factory/resputil"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"time"
 )
 
 var _ = errors.Wrap
@@ -95,15 +90,15 @@ func (ctrl *Reminder) Read(ctx context.Context, r *request.ReminderRead) (interf
 }
 
 func (ctrl *Reminder) Delete(ctx context.Context, r *request.ReminderDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.reminder.Delete(ctx, r.ReminderID)
+	return api.OK(), ctrl.reminder.Delete(ctx, r.ReminderID)
 }
 
 func (ctrl *Reminder) Dismiss(ctx context.Context, r *request.ReminderDismiss) (interface{}, error) {
-	return resputil.OK(), ctrl.reminder.Dismiss(ctx, r.ReminderID)
+	return api.OK(), ctrl.reminder.Dismiss(ctx, r.ReminderID)
 }
 
 func (ctrl *Reminder) Snooze(ctx context.Context, r *request.ReminderSnooze) (interface{}, error) {
-	return resputil.OK(), ctrl.reminder.Snooze(ctx, r.ReminderID, r.RemindAt)
+	return api.OK(), ctrl.reminder.Snooze(ctx, r.ReminderID, r.RemindAt)
 }
 
 func (ctrl *Reminder) makeFilterPayload(ctx context.Context, nn types.ReminderSet, f types.ReminderFilter, err error) (*reminderSetPayload, error) {

@@ -2,14 +2,13 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
@@ -113,7 +112,7 @@ func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, e
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
+	return api.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
 }
 
 func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {
@@ -143,7 +142,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.page.With(ctx).DeleteByID(r.NamespaceID, r.PageID)
+	return api.OK(), ctrl.page.With(ctx).DeleteByID(r.NamespaceID, r.PageID)
 }
 
 func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{}, error) {

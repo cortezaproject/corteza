@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -41,19 +40,8 @@ type (
 		props *authActionProps
 	}
 
-	authError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *authActionProps
-	}
+	authLogMetaKey   struct{}
+	authPropsMetaKey struct{}
 )
 
 var (
@@ -119,11 +107,11 @@ func (p *authActionProps) setUser(user *types.User) *authActionProps {
 	return p
 }
 
-// serialize converts authActionProps to actionlog.Meta
+// Serialize converts authActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p authActionProps) serialize() actionlog.Meta {
+func (p authActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -156,7 +144,7 @@ func (p authActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p authActionProps) tr(in string, err error) string {
+func (p authActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -172,16 +160,6 @@ func (p authActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -260,107 +238,16 @@ func (a *authAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *authAction) LoggableAction() *actionlog.Action {
+func (e *authAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *authError) String() string {
-	var props = &authActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *authError) Error() string {
-	var props = &authActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *authError) Is(err error) bool {
-	t, ok := err.(*authError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *authError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps authError around another error
-//
-// This function is auto-generated.
-//
-func (e *authError) Wrap(err error) *authError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *authError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *authError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -368,7 +255,7 @@ func (e *authError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// AuthActionAuthenticate returns "system:auth.authenticate" error
+// AuthActionAuthenticate returns "system:auth.authenticate" action
 //
 // This function is auto-generated.
 //
@@ -388,7 +275,7 @@ func AuthActionAuthenticate(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionIssueToken returns "system:auth.issueToken" error
+// AuthActionIssueToken returns "system:auth.issueToken" action
 //
 // This function is auto-generated.
 //
@@ -408,7 +295,7 @@ func AuthActionIssueToken(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionValidateToken returns "system:auth.validateToken" error
+// AuthActionValidateToken returns "system:auth.validateToken" action
 //
 // This function is auto-generated.
 //
@@ -428,7 +315,7 @@ func AuthActionValidateToken(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionChangePassword returns "system:auth.changePassword" error
+// AuthActionChangePassword returns "system:auth.changePassword" action
 //
 // This function is auto-generated.
 //
@@ -448,7 +335,7 @@ func AuthActionChangePassword(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionInternalSignup returns "system:auth.internalSignup" error
+// AuthActionInternalSignup returns "system:auth.internalSignup" action
 //
 // This function is auto-generated.
 //
@@ -468,7 +355,7 @@ func AuthActionInternalSignup(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionConfirmEmail returns "system:auth.confirmEmail" error
+// AuthActionConfirmEmail returns "system:auth.confirmEmail" action
 //
 // This function is auto-generated.
 //
@@ -488,7 +375,7 @@ func AuthActionConfirmEmail(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionExternalSignup returns "system:auth.externalSignup" error
+// AuthActionExternalSignup returns "system:auth.externalSignup" action
 //
 // This function is auto-generated.
 //
@@ -508,7 +395,7 @@ func AuthActionExternalSignup(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionSendEmailConfirmationToken returns "system:auth.sendEmailConfirmationToken" error
+// AuthActionSendEmailConfirmationToken returns "system:auth.sendEmailConfirmationToken" action
 //
 // This function is auto-generated.
 //
@@ -528,7 +415,7 @@ func AuthActionSendEmailConfirmationToken(props ...*authActionProps) *authAction
 	return a
 }
 
-// AuthActionSendPasswordResetToken returns "system:auth.sendPasswordResetToken" error
+// AuthActionSendPasswordResetToken returns "system:auth.sendPasswordResetToken" action
 //
 // This function is auto-generated.
 //
@@ -548,7 +435,7 @@ func AuthActionSendPasswordResetToken(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionExchangePasswordResetToken returns "system:auth.exchangePasswordResetToken" error
+// AuthActionExchangePasswordResetToken returns "system:auth.exchangePasswordResetToken" action
 //
 // This function is auto-generated.
 //
@@ -568,7 +455,7 @@ func AuthActionExchangePasswordResetToken(props ...*authActionProps) *authAction
 	return a
 }
 
-// AuthActionAutoPromote returns "system:auth.autoPromote" error
+// AuthActionAutoPromote returns "system:auth.autoPromote" action
 //
 // This function is auto-generated.
 //
@@ -588,7 +475,7 @@ func AuthActionAutoPromote(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionUpdateCredentials returns "system:auth.updateCredentials" error
+// AuthActionUpdateCredentials returns "system:auth.updateCredentials" action
 //
 // This function is auto-generated.
 //
@@ -608,7 +495,7 @@ func AuthActionUpdateCredentials(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionCreateCredentials returns "system:auth.createCredentials" error
+// AuthActionCreateCredentials returns "system:auth.createCredentials" action
 //
 // This function is auto-generated.
 //
@@ -628,7 +515,7 @@ func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 	return a
 }
 
-// AuthActionImpersonate returns "system:auth.impersonate" error
+// AuthActionImpersonate returns "system:auth.impersonate" action
 //
 // This function is auto-generated.
 //
@@ -652,578 +539,596 @@ func AuthActionImpersonate(props ...*authActionProps) *authAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// AuthErrGeneric returns "system:auth.generic" audit event as actionlog.Error
+// AuthErrGeneric returns "system:auth.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrGeneric(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrGeneric(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "{err}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrSubscription returns "system:auth.subscription" audit event as actionlog.Warning
+// AuthErrSubscription returns "system:auth.subscription" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrSubscription(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "subscription",
-		action:    "error",
-		message:   "{err}",
-		log:       "{err}",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrSubscription(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("subscription error", nil),
+
+		errors.Meta("type", "subscription"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInvalidCredentials returns "system:auth.invalidCredentials" audit event as actionlog.Warning
+// AuthErrInvalidCredentials returns "system:auth.invalidCredentials" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInvalidCredentials(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "invalidCredentials",
-		action:    "error",
-		message:   "invalid username and password combination",
-		log:       "{email} failed to authenticate with {credentials.kind}",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInvalidCredentials(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid username and password combination", nil),
+
+		errors.Meta("type", "invalidCredentials"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "{email} failed to authenticate with {credentials.kind}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInvalidEmailFormat returns "system:auth.invalidEmailFormat" audit event as actionlog.Alert
+// AuthErrInvalidEmailFormat returns "system:auth.invalidEmailFormat" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInvalidEmailFormat(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "invalidEmailFormat",
-		action:    "error",
-		message:   "invalid email",
-		log:       "invalid email",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInvalidEmailFormat(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid email", nil),
+
+		errors.Meta("type", "invalidEmailFormat"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInvalidHandle returns "system:auth.invalidHandle" audit event as actionlog.Alert
+// AuthErrInvalidHandle returns "system:auth.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInvalidHandle(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "invalidHandle",
-		action:    "error",
-		message:   "invalid handle",
-		log:       "invalid handle",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInvalidHandle(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrFailedForUnknownUser returns "system:auth.invalidCredentials" audit event as actionlog.Warning
+// AuthErrFailedForUnknownUser returns "system:auth.failedForUnknownUser" as *errors.Error
 //
-// Note: This error will be wrapped with safe (invalidCredentials) error!
+// Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
 //
-func AuthErrFailedForUnknownUser(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "failedForUnknownUser",
-		action:    "error",
-		message:   "failedForUnknownUser",
-		log:       "unknown user {email} tried to log-in with {credentials.kind}",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		"failedForUnknownUser",
+
+		errors.Meta("type", "failedForUnknownUser"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "unknown user {email} tried to log-in with {credentials.kind}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	// Wrap with safe error
-	return AuthErrInvalidCredentials().Wrap(e)
+	e = AuthErrInvalidCredentials().Wrap(e)
 
+	return e
 }
 
-// AuthErrFailedForDisabledUser returns "system:auth.invalidCredentials" audit event as actionlog.Warning
+// AuthErrFailedForDisabledUser returns "system:auth.failedForDisabledUser" as *errors.Error
 //
-// Note: This error will be wrapped with safe (invalidCredentials) error!
+// Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
 //
-func AuthErrFailedForDisabledUser(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "failedForDisabledUser",
-		action:    "error",
-		message:   "failedForDisabledUser",
-		log:       "disabled user {user} tried to log-in with {credentials.kind}",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrFailedForDisabledUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		"failedForDisabledUser",
+
+		errors.Meta("type", "failedForDisabledUser"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "disabled user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	// Wrap with safe error
-	return AuthErrInvalidCredentials().Wrap(e)
+	e = AuthErrInvalidCredentials().Wrap(e)
 
+	return e
 }
 
-// AuthErrFailedUnconfirmedEmail returns "system:auth.failedUnconfirmedEmail" audit event as actionlog.Alert
+// AuthErrFailedUnconfirmedEmail returns "system:auth.failedUnconfirmedEmail" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrFailedUnconfirmedEmail(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "failedUnconfirmedEmail",
-		action:    "error",
-		message:   "system requires confirmed email before logging in",
-		log:       "failed to log-in with with unconfirmed email",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrFailedUnconfirmedEmail(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("system requires confirmed email before logging in", nil),
+
+		errors.Meta("type", "failedUnconfirmedEmail"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "failed to log-in with with unconfirmed email"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInteralLoginDisabledByConfig returns "system:auth.interalLoginDisabledByConfig" audit event as actionlog.Alert
+// AuthErrInteralLoginDisabledByConfig returns "system:auth.interalLoginDisabledByConfig" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInteralLoginDisabledByConfig(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "interalLoginDisabledByConfig",
-		action:    "error",
-		message:   "internal login (username/password) is disabled",
-		log:       "internal login (username/password) is disabled",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInteralLoginDisabledByConfig(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("internal login (username/password) is disabled", nil),
+
+		errors.Meta("type", "interalLoginDisabledByConfig"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInternalSignupDisabledByConfig returns "system:auth.internalSignupDisabledByConfig" audit event as actionlog.Alert
+// AuthErrInternalSignupDisabledByConfig returns "system:auth.internalSignupDisabledByConfig" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInternalSignupDisabledByConfig(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "internalSignupDisabledByConfig",
-		action:    "error",
-		message:   "internal sign-up (username/password) is disabled",
-		log:       "internal sign-up (username/password) is disabled",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInternalSignupDisabledByConfig(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("internal sign-up (username/password) is disabled", nil),
+
+		errors.Meta("type", "internalSignupDisabledByConfig"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrPasswordChangeFailedForUnknownUser returns "system:auth.passwordChangeFailedForUnknownUser" audit event as actionlog.Alert
+// AuthErrPasswordChangeFailedForUnknownUser returns "system:auth.passwordChangeFailedForUnknownUser" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrPasswordChangeFailedForUnknownUser(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "passwordChangeFailedForUnknownUser",
-		action:    "error",
-		message:   "failed to change password for the unknown user",
-		log:       "failed to change password for the unknown user",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrPasswordChangeFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to change password for the unknown user", nil),
+
+		errors.Meta("type", "passwordChangeFailedForUnknownUser"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrPasswodResetFailedOldPasswordCheckFailed returns "system:auth.passwodResetFailedOldPasswordCheckFailed" audit event as actionlog.Alert
+// AuthErrPasswodResetFailedOldPasswordCheckFailed returns "system:auth.passwodResetFailedOldPasswordCheckFailed" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrPasswodResetFailedOldPasswordCheckFailed(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "passwodResetFailedOldPasswordCheckFailed",
-		action:    "error",
-		message:   "failed to change password, old password does not match",
-		log:       "failed to change password, old password does not match",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrPasswodResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to change password, old password does not match", nil),
+
+		errors.Meta("type", "passwodResetFailedOldPasswordCheckFailed"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrPasswordResetDisabledByConfig returns "system:auth.passwordResetDisabledByConfig" audit event as actionlog.Alert
+// AuthErrPasswordResetDisabledByConfig returns "system:auth.passwordResetDisabledByConfig" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrPasswordResetDisabledByConfig(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "passwordResetDisabledByConfig",
-		action:    "error",
-		message:   "password reset is disabled",
-		log:       "password reset is disabled",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrPasswordResetDisabledByConfig(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("password reset is disabled", nil),
+
+		errors.Meta("type", "passwordResetDisabledByConfig"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrPasswordNotSecure returns "system:auth.passwordNotSecure" audit event as actionlog.Alert
+// AuthErrPasswordNotSecure returns "system:auth.passwordNotSecure" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrPasswordNotSecure(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "passwordNotSecure",
-		action:    "error",
-		message:   "provided password is not secure; use longer password with more non-alphanumeric character",
-		log:       "provided password is not secure; use longer password with more non-alphanumeric character",
-		severity:  actionlog.Alert,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrPasswordNotSecure(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("provided password is not secure; use longer password with more non-alphanumeric character", nil),
+
+		errors.Meta("type", "passwordNotSecure"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrExternalDisabledByConfig returns "system:auth.externalDisabledByConfig" audit event as actionlog.Warning
+// AuthErrExternalDisabledByConfig returns "system:auth.externalDisabledByConfig" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrExternalDisabledByConfig(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "externalDisabledByConfig",
-		action:    "error",
-		message:   "external authentication (using external authentication provider) is disabled",
-		log:       "external authentication is disabled",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrExternalDisabledByConfig(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("external authentication (using external authentication provider) is disabled", nil),
+
+		errors.Meta("type", "externalDisabledByConfig"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "external authentication is disabled"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrProfileWithoutValidEmail returns "system:auth.profileWithoutValidEmail" audit event as actionlog.Warning
+// AuthErrProfileWithoutValidEmail returns "system:auth.profileWithoutValidEmail" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrProfileWithoutValidEmail(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "profileWithoutValidEmail",
-		action:    "error",
-		message:   "external authentication provider returned profile without valid email",
-		log:       "external authentication provider {credentials.kind} returned profile without valid email",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrProfileWithoutValidEmail(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("external authentication provider returned profile without valid email", nil),
+
+		errors.Meta("type", "profileWithoutValidEmail"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "external authentication provider {credentials.kind} returned profile without valid email"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrCredentialsLinkedToInvalidUser returns "system:auth.credentialsLinkedToInvalidUser" audit event as actionlog.Warning
+// AuthErrCredentialsLinkedToInvalidUser returns "system:auth.credentialsLinkedToInvalidUser" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrCredentialsLinkedToInvalidUser(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "credentialsLinkedToInvalidUser",
-		action:    "error",
-		message:   "credentials {credentials.kind} linked to disabled or deleted user {user}",
-		log:       "credentials {credentials.kind} linked to disabled or deleted user {user}",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrCredentialsLinkedToInvalidUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("credentials {credentials.kind} linked to disabled or deleted user {user}", nil),
+
+		errors.Meta("type", "credentialsLinkedToInvalidUser"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrInvalidToken returns "system:auth.invalidToken" audit event as actionlog.Warning
+// AuthErrInvalidToken returns "system:auth.invalidToken" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInvalidToken(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "invalidToken",
-		action:    "error",
-		message:   "invalid token",
-		log:       "invalid token",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrInvalidToken(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid token", nil),
+
+		errors.Meta("type", "invalidToken"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AuthErrNotAllowedToImpersonate returns "system:auth.notAllowedToImpersonate" audit event as actionlog.Warning
+// AuthErrNotAllowedToImpersonate returns "system:auth.notAllowedToImpersonate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrNotAllowedToImpersonate(props ...*authActionProps) *authError {
-	var e = &authError{
-		timestamp: time.Now(),
-		resource:  "system:auth",
-		error:     "notAllowedToImpersonate",
-		action:    "error",
-		message:   "not allowed to impersonate this user",
-		log:       "not allowed to impersonate this user",
-		severity:  actionlog.Warning,
-		props: func() *authActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AuthErrNotAllowedToImpersonate(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to impersonate this user", nil),
+
+		errors.Meta("type", "notAllowedToImpersonate"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -1231,94 +1136,42 @@ func AuthErrNotAllowedToImpersonate(props ...*authActionProps) *authError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct authAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc auth) recordAction(ctx context.Context, props *authActionProps, action func(...*authActionProps) *authAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *authError
-
-		// Recorder error
-		recError *authError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*authError); !ok {
-			// got non-auth error, wrap it with AuthErrGeneric
-			retError = AuthErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use AuthErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type authError
-				if unwrappedSinkError, ok := unwrappedError.(*authError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc auth) recordAction(ctx context.Context, props *authActionProps, actionFn func(...*authActionProps) *authAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(authLogMetaKey{}), err)
+
+		if p, has := m[authPropsMetaKey{}]; has {
+			a.Meta = p.(*authActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

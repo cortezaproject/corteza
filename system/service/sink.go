@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -142,15 +144,15 @@ func (svc sink) pathCleanup(p string) string {
 // ProcessRequest function is used directly in the HTTP controller
 func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 	var (
+		ctx = r.Context()
 		sap = &sinkActionProps{}
 	)
 
 	// capture error from request handling and process functions
-	err := func() error {
+	err := func() *errors.Error {
 		defer r.Body.Close()
 		srup, err := svc.handleRequest(r)
 		if err != nil {
-			//err.HttpResponse(w)
 			return err
 		}
 
@@ -169,15 +171,15 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}()
 
-	// record error or successful action with all sink action params
-	if err, ok := svc.recordAction(r.Context(), sap, SinkActionRequest, err).(*sinkError); ok && err != nil {
-		// in case of errors, write http response
-		err.HttpResponse(w)
+	_ = svc.recordAction(ctx, sap, SinkActionRequest, err)
+	if err != nil {
+		// use standard facility for encoding errors for HTTP
+		api.Send(w, r, err)
 	}
 }
 
 // Verifies and extracts sink request params
-func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
+func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, *errors.Error) {
 	var (
 		srup = &SinkRequestUrlParams{}
 		sap  = &sinkActionProps{}

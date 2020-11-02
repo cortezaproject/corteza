@@ -98,6 +98,7 @@ func TestApplicationCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post("/application/").
+		Header("Accept", "application/json").
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -125,6 +126,7 @@ func TestApplicationUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Put(fmt.Sprintf("/application/%d", u.ID)).
+		Header("Accept", "application/json").
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -142,6 +144,7 @@ func TestApplicationUpdate(t *testing.T) {
 
 	h.apiInit().
 		Put(fmt.Sprintf("/application/%d", res.ID)).
+		Header("Accept", "application/json").
 		FormData("name", newName).
 		FormData("handle", newHandle).
 		Expect(t).
@@ -160,6 +163,7 @@ func TestApplicationDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/application/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this application")).
@@ -174,6 +178,7 @@ func TestApplicationDelete(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/application/%d", res.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

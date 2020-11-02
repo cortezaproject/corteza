@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
@@ -9,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
 	"net/http"
 )
 
@@ -55,9 +55,9 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 				var p *authUserResponse
 
 				if p, err = ctrl.makePayload(ctx, user); err != nil {
-					resputil.JSON(w, err)
+					api.Send(w, r, err)
 				} else {
-					resputil.JSON(w, p)
+					api.Send(w, r, p)
 
 				}
 
@@ -65,7 +65,7 @@ func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{},
 			}
 		}
 
-		resputil.JSON(w, errors.New("not authenticated"))
+		api.Send(w, r, errors.New("not authenticated"))
 	}, nil
 }
 
