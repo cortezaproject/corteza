@@ -7,6 +7,7 @@ import (
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
+	fedService "github.com/cortezaproject/corteza-server/federation/service"
 	msgService "github.com/cortezaproject/corteza-server/messaging/service"
 	msgEvent "github.com/cortezaproject/corteza-server/messaging/service/event"
 	"github.com/cortezaproject/corteza-server/messaging/websocket"
@@ -311,6 +312,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	sysService.Watchers(ctx)
 	cmpService.Watchers(ctx)
 	msgService.Watchers(ctx)
+	fedService.Watchers(ctx)
 
 	rbac.Global().Watch(ctx)
 
