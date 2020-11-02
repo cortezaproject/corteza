@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
@@ -26,12 +27,8 @@ type (
 		policy policyMatcher
 	}
 
-	loggable interface {
-		LoggableAction() *Action
-	}
-
 	Recorder interface {
-		Record(context.Context, loggable)
+		Record(context.Context, *Action)
 		Find(context.Context, Filter) (ActionSet, Filter, error)
 	}
 
@@ -58,13 +55,13 @@ func NewService(s actionlogStore, logger, tee *zap.Logger, policy policyMatcher)
 	return
 }
 
-func (svc service) Record(ctx context.Context, l loggable) {
-	if l == nil {
+func (svc service) Record(ctx context.Context, a *Action) {
+	if a == nil {
 		// nothing to record
 		return
 	}
 
-	a := enrich(ctx, l.LoggableAction())
+	a = enrich(ctx, a)
 	a.ID = id.Next()
 
 	svc.log(a)
@@ -120,6 +117,10 @@ func (svc service) Find(ctx context.Context, flt Filter) (ActionSet, Filter, err
 
 // Enriches action with additional info (ip, actor id, request id...)
 func enrich(ctx context.Context, a *Action) *Action {
+	if a.Timestamp.IsZero() {
+		a.Timestamp = time.Now()
+	}
+
 	a.RequestOrigin = RequestOriginFromContext(ctx)
 
 	// Relies on chi's middleware to get to the request ID

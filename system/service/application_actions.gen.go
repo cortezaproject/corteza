@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *applicationActionProps
 	}
 
-	applicationError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *applicationActionProps
-	}
+	applicationLogMetaKey   struct{}
+	applicationPropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *applicationActionProps) setFilter(filter *types.ApplicationFilter) *app
 	return p
 }
 
-// serialize converts applicationActionProps to actionlog.Meta
+// Serialize converts applicationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p applicationActionProps) serialize() actionlog.Meta {
+func (p applicationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -142,7 +130,7 @@ func (p applicationActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p applicationActionProps) tr(in string, err error) string {
+func (p applicationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -158,16 +146,6 @@ func (p applicationActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -250,107 +228,16 @@ func (a *applicationAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *applicationAction) LoggableAction() *actionlog.Action {
+func (e *applicationAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *applicationError) String() string {
-	var props = &applicationActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *applicationError) Error() string {
-	var props = &applicationActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *applicationError) Is(err error) bool {
-	t, ok := err.(*applicationError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *applicationError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps applicationError around another error
-//
-// This function is auto-generated.
-//
-func (e *applicationError) Wrap(err error) *applicationError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *applicationError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *applicationError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -358,7 +245,7 @@ func (e *applicationError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ApplicationActionSearch returns "system:application.search" error
+// ApplicationActionSearch returns "system:application.search" action
 //
 // This function is auto-generated.
 //
@@ -378,7 +265,7 @@ func ApplicationActionSearch(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
-// ApplicationActionLookup returns "system:application.lookup" error
+// ApplicationActionLookup returns "system:application.lookup" action
 //
 // This function is auto-generated.
 //
@@ -398,7 +285,7 @@ func ApplicationActionLookup(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
-// ApplicationActionCreate returns "system:application.create" error
+// ApplicationActionCreate returns "system:application.create" action
 //
 // This function is auto-generated.
 //
@@ -418,7 +305,7 @@ func ApplicationActionCreate(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
-// ApplicationActionUpdate returns "system:application.update" error
+// ApplicationActionUpdate returns "system:application.update" action
 //
 // This function is auto-generated.
 //
@@ -438,7 +325,7 @@ func ApplicationActionUpdate(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
-// ApplicationActionDelete returns "system:application.delete" error
+// ApplicationActionDelete returns "system:application.delete" action
 //
 // This function is auto-generated.
 //
@@ -458,7 +345,7 @@ func ApplicationActionDelete(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
-// ApplicationActionUndelete returns "system:application.undelete" error
+// ApplicationActionUndelete returns "system:application.undelete" action
 //
 // This function is auto-generated.
 //
@@ -482,274 +369,288 @@ func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAct
 // *********************************************************************************************************************
 // Error constructors
 
-// ApplicationErrGeneric returns "system:application.generic" audit event as actionlog.Error
+// ApplicationErrGeneric returns "system:application.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrGeneric(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrGeneric(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "{err}"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotFound returns "system:application.notFound" audit event as actionlog.Warning
+// ApplicationErrNotFound returns "system:application.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotFound(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notFound",
-		action:    "error",
-		message:   "application not found",
-		log:       "application not found",
-		severity:  actionlog.Warning,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotFound(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("application not found", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrInvalidID returns "system:application.invalidID" audit event as actionlog.Warning
+// ApplicationErrInvalidID returns "system:application.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrInvalidID(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrInvalidID(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToRead returns "system:application.notAllowedToRead" audit event as actionlog.Error
+// ApplicationErrNotAllowedToRead returns "system:application.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToRead(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this application",
-		log:       "failed to read {application.name}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToRead(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this application", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to read {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToListApplications returns "system:application.notAllowedToListApplications" audit event as actionlog.Error
+// ApplicationErrNotAllowedToListApplications returns "system:application.notAllowedToListApplications" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToListApplications(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToListApplications",
-		action:    "error",
-		message:   "not allowed to list applications",
-		log:       "failed to list application; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToListApplications(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list applications", nil),
+
+		errors.Meta("type", "notAllowedToListApplications"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to list application; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToCreate returns "system:application.notAllowedToCreate" audit event as actionlog.Error
+// ApplicationErrNotAllowedToCreate returns "system:application.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToCreate(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create applications",
-		log:       "failed to create application; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToCreate(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create applications", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to create application; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToUpdate returns "system:application.notAllowedToUpdate" audit event as actionlog.Error
+// ApplicationErrNotAllowedToUpdate returns "system:application.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToUpdate(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this application",
-		log:       "failed to update {application.name}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToUpdate(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this application", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to update {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToDelete returns "system:application.notAllowedToDelete" audit event as actionlog.Error
+// ApplicationErrNotAllowedToDelete returns "system:application.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToDelete(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this application",
-		log:       "failed to delete {application.name}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToDelete(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this application", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to delete {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ApplicationErrNotAllowedToUndelete returns "system:application.notAllowedToUndelete" audit event as actionlog.Error
+// ApplicationErrNotAllowedToUndelete returns "system:application.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToUndelete(props ...*applicationActionProps) *applicationError {
-	var e = &applicationError{
-		timestamp: time.Now(),
-		resource:  "system:application",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this application",
-		log:       "failed to undelete {application.name}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *applicationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ApplicationErrNotAllowedToUndelete(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this application", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to undelete {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -757,94 +658,42 @@ func ApplicationErrNotAllowedToUndelete(props ...*applicationActionProps) *appli
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct applicationAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc application) recordAction(ctx context.Context, props *applicationActionProps, action func(...*applicationActionProps) *applicationAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *applicationError
-
-		// Recorder error
-		recError *applicationError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*applicationError); !ok {
-			// got non-application error, wrap it with ApplicationErrGeneric
-			retError = ApplicationErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use ApplicationErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type applicationError
-				if unwrappedSinkError, ok := unwrappedError.(*applicationError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc application) recordAction(ctx context.Context, props *applicationActionProps, actionFn func(...*applicationActionProps) *applicationAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(applicationLogMetaKey{}), err)
+
+		if p, has := m[applicationPropsMetaKey{}]; has {
+			a.Meta = p.(*applicationActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

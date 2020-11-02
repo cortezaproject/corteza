@@ -1,6 +1,7 @@
-package api
+package server
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -17,7 +18,7 @@ func BaseMiddleware(log *zap.Logger) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		handleCORS,
 		middleware.RealIP,
-		remoteAddrToContext,
+		api.RemoteAddrToContext,
 		middleware.RequestID,
 		contextLogger(log),
 	}

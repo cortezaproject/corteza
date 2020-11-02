@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/store"
@@ -211,7 +211,7 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 			}
 		} else {
 			// Validate permissions on parent page
-			if p, err = store.LookupComposePageByID(ctx, s, parentID); errors.Is(err, store.ErrNotFound) {
+			if p, err = store.LookupComposePageByID(ctx, s, parentID); errors.IsNotFound(err) {
 				return PageErrNotFound()
 			} else if err != nil {
 				return err
@@ -354,7 +354,7 @@ func (svc page) lookup(namespaceID uint64, lookup func(*pageActionProps) (*types
 			aProps.setNamespace(ns)
 		}
 
-		if p, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+		if p, err = lookup(aProps); errors.IsNotFound(err) {
 			return PageErrNotFound()
 		} else if err != nil {
 			return err
@@ -454,7 +454,7 @@ func loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (
 	}
 
 	if ns, err = loadNamespace(ctx, s, namespaceID); err == nil {
-		if m, err = store.LookupComposePageByID(ctx, s, pageID); errors.Is(err, store.ErrNotFound) {
+		if m, err = store.LookupComposePageByID(ctx, s, pageID); errors.IsNotFound(err) {
 			err = PageErrNotFound()
 		}
 	}

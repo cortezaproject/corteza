@@ -10,14 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net/http"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -42,21 +40,8 @@ type (
 		props *sinkActionProps
 	}
 
-	sinkError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *sinkActionProps
-
-		httpStatusCode int
-	}
+	sinkLogMetaKey   struct{}
+	sinkPropsMetaKey struct{}
 )
 
 var (
@@ -122,11 +107,11 @@ func (p *sinkActionProps) setMailHeader(mailHeader *types.MailMessageHeader) *si
 	return p
 }
 
-// serialize converts sinkActionProps to actionlog.Meta
+// Serialize converts sinkActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p sinkActionProps) serialize() actionlog.Meta {
+func (p sinkActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -151,7 +136,7 @@ func (p sinkActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p sinkActionProps) tr(in string, err error) string {
+func (p sinkActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -167,16 +152,6 @@ func (p sinkActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -225,124 +200,24 @@ func (a *sinkAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *sinkAction) LoggableAction() *actionlog.Action {
+func (e *sinkAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *sinkError) String() string {
-	var props = &sinkActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *sinkError) Error() string {
-	var props = &sinkActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *sinkError) Is(err error) bool {
-	t, ok := err.(*sinkError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *sinkError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps sinkError around another error
-//
-// This function is auto-generated.
-//
-func (e *sinkError) Wrap(err error) *sinkError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *sinkError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *sinkError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-func (e *sinkError) HttpResponse(w http.ResponseWriter) {
-	var code = e.httpStatusCode
-	if code == 0 {
-		code = http.StatusInternalServerError
-	}
-
-	http.Error(w, e.message, code)
 }
 
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Action constructors
 
-// SinkActionSign returns "system:sink.sign" error
+// SinkActionSign returns "system:sink.sign" action
 //
 // This function is auto-generated.
 //
@@ -362,7 +237,7 @@ func SinkActionSign(props ...*sinkActionProps) *sinkAction {
 	return a
 }
 
-// SinkActionPreprocess returns "system:sink.preprocess" error
+// SinkActionPreprocess returns "system:sink.preprocess" action
 //
 // This function is auto-generated.
 //
@@ -382,7 +257,7 @@ func SinkActionPreprocess(props ...*sinkActionProps) *sinkAction {
 	return a
 }
 
-// SinkActionRequest returns "system:sink.request" error
+// SinkActionRequest returns "system:sink.request" action
 //
 // This function is auto-generated.
 //
@@ -406,538 +281,516 @@ func SinkActionRequest(props ...*sinkActionProps) *sinkAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// SinkErrGeneric returns "system:sink.generic" audit event as actionlog.Error
+// SinkErrGeneric returns "system:sink.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrGeneric(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SinkErrGeneric(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "system:sink"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sinkLogMetaKey{}, "{err}"),
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrFailedToSign returns "system:sink.failedToSign" audit event as actionlog.Error
+// SinkErrFailedToSign returns "system:sink.failedToSign" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrFailedToSign(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "failedToSign",
-		action:    "error",
-		message:   "could not sign request params: {err}",
-		log:       "could not sign request params: {err}",
-		severity:  actionlog.Error,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SinkErrFailedToSign(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("could not sign request params: {err}", nil),
+
+		errors.Meta("type", "failedToSign"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrFailedToCreateEvent returns "system:sink.failedToCreateEvent" audit event as actionlog.Error
+// SinkErrFailedToCreateEvent returns "system:sink.failedToCreateEvent" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrFailedToCreateEvent(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "failedToCreateEvent",
-		action:    "error",
-		message:   "failed to create sink event from request",
-		log:       "failed to create sink event from request",
-		severity:  actionlog.Error,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SinkErrFailedToCreateEvent(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to create sink event from request", nil),
+
+		errors.Meta("type", "failedToCreateEvent"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrFailedToProcess returns "system:sink.failedToProcess" audit event as actionlog.Error
+// SinkErrFailedToProcess returns "system:sink.failedToProcess" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrFailedToProcess(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "failedToProcess",
-		action:    "error",
-		message:   "failed to process request",
-		log:       "failed to process request",
-		severity:  actionlog.Error,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SinkErrFailedToProcess(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to process request", nil),
+
+		errors.Meta("type", "failedToProcess"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrFailedToRespond returns "system:sink.failedToRespond" audit event as actionlog.Error
+// SinkErrFailedToRespond returns "system:sink.failedToRespond" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrFailedToRespond(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "failedToRespond",
-		action:    "error",
-		message:   "failed to respond to request",
-		log:       "failed to respond to request",
-		severity:  actionlog.Error,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SinkErrFailedToRespond(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to respond to request", nil),
+
+		errors.Meta("type", "failedToRespond"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrMissingSignature returns "system:sink.missingSignature" audit event as actionlog.Alert
+// SinkErrMissingSignature returns "system:sink.missingSignature" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrMissingSignature(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "missingSignature",
-		action:    "error",
-		message:   "missing sink signature parameter",
-		log:       "missing sink signature parameter",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusBadRequest,
+func SinkErrMissingSignature(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("missing sink signature parameter", nil),
+
+		errors.Meta("type", "missingSignature"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidSignatureParam returns "system:sink.invalidSignatureParam" audit event as actionlog.Alert
+// SinkErrInvalidSignatureParam returns "system:sink.invalidSignatureParam" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidSignatureParam(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidSignatureParam",
-		action:    "error",
-		message:   "invalid sink signature parameter",
-		log:       "invalid sink signature parameter",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusUnauthorized,
+func SinkErrInvalidSignatureParam(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid sink signature parameter", nil),
+
+		errors.Meta("type", "invalidSignatureParam"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrBadSinkParamEncoding returns "system:sink.badSinkParamEncoding" audit event as actionlog.Alert
+// SinkErrBadSinkParamEncoding returns "system:sink.badSinkParamEncoding" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrBadSinkParamEncoding(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "badSinkParamEncoding",
-		action:    "error",
-		message:   "bad encoding of sink parameters",
-		log:       "bad encoding of sink parameters",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusBadRequest,
+func SinkErrBadSinkParamEncoding(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("bad encoding of sink parameters", nil),
+
+		errors.Meta("type", "badSinkParamEncoding"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidSignature returns "system:sink.invalidSignature" audit event as actionlog.Alert
+// SinkErrInvalidSignature returns "system:sink.invalidSignature" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidSignature(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidSignature",
-		action:    "error",
-		message:   "invalid signature",
-		log:       "invalid signature",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusUnauthorized,
+func SinkErrInvalidSignature(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid signature", nil),
+
+		errors.Meta("type", "invalidSignature"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidSinkRequestUrlParams returns "system:sink.invalidSinkRequestUrlParams" audit event as actionlog.Alert
+// SinkErrInvalidSinkRequestUrlParams returns "system:sink.invalidSinkRequestUrlParams" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidSinkRequestUrlParams(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidSinkRequestUrlParams",
-		action:    "error",
-		message:   "invalid sink request url params",
-		log:       "invalid sink request url params",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusInternalServerError,
+func SinkErrInvalidSinkRequestUrlParams(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid sink request url params", nil),
+
+		errors.Meta("type", "invalidSinkRequestUrlParams"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidHttpMethod returns "system:sink.invalidHttpMethod" audit event as actionlog.Alert
+// SinkErrInvalidHttpMethod returns "system:sink.invalidHttpMethod" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidHttpMethod(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidHttpMethod",
-		action:    "error",
-		message:   "invalid HTTP method",
-		log:       "invalid HTTP method",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusUnauthorized,
+func SinkErrInvalidHttpMethod(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid HTTP method", nil),
+
+		errors.Meta("type", "invalidHttpMethod"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidContentType returns "system:sink.invalidContentType" audit event as actionlog.Alert
+// SinkErrInvalidContentType returns "system:sink.invalidContentType" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidContentType(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidContentType",
-		action:    "error",
-		message:   "invalid content-type header",
-		log:       "invalid content-type header",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusUnauthorized,
+func SinkErrInvalidContentType(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid content-type header", nil),
+
+		errors.Meta("type", "invalidContentType"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrInvalidPath returns "system:sink.invalidPath" audit event as actionlog.Alert
+// SinkErrInvalidPath returns "system:sink.invalidPath" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrInvalidPath(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "invalidPath",
-		action:    "error",
-		message:   "invalid path",
-		log:       "invalid path",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusUnauthorized,
+func SinkErrInvalidPath(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid path", nil),
+
+		errors.Meta("type", "invalidPath"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrMisplacedSignature returns "system:sink.misplacedSignature" audit event as actionlog.Alert
+// SinkErrMisplacedSignature returns "system:sink.misplacedSignature" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrMisplacedSignature(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "misplacedSignature",
-		action:    "error",
-		message:   "signature misplaced",
-		log:       "signature misplaced",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusBadRequest,
+func SinkErrMisplacedSignature(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("signature misplaced", nil),
+
+		errors.Meta("type", "misplacedSignature"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrSignatureExpired returns "system:sink.signatureExpired" audit event as actionlog.Alert
+// SinkErrSignatureExpired returns "system:sink.signatureExpired" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrSignatureExpired(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "signatureExpired",
-		action:    "error",
-		message:   "signature expired",
-		log:       "signature expired",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusGone,
+func SinkErrSignatureExpired(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("signature expired", nil),
+
+		errors.Meta("type", "signatureExpired"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrContentLengthExceedsMaxAllowedSize returns "system:sink.contentLengthExceedsMaxAllowedSize" audit event as actionlog.Alert
+// SinkErrContentLengthExceedsMaxAllowedSize returns "system:sink.contentLengthExceedsMaxAllowedSize" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrContentLengthExceedsMaxAllowedSize(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "contentLengthExceedsMaxAllowedSize",
-		action:    "error",
-		message:   "content length exceeds max size limit",
-		log:       "content length exceeds max size limit",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusRequestEntityTooLarge,
+func SinkErrContentLengthExceedsMaxAllowedSize(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("content length exceeds max size limit", nil),
+
+		errors.Meta("type", "contentLengthExceedsMaxAllowedSize"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SinkErrProcessingError returns "system:sink.processingError" audit event as actionlog.Alert
+// SinkErrProcessingError returns "system:sink.processingError" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SinkErrProcessingError(props ...*sinkActionProps) *sinkError {
-	var e = &sinkError{
-		timestamp: time.Now(),
-		resource:  "system:sink",
-		error:     "processingError",
-		action:    "error",
-		message:   "sink request process error",
-		log:       "sink request process error",
-		severity:  actionlog.Alert,
-		props: func() *sinkActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
-
-		httpStatusCode: http.StatusInternalServerError,
+func SinkErrProcessingError(mm ...*sinkActionProps) *errors.Error {
+	var p = &sinkActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("sink request process error", nil),
+
+		errors.Meta("type", "processingError"),
+		errors.Meta("resource", "system:sink"),
+
+		errors.Meta(sinkPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -945,94 +798,42 @@ func SinkErrProcessingError(props ...*sinkActionProps) *sinkError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct sinkAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc sink) recordAction(ctx context.Context, props *sinkActionProps, action func(...*sinkActionProps) *sinkAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *sinkError
-
-		// Recorder error
-		recError *sinkError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*sinkError); !ok {
-			// got non-sink error, wrap it with SinkErrGeneric
-			retError = SinkErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use SinkErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type sinkError
-				if unwrappedSinkError, ok := unwrappedError.(*sinkError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc sink) recordAction(ctx context.Context, props *sinkActionProps, actionFn func(...*sinkActionProps) *sinkAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(sinkLogMetaKey{}), err)
+
+		if p, has := m[sinkPropsMetaKey{}]; has {
+			a.Meta = p.(*sinkActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

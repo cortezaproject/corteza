@@ -49,11 +49,11 @@ package commands
 //
 //			if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
 //				ns, err = svcNs.FindByID(namespaceID)
-//				if errors.Is(err, store.ErrNotFound) {
+//				if errors.IsNotFound(err) {
 //					cli.HandleError(err)
 //				}
 //			} else if ns, err = svcNs.FindByHandle(nsFlag); err != nil {
-//				if errors.Is(err, store.ErrNotFound) {
+//				if errors.IsNotFound(err) {
 //					cli.HandleError(err)
 //				}
 //			}

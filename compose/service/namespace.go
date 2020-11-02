@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -248,7 +248,7 @@ func (svc namespace) lookup(lookup func(*namespaceActionProps) (*types.Namespace
 	var aProps = &namespaceActionProps{namespace: &types.Namespace{}}
 
 	err = func() error {
-		if ns, err = lookup(aProps); errors.Is(err, store.ErrNotFound) {
+		if ns, err = lookup(aProps); errors.IsNotFound(err) {
 			return NamespaceErrNotFound()
 		} else if err != nil {
 			return err
@@ -337,7 +337,7 @@ func loadNamespace(ctx context.Context, s store.Storer, namespaceID uint64) (ns 
 		return nil, ChartErrInvalidNamespaceID()
 	}
 
-	if ns, err = store.LookupComposeNamespaceByID(ctx, s, namespaceID); errors.Is(err, store.ErrNotFound) {
+	if ns, err = store.LookupComposeNamespaceByID(ctx, s, namespaceID); errors.IsNotFound(err) {
 		return nil, NamespaceErrNotFound()
 	}
 

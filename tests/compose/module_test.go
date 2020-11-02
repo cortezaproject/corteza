@@ -162,6 +162,7 @@ func TestModuleCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		Header("Accept", "application/json").
 		FormData("name", "some-module").
 		Expect(t).
 		Status(http.StatusOK).
@@ -197,6 +198,7 @@ func TestModuleUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
@@ -304,6 +306,7 @@ func TestModuleDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this module")).

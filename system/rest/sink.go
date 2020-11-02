@@ -1,10 +1,9 @@
 package rest
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/pkg/errors"
 	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 var _ = errors.Wrap

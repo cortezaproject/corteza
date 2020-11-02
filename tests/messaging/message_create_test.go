@@ -21,7 +21,9 @@ func TestMessagesCreate(t *testing.T) {
 	}{}
 
 	h.apiInit().
+		Debug().
 		Post(fmt.Sprintf("/channels/%d/messages/", ch.ID)).
+		Header("Accept", "application/json").
 		JSON(`{"message":"new message"}`).
 		Expect(t).
 		Status(http.StatusOK).
@@ -32,6 +34,7 @@ func TestMessagesCreate(t *testing.T) {
 		JSON(&rval)
 
 	m, _ := h.lookupMessageByID(rval.Response.ID)
+	h.a.NotNil(m)
 	h.a.Equal(`new message`, m.Message)
 
 }

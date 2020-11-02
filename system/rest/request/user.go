@@ -878,8 +878,7 @@ func NewUserSetPassword() *UserSetPassword {
 // Auditable returns all auditable/loggable parameters
 func (r UserSetPassword) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"userID":   r.UserID,
-		"password": r.Password,
+		"userID": r.UserID,
 	}
 }
 

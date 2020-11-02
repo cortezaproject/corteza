@@ -39,6 +39,7 @@ func TestSettingsList_noPermissions(t *testing.T) {
 
 	h.apiInit().
 		Get("/settings/").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to read settings")).
@@ -78,6 +79,7 @@ func TestSettingsUpdate_noPermissions(t *testing.T) {
 
 	h.apiInit().
 		Patch("/settings/").
+		Header("Accept", "application/json").
 		JSON(`{"values":[]}`).
 		Expect(t).
 		Status(http.StatusOK).
@@ -119,6 +121,7 @@ func TestSettingsGet_noPermissions(t *testing.T) {
 
 	h.apiInit().
 		Get("/settings/t_sys_k1.s1").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to read settings")).

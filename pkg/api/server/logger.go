@@ -1,14 +1,12 @@
-package api
+package server
 
 import (
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/go-chi/chi/middleware"
-	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 )
 
 // contextLogger middleware binds logger to request's context.

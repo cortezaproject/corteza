@@ -3,11 +3,11 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	files "github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/disintegration/imaging"
@@ -104,7 +104,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 
 		if ch, err = store.LookupMessagingChannelByID(ctx, s, channelID); err != nil {
-			if errors.Is(err, store.ErrNotFound) {
+			if errors.IsNotFound(err) {
 				return AttachmentErrChannelNotFound()
 			}
 		}

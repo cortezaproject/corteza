@@ -56,6 +56,7 @@ func TestChannelSetFlag(t *testing.T) {
 	flagChannelOK(ch, string(types.ChannelMembershipFlagIgnored))
 
 	flagChannel(ch, "foo").
+		Header("Accept", "application/json").
 		Assert(helpers.AssertError("invalid flag"))
 	flagCheck(ch, string(types.ChannelMembershipFlagIgnored))
 

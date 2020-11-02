@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -75,7 +76,7 @@ func (svc settings) Get(ctx context.Context, name string, ownedBy uint64) (out *
 	}
 
 	out, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy)
-	if err != nil && err != store.ErrNotFound {
+	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	}
 
@@ -106,7 +107,7 @@ func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) 
 
 	var current *types.SettingValue
 	current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, v.Name, v.OwnedBy)
-	if err == store.ErrNotFound {
+	if errors.IsNotFound(err) {
 		v.UpdatedAt = time.Now()
 		err = store.CreateSetting(ctx, svc.store, v)
 	} else if err != nil {
@@ -171,21 +172,21 @@ func (svc settings) logChange(ctx context.Context, vv types.SettingValueSet) {
 	}
 }
 
-func (svc settings) Delete(ctx context.Context, name string, ownedBy uint64) (err error) {
+func (svc settings) Delete(ctx context.Context, name string, ownedBy uint64) error {
 	if !svc.accessControl.CanManageSettings(ctx) {
 		return ErrNoManagePermission
 	}
 
-	var current *types.SettingValue
-	if current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy); err == store.ErrNotFound {
+	current, err := store.LookupSettingByNameOwnedBy(ctx, svc.store, name, ownedBy)
+	if errors.IsNotFound(err) {
 		return nil
 	} else if err != nil {
-		return
+		return err
 	}
 
 	err = store.DeleteSetting(ctx, svc.store, current)
 	if err != nil {
-		return
+		return err
 	}
 
 	vv := types.SettingValueSet{current}

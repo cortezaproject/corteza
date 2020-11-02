@@ -2,12 +2,11 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 )
 
@@ -120,7 +119,7 @@ func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface
 		return nil, err
 	}
 
-	return resputil.OK(), ctrl.chart.With(ctx).DeleteByID(r.NamespaceID, r.ChartID)
+	return api.OK(), ctrl.chart.With(ctx).DeleteByID(r.NamespaceID, r.ChartID)
 }
 
 func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*chartPayload, error) {
