@@ -21,8 +21,9 @@ type (
 	}
 
 	SharedModuleFilter struct {
-		NodeID uint64 `json:"nodeID,string"`
-		Query  string `json:"query"`
+		NodeID                     uint64 `json:"nodeID,string"`
+		ExternalFederationModuleID uint64 `json:"externalFederationModuleID,string"`
+		Query                      string `json:"query"`
 
 		Handle string `json:"handle"`
 		Name   string `json:"name"`
