@@ -3,6 +3,8 @@ package envoy
 import (
 	"context"
 	"errors"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
 
 type (
@@ -11,18 +13,19 @@ type (
 
 		// Config flags
 		inverted bool
+		dry      bool
 
 		processed   nodeSet
 		conflicting nodeSet
 	}
 
-	// @tbd
 	ExecState struct {
-		Res       Resource
-		NodeState NodeState
+		Res             resource.Interface
+		MissingDeps     resource.RefSet
+		Conflicting     bool
+		DepResources    []resource.Interface
+		ParentResources []resource.Interface
 	}
-
-	execFunc func(ctx context.Context, s *ExecState) (NodeState, error)
 )
 
 func newGraph() *graph {
@@ -44,6 +47,16 @@ func (g *graph) removeNode(nn ...*node) {
 
 func (g *graph) invert() {
 	g.inverted = !g.inverted
+}
+
+func (g *graph) DryRun() {
+	g.dry = true
+	g.purge(true)
+}
+
+func (g *graph) ProdRun() {
+	g.dry = false
+	g.purge(true)
 }
 
 func (g *graph) childNodes(n *node) nodeSet {
@@ -73,109 +86,75 @@ func (g *graph) markConflicting(n *node) {
 	g.conflicting = g.conflicting.add(n)
 }
 
-func (g *graph) Walk(ctx context.Context, f execFunc) (err error) {
-	// We'll do a "better safe then sorry" infinite loop checker.
-	// If the loop repeatted over n * 2 times (in worst case each node is conflicting),
-	// the loop is infinite.
-	maxRep := len(g.nodes()) * 2
-	cRep := 0
+func (g *graph) Next(ctx context.Context) (s *ExecState, err error) {
+	upNN := g.removeProcessed(g.nodes())
 
-	stater := func(n *node, s NodeState) {
-		for _, c := range g.childNodes(n) {
-			c.state.merge(s)
+	// We are done here
+	if len(upNN) <= 0 {
+		g.purge(g.dry)
+		return nil, nil
+	}
+
+	var nx *node
+
+	for _, upN := range upNN {
+		// We should not take into account conflicted parent nodes,
+		// as they already resolved the conflict.
+		if len(g.removeProcessed(g.removeConflicting(g.parentNodes(upN)))) <= 0 {
+			nx = upN
+			break
 		}
 	}
 
-	for {
-		upNN := g.removeProcessed(g.nodes())
+	if nx != nil {
+		// Prepare the required context for the processing.
+		// Perform some basic cleanup.
+		es := g.prepExecState(nx, false)
 
-		// We are done here
-		if len(upNN) <= 0 {
-			g.purge()
-			return nil
-		}
+		g.markProcessed(nx)
+		pp := g.parentNodes(nx)
+		g.removeParent(nx)
 
-		if cRep > maxRep {
-			return errors.New("Inf. loop; @todo error")
-		}
-
-		var nx *node
-
-		for _, upN := range upNN {
-			// We should not take into account conflicted parent nodes,
-			// as they already resolved the conflict.
-			if len(g.removeProcessed(g.removeConflicting(g.parentNodes(upN)))) <= 0 {
-				nx = upN
-				break
+		for _, p := range pp {
+			g.removeChild(p, nx)
+			if len(g.childNodes(p)) <= 0 && g.processed.has(p) {
+				g.removeNode(p)
+				g.processed = g.processed.remove(p)
+				g.conflicting = g.conflicting.remove(p)
 			}
 		}
 
-		if nx != nil {
-			// Prepare the required context for the processing.
-			// Perform some basic cleanup.
-			es := &ExecState{
-				Res:       nx.res,
-				NodeState: nx.state,
-			}
+		return es, nil
+	}
 
-			s, err := f(ctx, es)
-			if err != nil {
-				return err
-			}
-
-			g.markProcessed(nx)
-
-			pp := g.parentNodes(nx)
-			g.removeParent(nx)
-
-			for _, p := range pp {
-				g.removeChild(p, nx)
-				if len(g.childNodes(p)) <= 0 && g.processed.has(p) {
-					g.removeNode(p)
-					g.processed = g.processed.remove(p)
-					g.conflicting = g.conflicting.remove(p)
-				}
-			}
-
-			stater(nx, s)
-			continue
+	// There are only conflicting nodes...
+	// Determine a conflicting node that should be partially resolved
+	for _, upN := range upNN {
+		if !g.conflicting.has(upN) {
+			nx = upN
+			break
 		}
+	}
 
-		// Determine a conflicting node that should be partially resolved
-		for _, upN := range upNN {
-			if !g.conflicting.has(upN) {
-				nx = upN
-				break
-			}
-		}
+	if nx != nil {
+		// Prepare the required context for the processing.
+		es := g.prepExecState(nx, true)
 
-		if nx != nil {
-			// Prepare the required context for the processing.
-			es := &ExecState{
-				Res:       nx.res,
-				NodeState: nx.state,
-			}
+		g.markConflicting(nx)
 
-			s, err := f(ctx, es)
-			if err != nil {
-				return err
-			}
-
-			g.markConflicting(nx)
-
-			stater(nx, s)
-		} else {
-			return errors.New("Uhoh, couldn't determine node; @todo error")
-		}
-
-		cRep++
+		return es, nil
+	} else {
+		return nil, errors.New("Uhoh, couldn't determine node; @todo error")
 	}
 }
 
-func (g *graph) purge() {
-	g.nn = nil
+func (g *graph) purge(partial bool) {
 	g.conflicting = nil
 	g.processed = nil
+
+	if !partial {
+		g.nn = nil
+	}
 }
 
 // util
@@ -213,6 +192,11 @@ func (g *graph) addChild(n *node, mm ...*node) {
 }
 
 func (g *graph) removeChild(n *node, mm ...*node) {
+	// Dryrun shouldn't remove any nodes
+	if g.dry {
+		return
+	}
+
 	if len(mm) <= 0 {
 		if g.inverted {
 			n.pp = make(nodeSet, 0, 10)
@@ -237,6 +221,11 @@ func (g *graph) addParent(n *node, mm ...*node) {
 }
 
 func (g *graph) removeParent(n *node, mm ...*node) {
+	// Dryrun shouldn't remove any nodes
+	if g.dry {
+		return
+	}
+
 	if len(mm) <= 0 {
 		if g.inverted {
 			n.cc = make(nodeSet, 0, 10)
@@ -249,5 +238,23 @@ func (g *graph) removeParent(n *node, mm ...*node) {
 		} else {
 			n.pp = n.pp.remove(mm...)
 		}
+	}
+}
+
+func (g *graph) nodeResource(nn ...*node) []resource.Interface {
+	rr := make([]resource.Interface, 0, len(nn))
+	for _, n := range nn {
+		rr = append(rr, n.res)
+	}
+
+	return rr
+}
+
+func (g *graph) prepExecState(n *node, conflicting bool) *ExecState {
+	return &ExecState{
+		Res:             n.res,
+		DepResources:    g.nodeResource(g.childNodes(n)...),
+		ParentResources: g.nodeResource(g.parentNodes(n)...),
+		Conflicting:     conflicting,
 	}
 }

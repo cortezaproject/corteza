@@ -1,32 +1,29 @@
-package graph
+package envoy
 
 import (
 	"context"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
 
 type (
 	graphBuilder struct {
-		s resourceSanitizer
-		v resourceValidator
+		pp []Processor
 	}
 
 	// Some special bits
-	resourceSanitizer interface {
-		Sanitize(ctx context.Context, r Resource, missing NodeRefSet) error
-	}
-	resourceValidator interface {
-		Validate(ctx context.Context, r Resource) error
+	Processor interface {
+		Process(ctx context.Context, state *ExecState) error
 	}
 )
 
-func NewGraphBuilder(s resourceSanitizer, v resourceValidator) *graphBuilder {
+func NewGraphBuilder(pp ...Processor) *graphBuilder {
 	return &graphBuilder{
-		s: s,
-		v: v,
+		pp: pp,
 	}
 }
 
-func (b *graphBuilder) Build(ctx context.Context, rr ...Resource) (*graph, error) {
+func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*graph, error) {
 	g := newGraph()
 
 	// Prepare nodes for all resources
@@ -35,6 +32,9 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...Resource) (*graph, error
 		nn = nn.add(newNode(r))
 	}
 
+	// Let's keep track of the missing deps.
+	mMap := make(map[resource.Interface]resource.RefSet)
+
 	// Index all resources for nicer lookups
 	nIndex := make(nodeIndex)
 	nIndex.Add(nn...)
@@ -42,7 +42,7 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...Resource) (*graph, error
 	// Build the graph
 	for _, cNode := range nn {
 		refs := cNode.res.Refs()
-		missingRefs := make(NodeRefSet, 0, len(refs))
+		missingRefs := make(resource.RefSet, 0, len(refs))
 
 		// Attempt to connect all available nodes
 		for _, ref := range refs {
@@ -58,24 +58,48 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...Resource) (*graph, error
 			g.addParent(rNode, cNode)
 		}
 
-		// Go for a quick sanitization
-		if b.s != nil {
-			err := b.s.Sanitize(ctx, cNode.res, missingRefs)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// Go for a quick validation
-		if b.v != nil {
-			err := b.v.Validate(ctx, cNode.res)
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		g.addNode(cNode)
+		if len(missingRefs) > 0 {
+			mMap[cNode.res] = missingRefs
+		}
 	}
+
+	// @todo fixme..
+	g.invert()
+	g.DryRun()
+
+	// Do any dep. related preprocessing
+	var state *ExecState
+	var err error
+	err = func() error {
+		for {
+			state, err = g.Next(ctx)
+			if err != nil {
+				return err
+			} else if state == nil {
+				return nil
+			}
+
+			// Copy state so we don't alter the original one
+			nState := state
+			nState.MissingDeps = mMap[state.Res]
+
+			for _, p := range b.pp {
+				err = p.Process(ctx, nState)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo fixme..
+	g.invert()
+	g.ProdRun()
 
 	return g, nil
 }
