@@ -1,30 +1,25 @@
 package envoy
 
+import "github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+
 type (
 	// the node struct is used for nicer graph state management
 	nodeSet []*node
 	node    struct {
-		res Resource
+		res resource.Interface
 
 		pp nodeSet
 		cc nodeSet
-
-		state NodeState
 	}
 
-	// @tbd
-	// stateLegacyID: stateSysID
-	nodeStateEntry map[string]string
-	// stateResourceType: nodeStateEntry
-	NodeState map[string]nodeStateEntry
+	nodeIndex map[string]map[string]*node
 )
 
-func newNode(res Resource) *node {
+func newNode(res resource.Interface) *node {
 	return &node{
-		res:   res,
-		cc:    make(nodeSet, 0, 10),
-		pp:    make(nodeSet, 0, 10),
-		state: make(NodeState),
+		res: res,
+		cc:  make(nodeSet, 0, 10),
+		pp:  make(nodeSet, 0, 10),
 	}
 }
 
@@ -70,30 +65,31 @@ func (nn nodeSet) remove(mm ...*node) nodeSet {
 	return nClean
 }
 
-func (s NodeState) addEntry(res string, e nodeStateEntry) {
-	if s[res] == nil {
-		s[res] = make(nodeStateEntry)
-	}
+func (ri nodeIndex) Add(nn ...*node) {
+	for _, n := range nn {
+		rt := n.res.ResourceType()
+		if _, has := ri[rt]; !has {
+			ri[rt] = make(map[string]*node)
+		}
 
-	s[res] = s[res].merge(e)
+		for i := range n.res.Identifiers() {
+			ri[rt][i] = n
+		}
+	}
 }
 
-func (s NodeState) merge(e NodeState) NodeState {
-	for k, v := range e {
-		if s[k] == nil {
-			s[k] = v
-		} else {
-			s[k].merge(v)
+func (ri nodeIndex) GetRef(ref *resource.Ref) *node {
+	res, has := ri[ref.ResourceType]
+	if !has {
+		return nil
+	}
+
+	for i := range ref.Identifiers {
+		r, has := res[i]
+		if has {
+			return r
 		}
 	}
 
-	return s
-}
-
-func (se nodeStateEntry) merge(e nodeStateEntry) nodeStateEntry {
-	for k, v := range e {
-		se[k] = v
-	}
-
-	return se
+	return nil
 }

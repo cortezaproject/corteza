@@ -1,21 +1,22 @@
-package graph
+package envoy
 
 import (
 	"context"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/stretchr/testify/require"
 )
 
 type (
 	testResource struct {
 		resType     string
-		identifiers ResourceIdentifiers
-		refs        NodeRefSet
+		identifiers resource.Identifiers
+		refs        resource.RefSet
 	}
 )
 
-func (t *testResource) Identifiers() ResourceIdentifiers {
+func (t *testResource) Identifiers() resource.Identifiers {
 	return t.identifiers
 }
 
@@ -23,7 +24,7 @@ func (t *testResource) ResourceType() string {
 	return t.resType
 }
 
-func (t *testResource) Refs() NodeRefSet {
+func (t *testResource) Refs() resource.RefSet {
 	return t.refs
 }
 
@@ -32,12 +33,12 @@ func TestGraphBuilder_Rel(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("single, simple node; a", func(t *testing.T) {
-		bl := NewGraphBuilder(nil, nil)
+		bl := NewGraphBuilder()
 
-		rr := []Resource{
+		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id1": true},
+				identifiers: resource.Identifiers{"id1": true},
 				refs:        nil,
 			},
 		}
@@ -52,17 +53,17 @@ func TestGraphBuilder_Rel(t *testing.T) {
 	})
 
 	t.Run("simple node link; a -> b", func(t *testing.T) {
-		bl := NewGraphBuilder(nil, nil)
+		bl := NewGraphBuilder()
 
-		rr := []Resource{
+		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id1": true},
-				refs:        NodeRefSet{&NodeRef{ResourceType: "test:resource:1:", Identifiers: ResourceIdentifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1": true},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
 			},
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id2": true},
+				identifiers: resource.Identifiers{"id2": true},
 				refs:        nil,
 			},
 		}
@@ -82,18 +83,18 @@ func TestGraphBuilder_Rel(t *testing.T) {
 	})
 
 	t.Run("cyclic node link; a -> b -> a", func(t *testing.T) {
-		bl := NewGraphBuilder(nil, nil)
+		bl := NewGraphBuilder()
 
-		rr := []Resource{
+		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id1": true},
-				refs:        NodeRefSet{&NodeRef{ResourceType: "test:resource:1:", Identifiers: ResourceIdentifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1": true},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
 			},
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id2": true},
-				refs:        NodeRefSet{&NodeRef{ResourceType: "test:resource:1:", Identifiers: ResourceIdentifiers{"id1": true}}},
+				identifiers: resource.Identifiers{"id2": true},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
 			},
 		}
 
@@ -115,13 +116,13 @@ func TestGraphBuilder_Rel(t *testing.T) {
 	})
 
 	t.Run("node with missing dep; a -> nill", func(t *testing.T) {
-		bl := NewGraphBuilder(nil, nil)
+		bl := NewGraphBuilder()
 
-		rr := []Resource{
+		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id1": true},
-				refs:        NodeRefSet{&NodeRef{ResourceType: "test:resource:1:", Identifiers: ResourceIdentifiers{"id2": true}}},
+				identifiers: resource.Identifiers{"id1": true},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id2": true}}},
 			},
 		}
 
@@ -135,13 +136,13 @@ func TestGraphBuilder_Rel(t *testing.T) {
 	})
 
 	t.Run("self-cycle; a -> a", func(t *testing.T) {
-		bl := NewGraphBuilder(nil, nil)
+		bl := NewGraphBuilder()
 
-		rr := []Resource{
+		rr := []resource.Interface{
 			&testResource{
 				resType:     "test:resource:1:",
-				identifiers: ResourceIdentifiers{"id1": true},
-				refs:        NodeRefSet{&NodeRef{ResourceType: "test:resource:1:", Identifiers: ResourceIdentifiers{"id1": true}}},
+				identifiers: resource.Identifiers{"id1": true},
+				refs:        resource.RefSet{&resource.Ref{ResourceType: "test:resource:1:", Identifiers: resource.Identifiers{"id1": true}}},
 			},
 		}
 
