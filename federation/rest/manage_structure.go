@@ -26,15 +26,6 @@ func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.Manage
 			Fields:             r.Fields,
 		}
 	)
-
-	if r.ComposeModuleID == 0 {
-		return nil, errors.New("TODO - http 400 bad request - use compose module id in request")
-	}
-
-	if r.ComposeNamespaceID == 0 {
-		return nil, errors.New("TODO - http 400 bad request - use compose namespace id in request")
-	}
-
 	return (service.DefaultExposedModule).Create(ctx, mod)
 }
 

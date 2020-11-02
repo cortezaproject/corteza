@@ -22,6 +22,7 @@ type (
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.SharedModule, error)
 		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.SharedModule, error)
 		Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error)
+		Update(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error)
 		// DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
 	}
 
@@ -107,6 +108,26 @@ func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*t
 	})
 
 	return new, svc.recordAction(ctx, aProps, SharedModuleActionCreate, err)
+}
+
+func (svc sharedModule) Update(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error) {
+	var (
+		aProps = &sharedModuleActionProps{module: updated}
+	)
+
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		updated.UpdatedAt = now()
+
+		aProps.setModule(updated)
+
+		if err = store.UpdateFederationSharedModule(ctx, s, updated); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return updated, svc.recordAction(ctx, aProps, SharedModuleActionUpdate, err)
 }
 
 func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) (err error) {
