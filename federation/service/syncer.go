@@ -9,16 +9,17 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
 	Syncer struct{}
 
-	Surl struct {
+	Url struct {
 		Url  types.SyncerURI
 		Meta Processer
 	}
-	Spayload struct {
+	Payload struct {
 		Payload io.Reader
 		Meta    Processer
 	}
@@ -37,7 +38,7 @@ type (
 	}
 )
 
-func (h *Syncer) Queue(url Surl, out chan Surl) {
+func (h *Syncer) Queue(url Url, out chan Url) {
 	out <- url
 }
 
@@ -48,11 +49,13 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		spew.Dump("ERR", err)
 		return nil, err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
+		spew.Dump("ERR", err)
 		return nil, err
 	}
 
@@ -63,17 +66,18 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 	return resp.Body, nil
 }
 
-func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Surl, url types.SyncerURI, processer Processer) error {
+func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url types.SyncerURI, processer Processer) (int, error) {
 	aux, err := h.ParseHeader(ctx, payload)
 
 	if err != nil {
-		return err
+		spew.Dump("ERR", err)
+		return 0, err
 	}
 
 	if aux.Response.Filter.NextPage != "" {
 		url.NextPage = aux.Response.Filter.NextPage
 
-		out <- Surl{
+		out <- Url{
 			Url:  url,
 			Meta: processer,
 		}

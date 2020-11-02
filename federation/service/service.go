@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	cs "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
@@ -127,4 +128,21 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultModuleMapping = ModuleMapping()
 
 	return
+}
+
+func Watchers(ctx context.Context) {
+	syncService := NewSync(
+		&Syncer{},
+		&Mapper{},
+		DefaultSharedModule,
+		cs.DefaultRecord)
+
+	syncStructure := WorkerStructure(syncService, DefaultLogger)
+	syncData := WorkerData(syncService, service.DefaultLogger)
+
+	// each minute, 10 per page
+	go syncStructure.Watch(ctx, time.Minute*2, 10)
+
+	// each minute, 100 per page
+	go syncData.Watch(ctx, time.Second*60, 100)
 }

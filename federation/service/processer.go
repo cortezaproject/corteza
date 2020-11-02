@@ -4,6 +4,6 @@ import "context"
 
 type (
 	Processer interface {
-		Process(ctx context.Context, payload []byte) error
+		Process(ctx context.Context, payload []byte) (int, error)
 	}
 )

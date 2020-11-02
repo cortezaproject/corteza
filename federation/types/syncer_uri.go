@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 // SyncerURI serves as a default struct for handling url queues
@@ -88,15 +86,12 @@ func (s *SyncerURI) Parse(uri string) error {
 }
 
 func parseLastSync(lastSync string) (*time.Time, error) {
-	spew.Dump("parse last sync")
 	if i, err := strconv.ParseInt(lastSync, 10, 64); err == nil {
-		spew.Dump("returning")
 		t := time.Unix(i, 0)
 		return &t, nil
 	}
 
 	// try different format if above fails
-	spew.Dump("TRY HERE")
 	if t, err := time.Parse(time.RFC3339, lastSync); err == nil {
 		return &t, nil
 	}

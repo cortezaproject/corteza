@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"time"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/system/service"
 )
 
 type (
@@ -28,20 +30,71 @@ func NewSync(s *Syncer, m *Mapper, sm SharedModuleService, cs cs.RecordService) 
 	}
 }
 
-func (s *Sync) ProcessPayload(ctx context.Context, payload []byte, out chan Surl, url types.SyncerURI, processer Processer) error {
+// CanUpdateSharedModule checks the origin and destination module
+// compatibility of fields
+// It currently checks if all of the fields are exactly the same
+// TODO - check if any of the newly missing fields are actually being used so a safe update
+// is possible
+func (s *Sync) CanUpdateSharedModule(ctx context.Context, new *types.SharedModule, existing *types.SharedModule) (bool, error) {
+
+	// check for mapped fields
+	fstr, err := json.Marshal(new.Fields)
+	f2str, err := json.Marshal(existing.Fields)
+
+	if err != nil {
+		return false, err
+	}
+
+	if string(fstr) == string(f2str) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// ProcessPayload passes the payload to the syncer lib
+func (s *Sync) ProcessPayload(ctx context.Context, payload []byte, out chan Url, url types.SyncerURI, processer Processer) (int, error) {
 	return s.syncer.Process(ctx, payload, out, url, processer)
 }
 
-func (s *Sync) QueueUrl(url Surl, out chan Surl) {
+// QueueUrl passes the url to the syncer
+func (s *Sync) QueueUrl(url Url, out chan Url) {
 	s.syncer.Queue(url, out)
 }
 
+// FetchUrl passes the url to be fetched to the syncer
 func (s *Sync) FetchUrl(ctx context.Context, url string) (io.Reader, error) {
 	return s.syncer.Fetch(ctx, url)
 }
 
+// CreateRecord wraps the compose Record service Create
 func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
 	return s.composeRecordService.With(ctx).Create(rec)
+}
+
+// LookupSharedModule find the shared module if exists
+func (s *Sync) LookupSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
+	var sm *types.SharedModule
+
+	list, _, err := service.DefaultStore.SearchFederationSharedModules(ctx, types.SharedModuleFilter{
+		NodeID:                     new.NodeID,
+		ExternalFederationModuleID: new.ExternalFederationModuleID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	sm = list[0]
+
+	return sm, nil
+}
+
+func (s *Sync) UpdateSharedModule(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error) {
+	return s.sharedModuleService.Update(ctx, updated)
 }
 
 func (s *Sync) CreateSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
