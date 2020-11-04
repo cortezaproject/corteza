@@ -11,15 +11,12 @@ import (
 
 type (
 	composeRecord struct {
-		res          *types.Record `yaml:",inline"`
+		res *types.Record `yaml:",inline"`
+
 		refModule    string
 		refNamespace string
-		refCreatedBy string
-		refUpdatedBy string
-		refDeletedBy string
-		refOwnedBy   string
-
-		rbac rbacRuleSet
+		// createdBy, updatedBy, deletedBy, ownedBy
+		refUser map[string]string
 	}
 	composeRecordSet []*composeRecord
 
@@ -104,22 +101,15 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 }
 
 func (wrap composeRecord) MarshalEnvoy() ([]resource.Interface, error) {
-	var refUsers = []string{}
-	for _, u := range []string{wrap.refCreatedBy, wrap.refUpdatedBy, wrap.refDeletedBy, wrap.refOwnedBy} {
-		if len(u) > 0 {
-			// emails and handles
-			refUsers = append(refUsers, u)
-		}
-	}
-
 	return envoy.CollectNodes(
-		// @todo...
-		resource.NewComposeRecordSet(),
-		wrap.rbac,
+		resource.NewComposeRecord(wrap.res, wrap.refNamespace, wrap.refModule, wrap.refUser),
 	)
 }
 
 func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
+	if wrap.refUser == nil {
+		wrap.refUser = make(map[string]string)
+	}
 	if wrap.res == nil {
 		wrap.res = &types.Record{}
 	}
@@ -151,13 +141,13 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 		case "deletedAt":
 			return v.Decode(&wrap.res.DeletedAt)
 		case "createdBy":
-			return decodeRef(v, "createdBy user", &wrap.refCreatedBy)
+			return v.Decode(wrap.refUser["createdBy"])
 		case "updatedBy":
-			return decodeRef(v, "updatedBy user", &wrap.refUpdatedBy)
+			return v.Decode(wrap.refUser["updatedBy"])
 		case "deletedBy":
-			return decodeRef(v, "deletedBy user", &wrap.refDeletedBy)
+			return v.Decode(wrap.refUser["deletedBy"])
 		case "ownedBy":
-			return decodeRef(v, "ownedBy user", &wrap.refOwnedBy)
+			return v.Decode(wrap.refUser["ownedBy"])
 
 		}
 
