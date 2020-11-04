@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfComposeNamespaces(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchComposeNamespaces(ctx context.Context, f types.NamespaceFil
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfComposeNamespaces collects all requested results.
@@ -258,7 +257,7 @@ func (s Store) CreateComposeNamespace(ctx context.Context, rr ...*types.Namespac
 
 // UpdateComposeNamespace updates one or more existing rows in compose_namespace
 func (s Store) UpdateComposeNamespace(ctx context.Context, rr ...*types.Namespace) error {
-	return s.config.ErrorHandler(s.partialComposeNamespaceUpdate(ctx, nil, rr...))
+	return s.partialComposeNamespaceUpdate(ctx, nil, rr...)
 }
 
 // partialComposeNamespaceUpdate updates one or more existing rows in compose_namespace
@@ -276,7 +275,7 @@ func (s Store) partialComposeNamespaceUpdate(ctx context.Context, onlyColumns []
 			},
 			s.internalComposeNamespaceEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -291,7 +290,7 @@ func (s Store) UpsertComposeNamespace(ctx context.Context, rr ...*types.Namespac
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res)))
+		err = s.execUpsertComposeNamespaces(ctx, s.internalComposeNamespaceEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -308,7 +307,7 @@ func (s Store) DeleteComposeNamespace(ctx context.Context, rr ...*types.Namespac
 			s.preprocessColumn("cns.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -324,7 +323,7 @@ func (s Store) DeleteComposeNamespaceByID(ctx context.Context, ID uint64) error 
 
 // TruncateComposeNamespaces Deletes all rows from the compose_namespace table
 func (s Store) TruncateComposeNamespaces(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeNamespaceTable()))
+	return s.Truncate(ctx, s.composeNamespaceTable())
 }
 
 // execLookupComposeNamespace prepares ComposeNamespace query and executes it,
@@ -349,12 +348,12 @@ func (s Store) execLookupComposeNamespace(ctx context.Context, cnd squirrel.Sqli
 
 // execCreateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
 func (s Store) execCreateComposeNamespaces(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeNamespaceTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeNamespaceTable()).SetMap(payload))
 }
 
 // execUpdateComposeNamespaces updates all matched (by cnd) rows in compose_namespace with given data
 func (s Store) execUpdateComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeNamespaceTable("cns")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeNamespaceTable("cns")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeNamespaces inserts new or updates matching (by-primary-key) rows in compose_namespace with given data
@@ -370,12 +369,12 @@ func (s Store) execUpsertComposeNamespaces(ctx context.Context, set store.Payloa
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeNamespaces Deletes all matched (by cnd) rows in compose_namespace with given data
 func (s Store) execDeleteComposeNamespaces(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeNamespaceTable("cns")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeNamespaceTable("cns")).Where(cnd))
 }
 
 func (s Store) internalComposeNamespaceRowScanner(row rowScanner) (res *types.Namespace, err error) {
@@ -398,11 +397,11 @@ func (s Store) internalComposeNamespaceRowScanner(row rowScanner) (res *types.Na
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeNamespace: %w", err)
+		return nil, errors.Store("could not scan composeNamespace db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -554,8 +553,8 @@ func (s *Store) checkComposeNamespaceConstraints(ctx context.Context, res *types
 	{
 		ex, err := s.LookupComposeNamespaceBySlug(ctx, res.Slug)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchMessagingFlags(ctx context.Context, f types.MessageFlagFilt
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryMessagingFlags(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryMessagingFlags queries the database, converts and checks each row and
@@ -109,7 +108,7 @@ func (s Store) CreateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 
 // UpdateMessagingFlag updates one or more existing rows in messaging_message_flag
 func (s Store) UpdateMessagingFlag(ctx context.Context, rr ...*types.MessageFlag) error {
-	return s.config.ErrorHandler(s.partialMessagingFlagUpdate(ctx, nil, rr...))
+	return s.partialMessagingFlagUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingFlagUpdate updates one or more existing rows in messaging_message_flag
@@ -127,7 +126,7 @@ func (s Store) partialMessagingFlagUpdate(ctx context.Context, onlyColumns []str
 			},
 			s.internalMessagingFlagEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -142,7 +141,7 @@ func (s Store) UpsertMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingFlags(ctx, s.internalMessagingFlagEncoder(res)))
+		err = s.execUpsertMessagingFlags(ctx, s.internalMessagingFlagEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -159,7 +158,7 @@ func (s Store) DeleteMessagingFlag(ctx context.Context, rr ...*types.MessageFlag
 			s.preprocessColumn("mmf.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -175,7 +174,7 @@ func (s Store) DeleteMessagingFlagByID(ctx context.Context, ID uint64) error {
 
 // TruncateMessagingFlags Deletes all rows from the messaging_message_flag table
 func (s Store) TruncateMessagingFlags(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingFlagTable()))
+	return s.Truncate(ctx, s.messagingFlagTable())
 }
 
 // execLookupMessagingFlag prepares MessagingFlag query and executes it,
@@ -200,12 +199,12 @@ func (s Store) execLookupMessagingFlag(ctx context.Context, cnd squirrel.Sqlizer
 
 // execCreateMessagingFlags updates all matched (by cnd) rows in messaging_message_flag with given data
 func (s Store) execCreateMessagingFlags(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingFlagTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingFlagTable()).SetMap(payload))
 }
 
 // execUpdateMessagingFlags updates all matched (by cnd) rows in messaging_message_flag with given data
 func (s Store) execUpdateMessagingFlags(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingFlagTable("mmf")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingFlagTable("mmf")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingFlags inserts new or updates matching (by-primary-key) rows in messaging_message_flag with given data
@@ -221,12 +220,12 @@ func (s Store) execUpsertMessagingFlags(ctx context.Context, set store.Payload) 
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingFlags Deletes all matched (by cnd) rows in messaging_message_flag with given data
 func (s Store) execDeleteMessagingFlags(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingFlagTable("mmf")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingFlagTable("mmf")).Where(cnd))
 }
 
 func (s Store) internalMessagingFlagRowScanner(row rowScanner) (res *types.MessageFlag, err error) {
@@ -247,11 +246,11 @@ func (s Store) internalMessagingFlagRowScanner(row rowScanner) (res *types.Messa
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingFlag: %w", err)
+		return nil, errors.Store("could not scan messagingFlag db row").Wrap(err)
 	} else {
 		return res, nil
 	}

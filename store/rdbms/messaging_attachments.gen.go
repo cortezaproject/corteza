@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchMessagingAttachments(ctx context.Context, f types.Attachmen
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryMessagingAttachments(ctx, q, f.Check)
 		return err
 
-	}())
+	}()
 }
 
 // QueryMessagingAttachments queries the database, converts and checks each row and
@@ -122,7 +121,7 @@ func (s Store) CreateMessagingAttachment(ctx context.Context, rr ...*types.Attac
 
 // UpdateMessagingAttachment updates one or more existing rows in messaging_attachment
 func (s Store) UpdateMessagingAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.partialMessagingAttachmentUpdate(ctx, nil, rr...))
+	return s.partialMessagingAttachmentUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingAttachmentUpdate updates one or more existing rows in messaging_attachment
@@ -140,7 +139,7 @@ func (s Store) partialMessagingAttachmentUpdate(ctx context.Context, onlyColumns
 			},
 			s.internalMessagingAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -155,7 +154,7 @@ func (s Store) UpsertMessagingAttachment(ctx context.Context, rr ...*types.Attac
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingAttachments(ctx, s.internalMessagingAttachmentEncoder(res)))
+		err = s.execUpsertMessagingAttachments(ctx, s.internalMessagingAttachmentEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -172,7 +171,7 @@ func (s Store) DeleteMessagingAttachment(ctx context.Context, rr ...*types.Attac
 			s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -188,7 +187,7 @@ func (s Store) DeleteMessagingAttachmentByID(ctx context.Context, ID uint64) err
 
 // TruncateMessagingAttachments Deletes all rows from the messaging_attachment table
 func (s Store) TruncateMessagingAttachments(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingAttachmentTable()))
+	return s.Truncate(ctx, s.messagingAttachmentTable())
 }
 
 // execLookupMessagingAttachment prepares MessagingAttachment query and executes it,
@@ -213,12 +212,12 @@ func (s Store) execLookupMessagingAttachment(ctx context.Context, cnd squirrel.S
 
 // execCreateMessagingAttachments updates all matched (by cnd) rows in messaging_attachment with given data
 func (s Store) execCreateMessagingAttachments(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingAttachmentTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingAttachmentTable()).SetMap(payload))
 }
 
 // execUpdateMessagingAttachments updates all matched (by cnd) rows in messaging_attachment with given data
 func (s Store) execUpdateMessagingAttachments(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingAttachmentTable("att")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingAttachmentTable("att")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingAttachments inserts new or updates matching (by-primary-key) rows in messaging_attachment with given data
@@ -234,12 +233,12 @@ func (s Store) execUpsertMessagingAttachments(ctx context.Context, set store.Pay
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingAttachments Deletes all matched (by cnd) rows in messaging_attachment with given data
 func (s Store) execDeleteMessagingAttachments(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingAttachmentTable("att")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingAttachmentTable("att")).Where(cnd))
 }
 
 func (s Store) internalMessagingAttachmentRowScanner(row rowScanner) (res *types.Attachment, err error) {
@@ -263,11 +262,11 @@ func (s Store) internalMessagingAttachmentRowScanner(row rowScanner) (res *types
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingAttachment: %w", err)
+		return nil, errors.Store("could not scan messagingAttachment db row").Wrap(err)
 	} else {
 		return res, nil
 	}

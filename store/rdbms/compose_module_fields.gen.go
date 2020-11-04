@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f types.ModuleFiel
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryComposeModuleFields(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryComposeModuleFields queries the database, converts and checks each row and
@@ -112,7 +111,7 @@ func (s Store) CreateComposeModuleField(ctx context.Context, rr ...*types.Module
 
 // UpdateComposeModuleField updates one or more existing rows in compose_module_field
 func (s Store) UpdateComposeModuleField(ctx context.Context, rr ...*types.ModuleField) error {
-	return s.config.ErrorHandler(s.partialComposeModuleFieldUpdate(ctx, nil, rr...))
+	return s.partialComposeModuleFieldUpdate(ctx, nil, rr...)
 }
 
 // partialComposeModuleFieldUpdate updates one or more existing rows in compose_module_field
@@ -130,7 +129,7 @@ func (s Store) partialComposeModuleFieldUpdate(ctx context.Context, onlyColumns 
 			},
 			s.internalComposeModuleFieldEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -145,7 +144,7 @@ func (s Store) UpsertComposeModuleField(ctx context.Context, rr ...*types.Module
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeModuleFields(ctx, s.internalComposeModuleFieldEncoder(res)))
+		err = s.execUpsertComposeModuleFields(ctx, s.internalComposeModuleFieldEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -162,7 +161,7 @@ func (s Store) DeleteComposeModuleField(ctx context.Context, rr ...*types.Module
 			s.preprocessColumn("cmf.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -178,7 +177,7 @@ func (s Store) DeleteComposeModuleFieldByID(ctx context.Context, ID uint64) erro
 
 // TruncateComposeModuleFields Deletes all rows from the compose_module_field table
 func (s Store) TruncateComposeModuleFields(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeModuleFieldTable()))
+	return s.Truncate(ctx, s.composeModuleFieldTable())
 }
 
 // execLookupComposeModuleField prepares ComposeModuleField query and executes it,
@@ -203,12 +202,12 @@ func (s Store) execLookupComposeModuleField(ctx context.Context, cnd squirrel.Sq
 
 // execCreateComposeModuleFields updates all matched (by cnd) rows in compose_module_field with given data
 func (s Store) execCreateComposeModuleFields(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeModuleFieldTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeModuleFieldTable()).SetMap(payload))
 }
 
 // execUpdateComposeModuleFields updates all matched (by cnd) rows in compose_module_field with given data
 func (s Store) execUpdateComposeModuleFields(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeModuleFieldTable("cmf")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeModuleFieldTable("cmf")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeModuleFields inserts new or updates matching (by-primary-key) rows in compose_module_field with given data
@@ -224,12 +223,12 @@ func (s Store) execUpsertComposeModuleFields(ctx context.Context, set store.Payl
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeModuleFields Deletes all matched (by cnd) rows in compose_module_field with given data
 func (s Store) execDeleteComposeModuleFields(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeModuleFieldTable("cmf")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeModuleFieldTable("cmf")).Where(cnd))
 }
 
 func (s Store) internalComposeModuleFieldRowScanner(row rowScanner) (res *types.ModuleField, err error) {
@@ -259,11 +258,11 @@ func (s Store) internalComposeModuleFieldRowScanner(row rowScanner) (res *types.
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeModuleField: %w", err)
+		return nil, errors.Store("could not scan composeModuleField db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -362,8 +361,8 @@ func (s *Store) checkComposeModuleFieldConstraints(ctx context.Context, res *typ
 	{
 		ex, err := s.LookupComposeModuleFieldByModuleIDName(ctx, res.ModuleID, res.Name)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

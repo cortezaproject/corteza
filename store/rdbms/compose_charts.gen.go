@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfComposeCharts(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchComposeCharts(ctx context.Context, f types.ChartFilter) (ty
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfComposeCharts collects all requested results.
@@ -259,7 +258,7 @@ func (s Store) CreateComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 
 // UpdateComposeChart updates one or more existing rows in compose_chart
 func (s Store) UpdateComposeChart(ctx context.Context, rr ...*types.Chart) error {
-	return s.config.ErrorHandler(s.partialComposeChartUpdate(ctx, nil, rr...))
+	return s.partialComposeChartUpdate(ctx, nil, rr...)
 }
 
 // partialComposeChartUpdate updates one or more existing rows in compose_chart
@@ -277,7 +276,7 @@ func (s Store) partialComposeChartUpdate(ctx context.Context, onlyColumns []stri
 			},
 			s.internalComposeChartEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -292,7 +291,7 @@ func (s Store) UpsertComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeCharts(ctx, s.internalComposeChartEncoder(res)))
+		err = s.execUpsertComposeCharts(ctx, s.internalComposeChartEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -309,7 +308,7 @@ func (s Store) DeleteComposeChart(ctx context.Context, rr ...*types.Chart) (err 
 			s.preprocessColumn("cch.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -325,7 +324,7 @@ func (s Store) DeleteComposeChartByID(ctx context.Context, ID uint64) error {
 
 // TruncateComposeCharts Deletes all rows from the compose_chart table
 func (s Store) TruncateComposeCharts(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeChartTable()))
+	return s.Truncate(ctx, s.composeChartTable())
 }
 
 // execLookupComposeChart prepares ComposeChart query and executes it,
@@ -350,12 +349,12 @@ func (s Store) execLookupComposeChart(ctx context.Context, cnd squirrel.Sqlizer)
 
 // execCreateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
 func (s Store) execCreateComposeCharts(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeChartTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeChartTable()).SetMap(payload))
 }
 
 // execUpdateComposeCharts updates all matched (by cnd) rows in compose_chart with given data
 func (s Store) execUpdateComposeCharts(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeChartTable("cch")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeChartTable("cch")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeCharts inserts new or updates matching (by-primary-key) rows in compose_chart with given data
@@ -371,12 +370,12 @@ func (s Store) execUpsertComposeCharts(ctx context.Context, set store.Payload) e
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeCharts Deletes all matched (by cnd) rows in compose_chart with given data
 func (s Store) execDeleteComposeCharts(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeChartTable("cch")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeChartTable("cch")).Where(cnd))
 }
 
 func (s Store) internalComposeChartRowScanner(row rowScanner) (res *types.Chart, err error) {
@@ -399,11 +398,11 @@ func (s Store) internalComposeChartRowScanner(row rowScanner) (res *types.Chart,
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeChart: %w", err)
+		return nil, errors.Store("could not scan composeChart db row").Wrap(err)
 	} else {
 		return res, nil
 	}

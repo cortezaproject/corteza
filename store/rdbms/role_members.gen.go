@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -32,11 +31,11 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 	)
 	q = s.roleMembersSelectBuilder()
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryRoleMembers(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryRoleMembers queries the database, converts and checks each row and
@@ -99,7 +98,7 @@ func (s Store) CreateRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 
 // UpdateRoleMember updates one or more existing rows in role_members
 func (s Store) UpdateRoleMember(ctx context.Context, rr ...*types.RoleMember) error {
-	return s.config.ErrorHandler(s.partialRoleMemberUpdate(ctx, nil, rr...))
+	return s.partialRoleMemberUpdate(ctx, nil, rr...)
 }
 
 // partialRoleMemberUpdate updates one or more existing rows in role_members
@@ -117,7 +116,7 @@ func (s Store) partialRoleMemberUpdate(ctx context.Context, onlyColumns []string
 			},
 			s.internalRoleMemberEncoder(res).Skip("rel_user", "rel_role").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -132,7 +131,7 @@ func (s Store) UpsertRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertRoleMembers(ctx, s.internalRoleMemberEncoder(res)))
+		err = s.execUpsertRoleMembers(ctx, s.internalRoleMemberEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -149,7 +148,7 @@ func (s Store) DeleteRoleMember(ctx context.Context, rr ...*types.RoleMember) (e
 			s.preprocessColumn("rm.rel_user", ""): store.PreprocessValue(res.UserID, ""), s.preprocessColumn("rm.rel_role", ""): store.PreprocessValue(res.RoleID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -166,7 +165,7 @@ func (s Store) DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64
 
 // TruncateRoleMembers Deletes all rows from the role_members table
 func (s Store) TruncateRoleMembers(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.roleMemberTable()))
+	return s.Truncate(ctx, s.roleMemberTable())
 }
 
 // execLookupRoleMember prepares RoleMember query and executes it,
@@ -191,12 +190,12 @@ func (s Store) execLookupRoleMember(ctx context.Context, cnd squirrel.Sqlizer) (
 
 // execCreateRoleMembers updates all matched (by cnd) rows in role_members with given data
 func (s Store) execCreateRoleMembers(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.roleMemberTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.roleMemberTable()).SetMap(payload))
 }
 
 // execUpdateRoleMembers updates all matched (by cnd) rows in role_members with given data
 func (s Store) execUpdateRoleMembers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.roleMemberTable("rm")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.roleMemberTable("rm")).Where(cnd).SetMap(set))
 }
 
 // execUpsertRoleMembers inserts new or updates matching (by-primary-key) rows in role_members with given data
@@ -213,12 +212,12 @@ func (s Store) execUpsertRoleMembers(ctx context.Context, set store.Payload) err
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteRoleMembers Deletes all matched (by cnd) rows in role_members with given data
 func (s Store) execDeleteRoleMembers(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.roleMemberTable("rm")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.roleMemberTable("rm")).Where(cnd))
 }
 
 func (s Store) internalRoleMemberRowScanner(row rowScanner) (res *types.RoleMember, err error) {
@@ -235,11 +234,11 @@ func (s Store) internalRoleMemberRowScanner(row rowScanner) (res *types.RoleMemb
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for RoleMember: %w", err)
+		return nil, errors.Store("could not scan roleMember db row").Wrap(err)
 	} else {
 		return res, nil
 	}

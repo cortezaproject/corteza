@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchMessagingChannelMembers(ctx context.Context, f types.Channe
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryMessagingChannelMembers(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryMessagingChannelMembers queries the database, converts and checks each row and
@@ -102,7 +101,7 @@ func (s Store) CreateMessagingChannelMember(ctx context.Context, rr ...*types.Ch
 
 // UpdateMessagingChannelMember updates one or more existing rows in messaging_channel_member
 func (s Store) UpdateMessagingChannelMember(ctx context.Context, rr ...*types.ChannelMember) error {
-	return s.config.ErrorHandler(s.partialMessagingChannelMemberUpdate(ctx, nil, rr...))
+	return s.partialMessagingChannelMemberUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingChannelMemberUpdate updates one or more existing rows in messaging_channel_member
@@ -120,7 +119,7 @@ func (s Store) partialMessagingChannelMemberUpdate(ctx context.Context, onlyColu
 			},
 			s.internalMessagingChannelMemberEncoder(res).Skip("rel_channel", "rel_user").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -135,7 +134,7 @@ func (s Store) UpsertMessagingChannelMember(ctx context.Context, rr ...*types.Ch
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingChannelMembers(ctx, s.internalMessagingChannelMemberEncoder(res)))
+		err = s.execUpsertMessagingChannelMembers(ctx, s.internalMessagingChannelMemberEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -152,7 +151,7 @@ func (s Store) DeleteMessagingChannelMember(ctx context.Context, rr ...*types.Ch
 			s.preprocessColumn("mcm.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mcm.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -169,7 +168,7 @@ func (s Store) DeleteMessagingChannelMemberByChannelIDUserID(ctx context.Context
 
 // TruncateMessagingChannelMembers Deletes all rows from the messaging_channel_member table
 func (s Store) TruncateMessagingChannelMembers(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingChannelMemberTable()))
+	return s.Truncate(ctx, s.messagingChannelMemberTable())
 }
 
 // execLookupMessagingChannelMember prepares MessagingChannelMember query and executes it,
@@ -194,12 +193,12 @@ func (s Store) execLookupMessagingChannelMember(ctx context.Context, cnd squirre
 
 // execCreateMessagingChannelMembers updates all matched (by cnd) rows in messaging_channel_member with given data
 func (s Store) execCreateMessagingChannelMembers(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingChannelMemberTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingChannelMemberTable()).SetMap(payload))
 }
 
 // execUpdateMessagingChannelMembers updates all matched (by cnd) rows in messaging_channel_member with given data
 func (s Store) execUpdateMessagingChannelMembers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingChannelMemberTable("mcm")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingChannelMemberTable("mcm")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingChannelMembers inserts new or updates matching (by-primary-key) rows in messaging_channel_member with given data
@@ -216,12 +215,12 @@ func (s Store) execUpsertMessagingChannelMembers(ctx context.Context, set store.
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingChannelMembers Deletes all matched (by cnd) rows in messaging_channel_member with given data
 func (s Store) execDeleteMessagingChannelMembers(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingChannelMemberTable("mcm")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingChannelMemberTable("mcm")).Where(cnd))
 }
 
 func (s Store) internalMessagingChannelMemberRowScanner(row rowScanner) (res *types.ChannelMember, err error) {
@@ -242,11 +241,11 @@ func (s Store) internalMessagingChannelMemberRowScanner(row rowScanner) (res *ty
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingChannelMember: %w", err)
+		return nil, errors.Store("could not scan messagingChannelMember db row").Wrap(err)
 	} else {
 		return res, nil
 	}

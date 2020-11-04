@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfComposeModules(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchComposeModules(ctx context.Context, f types.ModuleFilter) (
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfComposeModules collects all requested results.
@@ -269,7 +268,7 @@ func (s Store) CreateComposeModule(ctx context.Context, rr ...*types.Module) (er
 
 // UpdateComposeModule updates one or more existing rows in compose_module
 func (s Store) UpdateComposeModule(ctx context.Context, rr ...*types.Module) error {
-	return s.config.ErrorHandler(s.partialComposeModuleUpdate(ctx, nil, rr...))
+	return s.partialComposeModuleUpdate(ctx, nil, rr...)
 }
 
 // partialComposeModuleUpdate updates one or more existing rows in compose_module
@@ -287,7 +286,7 @@ func (s Store) partialComposeModuleUpdate(ctx context.Context, onlyColumns []str
 			},
 			s.internalComposeModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -302,7 +301,7 @@ func (s Store) UpsertComposeModule(ctx context.Context, rr ...*types.Module) (er
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeModules(ctx, s.internalComposeModuleEncoder(res)))
+		err = s.execUpsertComposeModules(ctx, s.internalComposeModuleEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -319,7 +318,7 @@ func (s Store) DeleteComposeModule(ctx context.Context, rr ...*types.Module) (er
 			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -335,7 +334,7 @@ func (s Store) DeleteComposeModuleByID(ctx context.Context, ID uint64) error {
 
 // TruncateComposeModules Deletes all rows from the compose_module table
 func (s Store) TruncateComposeModules(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeModuleTable()))
+	return s.Truncate(ctx, s.composeModuleTable())
 }
 
 // execLookupComposeModule prepares ComposeModule query and executes it,
@@ -360,12 +359,12 @@ func (s Store) execLookupComposeModule(ctx context.Context, cnd squirrel.Sqlizer
 
 // execCreateComposeModules updates all matched (by cnd) rows in compose_module with given data
 func (s Store) execCreateComposeModules(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeModuleTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeModuleTable()).SetMap(payload))
 }
 
 // execUpdateComposeModules updates all matched (by cnd) rows in compose_module with given data
 func (s Store) execUpdateComposeModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeModuleTable("cmd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeModuleTable("cmd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeModules inserts new or updates matching (by-primary-key) rows in compose_module with given data
@@ -381,12 +380,12 @@ func (s Store) execUpsertComposeModules(ctx context.Context, set store.Payload) 
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeModules Deletes all matched (by cnd) rows in compose_module with given data
 func (s Store) execDeleteComposeModules(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeModuleTable("cmd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeModuleTable("cmd")).Where(cnd))
 }
 
 func (s Store) internalComposeModuleRowScanner(row rowScanner) (res *types.Module, err error) {
@@ -409,11 +408,11 @@ func (s Store) internalComposeModuleRowScanner(row rowScanner) (res *types.Modul
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeModule: %w", err)
+		return nil, errors.Store("could not scan composeModule db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -567,8 +566,8 @@ func (s *Store) checkComposeModuleConstraints(ctx context.Context, res *types.Mo
 	{
 		ex, err := s.LookupComposeModuleByNamespaceIDHandle(ctx, res.NamespaceID, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

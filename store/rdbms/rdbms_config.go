@@ -25,7 +25,6 @@ import (
 type (
 	txRetryOnErrHandler func(int, error) bool
 	columnPreprocFn     func(string) string
-	errorHandler        func(error) error
 	triggerKey          string
 
 	rowScanner interface {
@@ -85,7 +84,7 @@ type (
 
 		ColumnPreprocessors map[string]columnPreprocFn
 
-		ErrorHandler errorHandler
+		ErrorHandler store.ErrorHandler
 
 		// Implementations can override internal RDBMS row scanners
 		RowScanners map[string]interface{}
