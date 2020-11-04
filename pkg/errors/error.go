@@ -59,6 +59,9 @@ func Newf(k kind, m string, a ...interface{}) *Error {
 	return err(k, fmt.Sprintf(m, a...))
 }
 
+// safe to show details of this error
+func (Error) Safe() bool { return true }
+
 // Error message
 func (e Error) Error() string {
 	return e.message
@@ -115,6 +118,6 @@ func Is(err, target error) bool {
 }
 
 // As is alias for errors.As so users can avoid importing both errors packages
-func As(err, target error) bool {
+func As(err error, target interface{}) bool {
 	return errors.As(err, target)
 }
