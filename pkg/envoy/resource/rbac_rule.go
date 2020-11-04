@@ -18,10 +18,11 @@ type (
 	}
 )
 
-func RbacRule(res *rbac.Rule) *rbacRule {
+func RbacRule(res *rbac.Rule, role string) *rbacRule {
 	r := &rbacRule{base: &base{}}
 	r.SetResourceType(RBAC_RESOURCE_TYPE)
 	r.Res = res
+	r.RefRole = role
 
 	// @todo identifiers?
 	// Combination of resID, operation, rule?

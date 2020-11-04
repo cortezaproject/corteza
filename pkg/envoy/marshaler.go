@@ -18,8 +18,8 @@ func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 		switch c := i.(type) {
 		// case NodeSet:
 		// 	nn = append(nn, c...)
-		// case Node:
-		// 	nn = append(nn, c)
+		case resource.Interface:
+			nn = append(nn, c)
 
 		case Marshaller:
 			if tmp, err := c.MarshalEnvoy(); err != nil {
@@ -29,7 +29,8 @@ func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 				tmp = append(nn, tmp...)
 			}
 		default:
-			return nil, fmt.Errorf("failed to merge %T; expecting Node, NodeSet or Marshaller interface", i)
+			// @todo resoruceset?
+			return nil, fmt.Errorf("failed to merge %T; expecting Resource, ResourceSet? or Marshaller interface", i)
 		}
 	}
 

@@ -2,7 +2,8 @@ package yaml
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
@@ -48,8 +49,8 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 //
-func (doc *Document) Decode(ctx context.Context, l loader) ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 100)
+func (doc *Document) Decode(ctx context.Context, l loader) ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, 100)
 
 	if doc.compose != nil {
 		if tmp, err := doc.compose.MarshalEnvoy(); err != nil {

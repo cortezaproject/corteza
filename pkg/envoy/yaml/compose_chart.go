@@ -2,9 +2,10 @@ package yaml
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
@@ -71,9 +72,9 @@ func (wset composeChartSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wset composeChartSet) MarshalEnvoy() ([]envoy.Node, error) {
+func (wset composeChartSet) MarshalEnvoy() ([]resource.Interface, error) {
 	// namespace usually have bunch of sub-resources defined
-	nn := make([]envoy.Node, 0, len(wset))
+	nn := make([]resource.Interface, 0, len(wset))
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -123,10 +124,10 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 	})
 }
 
-func (wrap composeChart) MarshalEnvoy() ([]envoy.Node, error) {
-	return []envoy.Node{&node.ComposeChart{
-		Res: wrap.res,
-	}}, nil
+func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
+	return envoy.CollectNodes(
+		resource.ComposeChart(wrap.res),
+	)
 }
 
 func (wrap *composeChartConfig) UnmarshalYAML(n *yaml.Node) error {
