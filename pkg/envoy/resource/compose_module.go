@@ -2,40 +2,37 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+const (
+	COMPOSE_MODULE_RESOURCE_TYPE = "composeModule"
+)
+
 type (
-	ComposeModule struct {
+	composeModule struct {
 		*base
 		Res *types.Module
+
+		// Might keep track of related NS
 	}
 )
 
-func NewComposeModule(mod *types.Module) *ComposeModule {
-	r := &ComposeModule{base: &base{}}
-	r.SetResourceType("compose:module")
-	r.Res = mod
+func ComposeModule(res *types.Module) *composeModule {
+	r := &composeModule{base: &base{}}
+	r.SetResourceType(COMPOSE_MODULE_RESOURCE_TYPE)
+	r.Res = res
 
-	if mod.Handle != "" {
-		r.AddIdentifier(mod.Handle)
-	}
-	if mod.Name != "" {
-		r.AddIdentifier(mod.Name)
-	}
-	if mod.ID > 0 {
-		r.AddIdentifier(strconv.FormatUint(mod.ID, 10))
-	}
+	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
 	// Field deps.
-	for _, f := range mod.Fields {
+	for _, f := range res.Fields {
 		switch f.Kind {
 		case "Record":
 			refM := f.Options.String("module")
 			if refM != "" && refM != "0" {
-				r.AddRef("compose:module", refM)
+				r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refM)
 			}
 		}
 	}
@@ -43,11 +40,12 @@ func NewComposeModule(mod *types.Module) *ComposeModule {
 	return r
 }
 
-func (m *ComposeModule) SearchQuery() types.ModuleFilter {
-	f := types.ModuleFilter{Query: ""}
+func (m *composeModule) SearchQuery() types.ModuleFilter {
+	f := types.ModuleFilter{
+		Handle: m.Res.Handle,
+		Name:   m.Res.Name,
+	}
 
-	f.Handle = m.Res.Handle
-	f.Name = m.Res.Name
 	if m.Res.ID > 0 {
 		f.Query = fmt.Sprintf("moduleID=%d", m.Res.ID)
 	}
