@@ -11,7 +11,7 @@ const (
 )
 
 type (
-	composeModule struct {
+	ComposeModule struct {
 		*base
 		Res *types.Module
 
@@ -19,12 +19,14 @@ type (
 	}
 )
 
-func ComposeModule(res *types.Module) *composeModule {
-	r := &composeModule{base: &base{}}
+func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
+	r := &ComposeModule{base: &base{}}
 	r.SetResourceType(COMPOSE_MODULE_RESOURCE_TYPE)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
+
+	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 
 	// Field deps.
 	for _, f := range res.Fields {
@@ -40,7 +42,7 @@ func ComposeModule(res *types.Module) *composeModule {
 	return r
 }
 
-func (m *composeModule) SearchQuery() types.ModuleFilter {
+func (m *ComposeModule) SearchQuery() types.ModuleFilter {
 	f := types.ModuleFilter{
 		Handle: m.Res.Handle,
 		Name:   m.Res.Name,

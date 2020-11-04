@@ -1,9 +1,11 @@
 package yaml
 
 import (
+	"testing"
+
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestComposeChart_UnmarshalYAML(t *testing.T) {
@@ -40,9 +42,27 @@ func TestComposeChart_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.charts, 2)
-		req.Equal(1, len(doc.compose.charts[0].res.Config.Reports))
-		req.NotNil(doc.compose.charts[1].rbac)
-		req.NotEmpty(doc.compose.charts[1].rbac.rules)
+		req.Len(doc.compose.Charts, 2)
+		req.Equal(1, len(doc.compose.Charts[0].res.Config.Reports))
+		req.NotNil(doc.compose.Charts[1].rbac)
+		req.NotEmpty(doc.compose.Charts[1].rbac)
+	})
+
+	t.Run("doc rbac", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_chart_rbac")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+
+		ch := doc.compose.Charts[0]
+		req.Len(ch.rbac, 2)
+		a := ch.rbac[0]
+		b := ch.rbac[1]
+		req.Equal(a.res.Operation, rbac.Operation("read"))
+		req.Equal(a.res.Access, rbac.Allow)
+		req.Equal(b.res.Operation, rbac.Operation("delete"))
+		req.Equal(b.res.Access, rbac.Deny)
 	})
 }

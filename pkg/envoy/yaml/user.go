@@ -16,7 +16,7 @@ type (
 		modules composeModuleSet
 
 		// module's RBAC rules
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	userSet []*user
 )
@@ -93,7 +93,7 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.UserRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -101,8 +101,9 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap user) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewUser(wrap.res)
 	return envoy.CollectNodes(
-		resource.User(wrap.res),
-		wrap.rbac.Ensure(),
+		rs,
+		wrap.rbac.bindResource(rs),
 	)
 }

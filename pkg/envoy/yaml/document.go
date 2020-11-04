@@ -15,7 +15,7 @@ type (
 		users        userSet
 		applications applicationSet
 		settings     settings
-		rbac         *rbacRules
+		rbac         rbacRuleSet
 	}
 )
 
@@ -24,7 +24,7 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if doc.rbac, err = decodeGlobalAccessControl(n); err != nil {
+	if doc.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -59,57 +59,6 @@ func (doc *Document) Decode(ctx context.Context, l loader) ([]resource.Interface
 			nn = append(nn, tmp...)
 		}
 	}
-
-	return nn, nil
-
-	//// In case of namespaces...
-	//if doc.Namespaces != nil {
-	//	nodes, err := doc.Namespaces.Decode(ctx, l)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	nn = append(nn, nodes...)
-	//}
-	//
-	//ns := &types.Namespace{}
-	//if doc.Namespace != "" {
-	//	// In case of a namespace to provide dependencies
-	//	ns.Slug = doc.Namespace
-	//	ns.Name = doc.Namespace
-	//} else if len(nn) > 0 {
-	//	// Try to fall back to a namespace node
-	//	ns = ((nn[0]).(*envoy.ComposeNamespaceNode)).Ns
-	//} else {
-	//	// No good; we can't link with a namespace.
-	//	// @note This should be checked when converting Compose resources only.
-	//	//			 Some resources don't belong to a namespace.
-	//	return nil, fmt.Errorf("cannot resolve namespace")
-	//}
-	//
-	//// In case of modules...
-	//if doc.Modules != nil {
-	//	nodes, err := y.convertModules(doc.Modules, ns)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	nn = append(nn, nodes...)
-	//}
-	//
-	//if doc.Records != nil {
-	//	for modRef, rr := range doc.Records {
-	//		// We can define a basic module representation as it will be updated later
-	//		// during validation/runtime
-	//		mod := &types.module{}
-	//		mod.Handle = modRef
-	//		mod.Name = modRef
-	//
-	//		nodes, err := y.convertRecords(rr, mod)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		nn = append(nn, nodes...)
-	//	}
-	//}
 
 	return nn, nil
 }

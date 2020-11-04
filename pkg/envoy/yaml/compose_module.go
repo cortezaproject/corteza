@@ -14,13 +14,13 @@ type (
 	composeModule struct {
 		res          *types.Module
 		refNamespace string
-		rbac         *rbacRules
+		rbac         rbacRuleSet
 	}
 	composeModuleSet []*composeModule
 
 	composeModuleField struct {
 		res  *types.ModuleField `yaml:",inline"`
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	composeModuleFieldSet []*composeModuleField
 )
@@ -82,11 +82,11 @@ func (wset composeModuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 
 func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbac = &rbacRules{}
+		wrap.rbac = make(rbacRuleSet, 0, 10)
 		wrap.res = &types.Module{}
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.ModuleRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -121,9 +121,10 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewComposeModule(wrap.res, wrap.refNamespace)
 	return envoy.CollectNodes(
-		resource.ComposeModule(wrap.res),
-		wrap.rbac.Ensure(),
+		rs,
+		wrap.rbac.bindResource(rs),
 	)
 }
 
@@ -172,7 +173,7 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.ModuleFieldRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 

@@ -1,9 +1,10 @@
 package yaml
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestCompose_UnmarshalYAML(t *testing.T) {
@@ -18,7 +19,7 @@ func TestCompose_UnmarshalYAML(t *testing.T) {
 		c, err := parse(&compose{}, ``)
 		req.NoError(err)
 		req.NotNil(c)
-		req.Empty(c.namespaces)
+		req.Empty(c.Namespaces)
 	})
 
 	t.Run("sequence of namespaces", func(t *testing.T) {
@@ -26,7 +27,7 @@ func TestCompose_UnmarshalYAML(t *testing.T) {
 		c, err := parse(&compose{}, `namespaces: [ { } ]`)
 		req.NoError(err)
 		req.NotNil(c)
-		req.Len(c.namespaces, 1)
+		req.Len(c.Namespaces, 1)
 	})
 
 	t.Run("map of namespaces", func(t *testing.T) {
@@ -34,7 +35,7 @@ func TestCompose_UnmarshalYAML(t *testing.T) {
 		c, err := parse(&compose{}, `namespaces: { test: {} }`)
 		req.NoError(err)
 		req.NotNil(c)
-		req.Len(c.namespaces, 1)
+		req.Len(c.Namespaces, 1)
 
 	})
 
@@ -49,6 +50,6 @@ func TestCompose_UnmarshalYAML(t *testing.T) {
 		c, err := parse(&compose{}, `namespace: foo`)
 		req.NoError(err)
 		req.NotNil(c)
-		req.Empty(c.namespaces, "namespace ref should not result in namespace definition")
+		req.Empty(c.Namespaces, "namespace ref should not result in namespace definition")
 	})
 }

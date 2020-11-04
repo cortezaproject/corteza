@@ -46,4 +46,14 @@ func TestApplication_UnmarshalYAML(t *testing.T) {
 		req.Equal("one", doc.applications[0].res.Name)
 		req.Equal("two", doc.applications[1].res.Name)
 	})
+
+	t.Run("application rbac", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("application_rbac")
+		req.NoError(err)
+		req.NotNil(doc)
+		app := doc.applications[0]
+		req.Len(app.rbac, 2)
+	})
 }

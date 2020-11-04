@@ -3,31 +3,32 @@ package directory
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
 
 type (
 	decoder interface {
 		CanDecodeFile(os.FileInfo) bool
-		Decode(context.Context, io.Reader, os.FileInfo) ([]envoy.Node, error)
+		Decode(context.Context, io.Reader, os.FileInfo) ([]resource.Interface, error)
 	}
 )
 
 // DecodeDirectory is a helper to run the decoding process over the entire directory
-func Decode(ctx context.Context, path string, decoders ...decoder) ([]envoy.Node, error) {
+func Decode(ctx context.Context, path string, decoders ...decoder) ([]resource.Interface, error) {
 	var (
 		f *os.File
 
 		d decoder
 
 		// decoded nodes
-		dnn envoy.NodeSet
+		dnn []resource.Interface
 
-		// agregated nodes
-		nn = make(envoy.NodeSet, 0, 100)
+		// agregated resources
+		nn = make([]resource.Interface, 0, 100)
 	)
 
 	if len(decoders) == 0 {

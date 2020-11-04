@@ -25,7 +25,14 @@ func (t *base) AddRef(rt string, ii ...string) {
 		t.rr = make(RefSet, 0, 10)
 	}
 
-	ref := &Ref{ResourceType: rt, Identifiers: Identifiers{}.Add(ii...)}
+	iiC := make([]string, 0, len(ii))
+	for _, i := range ii {
+		if i != "" {
+			iiC = append(iiC, i)
+		}
+	}
+
+	ref := &Ref{ResourceType: rt, Identifiers: Identifiers{}.Add(iiC...)}
 	t.rr = append(t.rr, ref)
 }
 

@@ -26,7 +26,7 @@ type (
 		pages composePageSet
 
 		// module's RBAC rules
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	composeNamespaceSet []*composeNamespace
 )
@@ -99,7 +99,7 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.NamespaceRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -124,12 +124,13 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {
+	nsr := resource.NewComposeNamespace(wrap.res)
 	return envoy.CollectNodes(
-		resource.ComposeNamespace(wrap.res),
+		nsr,
 		wrap.modules,
 		wrap.pages,
 		wrap.records,
 		wrap.charts,
-		wrap.rbac.Ensure(),
+		wrap.rbac.bindResource(nsr),
 	)
 }
