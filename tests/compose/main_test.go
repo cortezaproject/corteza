@@ -68,7 +68,7 @@ func InitTestApp() {
 
 	if r == nil {
 		r = chi.NewRouter()
-		r.Use(server.BaseMiddleware(logger.Default())...)
+		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
 	}

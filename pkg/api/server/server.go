@@ -16,19 +16,22 @@ import (
 
 type (
 	server struct {
-		log        *zap.Logger
-		httpOpt    options.HTTPServerOpt
-		waitForOpt options.WaitForOpt
-		endpoints  []func(r chi.Router)
+		log            *zap.Logger
+		httpOpt        options.HTTPServerOpt
+		waitForOpt     options.WaitForOpt
+		environmentOpt options.EnvironmentOpt
+		endpoints      []func(r chi.Router)
 	}
 )
 
-func New(log *zap.Logger, httpOpt options.HTTPServerOpt, waitForOpt options.WaitForOpt) *server {
+func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HTTPServerOpt, waitForOpt options.WaitForOpt) *server {
 	return &server{
-		endpoints:  make([]func(r chi.Router), 0),
-		log:        log.Named("http"),
-		httpOpt:    httpOpt,
-		waitForOpt: waitForOpt,
+		endpoints: make([]func(r chi.Router), 0),
+		log:       log.Named("http"),
+
+		environmentOpt: envOpt,
+		httpOpt:        httpOpt,
+		waitForOpt:     waitForOpt,
 	}
 }
 
@@ -48,7 +51,7 @@ func (s server) Serve(ctx context.Context) {
 	router := chi.NewRouter()
 
 	// Base middleware, CORS, RealIP, RequestID, context-logger
-	router.Use(BaseMiddleware(s.log)...)
+	router.Use(BaseMiddleware(s.environmentOpt.IsProduction(), s.log)...)
 
 	router.Group(func(r chi.Router) {
 		s.bindMiscRoutes(r)

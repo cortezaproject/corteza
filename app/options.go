@@ -6,20 +6,21 @@ import (
 
 type (
 	Options struct {
-		ActionLog  options.ActionLogOpt
-		SMTP       options.SMTPOpt
-		Auth       options.AuthOpt
-		HTTPClient options.HTTPClientOpt
-		DB         options.DBOpt
-		Upgrade    options.UpgradeOpt
-		Provision  options.ProvisionOpt
-		Sentry     options.SentryOpt
-		ObjStore   options.ObjectStoreOpt
-		Corredor   options.CorredorOpt
-		Monitor    options.MonitorOpt
-		WaitFor    options.WaitForOpt
-		HTTPServer options.HTTPServerOpt
-		Websocket  options.WebsocketOpt
+		Environment options.EnvironmentOpt
+		ActionLog   options.ActionLogOpt
+		SMTP        options.SMTPOpt
+		Auth        options.AuthOpt
+		HTTPClient  options.HTTPClientOpt
+		DB          options.DBOpt
+		Upgrade     options.UpgradeOpt
+		Provision   options.ProvisionOpt
+		Sentry      options.SentryOpt
+		ObjStore    options.ObjectStoreOpt
+		Corredor    options.CorredorOpt
+		Monitor     options.MonitorOpt
+		WaitFor     options.WaitForOpt
+		HTTPServer  options.HTTPServerOpt
+		Websocket   options.WebsocketOpt
 	}
 )
 
@@ -29,20 +30,23 @@ func NewOptions(prefix ...string) *Options {
 		p = prefix[0]
 	}
 
+	// @todo remover prefixes on opt constructors and
+	//       pass in EnvironmentOpt so we can have environment-dependant defaults
 	return &Options{
-		ActionLog:  *options.ActionLog(),
-		Auth:       *options.Auth(),
-		SMTP:       *options.SMTP(p),
-		HTTPClient: *options.HttpClient(p),
-		DB:         *options.DB(p),
-		Upgrade:    *options.Upgrade(p),
-		Provision:  *options.Provision(p),
-		Sentry:     *options.Sentry(p),
-		ObjStore:   *options.ObjectStore(p),
-		Corredor:   *options.Corredor(),
-		Monitor:    *options.Monitor(p),
-		WaitFor:    *options.WaitFor(p),
-		HTTPServer: *options.HTTP(p),
-		Websocket:  *options.Websocket(p),
+		Environment: *options.Environment(),
+		ActionLog:   *options.ActionLog(),
+		Auth:        *options.Auth(),
+		SMTP:        *options.SMTP(p),
+		HTTPClient:  *options.HttpClient(p),
+		DB:          *options.DB(p),
+		Upgrade:     *options.Upgrade(p),
+		Provision:   *options.Provision(p),
+		Sentry:      *options.Sentry(p),
+		ObjStore:    *options.ObjectStore(p),
+		Corredor:    *options.Corredor(),
+		Monitor:     *options.Monitor(p),
+		WaitFor:     *options.WaitFor(p),
+		HTTPServer:  *options.HTTP(p),
+		Websocket:   *options.Websocket(p),
 	}
 }
