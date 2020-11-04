@@ -96,7 +96,7 @@ func encode(w http.ResponseWriter, r *http.Request, payload interface{}) {
 			_ = err.Apply(errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"))
 		}
 
-		errors.ServeHTTP(w, r, err, DebugFromContext(r.Context()))
+		errors.ServeHTTP(w, r, err, !DebugFromContext(r.Context()))
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -12,7 +12,7 @@ import (
 // ServeHTTP Prepares and encodes given error for HTTP transport
 //
 // mask arg hides extra/debug info
-func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, debug bool) {
+func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
 	var (
 		// Very naive approach on parsing accept headers
 		acceptsJson = strings.Contains(r.Header.Get("accept"), "application/json")
@@ -31,12 +31,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, debug bool) {
 
 	w.WriteHeader(code)
 
-	if !debug {
-		// trim error details when not debugging
-		err = fmt.Errorf(err.Error())
-	}
-
-	if debug && !acceptsJson {
+	if !mask && !acceptsJson {
 		// Prettify error for plain text debug output
 		w.Header().Set("Content-Type", "plain/text")
 		writeHttpPlain(w, err)
@@ -46,7 +41,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, debug bool) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	writeHttpJSON(w, err)
+	writeHttpJSON(w, err, mask)
 }
 
 func writeHttpPlain(w io.Writer, err error) {
@@ -97,14 +92,20 @@ func writeHttpPlain(w io.Writer, err error) {
 
 }
 
-func writeHttpJSON(w io.Writer, err error) {
+func writeHttpJSON(w io.Writer, err error, mask bool) {
 	var (
 		wrap = struct {
 			Error interface{} `json:"error"`
 		}{}
 	)
 
-	if c, is := err.(*Error); is {
+	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() {
+		// trim error details when not debugging or error is not safe
+		err = fmt.Errorf(err.Error())
+	}
+
+	if c, is := err.(json.Marshaler); is {
+		// take advantage of JSON marshaller on error
 		wrap.Error = c
 	} else {
 		wrap.Error = map[string]string{"message": err.Error()}
