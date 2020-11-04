@@ -1,9 +1,10 @@
 package yaml
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestComposeRecord_UnmarshalYAML(t *testing.T) {
@@ -42,19 +43,19 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.records, 3)
+		req.Len(doc.compose.Records, 3)
 
-		req.NotNil(doc.compose.records[0].res)
-		req.Equal("Department", doc.compose.records[0].refModule)
-		rec := doc.compose.records[0].res
+		req.NotNil(doc.compose.Records[0].res)
+		req.Equal("Department", doc.compose.Records[0].refModule)
+		rec := doc.compose.Records[0].res
 		req.Equal("Service", rec.Values.Get("Name", 0).Value)
 		req.Equal("50", rec.Values.Get("HourCost", 0).Value)
 
-		req.NotNil(doc.compose.records[1].res)
-		req.Equal("EmailTemplate", doc.compose.records[1].refModule)
+		req.NotNil(doc.compose.Records[1].res)
+		req.Equal("EmailTemplate", doc.compose.Records[1].refModule)
 
-		req.NotNil(doc.compose.records[2].res)
-		req.Equal("Settings", doc.compose.records[2].refModule)
+		req.NotNil(doc.compose.Records[2].res)
+		req.Equal("Settings", doc.compose.Records[2].refModule)
 
 		//req.NotNil(doc.compose.records[0].rbac)
 		//req.NotEmpty(doc.compose.records[0].rbac.rules)

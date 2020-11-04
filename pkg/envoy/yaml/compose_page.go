@@ -12,10 +12,10 @@ import (
 type (
 	composePage struct {
 		res          *types.Page
-		pages        composePageSet
+		children     composePageSet
 		refNamespace string
 		refModule    string
-		rbac         *rbacRules
+		rbac         rbacRuleSet
 	}
 	composePageSet []*composePage
 
@@ -51,6 +51,7 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
+// @todo also do this for the pages property
 func (wset composePageSet) setNamespaceRef(ref string) error {
 	for _, res := range wset {
 		if res.refNamespace != "" && ref != res.refNamespace {
@@ -80,14 +81,14 @@ func (wset composePageSet) MarshalEnvoy() ([]resource.Interface, error) {
 
 func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbac = &rbacRules{}
+		wrap.rbac = make(rbacRuleSet, 0, 10)
 		wrap.res = &types.Page{
 			// Pages are visible by default
 			Visible: true,
 		}
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.PageRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -119,8 +120,9 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 				wrap.res.Blocks[i] = b
 			}
 
-		case "pages":
-			return v.Decode(&wrap.pages)
+		case "children",
+			"pages":
+			return v.Decode(&wrap.children)
 
 		}
 
@@ -129,8 +131,11 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewComposePage(wrap.res, wrap.refNamespace, wrap.refModule)
 	return envoy.CollectNodes(
-		resource.ComposePage(wrap.res),
-		wrap.pages,
+		rs,
+		wrap.rbac.bindResource(rs),
+		// @todo Not sure yet
+		// wrap.children,
 	)
 }

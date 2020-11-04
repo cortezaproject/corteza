@@ -1,9 +1,10 @@
 package yaml
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestRole_UnmarshalYAML(t *testing.T) {

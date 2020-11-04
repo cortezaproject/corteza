@@ -11,14 +11,14 @@ const (
 )
 
 type (
-	composeNamespace struct {
+	ComposeNamespace struct {
 		*base
 		Res *types.Namespace
 	}
 )
 
-func ComposeNamespace(ns *types.Namespace) *composeNamespace {
-	r := &composeNamespace{base: &base{}}
+func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
+	r := &ComposeNamespace{base: &base{}}
 	r.SetResourceType(COMPOSE_NAMESPACE_RESOURCE_TYPE)
 	r.Res = ns
 
@@ -27,7 +27,7 @@ func ComposeNamespace(ns *types.Namespace) *composeNamespace {
 	return r
 }
 
-func (m *composeNamespace) SearchQuery() types.NamespaceFilter {
+func (m *ComposeNamespace) SearchQuery() types.NamespaceFilter {
 	f := types.NamespaceFilter{
 		Slug: m.Res.Slug,
 		Name: m.Res.Name,

@@ -12,25 +12,29 @@ const (
 
 type (
 	// ComposePage represents a ComposePage
-	composePage struct {
+	ComposePage struct {
 		*base
 		Res *types.Page
 
 		// Might keep track of related namespace, page
+
 	}
 )
 
-func ComposePage(pg *types.Page) *composePage {
-	r := &composePage{base: &base{}}
+func NewComposePage(pg *types.Page, nsRef, modRef string) *ComposePage {
+	r := &ComposePage{base: &base{}}
 	r.SetResourceType(COMPOSE_PAGE_RESOURCE_TYPE)
 	r.Res = pg
 
 	r.AddIdentifier(identifiers(pg.Handle, pg.Title, pg.ID)...)
 
+	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+
 	return r
 }
 
-func (m *composePage) SearchQuery() types.PageFilter {
+func (m *ComposePage) SearchQuery() types.PageFilter {
 	f := types.PageFilter{
 		Handle: m.Res.Handle,
 	}

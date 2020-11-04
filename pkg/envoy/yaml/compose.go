@@ -1,17 +1,19 @@
 package yaml
 
 import (
+	"reflect"
+
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	compose struct {
-		namespaces composeNamespaceSet
-		modules    composeModuleSet
-		records    composeRecordSet
-		pages      composePageSet
-		charts     composeChartSet
+		Namespaces composeNamespaceSet
+		Modules    composeModuleSet
+		Records    composeRecordSet
+		Pages      composePageSet
+		Charts     composeChartSet
 	}
 )
 
@@ -45,35 +47,42 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	return eachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespaces":
-			return v.Decode(&c.namespaces)
+			err = v.Decode(&c.Namespaces)
+			if err != nil {
+				return err
+			}
+			// If we're defining a fresh namespace and we're not nesting
+			if nsRef == "" {
+				nsRef = c.Namespaces[0].res.Slug
+			}
 
 		case "modules":
-			if err = v.Decode(&c.modules); err != nil {
+			if err = v.Decode(&c.Modules); err != nil {
 				return err
 			}
 
-			return c.modules.setNamespaceRef(nsRef)
+			return c.Modules.setNamespaceRef(nsRef)
 
 		case "pages":
-			if err = v.Decode(&c.pages); err != nil {
+			if err = v.Decode(&c.Pages); err != nil {
 				return err
 			}
 
-			return c.pages.setNamespaceRef(nsRef)
+			return c.Pages.setNamespaceRef(nsRef)
 
 		case "charts":
-			if err = v.Decode(&c.charts); err != nil {
+			if err = v.Decode(&c.Charts); err != nil {
 				return err
 			}
 
-			return c.charts.setNamespaceRef(nsRef)
+			return c.Charts.setNamespaceRef(nsRef)
 
 		case "records":
-			if err = v.Decode(&c.records); err != nil {
+			if err = v.Decode(&c.Records); err != nil {
 				return err
 			}
 
-			return c.records.setNamespaceRef(nsRef)
+			return c.Records.setNamespaceRef(nsRef)
 
 		}
 
@@ -84,18 +93,13 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 func (c compose) MarshalEnvoy() ([]resource.Interface, error) {
 	nn := make([]resource.Interface, 0, 100)
 
-	if c.namespaces != nil {
-		if tmp, err := c.namespaces.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-	}
-
-	if c.modules != nil {
-		if tmp, err := c.modules.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
+	rf := reflect.ValueOf(c)
+	for i := 0; i < rf.NumField(); i++ {
+		if mr, ok := rf.Field(i).Interface().(EnvoyMarshler); ok {
+			tmp, err := mr.MarshalEnvoy()
+			if err != nil {
+				return nil, err
+			}
 			nn = append(nn, tmp...)
 		}
 	}

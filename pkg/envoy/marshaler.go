@@ -15,6 +15,10 @@ type (
 // MarshalMerge takes one or more nodes and Marshals and merges all
 func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 	for _, i := range ii {
+		if i == nil {
+			continue
+		}
+
 		switch c := i.(type) {
 		// case NodeSet:
 		// 	nn = append(nn, c...)
@@ -26,7 +30,7 @@ func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 				println(err)
 				return nil, err
 			} else {
-				tmp = append(nn, tmp...)
+				nn = append(nn, tmp...)
 			}
 		default:
 			// @todo resoruceset?

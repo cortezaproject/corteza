@@ -9,20 +9,24 @@ const (
 )
 
 type (
-	rbacRule struct {
+	RbacRule struct {
 		*base
 		Res *rbac.Rule
 
 		// Perhaps?
-		RefRole string
+		RefRole     string
+		RefResource string
 	}
 )
 
-func RbacRule(res *rbac.Rule, role string) *rbacRule {
-	r := &rbacRule{base: &base{}}
+func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref) *RbacRule {
+	r := &RbacRule{base: &base{}}
 	r.SetResourceType(RBAC_RESOURCE_TYPE)
 	r.Res = res
-	r.RefRole = role
+	r.RefRole = refRole
+
+	r.AddRef(ROLE_RESOURCE_TYPE, refRole)
+	r.AddRef(resRef.ResourceType, resRef.Identifiers.StringSlice()...)
 
 	// @todo identifiers?
 	// Combination of resID, operation, rule?
@@ -30,7 +34,7 @@ func RbacRule(res *rbac.Rule, role string) *rbacRule {
 	return r
 }
 
-func (r *rbacRule) SearchQuery() rbac.RuleFilter {
+func (r *RbacRule) SearchQuery() rbac.RuleFilter {
 	f := rbac.RuleFilter{}
 
 	// @todo?

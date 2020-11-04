@@ -11,15 +11,15 @@ const (
 )
 
 type (
-	// role represents a Role
-	role struct {
+	// Role represents a Role
+	Role struct {
 		*base
 		Res *types.Role
 	}
 )
 
-func Role(rl *types.Role) *role {
-	r := &role{base: &base{}}
+func NewRole(rl *types.Role) *Role {
+	r := &Role{base: &base{}}
 	r.SetResourceType(ROLE_RESOURCE_TYPE)
 	r.Res = rl
 
@@ -28,7 +28,7 @@ func Role(rl *types.Role) *role {
 	return r
 }
 
-func (m *role) SearchQuery() types.RoleFilter {
+func (m *Role) SearchQuery() types.RoleFilter {
 	f := types.RoleFilter{
 		Handle: m.Res.Handle,
 		Name:   m.Res.Name,

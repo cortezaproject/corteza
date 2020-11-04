@@ -11,15 +11,15 @@ const (
 )
 
 type (
-	// application represents a Application
-	application struct {
+	// Application represents a Application
+	Application struct {
 		*base
 		Res *types.Application
 	}
 )
 
-func Application(res *types.Application) *application {
-	r := &application{base: &base{}}
+func NewApplication(res *types.Application) *Application {
+	r := &Application{base: &base{}}
 	r.SetResourceType(APPLICATION_RESOURCE_TYPE)
 	r.Res = res
 
@@ -28,7 +28,7 @@ func Application(res *types.Application) *application {
 	return r
 }
 
-func (r *application) SearchQuery() types.ApplicationFilter {
+func (r *Application) SearchQuery() types.ApplicationFilter {
 	f := types.ApplicationFilter{
 		Name: r.Res.Name,
 	}

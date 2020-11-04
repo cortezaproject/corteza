@@ -1,9 +1,10 @@
 package yaml
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestComposePage_UnmarshalYAML(t *testing.T) {
@@ -40,10 +41,10 @@ func TestComposePage_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.pages, 1)
-		req.Len(doc.compose.pages[0].pages, 1)
-		req.Equal(3, len(doc.compose.pages[0].res.Blocks))
-		req.NotNil(doc.compose.pages[0].rbac)
-		req.NotEmpty(doc.compose.pages[0].rbac.rules)
+		req.Len(doc.compose.Pages, 1)
+		req.Len(doc.compose.Pages[0].children, 1)
+		req.Equal(3, len(doc.compose.Pages[0].res.Blocks))
+		req.NotNil(doc.compose.Pages[0].rbac)
+		req.NotEmpty(doc.compose.Pages[0].rbac)
 	})
 }

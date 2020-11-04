@@ -13,7 +13,7 @@ type (
 		res *types.Application `yaml:",inline"`
 
 		// module's RBAC rules
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	applicationSet []*application
 )
@@ -82,7 +82,7 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.ApplicationRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -90,8 +90,9 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap application) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewApplication(wrap.res)
 	return envoy.CollectNodes(
-		resource.Application(wrap.res),
-		wrap.rbac.Ensure(),
+		rs,
+		wrap.rbac.bindResource(rs),
 	)
 }
