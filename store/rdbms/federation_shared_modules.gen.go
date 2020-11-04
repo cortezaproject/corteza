@@ -380,6 +380,9 @@ func (s Store) internalFederationSharedModuleRowScanner(row rowScanner) (res *ty
 			&res.Name,
 			&res.ExternalFederationModuleID,
 			&res.Fields,
+			&res.CreatedAt,
+			&res.UpdatedAt,
+			&res.DeletedAt,
 		)
 	}
 
@@ -425,6 +428,9 @@ func (Store) federationSharedModuleColumns(aa ...string) []string {
 		alias + "name",
 		alias + "xref_module",
 		alias + "fields",
+		alias + "created_at",
+		alias + "updated_at",
+		alias + "deleted_at",
 	}
 }
 
@@ -436,6 +442,9 @@ func (Store) federationSharedModuleColumns(aa ...string) []string {
 func (Store) sortableFederationSharedModuleColumns() []string {
 	return []string{
 		"id",
+		"created_at",
+		"updated_at",
+		"deleted_at",
 	}
 }
 
@@ -451,6 +460,9 @@ func (s Store) internalFederationSharedModuleEncoder(res *types.SharedModule) st
 		"name":        res.Name,
 		"xref_module": res.ExternalFederationModuleID,
 		"fields":      res.Fields,
+		"created_at":  res.CreatedAt,
+		"updated_at":  res.UpdatedAt,
+		"deleted_at":  res.DeletedAt,
 	}
 }
 
@@ -480,6 +492,14 @@ func (s Store) collectFederationSharedModuleCursorValues(res *types.SharedModule
 					cursor.Set(c, res.ID, false)
 
 					pkId = true
+				case "created_at":
+					cursor.Set(c, res.CreatedAt, false)
+
+				case "updated_at":
+					cursor.Set(c, res.UpdatedAt, false)
+
+				case "deleted_at":
+					cursor.Set(c, res.DeletedAt, false)
 
 				}
 			}
