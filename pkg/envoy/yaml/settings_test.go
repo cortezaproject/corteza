@@ -1,8 +1,9 @@
 package yaml
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSettings_UnmarshalYAML(t *testing.T) {

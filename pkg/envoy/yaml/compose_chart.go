@@ -17,7 +17,7 @@ type (
 		// pointer to report and module reference
 		refReportModules map[int]string
 
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	composeChartSet []*composeChart
 
@@ -89,11 +89,11 @@ func (wset composeChartSet) MarshalEnvoy() ([]resource.Interface, error) {
 
 func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
-		wrap.rbac = &rbacRules{}
+		wrap.rbac = make(rbacRuleSet, 0, 10)
 		wrap.res = &types.Chart{}
 	}
 
-	if wrap.rbac, err = decodeResourceAccessControl(types.ChartRBACResource, n); err != nil {
+	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
 	}
 
@@ -117,7 +117,6 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 			// copy decoded values from aux type
 			wrap.res.Config = cfg.config
 			wrap.refReportModules = cfg.refReportModules
-
 		}
 
 		return nil
@@ -125,8 +124,10 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewComposeChart(wrap.res, wrap.refNamespace)
 	return envoy.CollectNodes(
-		resource.ComposeChart(wrap.res),
+		rs,
+		wrap.rbac.bindResource(rs),
 	)
 }
 

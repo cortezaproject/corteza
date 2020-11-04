@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
 	"github.com/cortezaproject/corteza-server/store"
-	"time"
 )
 
 func storeApplication(ctx context.Context, s store.Storer, n *node.Application) error {

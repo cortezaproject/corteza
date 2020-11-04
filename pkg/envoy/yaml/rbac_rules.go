@@ -1,105 +1,134 @@
 package yaml
 
 import (
+	"fmt"
+
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"gopkg.in/yaml.v3"
 )
 
 type (
-	rbacRules struct {
-		// mapping unresolved roles to defined RBAC rules
-		rules map[string]rbac.RuleSet
+	rbacRule struct {
+		res *rbac.Rule
+
+		resRef *resource.Ref
+
+		// To help us construct the resource
+		resource    rbac.Resource
+		refResource string
+		// Related role
+		refRole string
 	}
+	rbacRuleSet []*rbacRule
 )
 
-func decodeRbacOperations(rr *rbacRules, access rbac.Access, role string, res rbac.Resource) func(*yaml.Node) error {
-	if _, set := rr.rules[role]; !set {
-		rr.rules[role] = rbac.RuleSet{}
-	}
-
-	return func(v *yaml.Node) error {
-		rule := &rbac.Rule{Resource: res, Operation: rbac.Operation(v.Value), Access: access}
-		rr.rules[role] = append(rr.rules[role], rule)
-		return nil
-	}
-}
-
-func decodeResourceAccessControl(res rbac.Resource, n *yaml.Node) (*rbacRules, error) {
+func decodeRbac(n *yaml.Node) (rbacRuleSet, error) {
 	var (
-		rr = &rbacRules{rules: make(map[string]rbac.RuleSet)}
+		rr = make(rbacRuleSet, 0, 20)
 	)
 
 	return rr, eachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "allow":
-			return rr.decodeResourceAccessControl(rbac.Allow, res, v)
-		case "deny":
-			return rr.decodeResourceAccessControl(rbac.Deny, res, v)
-		}
-
-		return nil
-	})
-}
-
-func decodeGlobalAccessControl(n *yaml.Node) (*rbacRules, error) {
-	var (
-		rr = &rbacRules{rules: make(map[string]rbac.RuleSet)}
-	)
-
-	return rr, eachMap(n, func(k, v *yaml.Node) (err error) {
-		switch k.Value {
-		case "allow":
-			return rr.decodeGlobalAccessControl(rbac.Allow, v)
-		case "deny":
-			return rr.decodeGlobalAccessControl(rbac.Deny, v)
-		}
-
-		return nil
-	})
-}
-
-// Decodes RBAC rules defined as access/role/ops...
-func (wrap *rbacRules) decodeResourceAccessControl(access rbac.Access, res rbac.Resource, v *yaml.Node) error {
-	return eachMap(v, func(k, v *yaml.Node) error {
-		return eachSeq(v, decodeRbacOperations(wrap, access, k.Value, res))
-	})
-}
-
-// Decodes RBAC rules defined as access/role/resource/ops...
-func (wrap *rbacRules) decodeGlobalAccessControl(access rbac.Access, v *yaml.Node) error {
-	return eachMap(v, func(k, v *yaml.Node) error {
-		var role = k.Value
-
-		return eachMap(v, func(k, v *yaml.Node) error {
-			var res = rbac.Resource(k.Value)
-			if !res.IsValid() {
-				return nodeErr(k, "RBAC resource %s invalid", k.Value)
+			rr, err = rr.decodeRbac(rbac.Allow, v)
+			if err != nil {
+				return err
 			}
+		case "deny":
+			rr, err = rr.decodeRbac(rbac.Deny, v)
+			if err != nil {
+				return err
+			}
+		}
 
-			return eachSeq(v, decodeRbacOperations(wrap, access, role, res))
-		})
+		return nil
 	})
 }
 
-func (wrap rbacRules) MarshalEnvoy() ([]resource.Interface, error) {
-	var nn = make([]resource.Interface, 0, len(wrap.rules)*2)
+func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, error) {
+	if rr == nil {
+		rr = make(rbacRuleSet, 0, 10)
+	}
 
-	for role, rr := range wrap.rules {
-		for _, rule := range rr {
-			nn = append(nn, resource.RbacRule(rule, role))
-			// nn = append(nn, &node.RbacRule{Res: rule, RefRole: role})
+	var err error
+
+	parseOps := func(ops *yaml.Node, roleRef, res string) error {
+		return eachSeq(ops, func(op *yaml.Node) error {
+			rule := &rbacRule{
+				res: &rbac.Rule{
+					Access:    a,
+					Operation: rbac.Operation(op.Value),
+					Resource:  rbac.Resource(res),
+				},
+				refRole: roleRef,
+			}
+			rr = append(rr, rule)
+			return nil
+		})
+	}
+
+	err = eachMap(rules, func(role, ops *yaml.Node) error {
+		// If its a mapping node, keys represent resources
+		if ops.Kind == yaml.MappingNode {
+			err = eachMap(ops, func(res, ops *yaml.Node) error {
+				return parseOps(ops, role.Value, res.Value)
+			})
+		} else {
+			return parseOps(ops, role.Value, "")
 		}
+
+		return nil
+	})
+
+	return rr, err
+}
+
+func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
+	res := &resource.Ref{
+		ResourceType: resI.ResourceType(),
+		Identifiers:  resI.Identifiers(),
+	}
+
+	rtr := make(rbacRuleSet, 0, len(rr))
+	for _, r := range rr {
+		r = r
+		r.resRef = res
+		rtr = append(rtr, r)
+	}
+
+	return rtr
+}
+
+func (rr rbacRuleSet) setResource(res rbac.Resource) error {
+	for _, r := range rr {
+		if r.resource.String() != "" && res != r.resource {
+			return fmt.Errorf("cannot override resource %s with %s", r.resource, res)
+		}
+
+		r.resource = res
+	}
+
+	return nil
+}
+
+func (rr rbacRuleSet) setResourceRef(ref string) error {
+	for _, r := range rr {
+		if r.refResource != "" && ref != r.refResource {
+			return fmt.Errorf("cannot override resource reference %s with %s", r.refResource, ref)
+		}
+
+		r.refResource = ref
+	}
+
+	return nil
+}
+
+func (rr rbacRuleSet) MarshalEnvoy() ([]resource.Interface, error) {
+	var nn = make([]resource.Interface, 0, len(rr))
+
+	for _, r := range rr {
+		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.resRef))
 	}
 	return nn, nil
-}
-
-// Ensure always returns rbacRules struct, event if wrap==nil
-// this will prevent nil pointer panics
-func (wrap *rbacRules) Ensure() *rbacRules {
-	if wrap == nil {
-		return &rbacRules{}
-	}
-
-	return wrap
 }

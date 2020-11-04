@@ -9,7 +9,7 @@ const (
 )
 
 type (
-	composeRecordSet struct {
+	ComposeRecordSet struct {
 		*base
 
 		Walk Walker
@@ -19,8 +19,8 @@ type (
 )
 
 // @todo add record provider
-func ComposeRecordSet() *composeRecordSet {
-	r := &composeRecordSet{base: &base{}}
+func NewComposeRecordSet() *ComposeRecordSet {
+	r := &ComposeRecordSet{base: &base{}}
 	r.SetResourceType(COMPOSE_RECORD_SET_RESOURCE_TYPE)
 
 	return r

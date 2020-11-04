@@ -1,8 +1,9 @@
 package yaml
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDocument_UnmarshalYAML(t *testing.T) {
@@ -12,6 +13,6 @@ func TestDocument_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.rbac)
-		req.NotEmpty(doc.rbac.rules)
+		req.NotEmpty(doc.rbac)
 	})
 }

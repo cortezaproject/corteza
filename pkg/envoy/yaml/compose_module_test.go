@@ -1,9 +1,11 @@
 package yaml
 
 import (
+	"testing"
+
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
-	"testing"
 )
 
 func TestComposeModule_UnmarshalYAML(t *testing.T) {
@@ -55,11 +57,29 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.modules, 3)
-		req.Equal(30, len(doc.compose.modules[0].res.Fields))
-		req.Equal(21, len(doc.compose.modules[1].res.Fields))
-		req.Equal(23, len(doc.compose.modules[2].res.Fields))
-		req.NotNil(doc.compose.modules[0].rbac)
-		req.NotEmpty(doc.compose.modules[0].rbac.rules)
+		req.Len(doc.compose.Modules, 3)
+		req.Equal(30, len(doc.compose.Modules[0].res.Fields))
+		req.Equal(21, len(doc.compose.Modules[1].res.Fields))
+		req.Equal(23, len(doc.compose.Modules[2].res.Fields))
+		req.NotNil(doc.compose.Modules[0].rbac)
+		req.NotEmpty(doc.compose.Modules[0].rbac)
+	})
+
+	t.Run("doc rbac", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_rbac")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+
+		mod := doc.compose.Modules[0]
+		req.Len(mod.rbac, 2)
+		a := mod.rbac[0]
+		b := mod.rbac[1]
+		req.Equal(a.res.Operation, rbac.Operation("read"))
+		req.Equal(a.res.Access, rbac.Allow)
+		req.Equal(b.res.Operation, rbac.Operation("delete"))
+		req.Equal(b.res.Access, rbac.Deny)
 	})
 }

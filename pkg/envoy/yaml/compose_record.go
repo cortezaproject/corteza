@@ -19,7 +19,7 @@ type (
 		refDeletedBy string
 		refOwnedBy   string
 
-		rbac *rbacRules
+		rbac rbacRuleSet
 	}
 	composeRecordSet []*composeRecord
 
@@ -114,8 +114,8 @@ func (wrap composeRecord) MarshalEnvoy() ([]resource.Interface, error) {
 
 	return envoy.CollectNodes(
 		// @todo...
-		resource.ComposeRecordSet(),
-		wrap.rbac.Ensure(),
+		resource.NewComposeRecordSet(),
+		wrap.rbac,
 	)
 }
 
@@ -125,7 +125,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	// @todo enable when records are ready for RBAC
-	//if wrap.rbac, err = decodeResourceAccessControl(types.RecordRBACResource, n); err != nil {
+	//if wrap.rbac, err = decodeRbac(types.RecordRBACResource, n); err != nil {
 	//	return
 	//}
 

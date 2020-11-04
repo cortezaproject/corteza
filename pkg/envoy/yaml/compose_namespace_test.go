@@ -53,12 +53,12 @@ func TestComposeNamespace_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(doc)
 		req.NotNil(doc.compose)
-		req.Len(doc.compose.namespaces, 1)
-		req.NotNil(doc.compose.namespaces[0])
-		req.Equal("CRM", doc.compose.namespaces[0].res.Name)
-		req.Equal("crm", doc.compose.namespaces[0].res.Slug)
-		req.NotNil(doc.compose.namespaces[0].rbac)
-		req.NotEmpty(doc.compose.namespaces[0].rbac.rules)
+		req.Len(doc.compose.Namespaces, 1)
+		req.NotNil(doc.compose.Namespaces[0])
+		req.Equal("CRM", doc.compose.Namespaces[0].res.Name)
+		req.Equal("crm", doc.compose.Namespaces[0].res.Slug)
+		req.NotNil(doc.compose.Namespaces[0].rbac)
+		req.NotEmpty(doc.compose.Namespaces[0].rbac)
 	})
 
 }

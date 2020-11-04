@@ -1,0 +1,10 @@
+namespace: crm
+modules:
+  Account:
+    name: Account
+    allow:
+      everyone:
+      - read
+    deny:
+      everyone:
+      - delete

@@ -11,15 +11,15 @@ const (
 )
 
 type (
-	// user represents a User
-	user struct {
+	// User represents a User
+	User struct {
 		*base
 		Res *types.User
 	}
 )
 
-func User(u *types.User) *user {
-	r := &user{base: &base{}}
+func NewUser(u *types.User) *User {
+	r := &User{base: &base{}}
 	r.SetResourceType(USER_RESOURCE_TYPE)
 	r.Res = u
 
@@ -28,7 +28,7 @@ func User(u *types.User) *user {
 	return r
 }
 
-func (m *user) SearchQuery() types.UserFilter {
+func (m *User) SearchQuery() types.UserFilter {
 	f := types.UserFilter{
 		Handle: m.Res.Handle,
 		Email:  m.Res.Email,

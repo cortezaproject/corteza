@@ -12,7 +12,7 @@ const (
 
 type (
 	// ComposeChart represents a ComposeChart
-	composeChart struct {
+	ComposeChart struct {
 		*base
 		Res *types.Chart
 
@@ -20,17 +20,19 @@ type (
 	}
 )
 
-func ComposeChart(res *types.Chart) *composeChart {
-	r := &composeChart{base: &base{}}
+func NewComposeChart(res *types.Chart, nsRef string) *ComposeChart {
+	r := &ComposeChart{base: &base{}}
 	r.SetResourceType(COMPOSE_CHART_RESOURCE_TYPE)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
+	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+
 	return r
 }
 
-func (m *composeChart) SearchQuery() types.ChartFilter {
+func (m *ComposeChart) SearchQuery() types.ChartFilter {
 	f := types.ChartFilter{
 		Handle: m.Res.Handle,
 	}

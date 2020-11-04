@@ -46,7 +46,7 @@ pages:
         variants: {border: primary, headerText: primary}
       kind: RecordList
       xywh: [0, 0, 9, 16]
-    pages:
+    children:
       - handle: RecordPageForModuleLead
         module: Lead
         title: Record page for module "Lead"
