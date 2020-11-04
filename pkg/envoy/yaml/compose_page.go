@@ -2,9 +2,10 @@ package yaml
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,9 +63,9 @@ func (wset composePageSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wset composePageSet) MarshalEnvoy() ([]envoy.Node, error) {
+func (wset composePageSet) MarshalEnvoy() ([]resource.Interface, error) {
 	// namespace usually have bunch of sub-resources defined
-	nn := make([]envoy.Node, 0, len(wset)*10)
+	nn := make([]resource.Interface, 0, len(wset)*10)
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -127,9 +128,9 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 	})
 }
 
-func (wrap composePage) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
-		&node.ComposePage{Res: wrap.res, RefNamespace: wrap.refNamespace},
+		resource.ComposePage(wrap.res),
 		wrap.pages,
 	)
 }

@@ -2,7 +2,7 @@ package yaml
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -65,8 +65,8 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset userSet) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, len(wset))
+func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -100,11 +100,9 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 	return nil
 }
 
-func (wrap user) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap user) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
-		&node.User{
-			Res: wrap.res,
-		},
+		resource.User(wrap.res),
 		wrap.rbac.Ensure(),
 	)
 }

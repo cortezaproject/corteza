@@ -1,7 +1,7 @@
 package yaml
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
@@ -81,8 +81,8 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (c compose) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, 100)
+func (c compose) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, 100)
 
 	if c.namespaces != nil {
 		if tmp, err := c.namespaces.MarshalEnvoy(); err != nil {

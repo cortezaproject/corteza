@@ -2,9 +2,10 @@ package yaml
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
@@ -75,8 +76,8 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 }
 
 // MarshalEnvoy works a bit differenlty
-func (wset composeRecordSet) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, len(wset))
+func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -102,7 +103,7 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wrap composeRecord) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap composeRecord) MarshalEnvoy() ([]resource.Interface, error) {
 	var refUsers = []string{}
 	for _, u := range []string{wrap.refCreatedBy, wrap.refUpdatedBy, wrap.refDeletedBy, wrap.refOwnedBy} {
 		if len(u) > 0 {
@@ -112,11 +113,8 @@ func (wrap composeRecord) MarshalEnvoy() ([]envoy.Node, error) {
 	}
 
 	return envoy.CollectNodes(
-		&node.ComposeRecord{
-			Res:       wrap.res,
-			RefModule: wrap.refModule,
-			RefUsers:  refUsers,
-		},
+		// @todo...
+		resource.ComposeRecordSet(),
 		wrap.rbac.Ensure(),
 	)
 }
