@@ -2,40 +2,37 @@ package resource
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+const (
+	COMPOSE_NAMESPACE_RESOURCE_TYPE = "composeNamespace"
+)
+
 type (
-	ComposeNamespace struct {
+	composeNamespace struct {
 		*base
 		Res *types.Namespace
 	}
 )
 
-func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
-	r := &ComposeNamespace{base: &base{}}
-	r.SetResourceType("compose:namespace")
+func ComposeNamespace(ns *types.Namespace) *composeNamespace {
+	r := &composeNamespace{base: &base{}}
+	r.SetResourceType(COMPOSE_NAMESPACE_RESOURCE_TYPE)
 	r.Res = ns
 
-	if ns.Slug != "" {
-		r.AddIdentifier(ns.Slug)
-	}
-	if ns.Name != "" {
-		r.AddIdentifier(ns.Name)
-	}
-	if ns.ID > 0 {
-		r.AddIdentifier(strconv.FormatUint(ns.ID, 10))
-	}
+	r.AddIdentifier(identifiers(ns.Slug, ns.Name, ns.ID)...)
+
 	return r
 }
 
-func (m *ComposeNamespace) SearchQuery() types.NamespaceFilter {
-	f := types.NamespaceFilter{Query: ""}
+func (m *composeNamespace) SearchQuery() types.NamespaceFilter {
+	f := types.NamespaceFilter{
+		Slug: m.Res.Slug,
+		Name: m.Res.Name,
+	}
 
-	f.Slug = m.Res.Slug
-	f.Name = m.Res.Name
 	if m.Res.ID > 0 {
 		f.Query = fmt.Sprintf("namespaceID=%d", m.Res.ID)
 	}

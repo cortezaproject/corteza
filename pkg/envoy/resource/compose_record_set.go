@@ -4,8 +4,12 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
+const (
+	COMPOSE_RECORD_SET_RESOURCE_TYPE = "ComposeRecordSet"
+)
+
 type (
-	ComposeRecordSet struct {
+	composeRecordSet struct {
 		*base
 
 		Walk Walker
@@ -15,9 +19,9 @@ type (
 )
 
 // @todo add record provider
-func NewComposeRecordSet() *ComposeRecordSet {
-	r := &ComposeRecordSet{base: &base{}}
-	r.SetResourceType("compose:record")
+func ComposeRecordSet() *composeRecordSet {
+	r := &composeRecordSet{base: &base{}}
+	r.SetResourceType(COMPOSE_RECORD_SET_RESOURCE_TYPE)
 
 	return r
 }

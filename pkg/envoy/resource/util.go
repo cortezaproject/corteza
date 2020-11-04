@@ -1,8 +1,7 @@
-package node
+package resource
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"strconv"
 )
 
@@ -34,13 +33,8 @@ func identifiers(ii ...interface{}) []string {
 			}
 
 			ss = append(ss, c)
-
 		}
 	}
 
 	return ss
-}
-
-func makeIdentifiers(ii ...interface{}) envoy.NodeIdentifiers {
-	return envoy.NodeIdentifiers{}.Add(identifiers(ii...)...)
 }
