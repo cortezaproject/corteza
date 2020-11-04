@@ -11,7 +11,9 @@ fields:
   - { field: Name }
   - { field: ExternalFederationModuleID }
   - { field: Fields, type: "json.Text" }
-
+  - { field: CreatedAt,                              sortable: true }
+  - { field: UpdatedAt,                              sortable: true }
+  - { field: DeletedAt,                              sortable: true }
 
 lookups:
   - fields: [ID]
