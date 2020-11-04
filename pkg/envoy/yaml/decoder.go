@@ -3,11 +3,12 @@ package yaml
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"gopkg.in/yaml.v3"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"gopkg.in/yaml.v3"
 )
 
 type (
@@ -21,7 +22,7 @@ type (
 	}
 
 	nodeDecoder interface {
-		DecodeNodes(ctx context.Context, l loader) ([]envoy.Node, error)
+		DecodeNodes(ctx context.Context, l loader) ([]resource.Interface, error)
 	}
 )
 
@@ -39,7 +40,7 @@ func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
 	return false
 }
 
-func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]envoy.Node, error) {
+func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]resource.Interface, error) {
 	var (
 		doc = &Document{}
 	)
@@ -52,8 +53,8 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 }
 
 //// convert converts the decoded document into a set of envoy nodes
-//func (y *decoder) convert(c *Document) ([]envoy.Node, error) {
-//	nn := make([]envoy.Node, 0, 100)
+//func (y *decoder) convert(c *Document) ([]resource.Interface, error) {
+//	nn := make([]resource.Interface, 0, 100)
 //
 //	// In case of namespaces...
 //	if c.Namespaces != nil {
@@ -108,8 +109,8 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 
-//func (y *decoder) convertNamespaces(nss composeNamespaceSet) ([]envoy.Node, error) {
-//	nn := make([]envoy.Node, 0, 2)
+//func (y *decoder) convertNamespaces(nss composeNamespaceSet) ([]resource.Interface, error) {
+//	nn := make([]resource.Interface, 0, 2)
 //
 //	for _, ns := range nss {
 //		nn = append(nn, &envoy.ComposeNamespaceNode{Ns: ns.res})
@@ -129,8 +130,8 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 //
-//func (y *decoder) convertModules(mm composeModuleSet, ns *types.Namespace) ([]envoy.Node, error) {
-//	nn := make([]envoy.Node, 0)
+//func (y *decoder) convertModules(mm composeModuleSet, ns *types.Namespace) ([]resource.Interface, error) {
+//	nn := make([]resource.Interface, 0)
 //
 //	for _, m := range mm {
 //		nn = append(nn, &envoy.ComposeModuleNode{
@@ -144,7 +145,7 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //	return nn, nil
 //}
 //
-//func (y *decoder) convertRecords(rr composeRecordSet, m *types.Module) ([]envoy.Node, error) {
+//func (y *decoder) convertRecords(rr composeRecordSet, m *types.Module) ([]resource.Interface, error) {
 //	// Iterator function for providing records to be imported.
 //	// This doesn't do any validation; that should be handled by other layers.
 //	f := func(f func(record *types.Record) error) error {
@@ -158,5 +159,5 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]env
 //		return nil
 //	}
 //
-//	return []envoy.Node{&envoy.ComposeRecordNode{Mod: m, Walk: f}}, nil
+//	return []resource.Interface{&envoy.ComposeRecordNode{Mod: m, Walk: f}}, nil
 //}

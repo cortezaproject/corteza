@@ -2,7 +2,7 @@ package yaml
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/node"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -22,7 +22,6 @@ type (
 //
 // When resolving map, key is used as handle
 // Also supporting { handle: name } definitions
-//
 func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 	return eachSeq(n, func(v *yaml.Node) (err error) {
 		var (
@@ -55,8 +54,8 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset applicationSet) MarshalEnvoy() ([]envoy.Node, error) {
-	nn := make([]envoy.Node, 0, len(wset))
+func (wset applicationSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
 
 	for _, res := range wset {
 		if tmp, err := res.MarshalEnvoy(); err != nil {
@@ -90,11 +89,9 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	return nil
 }
 
-func (wrap application) MarshalEnvoy() ([]envoy.Node, error) {
+func (wrap application) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
-		&node.Application{
-			Res: wrap.res,
-		},
+		resource.Application(wrap.res),
 		wrap.rbac.Ensure(),
 	)
 }
