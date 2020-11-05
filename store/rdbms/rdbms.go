@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
@@ -205,7 +206,12 @@ func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error)
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
 
-	return s.db.QueryContext(ctx, query, args...)
+	rr, err := s.db.QueryContext(ctx, query, args...)
+	if err = store.HandleError(err, s.config.ErrorHandler); err != nil {
+		return nil, err
+	}
+
+	return rr, nil
 }
 
 // QueryRow returns row instead of filling in the passed struct
@@ -218,7 +224,12 @@ func (s Store) QueryRow(ctx context.Context, q squirrel.SelectBuilder) (*sql.Row
 		return nil, fmt.Errorf("could not build query: %w", err)
 	}
 
-	return s.db.QueryRowContext(ctx, query, args...), nil
+	r, err := s.db.QueryRowContext(ctx, query, args...), nil
+	if err = store.HandleError(err, s.config.ErrorHandler); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
@@ -231,7 +242,7 @@ func (s Store) Exec(ctx context.Context, sqlizer squirrel.Sqlizer) error {
 	}
 
 	_, err = s.db.ExecContext(ctx, query, args...)
-	return err
+	return store.HandleError(err, s.config.ErrorHandler)
 }
 
 func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storer) error) error {
@@ -242,7 +253,7 @@ func (s Store) Tx(ctx context.Context, fn func(context.Context, store.Storer) er
 
 func (s Store) Truncate(ctx context.Context, table string) error {
 	_, err := s.db.ExecContext(ctx, "DELETE FROM "+table)
-	return err
+	return store.HandleError(err, s.config.ErrorHandler)
 }
 
 // SelectBuilder is a shorthand for squirrel.selectBuilder
@@ -366,6 +377,12 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// No matter the cause of the error, rollback the transaction
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			return fmt.Errorf("failed to rollback transaction (tries: %d) on error %v: %w", try, lastTaskErr, rollbackErr)
+		}
+
+		if errors.IsAny(lastTaskErr) {
+			// not a store-internal/transaction error and can be returned right away,
+			// no need to re-run the transaction
+			return lastTaskErr
 		}
 
 		// Call the the configured transaction retry error handler

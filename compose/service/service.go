@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -182,7 +181,7 @@ func RegisterIteratorProviders() {
 			//rf.ParsePagination(f)
 
 			if nsLookup, has := f["namespace"]; !has {
-				return errors.New("namespace for record iteration filter not defined")
+				return fmt.Errorf("namespace for record iteration filter not defined")
 			} else if ns, err := DefaultNamespace.With(ctx).FindByAny(nsLookup); err != nil {
 				return err
 			} else {
@@ -190,7 +189,7 @@ func RegisterIteratorProviders() {
 			}
 
 			if mLookup, has := f["module"]; !has {
-				return errors.New("module for record iteration filter not defined")
+				return fmt.Errorf("module for record iteration filter not defined")
 			} else if m, err := DefaultModule.With(ctx).FindByAny(rf.NamespaceID, mLookup); err != nil {
 				return err
 			} else {

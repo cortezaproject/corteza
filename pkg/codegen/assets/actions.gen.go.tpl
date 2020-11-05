@@ -11,17 +11,14 @@ package {{ .Package }}
 import (
 	"context"
 	"fmt"
-	"strings"
-	"errors"
-	"time"
-{{- if $.SupportHttpErrors }}
-	"net/http"
-{{- end }}
-
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 {{- range .Import }}
     {{ normalizeImport . }}
 {{- end }}
+	"strings"
+	"time"
+
 )
 
 type (
@@ -46,25 +43,8 @@ type (
 	}
 {{ end }}
 
-{{ if $.Errors }}
-	{{ $.Service }}Error struct {
-		timestamp time.Time
-		error       string
-		resource    string
-		action      string
-		message 	string
-		log         string
-		severity    actionlog.Severity
-
-		wrap        error
-
-		props       *{{ $.Service }}ActionProps
-
-    {{ if $.SupportHttpErrors }}
-        httpStatusCode int
-    {{ end }}
-	}
-{{ end }}
+	{{ $.Service }}LogMetaKey struct {}
+	{{ $.Service }}PropsMetaKey struct {}
 )
 
 var (
@@ -90,11 +70,11 @@ func (p *{{ $.Service }}ActionProps) {{ camelCase "set" $prop.Name }}({{ $prop.N
 {{ end }}
 
 
-// serialize converts {{ $.Service }}ActionProps to actionlog.Meta
+// Serialize converts {{ $.Service }}ActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p {{ $.Service }}ActionProps) serialize() actionlog.Meta {
+func (p {{ $.Service }}ActionProps) Serialize() actionlog.Meta {
 	var (
 		m   = make(actionlog.Meta)
 	)
@@ -118,7 +98,7 @@ func (p {{ $.Service }}ActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p {{ $.Service }}ActionProps) tr(in string, err error) string {
+func (p {{ $.Service }}ActionProps) Format(in string, err error) string {
     var (
         pairs = []string{"{err}"}
 
@@ -137,16 +117,6 @@ func (p {{ $.Service }}ActionProps) tr(in string, err error) string {
     )
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 	    pairs = append(pairs, err.Error())
 	} else {
 	    pairs = append(pairs, "nil")
@@ -194,124 +164,18 @@ func (a *{{ $.Service }}Action) String() string {
         props = a.props
     }
 
-    return props.tr(a.log, nil)
+    return props.Format(a.log, nil)
 }
 
-func (e *{{ $.Service }}Action) LoggableAction() *actionlog.Action {
+func (e *{{ $.Service }}Action) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
-{{ end }}
-
-{{ if $.Errors }}
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) String() string {
-    var props = &{{ $.Service }}ActionProps{}
-
-    if e.props != nil {
-        props = e.props
-    }
-
-
-    if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-        // Suffix error log with {err} to ensure
-        // we log the cause for this error
-        e.log += ": {err}"
-    }
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) Error() string {
-    var props = &{{ $.Service }}ActionProps{}
-
-    if e.props != nil {
-        props = e.props
-    }
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) Is(err error) bool {
-	t, ok := err.(*{{ $.Service }}Error)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps {{ $.Service }}Error around another error
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) Wrap(err error) *{{ $.Service }}Error {
-    e.wrap = err
-    return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *{{ $.Service }}Error) Unwrap() error {
-	return e.wrap
-}
-
-func (e *{{ $.Service }}Error) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-{{ if $.SupportHttpErrors }}
-func (e *{{ $.Service }}Error) HttpResponse(w http.ResponseWriter) {
-    var code = e.httpStatusCode
-    if code == 0 {
-        code = http.StatusInternalServerError
-    }
-
-	http.Error(w, e.message, code)
-}
-{{ end }}
-
 {{ end }}
 
 {{ if $.Actions }}
@@ -320,7 +184,7 @@ func (e *{{ $.Service }}Error) HttpResponse(w http.ResponseWriter) {
 // Action constructors
 
 {{ range $a := $.Actions }}
-// {{ camelCase "" $.Service "Action" $a.Action  }} returns "{{ $.Resource }}.{{ $a.Action  }}" error
+// {{ camelCase "" $.Service "Action" $a.Action  }} returns "{{ $.Resource }}.{{ $a.Action  }}" action
 //
 // This function is auto-generated.
 //
@@ -329,7 +193,7 @@ func {{ camelCase "" $.Service "Action" $a.Action  }}(props ... *{{ $.Service }}
 		timestamp:    time.Now(),
 		resource:     "{{ $.Resource }}",
 		action:       "{{ $a.Action }}",
-		log:   "{{ $a.Log }}",
+		log:          "{{ $a.Log }}",
 		severity:     {{ $a.SeverityConstName }},
 	}
 
@@ -348,44 +212,58 @@ func {{ camelCase "" $.Service "Action" $a.Action  }}(props ... *{{ $.Service }}
 // Error constructors
 
 {{ range $e := $.Errors }}
-{{- if $e.Safe }}
-// {{ camelCase "" $.Service "Err" $e.Error }} returns "{{ $.Resource }}.{{ $e.Safe  }}" audit event as {{ $e.SeverityConstName }}
-{{- else }}
-// {{ camelCase "" $.Service "Err" $e.Error }} returns "{{ $.Resource }}.{{ $e.Error  }}" audit event as {{ $e.SeverityConstName }}
-{{- end }}
+// {{ camelCase "" $.Service "Err" $e.Error }} returns "{{ $.Resource }}.{{ $e.Error  }}" as *errors.Error
 //
-{{- if $e.Safe }}
-// Note: This error will be wrapped with safe ({{ $e.Safe }}) error!
+{{- if $e.MaskedWith }}
+// Note: This error will be wrapped with safe ({{ $.Resource }}.{{ $e.MaskedWith }}) error!
 {{- end }}
 //
 // This function is auto-generated.
 //
-func {{ camelCase "" $.Service "Err" $e.Error }}(props ... *{{ $.Service }}ActionProps) *{{ $.Service }}Error {
-	var e = &{{ $.Service }}Error{
-		timestamp: time.Now(),
-		resource:  "{{ $.Resource }}",
-		error:     "{{ $e.Error }}",
-		action:    "error",
-		message:   "{{ $e.Message }}",
-		log:       "{{ $e.Log }}",
-		severity:  {{ $e.SeverityConstName }},
-		props:     func() *{{ $.Service }}ActionProps { if len(props) > 0 { return props[0] }; return nil}(),
-
-    {{ if $e.HttpStatus }}
-        httpStatusCode: http.{{ $e.HttpStatus }},
-    {{ end }}
+func {{ camelCase "" $.Service "Err" $e.Error }}(mm ... *{{ $.Service }}ActionProps) *errors.Error {
+	var p = &{{ $.Service }}ActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-	    e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		{{ if $e.Message }}p.Format({{ printf "%q" $e.Message }}, nil){{ else }}{{ printf "%q" $e.Error }}{{ end }},
+
+		errors.Meta("type",          {{ printf "%q" $e.Error         }}),
+		errors.Meta("resource",      {{ printf "%q" $.Resource       }}),
+
+		{{ if $e.Documentation }}
+		// link to documentation; formatting applies in case we need some special link formatting
+		errors.Meta("documentation", p.Format({{ printf "%q" $e.Documentation }}, nil)),
+		{{ end -}}
+
+		{{ if $e.Details }}
+		// details, used in detailed eror reporting
+		errors.Meta("details", p.Format({{ printf "%q" $e.Details  }}, nil)),
+		{{ end -}}
+
+
+		{{- if $e.Log }}
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta({{ $.Service }}LogMetaKey{},           {{ printf "%q" $e.Log           }}),
+		{{ end -}}
+
+		errors.Meta({{ $.Service }}PropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
-	{{ if $e.Safe }}
+	{{ if $e.MaskedWith }}
 	// Wrap with safe error
-	return {{ camelCase "" $.Service "Err" $e.Safe }}().Wrap(e)
-	{{ else }}
-	return e
+	e = {{ camelCase "" $.Service "Err" $e.MaskedWith }}().Wrap(e)
 	{{ end }}
+
+	return e
 }
 {{ end }}
 {{ end }}
@@ -395,94 +273,44 @@ func {{ camelCase "" $.Service "Err" $e.Error }}(props ... *{{ $.Service }}Actio
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct {{ $.Service }}Action struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc {{ $.Service }}) recordAction(ctx context.Context, props *{{ $.Service }}ActionProps, action func(... *{{ $.Service }}ActionProps) *{{ $.Service }}Action, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *{{ $.Service }}Error
-
-		// Recorder error
-		recError *{{ $.Service }}Error
-	)
-
-	if err != nil {
-		if retError, ok = err.(*{{ $.Service }}Error); !ok {
-			// got non-{{ $.Service }} error, wrap it with {{ camelCase "" $.Service "err" "generic" }}
-			retError = {{ camelCase "" $.Service "err" "generic" }}(props).Wrap(err)
-
-			if action != nil {
-			    // copy action to returning and recording error
-			    retError.action = action().action
-			}
-
-			// we'll use {{ camelCase "" $.Service "err" "generic" }} for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-                // copy action to returning and recording error
-                retError.action = action().action
-            }
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type {{ $.Service }}Error
-				if unwrappedSinkError, ok := unwrappedError.(*{{ $.Service }}Error); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc {{ $.Service }}) recordAction(ctx context.Context, props *{{ $.Service }}ActionProps, actionFn func(... *{{ $.Service }}ActionProps) *{{ $.Service }}Action, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString({{ $.Service }}LogMetaKey{}), err)
+
+		if p, has := m[{{ $.Service }}PropsMetaKey{}]; has {
+			a.Meta = p.(*{{ $.Service }}ActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+
+	// Original error is passed on
+	return err
 }

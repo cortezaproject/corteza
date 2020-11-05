@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -80,7 +79,7 @@ func (s Store) CreateMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 
 // UpdateMessagingUnread updates one or more existing rows in messaging_unread
 func (s Store) UpdateMessagingUnread(ctx context.Context, rr ...*types.Unread) error {
-	return s.config.ErrorHandler(s.partialMessagingUnreadUpdate(ctx, nil, rr...))
+	return s.partialMessagingUnreadUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingUnreadUpdate updates one or more existing rows in messaging_unread
@@ -98,7 +97,7 @@ func (s Store) partialMessagingUnreadUpdate(ctx context.Context, onlyColumns []s
 			},
 			s.internalMessagingUnreadEncoder(res).Skip("rel_channel", "rel_reply_to", "rel_user").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -113,7 +112,7 @@ func (s Store) UpsertMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingUnreads(ctx, s.internalMessagingUnreadEncoder(res)))
+		err = s.execUpsertMessagingUnreads(ctx, s.internalMessagingUnreadEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -130,7 +129,7 @@ func (s Store) DeleteMessagingUnread(ctx context.Context, rr ...*types.Unread) (
 			s.preprocessColumn("mur.rel_channel", ""): store.PreprocessValue(res.ChannelID, ""), s.preprocessColumn("mur.rel_reply_to", ""): store.PreprocessValue(res.ReplyTo, ""), s.preprocessColumn("mur.rel_user", ""): store.PreprocessValue(res.UserID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -148,7 +147,7 @@ func (s Store) DeleteMessagingUnreadByChannelIDReplyToUserID(ctx context.Context
 
 // TruncateMessagingUnreads Deletes all rows from the messaging_unread table
 func (s Store) TruncateMessagingUnreads(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingUnreadTable()))
+	return s.Truncate(ctx, s.messagingUnreadTable())
 }
 
 // execLookupMessagingUnread prepares MessagingUnread query and executes it,
@@ -173,12 +172,12 @@ func (s Store) execLookupMessagingUnread(ctx context.Context, cnd squirrel.Sqliz
 
 // execCreateMessagingUnreads updates all matched (by cnd) rows in messaging_unread with given data
 func (s Store) execCreateMessagingUnreads(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingUnreadTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingUnreadTable()).SetMap(payload))
 }
 
 // execUpdateMessagingUnreads updates all matched (by cnd) rows in messaging_unread with given data
 func (s Store) execUpdateMessagingUnreads(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingUnreadTable("mur")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingUnreadTable("mur")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingUnreads inserts new or updates matching (by-primary-key) rows in messaging_unread with given data
@@ -196,12 +195,12 @@ func (s Store) execUpsertMessagingUnreads(ctx context.Context, set store.Payload
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingUnreads Deletes all matched (by cnd) rows in messaging_unread with given data
 func (s Store) execDeleteMessagingUnreads(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingUnreadTable("mur")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingUnreadTable("mur")).Where(cnd))
 }
 
 func (s Store) internalMessagingUnreadRowScanner(row rowScanner) (res *types.Unread, err error) {
@@ -221,11 +220,11 @@ func (s Store) internalMessagingUnreadRowScanner(row rowScanner) (res *types.Unr
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingUnread: %w", err)
+		return nil, errors.Store("could not scan messagingUnread db row").Wrap(err)
 	} else {
 		return res, nil
 	}

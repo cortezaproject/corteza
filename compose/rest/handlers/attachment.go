@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -44,101 +42,81 @@ func NewAttachment(h AttachmentAPI) *Attachment {
 			defer r.Body.Close()
 			params := request.NewAttachmentList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Attachment.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Attachment.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Attachment.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Attachment.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Delete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Attachment.Delete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Attachment.Delete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Original: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentOriginal()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Original", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Original(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Attachment.Original", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Attachment.Original", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Preview: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAttachmentPreview()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Attachment.Preview", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Preview(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Attachment.Preview", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Attachment.Preview", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

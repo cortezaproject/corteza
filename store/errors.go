@@ -1,30 +1,32 @@
 package store
 
+import "github.com/cortezaproject/corteza-server/pkg/errors"
+
 type (
-	storeError struct {
-		msg string
-		err error
-	}
+	// each implementation can have internal error handler that can translate
+	// impl. specific errors liker transaction
+	ErrorHandler func(error) error
 )
-
-func (e *storeError) Error() string {
-	return e.msg
-}
-
-func (e *storeError) Unwrap() error {
-	return e.err
-}
-
-func (e *storeError) Wrap(err error) error {
-	e.err = err
-	return e
-}
 
 var (
-	ErrNotFound  = &storeError{msg: "not found"}
-	ErrNotUnique = &storeError{msg: "not unique"}
+	ErrNotFound  = errors.Plain(errors.KindNotFound, "not found")
+	ErrNotUnique = errors.Plain(errors.KindDuplicateData, "not unique")
 )
 
-func WrappedError(err error, msg string, a ...interface{}) error {
-	return &storeError{msg, err}
+func HandleError(err error, h ErrorHandler) error {
+	if err == nil {
+		return nil
+	}
+
+	if h != nil {
+		err = h(err)
+	}
+
+	if _, wrapped := err.(*errors.Error); wrapped {
+		return err
+	}
+
+	return errors.
+		Store("store error").
+		Wrap(err)
 }

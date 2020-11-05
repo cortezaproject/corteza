@@ -2,16 +2,15 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -140,29 +139,29 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 }
 
 func (ctrl Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Delete(r.RoleID)
+	return api.OK(), ctrl.role.With(ctx).Delete(r.RoleID)
 }
 
 func (ctrl Role) Undelete(ctx context.Context, r *request.RoleUndelete) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Undelete(r.RoleID)
+	return api.OK(), ctrl.role.With(ctx).Undelete(r.RoleID)
 }
 
 func (ctrl Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Archive(r.RoleID)
+	return api.OK(), ctrl.role.With(ctx).Archive(r.RoleID)
 }
 
 func (ctrl Role) Unarchive(ctx context.Context, r *request.RoleUnarchive) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).Unarchive(r.RoleID)
+	return api.OK(), ctrl.role.With(ctx).Unarchive(r.RoleID)
 }
 
 // deprecated
 func (ctrl Role) Merge(ctx context.Context, r *request.RoleMerge) (interface{}, error) {
-	return resputil.OK(), nil
+	return api.OK(), nil
 }
 
 // deprecated
 func (ctrl Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, error) {
-	return resputil.OK(), nil
+	return api.OK(), nil
 }
 
 func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
@@ -178,11 +177,11 @@ func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (int
 }
 
 func (ctrl Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
 }
 
 func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }
 
 func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScript) (rsp interface{}, err error) {

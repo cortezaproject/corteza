@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -32,11 +31,11 @@ func (s Store) SearchRbacRules(ctx context.Context, f rbac.RuleFilter) (rbac.Rul
 	)
 	q = s.rbacRulesSelectBuilder()
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryRbacRules(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryRbacRules queries the database, converts and checks each row and
@@ -99,7 +98,7 @@ func (s Store) CreateRbacRule(ctx context.Context, rr ...*rbac.Rule) (err error)
 
 // UpdateRbacRule updates one or more existing rows in rbac_rules
 func (s Store) UpdateRbacRule(ctx context.Context, rr ...*rbac.Rule) error {
-	return s.config.ErrorHandler(s.partialRbacRuleUpdate(ctx, nil, rr...))
+	return s.partialRbacRuleUpdate(ctx, nil, rr...)
 }
 
 // partialRbacRuleUpdate updates one or more existing rows in rbac_rules
@@ -117,7 +116,7 @@ func (s Store) partialRbacRuleUpdate(ctx context.Context, onlyColumns []string, 
 			},
 			s.internalRbacRuleEncoder(res).Skip("rel_role", "resource", "operation").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -132,7 +131,7 @@ func (s Store) UpsertRbacRule(ctx context.Context, rr ...*rbac.Rule) (err error)
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertRbacRules(ctx, s.internalRbacRuleEncoder(res)))
+		err = s.execUpsertRbacRules(ctx, s.internalRbacRuleEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -149,7 +148,7 @@ func (s Store) DeleteRbacRule(ctx context.Context, rr ...*rbac.Rule) (err error)
 			s.preprocessColumn("rls.rel_role", ""): store.PreprocessValue(res.RoleID, ""), s.preprocessColumn("rls.resource", ""): store.PreprocessValue(res.Resource, ""), s.preprocessColumn("rls.operation", ""): store.PreprocessValue(res.Operation, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -167,7 +166,7 @@ func (s Store) DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, role
 
 // TruncateRbacRules Deletes all rows from the rbac_rules table
 func (s Store) TruncateRbacRules(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.rbacRuleTable()))
+	return s.Truncate(ctx, s.rbacRuleTable())
 }
 
 // execLookupRbacRule prepares RbacRule query and executes it,
@@ -192,12 +191,12 @@ func (s Store) execLookupRbacRule(ctx context.Context, cnd squirrel.Sqlizer) (re
 
 // execCreateRbacRules updates all matched (by cnd) rows in rbac_rules with given data
 func (s Store) execCreateRbacRules(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.rbacRuleTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.rbacRuleTable()).SetMap(payload))
 }
 
 // execUpdateRbacRules updates all matched (by cnd) rows in rbac_rules with given data
 func (s Store) execUpdateRbacRules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.rbacRuleTable("rls")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.rbacRuleTable("rls")).Where(cnd).SetMap(set))
 }
 
 // execUpsertRbacRules inserts new or updates matching (by-primary-key) rows in rbac_rules with given data
@@ -215,12 +214,12 @@ func (s Store) execUpsertRbacRules(ctx context.Context, set store.Payload) error
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteRbacRules Deletes all matched (by cnd) rows in rbac_rules with given data
 func (s Store) execDeleteRbacRules(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.rbacRuleTable("rls")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.rbacRuleTable("rls")).Where(cnd))
 }
 
 func (s Store) internalRbacRuleRowScanner(row rowScanner) (res *rbac.Rule, err error) {
@@ -239,11 +238,11 @@ func (s Store) internalRbacRuleRowScanner(row rowScanner) (res *rbac.Rule, err e
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for RbacRule: %w", err)
+		return nil, errors.Store("could not scan rbacRule db row").Wrap(err)
 	} else {
 		return res, nil
 	}

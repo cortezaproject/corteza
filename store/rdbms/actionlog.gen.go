@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -51,7 +50,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 		&filter.SortExpr{Column: "id", Descending: !reversedCursor},
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfActionlogs(ctx, q, curSort, f.PageCursor, f.Limit, nil)
 
 		if err != nil {
@@ -71,7 +70,7 @@ func (s Store) SearchActionlogs(ctx context.Context, f actionlog.Filter) (action
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfActionlogs collects all requested results.
@@ -227,7 +226,7 @@ func (s Store) CreateActionlog(ctx context.Context, rr ...*actionlog.Action) (er
 
 // TruncateActionlogs Deletes all rows from the actionlog table
 func (s Store) TruncateActionlogs(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.actionlogTable()))
+	return s.Truncate(ctx, s.actionlogTable())
 }
 
 // execLookupActionlog prepares Actionlog query and executes it,
@@ -252,7 +251,7 @@ func (s Store) execLookupActionlog(ctx context.Context, cnd squirrel.Sqlizer) (r
 
 // execCreateActionlogs updates all matched (by cnd) rows in actionlog with given data
 func (s Store) execCreateActionlogs(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.actionlogTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.actionlogTable()).SetMap(payload))
 }
 
 func (s Store) internalActionlogRowScanner(row rowScanner) (res *actionlog.Action, err error) {
@@ -266,11 +265,11 @@ func (s Store) internalActionlogRowScanner(row rowScanner) (res *actionlog.Actio
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Actionlog: %w", err)
+		return nil, errors.Store("could not scan actionlog db row").Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
@@ -130,7 +130,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 				aam.setCredentials(c)
 
 				if u, err = store.LookupUserByID(ctx, svc.store, c.OwnerID); err != nil {
-					if errors.Is(err, store.ErrNotFound) {
+					if errors.IsNotFound(err) {
 						// Orphaned credentials (no owner)
 						// try to auto-fix this by removing credentials and recreating user
 						if err = store.DeleteCredentialsByID(ctx, svc.store, c.ID); err != nil {
@@ -188,7 +188,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 			setUser(nil)
 
 		// Find user via his email
-		if u, err = store.LookupUserByEmail(ctx, svc.store, profile.Email); errors.Is(err, store.ErrNotFound) {
+		if u, err = store.LookupUserByEmail(ctx, svc.store, profile.Email); errors.IsNotFound(err) {
 			// @todo check if it is ok to auto-create a user here
 			if err = svc.CanRegister(ctx); err != nil {
 				return AuthErrSubscription(aam).Wrap(err)
@@ -367,7 +367,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			// }
 			//
 			// return nil,nil
-		} else if !errors.Is(err, store.ErrNotFound) {
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 
@@ -462,7 +462,7 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		)
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
-		if errors.Is(err, store.ErrNotFound) {
+		if errors.IsNotFound(err) {
 			return AuthErrFailedForUnknownUser()
 		}
 
@@ -542,7 +542,7 @@ func (svc auth) SetPassword(ctx context.Context, userID uint64, password string)
 		}
 
 		u, err = store.LookupUserByID(ctx, svc.store, userID)
-		if errors.Is(err, store.ErrNotFound) {
+		if errors.IsNotFound(err) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
 
@@ -605,7 +605,7 @@ func (svc auth) ChangePassword(ctx context.Context, userID uint64, oldPassword, 
 		}
 
 		u, err = store.LookupUserByID(ctx, svc.store, userID)
-		if errors.Is(err, store.ErrNotFound) {
+		if errors.IsNotFound(err) {
 			return AuthErrPasswordChangeFailedForUnknownUser(aam)
 		}
 
@@ -913,7 +913,7 @@ func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *t
 	}
 
 	c, err := store.LookupCredentialsByID(ctx, svc.store, credentialsID)
-	if errors.Is(err, store.ErrNotFound) {
+	if errors.IsNotFound(err) {
 		return nil, AuthErrInvalidToken(aam)
 	}
 

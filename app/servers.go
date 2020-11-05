@@ -5,7 +5,7 @@ import (
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/go-chi/chi"
@@ -18,7 +18,7 @@ func (app *CortezaApp) Serve(ctx context.Context) (err error) {
 
 	{
 		// @todo refactor wait-for out of HTTP API server.
-		app.HttpServer = api.New(app.Log, app.Opt.HTTPServer, app.Opt.WaitFor)
+		app.HttpServer = server.New(app.Log, app.Opt.Environment, app.Opt.HTTPServer, app.Opt.WaitFor)
 		app.HttpServer.MountRoutes(app.mountHttpRoutes)
 
 		wg.Add(1)

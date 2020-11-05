@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -41,19 +40,8 @@ type (
 		props *notificationActionProps
 	}
 
-	notificationError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *notificationActionProps
-	}
+	notificationLogMetaKey   struct{}
+	notificationPropsMetaKey struct{}
 )
 
 var (
@@ -119,11 +107,11 @@ func (p *notificationActionProps) setAttachmentType(attachmentType string) *noti
 	return p
 }
 
-// serialize converts notificationActionProps to actionlog.Meta
+// Serialize converts notificationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p notificationActionProps) serialize() actionlog.Meta {
+func (p notificationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -149,7 +137,7 @@ func (p notificationActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p notificationActionProps) tr(in string, err error) string {
+func (p notificationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -165,16 +153,6 @@ func (p notificationActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -225,107 +203,16 @@ func (a *notificationAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *notificationAction) LoggableAction() *actionlog.Action {
+func (e *notificationAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *notificationError) String() string {
-	var props = &notificationActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *notificationError) Error() string {
-	var props = &notificationActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *notificationError) Is(err error) bool {
-	t, ok := err.(*notificationError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *notificationError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps notificationError around another error
-//
-// This function is auto-generated.
-//
-func (e *notificationError) Wrap(err error) *notificationError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *notificationError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *notificationError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -333,7 +220,7 @@ func (e *notificationError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// NotificationActionSend returns "compose:notification.send" error
+// NotificationActionSend returns "compose:notification.send" action
 //
 // This function is auto-generated.
 //
@@ -353,7 +240,7 @@ func NotificationActionSend(props ...*notificationActionProps) *notificationActi
 	return a
 }
 
-// NotificationActionAttachmentDownload returns "compose:notification.attachmentDownload" error
+// NotificationActionAttachmentDownload returns "compose:notification.attachmentDownload" action
 //
 // This function is auto-generated.
 //
@@ -377,154 +264,156 @@ func NotificationActionAttachmentDownload(props ...*notificationActionProps) *no
 // *********************************************************************************************************************
 // Error constructors
 
-// NotificationErrGeneric returns "compose:notification.generic" audit event as actionlog.Error
+// NotificationErrGeneric returns "compose:notification.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NotificationErrGeneric(props ...*notificationActionProps) *notificationError {
-	var e = &notificationError{
-		timestamp: time.Now(),
-		resource:  "compose:notification",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *notificationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:notification"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(notificationLogMetaKey{}, "{err}"),
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NotificationErrFailedToLoadUser returns "compose:notification.failedToLoadUser" audit event as actionlog.Error
+// NotificationErrFailedToLoadUser returns "compose:notification.failedToLoadUser" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NotificationErrFailedToLoadUser(props ...*notificationActionProps) *notificationError {
-	var e = &notificationError{
-		timestamp: time.Now(),
-		resource:  "compose:notification",
-		error:     "failedToLoadUser",
-		action:    "error",
-		message:   "could not load user for {recipient}",
-		log:       "could not load user for {recipient}",
-		severity:  actionlog.Error,
-		props: func() *notificationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NotificationErrFailedToLoadUser(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("could not load user for {recipient}", nil),
+
+		errors.Meta("type", "failedToLoadUser"),
+		errors.Meta("resource", "compose:notification"),
+
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NotificationErrInvalidReceipientFormat returns "compose:notification.invalidReceipientFormat" audit event as actionlog.Error
+// NotificationErrInvalidReceipientFormat returns "compose:notification.invalidReceipientFormat" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NotificationErrInvalidReceipientFormat(props ...*notificationActionProps) *notificationError {
-	var e = &notificationError{
-		timestamp: time.Now(),
-		resource:  "compose:notification",
-		error:     "invalidReceipientFormat",
-		action:    "error",
-		message:   "invalid recipient format ({recipient})",
-		log:       "invalid recipient format ({recipient})",
-		severity:  actionlog.Error,
-		props: func() *notificationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NotificationErrInvalidReceipientFormat(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid recipient format ({recipient})", nil),
+
+		errors.Meta("type", "invalidReceipientFormat"),
+		errors.Meta("resource", "compose:notification"),
+
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NotificationErrNoRecipients returns "compose:notification.noRecipients" audit event as actionlog.Error
+// NotificationErrNoRecipients returns "compose:notification.noRecipients" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NotificationErrNoRecipients(props ...*notificationActionProps) *notificationError {
-	var e = &notificationError{
-		timestamp: time.Now(),
-		resource:  "compose:notification",
-		error:     "noRecipients",
-		action:    "error",
-		message:   "can not send email message without recipients",
-		log:       "can not send email message without recipients",
-		severity:  actionlog.Error,
-		props: func() *notificationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NotificationErrNoRecipients(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("can not send email message without recipients", nil),
+
+		errors.Meta("type", "noRecipients"),
+		errors.Meta("resource", "compose:notification"),
+
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NotificationErrFailedToDownloadAttachment returns "compose:notification.failedToDownloadAttachment" audit event as actionlog.Error
+// NotificationErrFailedToDownloadAttachment returns "compose:notification.failedToDownloadAttachment" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NotificationErrFailedToDownloadAttachment(props ...*notificationActionProps) *notificationError {
-	var e = &notificationError{
-		timestamp: time.Now(),
-		resource:  "compose:notification",
-		error:     "failedToDownloadAttachment",
-		action:    "error",
-		message:   "could not download attachment from {attachmentURL}: {err}",
-		log:       "could not download attachment from {attachmentURL}: {err}",
-		severity:  actionlog.Error,
-		props: func() *notificationActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NotificationErrFailedToDownloadAttachment(mm ...*notificationActionProps) *errors.Error {
+	var p = &notificationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("could not download attachment from {attachmentURL}: {err}", nil),
+
+		errors.Meta("type", "failedToDownloadAttachment"),
+		errors.Meta("resource", "compose:notification"),
+
+		errors.Meta(notificationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -532,94 +421,42 @@ func NotificationErrFailedToDownloadAttachment(props ...*notificationActionProps
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct notificationAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, action func(...*notificationActionProps) *notificationAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *notificationError
-
-		// Recorder error
-		recError *notificationError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*notificationError); !ok {
-			// got non-notification error, wrap it with NotificationErrGeneric
-			retError = NotificationErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use NotificationErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type notificationError
-				if unwrappedSinkError, ok := unwrappedError.(*notificationError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc notification) recordAction(ctx context.Context, props *notificationActionProps, actionFn func(...*notificationActionProps) *notificationAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(notificationLogMetaKey{}), err)
+
+		if p, has := m[notificationPropsMetaKey{}]; has {
+			a.Meta = p.(*notificationActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

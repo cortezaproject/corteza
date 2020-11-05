@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -40,61 +38,49 @@ func NewAutomation(h AutomationAPI) *Automation {
 			defer r.Body.Close()
 			params := request.NewAutomationList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Automation.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Automation.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Automation.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Bundle: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAutomationBundle()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Automation.Bundle", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Bundle(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Automation.Bundle", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Automation.Bundle", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewAutomationTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Automation.TriggerScript", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Automation.TriggerScript", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Automation.TriggerScript", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

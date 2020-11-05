@@ -16,6 +16,7 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
+	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/disintegration/imaging v1.6.0
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
@@ -43,7 +44,6 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.50.0
-	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -52,7 +52,6 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
-	github.com/rakyll/gotest v0.0.5 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/sony/sonyflake v0.0.0-20181109022403-6d5bd6181009
@@ -63,7 +62,6 @@ require (
 	github.com/steinfletcher/apitest v1.3.8
 	github.com/steinfletcher/apitest-jsonpath v1.3.0
 	github.com/stretchr/testify v1.6.1
-	github.com/titpetric/factory v0.0.0-20190828134837-8466c9bef13f
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5

@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryComposeRecordValues(ctx, _mod, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryComposeRecordValues queries the database, converts and checks each row and
@@ -102,7 +101,7 @@ func (s Store) createComposeRecordValue(ctx context.Context, _mod *types.Module,
 
 // updateComposeRecordValue updates one or more existing rows in compose_record_value
 func (s Store) updateComposeRecordValue(ctx context.Context, _mod *types.Module, rr ...*types.RecordValue) error {
-	return s.config.ErrorHandler(s.partialComposeRecordValueUpdate(ctx, _mod, nil, rr...))
+	return s.partialComposeRecordValueUpdate(ctx, _mod, nil, rr...)
 }
 
 // partialComposeRecordValueUpdate updates one or more existing rows in compose_record_value
@@ -120,7 +119,7 @@ func (s Store) partialComposeRecordValueUpdate(ctx context.Context, _mod *types.
 			},
 			s.internalComposeRecordValueEncoder(res).Skip("record_id", "name", "place").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -135,7 +134,7 @@ func (s Store) upsertComposeRecordValue(ctx context.Context, _mod *types.Module,
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeRecordValues(ctx, s.internalComposeRecordValueEncoder(res)))
+		err = s.execUpsertComposeRecordValues(ctx, s.internalComposeRecordValueEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -152,7 +151,7 @@ func (s Store) deleteComposeRecordValue(ctx context.Context, _mod *types.Module,
 			s.preprocessColumn("crv.record_id", ""): store.PreprocessValue(res.RecordID, ""), s.preprocessColumn("crv.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("crv.place", ""): store.PreprocessValue(res.Place, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -170,7 +169,7 @@ func (s Store) deleteComposeRecordValueByRecordIDNamePlace(ctx context.Context, 
 
 // truncateComposeRecordValues Deletes all rows from the compose_record_value table
 func (s Store) truncateComposeRecordValues(ctx context.Context, _mod *types.Module) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeRecordValueTable()))
+	return s.Truncate(ctx, s.composeRecordValueTable())
 }
 
 // execLookupComposeRecordValue prepares ComposeRecordValue query and executes it,
@@ -195,12 +194,12 @@ func (s Store) execLookupComposeRecordValue(ctx context.Context, _mod *types.Mod
 
 // execCreateComposeRecordValues updates all matched (by cnd) rows in compose_record_value with given data
 func (s Store) execCreateComposeRecordValues(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeRecordValueTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeRecordValueTable()).SetMap(payload))
 }
 
 // execUpdateComposeRecordValues updates all matched (by cnd) rows in compose_record_value with given data
 func (s Store) execUpdateComposeRecordValues(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeRecordValueTable("crv")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeRecordValueTable("crv")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeRecordValues inserts new or updates matching (by-primary-key) rows in compose_record_value with given data
@@ -218,12 +217,12 @@ func (s Store) execUpsertComposeRecordValues(ctx context.Context, set store.Payl
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeRecordValues Deletes all matched (by cnd) rows in compose_record_value with given data
 func (s Store) execDeleteComposeRecordValues(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeRecordValueTable("crv")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeRecordValueTable("crv")).Where(cnd))
 }
 
 func (s Store) internalComposeRecordValueRowScanner(_mod *types.Module, row rowScanner) (res *types.RecordValue, err error) {
@@ -244,11 +243,11 @@ func (s Store) internalComposeRecordValueRowScanner(_mod *types.Module, row rowS
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeRecordValue: %w", err)
+		return nil, errors.Store("could not scan composeRecordValue db row").Wrap(err)
 	} else {
 		return res, nil
 	}

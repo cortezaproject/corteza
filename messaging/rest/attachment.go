@@ -2,12 +2,11 @@ package rest
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -65,7 +64,7 @@ func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download b
 	return func(w http.ResponseWriter, req *http.Request) {
 		att, err := ctrl.att.With(ctx).FindByID(ID)
 		if err != nil {
-			if errors.Is(err, store.ErrNotFound) {
+			if errors.IsNotFound(err) {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				http.Error(w, err.Error(), http.StatusInternalServerError)

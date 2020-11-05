@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchMessagingMentions(ctx context.Context, f types.MentionFilte
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryMessagingMentions(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryMessagingMentions queries the database, converts and checks each row and
@@ -111,7 +110,7 @@ func (s Store) CreateMessagingMention(ctx context.Context, rr ...*types.Mention)
 
 // UpdateMessagingMention updates one or more existing rows in messaging_mention
 func (s Store) UpdateMessagingMention(ctx context.Context, rr ...*types.Mention) error {
-	return s.config.ErrorHandler(s.partialMessagingMentionUpdate(ctx, nil, rr...))
+	return s.partialMessagingMentionUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingMentionUpdate updates one or more existing rows in messaging_mention
@@ -129,7 +128,7 @@ func (s Store) partialMessagingMentionUpdate(ctx context.Context, onlyColumns []
 			},
 			s.internalMessagingMentionEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -144,7 +143,7 @@ func (s Store) UpsertMessagingMention(ctx context.Context, rr ...*types.Mention)
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingMentions(ctx, s.internalMessagingMentionEncoder(res)))
+		err = s.execUpsertMessagingMentions(ctx, s.internalMessagingMentionEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -161,7 +160,7 @@ func (s Store) DeleteMessagingMention(ctx context.Context, rr ...*types.Mention)
 			s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -177,7 +176,7 @@ func (s Store) DeleteMessagingMentionByID(ctx context.Context, ID uint64) error 
 
 // TruncateMessagingMentions Deletes all rows from the messaging_mention table
 func (s Store) TruncateMessagingMentions(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingMentionTable()))
+	return s.Truncate(ctx, s.messagingMentionTable())
 }
 
 // execLookupMessagingMention prepares MessagingMention query and executes it,
@@ -202,12 +201,12 @@ func (s Store) execLookupMessagingMention(ctx context.Context, cnd squirrel.Sqli
 
 // execCreateMessagingMentions updates all matched (by cnd) rows in messaging_mention with given data
 func (s Store) execCreateMessagingMentions(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingMentionTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingMentionTable()).SetMap(payload))
 }
 
 // execUpdateMessagingMentions updates all matched (by cnd) rows in messaging_mention with given data
 func (s Store) execUpdateMessagingMentions(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingMentionTable("msg")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingMentionTable("msg")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingMentions inserts new or updates matching (by-primary-key) rows in messaging_mention with given data
@@ -223,12 +222,12 @@ func (s Store) execUpsertMessagingMentions(ctx context.Context, set store.Payloa
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingMentions Deletes all matched (by cnd) rows in messaging_mention with given data
 func (s Store) execDeleteMessagingMentions(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingMentionTable("msg")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingMentionTable("msg")).Where(cnd))
 }
 
 func (s Store) internalMessagingMentionRowScanner(row rowScanner) (res *types.Mention, err error) {
@@ -249,11 +248,11 @@ func (s Store) internalMessagingMentionRowScanner(row rowScanner) (res *types.Me
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingMention: %w", err)
+		return nil, errors.Store("could not scan messagingMention db row").Wrap(err)
 	} else {
 		return res, nil
 	}

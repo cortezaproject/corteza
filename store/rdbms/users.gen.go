@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -53,7 +52,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfUsers(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfUsers collects all requested results.
@@ -285,7 +284,7 @@ func (s Store) CreateUser(ctx context.Context, rr ...*types.User) (err error) {
 
 // UpdateUser updates one or more existing rows in users
 func (s Store) UpdateUser(ctx context.Context, rr ...*types.User) error {
-	return s.config.ErrorHandler(s.partialUserUpdate(ctx, nil, rr...))
+	return s.partialUserUpdate(ctx, nil, rr...)
 }
 
 // partialUserUpdate updates one or more existing rows in users
@@ -303,7 +302,7 @@ func (s Store) partialUserUpdate(ctx context.Context, onlyColumns []string, rr .
 			},
 			s.internalUserEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -318,7 +317,7 @@ func (s Store) UpsertUser(ctx context.Context, rr ...*types.User) (err error) {
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertUsers(ctx, s.internalUserEncoder(res)))
+		err = s.execUpsertUsers(ctx, s.internalUserEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -335,7 +334,7 @@ func (s Store) DeleteUser(ctx context.Context, rr ...*types.User) (err error) {
 			s.preprocessColumn("usr.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -351,7 +350,7 @@ func (s Store) DeleteUserByID(ctx context.Context, ID uint64) error {
 
 // TruncateUsers Deletes all rows from the users table
 func (s Store) TruncateUsers(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.userTable()))
+	return s.Truncate(ctx, s.userTable())
 }
 
 // execLookupUser prepares User query and executes it,
@@ -376,12 +375,12 @@ func (s Store) execLookupUser(ctx context.Context, cnd squirrel.Sqlizer) (res *t
 
 // execCreateUsers updates all matched (by cnd) rows in users with given data
 func (s Store) execCreateUsers(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.userTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.userTable()).SetMap(payload))
 }
 
 // execUpdateUsers updates all matched (by cnd) rows in users with given data
 func (s Store) execUpdateUsers(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.userTable("usr")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.userTable("usr")).Where(cnd).SetMap(set))
 }
 
 // execUpsertUsers inserts new or updates matching (by-primary-key) rows in users with given data
@@ -397,12 +396,12 @@ func (s Store) execUpsertUsers(ctx context.Context, set store.Payload) error {
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteUsers Deletes all matched (by cnd) rows in users with given data
 func (s Store) execDeleteUsers(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.userTable("usr")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.userTable("usr")).Where(cnd))
 }
 
 func (s Store) internalUserRowScanner(row rowScanner) (res *types.User, err error) {
@@ -429,11 +428,11 @@ func (s Store) internalUserRowScanner(row rowScanner) (res *types.User, err erro
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for User: %w", err)
+		return nil, errors.Store("could not scan user db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -611,8 +610,8 @@ func (s *Store) checkUserConstraints(ctx context.Context, res *types.User) error
 	{
 		ex, err := s.LookupUserByEmail(ctx, res.Email)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -620,8 +619,8 @@ func (s *Store) checkUserConstraints(ctx context.Context, res *types.User) error
 	{
 		ex, err := s.LookupUserByHandle(ctx, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}
@@ -629,8 +628,8 @@ func (s *Store) checkUserConstraints(ctx context.Context, res *types.User) error
 	{
 		ex, err := s.LookupUserByUsername(ctx, res.Username)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

@@ -34,6 +34,7 @@ func TestMessagesDelete_forbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, msg.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).
@@ -73,6 +74,7 @@ func TestMessagesDeleteOwnThreadMessage_forbiddenNotOwner(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, thrMsg.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).
@@ -114,6 +116,7 @@ func TestMessagesDeleteThreadMessage_forbiddenNotOwner(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, thrMsg.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("messaging.service.NoPermissions")).

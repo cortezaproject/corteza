@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -35,11 +34,11 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryCredentials(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryCredentials queries the database, converts and checks each row and
@@ -111,7 +110,7 @@ func (s Store) CreateCredentials(ctx context.Context, rr ...*types.Credentials) 
 
 // UpdateCredentials updates one or more existing rows in credentials
 func (s Store) UpdateCredentials(ctx context.Context, rr ...*types.Credentials) error {
-	return s.config.ErrorHandler(s.partialCredentialsUpdate(ctx, nil, rr...))
+	return s.partialCredentialsUpdate(ctx, nil, rr...)
 }
 
 // partialCredentialsUpdate updates one or more existing rows in credentials
@@ -129,7 +128,7 @@ func (s Store) partialCredentialsUpdate(ctx context.Context, onlyColumns []strin
 			},
 			s.internalCredentialsEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -144,7 +143,7 @@ func (s Store) UpsertCredentials(ctx context.Context, rr ...*types.Credentials) 
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertCredentials(ctx, s.internalCredentialsEncoder(res)))
+		err = s.execUpsertCredentials(ctx, s.internalCredentialsEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -161,7 +160,7 @@ func (s Store) DeleteCredentials(ctx context.Context, rr ...*types.Credentials) 
 			s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -177,7 +176,7 @@ func (s Store) DeleteCredentialsByID(ctx context.Context, ID uint64) error {
 
 // TruncateCredentials Deletes all rows from the credentials table
 func (s Store) TruncateCredentials(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.credentialsTable()))
+	return s.Truncate(ctx, s.credentialsTable())
 }
 
 // execLookupCredentials prepares Credentials query and executes it,
@@ -202,12 +201,12 @@ func (s Store) execLookupCredentials(ctx context.Context, cnd squirrel.Sqlizer) 
 
 // execCreateCredentials updates all matched (by cnd) rows in credentials with given data
 func (s Store) execCreateCredentials(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.credentialsTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.credentialsTable()).SetMap(payload))
 }
 
 // execUpdateCredentials updates all matched (by cnd) rows in credentials with given data
 func (s Store) execUpdateCredentials(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.credentialsTable("crd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.credentialsTable("crd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertCredentials inserts new or updates matching (by-primary-key) rows in credentials with given data
@@ -223,12 +222,12 @@ func (s Store) execUpsertCredentials(ctx context.Context, set store.Payload) err
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteCredentials Deletes all matched (by cnd) rows in credentials with given data
 func (s Store) execDeleteCredentials(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.credentialsTable("crd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.credentialsTable("crd")).Where(cnd))
 }
 
 func (s Store) internalCredentialsRowScanner(row rowScanner) (res *types.Credentials, err error) {
@@ -254,11 +253,11 @@ func (s Store) internalCredentialsRowScanner(row rowScanner) (res *types.Credent
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Credentials: %w", err)
+		return nil, errors.Store("could not scan credentials db row").Wrap(err)
 	} else {
 		return res, nil
 	}

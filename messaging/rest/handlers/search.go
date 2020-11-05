@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -38,41 +36,33 @@ func NewSearch(h SearchAPI) *Search {
 			defer r.Body.Close()
 			params := request.NewSearchMessages()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Search.Messages", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Messages(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Search.Messages", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Search.Messages", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Threads: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewSearchThreads()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Search.Threads", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Threads(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Search.Threads", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Search.Threads", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

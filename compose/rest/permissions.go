@@ -2,8 +2,7 @@ package rest
 
 import (
 	"context"
-
-	"github.com/titpetric/factory/resputil"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -53,7 +52,7 @@ func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete
 		return nil
 	})
 
-	return resputil.OK(), ctrl.ac.Grant(ctx, rr...)
+	return api.OK(), ctrl.ac.Grant(ctx, rr...)
 }
 
 func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
@@ -64,5 +63,5 @@ func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate
 		return nil
 	})
 
-	return resputil.OK(), ctrl.ac.Grant(ctx, rr...)
+	return api.OK(), ctrl.ac.Grant(ctx, rr...)
 }

@@ -39,7 +39,7 @@ type (
 		// Type of action
 		Action string `json:"action"`
 
-		// Type of error
+		// Error, if any
 		Error string `json:"error"`
 
 		// Action severity
@@ -85,7 +85,7 @@ const (
 	Debug
 )
 
-func (a *Action) LoggableAction() *Action { return a }
+func (a *Action) ToAction() *Action { return a }
 
 // Set value as key to meta, or skip it if value is empty (and omitempty is set)
 func (m Meta) Set(key string, in interface{}, omitempty bool) {
@@ -187,4 +187,27 @@ func (m Meta) Set(key string, in interface{}, omitempty bool) {
 	// for the rest (slices, etc..)
 	// just set the value
 	m[key] = in
+}
+
+func (s Severity) String() string {
+	switch s {
+	case Emergency:
+		return "emergency"
+	case Alert:
+		return "alert"
+	case Critical:
+		return "critical"
+	case Error:
+		return "err"
+	case Warning:
+		return "warning"
+	case Notice:
+		return "notice"
+	case Info:
+		return "info"
+	case Debug:
+		return "debug"
+	}
+
+	return ""
 }

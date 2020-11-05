@@ -160,9 +160,7 @@ func NewAuthExchangeAuthToken() *AuthExchangeAuthToken {
 
 // Auditable returns all auditable/loggable parameters
 func (r AuthExchangeAuthToken) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"token": r.Token,
-	}
+	return map[string]interface{}{}
 }
 
 // Auditable returns all auditable/loggable parameters

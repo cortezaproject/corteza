@@ -2,14 +2,13 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -125,7 +124,7 @@ func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (i
 		return nil, err
 	}
 
-	return resputil.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
+	return api.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
 }
 
 func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTriggerScript) (rsp interface{}, err error) {

@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/mime"
@@ -17,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/titpetric/factory/resputil"
 	"net/http"
 	"path"
 	"strconv"
@@ -233,7 +233,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID, r.RecordID)
+	return api.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID, r.RecordID)
 }
 
 func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
@@ -241,7 +241,7 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 		return nil, fmt.Errorf("pending implementation")
 	}
 
-	return resputil.OK(), ctrl.record.With(ctx).DeleteByID(
+	return api.OK(), ctrl.record.With(ctx).DeleteByID(
 		r.NamespaceID,
 		r.ModuleID,
 		payload.ParseUint64s(r.RecordIDs)...,
@@ -477,7 +477,7 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 
 	switch r.Procedure {
 	case "organize":
-		return resputil.OK(), ctrl.record.With(ctx).Organize(
+		return api.OK(), ctrl.record.With(ctx).Organize(
 			r.NamespaceID,
 			r.ModuleID,
 			aa.GetUint64("recordID"),
@@ -519,7 +519,7 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 	err = corredor.Service().ExecIterator(ctx, r.Script)
 
 	// Script can return modified record and we'll pass it on to the caller
-	return resputil.OK(), err
+	return api.OK(), err
 }
 
 func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err error, rr ...*types.Record) (*recordPayload, error) {

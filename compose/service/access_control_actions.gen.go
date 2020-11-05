@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -37,19 +36,8 @@ type (
 		props *accessControlActionProps
 	}
 
-	accessControlError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *accessControlActionProps
-	}
+	accessControlLogMetaKey   struct{}
+	accessControlPropsMetaKey struct{}
 )
 
 var (
@@ -71,11 +59,11 @@ func (p *accessControlActionProps) setRule(rule *rbac.Rule) *accessControlAction
 	return p
 }
 
-// serialize converts accessControlActionProps to actionlog.Meta
+// Serialize converts accessControlActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p accessControlActionProps) serialize() actionlog.Meta {
+func (p accessControlActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -94,7 +82,7 @@ func (p accessControlActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p accessControlActionProps) tr(in string, err error) string {
+func (p accessControlActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -110,16 +98,6 @@ func (p accessControlActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -160,107 +138,16 @@ func (a *accessControlAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *accessControlAction) LoggableAction() *actionlog.Action {
+func (e *accessControlAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) String() string {
-	var props = &accessControlActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) Error() string {
-	var props = &accessControlActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) Is(err error) bool {
-	t, ok := err.(*accessControlError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps accessControlError around another error
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) Wrap(err error) *accessControlError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *accessControlError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *accessControlError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -268,7 +155,7 @@ func (e *accessControlError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// AccessControlActionGrant returns "compose:access_control.grant" error
+// AccessControlActionGrant returns "compose:access_control.grant" action
 //
 // This function is auto-generated.
 //
@@ -292,64 +179,66 @@ func AccessControlActionGrant(props ...*accessControlActionProps) *accessControl
 // *********************************************************************************************************************
 // Error constructors
 
-// AccessControlErrGeneric returns "compose:access_control.generic" audit event as actionlog.Error
+// AccessControlErrGeneric returns "compose:access_control.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AccessControlErrGeneric(props ...*accessControlActionProps) *accessControlError {
-	var e = &accessControlError{
-		timestamp: time.Now(),
-		resource:  "compose:access_control",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *accessControlActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AccessControlErrGeneric(mm ...*accessControlActionProps) *errors.Error {
+	var p = &accessControlActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:access_control"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(accessControlLogMetaKey{}, "{err}"),
+		errors.Meta(accessControlPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// AccessControlErrNotAllowedToSetPermissions returns "compose:access_control.notAllowedToSetPermissions" audit event as actionlog.Alert
+// AccessControlErrNotAllowedToSetPermissions returns "compose:access_control.notAllowedToSetPermissions" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AccessControlErrNotAllowedToSetPermissions(props ...*accessControlActionProps) *accessControlError {
-	var e = &accessControlError{
-		timestamp: time.Now(),
-		resource:  "compose:access_control",
-		error:     "notAllowedToSetPermissions",
-		action:    "error",
-		message:   "not allowed to set permissions",
-		log:       "not allowed to set permissions",
-		severity:  actionlog.Alert,
-		props: func() *accessControlActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func AccessControlErrNotAllowedToSetPermissions(mm ...*accessControlActionProps) *errors.Error {
+	var p = &accessControlActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to set permissions", nil),
+
+		errors.Meta("type", "notAllowedToSetPermissions"),
+		errors.Meta("resource", "compose:access_control"),
+
+		errors.Meta(accessControlPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -357,94 +246,42 @@ func AccessControlErrNotAllowedToSetPermissions(props ...*accessControlActionPro
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct accessControlAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc accessControl) recordAction(ctx context.Context, props *accessControlActionProps, action func(...*accessControlActionProps) *accessControlAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *accessControlError
-
-		// Recorder error
-		recError *accessControlError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*accessControlError); !ok {
-			// got non-accessControl error, wrap it with AccessControlErrGeneric
-			retError = AccessControlErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use AccessControlErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type accessControlError
-				if unwrappedSinkError, ok := unwrappedError.(*accessControlError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc accessControl) recordAction(ctx context.Context, props *accessControlActionProps, actionFn func(...*accessControlActionProps) *accessControlAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(accessControlLogMetaKey{}), err)
+
+		if p, has := m[accessControlPropsMetaKey{}]; has {
+			a.Meta = p.(*accessControlActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

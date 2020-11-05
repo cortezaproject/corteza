@@ -218,7 +218,6 @@ func NewMessageCreate() *MessageCreate {
 func (r MessageCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"channelID": r.ChannelID,
-		"message":   r.Message,
 	}
 }
 
@@ -451,7 +450,6 @@ func (r MessageEdit) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"channelID": r.ChannelID,
 		"messageID": r.MessageID,
-		"message":   r.Message,
 	}
 }
 
@@ -586,7 +584,6 @@ func (r MessageReplyCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"channelID": r.ChannelID,
 		"messageID": r.MessageID,
-		"message":   r.Message,
 	}
 }
 

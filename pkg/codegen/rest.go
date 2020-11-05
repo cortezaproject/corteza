@@ -56,6 +56,8 @@ type (
 		Title    string `yaml:"title"`
 		Origin   string
 
+		Sensitive bool `yaml:"sensitive"`
+
 		DefinedParser string `yaml:"parser"`
 	}
 )

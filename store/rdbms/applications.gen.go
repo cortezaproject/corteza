@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -53,7 +52,7 @@ func (s Store) SearchApplications(ctx context.Context, f types.ApplicationFilter
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfApplications(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchApplications(ctx context.Context, f types.ApplicationFilter
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfApplications collects all requested results.
@@ -249,7 +248,7 @@ func (s Store) CreateApplication(ctx context.Context, rr ...*types.Application) 
 
 // UpdateApplication updates one or more existing rows in applications
 func (s Store) UpdateApplication(ctx context.Context, rr ...*types.Application) error {
-	return s.config.ErrorHandler(s.partialApplicationUpdate(ctx, nil, rr...))
+	return s.partialApplicationUpdate(ctx, nil, rr...)
 }
 
 // partialApplicationUpdate updates one or more existing rows in applications
@@ -267,7 +266,7 @@ func (s Store) partialApplicationUpdate(ctx context.Context, onlyColumns []strin
 			},
 			s.internalApplicationEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -282,7 +281,7 @@ func (s Store) UpsertApplication(ctx context.Context, rr ...*types.Application) 
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertApplications(ctx, s.internalApplicationEncoder(res)))
+		err = s.execUpsertApplications(ctx, s.internalApplicationEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -299,7 +298,7 @@ func (s Store) DeleteApplication(ctx context.Context, rr ...*types.Application) 
 			s.preprocessColumn("app.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -315,7 +314,7 @@ func (s Store) DeleteApplicationByID(ctx context.Context, ID uint64) error {
 
 // TruncateApplications Deletes all rows from the applications table
 func (s Store) TruncateApplications(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.applicationTable()))
+	return s.Truncate(ctx, s.applicationTable())
 }
 
 // execLookupApplication prepares Application query and executes it,
@@ -340,12 +339,12 @@ func (s Store) execLookupApplication(ctx context.Context, cnd squirrel.Sqlizer) 
 
 // execCreateApplications updates all matched (by cnd) rows in applications with given data
 func (s Store) execCreateApplications(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.applicationTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.applicationTable()).SetMap(payload))
 }
 
 // execUpdateApplications updates all matched (by cnd) rows in applications with given data
 func (s Store) execUpdateApplications(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.applicationTable("app")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.applicationTable("app")).Where(cnd).SetMap(set))
 }
 
 // execUpsertApplications inserts new or updates matching (by-primary-key) rows in applications with given data
@@ -361,12 +360,12 @@ func (s Store) execUpsertApplications(ctx context.Context, set store.Payload) er
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteApplications Deletes all matched (by cnd) rows in applications with given data
 func (s Store) execDeleteApplications(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.applicationTable("app")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.applicationTable("app")).Where(cnd))
 }
 
 func (s Store) internalApplicationRowScanner(row rowScanner) (res *types.Application, err error) {
@@ -389,11 +388,11 @@ func (s Store) internalApplicationRowScanner(row rowScanner) (res *types.Applica
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Application: %w", err)
+		return nil, errors.Store("could not scan application db row").Wrap(err)
 	} else {
 		return res, nil
 	}

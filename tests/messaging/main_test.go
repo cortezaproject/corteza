@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -21,7 +21,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
-	"github.com/titpetric/factory"
 	"go.uber.org/zap"
 	"os"
 	"testing"
@@ -47,10 +46,6 @@ func init() {
 	helpers.RecursiveDotEnvLoad()
 }
 
-func db() *factory.DB {
-	return factory.Database.MustGet().With(context.Background())
-}
-
 func InitTestApp() {
 	if testApp == nil {
 		ctx := cli.Context()
@@ -70,7 +65,7 @@ func InitTestApp() {
 
 	if r == nil {
 		r = chi.NewRouter()
-		r.Use(api.BaseMiddleware(logger.Default())...)
+		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
 	}

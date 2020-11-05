@@ -2,15 +2,13 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/titpetric/factory/resputil"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
-
 	"github.com/pkg/errors"
 )
 
@@ -129,11 +127,11 @@ func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (
 }
 
 func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.application.Delete(ctx, r.ApplicationID)
+	return api.OK(), ctrl.application.Delete(ctx, r.ApplicationID)
 }
 
 func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
-	return resputil.OK(), ctrl.application.Undelete(ctx, r.ApplicationID)
+	return api.OK(), ctrl.application.Undelete(ctx, r.ApplicationID)
 }
 
 func (ctrl *Application) TriggerScript(ctx context.Context, r *request.ApplicationTriggerScript) (rsp interface{}, err error) {

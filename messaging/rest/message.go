@@ -2,15 +2,14 @@ package rest
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -59,7 +58,7 @@ func (ctrl Message) ExecuteCommand(ctx context.Context, r *request.MessageExecut
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).Delete(r.MessageID)
+	return api.OK(), ctrl.svc.msg.With(ctx).Delete(r.MessageID)
 }
 
 func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRead) (interface{}, error) {
@@ -73,27 +72,27 @@ func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRea
 }
 
 func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).Pin(r.MessageID)
+	return api.OK(), ctrl.svc.msg.With(ctx).Pin(r.MessageID)
 }
 
 func (ctrl *Message) PinRemove(ctx context.Context, r *request.MessagePinRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
+	return api.OK(), ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
 }
 
 func (ctrl *Message) BookmarkCreate(ctx context.Context, r *request.MessageBookmarkCreate) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
+	return api.OK(), ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
 }
 
 func (ctrl *Message) BookmarkRemove(ctx context.Context, r *request.MessageBookmarkRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
+	return api.OK(), ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
 }
 
 func (ctrl *Message) ReactionCreate(ctx context.Context, r *request.MessageReactionCreate) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
+	return api.OK(), ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReactionRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
+	return api.OK(), ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {

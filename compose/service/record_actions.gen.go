@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -45,19 +44,8 @@ type (
 		props *recordActionProps
 	}
 
-	recordError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *recordActionProps
-	}
+	recordLogMetaKey   struct{}
+	recordPropsMetaKey struct{}
 )
 
 var (
@@ -167,11 +155,11 @@ func (p *recordActionProps) setValueErrors(valueErrors *types.RecordValueErrorSe
 	return p
 }
 
-// serialize converts recordActionProps to actionlog.Meta
+// Serialize converts recordActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p recordActionProps) serialize() actionlog.Meta {
+func (p recordActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -221,7 +209,7 @@ func (p recordActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p recordActionProps) tr(in string, err error) string {
+func (p recordActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -237,16 +225,6 @@ func (p recordActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -376,107 +354,16 @@ func (a *recordAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *recordAction) LoggableAction() *actionlog.Action {
+func (e *recordAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *recordError) String() string {
-	var props = &recordActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *recordError) Error() string {
-	var props = &recordActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *recordError) Is(err error) bool {
-	t, ok := err.(*recordError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *recordError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps recordError around another error
-//
-// This function is auto-generated.
-//
-func (e *recordError) Wrap(err error) *recordError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *recordError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *recordError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -484,7 +371,7 @@ func (e *recordError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// RecordActionSearch returns "compose:record.search" error
+// RecordActionSearch returns "compose:record.search" action
 //
 // This function is auto-generated.
 //
@@ -504,7 +391,7 @@ func RecordActionSearch(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionLookup returns "compose:record.lookup" error
+// RecordActionLookup returns "compose:record.lookup" action
 //
 // This function is auto-generated.
 //
@@ -524,7 +411,7 @@ func RecordActionLookup(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionReport returns "compose:record.report" error
+// RecordActionReport returns "compose:record.report" action
 //
 // This function is auto-generated.
 //
@@ -544,7 +431,7 @@ func RecordActionReport(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionBulk returns "compose:record.bulk" error
+// RecordActionBulk returns "compose:record.bulk" action
 //
 // This function is auto-generated.
 //
@@ -564,7 +451,7 @@ func RecordActionBulk(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionCreate returns "compose:record.create" error
+// RecordActionCreate returns "compose:record.create" action
 //
 // This function is auto-generated.
 //
@@ -584,7 +471,7 @@ func RecordActionCreate(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionUpdate returns "compose:record.update" error
+// RecordActionUpdate returns "compose:record.update" action
 //
 // This function is auto-generated.
 //
@@ -604,7 +491,7 @@ func RecordActionUpdate(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionDelete returns "compose:record.delete" error
+// RecordActionDelete returns "compose:record.delete" action
 //
 // This function is auto-generated.
 //
@@ -624,7 +511,7 @@ func RecordActionDelete(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionUndelete returns "compose:record.undelete" error
+// RecordActionUndelete returns "compose:record.undelete" action
 //
 // This function is auto-generated.
 //
@@ -644,7 +531,7 @@ func RecordActionUndelete(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionImport returns "compose:record.import" error
+// RecordActionImport returns "compose:record.import" action
 //
 // This function is auto-generated.
 //
@@ -664,7 +551,7 @@ func RecordActionImport(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionExport returns "compose:record.export" error
+// RecordActionExport returns "compose:record.export" action
 //
 // This function is auto-generated.
 //
@@ -684,7 +571,7 @@ func RecordActionExport(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionOrganize returns "compose:record.organize" error
+// RecordActionOrganize returns "compose:record.organize" action
 //
 // This function is auto-generated.
 //
@@ -704,7 +591,7 @@ func RecordActionOrganize(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionIteratorInvoked returns "compose:record.iteratorInvoked" error
+// RecordActionIteratorInvoked returns "compose:record.iteratorInvoked" action
 //
 // This function is auto-generated.
 //
@@ -724,7 +611,7 @@ func RecordActionIteratorInvoked(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionIteratorIteration returns "compose:record.iteratorIteration" error
+// RecordActionIteratorIteration returns "compose:record.iteratorIteration" action
 //
 // This function is auto-generated.
 //
@@ -744,7 +631,7 @@ func RecordActionIteratorIteration(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionIteratorClone returns "compose:record.iteratorClone" error
+// RecordActionIteratorClone returns "compose:record.iteratorClone" action
 //
 // This function is auto-generated.
 //
@@ -764,7 +651,7 @@ func RecordActionIteratorClone(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionIteratorUpdate returns "compose:record.iteratorUpdate" error
+// RecordActionIteratorUpdate returns "compose:record.iteratorUpdate" action
 //
 // This function is auto-generated.
 //
@@ -784,7 +671,7 @@ func RecordActionIteratorUpdate(props ...*recordActionProps) *recordAction {
 	return a
 }
 
-// RecordActionIteratorDelete returns "compose:record.iteratorDelete" error
+// RecordActionIteratorDelete returns "compose:record.iteratorDelete" action
 //
 // This function is auto-generated.
 //
@@ -808,694 +695,716 @@ func RecordActionIteratorDelete(props ...*recordActionProps) *recordAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// RecordErrGeneric returns "compose:record.generic" audit event as actionlog.Error
+// RecordErrGeneric returns "compose:record.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrGeneric(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrGeneric(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "{err}"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotFound returns "compose:record.notFound" audit event as actionlog.Warning
+// RecordErrNotFound returns "compose:record.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotFound(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notFound",
-		action:    "error",
-		message:   "record not found",
-		log:       "record not found",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotFound(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("record not found", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNamespaceNotFound returns "compose:record.namespaceNotFound" audit event as actionlog.Warning
+// RecordErrNamespaceNotFound returns "compose:record.namespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNamespaceNotFound(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "namespaceNotFound",
-		action:    "error",
-		message:   "namespace not found",
-		log:       "namespace not found",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNamespaceNotFound(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("namespace not found", nil),
+
+		errors.Meta("type", "namespaceNotFound"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrModuleNotFoundModule returns "compose:record.moduleNotFoundModule" audit event as actionlog.Warning
+// RecordErrModuleNotFoundModule returns "compose:record.moduleNotFoundModule" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrModuleNotFoundModule(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "moduleNotFoundModule",
-		action:    "error",
-		message:   "module not found",
-		log:       "module not found",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrModuleNotFoundModule(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module not found", nil),
+
+		errors.Meta("type", "moduleNotFoundModule"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrInvalidID returns "compose:record.invalidID" audit event as actionlog.Warning
+// RecordErrInvalidID returns "compose:record.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidID(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrInvalidID(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrInvalidNamespaceID returns "compose:record.invalidNamespaceID" audit event as actionlog.Warning
+// RecordErrInvalidNamespaceID returns "compose:record.invalidNamespaceID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidNamespaceID(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "invalidNamespaceID",
-		action:    "error",
-		message:   "invalid or missing namespace ID",
-		log:       "invalid or missing namespace ID",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrInvalidNamespaceID(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid or missing namespace ID", nil),
+
+		errors.Meta("type", "invalidNamespaceID"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrInvalidModuleID returns "compose:record.invalidModuleID" audit event as actionlog.Warning
+// RecordErrInvalidModuleID returns "compose:record.invalidModuleID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidModuleID(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "invalidModuleID",
-		action:    "error",
-		message:   "invalid or missing module ID",
-		log:       "invalid or missing module ID",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrInvalidModuleID(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid or missing module ID", nil),
+
+		errors.Meta("type", "invalidModuleID"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrStaleData returns "compose:record.staleData" audit event as actionlog.Warning
+// RecordErrStaleData returns "compose:record.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrStaleData(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrStaleData(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToRead returns "compose:record.notAllowedToRead" audit event as actionlog.Error
+// RecordErrNotAllowedToRead returns "compose:record.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToRead(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this record",
-		log:       "failed to read {record}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToRead(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this record", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to read {record}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToReadNamespace returns "compose:record.notAllowedToReadNamespace" audit event as actionlog.Error
+// RecordErrNotAllowedToReadNamespace returns "compose:record.notAllowedToReadNamespace" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToReadNamespace(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToReadNamespace",
-		action:    "error",
-		message:   "not allowed to read this namespace",
-		log:       "failed to read namespace {namespace}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToReadNamespace(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this namespace", nil),
+
+		errors.Meta("type", "notAllowedToReadNamespace"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to read namespace {namespace}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToReadModule returns "compose:record.notAllowedToReadModule" audit event as actionlog.Error
+// RecordErrNotAllowedToReadModule returns "compose:record.notAllowedToReadModule" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToReadModule(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToReadModule",
-		action:    "error",
-		message:   "not allowed to read module",
-		log:       "failed to read module {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToReadModule(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read module", nil),
+
+		errors.Meta("type", "notAllowedToReadModule"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to read module {module}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToListRecords returns "compose:record.notAllowedToListRecords" audit event as actionlog.Error
+// RecordErrNotAllowedToListRecords returns "compose:record.notAllowedToListRecords" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToListRecords(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToListRecords",
-		action:    "error",
-		message:   "not allowed to list records",
-		log:       "failed to list record; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToListRecords(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list records", nil),
+
+		errors.Meta("type", "notAllowedToListRecords"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to list record; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToCreate returns "compose:record.notAllowedToCreate" audit event as actionlog.Error
+// RecordErrNotAllowedToCreate returns "compose:record.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToCreate(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create records",
-		log:       "failed to create record; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToCreate(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create records", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to create record; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToUpdate returns "compose:record.notAllowedToUpdate" audit event as actionlog.Error
+// RecordErrNotAllowedToUpdate returns "compose:record.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToUpdate(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this record",
-		log:       "failed to update {record}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToUpdate(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this record", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to update {record}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToDelete returns "compose:record.notAllowedToDelete" audit event as actionlog.Error
+// RecordErrNotAllowedToDelete returns "compose:record.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToDelete(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this record",
-		log:       "failed to delete {record}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToDelete(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this record", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to delete {record}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToUndelete returns "compose:record.notAllowedToUndelete" audit event as actionlog.Error
+// RecordErrNotAllowedToUndelete returns "compose:record.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToUndelete(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this record",
-		log:       "failed to undelete {record}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToUndelete(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this record", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to undelete {record}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrNotAllowedToChangeFieldValue returns "compose:record.notAllowedToChangeFieldValue" audit event as actionlog.Error
+// RecordErrNotAllowedToChangeFieldValue returns "compose:record.notAllowedToChangeFieldValue" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrNotAllowedToChangeFieldValue(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "notAllowedToChangeFieldValue",
-		action:    "error",
-		message:   "not allowed to change value of field {field}",
-		log:       "failed to change value of field {field}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrNotAllowedToChangeFieldValue(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to change value of field {field}", nil),
+
+		errors.Meta("type", "notAllowedToChangeFieldValue"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to change value of field {field}; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrImportSessionAlreadActive returns "compose:record.importSessionAlreadActive" audit event as actionlog.Error
+// RecordErrImportSessionAlreadActive returns "compose:record.importSessionAlreadActive" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrImportSessionAlreadActive(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "importSessionAlreadActive",
-		action:    "error",
-		message:   "import session already active",
-		log:       "failed to start import session",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrImportSessionAlreadActive(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("import session already active", nil),
+
+		errors.Meta("type", "importSessionAlreadActive"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to start import session"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrFieldNotFound returns "compose:record.fieldNotFound" audit event as actionlog.Error
+// RecordErrFieldNotFound returns "compose:record.fieldNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrFieldNotFound(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "fieldNotFound",
-		action:    "error",
-		message:   "no such field {field}",
-		log:       "no such field {field}",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrFieldNotFound(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("no such field {field}", nil),
+
+		errors.Meta("type", "fieldNotFound"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrInvalidValueStructure returns "compose:record.invalidValueStructure" audit event as actionlog.Error
+// RecordErrInvalidValueStructure returns "compose:record.invalidValueStructure" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidValueStructure(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "invalidValueStructure",
-		action:    "error",
-		message:   "more than one value for a single-value field {field}",
-		log:       "more than one value for a single-value field {field}",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrInvalidValueStructure(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("more than one value for a single-value field {field}", nil),
+
+		errors.Meta("type", "invalidValueStructure"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrUnknownBulkOperation returns "compose:record.unknownBulkOperation" audit event as actionlog.Error
+// RecordErrUnknownBulkOperation returns "compose:record.unknownBulkOperation" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrUnknownBulkOperation(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "unknownBulkOperation",
-		action:    "error",
-		message:   "unknown bulk operation {bulkOperation}",
-		log:       "unknown bulk operation {bulkOperation}",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrUnknownBulkOperation(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unknown bulk operation {bulkOperation}", nil),
+
+		errors.Meta("type", "unknownBulkOperation"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrInvalidReferenceFormat returns "compose:record.invalidReferenceFormat" audit event as actionlog.Error
+// RecordErrInvalidReferenceFormat returns "compose:record.invalidReferenceFormat" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrInvalidReferenceFormat(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "invalidReferenceFormat",
-		action:    "error",
-		message:   "invalid reference format",
-		log:       "invalid reference format",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrInvalidReferenceFormat(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid reference format", nil),
+
+		errors.Meta("type", "invalidReferenceFormat"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// RecordErrValueInput returns "compose:record.valueInput" audit event as actionlog.Error
+// RecordErrValueInput returns "compose:record.valueInput" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RecordErrValueInput(props ...*recordActionProps) *recordError {
-	var e = &recordError{
-		timestamp: time.Now(),
-		resource:  "compose:record",
-		error:     "valueInput",
-		action:    "error",
-		message:   "invalid record value input: {err}",
-		log:       "invalid record value input: {err}",
-		severity:  actionlog.Error,
-		props: func() *recordActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func RecordErrValueInput(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid record value input", nil),
+
+		errors.Meta("type", "valueInput"),
+		errors.Meta("resource", "compose:record"),
+
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -1503,94 +1412,42 @@ func RecordErrValueInput(props ...*recordActionProps) *recordError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct recordAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc record) recordAction(ctx context.Context, props *recordActionProps, action func(...*recordActionProps) *recordAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *recordError
-
-		// Recorder error
-		recError *recordError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*recordError); !ok {
-			// got non-record error, wrap it with RecordErrGeneric
-			retError = RecordErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use RecordErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type recordError
-				if unwrappedSinkError, ok := unwrappedError.(*recordError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc record) recordAction(ctx context.Context, props *recordActionProps, actionFn func(...*recordActionProps) *recordAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(recordLogMetaKey{}), err)
+
+		if p, has := m[recordPropsMetaKey{}]; has {
+			a.Meta = p.(*recordActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }
