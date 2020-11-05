@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen provision docs
+.PHONY: pack build help qa critic vet codegen provision docs build
 
 GO         = go
 GOGET      = $(GO) get -u
@@ -16,7 +16,7 @@ BUILD_ARCH            ?= $(shell go env GOARCH)
 BUILD_OS              ?= $(shell go env GOOS)
 BUILD_OS_is_windows    = $(filter windows,$(BUILD_OS))
 BUILD_DEST_DIR        ?= build
-BUILD_NAME             = $(BUILD_FLAVOUR)-server-$*-$(BUILD_VERSION)-$(BUILD_OS)-$(BUILD_ARCH)
+BUILD_NAME             = $(BUILD_FLAVOUR)-server-$(BUILD_VERSION)-$(BUILD_OS)-$(BUILD_ARCH)
 BUILD_BIN_NAME         = $(BUILD_NAME)$(if $(BUILD_OS_is_windows),.exe,)
 
 RELEASE_BASEDIR        = $(BUILD_DEST_DIR)/pkg/$(BUILD_FLAVOUR)-server-$*
@@ -95,10 +95,8 @@ help:
 ########################################################################################################################
 # Building & packing
 
-build: $(addprefix build., $(BUILD_APPS))
-
-build.%: cmd/%
-	GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) cmd/$*/main.go
+build:
+	GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) cmd/corteza/main.go
 
 release.%: $(addprefix build., %)
 	@ mkdir -p $(RELEASE_BASEDIR) $(RELEASE_BASEDIR)/bin
