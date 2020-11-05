@@ -37,6 +37,18 @@ func (nn nodeSet) filter(f func(n *node) bool) nodeSet {
 	return mm
 }
 
+func (nn nodeSet) findByRef(ref *resource.Ref) *node {
+	for _, n := range nn {
+		if n.res.ResourceType() == ref.ResourceType {
+			if n.res.Identifiers().HasAny(ref.Identifiers.StringSlice()...) {
+				return n
+			}
+		}
+	}
+
+	return nil
+}
+
 func (nn nodeSet) has(m *node) bool {
 	for _, n := range nn {
 		if n == m {
