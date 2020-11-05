@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	composeRecord struct {
-		res *types.Record `yaml:",inline"`
+		// res *types.Record `yaml:",inline"`
+		values    map[string]string
+		sysValues map[string]string
 
 		refModule    string
 		refNamespace string
@@ -76,13 +77,50 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 	nn := make([]resource.Interface, 0, len(wset))
 
+	type (
+		rw struct {
+			rr     resource.ComposeRecordRawSet
+			nsRef  string
+			modRef string
+		}
+	)
+
+	// moduleRef to values set
+	recMap := make(map[string]*rw)
+
 	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
+		if recMap[res.refModule] == nil {
+			recMap[res.refModule] = &rw{
+				rr:     make(resource.ComposeRecordRawSet, 0, 10),
+				nsRef:  res.refNamespace,
+				modRef: res.refModule,
+			}
 		}
 
+		r := &resource.ComposeRecordRaw{
+			// @todo change this probably
+			ID: res.values["id"],
+
+			Values:    res.values,
+			RefUser:   res.refUser,
+			SysValues: res.sysValues,
+		}
+		recMap[res.refModule].rr = append(recMap[res.refModule].rr, r)
+	}
+
+	for _, w := range recMap {
+		walker := func(f func(r *resource.ComposeRecordRaw) error) error {
+			for _, r := range w.rr {
+				err := f(r)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
+		n := resource.NewComposeRecordSet(walker, w.nsRef, w.modRef)
+		nn = append(nn, n)
 	}
 
 	return nn, nil
@@ -100,18 +138,15 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 	return nil
 }
 
-func (wrap composeRecord) MarshalEnvoy() ([]resource.Interface, error) {
-	return envoy.CollectNodes(
-		resource.NewComposeRecord(wrap.res, wrap.refNamespace, wrap.refModule, wrap.refUser),
-	)
-}
-
 func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.refUser == nil {
 		wrap.refUser = make(map[string]string)
 	}
-	if wrap.res == nil {
-		wrap.res = &types.Record{}
+	if wrap.values == nil {
+		wrap.values = make(map[string]string)
+	}
+	if wrap.sysValues == nil {
+		wrap.sysValues = make(map[string]string)
 	}
 
 	// @todo enable when records are ready for RBAC
@@ -126,20 +161,17 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "values":
 			// Use aux structure to decode record values into RVS
-			aux := composeRecordValues{}
-			if err := v.Decode(&aux); err != nil {
+			if err := v.Decode(&wrap.values); err != nil {
 				return err
 			}
-
-			wrap.res.Values = aux.rvs
 			return nil
 
 		case "createdAt":
-			return v.Decode(&wrap.res.CreatedAt)
+			return v.Decode(wrap.sysValues["createdAt"])
 		case "updatedAt":
-			return v.Decode(&wrap.res.UpdatedAt)
+			return v.Decode(wrap.sysValues["updatedAt"])
 		case "deletedAt":
-			return v.Decode(&wrap.res.DeletedAt)
+			return v.Decode(wrap.sysValues["deletedAt"])
 		case "createdBy":
 			return v.Decode(wrap.refUser["createdBy"])
 		case "updatedBy":
@@ -152,42 +184,5 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 		}
 
 		return nil
-	})
-}
-
-// UnmarshalYAML resolves record values definitioons
-//
-// { <field name>: ... <scalar value>, .... }
-// { <field name>: [ <scalar value> ], .... }
-func (wset *composeRecordValues) UnmarshalYAML(n *yaml.Node) error {
-	wset.rvs = types.RecordValueSet{}
-
-	return eachMap(n, func(k, v *yaml.Node) error {
-		if isKind(v, yaml.ScalarNode) {
-			wset.rvs = append(wset.rvs, &types.RecordValue{
-				Name:  k.Value,
-				Value: v.Value,
-			})
-
-			return nil
-		}
-
-		if isKind(v, yaml.SequenceNode) {
-			for i := range v.Content {
-				if isKind(v, yaml.ScalarNode) {
-					return nodeErr(n, "expecting scalar node for record value")
-				}
-
-				wset.rvs = append(wset.rvs, &types.RecordValue{
-					Name:  k.Value,
-					Value: v.Content[i].Value,
-					Place: uint(i),
-				})
-			}
-
-			return nil
-		}
-
-		return nodeErr(n, "expecting scalar or sequence node for record value")
 	})
 }
