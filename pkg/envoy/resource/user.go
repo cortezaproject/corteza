@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-const (
-	USER_RESOURCE_TYPE = "user"
-)
-
 type (
 	// User represents a User
 	User struct {

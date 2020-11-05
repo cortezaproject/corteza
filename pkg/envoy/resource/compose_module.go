@@ -6,16 +6,13 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
-const (
-	COMPOSE_MODULE_RESOURCE_TYPE = "composeModule"
-)
-
 type (
 	ComposeModule struct {
 		*base
 		Res *types.Module
 
 		// Might keep track of related NS
+		NsRef *Ref
 	}
 )
 
@@ -26,7 +23,7 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 
 	// Field deps.
 	for _, f := range res.Fields {

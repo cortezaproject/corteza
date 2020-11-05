@@ -4,10 +4,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
-const (
-	RBAC_RESOURCE_TYPE = "rbacRule"
-)
-
 type (
 	RbacRule struct {
 		*base
