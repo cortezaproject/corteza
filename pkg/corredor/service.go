@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

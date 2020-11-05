@@ -2,6 +2,7 @@ package errors
 
 import (
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -51,26 +52,34 @@ func collectStack(skip int) []*frame {
 // Converts node stack trace (from Error().stack) to internal structure
 //
 // Node stack traces are received with errors from Corredor (node.js) automation server
-func convertNodeStack(stack []string) []*frame {
-	// @todo
+func convertNodeStack(nf []string) []*frame {
+	conv := make([]*frame, len(nf))
+	for i := range nf {
+		var (
+			f         = &frame{}
+			file, lno string
+		)
 
-	//(metadata.MD) (len=2) {
-	// (string) (len=12) "content-type": ([]string) (len=1 cap=1) {
-	//  (string) (len=16) "application/grpc"
-	// },
-	// (string) (len=5) "stack": ([]string) (len=10 cap=10) {
-	//  (string) (len=93) "Object.exec (/Users/darh/dev/corteza/server-corredor/usr/testing/server-scripts/foo.js:12:11)",
-	//  (string) (len=127) "Object.<anonymous> (/Users/darh/dev/corteza/server-corredor/node_modules/@cortezaproject/corteza-js/src/corredor/exec.ts:26:35)",
-	//  (string) (len=28) "Generator.next (<anonymous>)",
-	//  (string) (len=100) "/Users/darh/dev/corteza/server-corredor/node_modules/@cortezaproject/corteza-js/dist/index.js:277:71",
-	//  (string) (len=25) "new Promise (<anonymous>)",
-	//  (string) (len=112) "__awaiter (/Users/darh/dev/corteza/server-corredor/node_modules/@cortezaproject/corteza-js/dist/index.js:273:12)",
-	//  (string) (len=114) "Object.Exec (/Users/darh/dev/corteza/server-corredor/node_modules/@cortezaproject/corteza-js/dist/index.js:483:12)",
-	//  (string) (len=97) "ServerScripts.exec (/Users/darh/dev/corteza/server-corredor/src/services/server-scripts.ts:86:17)",
-	//  (string) (len=96) "Object.Exec (/Users/darh/dev/corteza/server-corredor/src/grpc-handlers/server-scripts.ts:142:11)",
-	//  (string) (len=78) "/Users/darh/dev/corteza/server-corredor/node_modules/grpc/src/server.js:593:13"
-	// }
-	//}
+		if p := strings.Index(nf[i], " ("); p > 0 {
+			f.Func = nf[i][:p]
 
-	return nil
+			file = nf[i][p+2 : len(nf[i])-1]
+		} else {
+			file = nf[i]
+		}
+
+		parts := strings.Split(file, ":")
+		f.File = parts[0]
+
+		if len(parts) >= 2 {
+			lno = parts[1]
+		}
+
+		if lno != "" {
+			f.Line, _ = strconv.Atoi(lno)
+		}
+
+		conv[i] = f
+	}
+	return conv
 }
