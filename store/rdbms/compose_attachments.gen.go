@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f types.AttachmentF
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryComposeAttachments(ctx, q, f.Check)
 		return err
 
-	}())
+	}()
 }
 
 // QueryComposeAttachments queries the database, converts and checks each row and
@@ -122,7 +121,7 @@ func (s Store) CreateComposeAttachment(ctx context.Context, rr ...*types.Attachm
 
 // UpdateComposeAttachment updates one or more existing rows in compose_attachment
 func (s Store) UpdateComposeAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.partialComposeAttachmentUpdate(ctx, nil, rr...))
+	return s.partialComposeAttachmentUpdate(ctx, nil, rr...)
 }
 
 // partialComposeAttachmentUpdate updates one or more existing rows in compose_attachment
@@ -140,7 +139,7 @@ func (s Store) partialComposeAttachmentUpdate(ctx context.Context, onlyColumns [
 			},
 			s.internalComposeAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -155,7 +154,7 @@ func (s Store) UpsertComposeAttachment(ctx context.Context, rr ...*types.Attachm
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeAttachments(ctx, s.internalComposeAttachmentEncoder(res)))
+		err = s.execUpsertComposeAttachments(ctx, s.internalComposeAttachmentEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -172,7 +171,7 @@ func (s Store) DeleteComposeAttachment(ctx context.Context, rr ...*types.Attachm
 			s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -188,7 +187,7 @@ func (s Store) DeleteComposeAttachmentByID(ctx context.Context, ID uint64) error
 
 // TruncateComposeAttachments Deletes all rows from the compose_attachment table
 func (s Store) TruncateComposeAttachments(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeAttachmentTable()))
+	return s.Truncate(ctx, s.composeAttachmentTable())
 }
 
 // execLookupComposeAttachment prepares ComposeAttachment query and executes it,
@@ -213,12 +212,12 @@ func (s Store) execLookupComposeAttachment(ctx context.Context, cnd squirrel.Sql
 
 // execCreateComposeAttachments updates all matched (by cnd) rows in compose_attachment with given data
 func (s Store) execCreateComposeAttachments(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeAttachmentTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeAttachmentTable()).SetMap(payload))
 }
 
 // execUpdateComposeAttachments updates all matched (by cnd) rows in compose_attachment with given data
 func (s Store) execUpdateComposeAttachments(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeAttachmentTable("att")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeAttachmentTable("att")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeAttachments inserts new or updates matching (by-primary-key) rows in compose_attachment with given data
@@ -234,12 +233,12 @@ func (s Store) execUpsertComposeAttachments(ctx context.Context, set store.Paylo
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeAttachments Deletes all matched (by cnd) rows in compose_attachment with given data
 func (s Store) execDeleteComposeAttachments(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeAttachmentTable("att")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeAttachmentTable("att")).Where(cnd))
 }
 
 func (s Store) internalComposeAttachmentRowScanner(row rowScanner) (res *types.Attachment, err error) {
@@ -265,11 +264,11 @@ func (s Store) internalComposeAttachmentRowScanner(row rowScanner) (res *types.A
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeAttachment: %w", err)
+		return nil, errors.Store("could not scan composeAttachment db row").Wrap(err)
 	} else {
 		return res, nil
 	}

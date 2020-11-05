@@ -170,4 +170,4 @@ errors:
     message: "invalid reference format"
 
   - error: valueInput
-    message: "invalid record value input: {err}"
+    message: "invalid record value input"

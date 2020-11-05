@@ -157,6 +157,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -221,6 +222,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -257,6 +259,7 @@ func TestRecordDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this record")).
@@ -318,6 +321,7 @@ func (h helper) apiInitRecordImport(api *apitest.APITest, url, f string, file []
 
 	return api.
 		Post(url).
+		Header("Accept", "application/json").
 		Body(body.String()).
 		ContentType(writer.FormDataContentType()).
 		Expect(h.t).
@@ -327,6 +331,7 @@ func (h helper) apiInitRecordImport(api *apitest.APITest, url, f string, file []
 func (h helper) apiRunRecordImport(api *apitest.APITest, url, b string) *apitest.Response {
 	return api.
 		Patch(url).
+		Header("Accept", "application/json").
 		JSON(b).
 		Expect(h.t).
 		Status(http.StatusOK)
@@ -461,6 +466,7 @@ func TestRecordImportImportProgress_sessionNotFound(t *testing.T) {
 	module := h.repoMakeRecordModuleWithFields("record import module")
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/import/123", module.NamespaceID, module.ID)).
+		Header("Accept", "application/json").
 		Expect(h.t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("compose.service.RecordImportSessionNotFound")).
@@ -526,6 +532,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 			t.Run("field:email", func(t *testing.T) {
 				// Try to change email (not writable!), expect error...
 				b().JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "changed-email"}]}`)).
+					Header("Accept", "application/json").
 					Expect(t).
 					Status(http.StatusOK).
 					Assert(helpers.AssertError("not allowed to change value of field email")).

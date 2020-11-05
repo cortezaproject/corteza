@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/cortezaproject/corteza-server/app"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -83,7 +83,7 @@ func InitTestApp() {
 
 	if r == nil {
 		r = chi.NewRouter()
-		r.Use(api.BaseMiddleware(logger.Default())...)
+		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
 	}
@@ -125,6 +125,7 @@ func (h helper) apiInit() *apitest.APITest {
 		New().
 		Handler(r).
 		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
+
 }
 
 func (h helper) mockPermissions(rules ...*rbac.Rule) {

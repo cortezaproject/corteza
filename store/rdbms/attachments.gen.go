@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -35,11 +34,11 @@ func (s Store) SearchAttachments(ctx context.Context, f types.AttachmentFilter) 
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryAttachments(ctx, q, f.Check)
 		return err
 
-	}())
+	}()
 }
 
 // QueryAttachments queries the database, converts and checks each row and
@@ -122,7 +121,7 @@ func (s Store) CreateAttachment(ctx context.Context, rr ...*types.Attachment) (e
 
 // UpdateAttachment updates one or more existing rows in attachments
 func (s Store) UpdateAttachment(ctx context.Context, rr ...*types.Attachment) error {
-	return s.config.ErrorHandler(s.partialAttachmentUpdate(ctx, nil, rr...))
+	return s.partialAttachmentUpdate(ctx, nil, rr...)
 }
 
 // partialAttachmentUpdate updates one or more existing rows in attachments
@@ -140,7 +139,7 @@ func (s Store) partialAttachmentUpdate(ctx context.Context, onlyColumns []string
 			},
 			s.internalAttachmentEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -155,7 +154,7 @@ func (s Store) UpsertAttachment(ctx context.Context, rr ...*types.Attachment) (e
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertAttachments(ctx, s.internalAttachmentEncoder(res)))
+		err = s.execUpsertAttachments(ctx, s.internalAttachmentEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -172,7 +171,7 @@ func (s Store) DeleteAttachment(ctx context.Context, rr ...*types.Attachment) (e
 			s.preprocessColumn("att.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -188,7 +187,7 @@ func (s Store) DeleteAttachmentByID(ctx context.Context, ID uint64) error {
 
 // TruncateAttachments Deletes all rows from the attachments table
 func (s Store) TruncateAttachments(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.attachmentTable()))
+	return s.Truncate(ctx, s.attachmentTable())
 }
 
 // execLookupAttachment prepares Attachment query and executes it,
@@ -213,12 +212,12 @@ func (s Store) execLookupAttachment(ctx context.Context, cnd squirrel.Sqlizer) (
 
 // execCreateAttachments updates all matched (by cnd) rows in attachments with given data
 func (s Store) execCreateAttachments(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.attachmentTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.attachmentTable()).SetMap(payload))
 }
 
 // execUpdateAttachments updates all matched (by cnd) rows in attachments with given data
 func (s Store) execUpdateAttachments(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.attachmentTable("att")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.attachmentTable("att")).Where(cnd).SetMap(set))
 }
 
 // execUpsertAttachments inserts new or updates matching (by-primary-key) rows in attachments with given data
@@ -234,12 +233,12 @@ func (s Store) execUpsertAttachments(ctx context.Context, set store.Payload) err
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteAttachments Deletes all matched (by cnd) rows in attachments with given data
 func (s Store) execDeleteAttachments(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.attachmentTable("att")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.attachmentTable("att")).Where(cnd))
 }
 
 func (s Store) internalAttachmentRowScanner(row rowScanner) (res *types.Attachment, err error) {
@@ -264,11 +263,11 @@ func (s Store) internalAttachmentRowScanner(row rowScanner) (res *types.Attachme
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Attachment: %w", err)
+		return nil, errors.Store("could not scan attachment db row").Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -53,7 +52,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfRoles(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchRoles(ctx context.Context, f types.RoleFilter) (types.RoleS
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfRoles collects all requested results.
@@ -273,7 +272,7 @@ func (s Store) CreateRole(ctx context.Context, rr ...*types.Role) (err error) {
 
 // UpdateRole updates one or more existing rows in roles
 func (s Store) UpdateRole(ctx context.Context, rr ...*types.Role) error {
-	return s.config.ErrorHandler(s.partialRoleUpdate(ctx, nil, rr...))
+	return s.partialRoleUpdate(ctx, nil, rr...)
 }
 
 // partialRoleUpdate updates one or more existing rows in roles
@@ -291,7 +290,7 @@ func (s Store) partialRoleUpdate(ctx context.Context, onlyColumns []string, rr .
 			},
 			s.internalRoleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -306,7 +305,7 @@ func (s Store) UpsertRole(ctx context.Context, rr ...*types.Role) (err error) {
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertRoles(ctx, s.internalRoleEncoder(res)))
+		err = s.execUpsertRoles(ctx, s.internalRoleEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -323,7 +322,7 @@ func (s Store) DeleteRole(ctx context.Context, rr ...*types.Role) (err error) {
 			s.preprocessColumn("rl.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -339,7 +338,7 @@ func (s Store) DeleteRoleByID(ctx context.Context, ID uint64) error {
 
 // TruncateRoles Deletes all rows from the roles table
 func (s Store) TruncateRoles(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.roleTable()))
+	return s.Truncate(ctx, s.roleTable())
 }
 
 // execLookupRole prepares Role query and executes it,
@@ -364,12 +363,12 @@ func (s Store) execLookupRole(ctx context.Context, cnd squirrel.Sqlizer) (res *t
 
 // execCreateRoles updates all matched (by cnd) rows in roles with given data
 func (s Store) execCreateRoles(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.roleTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.roleTable()).SetMap(payload))
 }
 
 // execUpdateRoles updates all matched (by cnd) rows in roles with given data
 func (s Store) execUpdateRoles(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.roleTable("rl")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.roleTable("rl")).Where(cnd).SetMap(set))
 }
 
 // execUpsertRoles inserts new or updates matching (by-primary-key) rows in roles with given data
@@ -385,12 +384,12 @@ func (s Store) execUpsertRoles(ctx context.Context, set store.Payload) error {
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteRoles Deletes all matched (by cnd) rows in roles with given data
 func (s Store) execDeleteRoles(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.roleTable("rl")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.roleTable("rl")).Where(cnd))
 }
 
 func (s Store) internalRoleRowScanner(row rowScanner) (res *types.Role, err error) {
@@ -412,11 +411,11 @@ func (s Store) internalRoleRowScanner(row rowScanner) (res *types.Role, err erro
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Role: %w", err)
+		return nil, errors.Store("could not scan role db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -570,8 +569,8 @@ func (s *Store) checkRoleConstraints(ctx context.Context, res *types.Role) error
 	{
 		ex, err := s.LookupRoleByHandle(ctx, res.Handle)
 		if err == nil && ex != nil && ex.ID != res.ID {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

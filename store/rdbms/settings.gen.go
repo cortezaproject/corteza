@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -35,11 +34,11 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QuerySettings(ctx, q, f.Check)
 		return err
 
-	}())
+	}()
 }
 
 // QuerySettings queries the database, converts and checks each row and
@@ -121,7 +120,7 @@ func (s Store) CreateSetting(ctx context.Context, rr ...*types.SettingValue) (er
 
 // UpdateSetting updates one or more existing rows in settings
 func (s Store) UpdateSetting(ctx context.Context, rr ...*types.SettingValue) error {
-	return s.config.ErrorHandler(s.partialSettingUpdate(ctx, nil, rr...))
+	return s.partialSettingUpdate(ctx, nil, rr...)
 }
 
 // partialSettingUpdate updates one or more existing rows in settings
@@ -139,7 +138,7 @@ func (s Store) partialSettingUpdate(ctx context.Context, onlyColumns []string, r
 			},
 			s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -154,7 +153,7 @@ func (s Store) UpsertSetting(ctx context.Context, rr ...*types.SettingValue) (er
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertSettings(ctx, s.internalSettingEncoder(res)))
+		err = s.execUpsertSettings(ctx, s.internalSettingEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -171,7 +170,7 @@ func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (er
 			s.preprocessColumn("st.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -188,7 +187,7 @@ func (s Store) DeleteSettingByNameOwnedBy(ctx context.Context, name string, owne
 
 // TruncateSettings Deletes all rows from the settings table
 func (s Store) TruncateSettings(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.settingTable()))
+	return s.Truncate(ctx, s.settingTable())
 }
 
 // execLookupSetting prepares Setting query and executes it,
@@ -213,12 +212,12 @@ func (s Store) execLookupSetting(ctx context.Context, cnd squirrel.Sqlizer) (res
 
 // execCreateSettings updates all matched (by cnd) rows in settings with given data
 func (s Store) execCreateSettings(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.settingTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.settingTable()).SetMap(payload))
 }
 
 // execUpdateSettings updates all matched (by cnd) rows in settings with given data
 func (s Store) execUpdateSettings(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.settingTable("st")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.settingTable("st")).Where(cnd).SetMap(set))
 }
 
 // execUpsertSettings inserts new or updates matching (by-primary-key) rows in settings with given data
@@ -235,12 +234,12 @@ func (s Store) execUpsertSettings(ctx context.Context, set store.Payload) error 
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteSettings Deletes all matched (by cnd) rows in settings with given data
 func (s Store) execDeleteSettings(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.settingTable("st")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.settingTable("st")).Where(cnd))
 }
 
 func (s Store) internalSettingRowScanner(row rowScanner) (res *types.SettingValue, err error) {
@@ -260,11 +259,11 @@ func (s Store) internalSettingRowScanner(row rowScanner) (res *types.SettingValu
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Setting: %w", err)
+		return nil, errors.Store("could not scan setting db row").Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -10,11 +10,10 @@ package rdbms
 
 import (
 	"context"
-	"errors"
 	"database/sql"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 {{- if $.Search.EnablePaging }}
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 {{- end }}
@@ -96,7 +95,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 	}
 {{ end }}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 	{{- if $.Search.EnablePaging -}}
 		set, err = s.{{ unexport "fetchFullPageOf" $.Types.Plural  }}(ctx{{ template "extraArgsCall" . }}, q, curSort, f.PageCursor, f.Limit, {{ if $.Search.EnableFilterCheckFn }}f.Check{{ else }}nil{{ end }},)
 
@@ -128,7 +127,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 		set, _, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, q, {{ if $.Search.EnableFilterCheckFn }}f.Check{{else}}nil{{ end }})
 		return err
 	{{ end }}
-	}())
+	}()
 }
 {{ end }}
 
@@ -352,7 +351,7 @@ func (s Store) {{ toggleExport .Create.Export "Create" $.Types.Singular }}(ctx c
 {{ if .Update.Enable }}
 // {{ toggleExport .Update.Export "Update" $.Types.Singular }} updates one or more existing rows in {{ $.RDBMS.Table }}
 func (s Store) {{ toggleExport .Update.Export "Update" $.Types.Singular }}(ctx context.Context{{ template "extraArgsDef" . }}, rr ... *{{ $.Types.GoType }}) error {
-	return s.config.ErrorHandler(s.partial{{ export $.Types.Singular "Update" }}(ctx{{ template "extraArgsCall" . }}, nil, rr...))
+	return s.partial{{ export $.Types.Singular "Update" }}(ctx{{ template "extraArgsCall" . }}, nil, rr...)
 }
 
 // partial{{ export $.Types.Singular "Update" }} updates one or more existing rows in {{ $.RDBMS.Table }}
@@ -378,7 +377,7 @@ func (s Store) partial{{ export $.Types.Singular "Update" }}(ctx context.Context
 				{{- end -}}
 		).Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -402,7 +401,7 @@ func (s Store) {{ toggleExport .Upsert.Export "Upsert" $.Types.Singular }}(ctx c
 		}
 */}}
 
-		err = s.config.ErrorHandler(s.execUpsert{{ export $.Types.Plural }}(ctx, s.internal{{ export $.Types.Singular }}Encoder(res)))
+		err = s.execUpsert{{ export $.Types.Plural }}(ctx, s.internal{{ export $.Types.Singular }}Encoder(res))
 		if err != nil {
 			return err
 		}
@@ -422,9 +421,9 @@ func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular }}(ctx c
 			return err
 		}
 */}}
-		err = s.execDelete{{ export $.Types.Plural }}(ctx,{{ template "filterByPrimaryKeys" $.RDBMS.Columns.PrimaryKeyFields }})
+		err= s.execDelete{{ export $.Types.Plural }}(ctx,{{ template "filterByPrimaryKeys" $.RDBMS.Columns.PrimaryKeyFields }})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -439,7 +438,7 @@ func (s Store) {{ toggleExport .Delete.Export "Delete" $.Types.Singular "By" }}{
 
 // {{ toggleExport .Truncate.Export "Truncate" $.Types.Plural }} Deletes all rows from the {{ $.RDBMS.Table }} table
 func (s Store) {{ toggleExport .Truncate.Export "Truncate" $.Types.Plural }}(ctx context.Context{{ template "extraArgsDef" . }}) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.{{ unexport $.Types.Singular }}Table()))
+	return s.Truncate(ctx, s.{{ unexport $.Types.Singular }}Table())
 }
 
 // execLookup{{ $.Types.Singular }} prepares {{ $.Types.Singular }} query and executes it,
@@ -471,14 +470,14 @@ func (s Store) execLookup{{ $.Types.Singular }}(ctx context.Context{{ template "
 {{ if .Create.Enable }}
 // execCreate{{ export $.Types.Plural }} updates all matched (by cnd) rows in {{ $.RDBMS.Table }} with given data
 func (s Store) execCreate{{ export $.Types.Plural }}(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.{{ unexport $.Types.Singular }}Table()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.{{ unexport $.Types.Singular }}Table()).SetMap(payload))
 }
 {{ end }}
 
 {{ if .Update.Enable }}
 // execUpdate{{ export $.Types.Plural }} updates all matched (by cnd) rows in {{ $.RDBMS.Table }} with given data
 func (s Store) execUpdate{{ export $.Types.Plural }}(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.{{ unexport $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.{{ unexport $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd).SetMap(set))
 }
 {{ end }}
 
@@ -500,14 +499,14 @@ func (s Store) execUpsert{{ export $.Types.Plural }}(ctx context.Context, set st
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 {{ end }}
 
 {{ if .Delete.Enable }}
 // execDelete{{ export $.Types.Plural }} Deletes all matched (by cnd) rows in {{ $.RDBMS.Table }} with given data
 func (s Store) execDelete{{ export $.Types.Plural }}(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.{{ unexport $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.{{ unexport $.Types.Singular }}Table({{ printf "%q" .RDBMS.Alias }})).Where(cnd))
 }
 {{ end }}
 
@@ -530,11 +529,11 @@ func (s Store) internal{{ export $.Types.Singular }}RowScanner({{ template "extr
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for {{ $.Types.Singular }}: %w", err)
+		return nil, errors.Store("could not scan {{ unexport $.Types.Singular }} db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -690,8 +689,8 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 	{
 		ex, err := s.{{ toggleExport .Export "Lookup" $.Types.Singular "By" .Suffix }}(ctx{{ template "extraArgsCall" $ }}{{- range .RDBMSColumns }}, res.{{ .Field }} {{- end }})
 		if err == nil && ex != nil {{- range $.RDBMS.Columns.PrimaryKeyFields }} && ex.{{ .Field }} != res.{{ .Field }} {{ end }} {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

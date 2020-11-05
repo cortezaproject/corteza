@@ -79,10 +79,16 @@ type (
 		// message can contain {variables} from meta data
 		Log string `yaml:"log"`
 
+		// Longer message or error description that can help resolving the error
+		Details string `yaml:"details"`
+
+		// Relative link to content in the documentation
+		Documentation string `yaml:"documentation"`
+
 		// Reference to "safe" error
 		// safe error should hide any information that might cause
 		// personal data leakage or expose system internals
-		Safe string `yaml:"safe"`
+		MaskedWith string `yaml:"maskedWith"`
 
 		// Error severity
 		Severity string `yaml:"severity"`
@@ -222,16 +228,6 @@ func actionNormalize(d *actionsDef) error {
 			return err
 		}
 
-		if e.Message == "" {
-			// If no error message is defined, use error handle
-			e.Message = e.Error
-		}
-
-		if e.Log == "" {
-			// If no error log is defined, use error message
-			e.Log = e.Message
-		}
-
 		if err := checkPlaceholders(e.Error, "message", e.Message); err != nil {
 			return err
 		}
@@ -272,7 +268,7 @@ func severityConstName(s string) string {
 	case "debug":
 		return "actionlog.Debug"
 	default:
-		return "actionlog.Error"
+		return "actionlog.Err"
 	}
 }
 

@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) searchComposeRecords(ctx context.Context, _mod *types.Module, f t
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfComposeRecords(ctx, _mod, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) searchComposeRecords(ctx context.Context, _mod *types.Module, f t
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfComposeRecords collects all requested results.
@@ -251,7 +250,7 @@ func (s Store) createComposeRecord(ctx context.Context, _mod *types.Module, rr .
 
 // updateComposeRecord updates one or more existing rows in compose_record
 func (s Store) updateComposeRecord(ctx context.Context, _mod *types.Module, rr ...*types.Record) error {
-	return s.config.ErrorHandler(s.partialComposeRecordUpdate(ctx, _mod, nil, rr...))
+	return s.partialComposeRecordUpdate(ctx, _mod, nil, rr...)
 }
 
 // partialComposeRecordUpdate updates one or more existing rows in compose_record
@@ -269,7 +268,7 @@ func (s Store) partialComposeRecordUpdate(ctx context.Context, _mod *types.Modul
 			},
 			s.internalComposeRecordEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -284,7 +283,7 @@ func (s Store) upsertComposeRecord(ctx context.Context, _mod *types.Module, rr .
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertComposeRecords(ctx, s.internalComposeRecordEncoder(res)))
+		err = s.execUpsertComposeRecords(ctx, s.internalComposeRecordEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -301,7 +300,7 @@ func (s Store) deleteComposeRecord(ctx context.Context, _mod *types.Module, rr .
 			s.preprocessColumn("crd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -317,7 +316,7 @@ func (s Store) deleteComposeRecordByID(ctx context.Context, _mod *types.Module, 
 
 // truncateComposeRecords Deletes all rows from the compose_record table
 func (s Store) truncateComposeRecords(ctx context.Context, _mod *types.Module) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.composeRecordTable()))
+	return s.Truncate(ctx, s.composeRecordTable())
 }
 
 // execLookupComposeRecord prepares ComposeRecord query and executes it,
@@ -346,12 +345,12 @@ func (s Store) execLookupComposeRecord(ctx context.Context, _mod *types.Module, 
 
 // execCreateComposeRecords updates all matched (by cnd) rows in compose_record with given data
 func (s Store) execCreateComposeRecords(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.composeRecordTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.composeRecordTable()).SetMap(payload))
 }
 
 // execUpdateComposeRecords updates all matched (by cnd) rows in compose_record with given data
 func (s Store) execUpdateComposeRecords(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.composeRecordTable("crd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.composeRecordTable("crd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertComposeRecords inserts new or updates matching (by-primary-key) rows in compose_record with given data
@@ -367,12 +366,12 @@ func (s Store) execUpsertComposeRecords(ctx context.Context, set store.Payload) 
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteComposeRecords Deletes all matched (by cnd) rows in compose_record with given data
 func (s Store) execDeleteComposeRecords(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.composeRecordTable("crd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.composeRecordTable("crd")).Where(cnd))
 }
 
 func (s Store) internalComposeRecordRowScanner(_mod *types.Module, row rowScanner) (res *types.Record, err error) {
@@ -397,11 +396,11 @@ func (s Store) internalComposeRecordRowScanner(_mod *types.Module, row rowScanne
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for ComposeRecord: %w", err)
+		return nil, errors.Store("could not scan composeRecord db row").Wrap(err)
 	} else {
 		return res, nil
 	}

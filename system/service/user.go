@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -231,7 +231,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 
 func (svc user) proc(u *types.User, err error) (*types.User, error) {
 	if err != nil {
-		if errors.Is(err, store.ErrNotFound) {
+		if errors.IsNotFound(err) {
 			return nil, UserErrNotFound()
 		}
 

@@ -70,8 +70,7 @@ actions:
 
 errors:
   - error: subscription
-    message: "{err}"
-    log: "{err}"
+    message: "subscription error"
     severity: warning
 
   - error: invalidCredentials
@@ -86,12 +85,12 @@ errors:
     message: "invalid handle"
 
   - error: failedForUnknownUser
-    safe: invalidCredentials
+    maskedWith: invalidCredentials
     log: "unknown user {email} tried to log-in with {credentials.kind}"
     severity: warning
 
   - error: failedForDisabledUser
-    safe: invalidCredentials
+    maskedWith: invalidCredentials
     log: "disabled user {user} tried to log-in with {credentials.kind}"
     severity: warning
 

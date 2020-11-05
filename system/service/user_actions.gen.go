@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -41,19 +40,8 @@ type (
 		props *userActionProps
 	}
 
-	userError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *userActionProps
-	}
+	userLogMetaKey   struct{}
+	userPropsMetaKey struct{}
 )
 
 var (
@@ -119,11 +107,11 @@ func (p *userActionProps) setFilter(filter *types.UserFilter) *userActionProps {
 	return p
 }
 
-// serialize converts userActionProps to actionlog.Meta
+// Serialize converts userActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p userActionProps) serialize() actionlog.Meta {
+func (p userActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -175,7 +163,7 @@ func (p userActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p userActionProps) tr(in string, err error) string {
+func (p userActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -191,16 +179,6 @@ func (p userActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -331,107 +309,16 @@ func (a *userAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *userAction) LoggableAction() *actionlog.Action {
+func (e *userAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *userError) String() string {
-	var props = &userActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *userError) Error() string {
-	var props = &userActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *userError) Is(err error) bool {
-	t, ok := err.(*userError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *userError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps userError around another error
-//
-// This function is auto-generated.
-//
-func (e *userError) Wrap(err error) *userError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *userError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *userError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -439,7 +326,7 @@ func (e *userError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// UserActionSearch returns "system:user.search" error
+// UserActionSearch returns "system:user.search" action
 //
 // This function is auto-generated.
 //
@@ -459,7 +346,7 @@ func UserActionSearch(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionLookup returns "system:user.lookup" error
+// UserActionLookup returns "system:user.lookup" action
 //
 // This function is auto-generated.
 //
@@ -479,7 +366,7 @@ func UserActionLookup(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionCreate returns "system:user.create" error
+// UserActionCreate returns "system:user.create" action
 //
 // This function is auto-generated.
 //
@@ -499,7 +386,7 @@ func UserActionCreate(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionUpdate returns "system:user.update" error
+// UserActionUpdate returns "system:user.update" action
 //
 // This function is auto-generated.
 //
@@ -519,7 +406,7 @@ func UserActionUpdate(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionDelete returns "system:user.delete" error
+// UserActionDelete returns "system:user.delete" action
 //
 // This function is auto-generated.
 //
@@ -539,7 +426,7 @@ func UserActionDelete(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionUndelete returns "system:user.undelete" error
+// UserActionUndelete returns "system:user.undelete" action
 //
 // This function is auto-generated.
 //
@@ -559,7 +446,7 @@ func UserActionUndelete(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionSuspend returns "system:user.suspend" error
+// UserActionSuspend returns "system:user.suspend" action
 //
 // This function is auto-generated.
 //
@@ -579,7 +466,7 @@ func UserActionSuspend(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionUnsuspend returns "system:user.unsuspend" error
+// UserActionUnsuspend returns "system:user.unsuspend" action
 //
 // This function is auto-generated.
 //
@@ -599,7 +486,7 @@ func UserActionUnsuspend(props ...*userActionProps) *userAction {
 	return a
 }
 
-// UserActionSetPassword returns "system:user.setPassword" error
+// UserActionSetPassword returns "system:user.setPassword" action
 //
 // This function is auto-generated.
 //
@@ -623,514 +510,543 @@ func UserActionSetPassword(props ...*userActionProps) *userAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// UserErrGeneric returns "system:user.generic" audit event as actionlog.Error
+// UserErrGeneric returns "system:user.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrGeneric(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrGeneric(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "{err}"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotFound returns "system:user.notFound" audit event as actionlog.Warning
+// UserErrNotFound returns "system:user.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotFound(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notFound",
-		action:    "error",
-		message:   "user not found",
-		log:       "user not found",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotFound(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("user not found", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrInvalidID returns "system:user.invalidID" audit event as actionlog.Warning
+// UserErrInvalidID returns "system:user.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrInvalidID(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrInvalidID(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrInvalidHandle returns "system:user.invalidHandle" audit event as actionlog.Warning
+// UserErrInvalidHandle returns "system:user.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrInvalidHandle(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "invalidHandle",
-		action:    "error",
-		message:   "invalid handle",
-		log:       "invalid handle",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrInvalidHandle(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrInvalidEmail returns "system:user.invalidEmail" audit event as actionlog.Warning
+// UserErrInvalidEmail returns "system:user.invalidEmail" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrInvalidEmail(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "invalidEmail",
-		action:    "error",
-		message:   "invalid email",
-		log:       "invalid email",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrInvalidEmail(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid email", nil),
+
+		errors.Meta("type", "invalidEmail"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToRead returns "system:user.notAllowedToRead" audit event as actionlog.Alert
+// UserErrNotAllowedToRead returns "system:user.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToRead(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this user",
-		log:       "failed to read {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToRead(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this user", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to read {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToListUsers returns "system:user.notAllowedToListUsers" audit event as actionlog.Alert
+// UserErrNotAllowedToListUsers returns "system:user.notAllowedToListUsers" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToListUsers(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToListUsers",
-		action:    "error",
-		message:   "not allowed to list users",
-		log:       "failed to list user; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToListUsers(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list users", nil),
+
+		errors.Meta("type", "notAllowedToListUsers"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to list user; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToCreate returns "system:user.notAllowedToCreate" audit event as actionlog.Alert
+// UserErrNotAllowedToCreate returns "system:user.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToCreate(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create users",
-		log:       "failed to create users; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToCreate(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create users", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to create users; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToUpdate returns "system:user.notAllowedToUpdate" audit event as actionlog.Alert
+// UserErrNotAllowedToUpdate returns "system:user.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToUpdate(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this user",
-		log:       "failed to update {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToUpdate(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this user", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to update {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToDelete returns "system:user.notAllowedToDelete" audit event as actionlog.Alert
+// UserErrNotAllowedToDelete returns "system:user.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToDelete(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this user",
-		log:       "failed to delete {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToDelete(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this user", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to delete {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToUndelete returns "system:user.notAllowedToUndelete" audit event as actionlog.Alert
+// UserErrNotAllowedToUndelete returns "system:user.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToUndelete(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this user",
-		log:       "failed to undelete {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToUndelete(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this user", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to undelete {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToSuspend returns "system:user.notAllowedToSuspend" audit event as actionlog.Alert
+// UserErrNotAllowedToSuspend returns "system:user.notAllowedToSuspend" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToSuspend(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToSuspend",
-		action:    "error",
-		message:   "not allowed to suspend this user",
-		log:       "failed to suspend {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToSuspend(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to suspend this user", nil),
+
+		errors.Meta("type", "notAllowedToSuspend"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to suspend {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrNotAllowedToUnsuspend returns "system:user.notAllowedToUnsuspend" audit event as actionlog.Alert
+// UserErrNotAllowedToUnsuspend returns "system:user.notAllowedToUnsuspend" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrNotAllowedToUnsuspend(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "notAllowedToUnsuspend",
-		action:    "error",
-		message:   "not allowed to unsuspend this user",
-		log:       "failed to unsuspend {user.handle}; insufficient permissions",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrNotAllowedToUnsuspend(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to unsuspend this user", nil),
+
+		errors.Meta("type", "notAllowedToUnsuspend"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to unsuspend {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrHandleNotUnique returns "system:user.handleNotUnique" audit event as actionlog.Warning
+// UserErrHandleNotUnique returns "system:user.handleNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrHandleNotUnique(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "handleNotUnique",
-		action:    "error",
-		message:   "handle not unique",
-		log:       "used duplicate handle ({user.handle}) for user",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrHandleNotUnique(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("handle not unique", nil),
+
+		errors.Meta("type", "handleNotUnique"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "used duplicate handle ({user.handle}) for user"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrEmailNotUnique returns "system:user.emailNotUnique" audit event as actionlog.Warning
+// UserErrEmailNotUnique returns "system:user.emailNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrEmailNotUnique(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "emailNotUnique",
-		action:    "error",
-		message:   "email not unique",
-		log:       "used duplicate email ({user.email}) for user",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrEmailNotUnique(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("email not unique", nil),
+
+		errors.Meta("type", "emailNotUnique"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "used duplicate email ({user.email}) for user"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrUsernameNotUnique returns "system:user.usernameNotUnique" audit event as actionlog.Warning
+// UserErrUsernameNotUnique returns "system:user.usernameNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrUsernameNotUnique(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "usernameNotUnique",
-		action:    "error",
-		message:   "username not unique",
-		log:       "used duplicate username ({user.username}) for user",
-		severity:  actionlog.Warning,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrUsernameNotUnique(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("username not unique", nil),
+
+		errors.Meta("type", "usernameNotUnique"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "used duplicate username ({user.username}) for user"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// UserErrPasswordNotSecure returns "system:user.passwordNotSecure" audit event as actionlog.Alert
+// UserErrPasswordNotSecure returns "system:user.passwordNotSecure" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func UserErrPasswordNotSecure(props ...*userActionProps) *userError {
-	var e = &userError{
-		timestamp: time.Now(),
-		resource:  "system:user",
-		error:     "passwordNotSecure",
-		action:    "error",
-		message:   "provided password is not secure; use longer password with more non-alphanumeric character",
-		log:       "provided password is not secure; use longer password with more non-alphanumeric character",
-		severity:  actionlog.Alert,
-		props: func() *userActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("provided password is not secure; use longer password with more non-alphanumeric character", nil),
+
+		errors.Meta("type", "passwordNotSecure"),
+		errors.Meta("resource", "system:user"),
+
+		// link to documentation; formatting applies in case we need some special link formatting
+		errors.Meta("documentation", p.Format("foo", nil)),
+
+		// details, used in detailed eror reporting
+		errors.Meta("details", p.Format("foo bar", nil)),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -1138,94 +1054,42 @@ func UserErrPasswordNotSecure(props ...*userActionProps) *userError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct userAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc user) recordAction(ctx context.Context, props *userActionProps, action func(...*userActionProps) *userAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *userError
-
-		// Recorder error
-		recError *userError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*userError); !ok {
-			// got non-user error, wrap it with UserErrGeneric
-			retError = UserErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use UserErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type userError
-				if unwrappedSinkError, ok := unwrappedError.(*userError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc user) recordAction(ctx context.Context, props *userActionProps, actionFn func(...*userActionProps) *userAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(userLogMetaKey{}), err)
+
+		if p, has := m[userPropsMetaKey{}]; has {
+			a.Meta = p.(*userActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -58,241 +56,193 @@ func NewChannel(h ChannelAPI) *Channel {
 			defer r.Body.Close()
 			params := request.NewChannelList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Create", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Create", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Create", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Update", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Update", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Update", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		State: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelState()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.State", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.State(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.State", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.State", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		SetFlag: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelSetFlag()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.SetFlag", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.SetFlag(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.SetFlag", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.SetFlag", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		RemoveFlag: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelRemoveFlag()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.RemoveFlag", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.RemoveFlag(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.RemoveFlag", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.RemoveFlag", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Members: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelMembers()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Members", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Members(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Members", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Members", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Join: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelJoin()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Join", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Join(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Join", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Join", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Part: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelPart()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Part", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Part(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Part", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Part", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Invite: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelInvite()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Invite", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Invite(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Invite", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Invite", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Attach: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewChannelAttach()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Channel.Attach", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Attach(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Channel.Attach", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Channel.Attach", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

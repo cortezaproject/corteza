@@ -122,8 +122,7 @@ func NewAuthInternalLogin() *AuthInternalLogin {
 // Auditable returns all auditable/loggable parameters
 func (r AuthInternalLogin) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"email":    r.Email,
-		"password": r.Password,
+		"email": r.Email,
 	}
 }
 
@@ -185,7 +184,6 @@ func (r AuthInternalSignup) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"email":    r.Email,
 		"username": r.Username,
-		"password": r.Password,
 		"handle":   r.Handle,
 		"name":     r.Name,
 	}
@@ -379,8 +377,7 @@ func NewAuthInternalResetPassword() *AuthInternalResetPassword {
 // Auditable returns all auditable/loggable parameters
 func (r AuthInternalResetPassword) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"token":    r.Token,
-		"password": r.Password,
+		"token": r.Token,
 	}
 }
 
@@ -487,10 +484,7 @@ func NewAuthInternalChangePassword() *AuthInternalChangePassword {
 
 // Auditable returns all auditable/loggable parameters
 func (r AuthInternalChangePassword) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"oldPassword": r.OldPassword,
-		"newPassword": r.NewPassword,
-	}
+	return map[string]interface{}{}
 }
 
 // Auditable returns all auditable/loggable parameters

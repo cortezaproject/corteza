@@ -2,16 +2,15 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
-
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -99,23 +98,23 @@ func (ctrl User) Read(ctx context.Context, r *request.UserRead) (interface{}, er
 }
 
 func (ctrl User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.user.With(ctx).Delete(r.UserID)
+	return api.OK(), ctrl.user.With(ctx).Delete(r.UserID)
 }
 
 func (ctrl User) Suspend(ctx context.Context, r *request.UserSuspend) (interface{}, error) {
-	return resputil.OK(), ctrl.user.With(ctx).Suspend(r.UserID)
+	return api.OK(), ctrl.user.With(ctx).Suspend(r.UserID)
 }
 
 func (ctrl User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (interface{}, error) {
-	return resputil.OK(), ctrl.user.With(ctx).Unsuspend(r.UserID)
+	return api.OK(), ctrl.user.With(ctx).Unsuspend(r.UserID)
 }
 
 func (ctrl User) Undelete(ctx context.Context, r *request.UserUndelete) (interface{}, error) {
-	return resputil.OK(), ctrl.user.With(ctx).Undelete(r.UserID)
+	return api.OK(), ctrl.user.With(ctx).Undelete(r.UserID)
 }
 
 func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (interface{}, error) {
-	return resputil.OK(), ctrl.user.With(ctx).SetPassword(r.UserID, r.Password)
+	return api.OK(), ctrl.user.With(ctx).SetPassword(r.UserID, r.Password)
 }
 
 func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipList) (interface{}, error) {
@@ -131,11 +130,11 @@ func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipLi
 }
 
 func (ctrl User) MembershipAdd(ctx context.Context, r *request.UserMembershipAdd) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
 }
 
 func (ctrl User) MembershipRemove(ctx context.Context, r *request.UserMembershipRemove) (interface{}, error) {
-	return resputil.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
 }
 
 func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScript) (rsp interface{}, err error) {

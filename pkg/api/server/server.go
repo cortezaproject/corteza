@@ -1,36 +1,37 @@
-package api
+package server
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/version"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
-
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"go.uber.org/zap"
-
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
 type (
 	server struct {
-		log        *zap.Logger
-		httpOpt    options.HTTPServerOpt
-		waitForOpt options.WaitForOpt
-		endpoints  []func(r chi.Router)
+		log            *zap.Logger
+		httpOpt        options.HTTPServerOpt
+		waitForOpt     options.WaitForOpt
+		environmentOpt options.EnvironmentOpt
+		endpoints      []func(r chi.Router)
 	}
 )
 
-func New(log *zap.Logger, httpOpt options.HTTPServerOpt, waitForOpt options.WaitForOpt) *server {
+func New(log *zap.Logger, envOpt options.EnvironmentOpt, httpOpt options.HTTPServerOpt, waitForOpt options.WaitForOpt) *server {
 	return &server{
-		endpoints:  make([]func(r chi.Router), 0),
-		log:        log.Named("http"),
-		httpOpt:    httpOpt,
-		waitForOpt: waitForOpt,
+		endpoints: make([]func(r chi.Router), 0),
+		log:       log.Named("http"),
+
+		environmentOpt: envOpt,
+		httpOpt:        httpOpt,
+		waitForOpt:     waitForOpt,
 	}
 }
 
@@ -41,14 +42,6 @@ func (s *server) MountRoutes(mm ...func(chi.Router)) {
 func (s server) Serve(ctx context.Context) {
 	s.log.Info("Starting HTTP server with REST API", zap.String("address", s.httpOpt.Addr))
 
-	// configure resputil options
-	resputil.SetConfig(resputil.Options{
-		Trace: s.httpOpt.Tracing,
-		Logger: func(err error) {
-			// @todo: error logging
-		},
-	})
-
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
 		s.log.Error("Can not start server", zap.Error(err))
@@ -58,7 +51,7 @@ func (s server) Serve(ctx context.Context) {
 	router := chi.NewRouter()
 
 	// Base middleware, CORS, RealIP, RequestID, context-logger
-	router.Use(BaseMiddleware(s.log)...)
+	router.Use(BaseMiddleware(s.environmentOpt.IsProduction(), s.log)...)
 
 	router.Group(func(r chi.Router) {
 		s.bindMiscRoutes(r)
@@ -139,7 +132,12 @@ func (s server) bindMiscRoutes(router chi.Router) {
 	}
 
 	if s.httpOpt.EnableVersionRoute {
-		router.Get("/version", version.HttpHandler)
+		router.Get("/version", func(w http.ResponseWriter, r *http.Request) {
+			api.Send(w, r, struct {
+				BuildTime string `json:"buildTime"`
+				Version   string `json:"version"`
+			}{version.BuildTime, version.Version})
+		})
 	}
 
 	if s.httpOpt.EnableHealthcheckRoute {

@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -36,21 +34,17 @@ func NewStats(h StatsAPI) *Stats {
 			defer r.Body.Close()
 			params := request.NewStatsList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Stats.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Stats.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Stats.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

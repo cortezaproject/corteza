@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -36,21 +34,17 @@ func NewSubscription(h SubscriptionAPI) *Subscription {
 			defer r.Body.Close()
 			params := request.NewSubscriptionCurrent()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Subscription.Current", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Current(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Subscription.Current", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Subscription.Current", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

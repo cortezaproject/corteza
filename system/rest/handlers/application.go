@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -48,141 +46,113 @@ func NewApplication(h ApplicationAPI) *Application {
 			defer r.Body.Close()
 			params := request.NewApplicationList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Create", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.Create", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.Create", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Update", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.Update", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.Update", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Delete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.Delete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.Delete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationUndelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.Undelete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Undelete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.Undelete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.Undelete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewApplicationTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Application.TriggerScript", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Application.TriggerScript", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Application.TriggerScript", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

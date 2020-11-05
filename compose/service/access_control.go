@@ -200,7 +200,7 @@ func (svc accessControl) logGrants(ctx context.Context, rr []*rbac.Rule) {
 		g.log = r.String()
 		g.resource = r.Resource.String()
 
-		svc.actionlog.Record(ctx, g)
+		svc.actionlog.Record(ctx, g.ToAction())
 	}
 }
 

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -17,6 +18,9 @@ type (
 	}
 )
 
+// safe to show details of this error
+func (RecordValueErrorSet) Safe() bool { return true }
+
 func (v *RecordValueErrorSet) Push(err ...RecordValueError) {
 	v.Set = append(v.Set, err...)
 }
@@ -27,6 +31,16 @@ func (v *RecordValueErrorSet) IsValid() bool {
 
 func (v *RecordValueErrorSet) Error() string {
 	return fmt.Sprintf("%d issue(s) found", len(v.Set))
+}
+
+func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Message string             `json:"message"`
+		Set     []RecordValueError `json:"set,omitempty"`
+	}{
+		Message: v.Error(),
+		Set:     v.Set,
+	})
 }
 
 // IsRecordValueErrorSet tests if given error is RecordValueErrorSet (or it wraps it) and it has errors

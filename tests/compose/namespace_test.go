@@ -16,6 +16,7 @@ import (
 )
 
 func (h helper) clearNamespaces() {
+	h.noError(store.TruncateComposeAttachments(context.Background(), service.DefaultStore))
 	h.noError(store.TruncateComposeNamespaces(context.Background(), service.DefaultStore))
 }
 
@@ -104,6 +105,7 @@ func TestNamespaceCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post("/namespace/").
+		Header("Accept", "application/json").
 		FormData("name", "some-namespace").
 		Expect(t).
 		Status(http.StatusOK).
@@ -134,6 +136,7 @@ func TestNamespaceUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
+		Header("Accept", "application/json").
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
@@ -169,6 +172,7 @@ func TestNamespaceDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d", ns.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this namespace")).

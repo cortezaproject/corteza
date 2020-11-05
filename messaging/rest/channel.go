@@ -2,9 +2,7 @@ package rest
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
-	"github.com/titpetric/factory/resputil"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
@@ -12,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
+	"github.com/pkg/errors"
 )
 
 var _ = errors.Wrap
@@ -114,7 +113,7 @@ func (ctrl *Channel) Join(ctx context.Context, r *request.ChannelJoin) (interfac
 }
 
 func (ctrl *Channel) Part(ctx context.Context, r *request.ChannelPart) (interface{}, error) {
-	return resputil.OK(), ctrl.svc.ch.With(ctx).DeleteMember(r.ChannelID, r.UserID)
+	return api.OK(), ctrl.svc.ch.With(ctx).DeleteMember(r.ChannelID, r.UserID)
 }
 
 func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (interface{}, error) {

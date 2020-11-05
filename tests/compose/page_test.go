@@ -133,6 +133,7 @@ func TestPageCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/page/", ns.ID)).
+		Header("Accept", "application/json").
 		FormData("title", "some-page").
 		Expect(t).
 		Status(http.StatusOK).
@@ -168,6 +169,7 @@ func TestPageUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
 		FormData("title", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
@@ -208,6 +210,7 @@ func TestPageDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, m.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this page")).

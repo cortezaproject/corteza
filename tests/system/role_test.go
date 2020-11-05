@@ -103,6 +103,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post("/roles/").
+		Header("Accept", "application/json").
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -117,6 +118,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 	role := h.repoMakeRole()
 	h.apiInit().
 		Post("/roles/").
+		Header("Accept", "application/json").
 		FormData("name", rs()).
 		FormData("handle", role.Handle).
 		Expect(t).
@@ -126,6 +128,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 
 	h.apiInit().
 		Post("/roles/").
+		Header("Accept", "application/json").
 		FormData("name", role.Name).
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
@@ -155,6 +158,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Put(fmt.Sprintf("/roles/%d", u.ID)).
+		Header("Accept", "application/json").
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -191,6 +195,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/roles/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this role")).

@@ -3,24 +3,22 @@ package corredor
 import (
 	"context"
 	"fmt"
-	"strings"
-	"sync"
-	"time"
-
-	"github.com/go-chi/chi/middleware"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/go-chi/chi/middleware"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"strings"
+	"sync"
+	"time"
 )
 
 type (
@@ -142,6 +140,8 @@ var (
 		onManualEventType,
 		onIterationEventType,
 	}
+
+	ScriptExecAborted = errors.Plain(errors.KindAutomation, "aborted")
 )
 
 const (
@@ -299,19 +299,19 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 	)
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
-		return errors.Errorf("nonexistent script (%q)", scriptName)
+		return fmt.Errorf("nonexistent script (%q)", scriptName)
 	}
 
 	if !svc.canExec(ctx, scriptName) {
-		return errors.Errorf("permission to execute %s denied", scriptName)
+		return fmt.Errorf("permission to execute %s denied", scriptName)
 	}
 
 	if script.Iterator == nil {
-		return errors.Errorf("not an itrator script")
+		return fmt.Errorf("not an itrator script")
 	}
 
 	if finder, ok := svc.iteratorProviders[script.Iterator.ResourceType]; !ok {
-		return errors.Errorf("unknown resource finder: %s", script.Iterator.ResourceType)
+		return fmt.Errorf("unknown resource finder: %s", script.Iterator.ResourceType)
 	} else {
 		if script.Security != nil {
 			runAs = script.Security.RunAs
@@ -319,7 +319,7 @@ func (svc service) ExecIterator(ctx context.Context, scriptName string) error {
 
 		if runAs != "" {
 			if !svc.opt.RunAsEnabled {
-				return errors.New("could not make runner context, run-as disabled")
+				return fmt.Errorf("could not make runner context, run-as disabled")
 			}
 
 			// Run this iterator as defined user
@@ -365,23 +365,23 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 	)
 
 	if len(scriptName) == 0 {
-		return errors.Errorf("script name not provided (%q)", scriptName)
+		return fmt.Errorf("script name not provided (%q)", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName]; !ok {
-		return errors.Errorf("unregistered explicit script %q", scriptName)
+		return fmt.Errorf("unregistered explicit script %q", scriptName)
 	}
 
 	if _, ok = svc.explicit[scriptName][res]; !ok {
-		return errors.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
+		return fmt.Errorf("unregistered explicit script %q for resource %q", scriptName, res)
 	}
 
 	if script = svc.sScripts.FindByName(scriptName); script == nil {
-		return errors.Errorf("nonexistent script (%q)", scriptName)
+		return fmt.Errorf("nonexistent script (%q)", scriptName)
 	}
 
 	if !svc.canExec(ctx, scriptName) {
-		return errors.Errorf("permission to execute %s denied", scriptName)
+		return fmt.Errorf("permission to execute %s denied", scriptName)
 	}
 
 	if script.Security != nil {
@@ -543,7 +543,7 @@ func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 	}
 
 	if i.ResourceType == "" {
-		return 0, errors.Errorf("iterator resourceType not defined")
+		return 0, fmt.Errorf("iterator resourceType not defined")
 	}
 
 	log.Info(
@@ -561,11 +561,11 @@ func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 		return
 	case onIntervalEventType, onTimestampEventType:
 		if len(i.Deferred) == 0 {
-			return 0, errors.Errorf("missing specification for interval/timestamp events")
+			return 0, fmt.Errorf("missing specification for interval/timestamp events")
 		}
 
 		if script.Security == nil {
-			return 0, errors.Errorf("can not schedule iterator without security descriptor")
+			return 0, fmt.Errorf("can not schedule iterator without security descriptor")
 		}
 
 		if p := strings.Index(i.ResourceType, ":"); p > 0 {
@@ -585,7 +585,7 @@ func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 			eventbus.Constraint(eventbus.MustMakeConstraint("", "", i.Deferred...)),
 		), nil
 	default:
-		return 0, errors.Errorf("incompatible event type (%s) for iterator", i.EventType)
+		return 0, fmt.Errorf("incompatible event type (%s) for iterator", i.EventType)
 	}
 
 	return
@@ -657,7 +657,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			zap.String("runAs", runAs),
 			zap.String("args", args.EventType()),
 			zap.String("resource", args.ResourceType()),
-		)
+		).WithOptions(zap.AddStacktrace(zap.FatalLevel))
 	)
 
 	log.Debug("triggered")
@@ -681,6 +681,10 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 	// Resolve/expand invoker user details from the context (if present
 	if i := auth.GetIdentityFromContext(ctx); i.Valid() {
+		if svc.users == nil {
+			return fmt.Errorf("could not run automation script without configured user service")
+		}
+
 		invoker, err = svc.users.FindByAny(ctx, i)
 		if err != nil {
 			return err
@@ -695,7 +699,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 	if len(runAs) > 0 {
 		if !svc.opt.RunAsEnabled {
-			return errors.New("could not make runner context, run-as disabled")
+			return fmt.Errorf("could not make runner context, run-as disabled")
 		}
 
 		var definer auth.Identifiable
@@ -774,25 +778,61 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 	)
 
 	if err != nil {
+
 		// See if this was a "soft abort"
 		//
 		// This means, we do not make any logs of this just
 		// tell the caller that the call was aborted
 		s := status.Convert(err)
-		if s != nil && s.Code() == codes.Aborted {
-			// Special care for errors with Aborted code
+
+		if s != nil {
 			msg := s.Message()
 
-			if len(msg) == 0 {
-				// No extra message, fallback to "aborted"
-				msg = "Aborted"
-			}
+			switch s.Code() {
 
-			return errors.New(msg)
+			case codes.NotFound:
+				// When requested script is not found on automation server
+				return errors.NotFound(msg)
+
+			case codes.Aborted:
+				// Scripts can be (softly) aborted by terminating with:
+				//  a) return false
+				//  b) throw Error("Aborted")
+				//
+				// Both this terminations have the same result. In case when
+				// iterator script is aborted that will finalize the iterator
+				// without an error
+				return ScriptExecAborted.Apply(
+					errors.Meta("script", script),
+				)
+
+			case codes.Unknown:
+				// When script was aborted or an unknown (to gRPC proto) error occurred.
+				// This is always a hard error
+				return errors.Automation(msg).Apply(
+					errors.Meta("script", script),
+					errors.AddNodeStack(trailer.Get("stack")),
+				)
+
+			case codes.InvalidArgument:
+				// Automation server might yield INVALID_ARGUMENT status.
+				// This can be caused by JSON encoding and it is highly unlikely
+				// when arguments are prepared by the server
+				return errors.InvalidData(msg)
+
+			default:
+				// When script execution fails and it is not handled otherwise,
+				// automation server yields INTERNAL error status
+				//
+				// This error and any other one that do not fit the above rules
+				// are wrapped with an opaque error
+				return errors.Automation("automation server internal fault").Wrap(err)
+
+			}
 		}
 
-		log.Warn("corredor responded with error", zap.Error(err))
-		return errors.New("failed to execute corredor script")
+		return fmt.Errorf("internal automation server error: %w", err)
+
 	}
 
 	log.Info("executed", zap.Any("result", rsp.Result))
@@ -800,8 +840,8 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 	// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// ////
 
 	// @todo process metadata (log, errors, stacktrace)
-	// spew.Dump("grpc exec header", header)
-	// spew.Dump("grpc exec trailer", trailer)
+	//spew.Dump("grpc exec header", header)
+	//spew.Dump("grpc exec trailer", trailer)
 
 	if rsp.Result == nil {
 		// No results
@@ -899,7 +939,7 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 			out := make([]*rbac.Rule, len(roles))
 			for i, role := range roles {
 				if r, err := svc.roles.FindByAny(ctx, role); err != nil {
-					return nil, errors.Wrapf(err, "could not load security role: %s", role)
+					return nil, fmt.Errorf("could not load security role: %s: %w", role, err)
 				} else {
 					out[i] = &rbac.Rule{
 						RoleID:    r.ID,

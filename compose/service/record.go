@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -11,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/store"
 	"regexp"
@@ -212,7 +212,7 @@ func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
-		if r, err = lookup(m, aProps); errors.Is(err, store.ErrNotFound) {
+		if r, err = lookup(m, aProps); errors.IsNotFound(err) {
 			return RecordErrNotFound()
 		} else if err != nil {
 			return err
@@ -1154,7 +1154,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 
 			err = func() error {
 				if err = fn(svc.ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
-					if err.Error() != "Aborted" {
+					if errors.Is(err, corredor.ScriptExecAborted) {
 						// When script was softly aborted (return false),
 						// proceed with iteration but do not clone, update or delete
 						// current record!

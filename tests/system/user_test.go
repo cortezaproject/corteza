@@ -128,8 +128,8 @@ func TestUserListWithPaging(t *testing.T) {
 	h.a.NotNil(aux.Response.Filter.NextPage)
 
 	h.apiInit().
-		Debug().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Query("limit", "13").
 		Query("pageCursor", *aux.Response.Filter.NextPage).
 		Expect(t).
@@ -158,6 +158,7 @@ func TestUserList_filterForbidden(t *testing.T) {
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -290,6 +291,7 @@ func TestUserCreateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Post("/users/").
+		Header("Accept", "application/json").
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -322,6 +324,7 @@ func TestUserUpdateForbidden(t *testing.T) {
 
 	h.apiInit().
 		Put(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -355,6 +358,7 @@ func TestUserDeleteForbidden(t *testing.T) {
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to delete this user")).

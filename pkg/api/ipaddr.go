@@ -12,7 +12,7 @@ type ctxKeyRemoteAddr int
 const remoteAddrKey ctxKeyRemoteAddr = 0
 
 // Packs remote address to context
-func remoteAddrToContext(next http.Handler) http.Handler {
+func RemoteAddrToContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		next.ServeHTTP(w, req.WithContext(context.WithValue(req.Context(), remoteAddrKey, req.RemoteAddr)))
 	})

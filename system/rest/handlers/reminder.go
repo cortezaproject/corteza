@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -48,141 +46,113 @@ func NewReminder(h ReminderAPI) *Reminder {
 			defer r.Body.Close()
 			params := request.NewReminderList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Create", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Create", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Create", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Update", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Update", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Update", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Delete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Delete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Delete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Dismiss: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderDismiss()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Dismiss", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Dismiss(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Dismiss", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Dismiss", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Snooze: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewReminderSnooze()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Reminder.Snooze", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Snooze(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Reminder.Snooze", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Reminder.Snooze", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

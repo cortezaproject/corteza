@@ -30,6 +30,7 @@ func TestRecordExecUnknownProcedure(t *testing.T) {
 
 	h.apiInit().
 		Post("/namespace/0/module/0/record/exec/test-unexisting-proc").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("unknown procedure")).

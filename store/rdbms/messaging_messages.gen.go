@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchMessagingMessages(ctx context.Context, f types.MessageFilte
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryMessagingMessages(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryMessagingMessages queries the database, converts and checks each row and
@@ -111,7 +110,7 @@ func (s Store) CreateMessagingMessage(ctx context.Context, rr ...*types.Message)
 
 // UpdateMessagingMessage updates one or more existing rows in messaging_message
 func (s Store) UpdateMessagingMessage(ctx context.Context, rr ...*types.Message) error {
-	return s.config.ErrorHandler(s.partialMessagingMessageUpdate(ctx, nil, rr...))
+	return s.partialMessagingMessageUpdate(ctx, nil, rr...)
 }
 
 // partialMessagingMessageUpdate updates one or more existing rows in messaging_message
@@ -129,7 +128,7 @@ func (s Store) partialMessagingMessageUpdate(ctx context.Context, onlyColumns []
 			},
 			s.internalMessagingMessageEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -144,7 +143,7 @@ func (s Store) UpsertMessagingMessage(ctx context.Context, rr ...*types.Message)
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertMessagingMessages(ctx, s.internalMessagingMessageEncoder(res)))
+		err = s.execUpsertMessagingMessages(ctx, s.internalMessagingMessageEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -161,7 +160,7 @@ func (s Store) DeleteMessagingMessage(ctx context.Context, rr ...*types.Message)
 			s.preprocessColumn("msg.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -177,7 +176,7 @@ func (s Store) DeleteMessagingMessageByID(ctx context.Context, ID uint64) error 
 
 // TruncateMessagingMessages Deletes all rows from the messaging_message table
 func (s Store) TruncateMessagingMessages(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.messagingMessageTable()))
+	return s.Truncate(ctx, s.messagingMessageTable())
 }
 
 // execLookupMessagingMessage prepares MessagingMessage query and executes it,
@@ -202,12 +201,12 @@ func (s Store) execLookupMessagingMessage(ctx context.Context, cnd squirrel.Sqli
 
 // execCreateMessagingMessages updates all matched (by cnd) rows in messaging_message with given data
 func (s Store) execCreateMessagingMessages(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.messagingMessageTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.messagingMessageTable()).SetMap(payload))
 }
 
 // execUpdateMessagingMessages updates all matched (by cnd) rows in messaging_message with given data
 func (s Store) execUpdateMessagingMessages(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.messagingMessageTable("msg")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.messagingMessageTable("msg")).Where(cnd).SetMap(set))
 }
 
 // execUpsertMessagingMessages inserts new or updates matching (by-primary-key) rows in messaging_message with given data
@@ -223,12 +222,12 @@ func (s Store) execUpsertMessagingMessages(ctx context.Context, set store.Payloa
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteMessagingMessages Deletes all matched (by cnd) rows in messaging_message with given data
 func (s Store) execDeleteMessagingMessages(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.messagingMessageTable("msg")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.messagingMessageTable("msg")).Where(cnd))
 }
 
 func (s Store) internalMessagingMessageRowScanner(row rowScanner) (res *types.Message, err error) {
@@ -254,11 +253,11 @@ func (s Store) internalMessagingMessageRowScanner(row rowScanner) (res *types.Me
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for MessagingMessage: %w", err)
+		return nil, errors.Store("could not scan messagingMessage db row").Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *chartActionProps
 	}
 
-	chartError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *chartActionProps
-	}
+	chartLogMetaKey   struct{}
+	chartPropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *chartActionProps) setNamespace(namespace *types.Namespace) *chartAction
 	return p
 }
 
-// serialize converts chartActionProps to actionlog.Meta
+// Serialize converts chartActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p chartActionProps) serialize() actionlog.Meta {
+func (p chartActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -149,7 +137,7 @@ func (p chartActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p chartActionProps) tr(in string, err error) string {
+func (p chartActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -165,16 +153,6 @@ func (p chartActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -271,107 +249,16 @@ func (a *chartAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *chartAction) LoggableAction() *actionlog.Action {
+func (e *chartAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *chartError) String() string {
-	var props = &chartActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *chartError) Error() string {
-	var props = &chartActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *chartError) Is(err error) bool {
-	t, ok := err.(*chartError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *chartError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps chartError around another error
-//
-// This function is auto-generated.
-//
-func (e *chartError) Wrap(err error) *chartError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *chartError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *chartError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -379,7 +266,7 @@ func (e *chartError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ChartActionSearch returns "compose:chart.search" error
+// ChartActionSearch returns "compose:chart.search" action
 //
 // This function is auto-generated.
 //
@@ -399,7 +286,7 @@ func ChartActionSearch(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionLookup returns "compose:chart.lookup" error
+// ChartActionLookup returns "compose:chart.lookup" action
 //
 // This function is auto-generated.
 //
@@ -419,7 +306,7 @@ func ChartActionLookup(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionCreate returns "compose:chart.create" error
+// ChartActionCreate returns "compose:chart.create" action
 //
 // This function is auto-generated.
 //
@@ -439,7 +326,7 @@ func ChartActionCreate(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionUpdate returns "compose:chart.update" error
+// ChartActionUpdate returns "compose:chart.update" action
 //
 // This function is auto-generated.
 //
@@ -459,7 +346,7 @@ func ChartActionUpdate(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionDelete returns "compose:chart.delete" error
+// ChartActionDelete returns "compose:chart.delete" action
 //
 // This function is auto-generated.
 //
@@ -479,7 +366,7 @@ func ChartActionDelete(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionUndelete returns "compose:chart.undelete" error
+// ChartActionUndelete returns "compose:chart.undelete" action
 //
 // This function is auto-generated.
 //
@@ -499,7 +386,7 @@ func ChartActionUndelete(props ...*chartActionProps) *chartAction {
 	return a
 }
 
-// ChartActionReorder returns "compose:chart.reorder" error
+// ChartActionReorder returns "compose:chart.reorder" action
 //
 // This function is auto-generated.
 //
@@ -523,484 +410,502 @@ func ChartActionReorder(props ...*chartActionProps) *chartAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// ChartErrGeneric returns "compose:chart.generic" audit event as actionlog.Error
+// ChartErrGeneric returns "compose:chart.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrGeneric(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrGeneric(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "{err}"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotFound returns "compose:chart.notFound" audit event as actionlog.Warning
+// ChartErrNotFound returns "compose:chart.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotFound(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notFound",
-		action:    "error",
-		message:   "chart does not exist",
-		log:       "chart does not exist",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotFound(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("chart does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNamespaceNotFound returns "compose:chart.namespaceNotFound" audit event as actionlog.Warning
+// ChartErrNamespaceNotFound returns "compose:chart.namespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNamespaceNotFound(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "namespaceNotFound",
-		action:    "error",
-		message:   "namespace does not exist",
-		log:       "namespace does not exist",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNamespaceNotFound(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("namespace does not exist", nil),
+
+		errors.Meta("type", "namespaceNotFound"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrModuleNotFound returns "compose:chart.moduleNotFound" audit event as actionlog.Warning
+// ChartErrModuleNotFound returns "compose:chart.moduleNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrModuleNotFound(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "moduleNotFound",
-		action:    "error",
-		message:   "module does not exist",
-		log:       "module does not exist",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrModuleNotFound(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module does not exist", nil),
+
+		errors.Meta("type", "moduleNotFound"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrInvalidID returns "compose:chart.invalidID" audit event as actionlog.Warning
+// ChartErrInvalidID returns "compose:chart.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrInvalidID(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrInvalidID(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrInvalidHandle returns "compose:chart.invalidHandle" audit event as actionlog.Warning
+// ChartErrInvalidHandle returns "compose:chart.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrInvalidHandle(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "invalidHandle",
-		action:    "error",
-		message:   "invalid handle",
-		log:       "invalid handle",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrInvalidHandle(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid handle", nil),
+
+		errors.Meta("type", "invalidHandle"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrHandleNotUnique returns "compose:chart.handleNotUnique" audit event as actionlog.Warning
+// ChartErrHandleNotUnique returns "compose:chart.handleNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrHandleNotUnique(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "handleNotUnique",
-		action:    "error",
-		message:   "handle not unique",
-		log:       "used duplicate handle ({chart.handle}) for chart",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrHandleNotUnique(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("handle not unique", nil),
+
+		errors.Meta("type", "handleNotUnique"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "used duplicate handle ({chart.handle}) for chart"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrStaleData returns "compose:chart.staleData" audit event as actionlog.Warning
+// ChartErrStaleData returns "compose:chart.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrStaleData(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrStaleData(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrInvalidNamespaceID returns "compose:chart.invalidNamespaceID" audit event as actionlog.Warning
+// ChartErrInvalidNamespaceID returns "compose:chart.invalidNamespaceID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrInvalidNamespaceID(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "invalidNamespaceID",
-		action:    "error",
-		message:   "invalid or missing namespace ID",
-		log:       "invalid or missing namespace ID",
-		severity:  actionlog.Warning,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrInvalidNamespaceID(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid or missing namespace ID", nil),
+
+		errors.Meta("type", "invalidNamespaceID"),
+		errors.Meta("resource", "compose:chart"),
+
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToRead returns "compose:chart.notAllowedToRead" audit event as actionlog.Error
+// ChartErrNotAllowedToRead returns "compose:chart.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToRead(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this chart",
-		log:       "could not read {chart}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToRead(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this chart", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not read {chart}; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToReadNamespace returns "compose:chart.notAllowedToReadNamespace" audit event as actionlog.Error
+// ChartErrNotAllowedToReadNamespace returns "compose:chart.notAllowedToReadNamespace" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToReadNamespace(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToReadNamespace",
-		action:    "error",
-		message:   "not allowed to read this namespace",
-		log:       "could not read namespace {namespace}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToReadNamespace(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this namespace", nil),
+
+		errors.Meta("type", "notAllowedToReadNamespace"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToListCharts returns "compose:chart.notAllowedToListCharts" audit event as actionlog.Error
+// ChartErrNotAllowedToListCharts returns "compose:chart.notAllowedToListCharts" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToListCharts(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToListCharts",
-		action:    "error",
-		message:   "not allowed to list charts",
-		log:       "could not list charts; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToListCharts(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list charts", nil),
+
+		errors.Meta("type", "notAllowedToListCharts"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not list charts; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToCreate returns "compose:chart.notAllowedToCreate" audit event as actionlog.Error
+// ChartErrNotAllowedToCreate returns "compose:chart.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToCreate(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create charts",
-		log:       "could not create charts; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToCreate(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create charts", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not create charts; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToUpdate returns "compose:chart.notAllowedToUpdate" audit event as actionlog.Error
+// ChartErrNotAllowedToUpdate returns "compose:chart.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToUpdate(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this chart",
-		log:       "could not update {chart}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToUpdate(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this chart", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not update {chart}; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToDelete returns "compose:chart.notAllowedToDelete" audit event as actionlog.Error
+// ChartErrNotAllowedToDelete returns "compose:chart.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToDelete(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this chart",
-		log:       "could not delete {chart}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToDelete(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this chart", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not delete {chart}; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ChartErrNotAllowedToUndelete returns "compose:chart.notAllowedToUndelete" audit event as actionlog.Error
+// ChartErrNotAllowedToUndelete returns "compose:chart.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ChartErrNotAllowedToUndelete(props ...*chartActionProps) *chartError {
-	var e = &chartError{
-		timestamp: time.Now(),
-		resource:  "compose:chart",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this chart",
-		log:       "could not undelete {chart}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *chartActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ChartErrNotAllowedToUndelete(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this chart", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not undelete {chart}; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -1008,94 +913,42 @@ func ChartErrNotAllowedToUndelete(props ...*chartActionProps) *chartError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct chartAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc chart) recordAction(ctx context.Context, props *chartActionProps, action func(...*chartActionProps) *chartAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *chartError
-
-		// Recorder error
-		recError *chartError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*chartError); !ok {
-			// got non-chart error, wrap it with ChartErrGeneric
-			retError = ChartErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use ChartErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type chartError
-				if unwrappedSinkError, ok := unwrappedError.(*chartError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc chart) recordAction(ctx context.Context, props *chartActionProps, actionFn func(...*chartActionProps) *chartAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(chartLogMetaKey{}), err)
+
+		if p, has := m[chartPropsMetaKey{}]; has {
+			a.Meta = p.(*chartActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

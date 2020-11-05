@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -60,261 +58,209 @@ func NewUser(h UserAPI) *User {
 			defer r.Body.Close()
 			params := request.NewUserList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.List", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.List(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.List", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.List", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Create", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Create", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Create", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Update", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Update", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Update", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Delete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Delete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Delete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Suspend: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserSuspend()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Suspend", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Suspend(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Suspend", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Suspend", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Unsuspend: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserUnsuspend()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Unsuspend", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Unsuspend(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Unsuspend", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Unsuspend", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserUndelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.Undelete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Undelete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.Undelete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.Undelete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		SetPassword: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserSetPassword()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.SetPassword", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.SetPassword(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.SetPassword", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.SetPassword", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		MembershipList: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserMembershipList()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.MembershipList", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.MembershipList(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.MembershipList", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.MembershipList", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		MembershipAdd: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserMembershipAdd()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.MembershipAdd", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.MembershipAdd(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.MembershipAdd", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.MembershipAdd", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		MembershipRemove: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserMembershipRemove()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.MembershipRemove", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.MembershipRemove(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.MembershipRemove", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.MembershipRemove", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewUserTriggerScript()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("User.TriggerScript", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.TriggerScript(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("User.TriggerScript", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("User.TriggerScript", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

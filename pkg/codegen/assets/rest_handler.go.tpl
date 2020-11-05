@@ -12,10 +12,8 @@ import (
 	"context"
 	"net/http"
 	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/{{ .App }}/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 )
 
 type (
@@ -34,7 +32,6 @@ type (
     }
 )
 
-
 func {{ export "New" $.Endpoint.Entrypoint }}(h {{ export $.Endpoint.Entrypoint }}API) *{{ export $.Endpoint.Entrypoint }} {
 	return &{{ export $.Endpoint.Entrypoint }}{
     {{- range $a := .Endpoint.Apis }}
@@ -42,21 +39,17 @@ func {{ export "New" $.Endpoint.Entrypoint }}(h {{ export $.Endpoint.Entrypoint 
 			defer r.Body.Close()
 			params := request.New{{ export $.Endpoint.Entrypoint $a.Name }}()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.{{ export $a.Name }}(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("{{ export $.Endpoint.Entrypoint }}.{{ export $a.Name }}", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
     {{- end }}
 	}

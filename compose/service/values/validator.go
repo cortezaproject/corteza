@@ -2,7 +2,7 @@ package values
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
@@ -310,7 +310,7 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 	} else if options == nil {
 		return nil
 	} else {
-		return e2s(makeInternalErr(f, errors.New("invalid select options definition")))
+		return e2s(makeInternalErr(f, fmt.Errorf("invalid select options definition")))
 	}
 
 	if !sbm[v.Value] {

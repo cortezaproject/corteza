@@ -7,7 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -68,7 +68,7 @@ func InitTestApp() {
 
 	if r == nil {
 		r = chi.NewRouter()
-		r.Use(api.BaseMiddleware(logger.Default())...)
+		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
 	}
@@ -104,7 +104,7 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	//InitTestApp()
+	InitTestApp()
 
 	return apitest.
 		New().
