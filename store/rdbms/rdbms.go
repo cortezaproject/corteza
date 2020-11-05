@@ -187,7 +187,7 @@ func (s Store) tryToConnect(ctx context.Context, db *sqlx.DB) error {
 		return err
 	case <-time.After(to):
 		// Wait before next try
-		return fmt.Errorf("timedout after %ds", to.Seconds())
+		return fmt.Errorf("timedout after %.2fs", to.Seconds())
 	case <-ctx.Done():
 		return fmt.Errorf("connection cancelled")
 	}

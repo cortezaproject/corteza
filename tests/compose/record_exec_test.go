@@ -133,9 +133,9 @@ func TestRecordExecOrganize(t *testing.T) {
 	t.Logf("moving 'a' to position '6'")
 	// Move a to the middle
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
-		{"recordID", rr["a"]},
-		{"positionField", "position"},
-		{"position", "6"}}).
+		{Name: "recordID", Value: rr["a"]},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "6"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -150,9 +150,9 @@ func TestRecordExecOrganize(t *testing.T) {
 	t.Logf("moving 'i' to position '0'")
 	// Move i to the beginning
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
-		{"recordID", rr["i"]},
-		{"positionField", "position"},
-		{"position", "0"}}).
+		{Name: "recordID", Value: rr["i"]},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "0"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -167,10 +167,10 @@ func TestRecordExecOrganize(t *testing.T) {
 	t.Logf("moving 'b' to position '5'")
 	// Move b to the 5th place
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
-		{"recordID", rr["b"]},
-		{"filter", "category = 'CAT1'"},
-		{"positionField", "position"},
-		{"position", "5"}}).
+		{Name: "recordID", Value: rr["b"]},
+		{Name: "filter", Value: "category = 'CAT1'"},
+		{Name: "positionField", Value: "position"},
+		{Name: "position", Value: "5"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
@@ -185,9 +185,9 @@ func TestRecordExecOrganize(t *testing.T) {
 	t.Logf("moving 'b' to category CAT2")
 	// This will keep order of letters but move b to category-2
 	h.apiSendRecordExec(module.NamespaceID, module.ID, "organize", request.ProcedureArgs{
-		{"recordID", rr["b"]},
-		{"groupField", "category"},
-		{"group", "CAT2"}}).
+		{Name: "recordID", Value: rr["b"]},
+		{Name: "groupField", Value: "category"},
+		{Name: "group", Value: "CAT2"}}).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()

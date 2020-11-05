@@ -18,6 +18,4 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 	default:
 		return fmt.Sprintf("rv_%s.value ", ident), nil
 	}
-
-	return ident, nil
 }

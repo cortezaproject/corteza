@@ -1023,7 +1023,7 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 			return nil
 		}
 
-		return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{roleID, u.ID})
+		return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: roleID, UserID: u.ID})
 	}()
 
 	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)

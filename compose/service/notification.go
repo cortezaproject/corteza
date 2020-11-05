@@ -195,7 +195,7 @@ func (svc notification) procEmailAttachments(ctx context.Context, message *gomai
 
 	for _, url := range aa {
 		wg.Add(1)
-		go func() {
+		go func(url string) {
 			defer wg.Done()
 			_ = svc.recordAction(
 				ctx,
@@ -203,7 +203,7 @@ func (svc notification) procEmailAttachments(ctx context.Context, message *gomai
 				NotificationActionAttachmentDownload,
 				get(url),
 			)
-		}()
+		}(url)
 	}
 
 	wg.Wait()

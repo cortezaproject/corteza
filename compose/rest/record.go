@@ -490,8 +490,6 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 	default:
 		return nil, fmt.Errorf("unknown procedure")
 	}
-
-	return nil, nil
 }
 
 func (ctrl *Record) TriggerScript(ctx context.Context, r *request.RecordTriggerScript) (interface{}, error) {

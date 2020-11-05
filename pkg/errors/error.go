@@ -98,7 +98,7 @@ func (e *Error) Apply(ffn ...mfn) *Error {
 }
 
 // Is provided Is() method for equality checking with errors.Is
-func (e Error) Is(target error) bool {
+func (e *Error) Is(target error) bool {
 	t, ok := target.(*Error)
 	if !ok {
 		return false

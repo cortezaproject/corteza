@@ -29,7 +29,7 @@ func ImportSession() *importSession {
 	}
 }
 
-func (svc importSession) indexOf(userID, sessionID uint64) int {
+func (svc *importSession) indexOf(userID, sessionID uint64) int {
 	for i, r := range svc.records {
 		if r.SessionID == sessionID && r.UserID == userID {
 			return i
