@@ -1,46 +1,52 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
-const (
-	COMPOSE_RECORD_RESOURCE_TYPE = "ComposeRecordSet"
-)
-
 type (
+	ComposeRecordRaw struct {
+		ID        string
+		Values    map[string]string
+		SysValues map[string]string
+		RefUser   map[string]string
+	}
+	ComposeRecordRawSet []*ComposeRecordRaw
+
+	crsWalker func(f func(r *ComposeRecordRaw) error) error
+
 	ComposeRecord struct {
 		*base
-		Res     *types.Record
-		nsRef   string
-		modRef  string
-		userRef map[string]string
+		// Res     *types.Record
+
+		Walker crsWalker
+
+		NsRef     *Ref
+		ModRef    *Ref
+		ModFields types.ModuleFieldSet
+		UserRef   map[string]string
 	}
 )
 
-func NewComposeRecord(res *types.Record, nsRef, modRef string, userRef map[string]string) *ComposeRecord {
+func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 	r := &ComposeRecord{base: &base{}}
 	r.SetResourceType(COMPOSE_RECORD_RESOURCE_TYPE)
-	r.Res = res
-	r.nsRef = nsRef
-	r.modRef = modRef
+	r.Walker = w
 
-	r.AddIdentifier(identifiers(res.ID)...)
+	r.AddIdentifier(identifiers(modRef)...)
 
-	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+	// for _, u := range userRef {
+	// 	r.AddRef(USER_RESOURCE_TYPE, u)
+	// }
+
+	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
 
 	return r
 }
 
 func (m *ComposeRecord) SearchQuery() types.RecordFilter {
 	f := types.RecordFilter{}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("recordID=%d", m.Res.ID)
-	}
 
 	return f
 }
