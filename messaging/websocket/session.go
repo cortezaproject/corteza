@@ -49,7 +49,7 @@ type (
 	}
 )
 
-func (Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *Session {
+func (*Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *Session {
 
 	s := &Session{
 		conn:   conn,
@@ -69,7 +69,7 @@ func (Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *S
 	return s
 }
 
-func (sess Session) log(fields ...zapcore.Field) *zap.Logger {
+func (sess *Session) log(fields ...zapcore.Field) *zap.Logger {
 	return sess.logger.With(fields...)
 }
 

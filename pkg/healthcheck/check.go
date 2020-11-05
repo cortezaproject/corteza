@@ -81,7 +81,7 @@ func (rr results) String() string {
 	return buf.String()
 }
 
-func (rr results) WriteTo(w io.Writer) {
+func (rr results) WriteTo(w io.Writer) (int64, error) {
 	var (
 		p = func(f string, aa ...interface{}) {
 			_, _ = fmt.Fprintf(w, f, aa...)
@@ -103,6 +103,8 @@ func (rr results) WriteTo(w io.Writer) {
 
 		p("\n")
 	}
+
+	return 0, nil
 }
 
 func (r *result) IsHealthy() bool {

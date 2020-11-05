@@ -2,7 +2,7 @@ package service
 
 import (
 	"bytes"
-	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -216,7 +216,7 @@ func Test_sink_handleRequest(t *testing.T) {
 			}
 
 			got, err := svc.handleRequest(req)
-			if !errors.Is(err, tt.wantErr) {
+			if tt.wantErr != nil && err != nil && !errors.Is(err, tt.wantErr) {
 				t.Errorf("handleRequest()\n"+
 					"  error: %v\n"+
 					"wantErr: %v", err, tt.wantErr)

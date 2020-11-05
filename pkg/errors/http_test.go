@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func ExampleSimpleErrorAsText() {
+func Example_writeHttpPlain() {
 	writeHttpPlain(os.Stdout, fmt.Errorf("dummy error"))
 
 	// Output:
@@ -13,14 +13,14 @@ func ExampleSimpleErrorAsText() {
 	// --------------------------------------------------------------------------------
 }
 
-func ExampleSimpleErrorAsJson() {
+func Example_writeHttpJSON() {
 	writeHttpJSON(os.Stdout, fmt.Errorf("dummy error"), true)
 
 	// Output:
 	// {"error":{"message":"dummy error"}}
 }
 
-func ExampleErrorAsText() {
+func Example_writeHttpPlain_2() {
 	err := New(0, "dummy error", Meta("a", "b"), Meta(&Error{}, "nope"))
 	err.stack = nil // will not test the stack as file path & line numbers might change
 	writeHttpPlain(os.Stdout, err)
@@ -31,7 +31,7 @@ func ExampleErrorAsText() {
 	// --------------------------------------------------------------------------------
 }
 
-func ExampleErrorAsJson() {
+func Example_writeHttpJSON_2() {
 	err := New(0, "dummy error", Meta("a", "b"), Meta(&Error{}, "nope"))
 	err.stack = nil // will not test the stack as file path & line numbers might change
 	writeHttpJSON(os.Stdout, err, false)

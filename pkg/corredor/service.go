@@ -587,8 +587,6 @@ func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 	default:
 		return 0, fmt.Errorf("incompatible event type (%s) for iterator", i.EventType)
 	}
-
-	return
 }
 
 // Creates handler function for eventbus subsystem
