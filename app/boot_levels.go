@@ -227,9 +227,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
-	// Initialize external authentication (from default settings)
-	external.Init()
-
 	app.lvl = bootLevelServicesInitialized
 	return
 }
@@ -313,6 +310,12 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	if err = msgService.Activate(ctx); err != nil {
 		return err
 	}
+
+	// Initialize external authentication (from default settings)
+	//
+	// We're relying on current settings to be loaded at this point so
+	// we need to run init AFTER service activation
+	external.Init()
 
 	app.lvl = bootLevelActivated
 	return nil
