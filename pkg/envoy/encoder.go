@@ -26,6 +26,9 @@ func Encode(ctx context.Context, p Provider, ee ...Encoder) error {
 		for _, e := range ee {
 			// Any dep conflicts should be handled by the Encoder
 			err = e.Encode(ctx, state)
+			if err != nil {
+				return err
+			}
 		}
 	}
 }
