@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
-const (
-	COMPOSE_CHART_RESOURCE_TYPE = "composeChart"
-)
-
 type (
 	// ComposeChart represents a ComposeChart
 	ComposeChart struct {
