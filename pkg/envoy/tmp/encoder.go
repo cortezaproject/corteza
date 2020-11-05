@@ -10,9 +10,14 @@ import (
 )
 
 type (
-	StoreEncoder struct {
+	storeEncoder struct {
 		s  store.Storer
-		is *importState
+		es *encoderState
+	}
+
+	encodingContext struct {
+		exists  bool
+		partial bool
 	}
 )
 
@@ -21,42 +26,58 @@ var (
 	rvValidator = values.Validator()
 )
 
-func NewStoreEncoder(s store.Storer, is *importState) *StoreEncoder {
-	return &StoreEncoder{
+// NewStoreEncoder initializes and returns a fresh store encoder
+//
+// @todo add support for merge options (skip, overwrite, leftMerge, rightMerge)
+func NewStoreEncoder(s store.Storer, es *encoderState) envoy.Encoder {
+	if es == nil {
+		es = NewEncoderState()
+	}
+
+	return &storeEncoder{
 		s:  s,
-		is: is,
+		es: es,
 	}
 }
 
-func (se *StoreEncoder) Encode(ctx context.Context, ess ...*envoy.ExecState) error {
+// Encode encodes the given resource
+//
+// @todo improve the transaction with channels
+func (se *storeEncoder) Encode(ctx context.Context, ee ...*envoy.ExecState) error {
 	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
-		var rID uint64
+		var rState resRefs
+		var state resRefs
 
-		for _, es := range ess {
-			// @todo what should we do with existing resources?
-			// How should we do diffing?
-			rID = se.is.Existint(es.Res)
-			if rID <= 0 {
-				switch res := es.Res.(type) {
-				case *resource.ComposeNamespace:
-					rID, err = encodeComposeNamespace(ctx, s, res)
-
-				case *resource.ComposeModule:
-					rID, err = encodeComposeModule(ctx, s, res, se.is.state[res])
-
-				case *resource.ComposeRecordSet:
-					_, err = encodeComposeRecordSet(ctx, s, res, se.is.state[res])
-				}
-
-				if err != nil {
-					return err
-				}
+		for _, e := range ee {
+			state = se.es.Get(e.Res)
+			ectx := &encodingContext{
+				exists:  se.es.Exists(e.Res),
+				partial: e.Conflicting,
 			}
 
-			for _, dr := range es.DepResources {
-				se.is.AddRefMapping(dr, es.Res.ResourceType(), rID, es.Res.Identifiers().StringSlice()...)
+			switch res := e.Res.(type) {
+			case *resource.ComposeNamespace:
+				rState, err = encodeComposeNamespace(ctx, ectx, s, state, res)
+
+			case *resource.ComposeModule:
+				rState, err = encodeComposeModule(ctx, ectx, s, state, res)
+
+			case *resource.ComposeRecord:
+				rState, err = encodeComposeRecord(ctx, ectx, s, state, res)
 			}
 
+			if err != nil {
+				return err
+			}
+
+			for _, dr := range e.DepResources {
+				se.es.Merge(dr, rState)
+			}
+
+			// @todo this is only relevant for resources conflicting with themselves
+			if e.Conflicting {
+				se.es.Merge(e.Res, rState)
+			}
 		}
 
 		return nil

@@ -26,24 +26,35 @@ var (
 	}
 )
 
-func GetGenericFilter(ii resource.Identifiers) genericFilter {
+func GenericFilter(ii resource.Identifiers) genericFilter {
 	f := genericFilter{}
-	for id := range ii {
-		if id == "" {
+	for i := range ii {
+		if i == "" {
 			continue
 		}
-		if refy.MatchString(id) {
-			id, err := strconv.ParseUint(id, 10, 64)
+
+		if refy.MatchString(i) {
+			id, err := strconv.ParseUint(i, 10, 64)
 			if err != nil {
 				continue
 			}
 			f.ID = id
-		} else if handy.MatchString(id) {
-			f.Ref = id
+		} else if handy.MatchString(i) {
+			f.Ref = i
 		} else {
-			f.Name = id
+			f.Name = i
 		}
 	}
 
 	return f
+}
+
+func walkResources(rr []resource.Interface, f func(r resource.Interface) error) (err error) {
+	for _, r := range rr {
+		err = f(r)
+		if err != nil {
+			return
+		}
+	}
+	return nil
 }
