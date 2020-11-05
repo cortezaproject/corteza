@@ -64,9 +64,7 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 		}
 	}
 
-	// @todo fixme..
 	g.invert()
-	g.DryRun()
 
 	// Do any dep. related preprocessing
 	var state *ExecState
@@ -93,13 +91,12 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 		}
 	}()
 
+	g.Relink()
+
 	if err != nil {
 		return nil, err
 	}
 
-	// @todo fixme..
-	g.invert()
-	g.ProdRun()
-
+	g.reset()
 	return g, nil
 }

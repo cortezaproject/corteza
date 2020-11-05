@@ -8,15 +8,18 @@ import (
 )
 
 type (
+	nodeMap map[*node]bool
+
 	graph struct {
-		nn nodeSet
+		nn       nodeSet
+		resIndex map[resource.Interface]*node
 
 		// Config flags
 		inverted bool
 		dry      bool
 
-		processed   nodeSet
-		conflicting nodeSet
+		processed   nodeMap
+		conflicting nodeMap
 	}
 
 	ExecState struct {
@@ -26,18 +29,27 @@ type (
 		DepResources    []resource.Interface
 		ParentResources []resource.Interface
 	}
+
+	// Provides a filter for graph iterator
+	iterFilter struct {
+		resourceType string
+	}
 )
 
 func newGraph() *graph {
 	return &graph{
 		nn:          make(nodeSet, 0, 100),
+		resIndex:    make(map[resource.Interface]*node),
 		inverted:    false,
-		processed:   make(nodeSet, 0, 100),
-		conflicting: make(nodeSet, 0, 100),
+		processed:   make(nodeMap),
+		conflicting: make(nodeMap),
 	}
 }
 
 func (g *graph) addNode(nn ...*node) {
+	for _, n := range nn {
+		g.resIndex[n.res] = n
+	}
 	g.nn = g.nn.add(nn...)
 }
 
@@ -47,16 +59,6 @@ func (g *graph) removeNode(nn ...*node) {
 
 func (g *graph) invert() {
 	g.inverted = !g.inverted
-}
-
-func (g *graph) DryRun() {
-	g.dry = true
-	g.purge(true)
-}
-
-func (g *graph) ProdRun() {
-	g.dry = false
-	g.purge(true)
 }
 
 func (g *graph) childNodes(n *node) nodeSet {
@@ -86,12 +88,55 @@ func (g *graph) markConflicting(n *node) {
 	g.conflicting = g.conflicting.add(n)
 }
 
+func (g *graph) Relink() {
+	for res := range g.resIndex {
+		n := g.resIndex[res]
+		if n == nil {
+			return
+		}
+
+		refs := res.Refs()
+		cc := g.childNodes(n)
+
+		for _, ref := range refs {
+			// If it's already linked, skip it
+			if cc.findByRef(ref) != nil {
+				continue
+			}
+			// else find the node and link to it (if we can)
+			m := g.nn.findByRef(ref)
+			if m != nil {
+				g.addChild(n, m)
+			}
+		}
+	}
+}
+
 func (g *graph) Next(ctx context.Context) (s *ExecState, err error) {
+	return g.next(ctx, nil)
+}
+
+func (g *graph) NextOf(ctx context.Context, resTrype string) (s *ExecState, err error) {
+	return g.next(ctx, &iterFilter{resourceType: resTrype})
+}
+
+func (g *graph) next(ctx context.Context, f *iterFilter) (s *ExecState, err error) {
 	upNN := g.removeProcessed(g.nodes())
+
+	if f != nil {
+		upC := make(nodeSet, 0, len(upNN))
+		if f.resourceType != "" {
+			for _, n := range upNN {
+				if n.res.ResourceType() == f.resourceType {
+					upC = append(upC, n)
+				}
+			}
+		}
+		upNN = upC
+	}
 
 	// We are done here
 	if len(upNN) <= 0 {
-		g.purge(g.dry)
 		return nil, nil
 	}
 
@@ -112,17 +157,6 @@ func (g *graph) Next(ctx context.Context) (s *ExecState, err error) {
 		es := g.prepExecState(nx, false)
 
 		g.markProcessed(nx)
-		pp := g.parentNodes(nx)
-		g.removeParent(nx)
-
-		for _, p := range pp {
-			g.removeChild(p, nx)
-			if len(g.childNodes(p)) <= 0 && g.processed.has(p) {
-				g.removeNode(p)
-				g.processed = g.processed.remove(p)
-				g.conflicting = g.conflicting.remove(p)
-			}
-		}
 
 		return es, nil
 	}
@@ -148,13 +182,9 @@ func (g *graph) Next(ctx context.Context) (s *ExecState, err error) {
 	}
 }
 
-func (g *graph) purge(partial bool) {
-	g.conflicting = nil
-	g.processed = nil
-
-	if !partial {
-		g.nn = nil
-	}
+func (g *graph) reset() {
+	g.conflicting = make(nodeMap)
+	g.processed = make(nodeMap)
 }
 
 // util
@@ -257,4 +287,16 @@ func (g *graph) prepExecState(n *node, conflicting bool) *ExecState {
 		ParentResources: g.nodeResource(g.parentNodes(n)...),
 		Conflicting:     conflicting,
 	}
+}
+
+func (nm nodeMap) add(n *node) nodeMap {
+	nm[n] = true
+	return nm
+}
+func (nm nodeMap) has(n *node) bool {
+	return nm[n]
+}
+func (nm nodeMap) remove(n *node) nodeMap {
+	delete(nm, n)
+	return nm
 }
