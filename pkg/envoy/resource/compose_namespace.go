@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
-const (
-	COMPOSE_NAMESPACE_RESOURCE_TYPE = "composeNamespace"
-)
-
 type (
 	ComposeNamespace struct {
 		*base

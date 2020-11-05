@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
-const (
-	COMPOSE_PAGE_RESOURCE_TYPE = "composePage"
-)
-
 type (
 	// ComposePage represents a ComposePage
 	ComposePage struct {

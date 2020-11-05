@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-const (
-	ROLE_RESOURCE_TYPE = "role"
-)
-
 type (
 	// Role represents a Role
 	Role struct {

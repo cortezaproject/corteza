@@ -6,10 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-const (
-	APPLICATION_RESOURCE_TYPE = "application"
-)
-
 type (
 	// Application represents a Application
 	Application struct {

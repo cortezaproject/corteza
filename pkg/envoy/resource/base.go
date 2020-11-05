@@ -20,7 +20,7 @@ func (t *base) AddIdentifier(ss ...string) {
 }
 
 // AddRef adds a new reference to the current resource
-func (t *base) AddRef(rt string, ii ...string) {
+func (t *base) AddRef(rt string, ii ...string) *Ref {
 	if t.rr == nil {
 		t.rr = make(RefSet, 0, 10)
 	}
@@ -34,6 +34,8 @@ func (t *base) AddRef(rt string, ii ...string) {
 
 	ref := &Ref{ResourceType: rt, Identifiers: Identifiers{}.Add(iiC...)}
 	t.rr = append(t.rr, ref)
+
+	return ref
 }
 
 // SetResourceType sets the resource type of the current resource struct

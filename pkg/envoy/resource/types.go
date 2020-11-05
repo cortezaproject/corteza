@@ -18,6 +18,18 @@ type (
 	Identifiers map[string]bool
 )
 
+const (
+	APPLICATION_RESOURCE_TYPE       = "application"
+	COMPOSE_CHART_RESOURCE_TYPE     = "composeChart"
+	COMPOSE_MODULE_RESOURCE_TYPE    = "composeModule"
+	COMPOSE_NAMESPACE_RESOURCE_TYPE = "composeNamespace"
+	COMPOSE_PAGE_RESOURCE_TYPE      = "composePage"
+	COMPOSE_RECORD_RESOURCE_TYPE    = "ComposeRecord"
+	RBAC_RESOURCE_TYPE              = "rbacRule"
+	ROLE_RESOURCE_TYPE              = "role"
+	USER_RESOURCE_TYPE              = "user"
+)
+
 func (ri Identifiers) Add(ii ...string) Identifiers {
 	for _, i := range ii {
 		if len(i) > 0 {
