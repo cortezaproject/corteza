@@ -15,12 +15,6 @@ const (
 	// details unless in development environment
 	KindInternal kind = iota
 
-	// store error
-	KindStore
-
-	// object store (file upload/download)
-	KindObjStore
-
 	// Data validation error
 	KindInvalidData
 
@@ -42,6 +36,15 @@ const (
 
 	// External system failure
 	KindExternal
+
+	// store error
+	KindStore
+
+	// object store (file upload/download)
+	KindObjStore
+
+	// automation error
+	KindAutomation
 )
 
 // translates error kind into http status
@@ -110,6 +113,10 @@ func External(m string, aa ...interface{}) *Error {
 	return err(KindExternal, fmt.Sprintf(m, aa...))
 }
 
+func Automation(m string, aa ...interface{}) *Error {
+	return err(KindAutomation, fmt.Sprintf(m, aa...))
+}
+
 func IsKind(err error, k kind) bool {
 	t, ok := err.(*Error)
 	if !ok {
@@ -167,4 +174,8 @@ func IsUnauthenticated(err error) bool {
 
 func IsExternal(err error) bool {
 	return IsKind(err, KindExternal)
+}
+
+func IsAutomation(err error) bool {
+	return IsKind(err, KindAutomation)
 }

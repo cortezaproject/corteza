@@ -174,9 +174,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	corredor.Service().SetUserFinder(sysService.DefaultUser)
-	corredor.Service().SetRoleFinder(sysService.DefaultRole)
-
 	{
 		// Initialize RBAC subsystem
 		// and (re)load rules from the storage backend
@@ -226,6 +223,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+
+	corredor.Service().SetUserFinder(sysService.DefaultUser)
+	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
 	// Initialize external authentication (from default settings)
 	external.Init()
