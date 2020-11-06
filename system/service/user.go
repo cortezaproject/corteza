@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -142,8 +143,17 @@ func (svc user) FindByID(userID uint64) (u *types.User, err error) {
 			return nil
 		}
 
-		u, err = svc.proc(store.LookupUserByID(svc.ctx, svc.store, userID))
-		return err
+		if u, err = svc.proc(store.LookupUserByID(svc.ctx, svc.store, userID)); err != nil {
+			return err
+		}
+
+		uaProps.setUser(u)
+
+		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
@@ -155,8 +165,17 @@ func (svc user) FindByEmail(email string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(store.LookupUserByEmail(svc.ctx, svc.store, email))
-		return err
+		if u, err = svc.proc(store.LookupUserByEmail(svc.ctx, svc.store, email)); err != nil {
+			return err
+		}
+
+		uaProps.setUser(u)
+
+		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
@@ -168,8 +187,17 @@ func (svc user) FindByUsername(username string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(store.LookupUserByUsername(svc.ctx, svc.store, username))
-		return err
+		if u, err = svc.proc(store.LookupUserByUsername(svc.ctx, svc.store, username)); err != nil {
+			return err
+		}
+
+		uaProps.setUser(u)
+
+		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
@@ -181,8 +209,17 @@ func (svc user) FindByHandle(handle string) (u *types.User, err error) {
 	)
 
 	err = func() error {
-		u, err = svc.proc(store.LookupUserByHandle(svc.ctx, svc.store, handle))
-		return err
+		if u, err = svc.proc(store.LookupUserByHandle(svc.ctx, svc.store, handle)); err != nil {
+			return err
+		}
+
+		uaProps.setUser(u)
+
+		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+			return err
+		}
+
+		return nil
 	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
@@ -273,8 +310,30 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			}
 		}
 
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.User{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
 		uu, f, err = store.SearchUsers(svc.ctx, svc.store, filter)
 		if err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledUsers(uu)...); err != nil {
 			return err
 		}
 
@@ -343,6 +402,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 			return
 		}
 
+		if err = label.Create(svc.ctx, svc.store, new); err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterCreate(new, u))
 		return
 	}()
@@ -403,6 +466,14 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 
 		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
 			return
+		}
+
+		if label.Changed(u.Labels, upd.Labels) {
+			if err = label.Update(svc.ctx, svc.store, upd); err != nil {
+				return
+			}
+
+			u.Labels = upd.Labels
 		}
 
 		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterUpdate(upd, u))
@@ -725,4 +796,20 @@ func createHandle(ctx context.Context, s store.Users, u *types.User) {
 			//
 		)
 	}
+}
+
+// toLabeledUsers converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledUsers(set []*types.User) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

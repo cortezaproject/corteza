@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -45,6 +46,11 @@ type (
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted roles
 		Deleted uint
+
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Limit GET parameter
 		//
@@ -82,6 +88,11 @@ type (
 		//
 		// Arbitrary JSON holding application configuration
 		Config sqlxTypes.JSONText
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	ApplicationUpdate struct {
@@ -109,6 +120,11 @@ type (
 		//
 		// Arbitrary JSON holding application configuration
 		Config sqlxTypes.JSONText
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	ApplicationRead struct {
@@ -156,6 +172,7 @@ func (r ApplicationList) Auditable() map[string]interface{} {
 		"name":       r.Name,
 		"query":      r.Query,
 		"deleted":    r.Deleted,
+		"labels":     r.Labels,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
@@ -175,6 +192,11 @@ func (r ApplicationList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -227,6 +249,17 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
@@ -262,6 +295,7 @@ func (r ApplicationCreate) Auditable() map[string]interface{} {
 		"enabled": r.Enabled,
 		"unify":   r.Unify,
 		"config":  r.Config,
+		"labels":  r.Labels,
 	}
 }
 
@@ -283,6 +317,11 @@ func (r ApplicationCreate) GetUnify() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationCreate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -332,6 +371,18 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -350,6 +401,7 @@ func (r ApplicationUpdate) Auditable() map[string]interface{} {
 		"enabled":       r.Enabled,
 		"unify":         r.Unify,
 		"config":        r.Config,
+		"labels":        r.Labels,
 	}
 }
 
@@ -376,6 +428,11 @@ func (r ApplicationUpdate) GetUnify() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationUpdate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -421,6 +478,18 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["config"]; ok && len(val) > 0 {
 			r.Config, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

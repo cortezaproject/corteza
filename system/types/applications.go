@@ -20,6 +20,8 @@ type (
 
 		Unify *ApplicationUnify `json:"unify,omitempty"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
@@ -38,6 +40,9 @@ type (
 	ApplicationFilter struct {
 		Name  string `json:"name"`
 		Query string `json:"query"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 
