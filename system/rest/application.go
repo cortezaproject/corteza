@@ -61,8 +61,9 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 	var (
 		err error
 		f   = types.ApplicationFilter{
-			Name:  r.Name,
-			Query: r.Query,
+			Name:   r.Name,
+			Query:  r.Query,
+			Labels: r.Labels,
 
 			Deleted: filter.State(r.Deleted),
 		}
@@ -86,6 +87,7 @@ func (ctrl *Application) Create(ctx context.Context, r *request.ApplicationCreat
 		app = &types.Application{
 			Name:    r.Name,
 			Enabled: r.Enabled,
+			Labels:  r.Labels,
 		}
 	)
 
@@ -107,6 +109,7 @@ func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdat
 			ID:      r.ApplicationID,
 			Name:    r.Name,
 			Enabled: r.Enabled,
+			Labels:  r.Labels,
 		}
 	)
 

@@ -25,6 +25,8 @@ type (
 
 		EmailConfirmed bool `json:"-"`
 
+		Labels map[string]string `json:"labels,omitempty"`
+
 		CreatedAt   time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty"`
@@ -48,6 +50,9 @@ type (
 		Username string   `json:"username"`
 		Handle   string   `json:"handle"`
 		Kind     UserKind `json:"kind"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		Deleted   filter.State `json:"deleted"`
 		Suspended filter.State `json:"suspended"`

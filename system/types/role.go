@@ -10,9 +10,12 @@ import (
 type (
 	// Role - An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.
 	Role struct {
-		ID         uint64     `json:"roleID,string"`
-		Name       string     `json:"name"`
-		Handle     string     `json:"handle"`
+		ID     uint64 `json:"roleID,string"`
+		Name   string `json:"name"`
+		Handle string `json:"handle"`
+
+		Labels map[string]string `json:"labels,omitempty"`
+
 		CreatedAt  time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
 		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
@@ -30,6 +33,9 @@ type (
 
 		Deleted  filter.State `json:"deleted"`
 		Archived filter.State `json:"archived"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
