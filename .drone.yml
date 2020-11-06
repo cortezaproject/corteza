@@ -4,16 +4,13 @@ type: docker
 
 steps:
   - name: "Quality Control"
-    image: cortezaproject/corteza-server-builder:latest
+    image: cortezaproject/corteza-server-builder:1.15
     pull: always
-    environment:
-      GOFLAGS: -mod=vendor
-      CGO_ENABLED: 1
     commands:
       - make test.unit
 
   - name: "Build release (tag)"
-    image: cortezaproject/corteza-server-builder:latest
+    image: cortezaproject/corteza-server-builder:1.15
     environment:
       RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
       RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
@@ -30,8 +27,8 @@ steps:
       - refs/tags/20??.9.*
       - refs/tags/20??.12.*
 
-  - name: "Build unstable release (develop)"
-    image: cortezaproject/corteza-server-builder:latest
+  - name: "Build unstable release"
+    image: cortezaproject/corteza-server-builder:1.15
     environment:
       RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
       RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
@@ -40,7 +37,7 @@ steps:
     - make upload
     when:
       event: [ push ]
-      branch: [ develop ]
+      branch: [ unstable ]
 
 ---
 
@@ -50,7 +47,7 @@ type: docker
 
 steps:
   - name: test
-    image: cortezaproject/corteza-server-builder:latest
+    image: cortezaproject/corteza-server-builder:1.15
     pull: always
     environment:
       GOFLAGS: -mod=vendor
