@@ -52,7 +52,10 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		r.Route("/"+apiBaseUrl, func(r chi.Router) {
 			r.Route("/system", systemRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
-			r.Route("/messaging", messagingRest.MountRoutes)
+			r.Route("/messaging", func(r chi.Router) {
+				messagingRest.MountRoutes(r)
+				app.WsServer.ApiServerRoutes(r)
+			})
 		})
 	}
 

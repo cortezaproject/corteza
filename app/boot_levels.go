@@ -9,6 +9,7 @@ import (
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	msgService "github.com/cortezaproject/corteza-server/messaging/service"
 	msgEvent "github.com/cortezaproject/corteza-server/messaging/service/event"
+	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -227,6 +228,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
+	app.WsServer = websocket.New(&websocket.Config{
+		Timeout:     app.Opt.Websocket.Timeout,
+		PingTimeout: app.Opt.Websocket.PingTimeout,
+		PingPeriod:  app.Opt.Websocket.PingPeriod,
+	})
+
 	app.lvl = bootLevelServicesInitialized
 	return
 }
@@ -309,6 +316,10 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	if err = msgService.Activate(ctx); err != nil {
 		return err
+	}
+
+	if app.WsServer != nil {
+		websocket.Watch(ctx)
 	}
 
 	// Initialize external authentication (from default settings)
