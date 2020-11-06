@@ -53,6 +53,7 @@ func (s Store) RoleMetrics(ctx context.Context) (*types.RoleMetrics, error) {
 				"SUM(IF(archived_at IS NULL, 0, 1)) as archived",
 				"SUM(IF(deleted_at IS NULL AND archived_at IS NULL, 1, 0)) as valid",
 			).
+			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.roleTable("u"))
 
 		rval     = &types.RoleMetrics{}
@@ -71,7 +72,10 @@ func (s Store) RoleMetrics(ctx context.Context) (*types.RoleMetrics, error) {
 	// Fetch daily metrics for created, updated, deleted and suspended users
 	err = s.multiDailyMetrics(
 		ctx,
-		squirrel.Select().From(s.roleTable("u")),
+		squirrel.
+			Select().
+			PlaceholderFormat(s.config.PlaceholderFormat).
+			From(s.roleTable("u")),
 		[]string{
 			"created_at",
 			"updated_at",

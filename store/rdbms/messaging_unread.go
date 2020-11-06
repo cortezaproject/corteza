@@ -20,6 +20,7 @@ func (s Store) CountMessagingUnreadThreads(ctx context.Context, userID, channelI
 			"sum(count) AS count",
 			"sum(CASE WHEN count > 0 THEN 1 ELSE 0 END) AS total",
 		).
+			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.messagingUnreadTable()).
 			Where("rel_reply_to > 0 AND count > 0").
 			GroupBy("rel_channel", "rel_user")
@@ -63,6 +64,7 @@ func (s Store) CountMessagingUnread(ctx context.Context, userID, channelID uint6
 				"rel_reply_to",
 				"count",
 			).
+			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.messagingUnreadTable())
 	)
 
