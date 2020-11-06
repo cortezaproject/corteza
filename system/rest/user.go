@@ -45,6 +45,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 			Username:  r.Username,
 			Handle:    r.Handle,
 			Kind:      r.Kind,
+			Labels:    r.Labels,
 			Suspended: filter.State(r.Suspended),
 			Deleted:   filter.State(r.Deleted),
 		}
@@ -76,6 +77,7 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Name:   r.Name,
 		Handle: r.Handle,
 		Kind:   r.Kind,
+		Labels: r.Labels,
 	}
 
 	return ctrl.user.With(ctx).Create(user)
@@ -88,6 +90,7 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 		Name:   r.Name,
 		Handle: r.Handle,
 		Kind:   r.Kind,
+		Labels: r.Labels,
 	}
 
 	return ctrl.user.With(ctx).Update(user)

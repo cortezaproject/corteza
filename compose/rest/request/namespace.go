@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -47,6 +48,11 @@ type (
 		// Limit
 		Limit uint
 
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -63,6 +69,11 @@ type (
 		//
 		// Name
 		Name string
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 
 		// Slug POST parameter
 		//
@@ -113,6 +124,11 @@ type (
 		// Meta data
 		Meta sqlxTypes.JSONText
 
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// UpdatedAt POST parameter
 		//
 		// Last update (or creation) date
@@ -150,6 +166,7 @@ func (r NamespaceList) Auditable() map[string]interface{} {
 		"query":      r.Query,
 		"slug":       r.Slug,
 		"limit":      r.Limit,
+		"labels":     r.Labels,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
 	}
@@ -168,6 +185,11 @@ func (r NamespaceList) GetSlug() string {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -215,6 +237,17 @@ func (r *NamespaceList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
 			r.PageCursor, err = val[0], nil
 			if err != nil {
@@ -241,6 +274,7 @@ func NewNamespaceCreate() *NamespaceCreate {
 func (r NamespaceCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"name":    r.Name,
+		"labels":  r.Labels,
 		"slug":    r.Slug,
 		"enabled": r.Enabled,
 		"meta":    r.Meta,
@@ -250,6 +284,11 @@ func (r NamespaceCreate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceCreate) GetName() string {
 	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -289,6 +328,18 @@ func (r *NamespaceCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
@@ -377,6 +428,7 @@ func (r NamespaceUpdate) Auditable() map[string]interface{} {
 		"slug":        r.Slug,
 		"enabled":     r.Enabled,
 		"meta":        r.Meta,
+		"labels":      r.Labels,
 		"updatedAt":   r.UpdatedAt,
 	}
 }
@@ -404,6 +456,11 @@ func (r NamespaceUpdate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r NamespaceUpdate) GetMeta() sqlxTypes.JSONText {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -454,6 +511,18 @@ func (r *NamespaceUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
 			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

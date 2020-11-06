@@ -11,6 +11,7 @@ endpoints:
   path: "/namespace"
   authentication: []
   imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
   apis:
@@ -31,6 +32,10 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: string
         name: pageCursor
         title: Page cursor
@@ -47,6 +52,10 @@ endpoints:
         name: name
         required: true
         title: Name
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: string
         name: slug
         required: false
@@ -96,6 +105,10 @@ endpoints:
         name: meta
         required: true
         title: Meta data
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: "*time.Time"
         name: updatedAt
         required: false
@@ -132,6 +145,7 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
+    - github.com/cortezaproject/corteza-server/pkg/label
   parameters:
     path:
     - type: uint64
@@ -157,6 +171,10 @@ endpoints:
         name: handle
         required: false
         title: Search by handle
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: uint
         name: limit
         title: Limit
@@ -196,6 +214,10 @@ endpoints:
         name: weight
         required: false
         title: Page tree weight
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: bool
         name: visible
         required: false
@@ -254,6 +276,10 @@ endpoints:
         name: weight
         required: false
         title: Page tree weight
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: bool
         name: visible
         required: false
@@ -331,6 +357,7 @@ endpoints:
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
     - github.com/cortezaproject/corteza-server/compose/types
+    - github.com/cortezaproject/corteza-server/pkg/label
     - time
   apis:
   - name: list
@@ -357,6 +384,10 @@ endpoints:
       - type: string
         name: pageCursor
         title: Page cursor
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: string
         name: sort
         title: Sort items
@@ -382,6 +413,10 @@ endpoints:
         name: meta
         required: true
         title: Module meta data
+      - type: map[string]string
+        name: labels
+        title: Module labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read module
@@ -423,6 +458,10 @@ endpoints:
         name: updatedAt
         required: false
         title: Last update (or creation) date
+      - type: map[string]string
+        name: labels
+        title: Module labels
+        parser: label.ParseStrings
   - name: delete
     method: DELETE
     title: Delete module
@@ -454,6 +493,7 @@ endpoints:
   path: "/namespace/{namespaceID}/module/{moduleID}/record"
   authentication: []
   imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
     - github.com/cortezaproject/corteza-server/compose/types
   parameters:
     path:
@@ -498,6 +538,10 @@ endpoints:
         type: string
         required: false
         title: Filtering condition (same as query, deprecated)
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - name: deleted
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted records
@@ -606,6 +650,10 @@ endpoints:
         name: records
         required: false
         title: Records
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read records by ID from module section
@@ -635,6 +683,10 @@ endpoints:
         name: records
         required: false
         title: Records
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: bulkDelete
     method: DELETE
     title: Delete record row from module section
@@ -712,6 +764,7 @@ endpoints:
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
+    - github.com/cortezaproject/corteza-server/pkg/label
     - time
   parameters:
     path:
@@ -734,6 +787,10 @@ endpoints:
         required: false
         title: Search charts by handle
         type: string
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: uint
         name: limit
         title: Limit
@@ -761,6 +818,10 @@ endpoints:
         title: Chart handle
         type: string
         required: false
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
   - name: read
     method: GET
     title: Read charts by ID
@@ -794,6 +855,10 @@ endpoints:
         title: Chart handle
         type: string
         required: false
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
       - type: "*time.Time"
         name: updatedAt
         required: false

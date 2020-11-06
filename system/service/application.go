@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -14,7 +15,7 @@ type (
 		ac        applicationAccessController
 		eventbus  eventDispatcher
 		actionlog actionlog.Recorder
-		store     store.Applications
+		store     store.Storer
 	}
 
 	applicationAccessController interface {
@@ -27,7 +28,7 @@ type (
 )
 
 // Application is a default application service initializer
-func Application(s store.Applications, ac applicationAccessController, al actionlog.Recorder, eb eventDispatcher) *application {
+func Application(s store.Storer, ac applicationAccessController, al actionlog.Recorder, eb eventDispatcher) *application {
 	return &application{store: s, ac: ac, actionlog: al, eventbus: eb}
 }
 
@@ -83,8 +84,29 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 			}
 		}
 
-		aa, f, err = store.SearchApplications(ctx, svc.store, af)
-		return err
+		if len(af.Labels) > 0 {
+			af.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Application{}.LabelResourceKind(),
+				af.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		if aa, f, err = store.SearchApplications(ctx, svc.store, af); err != nil {
+			return err
+		}
+
+		if err = label.Load(ctx, svc.store, toLabeledApplications(aa)...); err != nil {
+			return err
+		}
+
+		return nil
+
 	}()
 
 	return aa, f, svc.recordAction(ctx, aaProps, ApplicationActionSearch, err)
@@ -116,7 +138,11 @@ func (svc *application) Create(ctx context.Context, new *types.Application) (app
 			return
 		}
 
-		aaProps.setApplication(app)
+		if err = label.Create(ctx, svc.store, new); err != nil {
+			return
+		}
+
+		app = new
 
 		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterCreate(new, nil))
 		return nil
@@ -160,6 +186,13 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 
 		if err = store.UpdateApplication(ctx, svc.store, app); err != nil {
 			return err
+		}
+
+		if label.Changed(app.Labels, upd.Labels) {
+			if err = label.Update(ctx, svc.store, upd); err != nil {
+				return
+			}
+			app.Labels = upd.Labels
 		}
 
 		_ = svc.eventbus.WaitFor(ctx, event.ApplicationAfterUpdate(upd, app))
@@ -243,4 +276,20 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, aaProps, ApplicationActionUndelete, err)
+}
+
+// toLabeledApplications converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledApplications(set []*types.Application) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

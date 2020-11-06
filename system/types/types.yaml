@@ -1,7 +1,10 @@
 types:
   User:
+    labelResourceType: user
   Application:
+    labelResourceType: application
   Role:
+    labelResourceType: role
   RoleMember:
     noIdField: true
   Credentials:

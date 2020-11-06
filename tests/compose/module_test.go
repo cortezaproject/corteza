@@ -9,7 +9,9 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
+	"github.com/stretchr/testify/require"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -133,7 +135,7 @@ func TestModuleListQuery(t *testing.T) {
 		End()
 }
 
-func TestModuleList_filterForbiden(t *testing.T) {
+func TestModuleList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
@@ -333,4 +335,157 @@ func TestModuleDelete(t *testing.T) {
 
 	res = h.lookupModuleByID(res.ID)
 	h.a.NotNil(res.DeletedAt)
+}
+
+func TestModuleLabels(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "module.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "delete")
+
+	var (
+		ns          = h.makeNamespace("some-namespace")
+		fieldID, ID uint64
+	)
+
+	t.Run("create", func(t *testing.T) {
+		var (
+			req     = require.New(t)
+			payload = &types.Module{}
+		)
+
+		helpers.SetLabelsViaAPI(h.apiInit(), t,
+			fmt.Sprintf("/namespace/%d/module/", ns.ID),
+			types.Module{Labels: map[string]string{"foo": "bar", "bar": "42"}},
+			payload,
+		)
+		req.NotZero(payload.ID)
+
+		h.a.Equal(payload.Labels["foo"], "bar",
+			"labels must contain foo with value bar")
+		h.a.Equal(payload.Labels["bar"], "42",
+			"labels must contain bar with value 42")
+		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+			"response must match stored labels")
+
+		ID = payload.ID
+	})
+
+	t.Run("update", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req     = require.New(t)
+			payload = &types.Module{}
+		)
+
+		helpers.SetLabelsViaAPI(h.apiInit(), t,
+			fmt.Sprintf("/namespace/%d/module/%d", ns.ID, ID),
+			types.Module{Labels: map[string]string{"foo": "baz", "baz": "123"}},
+			payload,
+		)
+		req.NotZero(payload.ID)
+		req.Nil(payload.UpdatedAt, "updatedAt must not change after changing labels")
+
+		req.Equal(payload.Labels["foo"], "baz",
+			"labels must contain foo with value baz")
+		req.NotContains(payload.Labels, "bar",
+			"labels must not contain bar")
+		req.Equal(payload.Labels["baz"], "123",
+			"labels must contain baz with value 123")
+		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+			"response must match stored labels")
+	})
+
+	t.Run("search", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req = require.New(t)
+			set = types.ModuleSet{}
+		)
+
+		helpers.SearchWithLabelsViaAPI(h.apiInit(), t,
+			fmt.Sprintf("/namespace/%d/module/", ns.ID),
+			&set,
+			url.Values{"labels": []string{"baz=123"}},
+		)
+		req.NotEmpty(set)
+		req.NotNil(set.FindByID(ID).Labels)
+	})
+
+	t.Run("field create", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			ctx      = context.Background()
+			req      = require.New(t)
+			mod, err = store.LookupComposeModuleByID(ctx, service.DefaultStore, ID)
+
+			payload = struct{ Response *types.Module }{}
+		)
+
+		req.NoError(err)
+		req.NotNil(mod)
+		mod.Fields = append(mod.Fields, &types.ModuleField{
+			Kind:   "String",
+			Name:   "labeled",
+			Label:  "",
+			Labels: map[string]string{"fldfoo": "fldbar"},
+		})
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, ID)).
+			JSON(helpers.JSON(mod)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Equal(`$.response.fields[0].labels.fldfoo`, "fldbar")).
+			End().
+			JSON(&payload)
+
+		fieldID = payload.Response.Fields[0].ID
+
+	})
+
+	t.Run("field update", func(t *testing.T) {
+		if fieldID == 0 {
+			t.Skip("label/field create test not ran")
+		}
+
+		var (
+			ctx      = context.Background()
+			req      = require.New(t)
+			mod, err = store.LookupComposeModuleByID(ctx, service.DefaultStore, ID)
+		)
+
+		req.NoError(err)
+		req.NotNil(mod)
+		mod.Fields = append(mod.Fields, &types.ModuleField{
+			ID:     fieldID,
+			Kind:   "String",
+			Name:   "labeled",
+			Label:  "",
+			Labels: map[string]string{"fldfoo": "fldbaz"},
+		})
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, ID)).
+			JSON(helpers.JSON(mod)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Equal(`$.response.fields[0].labels.fldfoo`, "fldbaz")).
+			End()
+	})
 }
