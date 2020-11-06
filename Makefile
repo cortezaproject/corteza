@@ -5,7 +5,10 @@ GOGET      = $(GO) get -u
 GOFLAGS   ?= -mod=vendor
 GOPATH    ?= $(HOME)/go
 
+CGO_ENABLED = 1
+
 export GOFLAGS
+export CGO_ENABLED
 
 BUILD_FLAVOUR         ?= corteza
 BUILD_APPS            ?= system compose messaging monolith
@@ -19,7 +22,7 @@ BUILD_DEST_DIR        ?= build
 BUILD_NAME             = $(BUILD_FLAVOUR)-server-$(BUILD_VERSION)-$(BUILD_OS)-$(BUILD_ARCH)
 BUILD_BIN_NAME         = $(BUILD_NAME)$(if $(BUILD_OS_is_windows),.exe,)
 
-RELEASE_BASEDIR        = $(BUILD_DEST_DIR)/pkg/$(BUILD_FLAVOUR)-server-$*
+RELEASE_BASEDIR        = $(BUILD_DEST_DIR)/pkg/$(BUILD_FLAVOUR)-server
 RELEASE_NAME           = $(BUILD_NAME).tar.gz
 RELEASE_EXTRA_FILES   ?= README.md LICENSE CONTRIBUTING.md DCO .env.example
 RELEASE_PKEY          ?= .upload-rsa
@@ -95,16 +98,16 @@ help:
 ########################################################################################################################
 # Building & packing
 
-build:
-	GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) cmd/corteza/main.go
+build: $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
 
-release.%: $(addprefix build., %)
+$(BUILD_DEST_DIR)/$(BUILD_BIN_NAME):
+		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $@ cmd/corteza/main.go
+
+release: build
 	@ mkdir -p $(RELEASE_BASEDIR) $(RELEASE_BASEDIR)/bin
 	@ cp $(RELEASE_EXTRA_FILES) $(RELEASE_BASEDIR)/
 	@ cp $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) $(RELEASE_BASEDIR)/bin/$(BUILD_FLAVOUR)-server-$*
 	@ tar -C $(dir $(RELEASE_BASEDIR)) -czf $(BUILD_DEST_DIR)/$(RELEASE_NAME) $(notdir $(RELEASE_BASEDIR))
-
-release: $(addprefix release.,$(BUILD_APPS))
 
 release-clean:
 	@ rm -rf $(RELEASE_BASEDIR)
@@ -114,7 +117,7 @@ upload: $(RELEASE_PKEY)
 	@ rm -f $(RELEASE_PKEY)
 
 $(RELEASE_PKEY):
-	@ echo $(RELEASE_SFTP_KEY) | base64 -d > $(RELEASE_PKEY)
+	@ echo $(RELEASE_SFTP_KEY) | base64 -d > $@
 	@ chmod 0400 $@
 
 ########################################################################################################################
