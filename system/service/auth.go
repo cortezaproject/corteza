@@ -396,13 +396,12 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 
 		// Whitelisted user data to copy
 		err = store.CreateUser(ctx, svc.store, nUser)
-
 		if err != nil {
 			return err
 		}
 
-		aam.setUser(u)
-		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(u, authProvider))
+		aam.setUser(nUser)
+		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(nUser, authProvider))
 
 		if err = svc.autoPromote(ctx, u); err != nil {
 			return err
@@ -415,8 +414,8 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			}
 		}
 
-		if !u.EmailConfirmed {
-			err = svc.sendEmailAddressConfirmationToken(ctx, u)
+		if !nUser.EmailConfirmed {
+			err = svc.sendEmailAddressConfirmationToken(ctx, nUser)
 			if err != nil {
 				return err
 			}
