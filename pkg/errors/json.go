@@ -7,9 +7,11 @@ func (e Error) MarshalJSON() ([]byte, error) {
 		Message string   `json:"message"`
 		Meta    meta     `json:"meta,omitempty"`
 		Stack   []*frame `json:"stack,omitempty"`
+		Wrap    error    `json:"wrap,omitempty"`
 	}{
 		Message: e.Error(),
 		Meta:    e.meta,
 		Stack:   e.stack,
+		Wrap:    e.wrap,
 	})
 }
