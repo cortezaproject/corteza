@@ -61,7 +61,6 @@ func (u upgrader) CreateTable(ctx context.Context, t *ddl.Table) (err error) {
 
 	if !exists {
 		if err = u.Exec(ctx, u.ddl.CreateTable(t)); err != nil {
-			println(u.ddl.CreateTable(t))
 			return err
 		}
 

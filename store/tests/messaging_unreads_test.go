@@ -12,7 +12,6 @@ import (
 func testMessagingUnread(t *testing.T, s store.MessagingUnreads) {
 	var (
 		ctx = context.Background()
-		req = require.New(t)
 
 		channelID = id.Next()
 		userID    = id.Next()
@@ -29,7 +28,32 @@ func testMessagingUnread(t *testing.T, s store.MessagingUnreads) {
 	)
 
 	t.Run("create", func(t *testing.T) {
+		var req = require.New(t)
+
 		messagingUnread := makeNew(channelID, threadID, userID)
 		req.NoError(s.CreateMessagingUnread(ctx, messagingUnread))
+	})
+
+	t.Run("count", func(t *testing.T) {
+		var (
+			err error
+			req = require.New(t)
+		)
+
+		_, err = s.CountMessagingUnread(ctx, 1, 2, 3, 4)
+		req.NoError(err)
+
+		_, err = s.CountMessagingUnread(ctx, 1, 2, 3)
+		req.NoError(err)
+
+		_, err = s.CountMessagingUnread(ctx, 1, 2)
+		req.NoError(err)
+
+		_, err = s.CountMessagingUnread(ctx, 1, 0)
+		req.NoError(err)
+
+		_, err = s.CountMessagingUnread(ctx, 0, 0)
+		req.NoError(err)
+
 	})
 }

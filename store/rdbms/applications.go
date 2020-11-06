@@ -38,6 +38,7 @@ func (s Store) ApplicationMetrics(ctx context.Context) (*types.ApplicationMetric
 				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
 				"SUM(IF(deleted_at IS NULL, 1, 0)) as valid",
 			).
+			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.applicationTable("u"))
 
 		rval     = &types.ApplicationMetrics{}

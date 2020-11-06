@@ -81,6 +81,7 @@ func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 				"SUM(IF(suspended_at IS NULL, 0, 1)) as suspended",
 				"SUM(IF(deleted_at IS NULL AND suspended_at IS NULL, 1, 0)) as valid",
 			).
+			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.userTable("u"))
 
 		row, err = s.QueryRow(ctx, counters)
@@ -99,7 +100,10 @@ func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 	// Fetch daily metrics for created, updated, deleted and suspended users
 	err = s.multiDailyMetrics(
 		ctx,
-		squirrel.Select().From(s.userTable("u")),
+		squirrel.
+			Select().
+			PlaceholderFormat(s.config.PlaceholderFormat).
+			From(s.userTable("u")),
 		[]string{
 			"created_at",
 			"updated_at",

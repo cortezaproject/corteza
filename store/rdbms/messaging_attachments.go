@@ -6,7 +6,12 @@ import (
 )
 
 func (s Store) convertMessagingAttachmentFilter(f types.AttachmentFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.composePagesSelectBuilder()
+	query = s.messagingAttachmentsSelectBuilder()
+
+	if len(f.MessageID) > 0 {
+		//query = query.Where(squirrel.Eq{"att.id": f.MessageID})
+
+	}
 
 	// @todo join & filter by message
 
