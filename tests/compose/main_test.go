@@ -50,7 +50,7 @@ func init() {
 
 func InitTestApp() {
 	if testApp == nil {
-		ctx := cli.Context()
+		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore = app.Store

@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	"io"
@@ -45,6 +46,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) achived roles
 		Archived uint
 
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -76,6 +82,11 @@ type (
 		//
 		// Role member IDs
 		Members []string
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	RoleUpdate struct {
@@ -98,6 +109,11 @@ type (
 		//
 		// Role member IDs
 		Members []string
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	RoleRead struct {
@@ -214,6 +230,7 @@ func (r RoleList) Auditable() map[string]interface{} {
 		"query":      r.Query,
 		"deleted":    r.Deleted,
 		"archived":   r.Archived,
+		"labels":     r.Labels,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
@@ -233,6 +250,11 @@ func (r RoleList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) GetArchived() uint {
 	return r.Archived
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -285,6 +307,17 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
@@ -319,6 +352,7 @@ func (r RoleCreate) Auditable() map[string]interface{} {
 		"name":    r.Name,
 		"handle":  r.Handle,
 		"members": r.Members,
+		"labels":  r.Labels,
 	}
 }
 
@@ -335,6 +369,11 @@ func (r RoleCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleCreate) GetMembers() []string {
 	return r.Members
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -377,6 +416,18 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -394,6 +445,7 @@ func (r RoleUpdate) Auditable() map[string]interface{} {
 		"name":    r.Name,
 		"handle":  r.Handle,
 		"members": r.Members,
+		"labels":  r.Labels,
 	}
 }
 
@@ -415,6 +467,11 @@ func (r RoleUpdate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleUpdate) GetMembers() []string {
 	return r.Members
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -457,6 +514,18 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{

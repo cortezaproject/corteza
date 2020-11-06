@@ -13,6 +13,8 @@ import (
 )
 
 func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.CortezaApp) error) *app.CortezaApp {
+	logger.Init()
+
 	var (
 		a = app.New()
 	)
@@ -24,7 +26,7 @@ func NewIntegrationTestApp(ctx context.Context, initTestServices func(*app.Corte
 	a.Opt.Auth.Secret = string(rand.Bytes(32))
 	a.Opt.Auth.Expiry = time.Minute
 
-	a.Log = logger.MakeDebugLogger()
+	a.Log = logger.Default()
 
 	cli.HandleError(a.InitStore(ctx))
 	cli.HandleError(initTestServices(a))

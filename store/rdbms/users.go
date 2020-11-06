@@ -18,6 +18,10 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Eq{"usr.ID": f.UserID})
 	}
 
+	if len(f.LabeledIDs) > 0 {
+		query = query.Where(squirrel.Eq{"usr.id": f.LabeledIDs})
+	}
+
 	if len(f.RoleID) > 0 {
 		or := squirrel.Or{}
 		// Due to lack of support for more exotic expressions (slice of values inside subquery)

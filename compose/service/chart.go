@@ -6,7 +6,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
+	"reflect"
 )
 
 type (
@@ -37,7 +39,15 @@ type (
 		DeleteByID(namespaceID, chartID uint64) error
 	}
 
-	chartUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Chart) (bool, error)
+	chartUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error)
+
+	chartChanges uint8
+)
+
+const (
+	chartUnchanged     chartChanges = 0
+	chartChanged       chartChanges = 1
+	chartLabelsChanged chartChanges = 2
 )
 
 func Chart() ChartService {
@@ -77,7 +87,30 @@ func (svc chart) Find(filter types.ChartFilter) (set types.ChartSet, f types.Cha
 			aProps.setNamespace(ns)
 		}
 
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				svc.ctx,
+				svc.store,
+				types.Chart{}.LabelResourceKind(),
+				filter.Labels,
+				filter.ChartID...,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
 		if set, f, err = store.SearchComposeCharts(svc.ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(svc.ctx, svc.store, toLabeledCharts(set)...); err != nil {
 			return err
 		}
 
@@ -116,19 +149,23 @@ func (svc chart) Create(new *types.Chart) (*types.Chart, error) {
 		aProps = &chartActionProps{changed: new}
 	)
 
-	err = func() error {
+	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ChartErrInvalidHandle()
 		}
 
-		if ns, err = loadNamespace(svc.ctx, svc.store, new.NamespaceID); err != nil {
+		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
 
-		if !svc.ac.CanCreateChart(svc.ctx, ns) {
+		if !svc.ac.CanCreateChart(ctx, ns) {
 			return ChartErrNotAllowedToCreate()
+		}
+
+		if err = svc.uniqueCheck(new); err != nil {
+			return err
 		}
 
 		new.ID = nextID()
@@ -136,12 +173,16 @@ func (svc chart) Create(new *types.Chart) (*types.Chart, error) {
 		new.UpdatedAt = nil
 		new.DeletedAt = nil
 
-		if err = svc.uniqueCheck(new); err != nil {
+		if err = store.CreateComposeChart(ctx, s, new); err != nil {
 			return err
 		}
 
-		return store.CreateComposeChart(svc.ctx, svc.store, new)
-	}()
+		if err = label.Create(ctx, s, new); err != nil {
+			return
+		}
+
+		return nil
+	})
 
 	return new, svc.recordAction(svc.ctx, aProps, ChartActionCreate, err)
 }
@@ -181,6 +222,10 @@ func (svc chart) lookup(namespaceID uint64, lookup func(*chartActionProps) (*typ
 			return ChartErrNotAllowedToRead()
 		}
 
+		if err = label.Load(svc.ctx, svc.store, c); err != nil {
+			return err
+		}
+
 		return nil
 	}()
 
@@ -189,7 +234,7 @@ func (svc chart) lookup(namespaceID uint64, lookup func(*chartActionProps) (*typ
 
 func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActionProps) *chartAction, fn chartUpdateHandler) (*types.Chart, error) {
 	var (
-		changed bool
+		changes chartChanges
 		ns      *types.Namespace
 		c       *types.Chart
 		aProps  = &chartActionProps{chart: &types.Chart{ID: chartID, NamespaceID: namespaceID}}
@@ -202,16 +247,30 @@ func (svc chart) updater(namespaceID, chartID uint64, action func(...*chartActio
 			return
 		}
 
+		if err = label.Load(svc.ctx, svc.store, c); err != nil {
+			return err
+		}
+
 		aProps.setNamespace(ns)
 		aProps.setChanged(c)
 
-		if changed, err = fn(ctx, ns, c); err != nil {
+		if changes, err = fn(ctx, ns, c); err != nil {
 			return err
-		} else if !changed {
-			return
 		}
 
-		return store.UpdateComposeChart(ctx, s, c)
+		if changes&chartChanged > 0 {
+			if err = store.UpdateComposeChart(ctx, s, c); err != nil {
+				return err
+			}
+		}
+
+		if changes&chartLabelsChanged > 0 {
+			if err = label.Update(ctx, s, c); err != nil {
+				return
+			}
+		}
+
+		return nil
 	})
 
 	return c, svc.recordAction(svc.ctx, aProps, action, err)
@@ -228,57 +287,79 @@ func (svc chart) uniqueCheck(c *types.Chart) (err error) {
 }
 
 func (svc chart) handleUpdate(upd *types.Chart) chartUpdateHandler {
-	return func(ctx context.Context, ns *types.Namespace, c *types.Chart) (bool, error) {
-		if isStale(upd.UpdatedAt, c.UpdatedAt, c.CreatedAt) {
-			return false, ChartErrStaleData()
+	return func(ctx context.Context, ns *types.Namespace, res *types.Chart) (changes chartChanges, err error) {
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return chartUnchanged, ChartErrStaleData()
 		}
 
-		if upd.Handle != c.Handle && !handle.IsValid(upd.Handle) {
-			return false, ChartErrInvalidHandle()
+		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
+			return chartUnchanged, ChartErrInvalidHandle()
 		}
 
 		if err := svc.uniqueCheck(upd); err != nil {
-			return false, err
+			return chartUnchanged, err
 		}
 
-		if !svc.ac.CanUpdateChart(svc.ctx, c) {
-			return false, ChartErrNotAllowedToUpdate()
+		if !svc.ac.CanUpdateChart(svc.ctx, res) {
+			return chartUnchanged, ChartErrNotAllowedToUpdate()
 		}
 
-		c.Name = upd.Name
-		c.Handle = upd.Handle
-		c.Config = upd.Config
-		c.UpdatedAt = now()
-		return true, nil
+		if res.Name != upd.Name {
+			changes |= chartChanged
+			res.Name = upd.Name
+		}
+
+		if res.Handle != upd.Handle {
+			changes |= chartChanged
+			res.Handle = upd.Handle
+		}
+
+		if !reflect.DeepEqual(upd.Config, res.Config) {
+			changes |= chartChanged
+			res.Config = upd.Config
+		}
+
+		if changes&chartChanged > 0 {
+			res.UpdatedAt = now()
+		}
+
+		if upd.Labels != nil {
+			if label.Changed(res.Labels, upd.Labels) {
+				changes |= chartLabelsChanged
+				res.Labels = upd.Labels
+			}
+		}
+
+		return
 	}
 }
 
-func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (bool, error) {
+func (svc chart) handleDelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
 	if !svc.ac.CanDeleteChart(ctx, c) {
-		return false, ChartErrNotAllowedToDelete()
+		return chartUnchanged, ChartErrNotAllowedToDelete()
 	}
 
 	if c.DeletedAt != nil {
 		// chart already deleted
-		return false, nil
+		return chartUnchanged, nil
 	}
 
 	c.DeletedAt = now()
-	return true, nil
+	return chartChanged, nil
 }
 
-func (svc chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (bool, error) {
+func (svc chart) handleUndelete(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error) {
 	if !svc.ac.CanDeleteChart(ctx, c) {
-		return false, ChartErrNotAllowedToUndelete()
+		return chartUnchanged, ChartErrNotAllowedToUndelete()
 	}
 
 	if c.DeletedAt == nil {
 		// chart not deleted
-		return false, nil
+		return chartUnchanged, nil
 	}
 
 	c.DeletedAt = nil
-	return true, nil
+	return chartChanged, nil
 }
 
 func loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (ns *types.Namespace, c *types.Chart, err error) {
@@ -302,4 +383,20 @@ func loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64)
 	}
 
 	return
+}
+
+// toLabeledCharts converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledCharts(set []*types.Chart) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

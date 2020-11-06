@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
@@ -86,6 +87,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) suspended users
 		Suspended uint
 
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -122,6 +128,11 @@ type (
 		//
 		// Kind (normal, bot)
 		Kind types.UserKind
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	UserUpdate struct {
@@ -149,6 +160,11 @@ type (
 		//
 		// Kind (normal, bot)
 		Kind types.UserKind
+
+		// Labels POST parameter
+		//
+		// Labels
+		Labels map[string]string
 	}
 
 	UserRead struct {
@@ -261,6 +277,7 @@ func (r UserList) Auditable() map[string]interface{} {
 		"incSuspended": r.IncSuspended,
 		"deleted":      r.Deleted,
 		"suspended":    r.Suspended,
+		"labels":       r.Labels,
 		"limit":        r.Limit,
 		"pageCursor":   r.PageCursor,
 		"sort":         r.Sort,
@@ -320,6 +337,11 @@ func (r UserList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r UserList) GetSuspended() uint {
 	return r.Suspended
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserList) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -430,6 +452,17 @@ func (r *UserList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
@@ -465,6 +498,7 @@ func (r UserCreate) Auditable() map[string]interface{} {
 		"name":   r.Name,
 		"handle": r.Handle,
 		"kind":   r.Kind,
+		"labels": r.Labels,
 	}
 }
 
@@ -486,6 +520,11 @@ func (r UserCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r UserCreate) GetKind() types.UserKind {
 	return r.Kind
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserCreate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -535,6 +574,18 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -553,6 +604,7 @@ func (r UserUpdate) Auditable() map[string]interface{} {
 		"name":   r.Name,
 		"handle": r.Handle,
 		"kind":   r.Kind,
+		"labels": r.Labels,
 	}
 }
 
@@ -579,6 +631,11 @@ func (r UserUpdate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) GetKind() types.UserKind {
 	return r.Kind
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserUpdate) GetLabels() map[string]string {
+	return r.Labels
 }
 
 // Fill processes request and fills internal variables
@@ -624,6 +681,18 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["kind"]; ok && len(val) > 0 {
 			r.Kind, err = types.UserKind(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

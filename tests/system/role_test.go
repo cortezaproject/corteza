@@ -9,7 +9,9 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
+	"github.com/stretchr/testify/require"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -218,4 +220,85 @@ func TestRoleDelete(t *testing.T) {
 	res = h.lookupRoleByID(res.ID)
 	h.a.NotNil(res)
 	h.a.NotNil(res.DeletedAt)
+}
+
+func TestRoleLabels(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	h.allow(types.SystemRBACResource, "role.create")
+	h.allow(types.RoleRBACResource.AppendWildcard(), "read")
+	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
+	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+
+	var (
+		ID uint64
+	)
+
+	t.Run("create", func(t *testing.T) {
+		var (
+			req     = require.New(t)
+			payload = &types.Role{}
+		)
+
+		helpers.SetLabelsViaAPI(h.apiInit(), t,
+			"/roles/",
+			types.Role{Labels: map[string]string{"foo": "bar", "bar": "42"}},
+			payload,
+		)
+		req.NotZero(payload.ID)
+
+		h.a.Equal(payload.Labels["foo"], "bar",
+			"labels must contain foo with value bar")
+		h.a.Equal(payload.Labels["bar"], "42",
+			"labels must contain bar with value 42")
+		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+			"response must match stored labels")
+
+		ID = payload.ID
+	})
+
+	t.Run("update", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req     = require.New(t)
+			payload = &types.Role{}
+		)
+
+		helpers.SetLabelsViaAPI(h.apiInit(), t,
+			fmt.Sprintf("PUT /roles/%d", ID),
+			&types.Role{Labels: map[string]string{"foo": "baz", "baz": "123"}},
+			payload,
+		)
+		req.NotZero(payload.ID)
+		//req.Nil(payload.UpdatedAt, "updatedAt must not change after changing labels")
+
+		req.Equal(payload.Labels["foo"], "baz",
+			"labels must contain foo with value baz")
+		req.NotContains(payload.Labels, "bar",
+			"labels must not contain bar")
+		req.Equal(payload.Labels["baz"], "123",
+			"labels must contain baz with value 123")
+		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+			"response must match stored labels")
+	})
+
+	t.Run("search", func(t *testing.T) {
+		if ID == 0 {
+			t.Skip("label/create test not ran")
+		}
+
+		var (
+			req = require.New(t)
+			set = types.RoleSet{}
+		)
+
+		helpers.SearchWithLabelsViaAPI(h.apiInit(), t, "/roles/", &set, url.Values{"labels": []string{"baz=123"}})
+		req.NotEmpty(set)
+		req.NotNil(set.FindByID(ID))
+		req.NotNil(set.FindByID(ID).Labels)
+	})
 }
