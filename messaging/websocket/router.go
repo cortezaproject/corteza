@@ -2,15 +2,13 @@ package websocket
 
 import (
 	"context"
-	"net/http"
-
-	"github.com/go-chi/chi"
-	"go.uber.org/zap"
-
 	"github.com/cortezaproject/corteza-server/messaging/repository"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/go-chi/chi"
+	"go.uber.org/zap"
+	"net/http"
 )
 
 func middlewareAllowedAccess(next http.Handler) http.Handler {
@@ -46,17 +44,7 @@ func Watch(ctx context.Context) {
 func (ws Websocket) ApiServerRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Route("/websocket", func(r chi.Router) {
-			r.Use(func(next http.Handler) http.Handler {
-				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					// @todo make access control injectable
-					if !service.DefaultAccessControl.CanAccess(r.Context()) {
-						http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-						return
-					}
-
-					next.ServeHTTP(w, r)
-				})
-			})
+			r.Use(middlewareAllowedAccess)
 			r.Get("/", ws.Open)
 		})
 	})
