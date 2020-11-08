@@ -24,7 +24,6 @@ type (
 func init() {
 	store.Register(Connect, "postgres", "postgres+debug")
 	sql.Register("postgres+debug", sqlmw.Driver(new(pq.Driver), instrumentation.Debug()))
-
 }
 
 func Connect(ctx context.Context, dsn string) (store.Storer, error) {
