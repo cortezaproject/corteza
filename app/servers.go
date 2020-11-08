@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 	"strings"
 	"sync"
 )
@@ -56,10 +57,17 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				messagingRest.MountRoutes(r)
 				app.WsServer.ApiServerRoutes(r)
 			})
+
+			r.HandleFunc("/docs*", server.ServeDocs("/"+apiBaseUrl+"/docs"))
 		})
 	}
 
 	if app.Opt.HTTPServer.WebappEnabled {
+		app.Log.Debug(
+			"serving web applications",
+			zap.String("baseUrl", webappBaseUrl),
+			zap.String("baseDir", app.Opt.HTTPServer.WebappBaseDir),
+		)
 		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer))
 	}
 }

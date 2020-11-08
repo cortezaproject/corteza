@@ -143,7 +143,4 @@ func (s server) bindMiscRoutes(router chi.Router) {
 	if s.httpOpt.EnableHealthcheckRoute {
 		router.Get("/healthcheck", healthcheck.HttpHandler())
 	}
-
-	//router.Group(serveDocs2)
-	router.HandleFunc("/docs*", serveDocs)
 }
