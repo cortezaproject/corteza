@@ -2,6 +2,8 @@
 
 WARNING: Work in progress
 
+WARNING: Any changes to these files here require `make docs`
+
 This is the first step in migration towards full OpenAPI standards support.`
 
 ## Original/starting state (pre `2020.9`; deprecated):
@@ -14,4 +16,4 @@ definition. There is a converter available in https://github.com/cortezaproject/
 that takes those custom YAML files and converts them to OpenAPI format.
 
 ## Goal (target `2020.12`)
-Generate HTTP handlers and all auxilary code and documentation from YAML files in OpenAPI 3.0 format
+Generate HTTP handlers and all auxiliary code and documentation from YAML files in OpenAPI 3.0 format
