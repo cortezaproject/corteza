@@ -168,6 +168,14 @@ endpoints:
               name: composeNamespaceID
               required: true
               title: Compose namespace id
+            - type: string
+              name: name
+              required: true
+              title: Module name
+            - type: string
+              name: handle
+              required: true
+              title: Module handle
             - type: types.ModuleFieldSet
               name: fields
               required: false
@@ -195,6 +203,14 @@ endpoints:
               name: composeNamespaceID
               required: true
               title: Compose namespace id
+            - type: string
+              name: name
+              required: true
+              title: Module name
+            - type: string
+              name: handle
+              required: true
+              title: Module handle
             - type: types.ModuleFieldSet
               name: fields
               required: false

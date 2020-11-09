@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -23,6 +24,8 @@ func (ctrl ManageStructure) CreateExposed(ctx context.Context, r *request.Manage
 			NodeID:             r.NodeID,
 			ComposeModuleID:    r.ComposeModuleID,
 			ComposeNamespaceID: r.ComposeNamespaceID,
+			Name:               r.Name,
+			Handle:             r.Handle,
 			Fields:             r.Fields,
 		}
 	)
@@ -40,6 +43,8 @@ func (ctrl ManageStructure) UpdateExposed(ctx context.Context, r *request.Manage
 			NodeID:             r.NodeID,
 			ComposeModuleID:    r.ComposeModuleID,
 			ComposeNamespaceID: r.ComposeNamespaceID,
+			Name:               r.Name,
+			Handle:             r.Handle,
 			Fields:             r.Fields,
 		}
 	)
@@ -62,7 +67,23 @@ func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.Manag
 		FieldMapping:       r.Fields,
 	}
 
-	return (service.DefaultModuleMapping).Create(ctx, mm)
+	// check if it exists, do an upsert
+	existing, _, err := service.DefaultModuleMapping.Find(ctx, types.ModuleMappingFilter{
+		ComposeModuleID:    r.ComposeModuleID,
+		ComposeNamespaceID: r.ComposeNamespaceID,
+		FederationModuleID: r.ModuleID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(existing) > 0 {
+		// do an update
+		return service.DefaultModuleMapping.Update(ctx, mm)
+	}
+
+	return service.DefaultModuleMapping.Create(ctx, mm)
 }
 
 func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageStructureReadMappings) (interface{}, error) {
@@ -89,6 +110,8 @@ func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStruct
 	default:
 		return nil, errors.New("TODO - http 400 bad request - either use ?exposed or ?shared")
 	}
+
+	spew.Dump("ERR", err)
 
 	return list, err
 }
