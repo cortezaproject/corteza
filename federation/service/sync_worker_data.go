@@ -27,6 +27,7 @@ type (
 		ComposeModuleID     uint64
 		ComposeNamespaceID  uint64
 		NodeBaseURL         string
+		ModuleMappings      *types.ModuleFieldMappingSet
 		ModuleMappingValues *ct.RecordValueSet
 		SyncService         *Sync
 	}
@@ -117,6 +118,7 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 				NodeID:              n.SharedNodeID,
 				ComposeModuleID:     mappings.ComposeModuleID,
 				ComposeNamespaceID:  mappings.ComposeNamespaceID,
+				ModuleMappings:      &mappings.FieldMapping,
 				ModuleMappingValues: &mappingValues,
 				NodeBaseURL:         n.BaseURL,
 				SyncService:         w.syncService,
@@ -255,7 +257,7 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (int, erro
 	}
 
 	for _, er := range o {
-		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues)
+		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
 
 		rec := &ct.Record{
 			ModuleID:    dp.ComposeModuleID,
