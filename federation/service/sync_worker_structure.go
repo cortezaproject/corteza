@@ -206,11 +206,9 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (int, error) {
 	processed := 0
 
-	now := time.Now()
 	o, err := decoder.DecodeFederationModuleSync([]byte(payload))
 
 	if err != nil {
-		spew.Dump("ERR", err)
 		return processed, err
 	}
 
@@ -218,13 +216,13 @@ func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (int,
 		return processed, nil
 	}
 
-	for i, em := range o {
+	for _, em := range o {
 		new := &types.SharedModule{
 			NodeID:                     dp.NodeID,
 			ExternalFederationModuleID: em.ID,
 			Fields:                     em.Fields,
-			Handle:                     fmt.Sprintf("Handle %d %d", i, now.Unix()),
-			Name:                       fmt.Sprintf("Name %d %d", i, now.Unix()),
+			Handle:                     em.Handle,
+			Name:                       em.Name,
 		}
 
 		existing, err := dp.SyncService.LookupSharedModule(ctx, new)
