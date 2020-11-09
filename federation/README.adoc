@@ -3,7 +3,8 @@
 Add the appropriate .env files
 [source,bash]
 ----
-$ cp .env federation/etc/{.env.orig,.env.dest}
+$ cp .env federation/etc/.env.orig
+$ cp .env federation/etc/.env.dest
 ----
 
 Change the DB_DSN in each of the files
