@@ -89,9 +89,14 @@ errors:
     log: "unknown user {email} tried to log-in with {credentials.kind}"
     severity: warning
 
-  - error: failedForDisabledUser
+  - error: failedForDeletedUser
     maskedWith: invalidCredentials
-    log: "disabled user {user} tried to log-in with {credentials.kind}"
+    log: "deleted user {user} tried to log-in with {credentials.kind}"
+    severity: warning
+
+  - error: failedForSuspendedUser
+    maskedWith: invalidCredentials
+    log: "suspended user {user} tried to log-in with {credentials.kind}"
     severity: warning
 
   - error: failedUnconfirmedEmail

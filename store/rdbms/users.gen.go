@@ -236,8 +236,7 @@ func (s Store) LookupUserByEmail(ctx context.Context, email string) (*types.User
 	return s.execLookupUser(ctx, squirrel.Eq{
 		s.preprocessColumn("usr.email", "lower"): store.PreprocessValue(email, "lower"),
 
-		"usr.deleted_at":   nil,
-		"usr.suspended_at": nil,
+		"usr.deleted_at": nil,
 	})
 }
 
@@ -248,8 +247,7 @@ func (s Store) LookupUserByHandle(ctx context.Context, handle string) (*types.Us
 	return s.execLookupUser(ctx, squirrel.Eq{
 		s.preprocessColumn("usr.handle", "lower"): store.PreprocessValue(handle, "lower"),
 
-		"usr.deleted_at":   nil,
-		"usr.suspended_at": nil,
+		"usr.deleted_at": nil,
 	})
 }
 
@@ -260,8 +258,7 @@ func (s Store) LookupUserByUsername(ctx context.Context, username string) (*type
 	return s.execLookupUser(ctx, squirrel.Eq{
 		s.preprocessColumn("usr.username", "lower"): store.PreprocessValue(username, "lower"),
 
-		"usr.deleted_at":   nil,
-		"usr.suspended_at": nil,
+		"usr.deleted_at": nil,
 	})
 }
 
