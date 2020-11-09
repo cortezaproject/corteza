@@ -43,9 +43,12 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 	// This tells us to flip the descending flag on all used sort keys
 	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
+	// Sorting and paging are both enabled in definition yaml file
+	// {search: {enableSorting:true, enablePaging:true}}
+	curSort := f.Sort.Clone()
+
 	// If paging with reverse cursor, change the sorting
 	// direction for all columns we're sorting by
-	curSort := f.Sort.Clone()
 	if reversedCursor {
 		curSort.Reverse()
 	}
