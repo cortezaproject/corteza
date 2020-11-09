@@ -70,7 +70,6 @@ func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url 
 	aux, err := h.ParseHeader(ctx, payload)
 
 	if err != nil {
-		spew.Dump("ERR", err)
 		return 0, err
 	}
 
