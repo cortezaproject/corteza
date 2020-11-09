@@ -6,6 +6,8 @@ types:
 
 fields:
   - { field: ID, isPrimaryKey: true, sortable: true }
+  - { field: Handle }
+  - { field: Name }
   - { field: NodeID }
   - { field: ComposeModuleID }
   - { field: ComposeNamespaceID }

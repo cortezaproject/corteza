@@ -509,6 +509,8 @@ func (Schema) FederationModuleShared() *Table {
 func (Schema) FederationModuleExposed() *Table {
 	return TableDef("federation_module_exposed",
 		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("name", ColumnTypeText),
 		ColumnDef("rel_node", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
 		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),

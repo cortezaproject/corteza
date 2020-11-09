@@ -43,9 +43,12 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f types.Expos
 	// This tells us to flip the descending flag on all used sort keys
 	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
 
+	// Sorting and paging are both enabled in definition yaml file
+	// {search: {enableSorting:true, enablePaging:true}}
+	curSort := f.Sort.Clone()
+
 	// If paging with reverse cursor, change the sorting
 	// direction for all columns we're sorting by
-	curSort := f.Sort.Clone()
 	if reversedCursor {
 		curSort.Reverse()
 	}
@@ -375,6 +378,8 @@ func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *t
 	} else {
 		err = row.Scan(
 			&res.ID,
+			&res.Handle,
+			&res.Name,
 			&res.NodeID,
 			&res.ComposeModuleID,
 			&res.ComposeNamespaceID,
@@ -422,6 +427,8 @@ func (Store) federationExposedModuleColumns(aa ...string) []string {
 
 	return []string{
 		alias + "id",
+		alias + "handle",
+		alias + "name",
 		alias + "rel_node",
 		alias + "rel_compose_module",
 		alias + "rel_compose_namespace",
@@ -453,6 +460,8 @@ func (Store) sortableFederationExposedModuleColumns() []string {
 func (s Store) internalFederationExposedModuleEncoder(res *types.ExposedModule) store.Payload {
 	return store.Payload{
 		"id":                    res.ID,
+		"handle":                res.Handle,
+		"name":                  res.Name,
 		"rel_node":              res.NodeID,
 		"rel_compose_module":    res.ComposeModuleID,
 		"rel_compose_namespace": res.ComposeNamespaceID,

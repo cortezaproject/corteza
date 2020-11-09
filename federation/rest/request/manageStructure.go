@@ -58,6 +58,16 @@ type (
 		// Compose namespace id
 		ComposeNamespaceID uint64 `json:",string"`
 
+		// Name POST parameter
+		//
+		// Module name
+		Name string
+
+		// Handle POST parameter
+		//
+		// Module handle
+		Handle string
+
 		// Fields POST parameter
 		//
 		// Exposed module fields
@@ -84,6 +94,16 @@ type (
 		//
 		// Compose namespace id
 		ComposeNamespaceID uint64 `json:",string"`
+
+		// Name POST parameter
+		//
+		// Module name
+		Name string
+
+		// Handle POST parameter
+		//
+		// Module handle
+		Handle string
 
 		// Fields POST parameter
 		//
@@ -240,6 +260,8 @@ func (r ManageStructureCreateExposed) Auditable() map[string]interface{} {
 		"nodeID":             r.NodeID,
 		"composeModuleID":    r.ComposeModuleID,
 		"composeNamespaceID": r.ComposeNamespaceID,
+		"name":               r.Name,
+		"handle":             r.Handle,
 		"fields":             r.Fields,
 	}
 }
@@ -257,6 +279,16 @@ func (r ManageStructureCreateExposed) GetComposeModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureCreateExposed) GetComposeNamespaceID() uint64 {
 	return r.ComposeNamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateExposed) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureCreateExposed) GetHandle() string {
+	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -298,6 +330,20 @@ func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
 		//if val, ok := req.Form["fields[]"]; ok && len(val) > 0  {
 		//    r.Fields, err = types.ModuleFieldSet(val), nil
 		//    if err != nil {
@@ -333,6 +379,8 @@ func (r ManageStructureUpdateExposed) Auditable() map[string]interface{} {
 		"moduleID":           r.ModuleID,
 		"composeModuleID":    r.ComposeModuleID,
 		"composeNamespaceID": r.ComposeNamespaceID,
+		"name":               r.Name,
+		"handle":             r.Handle,
 		"fields":             r.Fields,
 	}
 }
@@ -355,6 +403,16 @@ func (r ManageStructureUpdateExposed) GetComposeModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureUpdateExposed) GetComposeNamespaceID() uint64 {
 	return r.ComposeNamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetName() string {
+	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureUpdateExposed) GetHandle() string {
+	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -391,6 +449,20 @@ func (r *ManageStructureUpdateExposed) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["composeNamespaceID"]; ok && len(val) > 0 {
 			r.ComposeNamespaceID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["name"]; ok && len(val) > 0 {
+			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
 			if err != nil {
 				return err
 			}
