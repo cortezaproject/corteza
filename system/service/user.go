@@ -384,10 +384,10 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		}
 
 		if new.Handle == "" {
-			createHandle(svc.ctx, DefaultStore, new)
+			createUserHandle(svc.ctx, DefaultStore, new)
 		}
 
-		if err = svc.UniqueCheck(new); err != nil {
+		if err = uniqueUserCheck(svc.ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -460,7 +460,7 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return
 		}
 
-		if err = svc.UniqueCheck(u); err != nil {
+		if err = uniqueUserCheck(svc.ctx, svc.store, u); err != nil {
 			return
 		}
 
@@ -481,63 +481,6 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 	}()
 
 	return u, svc.recordAction(svc.ctx, uaProps, UserActionUpdate, err)
-}
-
-// UniqueCheck verifies user's email, username and handle
-func (svc user) UniqueCheck(u *types.User) (err error) {
-	isUnique := func(field string) bool {
-		f := types.UserFilter{
-			// If user exists and is deleted -- not a dup
-			Deleted: filter.StateExcluded,
-
-			// If user exists and is suspended -- duplicate
-			Suspended: filter.StateInclusive,
-		}
-
-		switch field {
-		case "email":
-			if u.Email == "" {
-				return true
-			}
-
-			f.Email = u.Email
-
-		case "username":
-			if u.Username == "" {
-				return true
-			}
-
-			f.Username = u.Username
-		case "handle":
-			if u.Handle == "" {
-				return true
-			}
-
-			f.Handle = u.Handle
-		}
-
-		set, _, err := store.SearchUsers(svc.ctx, svc.store, f)
-		if err != nil || len(set) > 1 {
-			// In case of error or multiple users returned
-			return false
-		}
-
-		return len(set) == 0 || set[0].ID == u.ID
-	}
-
-	if !isUnique("email") {
-		return UserErrEmailNotUnique()
-	}
-
-	if !isUnique("username") {
-		return UserErrUsernameNotUnique()
-	}
-
-	if !isUnique("handle") {
-		return UserErrHandleNotUnique()
-	}
-
-	return nil
 }
 
 func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.User, err error) {
@@ -597,7 +540,7 @@ func (svc user) Undelete(userID uint64) (err error) {
 
 		uaProps.setUser(u)
 
-		if err = svc.UniqueCheck(u); err != nil {
+		if err = uniqueUserCheck(svc.ctx, svc.store, u); err != nil {
 			return err
 		}
 
@@ -778,7 +721,64 @@ rangeLoop:
 	return uu.Walk(s)
 }
 
-func createHandle(ctx context.Context, s store.Users, u *types.User) {
+// UniqueCheck verifies user's email, username and handle
+func uniqueUserCheck(ctx context.Context, s store.Storer, u *types.User) (err error) {
+	isUnique := func(field string) bool {
+		f := types.UserFilter{
+			// If user exists and is deleted -- not a dup
+			Deleted: filter.StateExcluded,
+
+			// If user exists and is suspended -- duplicate
+			Suspended: filter.StateInclusive,
+		}
+
+		switch field {
+		case "email":
+			if u.Email == "" {
+				return true
+			}
+
+			f.Email = u.Email
+
+		case "username":
+			if u.Username == "" {
+				return true
+			}
+
+			f.Username = u.Username
+		case "handle":
+			if u.Handle == "" {
+				return true
+			}
+
+			f.Handle = u.Handle
+		}
+
+		set, _, err := store.SearchUsers(ctx, s, f)
+		if err != nil || len(set) > 1 {
+			// In case of error or multiple users returned
+			return false
+		}
+
+		return len(set) == 0 || set[0].ID == u.ID
+	}
+
+	if !isUnique("email") {
+		return UserErrEmailNotUnique()
+	}
+
+	if !isUnique("username") {
+		return UserErrUsernameNotUnique()
+	}
+
+	if !isUnique("handle") {
+		return UserErrHandleNotUnique()
+	}
+
+	return nil
+}
+
+func createUserHandle(ctx context.Context, s store.Users, u *types.User) {
 	if u.Handle == "" {
 		u.Handle, _ = handle.Cast(
 			// Must not exist before

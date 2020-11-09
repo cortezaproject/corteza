@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -133,8 +134,82 @@ func TestAuth_External(t *testing.T) {
 	}
 }
 
-func TestAuth_InternalSignU(t *testing.T) {
-	t.Skip("pending implementation")
+func TestAuth_InternalSignUp(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		ctx = context.Background()
+		svc = makeMockAuthService()
+
+		existingUserID = id.Next()
+	)
+
+	svc.settings.Auth.Internal.Enabled = true
+	svc.settings.Auth.Internal.Signup.Enabled = true
+
+	req.NoError(svc.store.CreateUser(ctx, &types.User{Email: "existing@internal-signup-test.tld", ID: existingUserID, CreatedAt: *now()}))
+	req.NoError(svc.SetPassword(ctx, existingUserID, "secure password"))
+
+	t.Run("invalid email", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{}, "")
+		req.Nil(u)
+		req.EqualError(err, AuthErrInvalidEmailFormat().Error())
+	})
+
+	t.Run("invalid handle", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{Email: "new@internal-signup-test.tld", Handle: "123"}, "")
+		req.Nil(u)
+		req.EqualError(err, AuthErrInvalidHandle().Error())
+	})
+
+	t.Run("invalid password", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{Email: "new@internal-signup-test.tld"}, "")
+		req.Nil(u)
+		req.EqualError(err, AuthErrPasswordNotSecure().Error())
+	})
+
+	t.Run("valid input", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{Email: "new@internal-signup-test.tld"}, "secure password")
+		req.NoError(err)
+		req.NotNil(u)
+	})
+
+	t.Run("existing user", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{Email: "existing@internal-signup-test.tld"}, "secure password")
+		req.NoError(err)
+		req.NotNil(u)
+		req.Equal(existingUserID, u.ID)
+	})
+
+	t.Run("invalid password for existing user", func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
+
+		u, err := svc.InternalSignUp(ctx, &types.User{Email: "existing@internal-signup-test.tld"}, "invalid password")
+		req.EqualError(err, AuthErrInvalidCredentials().Error())
+		req.Nil(u)
+	})
 }
 
 func TestAuth_InternalLogin(t *testing.T) {

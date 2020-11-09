@@ -143,24 +143,9 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 					return err
 				}
 
-				// Add user ID for audit log
 				aam.setUser(u)
-				ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-				if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
-					return err
-				}
-
-				if u.Valid() {
-					// Valid user, Bingo!
-					c.LastUsedAt = now()
-					if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
-						return err
-					}
-
-					_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
-					return svc.recordAction(ctx, aam, AuthActionUpdateCredentials, nil)
-				} else {
+				if err = svc.procLogin(ctx, svc.store, u, c, authProvider); err != nil {
 					// Scenario: linked to an invalid user
 					if len(cc) > 1 {
 						// try with next credentials
@@ -170,6 +155,8 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 
 					return AuthErrCredentialsLinkedToInvalidUser(aam)
 				}
+
+				return svc.recordAction(ctx, aam, AuthActionUpdateCredentials, nil)
 			}
 
 			// If we could not find anything useful,
@@ -210,7 +197,11 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 			}
 
 			if u.Handle == "" {
-				createHandle(ctx, svc.store, u)
+				createUserHandle(ctx, svc.store, u)
+			}
+
+			if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
+				return err
 			}
 
 			u.ID = nextID()
@@ -237,17 +228,9 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		} else {
 			// User found
 			aam.setUser(u)
-			ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-			if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
+			if err = svc.procLogin(ctx, svc.store, u, nil, authProvider); err != nil {
 				return err
-			}
-
-			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
-
-			// If user
-			if !u.Valid() {
-				return AuthErrFailedForDisabledUser(aam).Wrap(err)
 			}
 		}
 
@@ -293,7 +276,6 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		aam = &authActionProps{
 			email:       input.Email,
 			credentials: &types.Credentials{Kind: credentialsTypePassword},
-			user:        u,
 		}
 	)
 
@@ -306,70 +288,49 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return AuthErrInvalidEmailFormat(aam)
 		}
 
-		if len(password) == 0 {
-			return AuthErrPasswordNotSecure(aam)
-		}
-
 		if !handle.IsValid(input.Handle) {
 			return AuthErrInvalidHandle(aam)
 		}
 
+		if len(password) == 0 {
+			return AuthErrPasswordNotSecure(aam)
+		}
+
 		var eUser *types.User
 		eUser, err = store.LookupUserByEmail(ctx, svc.store, input.Email)
-		if err == nil && eUser.Valid() {
+
+		if err == nil && eUser != nil {
 			var (
+				c  *types.Credentials
 				cc types.CredentialsSet
 				f  = types.CredentialsFilter{OwnerID: eUser.ID, Kind: credentialsTypePassword}
 			)
-			cc, _, err = store.SearchCredentials(ctx, svc.store, f)
-			if err != nil {
+			if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
 				return err
 			}
 
-			if c := cc.CompareHashAndPassword(password); c == nil {
+			if c = cc.CompareHashAndPassword(password); c == nil {
 				return AuthErrInvalidCredentials(aam)
-			} else {
-				// Update last-used-by timestamp on matching credentials
-				c.LastUsedAt = now()
-				c.UpdatedAt = now()
-				aam.setCredentials(c)
-
-				if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
-					return err
-				}
 			}
 
-			// We're not actually doing sign-up here - user exists,
-			// password is a match, so lets trigger before/after user login events
-			if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(eUser, authProvider)); err != nil {
-				return err
-			}
-
-			if !eUser.EmailConfirmed {
-				err = svc.sendEmailAddressConfirmationToken(ctx, eUser)
-				if err != nil {
-					return err
-				}
-			}
-
-			_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(eUser, authProvider))
+			aam.setCredentials(c)
 			u = eUser
-			return nil
-
-			// if !svc.settings.internalSignUpSendEmailOnExisting {
-			// 	return nil,errors.Wrap(err, "user with this email already exists")
-			// }
-
-			// User already exists, but we're nice and we'll send this user an
-			// email that will help him to login
-			// if !u.Valid() {
-			// 	return nil,errors.New("could not validate the user")
-			// }
-			//
-			// return nil,nil
+			return svc.procLogin(ctx, svc.store, eUser, c, authProvider)
 		} else if !errors.IsNotFound(err) {
 			return err
 		}
+
+		// if !svc.settings.internalSignUpSendEmailOnExisting {
+		// 	return nil,errors.Wrap(err, "user with this email already exists")
+		// }
+
+		// User already exists, but we're nice and we'll send this user an
+		// email that will help him to login
+		// if !u.Valid() {
+		// 	return nil,errors.New("could not validate the user")
+		// }
+		//
+		// return nil,nil
 
 		if err = svc.CanRegister(ctx); err != nil {
 			return err
@@ -390,8 +351,12 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return err
 		}
 
-		if input.Handle == "" {
-			createHandle(ctx, svc.store, input)
+		if nUser.Handle == "" {
+			createUserHandle(ctx, svc.store, nUser)
+		}
+
+		if err = uniqueUserCheck(ctx, svc.store, nUser); err != nil {
+			return err
 		}
 
 		// Whitelisted user data to copy
@@ -403,12 +368,12 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		aam.setUser(nUser)
 		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterSignup(nUser, authProvider))
 
-		if err = svc.autoPromote(ctx, u); err != nil {
+		if err = svc.autoPromote(ctx, nUser); err != nil {
 			return err
 		}
 
 		if len(password) > 0 {
-			err = svc.SetPassword(ctx, u.ID, password)
+			err = svc.SetPassword(ctx, nUser.ID, password)
 			if err != nil {
 				return err
 			}
@@ -423,6 +388,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, nil)
 		}
 
+		u = nUser
 		return nil
 	}()
 
@@ -461,13 +427,6 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		)
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
-		if errors.IsNotFound(err) {
-			return AuthErrFailedForUnknownUser()
-		}
-
-		if err != nil {
-			return err
-		}
 
 		// Update audit meta with found user
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
@@ -477,37 +436,13 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 			return err
 		}
 
-		if c := cc.CompareHashAndPassword(password); c == nil {
+		c := cc.CompareHashAndPassword(password)
+		if c == nil {
 			return AuthErrInvalidCredentials(aam)
-		} else {
-			// Update last-used-by timestamp on matching credentials
-			c.UpdatedAt = now()
-			c.LastUsedAt = now()
-			aam.setCredentials(c)
-
-			if err = store.UpdateCredentials(ctx, svc.store, c); err != nil {
-				return err
-			}
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, authProvider)); err != nil {
-			return err
-		}
-
-		if !u.Valid() {
-			return AuthErrFailedForDisabledUser()
-		}
-
-		if !u.EmailConfirmed {
-			if err = svc.sendEmailAddressConfirmationToken(ctx, u); err != nil {
-				return err
-			}
-
-			return AuthErrFailedUnconfirmedEmail()
-		}
-
-		_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, authProvider))
-		return nil
+		aam.setCredentials(c)
+		return svc.procLogin(ctx, svc.store, u, c, authProvider)
 	}()
 
 	return u, svc.recordAction(ctx, aam, AuthActionAuthenticate, err)
@@ -791,30 +726,6 @@ func (svc auth) ExchangePasswordResetToken(ctx context.Context, token string) (u
 	return u, t, svc.recordAction(ctx, aam, AuthActionExchangePasswordResetToken, err)
 }
 
-// SendEmailAddressConfirmationToken sends email with email address confirmation token
-func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, email string) (err error) {
-	var (
-		aam = &authActionProps{
-			email: email,
-		}
-	)
-
-	err = func() error {
-		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordReset.Enabled {
-			return AuthErrPasswordResetDisabledByConfig(aam)
-		}
-
-		u, err := store.LookupUserByEmail(ctx, svc.store, email)
-		if err != nil {
-			return AuthErrInvalidToken(aam)
-		}
-
-		return svc.sendEmailAddressConfirmationToken(ctx, u)
-	}()
-
-	return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, err)
-}
-
 func (svc auth) sendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error) {
 	var (
 		notificationLang = "en"
@@ -897,6 +808,41 @@ func (svc auth) sendPasswordResetToken(ctx context.Context, u *types.User) (err 
 	}
 
 	return svc.notifications.PasswordReset(ctx, notificationLang, u.Email, token)
+}
+
+// procLogin fn performs standard validation, credentials-update tasks and triggers events
+func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c *types.Credentials, p *types.AuthProvider) (err error) {
+	ctx = internalAuth.SetIdentityToContext(ctx, u)
+	if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, p)); err != nil {
+		return err
+	}
+
+	// all checks (suspension, deleted, confirmed email) are checked AFTER
+	// before-login event to enable before-login hooks to alter user and make her
+	// valid for login
+	switch true {
+	case u.SuspendedAt != nil:
+		return AuthErrFailedForSuspendedUser()
+	case u.DeletedAt != nil:
+		return AuthErrFailedForDeletedUser()
+	case !u.EmailConfirmed && svc.settings.Auth.Internal.Signup.EmailConfirmationRequired:
+		// Re-send email-confirmation when not confirmed and signup email confirmation required
+		if err = svc.sendEmailAddressConfirmationToken(ctx, u); err != nil {
+			return err
+		}
+
+		return AuthErrFailedUnconfirmedEmail()
+	}
+
+	if c != nil {
+		c.LastUsedAt = now()
+		if err = store.UpdateCredentials(ctx, s, c); err != nil {
+			return err
+		}
+	}
+
+	_ = svc.eventbus.WaitFor(ctx, event.AuthAfterLogin(u, p))
+	return nil
 }
 
 func (svc auth) loadUserFromToken(ctx context.Context, token, kind string) (u *types.User, err error) {

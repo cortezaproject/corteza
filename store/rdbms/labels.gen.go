@@ -11,9 +11,8 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -35,11 +34,11 @@ func (s Store) SearchLabels(ctx context.Context, f types.LabelFilter) (types.Lab
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryLabels(ctx, q, nil)
 		return err
 
-	}())
+	}()
 }
 
 // QueryLabels queries the database, converts and checks each row and
@@ -111,7 +110,7 @@ func (s Store) CreateLabel(ctx context.Context, rr ...*types.Label) (err error) 
 
 // UpdateLabel updates one or more existing rows in labels
 func (s Store) UpdateLabel(ctx context.Context, rr ...*types.Label) error {
-	return s.config.ErrorHandler(s.partialLabelUpdate(ctx, nil, rr...))
+	return s.partialLabelUpdate(ctx, nil, rr...)
 }
 
 // partialLabelUpdate updates one or more existing rows in labels
@@ -129,7 +128,7 @@ func (s Store) partialLabelUpdate(ctx context.Context, onlyColumns []string, rr 
 			},
 			s.internalLabelEncoder(res).Skip("kind", "rel_resource", "name").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -144,7 +143,7 @@ func (s Store) UpsertLabel(ctx context.Context, rr ...*types.Label) (err error) 
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertLabels(ctx, s.internalLabelEncoder(res)))
+		err = s.execUpsertLabels(ctx, s.internalLabelEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -161,7 +160,7 @@ func (s Store) DeleteLabel(ctx context.Context, rr ...*types.Label) (err error) 
 			s.preprocessColumn("lbl.kind", ""): store.PreprocessValue(res.Kind, ""), s.preprocessColumn("lbl.rel_resource", ""): store.PreprocessValue(res.ResourceID, ""), s.preprocessColumn("lbl.name", "lower"): store.PreprocessValue(res.Name, "lower"),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -179,7 +178,7 @@ func (s Store) DeleteLabelByKindResourceIDName(ctx context.Context, kind string,
 
 // TruncateLabels Deletes all rows from the labels table
 func (s Store) TruncateLabels(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.labelTable()))
+	return s.Truncate(ctx, s.labelTable())
 }
 
 // execLookupLabel prepares Label query and executes it,
@@ -204,12 +203,12 @@ func (s Store) execLookupLabel(ctx context.Context, cnd squirrel.Sqlizer) (res *
 
 // execCreateLabels updates all matched (by cnd) rows in labels with given data
 func (s Store) execCreateLabels(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.labelTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.labelTable()).SetMap(payload))
 }
 
 // execUpdateLabels updates all matched (by cnd) rows in labels with given data
 func (s Store) execUpdateLabels(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.labelTable("lbl")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.labelTable("lbl")).Where(cnd).SetMap(set))
 }
 
 // execUpsertLabels inserts new or updates matching (by-primary-key) rows in labels with given data
@@ -227,12 +226,12 @@ func (s Store) execUpsertLabels(ctx context.Context, set store.Payload) error {
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteLabels Deletes all matched (by cnd) rows in labels with given data
 func (s Store) execDeleteLabels(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.labelTable("lbl")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.labelTable("lbl")).Where(cnd))
 }
 
 func (s Store) internalLabelRowScanner(row rowScanner) (res *types.Label, err error) {
@@ -251,11 +250,11 @@ func (s Store) internalLabelRowScanner(row rowScanner) (res *types.Label, err er
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for Label: %w", err)
+		return nil, errors.Store("could not scan label db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -334,8 +333,8 @@ func (s *Store) checkLabelConstraints(ctx context.Context, res *types.Label) err
 	{
 		ex, err := s.LookupLabelByKindResourceIDName(ctx, res.Kind, res.ResourceID, res.Name)
 		if err == nil && ex != nil && ex.Kind != res.Kind && ex.ResourceID != res.ResourceID && ex.Name != res.Name {
-			return store.ErrNotUnique
-		} else if !errors.Is(err, store.ErrNotFound) {
+			return store.ErrNotUnique.Stack(1)
+		} else if !errors.IsNotFound(err) {
 			return err
 		}
 	}

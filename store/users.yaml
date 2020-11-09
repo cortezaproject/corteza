@@ -22,21 +22,21 @@ lookups:
 
       It returns user even if deleted or suspended
   - fields: [ Email ]
-    filter: { DeletedAt: nil, SuspendedAt: nil }
+    filter: { DeletedAt: nil }
     uniqueConstraintCheck: true
     description: |-
         searches for user by their email
 
         It returns only valid users (not deleted, not suspended)
   - fields: [ Handle ]
-    filter: { DeletedAt: nil, SuspendedAt: nil }
+    filter: { DeletedAt: nil }
     uniqueConstraintCheck: true
     description: |-
       searches for user by their email
 
       It returns only valid users (not deleted, not suspended)
   - fields: [ Username ]
-    filter: { DeletedAt: nil, SuspendedAt: nil }
+    filter: { DeletedAt: nil }
     uniqueConstraintCheck: true
     description: |-
       searches for user by their username

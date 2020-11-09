@@ -729,13 +729,13 @@ func AuthErrFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
-// AuthErrFailedForDisabledUser returns "system:auth.failedForDisabledUser" as *errors.Error
+// AuthErrFailedForDeletedUser returns "system:auth.failedForDeletedUser" as *errors.Error
 //
 // Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
 //
 // This function is auto-generated.
 //
-func AuthErrFailedForDisabledUser(mm ...*authActionProps) *errors.Error {
+func AuthErrFailedForDeletedUser(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -744,13 +744,49 @@ func AuthErrFailedForDisabledUser(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		"failedForDisabledUser",
+		"failedForDeletedUser",
 
-		errors.Meta("type", "failedForDisabledUser"),
+		errors.Meta("type", "failedForDeletedUser"),
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "disabled user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "deleted user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	// Wrap with safe error
+	e = AuthErrInvalidCredentials().Wrap(e)
+
+	return e
+}
+
+// AuthErrFailedForSuspendedUser returns "system:auth.failedForSuspendedUser" as *errors.Error
+//
+// Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
+//
+// This function is auto-generated.
+//
+func AuthErrFailedForSuspendedUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		"failedForSuspendedUser",
+
+		errors.Meta("type", "failedForSuspendedUser"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "suspended user {user} tried to log-in with {credentials.kind}"),
 		errors.Meta(authPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
