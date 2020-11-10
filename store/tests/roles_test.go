@@ -155,4 +155,41 @@ func testRoles(t *testing.T, s store.Roles) {
 	t.Run("ordered search", func(t *testing.T) {
 		t.Skip("not implemented")
 	})
+
+	t.Run("metrics", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			oct, _ = time.Parse(time.RFC3339, "2020-10-02T10:01:10Z")
+			nov, _ = time.Parse(time.RFC3339, "2020-11-02T20:02:10Z")
+
+			octu = uint(oct.Truncate(time.Hour * 24).Unix())
+			novu = uint(nov.Truncate(time.Hour * 24).Unix())
+
+			e = &types.RoleMetrics{
+				Total:         8,
+				Valid:         2,
+				Deleted:       3,
+				Archived:      3,
+				DailyCreated:  []uint{octu, 7, novu, 1},
+				DailyUpdated:  []uint{octu, 2},
+				DailyArchived: []uint{octu, 2, novu, 1},
+				DailyDeleted:  []uint{novu, 3},
+			}
+		)
+
+		req.NoError(s.TruncateRoles(ctx))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, UpdatedAt: &oct}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, UpdatedAt: &oct}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, ArchivedAt: &oct}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, ArchivedAt: &oct}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, ArchivedAt: &nov}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, DeletedAt: &nov}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: oct, DeletedAt: &nov}))
+		req.NoError(s.CreateRole(ctx, &types.Role{ID: id.Next(), CreatedAt: nov, DeletedAt: &nov}))
+
+		m, err := store.RoleMetrics(ctx, s)
+		req.NoError(err)
+		req.Equal(e, m)
+	})
 }

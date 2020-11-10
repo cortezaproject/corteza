@@ -35,8 +35,8 @@ func (s Store) ApplicationMetrics(ctx context.Context) (*types.ApplicationMetric
 		counters = squirrel.
 				Select(
 				"COUNT(*) as total",
-				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
-				"SUM(IF(deleted_at IS NULL, 1, 0)) as valid",
+				"SUM(CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END) as deleted",
+				"SUM(CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END) as valid",
 			).
 			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.applicationTable("u"))

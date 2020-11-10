@@ -2,8 +2,11 @@ package rdbms
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"time"
 )
 
 // multiDailyMetrics simplifies fetching of multiple daily metrics
@@ -28,32 +31,59 @@ func (s Store) multiDailyMetrics(ctx context.Context, q squirrel.SelectBuilder, 
 // This function is copied from old repository and adapted to work under store,
 // might be good to refactor it to fit into this store pattern a bit more
 func (s Store) dailyMetrics(ctx context.Context, q squirrel.SelectBuilder, field string) ([]uint, error) {
-	q = q.
-		Column(fmt.Sprintf("UNIX_TIMESTAMP(DATE(%s)) timestamp", field)).
-		Column("COUNT(*) AS value").
-		Where(fmt.Sprintf("%s IS NOT NULL", field)).
-		OrderBy("timestamp").
-		GroupBy("timestamp")
-
-	var (
-		rval      = make([]uint, 0, 100)
-		ts, v, i  uint
-		rows, err = s.Query(ctx, q)
-	)
-
+	sqlfn, err := s.SqlFunctionHandler(ql.Function{Name: "DATE", Arguments: ql.ASTSet{ql.Ident{Value: field}}})
 	if err != nil {
 		return nil, err
 	}
 
+	q = q.
+		Column(sqlfn).
+		Column("COUNT(*) AS value").
+		Where(fmt.Sprintf("%s IS NOT NULL", field))
+
+	// since orderBy & groupBy do not accept Sqlizer, we'll convert it up front
+	// args are omitted because there should be none
+	// error is checked when adding sqlfn to Column fn
+	sqlfnStr, _, _ := sqlfn.ToSql()
+
+	q = q.
+		OrderBy(sqlfnStr).
+		GroupBy(sqlfnStr)
+
+	const (
+		cap = 100
+	)
+
+	var (
+		rval = make([]uint, 0, cap)
+
+		d  time.Time
+		ts string
+		c  uint
+
+		rows *sql.Rows
+	)
+
 	return rval, func() (err error) {
+		rows, err = s.Query(ctx, q)
+		if err != nil {
+			return err
+		}
+
 		defer rows.Close()
 		for rows.Next() {
-			if err = rows.Scan(&ts, &v); err != nil {
+			if err = rows.Scan(&ts, &c); err != nil {
 				return err
 			}
 
-			rval[2*i], rval[2*i+1] = ts, v
-			i++
+			d = time.Time{}
+			if ts != "" {
+				if d, err = time.Parse(time.RFC3339, ts); err != nil {
+					return err
+				}
+			}
+
+			rval = append(rval, uint(d.Unix()), c)
 		}
 
 		return

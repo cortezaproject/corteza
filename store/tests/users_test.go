@@ -345,4 +345,40 @@ func testUsers(t *testing.T, s store.Users) {
 		req.Equal(c1, c2)
 	})
 
+	t.Run("metrics", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			oct, _ = time.Parse(time.RFC3339, "2020-10-02T10:01:10Z")
+			nov, _ = time.Parse(time.RFC3339, "2020-11-02T20:02:10Z")
+
+			octu = uint(oct.Truncate(time.Hour * 24).Unix())
+			novu = uint(nov.Truncate(time.Hour * 24).Unix())
+
+			e = &types.UserMetrics{
+				Total:          8,
+				Valid:          2,
+				Deleted:        3,
+				Suspended:      3,
+				DailyCreated:   []uint{octu, 7, novu, 1},
+				DailyUpdated:   []uint{octu, 2},
+				DailySuspended: []uint{octu, 2, novu, 1},
+				DailyDeleted:   []uint{novu, 3},
+			}
+		)
+
+		req.NoError(s.TruncateUsers(ctx))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), UpdatedAt: &oct}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), UpdatedAt: &oct}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), SuspendedAt: &oct}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), SuspendedAt: &oct}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), SuspendedAt: &nov}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), DeletedAt: &nov}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: oct, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), DeletedAt: &nov}))
+		req.NoError(s.CreateUser(ctx, &types.User{ID: id.Next(), CreatedAt: nov, Email: fmt.Sprintf("user-crud+%s@crust.test", rand.Bytes(10)), DeletedAt: &nov}))
+
+		m, err := store.UserMetrics(ctx, s)
+		req.NoError(err)
+		req.Equal(e, m)
+	})
 }

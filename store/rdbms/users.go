@@ -77,9 +77,9 @@ func (s Store) UserMetrics(ctx context.Context) (*types.UserMetrics, error) {
 		counters = squirrel.
 				Select(
 				"COUNT(*) as total",
-				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
-				"SUM(IF(suspended_at IS NULL, 0, 1)) as suspended",
-				"SUM(IF(deleted_at IS NULL AND suspended_at IS NULL, 1, 0)) as valid",
+				"SUM(CASE WHEN deleted_at   IS NULL                          THEN 0 ELSE 1 END) as deleted",
+				"SUM(CASE WHEN suspended_at IS NULL                          THEN 0 ELSE 1 END) as suspended",
+				"SUM(CASE WHEN deleted_at   IS NULL AND suspended_at IS NULL THEN 1 ELSE 0 END) as valid",
 			).
 			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.userTable("u"))

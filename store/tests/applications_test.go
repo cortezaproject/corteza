@@ -67,9 +67,9 @@ func testApplications(t *testing.T, s store.Applications) {
 		t.Run("existing", func(t *testing.T) {
 			req, application := truncAndCreate(t)
 			application.Name = "ApplicationCRUD+2"
-	
+
 			req.NoError(s.UpsertApplication(ctx, application))
-	
+
 			updated, err := s.LookupApplicationByID(ctx, application.ID)
 			req.NoError(err)
 			req.Equal(application.Name, updated.Name)
@@ -80,7 +80,7 @@ func testApplications(t *testing.T, s store.Applications) {
 			application.Name = "ComposeChartCRUD+2"
 
 			req.NoError(s.UpsertApplication(ctx, application))
-	
+
 			upserted, err := s.LookupApplicationByID(ctx, application.ID)
 			req.NoError(err)
 			req.Equal(application.Name, upserted.Name)
@@ -145,5 +145,28 @@ func testApplications(t *testing.T, s store.Applications) {
 		req.Len(set, 2)
 
 		_ = f // dummy
+	})
+
+	t.Run("metrics", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			e = &types.ApplicationMetrics{
+				Total:   5,
+				Valid:   2,
+				Deleted: 3,
+			}
+		)
+
+		req.NoError(s.TruncateApplications(ctx))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now()}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now()}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
+
+		m, err := store.ApplicationMetrics(ctx, s)
+		req.NoError(err)
+		req.Equal(e, m)
 	})
 }
