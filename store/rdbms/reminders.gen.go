@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfReminders(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableReminderColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableReminderColumns()); err != nil {
 		return nil, err
 	}
 
@@ -449,13 +449,16 @@ func (Store) reminderColumns(aa ...string) []string {
 // sortableReminderColumns returns all Reminder columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableReminderColumns() []string {
-	return []string{
-		"id",
-		"remind_at",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableReminderColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "remind_at": "remind_at",
+		"remindat":   "remind_at",
+		"created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

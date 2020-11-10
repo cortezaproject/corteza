@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfComposeNamespaces(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableComposeNamespaceColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableComposeNamespaceColumns()); err != nil {
 		return nil, err
 	}
 
@@ -448,14 +448,14 @@ func (Store) composeNamespaceColumns(aa ...string) []string {
 // sortableComposeNamespaceColumns returns all ComposeNamespace columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableComposeNamespaceColumns() []string {
-	return []string{
-		"id",
-		"name",
-		"slug",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableComposeNamespaceColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "name": "name", "slug": "slug", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

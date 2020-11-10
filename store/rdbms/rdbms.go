@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
@@ -422,16 +421,23 @@ func setCursorCond(q squirrel.SelectBuilder, cursor *filter.PagingCursor) squirr
 	return q
 }
 
-func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, ss ...string) (squirrel.SelectBuilder, error) {
+func setOrderBy(q squirrel.SelectBuilder, sort filter.SortExprSet, sortable map[string]string) (squirrel.SelectBuilder, error) {
 	var (
-		sortable = slice.ToStringBoolMap(ss)
-		sqlSort  = make([]string, len(sort))
+		col     string
+		has     bool
+		sqlSort = make([]string, len(sort))
 	)
+
 	for i, c := range sort {
-		if sortable[c.Column] {
-			sqlSort[i] = sort[i].Column
+		if sortable != nil {
+			// When sortable map is given, test each sort column
+			if col, has = sortable[strings.ToLower(c.Column)]; !has {
+				return q, fmt.Errorf("column %q is not sortable", c.Column)
+			}
+
+			sqlSort[i] = col
 		} else {
-			return q, fmt.Errorf("column %q is not sortable", c.Column)
+			sqlSort[i] = c.Column
 		}
 
 		if sort[i].Descending {

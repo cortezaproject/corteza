@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"strings"
 )
@@ -316,14 +315,14 @@ func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Modu
 
 func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, sort filter.SortExprSet) (squirrel.SelectBuilder, error) {
 	var (
-		sortable = slice.ToStringBoolMap(s.sortableComposeRecordColumns())
+		sortable = s.sortableComposeRecordColumns()
 		sqlSort  = make([]string, len(sort))
 	)
 
 	for i, c := range sort {
 		var err error
-		if sortable[c.Column] {
-			sqlSort[i] = c.Column
+		if col, has := sortable[strings.ToLower(c.Column)]; has {
+			sqlSort[i] = col
 		} else if f := m.Fields.FindByName(c.Column); f != nil {
 			sqlSort[i], err = s.config.CastModuleFieldToColumnType(f, c.Column)
 		} else {

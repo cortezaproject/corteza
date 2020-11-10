@@ -112,7 +112,7 @@ func (s Store) fetchFullPageOfActionlogs(
 	}
 
 	// Sort by primary keys by default
-	if q, err = setOrderBy(q, sort, "id"); err != nil {
+	if q, err = setOrderBy(q, sort, nil); err != nil {
 		return nil, err
 	}
 

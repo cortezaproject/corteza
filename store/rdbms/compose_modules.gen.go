@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfComposeModules(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableComposeModuleColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableComposeModuleColumns()); err != nil {
 		return nil, err
 	}
 
@@ -459,14 +459,14 @@ func (Store) composeModuleColumns(aa ...string) []string {
 // sortableComposeModuleColumns returns all ComposeModule columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableComposeModuleColumns() []string {
-	return []string{
-		"id",
-		"handle",
-		"name",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableComposeModuleColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "handle": "handle", "name": "name", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

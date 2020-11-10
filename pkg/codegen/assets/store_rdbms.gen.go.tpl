@@ -119,7 +119,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 	{{- else }}
 		{{- if $.Search.EnableSorting }}
 		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, f.Sort, s.sortable{{ export $.Types.Singular }}Columns()...); err != nil {
+		if q, err = setOrderBy(q, f.Sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
 			return err
 		}
 		{{ end -}}
@@ -182,12 +182,12 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 	}
 {{ else if .Search.EnableSorting }}
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
 		return nil, err
 	}
 {{ else if .RDBMS.Columns.PrimaryKeyFields }}
 	// Sort by primary keys by default
-	if q, err = setOrderBy(q, sort, {{ range .RDBMS.Columns.PrimaryKeyFields }}"{{ .Column }}",{{ end }}); err != nil {
+	if q, err = setOrderBy(q, sort, nil); err != nil {
 		return nil, err
 	}
 {{ end }}
@@ -576,11 +576,14 @@ func (Store) {{ unexport $.Types.Singular }}Columns(aa ... string) []string {
 // sortable{{ $.Types.Singular }}Columns returns all {{ $.Types.Singular }} columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortable{{ $.Types.Singular }}Columns() []string {
-	return []string{
+func (Store) sortable{{ $.Types.Singular }}Columns() map[string]string {
+	return map[string]string{
 	{{ range $.RDBMS.Columns }}
 		{{- if .IsSortable -}}
-		"{{ .Column }}",
+		"{{ toLower .Column }}": "{{ .Column }}",
+		{{- if not (eq (.Field|toLower) (.Column|toLower)) }}
+			"{{ toLower .Field }}":  "{{ .Column }}",
+		{{ end -}}
 		{{ end -}}
     {{- end }}
 	}

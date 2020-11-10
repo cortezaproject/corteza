@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfUsers(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableUserColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableUserColumns()); err != nil {
 		return nil, err
 	}
 
@@ -480,17 +480,16 @@ func (Store) userColumns(aa ...string) []string {
 // sortableUserColumns returns all User columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableUserColumns() []string {
-	return []string{
-		"id",
-		"email",
-		"username",
-		"name",
-		"handle",
-		"created_at",
-		"updated_at",
-		"suspended_at",
-		"deleted_at",
+func (Store) sortableUserColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "email": "email", "username": "username", "name": "name", "handle": "handle", "created_at": "created_at",
+		"createdat":    "created_at",
+		"updated_at":   "updated_at",
+		"updatedat":    "updated_at",
+		"suspended_at": "suspended_at",
+		"suspendedat":  "suspended_at",
+		"deleted_at":   "deleted_at",
+		"deletedat":    "deleted_at",
 	}
 }
 

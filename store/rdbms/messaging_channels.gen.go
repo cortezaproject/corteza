@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfMessagingChannels(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableMessagingChannelColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableMessagingChannelColumns()); err != nil {
 		return nil, err
 	}
 
@@ -447,9 +447,9 @@ func (Store) messagingChannelColumns(aa ...string) []string {
 // sortableMessagingChannelColumns returns all MessagingChannel columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableMessagingChannelColumns() []string {
-	return []string{
-		"id",
+func (Store) sortableMessagingChannelColumns() map[string]string {
+	return map[string]string{
+		"id": "id",
 	}
 }
 
