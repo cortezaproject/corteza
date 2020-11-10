@@ -164,10 +164,64 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Store
 	// so make sure it's always present!
 	defApps := types.ApplicationSet{
 		&types.Application{
+			Name:    "Messaging",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Listed: true,
+				Icon:   newIconUrl,
+				Logo:   newLogoUrl,
+				Url:    "/messaging",
+			},
+		},
+
+		&types.Application{
+			Name:    "Low Code",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Listed: true,
+				Icon:   newIconUrl,
+				Logo:   newLogoUrl,
+				Url:    "/admin",
+			},
+		},
+
+		&types.Application{
+			Name:    "Corteza Admin Area",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Listed: true,
+				Icon:   newIconUrl,
+				Logo:   newLogoUrl,
+				Url:    "/admin",
+			},
+		},
+
+		&types.Application{
+			Name:    "Corteza Jitsi Bridge",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Listed: true,
+				Icon:   "/applications/jitsi_icon.png",
+				Logo:   "/applications/jitsi.png",
+				Url:    "/bridge/jitsi/",
+			},
+		},
+
+		&types.Application{
+			Name:    "Google Maps",
+			Enabled: true,
+			Unify: &types.ApplicationUnify{
+				Listed: true,
+				Icon:   "/applications/google_maps_icon.png",
+				Logo:   "/applications/google_maps.png",
+				Url:    "/bridge/google-maps/",
+			},
+		},
+
+		&types.Application{
 			Name:    "CRM",
 			Enabled: true,
 			Unify: &types.ApplicationUnify{
-				Name:   "CRM",
 				Listed: true,
 				Icon:   newIconUrl,
 				Logo:   newLogoUrl,
@@ -179,7 +233,6 @@ func makeDefaultApplications(ctx context.Context, log *zap.Logger, s store.Store
 			Name:    "Service Solution",
 			Enabled: true,
 			Unify: &types.ApplicationUnify{
-				Name:   "Service Solution",
 				Listed: true,
 				Icon:   newIconUrl,
 				Logo:   newLogoUrl,
