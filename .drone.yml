@@ -15,9 +15,9 @@ steps:
       RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
       RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
     commands:
-    - make release-clean release -j4 BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
-#    - make release-clean release -j4 BUILD_OS=darwin BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
-#    - make release-clean release -j4 BUILD_OS=windows BUILDARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+    - make release-clean release BUILD_OS=linux BUILD_ARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+#    - make release-clean release BUILD_OS=darwin BUILD_ARCH=amd64 BUILD_VERSION=${DRONE_TAG}
+#    - make release-clean release BUILD_OS=windows BUILD_ARCH=amd64 BUILD_VERSION=${DRONE_TAG}
     - make upload
     when:
       event: [ tag ]
