@@ -55,7 +55,12 @@ func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error)
 			&types.Role{ID: rbac.EveryoneRoleID, Name: "Everyone", Handle: "everyone"},
 		}
 
-		if err = rr.Walk(func(r *types.Role) error { return store.CreateRole(ctx, s, r) }); err != nil {
+		err = rr.Walk(func(r *types.Role) error {
+			r.CreatedAt = time.Now()
+			return store.CreateRole(ctx, s, r)
+		})
+
+		if err != nil {
 			return err
 		}
 	}
