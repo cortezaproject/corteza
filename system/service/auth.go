@@ -337,7 +337,9 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		}
 
 		var nUser = &types.User{
-			ID:       nextID(),
+			ID:        nextID(),
+			CreatedAt: *now(),
+
 			Email:    input.Email,
 			Name:     input.Name,
 			Username: input.Username,
@@ -427,6 +429,9 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		)
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
+		if err != nil {
+			return err
+		}
 
 		// Update audit meta with found user
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
