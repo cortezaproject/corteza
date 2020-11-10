@@ -2,6 +2,8 @@ allow:
   everyone:
     system:user:
       - read
+      - unmask.email
+      - unmask.name
 
     system:application:
       - read
