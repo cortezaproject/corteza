@@ -1,14 +1,6 @@
 .PHONY: pack build help qa critic vet codegen provision docs build
 
-GO         = go
-GOGET      = $(GO) get -u
-GOFLAGS   ?= -mod=vendor
-GOPATH    ?= $(HOME)/go
-
-CGO_ENABLED = 1
-
-export GOFLAGS
-export CGO_ENABLED
+include Makefile.inc
 
 BUILD_FLAVOUR         ?= corteza
 BUILD_TIME            ?= $(shell date +%FT%T%z)
@@ -60,38 +52,20 @@ DEV_MAILHOG_HTTP_ADDR ?= 8025
 
 DOCKER                ?= docker
 
-########################################################################################################################
-# Tool bins
-GOCRITIC      = $(GOPATH)/bin/gocritic
-MOCKGEN       = $(GOPATH)/bin/mockgen
-GOTEST        = $(GOPATH)/bin/gotest
-STATICCHECK   = $(GOPATH)/bin/staticcheck
-PROTOGEN      = $(GOPATH)/bin/protoc-gen-go
-PROTOGEN_GRPC = $(GOPATH)/bin/protoc-gen-go-grpc
-GIN           = $(GOPATH)/bin/gin
-STATIK        = $(GOPATH)/bin/statik
-CODEGEN       = build/codegen
-
-PROTOC      = /usr/local/bin/protoc
-FSWATCH     = /usr/local/bin/fswatch
-
-# fswatch is intentionally left out...
-BINS = $(GOCRITIC) $(MOCKGEN) $(GOTEST) $(STATICCHECK) $(PROTOGEN) $(GIN) $(STATIK) $(CODEGEN)
-
 help:
-	@echo
-	@echo Usage: make [target]
-	@echo
-	@echo - build             build all apps
-	@echo - build.<app>       build a specific app
-	@echo - vet               run go vet on all code
-	@echo - critic            run go critic on all code
-	@echo - test.all          run all tests
-	@echo - test.unit         run all unit tests
-	@echo - test.integration  run all integration tests
-	@echo
-	@echo See tests/README.md for more info on running tests
-	@echo
+	@echo ""
+	@echo " Usage: make [target]"
+	@echo ""
+	@echo " - build             build all apps"
+	@echo " - build.<app>       build a specific app"
+	@echo " - vet               run go vet on all code"
+	@echo " - critic            run go critic on all code"
+	@echo " - test.all          run all tests"
+	@echo " - test.unit         run all unit tests"
+	@echo " - test.integration  run all integration tests"
+	@echo ""
+	@echo " See tests/README.md for more info on running tests"
+	@echo ""
 
 ########################################################################################################################
 # Building & packing
@@ -218,37 +192,6 @@ qa: vet critic test
 mocks: $(MOCKGEN)
 	$(MOCKGEN) -package mail -source pkg/mail/mail.go -destination pkg/mail/mail_mock_test.go
 
-########################################################################################################################
-# Go Toolset
-$(GOCRITIC):
-	$(GOGET) github.com/go-critic/go-critic/...
-
-$(MOCKGEN):
-	$(GOGET) github.com/golang/mock/mockgen
-
-$(STATICCHECK):
-	$(GOGET) honnef.co/go/tools/cmd/staticcheck
-
-$(PROTOGEN):
-	$(GOGET) github.com/golang/protobuf/protoc-gen-go
-
-$(PROTOGEN_GRPC):
-	$(GOGET) google.golang.org/grpc/cmd/protoc-gen-go-grpc
-
-$(GIN):
-	$(GOGET) github.com/codegangsta/gin
-
-$(GOTEST):
-	$(GOGET) github.com/rakyll/gotest
-
-$(STATIK):
-	$(GOGET) github.com/goware/statik
-
-$(CODEGEN):
-	$(GO) build -o $@ cmd/codegen/main.go
-
-clean:
-	rm -f $(BINS)
 
 ########################################################################################################################
 # Toolset

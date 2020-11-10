@@ -1,4 +1,6 @@
 
+include ../Makefile.inc
+
 GOTOOL    ?= go tool
 GOTEST    ?= go test
 GOFLAGS   ?= -mod=vendor
