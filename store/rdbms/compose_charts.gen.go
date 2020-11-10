@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfComposeCharts(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableComposeChartColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableComposeChartColumns()); err != nil {
 		return nil, err
 	}
 
@@ -449,14 +449,14 @@ func (Store) composeChartColumns(aa ...string) []string {
 // sortableComposeChartColumns returns all ComposeChart columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableComposeChartColumns() []string {
-	return []string{
-		"id",
-		"handle",
-		"name",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableComposeChartColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "handle": "handle", "name": "name", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

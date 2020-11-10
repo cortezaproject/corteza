@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfRoles(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableRoleColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableRoleColumns()); err != nil {
 		return nil, err
 	}
 
@@ -461,15 +461,16 @@ func (Store) roleColumns(aa ...string) []string {
 // sortableRoleColumns returns all Role columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableRoleColumns() []string {
-	return []string{
-		"id",
-		"name",
-		"handle",
-		"created_at",
-		"updated_at",
-		"archived_at",
-		"deleted_at",
+func (Store) sortableRoleColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "name": "name", "handle": "handle", "created_at": "created_at",
+		"createdat":   "created_at",
+		"updated_at":  "updated_at",
+		"updatedat":   "updated_at",
+		"archived_at": "archived_at",
+		"archivedat":  "archived_at",
+		"deleted_at":  "deleted_at",
+		"deletedat":   "deleted_at",
 	}
 }
 

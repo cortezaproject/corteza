@@ -114,7 +114,7 @@ func (s Store) fetchFullPageOfApplications(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableApplicationColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableApplicationColumns()); err != nil {
 		return nil, err
 	}
 
@@ -439,13 +439,14 @@ func (Store) applicationColumns(aa ...string) []string {
 // sortableApplicationColumns returns all Application columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableApplicationColumns() []string {
-	return []string{
-		"id",
-		"name",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableApplicationColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "name": "name", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

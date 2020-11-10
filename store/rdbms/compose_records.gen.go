@@ -449,12 +449,14 @@ func (Store) composeRecordColumns(aa ...string) []string {
 // sortableComposeRecordColumns returns all ComposeRecord columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableComposeRecordColumns() []string {
-	return []string{
-		"id",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableComposeRecordColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 
