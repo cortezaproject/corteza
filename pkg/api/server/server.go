@@ -40,7 +40,11 @@ func (s *server) MountRoutes(mm ...func(chi.Router)) {
 }
 
 func (s server) Serve(ctx context.Context) {
-	s.log.Info("Starting HTTP server with REST API", zap.String("address", s.httpOpt.Addr))
+	s.log.Info(
+		"Starting HTTP server with REST API",
+		zap.String("address", s.httpOpt.Addr),
+		zap.String("baseUrl", s.httpOpt.ApiBaseUrl),
+	)
 
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {

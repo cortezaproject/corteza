@@ -1,0 +1,16 @@
+= Web applications
+
+Rationale behind `/webapp/...` tools is to allow backend developers to quicky test server with frontend applications.
+Tools (see Makefile) download and install unstable (can be changed with `VERSION` var).
+
+.Downloads and installs unstable packages under webapp/public
+[source,shell]
+----
+make
+----
+
+To enable serving of webapps from the server, make sure `HTTP_WEBAPP_ENABLED` is set to `true`.
+This will prefix all API endpoints with `/api/`.
+
+See `HTTP_API_BASE_URL`, `HTTP_WEBAPP_ENABLED`, `HTTP_WEBAPP_BASE_URL`, `HTTP_WEBAPP_BASE_DIR`, `HTTP_WEBAPP_LIST` for
+details

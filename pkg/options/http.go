@@ -56,11 +56,19 @@ func HTTP(pfix string) (o *HTTPServerOpt) {
 
 		WebappEnabled: false,
 		WebappBaseUrl: "/",
-		WebappBaseDir: "/webapp",
+		WebappBaseDir: "webapp/public",
 		WebappList:    "admin,auth,messaging,compose",
 	}
 
 	fill(o)
+
+	if o.WebappEnabled && o.ApiEnabled && o.ApiBaseUrl == "" {
+		// api base URL is still on root (empty string)
+		// but webapps are enabled (that means, server also serves static files from WebappBaseDir)
+		//
+		// Let's be nice and move API to /api
+		o.ApiBaseUrl = "/api"
+	}
 
 	return
 }
