@@ -11,8 +11,6 @@ export GOFLAGS
 export CGO_ENABLED
 
 BUILD_FLAVOUR         ?= corteza
-BUILD_APPS            ?= system compose messaging monolith
-BUILD_APPS_TEMP       ?= system compose messaging
 BUILD_TIME            ?= $(shell date +%FT%T%z)
 BUILD_VERSION         ?= $(shell git describe --tags --abbrev=0)
 BUILD_ARCH            ?= $(shell go env GOARCH)
@@ -103,14 +101,17 @@ build: $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
 $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME):
 		GOOS=$(BUILD_OS) GOARCH=$(BUILD_ARCH) go build $(LDFLAGS) -o $@ cmd/corteza/main.go
 
-release: build
+release: build $(BUILD_DEST_DIR)/$(RELEASE_NAME)
+
+$(BUILD_DEST_DIR)/$(RELEASE_NAME):
 	@ mkdir -p $(RELEASE_BASEDIR) $(RELEASE_BASEDIR)/bin
 	@ cp $(RELEASE_EXTRA_FILES) $(RELEASE_BASEDIR)/
 	@ cp $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) $(RELEASE_BASEDIR)/bin/$(BUILD_FLAVOUR)-server
-	@ tar -C $(dir $(RELEASE_BASEDIR)) -czf $(BUILD_DEST_DIR)/$(RELEASE_NAME) $(notdir $(RELEASE_BASEDIR))
+	tar -C $(dir $(RELEASE_BASEDIR)) -czf $(BUILD_DEST_DIR)/$(RELEASE_NAME) $(notdir $(RELEASE_BASEDIR))
 
 release-clean:
-	@ rm -rf $(RELEASE_BASEDIR)
+	rm -rf $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME)
+	rm -rf $(BUILD_DEST_DIR)/$(RELEASE_NAME)
 
 upload: $(RELEASE_PKEY)
 	@ echo "put $(BUILD_DEST_DIR)/*.tar.gz" | sftp -q -i $(RELEASE_PKEY) $(RELEASE_SFTP_URI)
@@ -162,7 +163,6 @@ provision:
 
 docs: $(STATIK)
 	$(STATIK) -p docs -m -Z -f -src=./docs
-
 
 #######################################################################################################################
 # Quality Assurance
