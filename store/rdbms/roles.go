@@ -49,9 +49,9 @@ func (s Store) RoleMetrics(ctx context.Context) (*types.RoleMetrics, error) {
 		counters = squirrel.
 				Select(
 				"COUNT(*) as total",
-				"SUM(IF(deleted_at IS NULL, 0, 1)) as deleted",
-				"SUM(IF(archived_at IS NULL, 0, 1)) as archived",
-				"SUM(IF(deleted_at IS NULL AND archived_at IS NULL, 1, 0)) as valid",
+				"SUM(CASE WHEN deleted_at   IS NULL                          THEN 0 ELSE 1 END) as deleted",
+				"SUM(CASE WHEN archived_at  IS NULL                          THEN 0 ELSE 1 END) as archived",
+				"SUM(CASE WHEN deleted_at   IS NULL AND archived_at  IS NULL THEN 1 ELSE 0 END) as valid",
 			).
 			PlaceholderFormat(s.config.PlaceholderFormat).
 			From(s.roleTable("u"))
@@ -80,7 +80,7 @@ func (s Store) RoleMetrics(ctx context.Context) (*types.RoleMetrics, error) {
 			"created_at",
 			"updated_at",
 			"deleted_at",
-			"suspended_at",
+			"archived_at",
 		},
 		&rval.DailyCreated,
 		&rval.DailyUpdated,

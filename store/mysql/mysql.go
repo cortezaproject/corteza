@@ -49,6 +49,8 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 		return nil, err
 	}
 
+	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi
+	// for details
 	s.DB().ExecContext(ctx, "SET SESSION sql_mode = 'ANSI'")
 
 	return s, nil
