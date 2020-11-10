@@ -1,8 +1,9 @@
-.PHONY: clean
+.PHONY: clean all
+
+include ../Makefile.inc
 
 PARTS   ?= compose messaging system
 OUTPUTS ?= $(addsuffix /static.go, $(PARTS))
-STATIK   = $(GOPATH)/bin/statik
 
 all: $(OUTPUTS)
 
@@ -11,6 +12,3 @@ all: $(OUTPUTS)
 
 clean:
 	rm -f $(OUTPUTS)
-
-$(STATIK):
-	$(MAKE) --directory=../ $(STATIK)
