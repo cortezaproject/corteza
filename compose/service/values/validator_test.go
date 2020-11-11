@@ -1,7 +1,9 @@
 package values
 
 import (
+	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 	"time"
@@ -217,4 +219,26 @@ func Test_validator_vSelect(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_validator_customExpr(t *testing.T) {
+	var (
+		vldtr = validator{}
+		m     = &types.Module{}
+		f     = &types.ModuleField{Name: "num", Kind: "Number"}
+		r     = &types.Record{}
+	)
+
+	f.Expressions.Validators = []types.ModuleFieldValidator{
+		{Test: "value > 5", Error: "value is lower than 5"},
+	}
+	m.Fields = append(m.Fields, f)
+	r.Values = r.Values.Replace("num", "1")
+
+	rve := vldtr.Run(context.Background(), nil, m, r)
+	require.False(t, rve.IsValid())
+
+	r.Values = r.Values.Replace("num", "10")
+	rve = vldtr.Run(context.Background(), nil, m, r)
+	require.True(t, rve.IsValid())
 }
