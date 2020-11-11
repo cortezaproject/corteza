@@ -96,6 +96,9 @@ func (vldtr *validator) FileRefChecker(fn ReferenceChecker) {
 func (vldtr validator) Run(ctx context.Context, s store.Storer, m *types.Module, r *types.Record) (out *types.RecordValueErrorSet) {
 	var (
 		f *types.ModuleField
+
+		valParser = parser()
+		valDict   = r.Values.Dict(m.Fields)
 	)
 
 	out = &types.RecordValueErrorSet{}
@@ -132,7 +135,7 @@ fields:
 	}
 
 	for _, v := range r.Values {
-		if !v.IsUpdated() || v.IsUpdated() {
+		if !v.IsUpdated() || v.IsDeleted() {
 			// We'll validate only updated (and non-deleted) values
 			continue
 		}
@@ -141,33 +144,67 @@ fields:
 			continue
 		}
 
-		if v.Value == "" {
-			// Nothing to do with empty value
-			return nil
+		if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
+			if v.Value == "" {
+				// Nothing to do with empty value
+				return nil
+			}
+
+			// Per field type validators
+			switch strings.ToLower(f.Kind) {
+			case "bool":
+				out.Push(vldtr.vBool(v, f, r, m)...)
+			case "datetime":
+				out.Push(vldtr.vDatetime(v, f, r, m)...)
+			case "email":
+				out.Push(vldtr.vEmail(v, f, r, m)...)
+			case "file":
+				out.Push(vldtr.vFile(ctx, s, v, f, r, m)...)
+			case "number":
+				out.Push(vldtr.vNumber(v, f, r, m)...)
+			case "record":
+				out.Push(vldtr.vRecord(ctx, s, v, f, r, m)...)
+			case "select":
+				out.Push(vldtr.vSelect(v, f, r, m)...)
+			//case "string":
+			//	out.Push(vldtr.vString(v, f, r, m)...)
+			case "url":
+				out.Push(vldtr.vUrl(v, f, r, m)...)
+			case "user":
+				out.Push(vldtr.vUser(ctx, s, v, f, r, m)...)
+			}
 		}
 
-		// Per field type validators
-		switch strings.ToLower(f.Kind) {
-		case "bool":
-			out.Push(vldtr.vBool(v, f, r, m)...)
-		case "datetime":
-			out.Push(vldtr.vDatetime(v, f, r, m)...)
-		case "email":
-			out.Push(vldtr.vEmail(v, f, r, m)...)
-		case "file":
-			out.Push(vldtr.vFile(ctx, s, v, f, r, m)...)
-		case "number":
-			out.Push(vldtr.vNumber(v, f, r, m)...)
-		case "record":
-			out.Push(vldtr.vRecord(ctx, s, v, f, r, m)...)
-		case "select":
-			out.Push(vldtr.vSelect(v, f, r, m)...)
-		//case "string":
-		//	out.Push(vldtr.vString(v, f, r, m)...)
-		case "url":
-			out.Push(vldtr.vUrl(v, f, r, m)...)
-		case "user":
-			out.Push(vldtr.vUser(ctx, s, v, f, r, m)...)
+		if len(f.Expressions.Validators) > 0 {
+			for _, cv := range f.Expressions.Validators {
+				eval, err := valParser.NewEvaluable(cv.Test)
+				if err != nil {
+					out.Push(makeInternalErr(f, err))
+					break
+				}
+
+				invalid, err := eval.EvalBool(ctx, map[string]interface{}{
+					"value":    v.Value,
+					"oldValue": v.OldValue,
+					"values":   valDict,
+				})
+
+				if err != nil {
+					out.Push(makeInternalErr(f, err))
+					break
+				}
+
+				if invalid {
+					out.Push(types.RecordValueError{
+						Kind:    "error",
+						Message: cv.Error,
+						Meta:    map[string]interface{}{"field": f.Name}},
+					)
+
+					// break at first failed test
+					break
+				}
+			}
 		}
 	}
 

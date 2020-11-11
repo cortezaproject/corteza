@@ -96,9 +96,10 @@ func (set RecordValueSet) Replace(name string, values ...string) (vv RecordValue
 
 	for p, v := range values {
 		vv = append(vv, &RecordValue{
-			Name:  name,
-			Value: v,
-			Place: uint(p),
+			Name:    name,
+			Value:   v,
+			Place:   uint(p),
+			Updated: true,
 		})
 	}
 
