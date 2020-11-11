@@ -18,6 +18,10 @@ func Formatter() *formatter {
 }
 
 func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordValueSet {
+	var (
+		exprParser = parser()
+	)
+
 	for _, v := range vv {
 		fld := m.Fields.FindByName(v.Name)
 		if fld == nil {
@@ -27,12 +31,21 @@ func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordVal
 			continue
 		}
 
-		// Per field type validators
-		switch strings.ToLower(fld.Kind) {
-		case "bool":
-			v = f.fBool(v)
-		case "datetime":
-			v = f.fDatetime(v, fld)
+		if !(fld.Expressions.DisableDefaultFormatters && len(fld.Expressions.Formatters) > 0) {
+			// Per field type validators
+			switch strings.ToLower(fld.Kind) {
+			case "bool":
+				v = f.fBool(v)
+			case "datetime":
+				v = f.fDatetime(v, fld)
+			}
+		}
+
+		if len(fld.Expressions.Formatters) > 0 {
+			for _, expr := range fld.Expressions.Formatters {
+				rval, _ := exprParser.Evaluate(expr, map[string]interface{}{"value": v.Value})
+				v.Value = sanitize(fld, rval)
+			}
 		}
 	}
 

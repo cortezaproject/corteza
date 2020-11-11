@@ -49,7 +49,9 @@ type (
 		//	Test  string `json:"test,omitempty"`
 		//	Error string `json:"error,omitempty"`
 		//} `json:"validators,omitempty"`
-		//Formatters []string `json:"formatters,omitempty"`
+
+		Formatters               []string `json:"formatters,omitempty"`
+		DisableDefaultFormatters bool     `json:"disableDefaultFormatters,omitempty"`
 	}
 )
 
