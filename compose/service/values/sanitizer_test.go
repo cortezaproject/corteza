@@ -137,10 +137,10 @@ func Test_sanitizer_Run(t *testing.T) {
 			output:  "42.555556",
 		},
 		{
-			name:    "number precision; clamped between [0, 6]",
+			name:    "number precision; round",
 			kind:    "Number",
-			options: map[string]interface{}{"precision": -1},
-			input:   "42.4",
+			options: map[string]interface{}{"precision": 0},
+			input:   "41.6",
 			output:  "42",
 		},
 		{

@@ -1,6 +1,7 @@
 package values
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -86,11 +87,13 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		// Per field type validators
 		switch strings.ToLower(f.Kind) {
 		case "bool":
-			v = s.sBool(v, f, m)
+			v.Value = sBool(v.Value)
+
 		case "datetime":
-			v = s.sDatetime(v, f, m)
+			v.Value = sDatetime(v.Value, f.Options.Bool("onlyDate"), f.Options.Bool("onlyTime"))
+
 		case "number":
-			v = s.sNumber(v, f, m)
+			v.Value = sNumber(v.Value, f.Options.Precision())
 
 			// Uncomment when they become relevant for sanitization
 			//case "email":
@@ -113,26 +116,34 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 	return
 }
 
-func (sanitizer) sBool(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	if truthy.MatchString(strings.ToLower(v.Value)) {
-		v.Value = strBoolTrue
-	} else {
-		v.Value = strBoolFalse
+func sBool(v interface{}) string {
+	switch c := v.(type) {
+	case bool:
+		if c {
+			return strBoolTrue
+		}
+
+	case string:
+		if truthy.MatchString(strings.ToLower(c)) {
+			return strBoolTrue
+		}
 	}
 
-	return v
+	return strBoolFalse
 }
 
-func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
+func sDatetime(v interface{}, onlyDate, onlyTime bool) string {
 	var (
 		// input format set
 		inputFormats []string
 
 		// output format
 		internalFormat string
+
+		datetime = fmt.Sprintf("%v", v)
 	)
 
-	if f.Options.Bool("onlyDate") {
+	if onlyDate {
 		internalFormat = datetimeInternalFormatDate
 		inputFormats = []string{
 			datetimeInternalFormatDate,
@@ -141,7 +152,7 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 			"Mon, 02 Jan 2006",
 			"2006/_1/_2",
 		}
-	} else if f.Options.Bool("onlyTime") {
+	} else if onlyTime {
 		internalFormat = datetimeIntenralFormatTime
 		inputFormats = []string{
 			datetimeIntenralFormatTime,
@@ -172,9 +183,9 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 		}
 
 		// if string looks like a RFC 3330 (ISO 8601), see if we need to suffix it with Z
-		if isoDaty.MatchString(v.Value) && !hasTimezone.MatchString(v.Value) {
+		if isoDaty.MatchString(datetime) && !hasTimezone.MatchString(datetime) {
 			// No timezone, add Z to satisfy parser
-			v.Value = v.Value + "Z"
+			datetime = datetime + "Z"
 
 			// Simplifiy list of rules
 			inputFormats = []string{time.RFC3339}
@@ -182,76 +193,43 @@ func (sanitizer) sDatetime(v *types.RecordValue, f *types.ModuleField, m *types.
 	}
 
 	for _, format := range inputFormats {
-		parsed, err := time.Parse(format, v.Value)
+		parsed, err := time.Parse(format, datetime)
 		if err == nil {
-			v.Value = parsed.UTC().Format(internalFormat)
-			return v
+			return parsed.UTC().Format(internalFormat)
 		}
 	}
 
-	v.Value = ""
-	return v
+	return ""
 }
 
-// sNumber sanitizes
-func (sanitizer) sNumber(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-	base, err := strconv.ParseFloat(v.Value, 64)
+func sNumber(num interface{}, p uint) string {
+	base, err := strconv.ParseFloat(fmt.Sprintf("%v", num), 64)
 	if err != nil {
-		v.Value = "0"
-		return v
-	}
-
-	// calculate percision
-	var p = 0
-	if f.Options != nil {
-		p = int(f.Options.Int64(fieldOpt_Number_precision))
-
-		if p < fieldOpt_Number_precision_min {
-			p = fieldOpt_Number_precision_min
-		} else if p > fieldOpt_Number_precision_max {
-			p = fieldOpt_Number_precision_max
-		}
+		return "0"
 	}
 
 	// Format the value to the desired precision
-	v.Value = strconv.FormatFloat(base, 'f', p, 64)
+	str := strconv.FormatFloat(base, 'f', int(p), 64)
 
 	// In case of fractures, remove trailing 0's
-	if strings.Contains(v.Value, ".") {
-		v.Value = strings.TrimRight(v.Value, "0")
-		v.Value = strings.TrimRight(v.Value, ".")
+	if strings.Contains(str, ".") {
+		str = strings.TrimRight(str, "0")
+		str = strings.TrimRight(str, ".")
 	}
 
-	return v
+	return str
 }
 
-//
-//func (sanitizer) sEmail(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//  // @todo extract from "name" <email> format
-//	return v
-//}
-//
-//func (sanitizer) sFile(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
-//
-//
-//func (sanitizer) sRecord(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
-//
-//func (sanitizer) sSelect(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
-//
-//func (sanitizer) sString(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
-//
-//func (sanitizer) sUrl(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
-//
-//func (sanitizer) sUser(v *types.RecordValue, f *types.ModuleField, m *types.Module) *types.RecordValue {
-//	return v
-//}
+// sanitize casts value to field kind format
+func sanitize(f *types.ModuleField, v interface{}) string {
+	switch strings.ToLower(f.Kind) {
+	case "bool":
+		return sBool(v)
+	case "datetime":
+		v = sDatetime(v, f.Options.Bool("onlyDate"), f.Options.Bool("onlyTime"))
+	case "number":
+		v = sNumber(v, f.Options.Precision())
+	}
+
+	return fmt.Sprintf("%v", v)
+}
