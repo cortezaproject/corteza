@@ -43,8 +43,8 @@ type (
 	}
 
 	ModuleFieldExpr struct {
-		Value string `json:"value,omitempty"`
-		//Sanitizers []string `json:"sanitizers,omitempty"`
+		Value      string   `json:"value,omitempty"`
+		Sanitizers []string `json:"sanitizers,omitempty"`
 		//Validators []struct {
 		//	Test  string `json:"test,omitempty"`
 		//	Error string `json:"error,omitempty"`
