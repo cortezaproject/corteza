@@ -118,6 +118,23 @@ func (r Record) DynamicRoles(userID uint64) []uint64 {
 	)
 }
 
+func (r Record) Dict(m *Module) map[string]interface{} {
+	return map[string]interface{}{
+		"ID":          r.ID,
+		"moduleID":    r.ModuleID,
+		"values":      r.Values.Dict(m.Fields),
+		"labels":      r.Labels,
+		"namespaceID": r.NamespaceID,
+		"ownedBy":     r.OwnedBy,
+		"createdAt":   r.CreatedAt,
+		"createdBy":   r.CreatedBy,
+		"updatedAt":   r.UpdatedAt,
+		"updatedBy":   r.UpdatedBy,
+		"deletedAt":   r.DeletedAt,
+		"deletedBy":   r.DeletedBy,
+	}
+}
+
 // UnmarshalJSON for custom record deserialization
 //
 // Due to https://github.com/golang/go/issues/21092, we should manually reset the given record value set.

@@ -14,8 +14,13 @@ type (
 )
 
 const (
+	moduleFieldOptionExpression         = "expression"
 	moduleFieldOptionIsUnique           = "isUnique"
 	moduleFieldOptionIsUniqueMultiValue = "isUniqueMultiValue"
+
+	moduleFieldNumberOptionPrecision         = "precision"
+	moduleFieldNumberOptionPrecisionMin uint = 0
+	moduleFieldNumberOptionPrecisionMax uint = 6
 )
 
 func (opt *ModuleFieldOptions) Scan(value interface{}) error {
@@ -48,6 +53,19 @@ func (opt ModuleFieldOptions) Bool(key string) bool {
 	}
 
 	return false
+}
+
+// Bool returns option value for key as boolean true or false
+//
+// Invalid, non-existing are returned as false
+func (opt ModuleFieldOptions) String(key string) string {
+	if _, has := opt[key]; has {
+		if v, ok := opt[key].(string); ok {
+			return v
+		}
+	}
+
+	return ""
 }
 
 func (opt ModuleFieldOptions) Int64(key string) int64 {
@@ -123,4 +141,20 @@ func (opt ModuleFieldOptions) IsUniqueMultiValue() bool {
 func (opt ModuleFieldOptions) SetIsUniqueMultiValue(value bool) {
 	// SetIsUniqueMultiValue - should value in this field be unique in the multi-value set?
 	opt[moduleFieldOptionIsUniqueMultiValue] = value
+}
+
+func (opt ModuleFieldOptions) Precision() (p uint) {
+	p = uint(opt.Int64(moduleFieldNumberOptionPrecision))
+
+	if p < moduleFieldNumberOptionPrecisionMin {
+		p = moduleFieldNumberOptionPrecisionMin
+	} else if p > moduleFieldNumberOptionPrecisionMax {
+		p = moduleFieldNumberOptionPrecisionMax
+	}
+
+	return
+}
+
+func (opt ModuleFieldOptions) SetPrecision(p uint) {
+	opt[moduleFieldNumberOptionPrecision] = p
 }
