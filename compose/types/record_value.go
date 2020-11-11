@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/pkg/errors"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -77,6 +80,26 @@ func (set RecordValueSet) FilterByRecordID(recordID uint64) (vv RecordValueSet) 
 		if set[i].RecordID == recordID {
 			vv = append(vv, set[i])
 		}
+	}
+
+	return
+}
+
+// Replaces existing values, remove extra
+func (set RecordValueSet) Replace(name string, values ...string) (vv RecordValueSet) {
+	for i := range set {
+		if set[i].Name != name {
+			// copy values from other fields
+			vv = append(vv, set[i])
+		}
+	}
+
+	for p, v := range values {
+		vv = append(vv, &RecordValue{
+			Name:  name,
+			Value: v,
+			Place: uint(p),
+		})
 	}
 
 	return
@@ -306,6 +329,53 @@ func (set RecordValueSet) String() (o string) {
 	o += "━━━━━━━━━━━┻━━━━┻━━━┻━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
 
 	return o
+}
+
+// Returns structured representation of values casted to the appropriate types
+func (set RecordValueSet) Dict(fields ModuleFieldSet) map[string]interface{} {
+	var (
+		rval = make(map[string]interface{})
+
+		format = func(f *ModuleField, v string) interface{} {
+			switch strings.ToLower(f.Kind) {
+			case "bool":
+				return payload.ParseBool(v)
+			case "number":
+				if f.Options.Precision() > 0 {
+					num, _ := strconv.ParseFloat(v, 64)
+					return num
+				}
+
+				num, _ := strconv.ParseInt(v, 10, 64)
+				return num
+			}
+
+			return v
+		}
+	)
+
+	if len(fields) == 0 {
+		return rval
+	}
+
+	_ = fields.Walk(func(f *ModuleField) error {
+		if f.Multi {
+			var (
+				rv = set.FilterByName(f.Name)
+				vv = make([]interface{}, len(rv))
+			)
+			for i, val := range rv {
+				vv[i] = format(f, val.Value)
+			}
+			rval[f.Name] = vv
+		} else if v := set.Get(f.Name, 0); v != nil {
+			rval[f.Name] = format(f, v.Value)
+		}
+
+		return nil
+	})
+
+	return rval
 }
 
 func (set RecordValueSet) Len() int           { return len(set) }

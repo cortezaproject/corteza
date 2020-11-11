@@ -28,6 +28,8 @@ type (
 		Multi        bool           `json:"isMulti"`
 		DefaultValue RecordValueSet `json:"defaultValue"`
 
+		Expressions ModuleFieldExpr `json:"expressions"`
+
 		Labels map[string]string `json:"labels,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -38,6 +40,16 @@ type (
 	ModuleFieldFilter struct {
 		ModuleID []uint64
 		Deleted  filter.State
+	}
+
+	ModuleFieldExpr struct {
+		Value string `json:"value,omitempty"`
+		//Sanitizers []string `json:"sanitizers,omitempty"`
+		//Validators []struct {
+		//	Test  string `json:"test,omitempty"`
+		//	Error string `json:"error,omitempty"`
+		//} `json:"validators,omitempty"`
+		//Formatters []string `json:"formatters,omitempty"`
 	}
 )
 

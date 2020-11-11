@@ -746,6 +746,12 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 		return rve
 	}
 
+	values.Expression(ctx, m, new, nil, rve)
+
+	if !rve.IsValid() {
+		return rve
+	}
+
 	// Run validation of the updated records
 	return svc.validator.Run(ctx, s, m, new)
 }
@@ -827,6 +833,12 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 
 		return nil
 	})
+
+	if !rve.IsValid() {
+		return rve
+	}
+
+	values.Expression(ctx, m, upd, old, rve)
 
 	if !rve.IsValid() {
 		return rve

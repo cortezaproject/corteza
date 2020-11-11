@@ -273,11 +273,7 @@ func (vldtr validator) vFile(ctx context.Context, s store.Storer, v *types.Recor
 }
 
 func (vldtr validator) vNumber(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
-	var (
-		precision = uint(f.Options.Int64Def(fieldOpt_Number_precision, 2))
-	)
-
-	if _, _, err := big.ParseFloat(v.Value, 0, precision, big.ToNearestEven); err != nil {
+	if _, _, err := big.ParseFloat(v.Value, 0, f.Options.Precision(), big.ToNearestEven); err != nil {
 		return e2s(makeInvalidValueErr(f, v.Value))
 	}
 
