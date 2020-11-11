@@ -28,6 +28,10 @@ func Sanitizer() *sanitizer {
 //
 // Existing data (when updating record) is not yet loaded at this point
 func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
+	var (
+		exprParser = parser()
+	)
+
 	out = make([]*types.RecordValue, 0, len(vv))
 
 	for _, f := range m.Fields {
@@ -68,6 +72,13 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		}
 
 		kind = strings.ToLower(f.Kind)
+
+		if len(f.Expressions.Sanitizers) > 0 {
+			for _, expr := range f.Expressions.Sanitizers {
+				rval, _ := exprParser.Evaluate(expr, map[string]interface{}{"value": v.Value})
+				v.Value = sanitize(f, rval)
+			}
+		}
 
 		if kind != "string" {
 			// Trim all but string
