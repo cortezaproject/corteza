@@ -45,13 +45,17 @@ type (
 	ModuleFieldExpr struct {
 		Value      string   `json:"value,omitempty"`
 		Sanitizers []string `json:"sanitizers,omitempty"`
-		//Validators []struct {
-		//	Test  string `json:"test,omitempty"`
-		//	Error string `json:"error,omitempty"`
-		//} `json:"validators,omitempty"`
+
+		Validators               []ModuleFieldValidator `json:"validators,omitempty"`
+		DisableDefaultValidators bool                   `json:"disableDefaultValidators,omitempty"`
 
 		Formatters               []string `json:"formatters,omitempty"`
 		DisableDefaultFormatters bool     `json:"disableDefaultFormatters,omitempty"`
+	}
+
+	ModuleFieldValidator struct {
+		Test  string `json:"test,omitempty"`
+		Error string `json:"error,omitempty"`
 	}
 )
 
