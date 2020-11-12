@@ -29,12 +29,12 @@ func (s Store) SearchRbacRules(ctx context.Context, f rbac.RuleFilter) (rbac.Rul
 		set []*rbac.Rule
 		q   squirrel.SelectBuilder
 	)
-	q = s.rbacRulesSelectBuilder()
 
 	return set, f, func() error {
+		q = s.rbacRulesSelectBuilder()
+
 		set, _, _, err = s.QueryRbacRules(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -280,7 +280,7 @@ func (Store) rbacRuleColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalRbacRuleEncoder encodes fields from rbac.Rule to store.Payload (map)
 //

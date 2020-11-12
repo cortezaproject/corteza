@@ -29,15 +29,15 @@ func (s Store) SearchMessagingAttachments(ctx context.Context, f types.Attachmen
 		set []*types.Attachment
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertMessagingAttachmentFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertMessagingAttachmentFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryMessagingAttachments(ctx, q, f.Check)
 		return err
-
 	}()
 }
 
@@ -76,13 +76,12 @@ func (s Store) QueryMessagingAttachments(
 			return nil, 0, nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
 				return nil, 0, nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -309,7 +308,7 @@ func (Store) messagingAttachmentColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false true}
+// {true true false false false true}
 
 // internalMessagingAttachmentEncoder encodes fields from types.Attachment to store.Payload (map)
 //

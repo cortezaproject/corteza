@@ -53,6 +53,7 @@ rdbms:
     ModuleID:  { column: module_id }
 
 search:
+  custom: true
   export: false
 
 create:

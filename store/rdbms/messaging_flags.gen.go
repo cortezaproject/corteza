@@ -29,15 +29,15 @@ func (s Store) SearchMessagingFlags(ctx context.Context, f types.MessageFlagFilt
 		set []*types.MessageFlag
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertMessagingFlagFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertMessagingFlagFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryMessagingFlags(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -290,7 +290,7 @@ func (Store) messagingFlagColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalMessagingFlagEncoder encodes fields from types.MessageFlag to store.Payload (map)
 //

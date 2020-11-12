@@ -28,7 +28,6 @@ type (
 	AttachmentFilter struct {
 		Kind   string `json:"kind,omitempty"`
 		Filter string `json:"filter"`
-		Sort   string `json:"sort"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
@@ -37,6 +36,7 @@ type (
 		Check func(*Attachment) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
+		filter.Sorting
 		filter.Paging
 	}
 

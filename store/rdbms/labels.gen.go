@@ -29,15 +29,15 @@ func (s Store) SearchLabels(ctx context.Context, f types.LabelFilter) (types.Lab
 		set []*types.Label
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertLabelFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertLabelFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryLabels(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -292,7 +292,7 @@ func (Store) labelColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalLabelEncoder encodes fields from types.Label to store.Payload (map)
 //

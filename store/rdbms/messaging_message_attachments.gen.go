@@ -260,7 +260,7 @@ func (Store) messagingMessageAttachmentColumns(aa ...string) []string {
 	}
 }
 
-// {false true false false false}
+// {false true false false false false}
 
 // internalMessagingMessageAttachmentEncoder encodes fields from types.MessageAttachment to store.Payload (map)
 //

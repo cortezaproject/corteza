@@ -29,15 +29,15 @@ func (s Store) SearchMessagingMessages(ctx context.Context, f types.MessageFilte
 		set []*types.Message
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertMessagingMessageFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertMessagingMessageFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryMessagingMessages(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -302,7 +302,7 @@ func (Store) messagingMessageColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalMessagingMessageEncoder encodes fields from types.Message to store.Payload (map)
 //

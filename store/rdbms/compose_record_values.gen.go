@@ -29,15 +29,15 @@ func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module
 		set []*types.RecordValue
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertComposeRecordValueFilter(_mod, f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertComposeRecordValueFilter(_mod, f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryComposeRecordValues(ctx, _mod, q, nil)
 		return err
-
 	}()
 }
 
@@ -287,7 +287,7 @@ func (Store) composeRecordValueColumns(aa ...string) []string {
 	}
 }
 
-// {true false false false false}
+// {true false false false false false}
 
 // internalComposeRecordValueEncoder encodes fields from types.RecordValue to store.Payload (map)
 //

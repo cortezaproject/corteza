@@ -263,7 +263,7 @@ func (Store) messagingUnreadColumns(aa ...string) []string {
 	}
 }
 
-// {false true false false false}
+// {false true false false false false}
 
 // internalMessagingUnreadEncoder encodes fields from types.Unread to store.Payload (map)
 //

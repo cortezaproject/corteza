@@ -29,12 +29,12 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 		set []*types.RoleMember
 		q   squirrel.SelectBuilder
 	)
-	q = s.roleMembersSelectBuilder()
 
 	return set, f, func() error {
+		q = s.roleMembersSelectBuilder()
+
 		set, _, _, err = s.QueryRoleMembers(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -274,7 +274,7 @@ func (Store) roleMemberColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalRoleMemberEncoder encodes fields from types.RoleMember to store.Payload (map)
 //

@@ -195,7 +195,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Equal(prefill[0].ID, set[0].ID)
 		})
 
-		t.Run("with keyed paging", func(t *testing.T) {
+		t.Run("with paging", func(t *testing.T) {
 			req := require.New(t)
 			req.NoError(s.TruncateUsers(ctx))
 
@@ -214,7 +214,7 @@ func testUsers(t *testing.T, s store.Users) {
 
 			req.NoError(s.CreateUser(ctx, set...))
 			f := types.UserFilter{}
-			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email"}}
+			f.Sort.Set("email")
 
 			// Fetch first page
 			f.Limit = 3
@@ -241,15 +241,9 @@ func testUsers(t *testing.T, s store.Users) {
 			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 			req.Len(set, 1)
-			req.NotNil(f.NextPage)
+			req.Nil(f.NextPage)
 			req.NotNil(f.PrevPage)
 			req.Equal("10", stringifySetRange(set))
-
-			// try and go pass the last page
-			f.PageCursor = f.NextPage
-			set, _, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 0)
 
 			// now, in reverse, last 3 items
 			f.Limit = 3
@@ -307,6 +301,34 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Nil(f.PrevPage)
 			req.Equal("handle_05", set[0].Handle)
 			req.Equal("handle_03", set[2].Handle)
+
+		})
+
+		t.Run("with incompatible sort", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+
+			set := []*types.User{
+				makeNew("01"),
+				makeNew("02"),
+				makeNew("03"),
+				makeNew("04"),
+				makeNew("05"),
+			}
+
+			req.NoError(s.CreateUser(ctx, set...))
+			f := types.UserFilter{}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}, &filter.SortExpr{Column: "handle", Descending: true}}
+
+			f.Limit = 1
+			set, f, err := store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+
+			// go to next page with different sorting
+			f.PageCursor = f.NextPage
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}}
+			set, f, err = store.SearchUsers(ctx, s, f)
+			req.EqualError(err, "incompatible sort")
 
 		})
 

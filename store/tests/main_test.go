@@ -35,7 +35,7 @@ func Test_Store(t *testing.T) {
 		}
 	)
 
-	logger.Init()
+	logger.SetDefault(logger.MakeDebugLogger())
 
 	var (
 		ctx = context.Background()

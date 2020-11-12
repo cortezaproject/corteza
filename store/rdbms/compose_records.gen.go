@@ -20,116 +20,71 @@ import (
 
 var _ = errors.Is
 
-// searchComposeRecords returns all matching rows
-//
-// This function calls convertComposeRecordFilter with the given
-// types.RecordFilter and expects to receive a working squirrel.SelectBuilder
-func (s Store) searchComposeRecords(ctx context.Context, _mod *types.Module, f types.RecordFilter) (types.RecordSet, types.RecordFilter, error) {
-	var (
-		err error
-		set []*types.Record
-		q   squirrel.SelectBuilder
-	)
-	q, err = s.convertComposeRecordFilter(_mod, f)
-	if err != nil {
-		return nil, f, err
-	}
-
-	// Cleanup anything we've accidentally received...
-	f.PrevPage, f.NextPage = nil, nil
-
-	// When cursor for a previous page is used it's marked as reversed
-	// This tells us to flip the descending flag on all used sort keys
-	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
-
-	// Sorting and paging are both enabled in definition yaml file
-	// {search: {enableSorting:true, enablePaging:true}}
-	curSort := f.Sort.Clone()
-
-	// If paging with reverse cursor, change the sorting
-	// direction for all columns we're sorting by
-	if reversedCursor {
-		curSort.Reverse()
-	}
-
-	return set, f, func() error {
-		set, err = s.fetchFullPageOfComposeRecords(ctx, _mod, q, curSort, f.PageCursor, f.Limit, f.Check)
-
-		if err != nil {
-			return err
-		}
-
-		if f.Limit > 0 && len(set) > 0 {
-			if f.PageCursor != nil && (!f.PageCursor.Reverse || uint(len(set)) == f.Limit) {
-				f.PrevPage = s.collectComposeRecordCursorValues(set[0], curSort.Columns()...)
-				f.PrevPage.Reverse = true
-			}
-
-			// Less items fetched then requested by page-limit
-			// not very likely there's another page
-			f.NextPage = s.collectComposeRecordCursorValues(set[len(set)-1], curSort.Columns()...)
-		}
-
-		f.PageCursor = nil
-		return nil
-	}()
-}
+// searchComposeRecords not generated
+// {search: {custom:true}}
 
 // fetchFullPageOfComposeRecords collects all requested results.
 //
 // Function applies:
 //  - cursor conditions (where ...)
-//  - sorting rules (order by ...)
 //  - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
-// are collected due to failed check on a specific row (by check fn). Function then moves cursor to the last item fetched
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
 func (s Store) fetchFullPageOfComposeRecords(
 	ctx context.Context, _mod *types.Module,
 	q squirrel.SelectBuilder,
-	sort filter.SortExprSet,
+	sortColumns []string,
+	sortDesc bool,
 	cursor *filter.PagingCursor,
 	limit uint,
 	check func(*types.Record) (bool, error),
-) ([]*types.Record, error) {
+) (set []*types.Record, prev, next *filter.PagingCursor, err error) {
 	var (
-		set  = make([]*types.Record, 0, DefaultSliceCapacity)
-		aux  []*types.Record
-		last *types.Record
+		aux []*types.Record
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedCursor = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.Reverse
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
 		fetched uint
-		err     error
 	)
 
-	// Make sure we always end our sort by primary keys
-	if sort.Get("id") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "id"})
-	}
+	set = make([]*types.Record, 0, DefaultSliceCapacity)
 
-	if q, err = s.composeRecordsSorter(_mod, q, sort); err != nil {
-		return nil, err
+	if cursor != nil {
+		cursor.Reverse = sortDesc
 	}
 
 	for try := 0; try < MaxRefetches; try++ {
 		tryQuery = setCursorCond(q, cursor)
 		if limit > 0 {
-			tryQuery = tryQuery.Limit(uint64(limit))
+			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, last, err = s.QueryComposeRecords(ctx, _mod, tryQuery, check); err != nil {
-			return nil, err
+		if aux, fetched, _, err = s.QueryComposeRecords(ctx, _mod, tryQuery, check); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if cursor != nil && prev == nil && len(aux) > 0 {
+			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
+			prev = s.collectComposeRecordCursorValues(aux[0], sortColumns...)
+		}
+
+		// Point cursor to the last fetched element
+		// if last != nil {
+		if fetched >= limit && limit > 0 {
+			next = s.collectComposeRecordCursorValues(aux[limit-1], sortColumns...)
 		}
 
 		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
-			set = append(set, aux[0:limit]...)
+			set = append(set, aux[:limit]...)
 			break
 		} else {
 			set = append(set, aux...)
@@ -148,23 +103,23 @@ func (s Store) fetchFullPageOfComposeRecords(
 		}
 
 		// @todo improve strategy for collecting next page with lower limit
-
-		// Point cursor to the last fetched element
-		if cursor = s.collectComposeRecordCursorValues(last, sort.Columns()...); cursor == nil {
-			break
-		}
 	}
 
-	if reversedCursor {
-		// Cursor for previous page was used
-		// Fetched set needs to be reverseCursor because we've forced a descending order to
-		// get the previous page
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
 		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
+
+		// and flip prev/next cursors too
+		prev, next = next, prev
 	}
 
-	return set, nil
+	if prev != nil {
+		prev.Reverse = true
+	}
+
+	return set, prev, next, nil
 }
 
 // QueryComposeRecords queries the database, converts and checks each row and
@@ -202,13 +157,12 @@ func (s Store) QueryComposeRecords(
 			return nil, 0, nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
 				return nil, 0, nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -444,7 +398,7 @@ func (Store) composeRecordColumns(aa ...string) []string {
 	}
 }
 
-// {true false true true true}
+// {true false true true true true}
 
 // sortableComposeRecordColumns returns all ComposeRecord columns flagged as sortable
 //

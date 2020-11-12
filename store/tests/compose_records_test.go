@@ -191,7 +191,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		t.Run("by Record", func(t *testing.T) {
 			req, rr := truncAndCreate(t)
 			rec := rr[0]
-	
+
 			req.NoError(s.DeleteComposeRecord(ctx, mod, rec))
 			_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
 			req.EqualError(err, store.ErrNotFound.Error())
@@ -200,7 +200,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		t.Run("by ID", func(t *testing.T) {
 			req, rr := truncAndCreate(t)
 			rec := rr[0]
-	
+
 			req.NoError(s.DeleteComposeRecordByID(ctx, mod, rec.ID))
 			_, err := s.LookupComposeRecordByID(ctx, mod, rec.ID)
 			req.EqualError(err, store.ErrNotFound.Error())
@@ -357,15 +357,15 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 
 			f.PageCursor = f.NextPage
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
-			req.Equal("v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
 			req.NoError(err)
+			req.Equal("v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
 
 			req.NoError(f.Sort.Set("str3 DESC"))
 			f.PageCursor = nil
 			f.Limit = 1
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
-			req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
 			req.NoError(err)
+			req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
 		})
 	})
 
