@@ -68,6 +68,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 		return g.all(ctx,
 			g.AlterComposeModuleRenameJsonToMeta,
 		)
+	case "compose_module_field":
+		return g.all(ctx,
+			g.AlterComposeModuleFieldAddExpresions,
+		)
 	case "messaging_channel":
 		return g.all(ctx,
 			g.AlterMessagingChannelsDropOrganisation,
@@ -358,6 +362,15 @@ func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error
 func (g genericUpgrades) AlterComposeModuleRenameJsonToMeta(ctx context.Context) error {
 	_, err := g.u.RenameColumn(ctx, "compose_module", "json", "meta")
 	return err
+}
+
+func (g genericUpgrades) AlterComposeModuleFieldAddExpresions(ctx context.Context) (err error) {
+	var (
+		col = &ddl.Column{Name: "expressions", Type: ddl.ColumnType{Type: ddl.ColumnTypeJson}, IsNull: true}
+	)
+
+	_, err = g.u.AddColumn(ctx, "compose_module_field", col)
+	return
 }
 
 func (g genericUpgrades) AlterMessageAttachmentsRenameOwner(ctx context.Context) error {
