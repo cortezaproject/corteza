@@ -41,22 +41,6 @@ type (
 		ModuleID []uint64
 		Deleted  filter.State
 	}
-
-	ModuleFieldExpr struct {
-		Value      string   `json:"value,omitempty"`
-		Sanitizers []string `json:"sanitizers,omitempty"`
-
-		Validators               []ModuleFieldValidator `json:"validators,omitempty"`
-		DisableDefaultValidators bool                   `json:"disableDefaultValidators,omitempty"`
-
-		Formatters               []string `json:"formatters,omitempty"`
-		DisableDefaultFormatters bool     `json:"disableDefaultFormatters,omitempty"`
-	}
-
-	ModuleFieldValidator struct {
-		Test  string `json:"test,omitempty"`
-		Error string `json:"error,omitempty"`
-	}
 )
 
 var (

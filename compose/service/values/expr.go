@@ -61,11 +61,11 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 	}
 
 	for _, f := range m.Fields {
-		if f.Expressions.Value == "" {
+		if f.Expressions.ValueExpr == "" {
 			continue
 		}
 
-		expr := f.Expressions.Value
+		expr := f.Expressions.ValueExpr
 
 		eval, err := exprParser.NewEvaluable(expr)
 		if err != nil {
