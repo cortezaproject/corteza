@@ -23,6 +23,7 @@ type (
 	NodeAPI interface {
 		Search(context.Context, *request.NodeSearch) (interface{}, error)
 		Create(context.Context, *request.NodeCreate) (interface{}, error)
+		Read(context.Context, *request.NodeRead) (interface{}, error)
 		GenerateURI(context.Context, *request.NodeGenerateURI) (interface{}, error)
 		Update(context.Context, *request.NodeUpdate) (interface{}, error)
 		Delete(context.Context, *request.NodeDelete) (interface{}, error)
@@ -36,6 +37,7 @@ type (
 	Node struct {
 		Search            func(http.ResponseWriter, *http.Request)
 		Create            func(http.ResponseWriter, *http.Request)
+		Read              func(http.ResponseWriter, *http.Request)
 		GenerateURI       func(http.ResponseWriter, *http.Request)
 		Update            func(http.ResponseWriter, *http.Request)
 		Delete            func(http.ResponseWriter, *http.Request)
@@ -84,6 +86,26 @@ func NewNode(h NodeAPI) *Node {
 				return
 			}
 			logger.LogControllerCall("Node.Create", r, params.Auditable())
+			if !serveHTTP(value, w, r) {
+				resputil.JSON(w, value)
+			}
+		},
+		Read: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNodeRead()
+			if err := params.Fill(r); err != nil {
+				logger.LogParamError("Node.Read", r, err)
+				resputil.JSON(w, err)
+				return
+			}
+
+			value, err := h.Read(r.Context(), params)
+			if err != nil {
+				logger.LogControllerError("Node.Read", r, err, params.Auditable())
+				resputil.JSON(w, err)
+				return
+			}
+			logger.LogControllerCall("Node.Read", r, params.Auditable())
 			if !serveHTTP(value, w, r) {
 				resputil.JSON(w, value)
 			}
@@ -236,6 +258,7 @@ func (h Node) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Use(middlewares...)
 		r.Get("/nodes/", h.Search)
 		r.Post("/nodes/", h.Create)
+		r.Get("/nodes/{nodeID}", h.Read)
 		r.Post("/nodes/{nodeID}/uri", h.GenerateURI)
 		r.Post("/nodes/{nodeID}", h.Update)
 		r.Delete("/nodes/{nodeID}", h.Delete)

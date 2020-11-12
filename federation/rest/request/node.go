@@ -58,6 +58,13 @@ type (
 		PairingURI string
 	}
 
+	NodeRead struct {
+		// NodeID PATH parameter
+		//
+		// NodeID
+		NodeID uint64 `json:",string"`
+	}
+
 	NodeGenerateURI struct {
 		// NodeID PATH parameter
 		//
@@ -249,6 +256,51 @@ func (r *NodeCreate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+	}
+
+	return err
+}
+
+// NewNodeRead request
+func NewNodeRead() *NodeRead {
+	return &NodeRead{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"nodeID": r.NodeID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeRead) GetNodeID() uint64 {
+	return r.NodeID
+}
+
+// Fill processes request and fills internal variables
+func (r *NodeRead) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "nodeID")
+		r.NodeID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return err

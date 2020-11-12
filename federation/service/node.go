@@ -107,6 +107,16 @@ func (svc node) Create(ctx context.Context, new *types.Node) (*types.Node, error
 	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
 }
 
+// Read is used mainly in UI, when retrieving details about the node
+func (svc node) Read(ctx context.Context, ID uint64) (*types.Node, error) {
+	var (
+		n, err = store.LookupFederationNodeByID(ctx, svc.store, ID)
+		aProps = &nodeActionProps{node: n}
+	)
+
+	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
+}
+
 // CreateFromURI is used on server B to create federation with server A
 func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.Node, err error) {
 	var (

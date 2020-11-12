@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -13,6 +14,7 @@ type (
 		Search(ctx context.Context, f types.NodeFilter) (types.NodeSet, types.NodeFilter, error)
 		Create(ctx context.Context, n *types.Node) (*types.Node, error)
 		CreateFromPairingURI(ctx context.Context, uri string) (*types.Node, error)
+		Read(ctx context.Context, ID uint64) (*types.Node, error)
 		Update(ctx context.Context, n *types.Node) (*types.Node, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
@@ -67,6 +69,11 @@ func (ctrl Node) Create(ctx context.Context, r *request.NodeCreate) (interface{}
 	}
 }
 
+func (ctrl Node) Read(ctx context.Context, r *request.NodeRead) (interface{}, error) {
+	n, err := ctrl.svcNode.Read(ctx, r.NodeID)
+
+	return ctrl.makePayload(ctx, n, err)
+}
 func (ctrl Node) Update(ctx context.Context, r *request.NodeUpdate) (interface{}, error) {
 	n, err := ctrl.svcNode.Update(ctx, &types.Node{
 		ID:      r.NodeID,
