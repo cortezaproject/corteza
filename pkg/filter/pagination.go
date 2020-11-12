@@ -77,7 +77,11 @@ func (p *PagingCursor) String() string {
 	var o = "<"
 
 	for i, key := range p.keys {
-		o += fmt.Sprintf("%s: %v, ", key, p.values[i])
+		o += fmt.Sprintf("%s: %v", key, p.values[i])
+		if p.desc[i] {
+			o += " DESC"
+		}
+		o += ", "
 	}
 
 	if p.Reverse {
@@ -158,6 +162,42 @@ func (p *PagingCursor) Decode(cursor string) error {
 	}
 
 	return err
+}
+
+// Sort returns:
+//  - sort if cursor is nil
+//  - sort from cursor when sort is empty
+//  - sort from cursor when sort is compatible with cursor
+//  - error if sort & cursor are incompatible
+func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
+	if p == nil {
+		return sort, nil
+	}
+
+	if len(sort) == 0 {
+		// sort emprt, create it from cursor
+		for k := range p.keys {
+			sort = append(sort, &SortExpr{
+				Column:     p.keys[k],
+				Descending: p.desc[k],
+			})
+		}
+		return sort, nil
+	}
+
+	// check compatibility
+	ss := sort.Columns()
+	if len(p.keys) != len(ss) {
+		return nil, fmt.Errorf("incompatible sort")
+	}
+
+	for k := range p.keys {
+		if p.keys[k] != ss[k] {
+			return nil, fmt.Errorf("incompatible sort")
+		}
+	}
+
+	return sort, nil
 }
 
 func parseCursor(in string) (p *PagingCursor, err error) {

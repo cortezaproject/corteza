@@ -29,15 +29,15 @@ func (s Store) SearchMessagingChannelMembers(ctx context.Context, f types.Channe
 		set []*types.ChannelMember
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertMessagingChannelMemberFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertMessagingChannelMemberFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryMessagingChannelMembers(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -285,7 +285,7 @@ func (Store) messagingChannelMemberColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalMessagingChannelMemberEncoder encodes fields from types.ChannelMember to store.Payload (map)
 //

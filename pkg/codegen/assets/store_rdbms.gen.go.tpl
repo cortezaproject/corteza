@@ -42,6 +42,10 @@ const (
 */}}
 
 {{ if $.Search.Enable }}
+{{ if $.Search.Custom }}
+// {{ toggleExport .Search.Export "Search" $.Types.Plural }} not generated
+// {search: {custom:true}}
+{{ else }}
 // {{ toggleExport .Search.Export "Search" $.Types.Plural }} returns all matching rows
 //
 // This function calls convert{{ export $.Types.Singular }}Filter with the given
@@ -53,82 +57,77 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 		q squirrel.SelectBuilder
 	)
 
-
-{{- if .RDBMS.CustomFilterConverter }}
-	q, err = s.convert{{ export $.Types.Singular }}Filter({{ template "extraArgsCallFirst" . }}f)
-	if err != nil {
-	    return nil, f, err
-	}
-{{- else }}
-	q = s.{{ unexport $.Types.Plural }}SelectBuilder()
-{{- end }}
-
-{{ if $.Search.EnablePaging }}
-	// Cleanup anything we've accidentally received...
-	f.PrevPage, f.NextPage = nil, nil
-
-	// When cursor for a previous page is used it's marked as reversed
-	// This tells us to flip the descending flag on all used sort keys
-	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
-{{ end }}
-
-{{ if and $.Search.EnableSorting $.Search.EnablePaging }}
-	// Sorting and paging are both enabled in definition yaml file
-	// {search: {enableSorting:true, enablePaging:true}}
-	curSort := f.Sort.Clone()
-
-	// If paging with reverse cursor, change the sorting
-	// direction for all columns we're sorting by
-	if reversedCursor {
-		curSort.Reverse()
-	}
-
-{{ else if $.Search.EnablePaging }}
-	// Sorting is disabled in definition yaml file
-	// {search: {enableSorting:false}}
-	//
-	// We still need to sort the results by primary key for paging purposes
-	curSort := filter.SortExprSet{
-	{{- range $.RDBMS.Columns.PrimaryKeyFields }}
-		&filter.SortExpr{Column: {{ printf "%q" .Column  }}, {{ if .SortDescending }}Descending: !reversedCursor, {{ end }}},
-	{{- end }}
-	}
-{{ end }}
-
 	return set, f, func() error {
-	{{- if $.Search.EnablePaging -}}
-		set, err = s.{{ unexport "fetchFullPageOf" $.Types.Plural  }}(ctx{{ template "extraArgsCall" . }}, q, curSort, f.PageCursor, f.Limit, {{ if $.Search.EnableFilterCheckFn }}f.Check{{ else }}nil{{ end }},)
-
+	{{- if .RDBMS.CustomFilterConverter }}
+		q, err = s.convert{{ export $.Types.Singular }}Filter({{ template "extraArgsCallFirst" . }}f)
 		if err != nil {
 			return err
 		}
+	{{- else }}
+		q = s.{{ unexport $.Types.Plural }}SelectBuilder()
+	{{- end }}
 
-		if f.Limit > 0 && len(set) > 0 {
-			if f.PageCursor != nil && (!f.PageCursor.Reverse || uint(len(set)) == f.Limit) {
-				f.PrevPage = s.collect{{ export $.Types.Singular }}CursorValues(set[0], curSort.Columns()...)
-				f.PrevPage.Reverse = true
+	{{ if $.Search.EnablePaging }}
+		// Paging enabled
+		// {search: {enablePaging:true}}
+		// Cleanup unwanted cursors (only relevant is f.PageCursor, next&prev are reset and returned)
+		f.PrevPage, f.NextPage = nil, nil
+
+		if f.PageCursor != nil {
+			// Page cursor exists so we need to validate it against used sort
+			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+				return err
 			}
+		}
 
-			// Less items fetched then requested by page-limit
-			// not very likely there's another page
-			f.NextPage = s.collect{{ export $.Types.Singular }}CursorValues(set[len(set)-1], curSort.Columns()...)
+		if len(f.Sort) == 0 {
+			f.Sort = filter.SortExprSet{}
+		}
+
+		// Make sure results are always sorted at least by primary keys
+		{{- range $.RDBMS.Columns.PrimaryKeyFields }}
+			if f.Sort.Get({{ printf "%q" .Column  }}) == nil {
+				f.Sort = append(f.Sort, &filter.SortExpr{Column: {{ printf "%q" .Column  }}, {{ if .SortDescending }}Descending: true, {{ end }}})
+			}
+		{{- end }}
+
+		sort := f.Sort.Clone()
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		if f.PageCursor != nil && f.PageCursor.Reverse {
+			sort.Reverse()
+		}
+
+	{{ end }}
+
+	{{ if .RDBMS.CustomSortConverter }}
+		if q, err = s.{{ unexport $.Types.Plural }}Sorter({{ template "extraArgsCallFirst" . }}q, f.Sort); err != nil {
+			return err
+		}
+
+	{{ else if 	$.Search.EnableSorting }}
+		// Apply sorting expr from filter to query
+		if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
+			return err
+		}
+	{{ end }}
+
+	{{- if $.Search.EnablePaging }}
+		set, f.PrevPage, f.NextPage, err = s.{{ unexport "fetchFullPageOf" $.Types.Plural  }}(ctx{{ template "extraArgsCall" . }}, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, {{ if $.Search.EnableFilterCheckFn }}f.Check{{ else }}nil{{ end }},)
+		if err != nil {
+			return err
 		}
 
 		f.PageCursor = nil
 		return nil
 	{{- else }}
-		{{- if $.Search.EnableSorting }}
-		// Apply sorting expr from filter to query
-		if q, err = setOrderBy(q, f.Sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
-			return err
-		}
-		{{ end -}}
-
 		set, _, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, q, {{ if $.Search.EnableFilterCheckFn }}f.Check{{else}}nil{{ end }})
 		return err
-	{{ end }}
+	{{- end }}
 	}()
 }
+{{ end }}
 {{ end }}
 
 
@@ -137,75 +136,65 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 //
 // Function applies:
 //  - cursor conditions (where ...)
-//  - sorting rules (order by ...)
 //  - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
-// are collected due to failed check on a specific row (by check fn). Function then moves cursor to the last item fetched
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
 func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 	ctx context.Context{{ template "extraArgsDef" . }},
 	q squirrel.SelectBuilder,
-	sort filter.SortExprSet,
+	sortColumns []string,
+	sortDesc bool,
 	cursor *filter.PagingCursor,
 	limit uint,
 	check func(*{{ $.Types.GoType }}) (bool, error),
-) ([]*{{ $.Types.GoType }}, error) {
+) (set []*{{ $.Types.GoType }}, prev, next *filter.PagingCursor, err error) {
 	var (
-		set = make([]*{{ $.Types.GoType }}, 0, DefaultSliceCapacity)
 		aux []*{{ $.Types.GoType }}
-		last *{{ $.Types.GoType }}
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedCursor = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.Reverse
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
 		fetched uint
-		err error
 	)
 
+	set = make([]*{{ $.Types.GoType }}, 0, DefaultSliceCapacity)
 
-{{ if .RDBMS.Columns.PrimaryKeyFields }}
-	// Make sure we always end our sort by primary keys
-	{{- range .RDBMS.Columns.PrimaryKeyFields }}
-	if sort.Get({{ printf "%q" .Column }}) == nil {
-		sort = append(sort, &filter.SortExpr{Column: {{ printf "%q" .Column }}})
+	if cursor != nil {
+		cursor.Reverse = sortDesc
 	}
-	{{ end }}
-{{ end }}
-
-{{ if .RDBMS.CustomSortConverter }}
-	if q, err = s.{{ unexport $.Types.Plural }}Sorter({{ template "extraArgsCallFirst" . }}q, sort); err != nil {
-		return nil, err
-	}
-{{ else if .Search.EnableSorting }}
-	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortable{{ export $.Types.Singular }}Columns()); err != nil {
-		return nil, err
-	}
-{{ else if .RDBMS.Columns.PrimaryKeyFields }}
-	// Sort by primary keys by default
-	if q, err = setOrderBy(q, sort, nil); err != nil {
-		return nil, err
-	}
-{{ end }}
-
 
 	for try := 0; try < MaxRefetches; try++ {
 		tryQuery = setCursorCond(q, cursor)
 		if limit > 0 {
-			tryQuery = tryQuery.Limit(uint64(limit))
+			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, last, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, tryQuery, check); err != nil {
-			return nil, err
+		if aux, fetched, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, tryQuery, check); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if cursor != nil && prev == nil && len(aux) > 0 {
+			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
+			prev = s.collect{{ export $.Types.Singular }}CursorValues(aux[0], sortColumns...)
+		}
+
+
+		// Point cursor to the last fetched element
+		// if last != nil {
+		if fetched >= limit && limit > 0 {
+			next = s.collect{{ export $.Types.Singular }}CursorValues(aux[limit-1], sortColumns...);
 		}
 
 		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
-			set = append(set, aux[0:limit]...)
+			set = append(set, aux[:limit]...)
 			break
 		} else {
 			set = append(set, aux...)
@@ -224,23 +213,23 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 		}
 
 		// @todo improve strategy for collecting next page with lower limit
-
-		// Point cursor to the last fetched element
-		if cursor = s.collect{{ export $.Types.Singular }}CursorValues(last, sort.Columns()...); cursor == nil {
-			break
-		}
 	}
 
-	if reversedCursor {
-		// Cursor for previous page was used
-		// Fetched set needs to be reverseCursor because we've forced a descending order to
-		// get the previous page
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
 		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
+
+		// and flip prev/next cursors too
+		prev, next = next, prev
 	}
 
-	return set, nil
+	if prev != nil {
+		prev.Reverse = true
+	}
+
+	return set, prev, next, nil
 }
 {{ end }}
 
@@ -281,13 +270,12 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 		}
 
 	{{ if $.Search.EnableFilterCheckFn }}
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
 				return nil, 0, nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}

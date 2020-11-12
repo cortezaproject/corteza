@@ -125,6 +125,15 @@ func (set SortExprSet) Reverse() {
 	}
 }
 
+// Sorting is revered if 1st expr has desc direction
+func (set SortExprSet) Reversed() bool {
+	if len(set) > 0 {
+		return set[0].Descending
+	}
+
+	return false
+}
+
 // Reverse reverses direction on each expression
 func (set SortExprSet) Columns() []string {
 	out := make([]string, len(set))

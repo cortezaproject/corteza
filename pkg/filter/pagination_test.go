@@ -19,10 +19,10 @@ func Test_cursorEncDec(t *testing.T) {
 
 	{
 		cur.Set("uint64", id, true)
-		cur.Set("string", "foo", true)
+		cur.Set("string", "foo", false)
 		req.Len(cur.values, 2)
 		req.Equal(id, cur.values[0])
-		req.Equal(fmt.Sprintf("<uint64: %d, string: foo, forward>", id), cur.String())
+		req.Equal(fmt.Sprintf("<uint64: %d DESC, string: foo, forward>", id), cur.String())
 	}
 
 	{
@@ -34,7 +34,7 @@ func Test_cursorEncDec(t *testing.T) {
 		req.Len(dec.values, 2)
 		req.Equal(id, dec.values[0])
 		req.Equal("foo", dec.values[1])
-		req.Equal(fmt.Sprintf("<uint64: %d, string: foo, forward>", id), cur.String())
+		req.Equal(fmt.Sprintf("<uint64: %d DESC, string: foo, forward>", id), cur.String())
 	}
 }
 

@@ -29,15 +29,15 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f types.ModuleFiel
 		set []*types.ModuleField
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertComposeModuleFieldFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertComposeModuleFieldFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryComposeModuleFields(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -311,7 +311,7 @@ func (Store) composeModuleFieldColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalComposeModuleFieldEncoder encodes fields from types.ModuleField to store.Payload (map)
 //

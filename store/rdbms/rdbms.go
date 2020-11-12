@@ -409,8 +409,11 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 func setCursorCond(q squirrel.SelectBuilder, cursor *filter.PagingCursor) squirrel.SelectBuilder {
 	if cursor != nil && len(cursor.Keys()) > 0 {
 		const cursorTpl = `(%s) %s (?%s)`
+
+		//expecting row values to be greater then args
 		op := ">"
 		if cursor.Reverse {
+			//expecting row values to be lesser then args
 			op = "<"
 		}
 

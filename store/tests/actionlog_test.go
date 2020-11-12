@@ -87,91 +87,86 @@ func testActionlog(t *testing.T, s store.Actionlogs) {
 			req.NoError(err)
 			req.Len(set, 5)
 		})
+
+		t.Run("with paging", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.TruncateActionlogs(ctx))
+
+			set := []*actionlog.Action{
+				makeNew(1, "01"),
+				makeNew(2, "02"),
+				makeNew(3, "03"),
+				makeNew(4, "04"),
+				makeNew(5, "05"),
+				makeNew(6, "06"),
+				makeNew(7, "07"),
+				makeNew(8, "08"),
+				makeNew(9, "09"),
+				makeNew(10, "10"),
+			}
+
+			req.NoError(s.CreateActionlog(ctx, set...))
+			f := actionlog.Filter{}
+
+			// Fetch first page
+			f.Limit = 3
+			set, f, err := store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 3)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+			req.Equal("10..8", stringifySetRange(set))
+
+			// 2nd page
+			f.Limit = 6
+			f.PageCursor = f.NextPage
+			set, f, err = store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 6)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("7..2", stringifySetRange(set))
+
+			// 3rd, last page (1 item left)
+			f.Limit = 2
+			f.PageCursor = f.NextPage
+			set, f, err = store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Nil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("1", stringifySetRange(set))
+
+			// now, in reverse, last 3 items
+			f.Limit = 3
+			f.PageCursor = f.PrevPage
+			set, f, err = store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 3)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("4..2", stringifySetRange(set))
+
+			// still in reverse, next 6 items
+			f.Limit = 5
+			f.PageCursor = f.PrevPage
+			set, f, err = store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 5)
+			req.NotNil(f.NextPage)
+			req.NotNil(f.PrevPage)
+			req.Equal("9..5", stringifySetRange(set))
+
+			// still in reverse, last 5 items (actually, we'll only get 1)
+			f.Limit = 5
+			f.PageCursor = f.PrevPage
+			set, f, err = store.SearchActionlogs(ctx, s, f)
+			req.NoError(err)
+			req.Len(set, 1)
+			req.Nil(f.PrevPage)
+			req.NotNil(f.NextPage)
+			req.Equal("10", stringifySetRange(set))
+		})
 	})
 
-	t.Run("with keyed paging", func(t *testing.T) {
-		req := require.New(t)
-		req.NoError(s.TruncateActionlogs(ctx))
-
-		set := []*actionlog.Action{
-			makeNew(1, "01"),
-			makeNew(2, "02"),
-			makeNew(3, "03"),
-			makeNew(4, "04"),
-			makeNew(5, "05"),
-			makeNew(6, "06"),
-			makeNew(7, "07"),
-			makeNew(8, "08"),
-			makeNew(9, "09"),
-			makeNew(10, "10"),
-		}
-
-		req.NoError(s.CreateActionlog(ctx, set...))
-		f := actionlog.Filter{}
-
-		// Fetch first page
-		f.Limit = 3
-		set, f, err := store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 3)
-		req.NotNil(f.NextPage)
-		req.Nil(f.PrevPage)
-		req.Equal("10..8", stringifySetRange(set))
-
-		// 2nd page
-		f.Limit = 6
-		f.PageCursor = f.NextPage
-		set, f, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 6)
-		req.NotNil(f.NextPage)
-		req.NotNil(f.PrevPage)
-		req.Equal("7..2", stringifySetRange(set))
-
-		// 3rd, last page (1 item left)
-		f.Limit = 2
-		f.PageCursor = f.NextPage
-		set, f, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 1)
-		req.NotNil(f.NextPage)
-		req.NotNil(f.PrevPage)
-		req.Equal("1", stringifySetRange(set))
-
-		// try and go pass the last page
-		f.PageCursor = f.NextPage
-		set, _, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 0)
-
-		// now, in reverse, last 3 items
-		f.Limit = 3
-		f.PageCursor = f.PrevPage
-		set, f, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 3)
-		req.NotNil(f.NextPage)
-		req.NotNil(f.PrevPage)
-		req.Equal("3..1", stringifySetRange(set))
-
-		// still in reverse, next 6 items
-		f.Limit = 5
-		f.PageCursor = f.PrevPage
-		set, f, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 5)
-		req.NotNil(f.NextPage)
-		req.NotNil(f.PrevPage)
-		req.Equal("9..4", stringifySetRange(set))
-
-		// still in reverse, last 5 items (actually, we'll only get 1)
-		f.Limit = 5
-		f.PageCursor = f.PrevPage
-		set, f, err = store.SearchActionlogs(ctx, s, f)
-		req.NoError(err)
-		req.Len(set, 1)
-		req.Nil(f.PrevPage)
-		req.NotNil(f.NextPage)
-		req.Equal("10", stringifySetRange(set))
-	})
 }

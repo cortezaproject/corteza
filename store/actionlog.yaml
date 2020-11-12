@@ -8,7 +8,7 @@ types:
   filterType: actionlog.Filter
 
 fields:
-  - { field: ID,           sortDescending: true }
+  - { field: ID,           sortable: true, sortDescending: true }
   - { field: Timestamp,    type: "time.Time" }
   - { field: RequestOrigin }
   - { field: RequestID }
@@ -33,7 +33,6 @@ rdbms:
     ActorID:   { column: actor_id }
 
 search:
-  enableSorting: false
   enableFilterCheckFunction: false
 
 update:

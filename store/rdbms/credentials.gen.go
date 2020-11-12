@@ -29,15 +29,15 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 		set []*types.Credentials
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertCredentialsFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertCredentialsFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryCredentials(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -302,7 +302,7 @@ func (Store) credentialsColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalCredentialsEncoder encodes fields from types.Credentials to store.Payload (map)
 //

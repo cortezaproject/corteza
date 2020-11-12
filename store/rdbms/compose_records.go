@@ -22,14 +22,40 @@ const (
 //       physical columns are part of module-field configuration
 
 // SearchComposeRecords returns all matching ComposeRecords from store
-func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
-	// In when module requires this,
-	set, f, err = s.searchComposeRecords(ctx, m, filter)
-	if err != nil {
-		return
-	}
+func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f types.RecordFilter) (types.RecordSet, types.RecordFilter, error) {
+	var (
+		err error
+		set []*types.Record
+		q   squirrel.SelectBuilder
+	)
 
-	return
+	return set, f, func() error {
+		q, err = s.convertComposeRecordFilter(m, f)
+		if err != nil {
+			return err
+		}
+
+		f.PrevPage, f.NextPage = nil, nil
+		sort := f.Sort.Clone()
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		if f.PageCursor != nil && f.PageCursor.Reverse {
+			sort.Reverse()
+		}
+
+		if q, err = s.composeRecordsSorter(m, q, f.Sort); err != nil {
+			return err
+		}
+
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeRecords(ctx, m, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		if err != nil {
+			return err
+		}
+
+		f.PageCursor = nil
+		return nil
+	}()
 }
 
 // LookupComposeRecordByID searches for compose record by ID
@@ -351,7 +377,7 @@ func (s Store) collectComposeRecordCursorValues(res *types.Record, cc ...string)
 		collect = func(cc ...string) {
 			for _, c := range cc {
 				switch c {
-				case "crd.id":
+				case "id":
 					cursor.Set(c, res.ID, false)
 					pkID = true
 				case "crd.created_at":
@@ -374,7 +400,7 @@ func (s Store) collectComposeRecordCursorValues(res *types.Record, cc ...string)
 	collect(cc...)
 	if !hasUnique || !pkID {
 		collect(
-			"crd.id",
+			"id",
 		)
 	}
 

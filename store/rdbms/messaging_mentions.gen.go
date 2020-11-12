@@ -29,15 +29,15 @@ func (s Store) SearchMessagingMentions(ctx context.Context, f types.MentionFilte
 		set []*types.Mention
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertMessagingMentionFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertMessagingMentionFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QueryMessagingMentions(ctx, q, nil)
 		return err
-
 	}()
 }
 
@@ -292,7 +292,7 @@ func (Store) messagingMentionColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false}
+// {true true false false false false}
 
 // internalMessagingMentionEncoder encodes fields from types.Mention to store.Payload (map)
 //

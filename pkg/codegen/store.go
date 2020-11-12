@@ -175,6 +175,7 @@ type (
 	storeTypeSearchDef struct {
 		Enable              bool `yaml:"enable"`
 		Export              bool `yaml:"export"`
+		Custom              bool `yaml:"custom"`
 		EnablePaging        bool `yaml:"enablePaging"`
 		EnableSorting       bool `yaml:"enableSorting"`
 		EnableFilterCheckFn bool `yaml:"enableFilterCheckFunction"`
@@ -225,6 +226,7 @@ func procStore(mm ...string) ([]*storeDef, error) {
 			Search: storeTypeSearchDef{
 				Enable:              true,
 				Export:              true,
+				Custom:              false,
 				EnablePaging:        true,
 				EnableSorting:       true,
 				EnableFilterCheckFn: true,

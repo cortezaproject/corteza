@@ -29,15 +29,15 @@ func (s Store) SearchSettings(ctx context.Context, f types.SettingsFilter) (type
 		set []*types.SettingValue
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertSettingFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
+		q, err = s.convertSettingFilter(f)
+		if err != nil {
+			return err
+		}
+
 		set, _, _, err = s.QuerySettings(ctx, q, f.Check)
 		return err
-
 	}()
 }
 
@@ -76,13 +76,12 @@ func (s Store) QuerySettings(
 			return nil, 0, nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
 				return nil, 0, nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -302,7 +301,7 @@ func (Store) settingColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false true}
+// {true true false false false true}
 
 // internalSettingEncoder encodes fields from types.SettingValue to store.Payload (map)
 //
