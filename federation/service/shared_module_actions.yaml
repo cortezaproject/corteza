@@ -65,6 +65,10 @@ errors:
     log: "used duplicate node TODO"
     severity: warning
 
+  - error: nodeNotFound
+    message: "node does not exist"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this module"
     log: "could not read {module}; insufficient permissions"

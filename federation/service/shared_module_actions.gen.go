@@ -514,6 +514,36 @@ func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
 	return e
 }
 
+// SharedModuleErrNodeNotFound returns "federation:shared_module.nodeNotFound" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node does not exist", nil),
+
+		errors.Meta("type", "nodeNotFound"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" as *errors.Error
 //
 //
