@@ -2,11 +2,10 @@ package rest
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/titpetric/factory/resputil"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 )
 
 type (
@@ -84,11 +83,11 @@ func (ctrl Node) Update(ctx context.Context, r *request.NodeUpdate) (interface{}
 	return ctrl.makePayload(ctx, n, err)
 }
 func (ctrl Node) Delete(ctx context.Context, r *request.NodeDelete) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.DeleteByID(ctx, r.NodeID)
+	return api.OK(), ctrl.svcNode.DeleteByID(ctx, r.NodeID)
 }
 
 func (ctrl Node) Undelete(ctx context.Context, r *request.NodeUndelete) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.UndeleteByID(ctx, r.NodeID)
+	return api.OK(), ctrl.svcNode.UndeleteByID(ctx, r.NodeID)
 }
 
 func (ctrl Node) GenerateURI(ctx context.Context, r *request.NodeGenerateURI) (interface{}, error) {
@@ -96,15 +95,15 @@ func (ctrl Node) GenerateURI(ctx context.Context, r *request.NodeGenerateURI) (i
 }
 
 func (ctrl Node) Pair(ctx context.Context, r *request.NodePair) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.Pair(ctx, r.NodeID)
+	return api.OK(), ctrl.svcNode.Pair(ctx, r.NodeID)
 }
 
 func (ctrl Node) HandshakeConfirm(ctx context.Context, r *request.NodeHandshakeConfirm) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.HandshakeConfirm(ctx, r.NodeID)
+	return api.OK(), ctrl.svcNode.HandshakeConfirm(ctx, r.NodeID)
 }
 
 func (ctrl Node) HandshakeComplete(ctx context.Context, r *request.NodeHandshakeComplete) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.HandshakeComplete(ctx, r.NodeID, r.TokenA)
+	return api.OK(), ctrl.svcNode.HandshakeComplete(ctx, r.NodeID, r.TokenA)
 }
 
 func (ctrl Node) makePayload(ctx context.Context, m *types.Node, err error) (*nodePayload, error) {

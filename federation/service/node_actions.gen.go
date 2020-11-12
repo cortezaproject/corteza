@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -39,19 +38,8 @@ type (
 		props *nodeActionProps
 	}
 
-	nodeError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *nodeActionProps
-	}
+	nodeLogMetaKey   struct{}
+	nodePropsMetaKey struct{}
 )
 
 var (
@@ -95,11 +83,11 @@ func (p *nodeActionProps) setFilter(filter *types.NodeFilter) *nodeActionProps {
 	return p
 }
 
-// serialize converts nodeActionProps to actionlog.Meta
+// Serialize converts nodeActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p nodeActionProps) serialize() actionlog.Meta {
+func (p nodeActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -123,7 +111,7 @@ func (p nodeActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p nodeActionProps) tr(in string, err error) string {
+func (p nodeActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -139,16 +127,6 @@ func (p nodeActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -204,107 +182,16 @@ func (a *nodeAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *nodeAction) LoggableAction() *actionlog.Action {
+func (e *nodeAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *nodeError) String() string {
-	var props = &nodeActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *nodeError) Error() string {
-	var props = &nodeActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *nodeError) Is(err error) bool {
-	t, ok := err.(*nodeError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *nodeError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps nodeError around another error
-//
-// This function is auto-generated.
-//
-func (e *nodeError) Wrap(err error) *nodeError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *nodeError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *nodeError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -312,7 +199,7 @@ func (e *nodeError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// NodeActionSearch returns "federation:node.search" error
+// NodeActionSearch returns "federation:node.search" action
 //
 // This function is auto-generated.
 //
@@ -332,7 +219,7 @@ func NodeActionSearch(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionLookup returns "federation:node.lookup" error
+// NodeActionLookup returns "federation:node.lookup" action
 //
 // This function is auto-generated.
 //
@@ -352,7 +239,7 @@ func NodeActionLookup(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionCreate returns "federation:node.create" error
+// NodeActionCreate returns "federation:node.create" action
 //
 // This function is auto-generated.
 //
@@ -372,7 +259,7 @@ func NodeActionCreate(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionCreateFromPairingURI returns "federation:node.createFromPairingURI" error
+// NodeActionCreateFromPairingURI returns "federation:node.createFromPairingURI" action
 //
 // This function is auto-generated.
 //
@@ -392,7 +279,7 @@ func NodeActionCreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionRecreateFromPairingURI returns "federation:node.recreateFromPairingURI" error
+// NodeActionRecreateFromPairingURI returns "federation:node.recreateFromPairingURI" action
 //
 // This function is auto-generated.
 //
@@ -412,7 +299,7 @@ func NodeActionRecreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionUpdate returns "federation:node.update" error
+// NodeActionUpdate returns "federation:node.update" action
 //
 // This function is auto-generated.
 //
@@ -432,7 +319,7 @@ func NodeActionUpdate(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionDelete returns "federation:node.delete" error
+// NodeActionDelete returns "federation:node.delete" action
 //
 // This function is auto-generated.
 //
@@ -452,7 +339,7 @@ func NodeActionDelete(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionUndelete returns "federation:node.undelete" error
+// NodeActionUndelete returns "federation:node.undelete" action
 //
 // This function is auto-generated.
 //
@@ -472,7 +359,7 @@ func NodeActionUndelete(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionOttRegenerated returns "federation:node.ottRegenerated" error
+// NodeActionOttRegenerated returns "federation:node.ottRegenerated" action
 //
 // This function is auto-generated.
 //
@@ -492,7 +379,7 @@ func NodeActionOttRegenerated(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionPair returns "federation:node.pair" error
+// NodeActionPair returns "federation:node.pair" action
 //
 // This function is auto-generated.
 //
@@ -512,7 +399,7 @@ func NodeActionPair(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionHandshakeInit returns "federation:node.handshakeInit" error
+// NodeActionHandshakeInit returns "federation:node.handshakeInit" action
 //
 // This function is auto-generated.
 //
@@ -532,7 +419,7 @@ func NodeActionHandshakeInit(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionHandshakeConfirm returns "federation:node.handshakeConfirm" error
+// NodeActionHandshakeConfirm returns "federation:node.handshakeConfirm" action
 //
 // This function is auto-generated.
 //
@@ -552,7 +439,7 @@ func NodeActionHandshakeConfirm(props ...*nodeActionProps) *nodeAction {
 	return a
 }
 
-// NodeActionHandshakeComplete returns "federation:node.handshakeComplete" error
+// NodeActionHandshakeComplete returns "federation:node.handshakeComplete" action
 //
 // This function is auto-generated.
 //
@@ -576,184 +463,186 @@ func NodeActionHandshakeComplete(props ...*nodeActionProps) *nodeAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// NodeErrGeneric returns "federation:node.generic" audit event as actionlog.Error
+// NodeErrGeneric returns "federation:node.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrGeneric(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrGeneric(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "federation:node"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeLogMetaKey{}, "{err}"),
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeErrNotFound returns "federation:node.notFound" audit event as actionlog.Warning
+// NodeErrNotFound returns "federation:node.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrNotFound(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "notFound",
-		action:    "error",
-		message:   "node does not exist",
-		log:       "node does not exist",
-		severity:  actionlog.Warning,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrNotFound(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeErrPairingURIInvalid returns "federation:node.pairingURIInvalid" audit event as actionlog.Error
+// NodeErrPairingURIInvalid returns "federation:node.pairingURIInvalid" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrPairingURIInvalid(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "pairingURIInvalid",
-		action:    "error",
-		message:   "pairing URI invalid: {err}",
-		log:       "pairing URI invalid: {err}",
-		severity:  actionlog.Error,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrPairingURIInvalid(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("pairing URI invalid: {err}", nil),
+
+		errors.Meta("type", "pairingURIInvalid"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeErrPairingURITokenInvalid returns "federation:node.pairingURITokenInvalid" audit event as actionlog.Error
+// NodeErrPairingURITokenInvalid returns "federation:node.pairingURITokenInvalid" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrPairingURITokenInvalid(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "pairingURITokenInvalid",
-		action:    "error",
-		message:   "pairing URI with invalid pairing token",
-		log:       "pairing URI with invalid pairing token",
-		severity:  actionlog.Error,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrPairingURITokenInvalid(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("pairing URI with invalid pairing token", nil),
+
+		errors.Meta("type", "pairingURITokenInvalid"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeErrPairingURISourceIDInvalid returns "federation:node.pairingURISourceIDInvalid" audit event as actionlog.Error
+// NodeErrPairingURISourceIDInvalid returns "federation:node.pairingURISourceIDInvalid" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrPairingURISourceIDInvalid(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "pairingURISourceIDInvalid",
-		action:    "error",
-		message:   "pairing URI without source node ID",
-		log:       "pairing URI without source node ID",
-		severity:  actionlog.Error,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrPairingURISourceIDInvalid(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("pairing URI without source node ID", nil),
+
+		errors.Meta("type", "pairingURISourceIDInvalid"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeErrPairingTokenInvalid returns "federation:node.pairingTokenInvalid" audit event as actionlog.Error
+// NodeErrPairingTokenInvalid returns "federation:node.pairingTokenInvalid" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeErrPairingTokenInvalid(props ...*nodeActionProps) *nodeError {
-	var e = &nodeError{
-		timestamp: time.Now(),
-		resource:  "federation:node",
-		error:     "pairingTokenInvalid",
-		action:    "error",
-		message:   "pairing token invalid",
-		log:       "pairing token invalid",
-		severity:  actionlog.Error,
-		props: func() *nodeActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeErrPairingTokenInvalid(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("pairing token invalid", nil),
+
+		errors.Meta("type", "pairingTokenInvalid"),
+		errors.Meta("resource", "federation:node"),
+
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -761,94 +650,42 @@ func NodeErrPairingTokenInvalid(props ...*nodeActionProps) *nodeError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct nodeAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc node) recordAction(ctx context.Context, props *nodeActionProps, action func(...*nodeActionProps) *nodeAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *nodeError
-
-		// Recorder error
-		recError *nodeError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*nodeError); !ok {
-			// got non-node error, wrap it with NodeErrGeneric
-			retError = NodeErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use NodeErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type nodeError
-				if unwrappedSinkError, ok := unwrappedError.(*nodeError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc node) recordAction(ctx context.Context, props *nodeActionProps, actionFn func(...*nodeActionProps) *nodeAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(nodeLogMetaKey{}), err)
+
+		if p, has := m[nodePropsMetaKey{}]; has {
+			a.Meta = p.(*nodeActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

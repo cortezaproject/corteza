@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -54,201 +52,161 @@ func NewNode(h NodeAPI) *Node {
 			defer r.Body.Close()
 			params := request.NewNodeSearch()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Search", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Search(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Search", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Search", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeCreate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Create", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Create(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Create", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Create", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeRead()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Read", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Read(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Read", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Read", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		GenerateURI: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeGenerateURI()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.GenerateURI", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.GenerateURI(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.GenerateURI", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.GenerateURI", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeUpdate()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Update", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Update(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Update", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Update", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeDelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Delete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Delete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Delete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Delete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeUndelete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Undelete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Undelete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Undelete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Undelete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		Pair: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodePair()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.Pair", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Pair(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.Pair", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.Pair", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		HandshakeConfirm: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeHandshakeConfirm()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.HandshakeConfirm", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.HandshakeConfirm(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.HandshakeConfirm", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.HandshakeConfirm", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		HandshakeComplete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNodeHandshakeComplete()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("Node.HandshakeComplete", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.HandshakeComplete(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("Node.HandshakeComplete", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("Node.HandshakeComplete", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

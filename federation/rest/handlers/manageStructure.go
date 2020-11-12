@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -50,161 +48,129 @@ func NewManageStructure(h ManageStructureAPI) *ManageStructure {
 			defer r.Body.Close()
 			params := request.NewManageStructureReadExposed()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.ReadExposed", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.ReadExposed(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.ReadExposed", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.ReadExposed", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		CreateExposed: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureCreateExposed()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.CreateExposed", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.CreateExposed(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.CreateExposed", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.CreateExposed", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		UpdateExposed: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureUpdateExposed()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.UpdateExposed", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.UpdateExposed(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.UpdateExposed", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.UpdateExposed", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		RemoveExposed: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureRemoveExposed()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.RemoveExposed", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.RemoveExposed(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.RemoveExposed", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.RemoveExposed", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		ReadShared: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureReadShared()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.ReadShared", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.ReadShared(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.ReadShared", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.ReadShared", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		CreateMappings: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureCreateMappings()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.CreateMappings", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.CreateMappings(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.CreateMappings", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.CreateMappings", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		ReadMappings: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureReadMappings()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.ReadMappings", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.ReadMappings(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.ReadMappings", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.ReadMappings", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 		ListAll: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewManageStructureListAll()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("ManageStructure.ListAll", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.ListAll(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("ManageStructure.ListAll", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("ManageStructure.ListAll", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

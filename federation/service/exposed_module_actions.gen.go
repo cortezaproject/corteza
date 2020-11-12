@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -42,19 +41,8 @@ type (
 		props *exposedModuleActionProps
 	}
 
-	exposedModuleError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *exposedModuleActionProps
-	}
+	exposedModuleLogMetaKey   struct{}
+	exposedModulePropsMetaKey struct{}
 )
 
 var (
@@ -131,11 +119,11 @@ func (p *exposedModuleActionProps) setNode(node *types.Node) *exposedModuleActio
 	return p
 }
 
-// serialize converts exposedModuleActionProps to actionlog.Meta
+// Serialize converts exposedModuleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p exposedModuleActionProps) serialize() actionlog.Meta {
+func (p exposedModuleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -181,7 +169,7 @@ func (p exposedModuleActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p exposedModuleActionProps) tr(in string, err error) string {
+func (p exposedModuleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -197,16 +185,6 @@ func (p exposedModuleActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -331,107 +309,16 @@ func (a *exposedModuleAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *exposedModuleAction) LoggableAction() *actionlog.Action {
+func (e *exposedModuleAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) String() string {
-	var props = &exposedModuleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) Error() string {
-	var props = &exposedModuleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) Is(err error) bool {
-	t, ok := err.(*exposedModuleError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps exposedModuleError around another error
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) Wrap(err error) *exposedModuleError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *exposedModuleError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *exposedModuleError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -439,7 +326,7 @@ func (e *exposedModuleError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ExposedModuleActionSearch returns "federation:exposed_module.search" error
+// ExposedModuleActionSearch returns "federation:exposed_module.search" action
 //
 // This function is auto-generated.
 //
@@ -459,7 +346,7 @@ func ExposedModuleActionSearch(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionLookup returns "federation:exposed_module.lookup" error
+// ExposedModuleActionLookup returns "federation:exposed_module.lookup" action
 //
 // This function is auto-generated.
 //
@@ -479,7 +366,7 @@ func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionCreate returns "federation:exposed_module.create" error
+// ExposedModuleActionCreate returns "federation:exposed_module.create" action
 //
 // This function is auto-generated.
 //
@@ -499,7 +386,7 @@ func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionUpdate returns "federation:exposed_module.update" error
+// ExposedModuleActionUpdate returns "federation:exposed_module.update" action
 //
 // This function is auto-generated.
 //
@@ -519,7 +406,7 @@ func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionDelete returns "federation:exposed_module.delete" error
+// ExposedModuleActionDelete returns "federation:exposed_module.delete" action
 //
 // This function is auto-generated.
 //
@@ -539,7 +426,7 @@ func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModul
 	return a
 }
 
-// ExposedModuleActionUndelete returns "federation:exposed_module.undelete" error
+// ExposedModuleActionUndelete returns "federation:exposed_module.undelete" action
 //
 // This function is auto-generated.
 //
@@ -563,394 +450,410 @@ func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedMod
 // *********************************************************************************************************************
 // Error constructors
 
-// ExposedModuleErrGeneric returns "federation:exposed_module.generic" audit event as actionlog.Error
+// ExposedModuleErrGeneric returns "federation:exposed_module.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrGeneric(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrGeneric(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "{err}"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotFound returns "federation:exposed_module.notFound" audit event as actionlog.Warning
+// ExposedModuleErrNotFound returns "federation:exposed_module.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notFound",
-		action:    "error",
-		message:   "module does not exist",
-		log:       "module does not exist",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotFound(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrInvalidID returns "federation:exposed_module.invalidID" audit event as actionlog.Warning
+// ExposedModuleErrInvalidID returns "federation:exposed_module.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrInvalidID(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrInvalidID(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrStaleData returns "federation:exposed_module.staleData" audit event as actionlog.Warning
+// ExposedModuleErrStaleData returns "federation:exposed_module.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrStaleData(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrStaleData(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotUnique returns "federation:exposed_module.notUnique" audit event as actionlog.Warning
+// ExposedModuleErrNotUnique returns "federation:exposed_module.notUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotUnique(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notUnique",
-		action:    "error",
-		message:   "node not unique",
-		log:       "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node not unique", nil),
+
+		errors.Meta("type", "notUnique"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrComposeModuleNotFound returns "federation:exposed_module.composeModuleNotFound" audit event as actionlog.Warning
+// ExposedModuleErrComposeModuleNotFound returns "federation:exposed_module.composeModuleNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrComposeModuleNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "composeModuleNotFound",
-		action:    "error",
-		message:   "compose module not found",
-		log:       "compose module not found",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrComposeModuleNotFound(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("compose module not found", nil),
+
+		errors.Meta("type", "composeModuleNotFound"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrComposeNamespaceNotFound returns "federation:exposed_module.composeNamespaceNotFound" audit event as actionlog.Warning
+// ExposedModuleErrComposeNamespaceNotFound returns "federation:exposed_module.composeNamespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrComposeNamespaceNotFound(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "composeNamespaceNotFound",
-		action:    "error",
-		message:   "compose namespace not found",
-		log:       "compose namespace not found",
-		severity:  actionlog.Warning,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("compose namespace not found", nil),
+
+		errors.Meta("type", "composeNamespaceNotFound"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToRead returns "federation:exposed_module.notAllowedToRead" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToRead returns "federation:exposed_module.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToRead(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this module",
-		log:       "could not read {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToRead(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this module", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToListModules returns "federation:exposed_module.notAllowedToListModules" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToListModules returns "federation:exposed_module.notAllowedToListModules" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToListModules(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToListModules",
-		action:    "error",
-		message:   "not allowed to list modules",
-		log:       "could not list modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToListModules(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list modules", nil),
+
+		errors.Meta("type", "notAllowedToListModules"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not list modules; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToCreate(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create modules",
-		log:       "could not create modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create modules", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not create modules; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToUpdate returns "federation:exposed_module.notAllowedToUpdate" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToUpdate returns "federation:exposed_module.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToUpdate(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this module",
-		log:       "could not update {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToUpdate(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this module", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not update {module}; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToDelete returns "federation:exposed_module.notAllowedToDelete" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToDelete returns "federation:exposed_module.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToDelete(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this module",
-		log:       "could not delete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToDelete(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this module", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ExposedModuleErrNotAllowedToUndelete returns "federation:exposed_module.notAllowedToUndelete" audit event as actionlog.Error
+// ExposedModuleErrNotAllowedToUndelete returns "federation:exposed_module.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToUndelete(props ...*exposedModuleActionProps) *exposedModuleError {
-	var e = &exposedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:exposed_module",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this module",
-		log:       "could not undelete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *exposedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ExposedModuleErrNotAllowedToUndelete(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this module", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(exposedModuleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -958,94 +861,42 @@ func ExposedModuleErrNotAllowedToUndelete(props ...*exposedModuleActionProps) *e
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct exposedModuleAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, action func(...*exposedModuleActionProps) *exposedModuleAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *exposedModuleError
-
-		// Recorder error
-		recError *exposedModuleError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*exposedModuleError); !ok {
-			// got non-exposedModule error, wrap it with ExposedModuleErrGeneric
-			retError = ExposedModuleErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use ExposedModuleErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type exposedModuleError
-				if unwrappedSinkError, ok := unwrappedError.(*exposedModuleError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc exposedModule) recordAction(ctx context.Context, props *exposedModuleActionProps, actionFn func(...*exposedModuleActionProps) *exposedModuleAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(exposedModuleLogMetaKey{}), err)
+
+		if p, has := m[exposedModulePropsMetaKey{}]; has {
+			a.Meta = p.(*exposedModuleActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }
