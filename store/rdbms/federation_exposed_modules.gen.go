@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f types.Expos
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfFederationExposedModules(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchFederationExposedModules(ctx context.Context, f types.Expos
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfFederationExposedModules collects all requested results.
@@ -115,7 +114,7 @@ func (s Store) fetchFullPageOfFederationExposedModules(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationExposedModuleColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableFederationExposedModuleColumns()); err != nil {
 		return nil, err
 	}
 
@@ -249,7 +248,7 @@ func (s Store) CreateFederationExposedModule(ctx context.Context, rr ...*types.E
 
 // UpdateFederationExposedModule updates one or more existing rows in federation_module_exposed
 func (s Store) UpdateFederationExposedModule(ctx context.Context, rr ...*types.ExposedModule) error {
-	return s.config.ErrorHandler(s.partialFederationExposedModuleUpdate(ctx, nil, rr...))
+	return s.partialFederationExposedModuleUpdate(ctx, nil, rr...)
 }
 
 // partialFederationExposedModuleUpdate updates one or more existing rows in federation_module_exposed
@@ -267,7 +266,7 @@ func (s Store) partialFederationExposedModuleUpdate(ctx context.Context, onlyCol
 			},
 			s.internalFederationExposedModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -282,7 +281,7 @@ func (s Store) UpsertFederationExposedModule(ctx context.Context, rr ...*types.E
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertFederationExposedModules(ctx, s.internalFederationExposedModuleEncoder(res)))
+		err = s.execUpsertFederationExposedModules(ctx, s.internalFederationExposedModuleEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -299,7 +298,7 @@ func (s Store) DeleteFederationExposedModule(ctx context.Context, rr ...*types.E
 			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -315,7 +314,7 @@ func (s Store) DeleteFederationExposedModuleByID(ctx context.Context, ID uint64)
 
 // TruncateFederationExposedModules Deletes all rows from the federation_module_exposed table
 func (s Store) TruncateFederationExposedModules(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.federationExposedModuleTable()))
+	return s.Truncate(ctx, s.federationExposedModuleTable())
 }
 
 // execLookupFederationExposedModule prepares FederationExposedModule query and executes it,
@@ -340,12 +339,12 @@ func (s Store) execLookupFederationExposedModule(ctx context.Context, cnd squirr
 
 // execCreateFederationExposedModules updates all matched (by cnd) rows in federation_module_exposed with given data
 func (s Store) execCreateFederationExposedModules(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.federationExposedModuleTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.federationExposedModuleTable()).SetMap(payload))
 }
 
 // execUpdateFederationExposedModules updates all matched (by cnd) rows in federation_module_exposed with given data
 func (s Store) execUpdateFederationExposedModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.federationExposedModuleTable("cmd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.federationExposedModuleTable("cmd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertFederationExposedModules inserts new or updates matching (by-primary-key) rows in federation_module_exposed with given data
@@ -361,12 +360,12 @@ func (s Store) execUpsertFederationExposedModules(ctx context.Context, set store
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteFederationExposedModules Deletes all matched (by cnd) rows in federation_module_exposed with given data
 func (s Store) execDeleteFederationExposedModules(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.federationExposedModuleTable("cmd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.federationExposedModuleTable("cmd")).Where(cnd))
 }
 
 func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *types.ExposedModule, err error) {
@@ -391,11 +390,11 @@ func (s Store) internalFederationExposedModuleRowScanner(row rowScanner) (res *t
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for FederationExposedModule: %w", err)
+		return nil, errors.Store("could not scan federationExposedModule db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -444,12 +443,14 @@ func (Store) federationExposedModuleColumns(aa ...string) []string {
 // sortableFederationExposedModuleColumns returns all FederationExposedModule columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableFederationExposedModuleColumns() []string {
-	return []string{
-		"id",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableFederationExposedModuleColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

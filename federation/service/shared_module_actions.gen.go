@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *sharedModuleActionProps
 	}
 
-	sharedModuleError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *sharedModuleActionProps
-	}
+	sharedModuleLogMetaKey   struct{}
+	sharedModulePropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *sharedModuleActionProps) setNode(node *types.Node) *sharedModuleActionP
 	return p
 }
 
-// serialize converts sharedModuleActionProps to actionlog.Meta
+// Serialize converts sharedModuleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p sharedModuleActionProps) serialize() actionlog.Meta {
+func (p sharedModuleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -139,7 +127,7 @@ func (p sharedModuleActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p sharedModuleActionProps) tr(in string, err error) string {
+func (p sharedModuleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -155,16 +143,6 @@ func (p sharedModuleActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -241,107 +219,16 @@ func (a *sharedModuleAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *sharedModuleAction) LoggableAction() *actionlog.Action {
+func (e *sharedModuleAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) String() string {
-	var props = &sharedModuleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) Error() string {
-	var props = &sharedModuleActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) Is(err error) bool {
-	t, ok := err.(*sharedModuleError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps sharedModuleError around another error
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) Wrap(err error) *sharedModuleError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *sharedModuleError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *sharedModuleError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -349,7 +236,7 @@ func (e *sharedModuleError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// SharedModuleActionSearch returns "federation:shared_module.search" error
+// SharedModuleActionSearch returns "federation:shared_module.search" action
 //
 // This function is auto-generated.
 //
@@ -369,7 +256,7 @@ func SharedModuleActionSearch(props ...*sharedModuleActionProps) *sharedModuleAc
 	return a
 }
 
-// SharedModuleActionLookup returns "federation:shared_module.lookup" error
+// SharedModuleActionLookup returns "federation:shared_module.lookup" action
 //
 // This function is auto-generated.
 //
@@ -389,7 +276,7 @@ func SharedModuleActionLookup(props ...*sharedModuleActionProps) *sharedModuleAc
 	return a
 }
 
-// SharedModuleActionCreate returns "federation:shared_module.create" error
+// SharedModuleActionCreate returns "federation:shared_module.create" action
 //
 // This function is auto-generated.
 //
@@ -409,7 +296,7 @@ func SharedModuleActionCreate(props ...*sharedModuleActionProps) *sharedModuleAc
 	return a
 }
 
-// SharedModuleActionUpdate returns "federation:shared_module.update" error
+// SharedModuleActionUpdate returns "federation:shared_module.update" action
 //
 // This function is auto-generated.
 //
@@ -429,7 +316,7 @@ func SharedModuleActionUpdate(props ...*sharedModuleActionProps) *sharedModuleAc
 	return a
 }
 
-// SharedModuleActionDelete returns "federation:shared_module.delete" error
+// SharedModuleActionDelete returns "federation:shared_module.delete" action
 //
 // This function is auto-generated.
 //
@@ -449,7 +336,7 @@ func SharedModuleActionDelete(props ...*sharedModuleActionProps) *sharedModuleAc
 	return a
 }
 
-// SharedModuleActionUndelete returns "federation:shared_module.undelete" error
+// SharedModuleActionUndelete returns "federation:shared_module.undelete" action
 //
 // This function is auto-generated.
 //
@@ -473,334 +360,350 @@ func SharedModuleActionUndelete(props ...*sharedModuleActionProps) *sharedModule
 // *********************************************************************************************************************
 // Error constructors
 
-// SharedModuleErrGeneric returns "federation:shared_module.generic" audit event as actionlog.Error
+// SharedModuleErrGeneric returns "federation:shared_module.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrGeneric(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrGeneric(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "{err}"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotFound returns "federation:shared_module.notFound" audit event as actionlog.Warning
+// SharedModuleErrNotFound returns "federation:shared_module.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotFound(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notFound",
-		action:    "error",
-		message:   "module does not exist",
-		log:       "module does not exist",
-		severity:  actionlog.Warning,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotFound(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrInvalidID returns "federation:shared_module.invalidID" audit event as actionlog.Warning
+// SharedModuleErrInvalidID returns "federation:shared_module.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrInvalidID(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "invalidID",
-		action:    "error",
-		message:   "invalid ID",
-		log:       "invalid ID",
-		severity:  actionlog.Warning,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrInvalidID(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid ID", nil),
+
+		errors.Meta("type", "invalidID"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrStaleData returns "federation:shared_module.staleData" audit event as actionlog.Warning
+// SharedModuleErrStaleData returns "federation:shared_module.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrStaleData(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "staleData",
-		action:    "error",
-		message:   "stale data",
-		log:       "stale data",
-		severity:  actionlog.Warning,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotUnique returns "federation:shared_module.notUnique" audit event as actionlog.Warning
+// SharedModuleErrNotUnique returns "federation:shared_module.notUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotUnique(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notUnique",
-		action:    "error",
-		message:   "node not unique",
-		log:       "used duplicate node TODO",
-		severity:  actionlog.Warning,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node not unique", nil),
+
+		errors.Meta("type", "notUnique"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "used duplicate node TODO"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToRead(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this module",
-		log:       "could not read {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToRead(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this module", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToListModules returns "federation:shared_module.notAllowedToListModules" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToListModules returns "federation:shared_module.notAllowedToListModules" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToListModules(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToListModules",
-		action:    "error",
-		message:   "not allowed to list modules",
-		log:       "could not list modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToListModules(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list modules", nil),
+
+		errors.Meta("type", "notAllowedToListModules"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not list modules; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToCreate returns "federation:shared_module.notAllowedToCreate" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToCreate returns "federation:shared_module.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToCreate(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create modules",
-		log:       "could not create modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create modules", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not create modules; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToUpdate returns "federation:shared_module.notAllowedToUpdate" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToUpdate returns "federation:shared_module.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToUpdate(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this module",
-		log:       "could not update {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToUpdate(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this module", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not update {module}; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToDelete returns "federation:shared_module.notAllowedToDelete" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToDelete returns "federation:shared_module.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToDelete(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this module",
-		log:       "could not delete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToDelete(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this module", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// SharedModuleErrNotAllowedToUndelete returns "federation:shared_module.notAllowedToUndelete" audit event as actionlog.Error
+// SharedModuleErrNotAllowedToUndelete returns "federation:shared_module.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToUndelete(props ...*sharedModuleActionProps) *sharedModuleError {
-	var e = &sharedModuleError{
-		timestamp: time.Now(),
-		resource:  "federation:shared_module",
-		error:     "notAllowedToUndelete",
-		action:    "error",
-		message:   "not allowed to undelete this module",
-		log:       "could not undelete {module}; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *sharedModuleActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func SharedModuleErrNotAllowedToUndelete(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this module", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -808,94 +711,42 @@ func SharedModuleErrNotAllowedToUndelete(props ...*sharedModuleActionProps) *sha
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct sharedModuleAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, action func(...*sharedModuleActionProps) *sharedModuleAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *sharedModuleError
-
-		// Recorder error
-		recError *sharedModuleError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*sharedModuleError); !ok {
-			// got non-sharedModule error, wrap it with SharedModuleErrGeneric
-			retError = SharedModuleErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use SharedModuleErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type sharedModuleError
-				if unwrappedSinkError, ok := unwrappedError.(*sharedModuleError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc sharedModule) recordAction(ctx context.Context, props *sharedModuleActionProps, actionFn func(...*sharedModuleActionProps) *sharedModuleAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(sharedModuleLogMetaKey{}), err)
+
+		if p, has := m[sharedModulePropsMetaKey{}]; has {
+			a.Meta = p.(*sharedModuleActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

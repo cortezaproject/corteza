@@ -10,12 +10,10 @@ package handlers
 
 import (
 	"context"
-	"github.com/go-chi/chi"
-	"github.com/titpetric/factory/resputil"
-	"net/http"
-
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/go-chi/chi"
+	"net/http"
 )
 
 type (
@@ -36,21 +34,17 @@ func NewNodeHandshake(h NodeHandshakeAPI) *NodeHandshake {
 			defer r.Body.Close()
 			params := request.NewNodeHandshakeInitialize()
 			if err := params.Fill(r); err != nil {
-				logger.LogParamError("NodeHandshake.Initialize", r, err)
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
 
 			value, err := h.Initialize(r.Context(), params)
 			if err != nil {
-				logger.LogControllerError("NodeHandshake.Initialize", r, err, params.Auditable())
-				resputil.JSON(w, err)
+				api.Send(w, r, err)
 				return
 			}
-			logger.LogControllerCall("NodeHandshake.Initialize", r, params.Auditable())
-			if !serveHTTP(value, w, r) {
-				resputil.JSON(w, value)
-			}
+
+			api.Send(w, r, value)
 		},
 	}
 }

@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f types.Shared
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfFederationSharedModules(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchFederationSharedModules(ctx context.Context, f types.Shared
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfFederationSharedModules collects all requested results.
@@ -115,7 +114,7 @@ func (s Store) fetchFullPageOfFederationSharedModules(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationSharedModuleColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableFederationSharedModuleColumns()); err != nil {
 		return nil, err
 	}
 
@@ -249,7 +248,7 @@ func (s Store) CreateFederationSharedModule(ctx context.Context, rr ...*types.Sh
 
 // UpdateFederationSharedModule updates one or more existing rows in federation_module_shared
 func (s Store) UpdateFederationSharedModule(ctx context.Context, rr ...*types.SharedModule) error {
-	return s.config.ErrorHandler(s.partialFederationSharedModuleUpdate(ctx, nil, rr...))
+	return s.partialFederationSharedModuleUpdate(ctx, nil, rr...)
 }
 
 // partialFederationSharedModuleUpdate updates one or more existing rows in federation_module_shared
@@ -267,7 +266,7 @@ func (s Store) partialFederationSharedModuleUpdate(ctx context.Context, onlyColu
 			},
 			s.internalFederationSharedModuleEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -282,7 +281,7 @@ func (s Store) UpsertFederationSharedModule(ctx context.Context, rr ...*types.Sh
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertFederationSharedModules(ctx, s.internalFederationSharedModuleEncoder(res)))
+		err = s.execUpsertFederationSharedModules(ctx, s.internalFederationSharedModuleEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -299,7 +298,7 @@ func (s Store) DeleteFederationSharedModule(ctx context.Context, rr ...*types.Sh
 			s.preprocessColumn("cmd.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -315,7 +314,7 @@ func (s Store) DeleteFederationSharedModuleByID(ctx context.Context, ID uint64) 
 
 // TruncateFederationSharedModules Deletes all rows from the federation_module_shared table
 func (s Store) TruncateFederationSharedModules(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.federationSharedModuleTable()))
+	return s.Truncate(ctx, s.federationSharedModuleTable())
 }
 
 // execLookupFederationSharedModule prepares FederationSharedModule query and executes it,
@@ -340,12 +339,12 @@ func (s Store) execLookupFederationSharedModule(ctx context.Context, cnd squirre
 
 // execCreateFederationSharedModules updates all matched (by cnd) rows in federation_module_shared with given data
 func (s Store) execCreateFederationSharedModules(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.federationSharedModuleTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.federationSharedModuleTable()).SetMap(payload))
 }
 
 // execUpdateFederationSharedModules updates all matched (by cnd) rows in federation_module_shared with given data
 func (s Store) execUpdateFederationSharedModules(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.federationSharedModuleTable("cmd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.federationSharedModuleTable("cmd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertFederationSharedModules inserts new or updates matching (by-primary-key) rows in federation_module_shared with given data
@@ -361,12 +360,12 @@ func (s Store) execUpsertFederationSharedModules(ctx context.Context, set store.
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteFederationSharedModules Deletes all matched (by cnd) rows in federation_module_shared with given data
 func (s Store) execDeleteFederationSharedModules(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.federationSharedModuleTable("cmd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.federationSharedModuleTable("cmd")).Where(cnd))
 }
 
 func (s Store) internalFederationSharedModuleRowScanner(row rowScanner) (res *types.SharedModule, err error) {
@@ -390,11 +389,11 @@ func (s Store) internalFederationSharedModuleRowScanner(row rowScanner) (res *ty
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for FederationSharedModule: %w", err)
+		return nil, errors.Store("could not scan federationSharedModule db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -442,12 +441,14 @@ func (Store) federationSharedModuleColumns(aa ...string) []string {
 // sortableFederationSharedModuleColumns returns all FederationSharedModule columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableFederationSharedModuleColumns() []string {
-	return []string{
-		"id",
-		"created_at",
-		"updated_at",
-		"deleted_at",
+func (Store) sortableFederationSharedModuleColumns() map[string]string {
+	return map[string]string{
+		"id": "id", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 

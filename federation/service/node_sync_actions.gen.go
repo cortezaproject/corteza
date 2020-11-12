@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -38,19 +37,8 @@ type (
 		props *nodeSyncActionProps
 	}
 
-	nodeSyncError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *nodeSyncActionProps
-	}
+	nodeSyncLogMetaKey   struct{}
+	nodeSyncPropsMetaKey struct{}
 )
 
 var (
@@ -83,11 +71,11 @@ func (p *nodeSyncActionProps) setNodeSyncFilter(nodeSyncFilter *types.NodeSyncFi
 	return p
 }
 
-// serialize converts nodeSyncActionProps to actionlog.Meta
+// Serialize converts nodeSyncActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p nodeSyncActionProps) serialize() actionlog.Meta {
+func (p nodeSyncActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -109,7 +97,7 @@ func (p nodeSyncActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p nodeSyncActionProps) tr(in string, err error) string {
+func (p nodeSyncActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -125,16 +113,6 @@ func (p nodeSyncActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -187,107 +165,16 @@ func (a *nodeSyncAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *nodeSyncAction) LoggableAction() *actionlog.Action {
+func (e *nodeSyncAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) String() string {
-	var props = &nodeSyncActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) Error() string {
-	var props = &nodeSyncActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) Is(err error) bool {
-	t, ok := err.(*nodeSyncError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps nodeSyncError around another error
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) Wrap(err error) *nodeSyncError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *nodeSyncError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *nodeSyncError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -295,7 +182,7 @@ func (e *nodeSyncError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// NodeSyncActionLookup returns "federation:node_sync.lookup" error
+// NodeSyncActionLookup returns "federation:node_sync.lookup" action
 //
 // This function is auto-generated.
 //
@@ -315,7 +202,7 @@ func NodeSyncActionLookup(props ...*nodeSyncActionProps) *nodeSyncAction {
 	return a
 }
 
-// NodeSyncActionCreate returns "federation:node_sync.create" error
+// NodeSyncActionCreate returns "federation:node_sync.create" action
 //
 // This function is auto-generated.
 //
@@ -339,94 +226,96 @@ func NodeSyncActionCreate(props ...*nodeSyncActionProps) *nodeSyncAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// NodeSyncErrGeneric returns "federation:node_sync.generic" audit event as actionlog.Error
+// NodeSyncErrGeneric returns "federation:node_sync.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeSyncErrGeneric(props ...*nodeSyncActionProps) *nodeSyncError {
-	var e = &nodeSyncError{
-		timestamp: time.Now(),
-		resource:  "federation:node_sync",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *nodeSyncActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeSyncErrGeneric(mm ...*nodeSyncActionProps) *errors.Error {
+	var p = &nodeSyncActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "federation:node_sync"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeSyncLogMetaKey{}, "{err}"),
+		errors.Meta(nodeSyncPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeSyncErrNotFound returns "federation:node_sync.notFound" audit event as actionlog.Warning
+// NodeSyncErrNotFound returns "federation:node_sync.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeSyncErrNotFound(props ...*nodeSyncActionProps) *nodeSyncError {
-	var e = &nodeSyncError{
-		timestamp: time.Now(),
-		resource:  "federation:node_sync",
-		error:     "notFound",
-		action:    "error",
-		message:   "node_sync does not exist",
-		log:       "node_sync does not exist",
-		severity:  actionlog.Warning,
-		props: func() *nodeSyncActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeSyncErrNotFound(mm ...*nodeSyncActionProps) *errors.Error {
+	var p = &nodeSyncActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node_sync does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "federation:node_sync"),
+
+		errors.Meta(nodeSyncPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// NodeSyncErrNodeNotFound returns "federation:node_sync.nodeNotFound" audit event as actionlog.Warning
+// NodeSyncErrNodeNotFound returns "federation:node_sync.nodeNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NodeSyncErrNodeNotFound(props ...*nodeSyncActionProps) *nodeSyncError {
-	var e = &nodeSyncError{
-		timestamp: time.Now(),
-		resource:  "federation:node_sync",
-		error:     "nodeNotFound",
-		action:    "error",
-		message:   "node does not exist",
-		log:       "node does not exist",
-		severity:  actionlog.Warning,
-		props: func() *nodeSyncActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func NodeSyncErrNodeNotFound(mm ...*nodeSyncActionProps) *errors.Error {
+	var p = &nodeSyncActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node does not exist", nil),
+
+		errors.Meta("type", "nodeNotFound"),
+		errors.Meta("resource", "federation:node_sync"),
+
+		errors.Meta(nodeSyncPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -434,94 +323,42 @@ func NodeSyncErrNodeNotFound(props ...*nodeSyncActionProps) *nodeSyncError {
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct nodeSyncAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc nodeSync) recordAction(ctx context.Context, props *nodeSyncActionProps, action func(...*nodeSyncActionProps) *nodeSyncAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *nodeSyncError
-
-		// Recorder error
-		recError *nodeSyncError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*nodeSyncError); !ok {
-			// got non-nodeSync error, wrap it with NodeSyncErrGeneric
-			retError = NodeSyncErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use NodeSyncErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type nodeSyncError
-				if unwrappedSinkError, ok := unwrappedError.(*nodeSyncError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc nodeSync) recordAction(ctx context.Context, props *nodeSyncActionProps, actionFn func(...*nodeSyncActionProps) *nodeSyncAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(nodeSyncLogMetaKey{}), err)
+
+		if p, has := m[nodeSyncPropsMetaKey{}]; has {
+			a.Meta = p.(*nodeSyncActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

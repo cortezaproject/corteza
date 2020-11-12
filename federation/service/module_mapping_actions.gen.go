@@ -10,13 +10,12 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"strings"
+	"time"
 )
 
 type (
@@ -40,19 +39,8 @@ type (
 		props *moduleMappingActionProps
 	}
 
-	moduleMappingError struct {
-		timestamp time.Time
-		error     string
-		resource  string
-		action    string
-		message   string
-		log       string
-		severity  actionlog.Severity
-
-		wrap error
-
-		props *moduleMappingActionProps
-	}
+	moduleMappingLogMetaKey   struct{}
+	moduleMappingPropsMetaKey struct{}
 )
 
 var (
@@ -107,11 +95,11 @@ func (p *moduleMappingActionProps) setFilter(filter *types.ModuleMappingFilter) 
 	return p
 }
 
-// serialize converts moduleMappingActionProps to actionlog.Meta
+// Serialize converts moduleMappingActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p moduleMappingActionProps) serialize() actionlog.Meta {
+func (p moduleMappingActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -141,7 +129,7 @@ func (p moduleMappingActionProps) serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p moduleMappingActionProps) tr(in string, err error) string {
+func (p moduleMappingActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -157,16 +145,6 @@ func (p moduleMappingActionProps) tr(in string, err error) string {
 	)
 
 	if err != nil {
-		for {
-			// Unwrap errors
-			ue := errors.Unwrap(err)
-			if ue == nil {
-				break
-			}
-
-			err = ue
-		}
-
 		pairs = append(pairs, err.Error())
 	} else {
 		pairs = append(pairs, "nil")
@@ -247,107 +225,16 @@ func (a *moduleMappingAction) String() string {
 		props = a.props
 	}
 
-	return props.tr(a.log, nil)
+	return props.Format(a.log, nil)
 }
 
-func (e *moduleMappingAction) LoggableAction() *actionlog.Action {
+func (e *moduleMappingAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
-		Timestamp:   e.timestamp,
 		Resource:    e.resource,
 		Action:      e.action,
 		Severity:    e.severity,
 		Description: e.String(),
-		Meta:        e.props.serialize(),
-	}
-}
-
-// *********************************************************************************************************************
-// *********************************************************************************************************************
-// Error methods
-
-// String returns loggable description as string
-//
-// It falls back to message if log is not set
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) String() string {
-	var props = &moduleMappingActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	if e.wrap != nil && !strings.Contains(e.log, "{err}") {
-		// Suffix error log with {err} to ensure
-		// we log the cause for this error
-		e.log += ": {err}"
-	}
-
-	return props.tr(e.log, e.wrap)
-}
-
-// Error satisfies
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) Error() string {
-	var props = &moduleMappingActionProps{}
-
-	if e.props != nil {
-		props = e.props
-	}
-
-	return props.tr(e.message, e.wrap)
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) Is(err error) bool {
-	t, ok := err.(*moduleMappingError)
-	if !ok {
-		return false
-	}
-
-	return t.resource == e.resource && t.error == e.error
-}
-
-// Is fn for error equality check
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) IsGeneric() bool {
-	return e.error == "generic"
-}
-
-// Wrap wraps moduleMappingError around another error
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) Wrap(err error) *moduleMappingError {
-	e.wrap = err
-	return e
-}
-
-// Unwrap returns wrapped error
-//
-// This function is auto-generated.
-//
-func (e *moduleMappingError) Unwrap() error {
-	return e.wrap
-}
-
-func (e *moduleMappingError) LoggableAction() *actionlog.Action {
-	return &actionlog.Action{
-		Timestamp:   e.timestamp,
-		Resource:    e.resource,
-		Action:      e.action,
-		Severity:    e.severity,
-		Description: e.String(),
-		Error:       e.Error(),
-		Meta:        e.props.serialize(),
+		Meta:        e.props.Serialize(),
 	}
 }
 
@@ -355,7 +242,7 @@ func (e *moduleMappingError) LoggableAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ModuleMappingActionSearch returns "federation:module_mapping.search" error
+// ModuleMappingActionSearch returns "federation:module_mapping.search" action
 //
 // This function is auto-generated.
 //
@@ -375,7 +262,7 @@ func ModuleMappingActionSearch(props ...*moduleMappingActionProps) *moduleMappin
 	return a
 }
 
-// ModuleMappingActionLookup returns "federation:module_mapping.lookup" error
+// ModuleMappingActionLookup returns "federation:module_mapping.lookup" action
 //
 // This function is auto-generated.
 //
@@ -395,7 +282,7 @@ func ModuleMappingActionLookup(props ...*moduleMappingActionProps) *moduleMappin
 	return a
 }
 
-// ModuleMappingActionCreate returns "federation:module_mapping.create" error
+// ModuleMappingActionCreate returns "federation:module_mapping.create" action
 //
 // This function is auto-generated.
 //
@@ -415,7 +302,7 @@ func ModuleMappingActionCreate(props ...*moduleMappingActionProps) *moduleMappin
 	return a
 }
 
-// ModuleMappingActionUpdate returns "federation:module_mapping.update" error
+// ModuleMappingActionUpdate returns "federation:module_mapping.update" action
 //
 // This function is auto-generated.
 //
@@ -435,7 +322,7 @@ func ModuleMappingActionUpdate(props ...*moduleMappingActionProps) *moduleMappin
 	return a
 }
 
-// ModuleMappingActionDelete returns "federation:module_mapping.delete" error
+// ModuleMappingActionDelete returns "federation:module_mapping.delete" action
 //
 // This function is auto-generated.
 //
@@ -459,334 +346,346 @@ func ModuleMappingActionDelete(props ...*moduleMappingActionProps) *moduleMappin
 // *********************************************************************************************************************
 // Error constructors
 
-// ModuleMappingErrGeneric returns "federation:module_mapping.generic" audit event as actionlog.Error
+// ModuleMappingErrGeneric returns "federation:module_mapping.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrGeneric(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "generic",
-		action:    "error",
-		message:   "failed to complete request due to internal error",
-		log:       "{err}",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrGeneric(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to complete request due to internal error", nil),
+
+		errors.Meta("type", "generic"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "{err}"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotFound returns "federation:module_mapping.notFound" audit event as actionlog.Warning
+// ModuleMappingErrNotFound returns "federation:module_mapping.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotFound(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notFound",
-		action:    "error",
-		message:   "module mapping does not exist",
-		log:       "module mapping does not exist",
-		severity:  actionlog.Warning,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotFound(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module mapping does not exist", nil),
+
+		errors.Meta("type", "notFound"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrComposeModuleNotFound returns "federation:module_mapping.composeModuleNotFound" audit event as actionlog.Warning
+// ModuleMappingErrComposeModuleNotFound returns "federation:module_mapping.composeModuleNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrComposeModuleNotFound(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "composeModuleNotFound",
-		action:    "error",
-		message:   "compose module not found",
-		log:       "compose module not found",
-		severity:  actionlog.Warning,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrComposeModuleNotFound(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("compose module not found", nil),
+
+		errors.Meta("type", "composeModuleNotFound"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrComposeNamespaceNotFound returns "federation:module_mapping.composeNamespaceNotFound" audit event as actionlog.Warning
+// ModuleMappingErrComposeNamespaceNotFound returns "federation:module_mapping.composeNamespaceNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrComposeNamespaceNotFound(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "composeNamespaceNotFound",
-		action:    "error",
-		message:   "compose namespace not found",
-		log:       "compose namespace not found",
-		severity:  actionlog.Warning,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrComposeNamespaceNotFound(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("compose namespace not found", nil),
+
+		errors.Meta("type", "composeNamespaceNotFound"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrFederationModuleNotFound returns "federation:module_mapping.federationModuleNotFound" audit event as actionlog.Warning
+// ModuleMappingErrFederationModuleNotFound returns "federation:module_mapping.federationModuleNotFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrFederationModuleNotFound(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "federationModuleNotFound",
-		action:    "error",
-		message:   "federation module not found",
-		log:       "federation module not found",
-		severity:  actionlog.Warning,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("federation module not found", nil),
+
+		errors.Meta("type", "federationModuleNotFound"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrModuleMappingExists returns "federation:module_mapping.moduleMappingExists" audit event as actionlog.Error
+// ModuleMappingErrModuleMappingExists returns "federation:module_mapping.moduleMappingExists" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrModuleMappingExists(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "moduleMappingExists",
-		action:    "error",
-		message:   "module mapping already exists",
-		log:       "module mapping already exists",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module mapping already exists", nil),
+
+		errors.Meta("type", "moduleMappingExists"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotAllowedToRead returns "federation:module_mapping.notAllowedToRead" audit event as actionlog.Error
+// ModuleMappingErrNotAllowedToRead returns "federation:module_mapping.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToRead(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notAllowedToRead",
-		action:    "error",
-		message:   "not allowed to read this module",
-		log:       "could not read module; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotAllowedToRead(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this module", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "could not read module; insufficient permissions"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotAllowedToListModules returns "federation:module_mapping.notAllowedToListModules" audit event as actionlog.Error
+// ModuleMappingErrNotAllowedToListModules returns "federation:module_mapping.notAllowedToListModules" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToListModules(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notAllowedToListModules",
-		action:    "error",
-		message:   "not allowed to list modules",
-		log:       "could not list modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotAllowedToListModules(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list modules", nil),
+
+		errors.Meta("type", "notAllowedToListModules"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "could not list modules; insufficient permissions"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotAllowedToCreate returns "federation:module_mapping.notAllowedToCreate" audit event as actionlog.Error
+// ModuleMappingErrNotAllowedToCreate returns "federation:module_mapping.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToCreate(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notAllowedToCreate",
-		action:    "error",
-		message:   "not allowed to create modules",
-		log:       "could not create modules; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotAllowedToCreate(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create modules", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "could not create modules; insufficient permissions"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotAllowedToUpdate returns "federation:module_mapping.notAllowedToUpdate" audit event as actionlog.Error
+// ModuleMappingErrNotAllowedToUpdate returns "federation:module_mapping.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToUpdate(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notAllowedToUpdate",
-		action:    "error",
-		message:   "not allowed to update this module",
-		log:       "could not update module; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotAllowedToUpdate(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this module", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "could not update module; insufficient permissions"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
-// ModuleMappingErrNotAllowedToDelete returns "federation:module_mapping.notAllowedToDelete" audit event as actionlog.Error
+// ModuleMappingErrNotAllowedToDelete returns "federation:module_mapping.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToDelete(props ...*moduleMappingActionProps) *moduleMappingError {
-	var e = &moduleMappingError{
-		timestamp: time.Now(),
-		resource:  "federation:module_mapping",
-		error:     "notAllowedToDelete",
-		action:    "error",
-		message:   "not allowed to delete this module",
-		log:       "could not delete module; insufficient permissions",
-		severity:  actionlog.Error,
-		props: func() *moduleMappingActionProps {
-			if len(props) > 0 {
-				return props[0]
-			}
-			return nil
-		}(),
+func ModuleMappingErrNotAllowedToDelete(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
 	}
 
-	if len(props) > 0 {
-		e.props = props[0]
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this module", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleMappingLogMetaKey{}, "could not delete module; insufficient permissions"),
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
 	}
 
 	return e
-
 }
 
 // *********************************************************************************************************************
@@ -794,94 +693,42 @@ func ModuleMappingErrNotAllowedToDelete(props ...*moduleMappingActionProps) *mod
 
 // recordAction is a service helper function wraps function that can return error
 //
-// context is used to enrich audit log entry with current user info, request ID, IP address...
-// props are collected action/error properties
-// action (optional) fn will be used to construct moduleMappingAction struct from given props (and error)
-// err is any error that occurred while action was happening
-//
-// Action has success and fail (error) state:
-//  - when recorded without an error (4th param), action is recorded as successful.
-//  - when an additional error is given (4th param), action is used to wrap
-//    the additional error
+// It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
 //
-func (svc moduleMapping) recordAction(ctx context.Context, props *moduleMappingActionProps, action func(...*moduleMappingActionProps) *moduleMappingAction, err error) error {
-	var (
-		ok bool
-
-		// Return error
-		retError *moduleMappingError
-
-		// Recorder error
-		recError *moduleMappingError
-	)
-
-	if err != nil {
-		if retError, ok = err.(*moduleMappingError); !ok {
-			// got non-moduleMapping error, wrap it with ModuleMappingErrGeneric
-			retError = ModuleMappingErrGeneric(props).Wrap(err)
-
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-
-			// we'll use ModuleMappingErrGeneric for recording too
-			// because it can hold more info
-			recError = retError
-		} else if retError != nil {
-			if action != nil {
-				// copy action to returning and recording error
-				retError.action = action().action
-			}
-			// start with copy of return error for recording
-			// this will be updated with tha root cause as we try and
-			// unwrap the error
-			recError = retError
-
-			// find the original recError for this error
-			// for the purpose of logging
-			var unwrappedError error = retError
-			for {
-				if unwrappedError = errors.Unwrap(unwrappedError); unwrappedError == nil {
-					// nothing wrapped
-					break
-				}
-
-				// update recError ONLY of wrapped error is of type moduleMappingError
-				if unwrappedSinkError, ok := unwrappedError.(*moduleMappingError); ok {
-					recError = unwrappedSinkError
-				}
-			}
-
-			if retError.props == nil {
-				// set props on returning error if empty
-				retError.props = props
-			}
-
-			if recError.props == nil {
-				// set props on recording error if empty
-				recError.props = props
-			}
-		}
-	}
-
-	if svc.actionlog != nil {
-		if retError != nil {
-			// failed action, log error
-			svc.actionlog.Record(ctx, recError)
-		} else if action != nil {
-			// successful
-			svc.actionlog.Record(ctx, action(props))
-		}
-	}
-
-	if err == nil {
-		// retError not an interface and that WILL (!!) cause issues
-		// with nil check (== nil) when it is not explicitly returned
+func (svc moduleMapping) recordAction(ctx context.Context, props *moduleMappingActionProps, actionFn func(...*moduleMappingActionProps) *moduleMappingAction, err error) error {
+	if svc.actionlog == nil || actionFn == nil {
+		// action log disabled or no action fn passed, return error as-is
+		return err
+	} else if err == nil {
+		// action completed w/o error, record it
+		svc.actionlog.Record(ctx, actionFn(props).ToAction())
 		return nil
 	}
 
-	return retError
+	a := actionFn(props).ToAction()
+
+	// Extracting error information and recording it as action
+	a.Error = err.Error()
+
+	switch c := err.(type) {
+	case *errors.Error:
+		m := c.Meta()
+
+		a.Error = err.Error()
+		a.Severity = actionlog.Severity(m.AsInt("severity"))
+		a.Description = props.Format(m.AsString(moduleMappingLogMetaKey{}), err)
+
+		if p, has := m[moduleMappingPropsMetaKey{}]; has {
+			a.Meta = p.(*moduleMappingActionProps).Serialize()
+		}
+
+		svc.actionlog.Record(ctx, a)
+	default:
+		svc.actionlog.Record(ctx, a)
+	}
+
+	// Original error is passed on
+	return err
 }

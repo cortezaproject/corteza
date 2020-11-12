@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -35,11 +34,11 @@ func (s Store) SearchFederationNodes(ctx context.Context, f types.NodeFilter) (t
 		return nil, f, err
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, _, _, err = s.QueryFederationNodes(ctx, q, f.Check)
 		return err
 
-	}())
+	}()
 }
 
 // QueryFederationNodes queries the database, converts and checks each row and
@@ -137,7 +136,7 @@ func (s Store) CreateFederationNode(ctx context.Context, rr ...*types.Node) (err
 
 // UpdateFederationNode updates one or more existing rows in federation_nodes
 func (s Store) UpdateFederationNode(ctx context.Context, rr ...*types.Node) error {
-	return s.config.ErrorHandler(s.partialFederationNodeUpdate(ctx, nil, rr...))
+	return s.partialFederationNodeUpdate(ctx, nil, rr...)
 }
 
 // partialFederationNodeUpdate updates one or more existing rows in federation_nodes
@@ -155,7 +154,7 @@ func (s Store) partialFederationNodeUpdate(ctx context.Context, onlyColumns []st
 			},
 			s.internalFederationNodeEncoder(res).Skip("id").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -170,7 +169,7 @@ func (s Store) UpsertFederationNode(ctx context.Context, rr ...*types.Node) (err
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertFederationNodes(ctx, s.internalFederationNodeEncoder(res)))
+		err = s.execUpsertFederationNodes(ctx, s.internalFederationNodeEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -187,7 +186,7 @@ func (s Store) DeleteFederationNode(ctx context.Context, rr ...*types.Node) (err
 			s.preprocessColumn("fdn.id", ""): store.PreprocessValue(res.ID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -203,7 +202,7 @@ func (s Store) DeleteFederationNodeByID(ctx context.Context, ID uint64) error {
 
 // TruncateFederationNodes Deletes all rows from the federation_nodes table
 func (s Store) TruncateFederationNodes(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.federationNodeTable()))
+	return s.Truncate(ctx, s.federationNodeTable())
 }
 
 // execLookupFederationNode prepares FederationNode query and executes it,
@@ -228,12 +227,12 @@ func (s Store) execLookupFederationNode(ctx context.Context, cnd squirrel.Sqlize
 
 // execCreateFederationNodes updates all matched (by cnd) rows in federation_nodes with given data
 func (s Store) execCreateFederationNodes(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.federationNodeTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.federationNodeTable()).SetMap(payload))
 }
 
 // execUpdateFederationNodes updates all matched (by cnd) rows in federation_nodes with given data
 func (s Store) execUpdateFederationNodes(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.federationNodeTable("fdn")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.federationNodeTable("fdn")).Where(cnd).SetMap(set))
 }
 
 // execUpsertFederationNodes inserts new or updates matching (by-primary-key) rows in federation_nodes with given data
@@ -249,12 +248,12 @@ func (s Store) execUpsertFederationNodes(ctx context.Context, set store.Payload)
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteFederationNodes Deletes all matched (by cnd) rows in federation_nodes with given data
 func (s Store) execDeleteFederationNodes(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.federationNodeTable("fdn")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.federationNodeTable("fdn")).Where(cnd))
 }
 
 func (s Store) internalFederationNodeRowScanner(row rowScanner) (res *types.Node, err error) {
@@ -282,11 +281,11 @@ func (s Store) internalFederationNodeRowScanner(row rowScanner) (res *types.Node
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for FederationNode: %w", err)
+		return nil, errors.Store("could not scan federationNode db row").Wrap(err)
 	} else {
 		return res, nil
 	}

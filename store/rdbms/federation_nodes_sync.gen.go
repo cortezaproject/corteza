@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncF
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfFederationNodesSyncs(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncF
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfFederationNodesSyncs collects all requested results.
@@ -115,7 +114,7 @@ func (s Store) fetchFullPageOfFederationNodesSyncs(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns()); err != nil {
 		return nil, err
 	}
 
@@ -260,7 +259,7 @@ func (s Store) CreateFederationNodesSync(ctx context.Context, rr ...*types.NodeS
 
 // UpdateFederationNodesSync updates one or more existing rows in federation_nodes_sync
 func (s Store) UpdateFederationNodesSync(ctx context.Context, rr ...*types.NodeSync) error {
-	return s.config.ErrorHandler(s.partialFederationNodesSyncUpdate(ctx, nil, rr...))
+	return s.partialFederationNodesSyncUpdate(ctx, nil, rr...)
 }
 
 // partialFederationNodesSyncUpdate updates one or more existing rows in federation_nodes_sync
@@ -278,7 +277,7 @@ func (s Store) partialFederationNodesSyncUpdate(ctx context.Context, onlyColumns
 			},
 			s.internalFederationNodesSyncEncoder(res).Skip("rel_node").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -293,7 +292,7 @@ func (s Store) UpsertFederationNodesSync(ctx context.Context, rr ...*types.NodeS
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertFederationNodesSyncs(ctx, s.internalFederationNodesSyncEncoder(res)))
+		err = s.execUpsertFederationNodesSyncs(ctx, s.internalFederationNodesSyncEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -310,7 +309,7 @@ func (s Store) DeleteFederationNodesSync(ctx context.Context, rr ...*types.NodeS
 			s.preprocessColumn("fdns.rel_node", ""): store.PreprocessValue(res.NodeID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -326,7 +325,7 @@ func (s Store) DeleteFederationNodesSyncByNodeID(ctx context.Context, nodeID uin
 
 // TruncateFederationNodesSyncs Deletes all rows from the federation_nodes_sync table
 func (s Store) TruncateFederationNodesSyncs(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.federationNodesSyncTable()))
+	return s.Truncate(ctx, s.federationNodesSyncTable())
 }
 
 // execLookupFederationNodesSync prepares FederationNodesSync query and executes it,
@@ -351,12 +350,12 @@ func (s Store) execLookupFederationNodesSync(ctx context.Context, cnd squirrel.S
 
 // execCreateFederationNodesSyncs updates all matched (by cnd) rows in federation_nodes_sync with given data
 func (s Store) execCreateFederationNodesSyncs(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.federationNodesSyncTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.federationNodesSyncTable()).SetMap(payload))
 }
 
 // execUpdateFederationNodesSyncs updates all matched (by cnd) rows in federation_nodes_sync with given data
 func (s Store) execUpdateFederationNodesSyncs(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.federationNodesSyncTable("fdns")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.federationNodesSyncTable("fdns")).Where(cnd).SetMap(set))
 }
 
 // execUpsertFederationNodesSyncs inserts new or updates matching (by-primary-key) rows in federation_nodes_sync with given data
@@ -372,12 +371,12 @@ func (s Store) execUpsertFederationNodesSyncs(ctx context.Context, set store.Pay
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteFederationNodesSyncs Deletes all matched (by cnd) rows in federation_nodes_sync with given data
 func (s Store) execDeleteFederationNodesSyncs(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.federationNodesSyncTable("fdns")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.federationNodesSyncTable("fdns")).Where(cnd))
 }
 
 func (s Store) internalFederationNodesSyncRowScanner(row rowScanner) (res *types.NodeSync, err error) {
@@ -396,11 +395,11 @@ func (s Store) internalFederationNodesSyncRowScanner(row rowScanner) (res *types
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for FederationNodesSync: %w", err)
+		return nil, errors.Store("could not scan federationNodesSync db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -443,10 +442,12 @@ func (Store) federationNodesSyncColumns(aa ...string) []string {
 // sortableFederationNodesSyncColumns returns all FederationNodesSync columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableFederationNodesSyncColumns() []string {
-	return []string{
-		"rel_node",
-		"time_action",
+func (Store) sortableFederationNodesSyncColumns() map[string]string {
+	return map[string]string{
+		"rel_node":     "rel_node",
+		"nodeid":       "rel_node",
+		"time_action":  "time_action",
+		"timeofaction": "time_action",
 	}
 }
 

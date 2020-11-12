@@ -11,10 +11,9 @@ package rdbms
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
@@ -53,7 +52,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 		curSort.Reverse()
 	}
 
-	return set, f, s.config.ErrorHandler(func() error {
+	return set, f, func() error {
 		set, err = s.fetchFullPageOfFederationModuleMappings(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
 
 		if err != nil {
@@ -73,7 +72,7 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 
 		f.PageCursor = nil
 		return nil
-	}())
+	}()
 }
 
 // fetchFullPageOfFederationModuleMappings collects all requested results.
@@ -123,7 +122,7 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 	}
 
 	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()...); err != nil {
+	if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()); err != nil {
 		return nil, err
 	}
 
@@ -268,7 +267,7 @@ func (s Store) CreateFederationModuleMapping(ctx context.Context, rr ...*types.M
 
 // UpdateFederationModuleMapping updates one or more existing rows in federation_module_mapping
 func (s Store) UpdateFederationModuleMapping(ctx context.Context, rr ...*types.ModuleMapping) error {
-	return s.config.ErrorHandler(s.partialFederationModuleMappingUpdate(ctx, nil, rr...))
+	return s.partialFederationModuleMappingUpdate(ctx, nil, rr...)
 }
 
 // partialFederationModuleMappingUpdate updates one or more existing rows in federation_module_mapping
@@ -286,7 +285,7 @@ func (s Store) partialFederationModuleMappingUpdate(ctx context.Context, onlyCol
 			},
 			s.internalFederationModuleMappingEncoder(res).Skip("rel_federation_module", "rel_compose_module", "rel_compose_namespace").Only(onlyColumns...))
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -301,7 +300,7 @@ func (s Store) UpsertFederationModuleMapping(ctx context.Context, rr ...*types.M
 			return err
 		}
 
-		err = s.config.ErrorHandler(s.execUpsertFederationModuleMappings(ctx, s.internalFederationModuleMappingEncoder(res)))
+		err = s.execUpsertFederationModuleMappings(ctx, s.internalFederationModuleMappingEncoder(res))
 		if err != nil {
 			return err
 		}
@@ -318,7 +317,7 @@ func (s Store) DeleteFederationModuleMapping(ctx context.Context, rr ...*types.M
 			s.preprocessColumn("cmd.rel_federation_module", ""): store.PreprocessValue(res.FederationModuleID, ""), s.preprocessColumn("cmd.rel_compose_module", ""): store.PreprocessValue(res.ComposeModuleID, ""), s.preprocessColumn("cmd.rel_compose_namespace", ""): store.PreprocessValue(res.ComposeNamespaceID, ""),
 		})
 		if err != nil {
-			return s.config.ErrorHandler(err)
+			return err
 		}
 	}
 
@@ -336,7 +335,7 @@ func (s Store) DeleteFederationModuleMappingByFederationModuleIDComposeModuleIDC
 
 // TruncateFederationModuleMappings Deletes all rows from the federation_module_mapping table
 func (s Store) TruncateFederationModuleMappings(ctx context.Context) error {
-	return s.config.ErrorHandler(s.Truncate(ctx, s.federationModuleMappingTable()))
+	return s.Truncate(ctx, s.federationModuleMappingTable())
 }
 
 // execLookupFederationModuleMapping prepares FederationModuleMapping query and executes it,
@@ -361,12 +360,12 @@ func (s Store) execLookupFederationModuleMapping(ctx context.Context, cnd squirr
 
 // execCreateFederationModuleMappings updates all matched (by cnd) rows in federation_module_mapping with given data
 func (s Store) execCreateFederationModuleMappings(ctx context.Context, payload store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.InsertBuilder(s.federationModuleMappingTable()).SetMap(payload)))
+	return s.Exec(ctx, s.InsertBuilder(s.federationModuleMappingTable()).SetMap(payload))
 }
 
 // execUpdateFederationModuleMappings updates all matched (by cnd) rows in federation_module_mapping with given data
 func (s Store) execUpdateFederationModuleMappings(ctx context.Context, cnd squirrel.Sqlizer, set store.Payload) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.UpdateBuilder(s.federationModuleMappingTable("cmd")).Where(cnd).SetMap(set)))
+	return s.Exec(ctx, s.UpdateBuilder(s.federationModuleMappingTable("cmd")).Where(cnd).SetMap(set))
 }
 
 // execUpsertFederationModuleMappings inserts new or updates matching (by-primary-key) rows in federation_module_mapping with given data
@@ -384,12 +383,12 @@ func (s Store) execUpsertFederationModuleMappings(ctx context.Context, set store
 		return err
 	}
 
-	return s.config.ErrorHandler(s.Exec(ctx, upsert))
+	return s.Exec(ctx, upsert)
 }
 
 // execDeleteFederationModuleMappings Deletes all matched (by cnd) rows in federation_module_mapping with given data
 func (s Store) execDeleteFederationModuleMappings(ctx context.Context, cnd squirrel.Sqlizer) error {
-	return s.config.ErrorHandler(s.Exec(ctx, s.DeleteBuilder(s.federationModuleMappingTable("cmd")).Where(cnd)))
+	return s.Exec(ctx, s.DeleteBuilder(s.federationModuleMappingTable("cmd")).Where(cnd))
 }
 
 func (s Store) internalFederationModuleMappingRowScanner(row rowScanner) (res *types.ModuleMapping, err error) {
@@ -408,11 +407,11 @@ func (s Store) internalFederationModuleMappingRowScanner(row rowScanner) (res *t
 	}
 
 	if err == sql.ErrNoRows {
-		return nil, store.ErrNotFound
+		return nil, store.ErrNotFound.Stack(1)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("could not scan db row for FederationModuleMapping: %w", err)
+		return nil, errors.Store("could not scan federationModuleMapping db row").Wrap(err)
 	} else {
 		return res, nil
 	}
@@ -455,11 +454,14 @@ func (Store) federationModuleMappingColumns(aa ...string) []string {
 // sortableFederationModuleMappingColumns returns all FederationModuleMapping columns flagged as sortable
 //
 // With optional string arg, all columns are returned aliased
-func (Store) sortableFederationModuleMappingColumns() []string {
-	return []string{
-		"rel_federation_module",
-		"rel_compose_module",
-		"rel_compose_namespace",
+func (Store) sortableFederationModuleMappingColumns() map[string]string {
+	return map[string]string{
+		"rel_federation_module": "rel_federation_module",
+		"federationmoduleid":    "rel_federation_module",
+		"rel_compose_module":    "rel_compose_module",
+		"composemoduleid":       "rel_compose_module",
+		"rel_compose_namespace": "rel_compose_namespace",
+		"composenamespaceid":    "rel_compose_namespace",
 	}
 }
 

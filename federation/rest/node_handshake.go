@@ -2,10 +2,9 @@ package rest
 
 import (
 	"context"
-	"github.com/titpetric/factory/resputil"
-
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
+	"github.com/cortezaproject/corteza-server/pkg/api"
 )
 
 type (
@@ -25,5 +24,5 @@ func (NodeHandshake) New() *NodeHandshake {
 }
 
 func (ctrl NodeHandshake) Initialize(ctx context.Context, r *request.NodeHandshakeInitialize) (interface{}, error) {
-	return resputil.OK(), ctrl.svcNode.HandshakeInit(ctx, r.NodeID, r.PairToken, r.SharedNodeID, r.AuthToken)
+	return api.OK(), ctrl.svcNode.HandshakeInit(ctx, r.NodeID, r.PairToken, r.SharedNodeID, r.AuthToken)
 }
