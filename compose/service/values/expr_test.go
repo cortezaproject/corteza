@@ -19,7 +19,7 @@ func TestExpressions(t *testing.T) {
 
 			for i := 0; i < len(pairs); i += 3 {
 				f := &types.ModuleField{Name: pairs[i], Kind: pairs[i+1], Options: map[string]interface{}{}}
-				f.Expressions.Value = pairs[i+2]
+				f.Expressions.ValueExpr = pairs[i+2]
 				m.Fields = append(m.Fields, f)
 			}
 
