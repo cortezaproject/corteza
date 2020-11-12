@@ -261,7 +261,7 @@ func testUsers(t *testing.T, s store.Users) {
 			req.NotNil(f.PrevPage)
 			req.Equal("07..09", stringifySetRange(set))
 
-			// still in reverse, next 6 items
+			// still in reverse, next 5 items
 			f.Limit = 5
 			f.PageCursor = f.PrevPage
 			set, f, err = store.SearchUsers(ctx, s, f)
