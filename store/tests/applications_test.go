@@ -159,11 +159,11 @@ func testApplications(t *testing.T, s store.Applications) {
 		)
 
 		req.NoError(s.TruncateApplications(ctx))
-		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now()}))
-		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now()}))
-		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
-		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
-		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now()}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now(), Unify: &types.ApplicationUnify{}}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), UpdatedAt: now(), Unify: &types.ApplicationUnify{}}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now(), Unify: &types.ApplicationUnify{}}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now(), Unify: &types.ApplicationUnify{}}))
+		req.NoError(s.CreateApplication(ctx, &types.Application{ID: id.Next(), CreatedAt: *now(), DeletedAt: now(), Unify: &types.ApplicationUnify{}}))
 
 		m, err := store.ApplicationMetrics(ctx, s)
 		req.NoError(err)
