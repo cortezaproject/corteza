@@ -2,6 +2,8 @@ package values
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"go.uber.org/zap"
 	"strconv"
 	"strings"
 	"time"
@@ -55,6 +57,10 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 	var (
 		f    *types.ModuleField
 		kind string
+
+		log = logger.Default().
+			WithOptions(zap.AddStacktrace(zap.PanicLevel)).
+			With(zap.Uint64("module", m.ID))
 	)
 
 	for _, v := range out {
@@ -75,7 +81,16 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 
 		if len(f.Expressions.Sanitizers) > 0 {
 			for _, expr := range f.Expressions.Sanitizers {
-				rval, _ := exprParser.Evaluate(expr, map[string]interface{}{"value": v.Value})
+				rval, err := exprParser.Evaluate(expr, map[string]interface{}{"value": v.Value})
+				if err != nil {
+					log.Error(
+						"failed to evaluate sanitizer expression",
+						zap.String("field", f.Name),
+						zap.String("expr", expr),
+						zap.Error(err),
+					)
+					continue
+				}
 				v.Value = sanitize(f, rval)
 			}
 		}
