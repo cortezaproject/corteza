@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"strconv"
 
 	composeService "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -12,21 +11,18 @@ import (
 
 type (
 	sharedModule struct {
+		node      node
 		compose   composeService.ModuleService
 		store     store.Storer
 		actionlog actionlog.Recorder
 	}
 
 	SharedModuleService interface {
-		Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
-		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.SharedModule, error)
-		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.SharedModule, error)
 		Create(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error)
 		Update(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error)
-		// DeleteByID(ctx context.Context, nodeID, moduleID uint64) error
+		Find(ctx context.Context, filter types.SharedModuleFilter) (types.SharedModuleSet, types.SharedModuleFilter, error)
+		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.SharedModule, error)
 	}
-
-	// moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.SharedModule) (bool, bool, error)
 )
 
 func SharedModule() SharedModuleService {
@@ -35,27 +31,6 @@ func SharedModule() SharedModuleService {
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
 	}
-}
-
-// FindByAny tries to find module in a particular namespace by id, handle or name
-func (svc sharedModule) FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (m *types.SharedModule, err error) {
-	if ID, ok := identifier.(uint64); ok {
-		m, err = svc.FindByID(ctx, nodeID, ID)
-	} else if strIdentifier, ok := identifier.(string); ok {
-		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
-			m, err = svc.FindByID(ctx, nodeID, ID)
-		}
-	} else {
-		// force invalid ID error
-		// we do that to wrap error with lookup action context
-		_, err = svc.FindByID(ctx, nodeID, 0)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return m, nil
 }
 
 func (svc sharedModule) FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (module *types.SharedModule, err error) {
@@ -81,8 +56,9 @@ func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*t
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
 
-		// TODO - fetch Node
-		aProps.setNode(nil)
+		if _, err := svc.node.FindByID(ctx, new.NodeID); err != nil {
+			return SharedModuleErrNodeNotFound()
+		}
 
 		// Check for node - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
@@ -119,6 +95,10 @@ func (svc sharedModule) Update(ctx context.Context, updated *types.SharedModule)
 		updated.UpdatedAt = now()
 
 		aProps.setModule(updated)
+
+		if _, err := svc.node.FindByID(ctx, updated.NodeID); err != nil {
+			return SharedModuleErrNodeNotFound()
+		}
 
 		if err = store.UpdateFederationSharedModule(ctx, s, updated); err != nil {
 			return err
@@ -191,10 +171,6 @@ func (svc sharedModule) Find(ctx context.Context, filter types.SharedModuleFilte
 	)
 
 	err = func() error {
-		// handle node for actionlog here?
-		if f.NodeID > 0 {
-		}
-
 		if set, f, err = store.SearchFederationSharedModules(ctx, svc.store, filter); err != nil {
 			return err
 		}
@@ -204,8 +180,3 @@ func (svc sharedModule) Find(ctx context.Context, filter types.SharedModuleFilte
 
 	return set, f, svc.recordAction(ctx, aProps, SharedModuleActionSearch, err)
 }
-
-// // trim1st removes 1st param and returns only error
-// func trim1st(_ interface{}, err error) error {
-// 	return err
-// }

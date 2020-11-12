@@ -604,6 +604,36 @@ func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
 	return e
 }
 
+// ExposedModuleErrNodeNotFound returns "federation:exposed_module.nodeNotFound" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ExposedModuleErrNodeNotFound(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node does not exist", nil),
+
+		errors.Meta("type", "nodeNotFound"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ExposedModuleErrComposeModuleNotFound returns "federation:exposed_module.composeModuleNotFound" as *errors.Error
 //
 //

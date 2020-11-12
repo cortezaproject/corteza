@@ -71,6 +71,10 @@ errors:
     log: "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module"
     severity: warning
 
+  - error: nodeNotFound
+    message: "node does not exist"
+    severity: warning
+
   - error: composeModuleNotFound
     message: "compose module not found"
     severity: "warning"

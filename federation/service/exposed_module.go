@@ -12,6 +12,7 @@ import (
 
 type (
 	exposedModule struct {
+		node      node
 		module    composeService.ModuleService
 		namespace composeService.NamespaceService
 		store     store.Storer
@@ -23,7 +24,7 @@ type (
 		Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error)
 		Find(ctx context.Context, filter types.ExposedModuleFilter) (types.ExposedModuleSet, types.ExposedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.ExposedModule, error)
-		FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
+		// FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
 		DeleteByID(ctx context.Context, nodeID, moduleID uint64) (*types.ExposedModule, error)
 	}
 
@@ -32,6 +33,7 @@ type (
 
 func ExposedModule() ExposedModuleService {
 	return &exposedModule{
+		node:      *DefaultNode,
 		module:    composeService.DefaultModule,
 		namespace: composeService.DefaultNamespace,
 		store:     DefaultStore,
@@ -83,7 +85,9 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
 
-		aProps.setNode(nil)
+		if _, err := svc.node.FindByID(ctx, updated.NodeID); err != nil {
+			return ExposedModuleErrNodeNotFound()
+		}
 
 		if _, err := svc.namespace.With(ctx).FindByID(updated.ComposeNamespaceID); err != nil {
 			return ExposedModuleErrComposeNamespaceNotFound()
@@ -201,8 +205,9 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
 
-		// TODO - fetch Node
-		aProps.setNode(nil)
+		if _, err := svc.node.FindByID(ctx, new.NodeID); err != nil {
+			return ExposedModuleErrNodeNotFound()
+		}
 
 		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
 			return ExposedModuleErrComposeNamespaceNotFound()
@@ -257,9 +262,4 @@ func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule
 	}
 
 	return nil
-}
-
-// trim1st removes 1st param and returns only error
-func trim1st(_ interface{}, err error) error {
-	return err
 }
