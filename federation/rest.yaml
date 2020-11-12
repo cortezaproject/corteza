@@ -69,6 +69,13 @@ endpoints:
               required: false
               title: Pairing URI
 
+      - name: read
+        method: GET
+        title: Read a federation node
+        path: "/{nodeID}"
+        parameters:
+          path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ]
+
       - name: generateURI
         method: POST
         title: Creates new sharable federation URI
