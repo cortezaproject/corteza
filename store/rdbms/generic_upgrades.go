@@ -366,7 +366,7 @@ func (g genericUpgrades) AlterComposeModuleRenameJsonToMeta(ctx context.Context)
 
 func (g genericUpgrades) AlterComposeModuleFieldAddExpresions(ctx context.Context) (err error) {
 	var (
-		col = &ddl.Column{Name: "expressions", Type: ddl.ColumnType{Type: ddl.ColumnTypeJson}, IsNull: true}
+		col = &ddl.Column{Name: "expressions", Type: ddl.ColumnType{Type: ddl.ColumnTypeJson}, IsNull: false}
 	)
 
 	_, err = g.u.AddColumn(ctx, "compose_module_field", col)
