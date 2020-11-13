@@ -63,7 +63,7 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 		lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeStructure)
 		basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", n.SharedNodeID)
 
-		z := []zap.Field{zap.Uint64("nodeID", n.ID)}
+		z := []zap.Field{zap.Uint64("nodeID", n.ID), zap.String("host", n.BaseURL)}
 
 		if lastSync != nil {
 			z = append(z, zap.Time("lastSync", *lastSync))
@@ -167,14 +167,11 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			countProcess += processed
 
 			if err != nil {
-				spew.Dump("ERR", err)
-				// handle error
 				w.logger.Info("error on handling payload", zap.Error(err))
 			} else {
 				n, err := DefaultNode.FindBySharedNodeID(ctx, p.Meta.(*structureProcesser).SharedNodeID)
 
 				if err != nil {
-					spew.Dump("ERR", err)
 					w.logger.Info("could not update sync status", zap.Error(err))
 					continue
 				}
@@ -190,11 +187,10 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 				new, err = DefaultNodeSync.Create(ctx, new)
 
 				if err != nil {
-					spew.Dump("ERR", err)
 					w.logger.Info("could not update sync status", zap.Error(err))
 				}
 
-				w.logger.Info("processed objects", zap.Int("processed", processed), zap.Uint64("nodeID", n.ID))
+				w.logger.Info("processed objects", zap.Int("processed", processed), zap.Uint64("nodeID", n.ID), zap.String("host", n.BaseURL))
 			}
 		}
 	}

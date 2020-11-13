@@ -27,6 +27,7 @@ type (
 
 func SharedModule() SharedModuleService {
 	return &sharedModule{
+		node:      *DefaultNode,
 		compose:   composeService.DefaultModule,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
