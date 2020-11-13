@@ -36,7 +36,7 @@ func (s Store) SearchComposeAttachments(ctx context.Context, f types.AttachmentF
 			return err
 		}
 
-		set, _, _, err = s.QueryComposeAttachments(ctx, q, f.Check)
+		set, err = s.QueryComposeAttachments(ctx, q, f.Check)
 		return err
 	}()
 }
@@ -50,37 +50,34 @@ func (s Store) QueryComposeAttachments(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Attachment) (bool, error),
-) ([]*types.Attachment, uint, *types.Attachment, error) {
+) ([]*types.Attachment, error) {
 	var (
 		set = make([]*types.Attachment, 0, DefaultSliceCapacity)
 		res *types.Attachment
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposeAttachmentRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
 				continue
 			}
@@ -89,7 +86,7 @@ func (s Store) QueryComposeAttachments(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupComposeAttachmentByID searches for attachment by its ID

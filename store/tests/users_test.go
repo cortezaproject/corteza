@@ -329,7 +329,65 @@ func testUsers(t *testing.T, s store.Users) {
 			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}}
 			set, f, err = store.SearchUsers(ctx, s, f)
 			req.EqualError(err, "incompatible sort")
+		})
 
+		t.Run("with empty cursors", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.TruncateUsers(ctx))
+
+			set := []*types.User{makeNew("01"), makeNew("02")}
+
+			req.NoError(s.CreateUser(ctx, set...))
+
+			f := types.UserFilter{}
+			f.Limit = 2
+			_, f, err := store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.Nil(f.NextPage)
+			req.Nil(f.PrevPage)
+
+			f.Limit = 1
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+
+			f.PageCursor = f.NextPage
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.Nil(f.NextPage)
+			req.NotNil(f.PrevPage)
+
+			f = types.UserFilter{}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "id", Descending: true}}
+			f.Limit = 2
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.Nil(f.NextPage)
+			req.Nil(f.PrevPage)
+
+			f.Limit = 1
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.NotNil(f.NextPage)
+			req.Nil(f.PrevPage)
+
+			f.PageCursor = f.NextPage
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.Nil(f.NextPage)
+			req.NotNil(f.PrevPage)
+
+			// expecting empty next if check fn filters out resources
+			f = types.UserFilter{Check: func(user *types.User) (bool, error) {
+				return user.Handle != "handle_02", nil
+			}}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "id", Descending: true}}
+			f.Limit = 1
+			_, f, err = store.SearchUsers(ctx, s, f)
+			req.NoError(err)
+			req.Nil(f.NextPage)
+			req.Nil(f.PrevPage)
 		})
 
 		t.Run("by role", func(t *testing.T) {

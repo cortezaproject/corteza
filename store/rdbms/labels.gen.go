@@ -36,7 +36,7 @@ func (s Store) SearchLabels(ctx context.Context, f types.LabelFilter) (types.Lab
 			return err
 		}
 
-		set, _, _, err = s.QueryLabels(ctx, q, nil)
+		set, err = s.QueryLabels(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryLabels(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Label) (bool, error),
-) ([]*types.Label, uint, *types.Label, error) {
+) ([]*types.Label, error) {
 	var (
 		set = make([]*types.Label, 0, DefaultSliceCapacity)
 		res *types.Label
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalLabelRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupLabelByKindResourceIDName Label lookup by kind, resource, name

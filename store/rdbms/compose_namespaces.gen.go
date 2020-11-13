@@ -125,22 +125,20 @@ func (s Store) fetchFullPageOfComposeNamespaces(
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, _, err = s.QueryComposeNamespaces(ctx, tryQuery, check); err != nil {
+		if aux, err = s.QueryComposeNamespaces(ctx, tryQuery, check); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if cursor != nil && prev == nil && len(aux) > 0 {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
 			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
 			prev = s.collectComposeNamespaceCursorValues(aux[0], sortColumns...)
 		}
 
 		// Point cursor to the last fetched element
-		// if last != nil {
-		if fetched >= limit && limit > 0 {
+		if fetched > limit && limit > 0 {
 			next = s.collectComposeNamespaceCursorValues(aux[limit-1], sortColumns...)
-		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
 			set = append(set, aux[:limit]...)
 			break
@@ -189,37 +187,34 @@ func (s Store) QueryComposeNamespaces(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Namespace) (bool, error),
-) ([]*types.Namespace, uint, *types.Namespace, error) {
+) ([]*types.Namespace, error) {
 	var (
 		set = make([]*types.Namespace, 0, DefaultSliceCapacity)
 		res *types.Namespace
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposeNamespaceRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
 				continue
 			}
@@ -228,7 +223,7 @@ func (s Store) QueryComposeNamespaces(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)

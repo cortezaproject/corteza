@@ -36,7 +36,7 @@ func (s Store) SearchMessagingFlags(ctx context.Context, f types.MessageFlagFilt
 			return err
 		}
 
-		set, _, _, err = s.QueryMessagingFlags(ctx, q, nil)
+		set, err = s.QueryMessagingFlags(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryMessagingFlags(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.MessageFlag) (bool, error),
-) ([]*types.MessageFlag, uint, *types.MessageFlag, error) {
+) ([]*types.MessageFlag, error) {
 	var (
 		set = make([]*types.MessageFlag, 0, DefaultSliceCapacity)
 		res *types.MessageFlag
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalMessagingFlagRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupMessagingFlagByID searches for flags by ID

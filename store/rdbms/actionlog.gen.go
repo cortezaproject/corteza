@@ -125,22 +125,20 @@ func (s Store) fetchFullPageOfActionlogs(
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, _, err = s.QueryActionlogs(ctx, tryQuery, check); err != nil {
+		if aux, err = s.QueryActionlogs(ctx, tryQuery, check); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if cursor != nil && prev == nil && len(aux) > 0 {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
 			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
 			prev = s.collectActionlogCursorValues(aux[0], sortColumns...)
 		}
 
 		// Point cursor to the last fetched element
-		// if last != nil {
-		if fetched >= limit && limit > 0 {
+		if fetched > limit && limit > 0 {
 			next = s.collectActionlogCursorValues(aux[limit-1], sortColumns...)
-		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
 			set = append(set, aux[:limit]...)
 			break
@@ -189,36 +187,33 @@ func (s Store) QueryActionlogs(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*actionlog.Action) (bool, error),
-) ([]*actionlog.Action, uint, *actionlog.Action, error) {
+) ([]*actionlog.Action, error) {
 	var (
 		set = make([]*actionlog.Action, 0, DefaultSliceCapacity)
 		res *actionlog.Action
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalActionlogRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // CreateActionlog creates one or more rows in actionlog table

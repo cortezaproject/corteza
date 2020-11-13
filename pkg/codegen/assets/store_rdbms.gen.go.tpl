@@ -122,7 +122,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 		f.PageCursor = nil
 		return nil
 	{{- else }}
-		set, _, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, q, {{ if $.Search.EnableFilterCheckFn }}f.Check{{else}}nil{{ end }})
+		set, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, q, {{ if $.Search.EnableFilterCheckFn }}f.Check{{else}}nil{{ end }})
 		return err
 	{{- end }}
 	}()
@@ -176,23 +176,20 @@ func (s Store) {{ unexport "fetchFullPageOf" $.Types.Plural  }} (
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, _, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, tryQuery, check); err != nil {
+		if aux, err = s.{{ export "query" $.Types.Plural }}(ctx{{ template "extraArgsCall" . }}, tryQuery, check); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if cursor != nil && prev == nil && len(aux) > 0 {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
 			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
 			prev = s.collect{{ export $.Types.Singular }}CursorValues(aux[0], sortColumns...)
 		}
 
-
 		// Point cursor to the last fetched element
-		// if last != nil {
-		if fetched >= limit && limit > 0 {
-			next = s.collect{{ export $.Types.Singular }}CursorValues(aux[limit-1], sortColumns...);
-		}
+		if fetched > limit && limit > 0 {
+			next = s.collect{{ export $.Types.Singular }}CursorValues(aux[limit-1], sortColumns...)
 
-		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
 			set = append(set, aux[:limit]...)
 			break
@@ -243,30 +240,27 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 	ctx context.Context{{ template "extraArgsDef" . }},
 	q squirrel.Sqlizer,
 	check func(*{{ $.Types.GoType }}) (bool, error),
-) ([]*{{ $.Types.GoType }}, uint, *{{ $.Types.GoType }}, error) {
+) ([]*{{ $.Types.GoType }}, error) {
 	var (
 		set = make([]*{{ $.Types.GoType }}, 0, DefaultSliceCapacity)
 		res  *{{ $.Types.GoType }}
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internal{{ export $.Types.Singular }}RowScanner({{ template "extraArgsCallFirst" . }}rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 	{{ if $.Search.EnableFilterCheckFn }}
@@ -274,7 +268,7 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
 				continue
 			}
@@ -285,11 +279,11 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 
 {{ if .RDBMS.CustomPostLoadProcessor }}
 	if err = s.{{ unexport $.Types.Singular }}PostLoadProcessor(ctx{{ template "extraArgsCall" . }}, set...); err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 {{end }}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 

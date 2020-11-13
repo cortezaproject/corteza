@@ -36,7 +36,7 @@ func (s Store) SearchMessagingChannelMembers(ctx context.Context, f types.Channe
 			return err
 		}
 
-		set, _, _, err = s.QueryMessagingChannelMembers(ctx, q, nil)
+		set, err = s.QueryMessagingChannelMembers(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryMessagingChannelMembers(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.ChannelMember) (bool, error),
-) ([]*types.ChannelMember, uint, *types.ChannelMember, error) {
+) ([]*types.ChannelMember, error) {
 	var (
 		set = make([]*types.ChannelMember, 0, DefaultSliceCapacity)
 		res *types.ChannelMember
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalMessagingChannelMemberRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // CreateMessagingChannelMember creates one or more rows in messaging_channel_member table

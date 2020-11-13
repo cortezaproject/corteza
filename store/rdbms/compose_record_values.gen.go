@@ -36,7 +36,7 @@ func (s Store) searchComposeRecordValues(ctx context.Context, _mod *types.Module
 			return err
 		}
 
-		set, _, _, err = s.QueryComposeRecordValues(ctx, _mod, q, nil)
+		set, err = s.QueryComposeRecordValues(ctx, _mod, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryComposeRecordValues(
 	ctx context.Context, _mod *types.Module,
 	q squirrel.Sqlizer,
 	check func(*types.RecordValue) (bool, error),
-) ([]*types.RecordValue, uint, *types.RecordValue, error) {
+) ([]*types.RecordValue, error) {
 	var (
 		set = make([]*types.RecordValue, 0, DefaultSliceCapacity)
 		res *types.RecordValue
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposeRecordValueRowScanner(_mod, rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // createComposeRecordValue creates one or more rows in compose_record_value table

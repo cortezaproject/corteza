@@ -33,7 +33,7 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 	return set, f, func() error {
 		q = s.roleMembersSelectBuilder()
 
-		set, _, _, err = s.QueryRoleMembers(ctx, q, nil)
+		set, err = s.QueryRoleMembers(ctx, q, nil)
 		return err
 	}()
 }
@@ -47,36 +47,33 @@ func (s Store) QueryRoleMembers(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.RoleMember) (bool, error),
-) ([]*types.RoleMember, uint, *types.RoleMember, error) {
+) ([]*types.RoleMember, error) {
 	var (
 		set = make([]*types.RoleMember, 0, DefaultSliceCapacity)
 		res *types.RoleMember
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalRoleMemberRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // CreateRoleMember creates one or more rows in role_members table

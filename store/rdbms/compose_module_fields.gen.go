@@ -36,7 +36,7 @@ func (s Store) SearchComposeModuleFields(ctx context.Context, f types.ModuleFiel
 			return err
 		}
 
-		set, _, _, err = s.QueryComposeModuleFields(ctx, q, nil)
+		set, err = s.QueryComposeModuleFields(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryComposeModuleFields(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.ModuleField) (bool, error),
-) ([]*types.ModuleField, uint, *types.ModuleField, error) {
+) ([]*types.ModuleField, error) {
 	var (
 		set = make([]*types.ModuleField, 0, DefaultSliceCapacity)
 		res *types.ModuleField
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposeModuleFieldRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupComposeModuleFieldByModuleIDName searches for compose module field by name (case-insensitive)

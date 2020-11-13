@@ -140,7 +140,7 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 	// Create CTE with originals & base
 	cte := squirrel.ConcatExpr("WITH originals AS (", originals, ") ", base)
 
-	if set, _, _, err = s.QueryMessagingMessages(ctx, cte, nil); err != nil {
+	if set, err = s.QueryMessagingMessages(ctx, cte, nil); err != nil {
 		return nil, filter, err
 	}
 

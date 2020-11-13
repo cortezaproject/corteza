@@ -33,7 +33,7 @@ func (s Store) SearchRbacRules(ctx context.Context, f rbac.RuleFilter) (rbac.Rul
 	return set, f, func() error {
 		q = s.rbacRulesSelectBuilder()
 
-		set, _, _, err = s.QueryRbacRules(ctx, q, nil)
+		set, err = s.QueryRbacRules(ctx, q, nil)
 		return err
 	}()
 }
@@ -47,36 +47,33 @@ func (s Store) QueryRbacRules(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*rbac.Rule) (bool, error),
-) ([]*rbac.Rule, uint, *rbac.Rule, error) {
+) ([]*rbac.Rule, error) {
 	var (
 		set = make([]*rbac.Rule, 0, DefaultSliceCapacity)
 		res *rbac.Rule
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalRbacRuleRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // CreateRbacRule creates one or more rows in rbac_rules table
