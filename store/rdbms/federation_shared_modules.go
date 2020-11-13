@@ -24,6 +24,10 @@ func (s Store) convertFederationSharedModuleFilter(f types.SharedModuleFilter) (
 		query = query.Where("cmd.name = ?", f.Name)
 	}
 
+	if f.ExternalFederationModuleID > 0 {
+		query = query.Where("cmd.xref_module = ?", f.ExternalFederationModuleID)
+	}
+
 	if f.Query != "" {
 		q := "%" + strings.ToLower(f.Query) + "%"
 		query = query.Where(squirrel.Or{
