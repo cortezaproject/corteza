@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -46,7 +47,7 @@ type (
 	}
 )
 
-func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.TokenHandler) *node {
+func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.TokenHandler, options options.FederationOpt) *node {
 	return &node{
 		store:        s,
 		sysUser:      u,
@@ -58,7 +59,7 @@ func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.
 		name: "Server A",
 
 		// @todo read this from settings
-		host: "example.tld",
+		host: options.Host,
 
 		// @todo use HTTP_API_BASE_URL (HTTPServerOpt.ApiBaseUrl) to prefix URI path
 		baseURL: "/federation",
