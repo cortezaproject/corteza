@@ -36,7 +36,7 @@ func (s Store) SearchCredentials(ctx context.Context, f types.CredentialsFilter)
 			return err
 		}
 
-		set, _, _, err = s.QueryCredentials(ctx, q, nil)
+		set, err = s.QueryCredentials(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryCredentials(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Credentials) (bool, error),
-) ([]*types.Credentials, uint, *types.Credentials, error) {
+) ([]*types.Credentials, error) {
 	var (
 		set = make([]*types.Credentials, 0, DefaultSliceCapacity)
 		res *types.Credentials
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalCredentialsRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupCredentialsByID searches for credentials by ID

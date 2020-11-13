@@ -125,22 +125,20 @@ func (s Store) fetchFullPageOfComposePages(
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, _, err = s.QueryComposePages(ctx, tryQuery, check); err != nil {
+		if aux, err = s.QueryComposePages(ctx, tryQuery, check); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if cursor != nil && prev == nil && len(aux) > 0 {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
 			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
 			prev = s.collectComposePageCursorValues(aux[0], sortColumns...)
 		}
 
 		// Point cursor to the last fetched element
-		// if last != nil {
-		if fetched >= limit && limit > 0 {
+		if fetched > limit && limit > 0 {
 			next = s.collectComposePageCursorValues(aux[limit-1], sortColumns...)
-		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
 			set = append(set, aux[:limit]...)
 			break
@@ -189,37 +187,34 @@ func (s Store) QueryComposePages(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Page) (bool, error),
-) ([]*types.Page, uint, *types.Page, error) {
+) ([]*types.Page, error) {
 	var (
 		set = make([]*types.Page, 0, DefaultSliceCapacity)
 		res *types.Page
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposePageRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
 				continue
 			}
@@ -228,7 +223,7 @@ func (s Store) QueryComposePages(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupComposePageByNamespaceIDHandle searches for page by handle (case-insensitive)

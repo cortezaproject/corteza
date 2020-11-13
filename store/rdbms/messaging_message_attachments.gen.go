@@ -28,36 +28,33 @@ func (s Store) QueryMessagingMessageAttachments(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.MessageAttachment) (bool, error),
-) ([]*types.MessageAttachment, uint, *types.MessageAttachment, error) {
+) ([]*types.MessageAttachment, error) {
 	var (
 		set = make([]*types.MessageAttachment, 0, DefaultSliceCapacity)
 		res *types.MessageAttachment
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalMessagingMessageAttachmentRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupMessagingMessageAttachmentByMessageID searches for message attachment by message ID

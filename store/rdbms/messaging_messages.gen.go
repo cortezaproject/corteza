@@ -36,7 +36,7 @@ func (s Store) SearchMessagingMessages(ctx context.Context, f types.MessageFilte
 			return err
 		}
 
-		set, _, _, err = s.QueryMessagingMessages(ctx, q, nil)
+		set, err = s.QueryMessagingMessages(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryMessagingMessages(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Message) (bool, error),
-) ([]*types.Message, uint, *types.Message, error) {
+) ([]*types.Message, error) {
 	var (
 		set = make([]*types.Message, 0, DefaultSliceCapacity)
 		res *types.Message
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalMessagingMessageRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupMessagingMessageByID searches for message by its ID

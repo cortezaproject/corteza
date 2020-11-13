@@ -67,22 +67,20 @@ func (s Store) fetchFullPageOfComposeRecords(
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, _, err = s.QueryComposeRecords(ctx, _mod, tryQuery, check); err != nil {
+		if aux, err = s.QueryComposeRecords(ctx, _mod, tryQuery, check); err != nil {
 			return nil, nil, nil, err
 		}
 
-		if cursor != nil && prev == nil && len(aux) > 0 {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
 			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
 			prev = s.collectComposeRecordCursorValues(aux[0], sortColumns...)
 		}
 
 		// Point cursor to the last fetched element
-		// if last != nil {
-		if fetched >= limit && limit > 0 {
+		if fetched > limit && limit > 0 {
 			next = s.collectComposeRecordCursorValues(aux[limit-1], sortColumns...)
-		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
 			// we should use only as much as requested
 			set = append(set, aux[:limit]...)
 			break
@@ -131,37 +129,34 @@ func (s Store) QueryComposeRecords(
 	ctx context.Context, _mod *types.Module,
 	q squirrel.Sqlizer,
 	check func(*types.Record) (bool, error),
-) ([]*types.Record, uint, *types.Record, error) {
+) ([]*types.Record, error) {
 	var (
 		set = make([]*types.Record, 0, DefaultSliceCapacity)
 		res *types.Record
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalComposeRecordRowScanner(_mod, rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
 				continue
 			}
@@ -171,10 +166,10 @@ func (s Store) QueryComposeRecords(
 	}
 
 	if err = s.composeRecordPostLoadProcessor(ctx, _mod, set...); err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // lookupComposeRecordByID searches for compose record by ID

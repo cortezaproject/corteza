@@ -82,7 +82,7 @@ func (s Store) CountMessagingUnread(ctx context.Context, userID, channelID uint6
 		q = q.Where(squirrel.Eq{"rel_reply_to": threadIDs})
 	}
 
-	uu, _, _, err = s.QueryMessagingUnreads(ctx, q, nil)
+	uu, err = s.QueryMessagingUnreads(ctx, q, nil)
 	return
 }
 
@@ -126,7 +126,7 @@ func (s Store) PresetMessagingUnread(ctx context.Context, channelID, threadID ui
 			})
 		)
 
-		if set, _, _, err = s.QueryMessagingUnreads(ctx, q, nil); err != nil {
+		if set, err = s.QueryMessagingUnreads(ctx, q, nil); err != nil {
 			return
 		}
 

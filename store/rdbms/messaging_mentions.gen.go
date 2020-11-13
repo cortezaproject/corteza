@@ -36,7 +36,7 @@ func (s Store) SearchMessagingMentions(ctx context.Context, f types.MentionFilte
 			return err
 		}
 
-		set, _, _, err = s.QueryMessagingMentions(ctx, q, nil)
+		set, err = s.QueryMessagingMentions(ctx, q, nil)
 		return err
 	}()
 }
@@ -50,36 +50,33 @@ func (s Store) QueryMessagingMentions(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Mention) (bool, error),
-) ([]*types.Mention, uint, *types.Mention, error) {
+) ([]*types.Mention, error) {
 	var (
 		set = make([]*types.Mention, 0, DefaultSliceCapacity)
 		res *types.Mention
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalMessagingMentionRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupMessagingMentionByID searches for attachment by its ID
