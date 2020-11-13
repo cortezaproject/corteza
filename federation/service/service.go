@@ -22,8 +22,9 @@ import (
 
 type (
 	Config struct {
-		ActionLog options.ActionLogOpt
-		Storage   options.ObjectStoreOpt
+		ActionLog  options.ActionLogOpt
+		Storage    options.ObjectStoreOpt
+		Federation options.FederationOpt
 	}
 )
 
@@ -122,7 +123,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Federation")
 
-	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler)
+	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler, c.Federation)
 	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()
