@@ -320,8 +320,13 @@ func testUsers(t *testing.T, s store.Users) {
 			f := types.UserFilter{}
 			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}, &filter.SortExpr{Column: "handle", Descending: true}}
 
-			f.Limit = 1
+			f.Limit = uint(len(set))
 			set, f, err := store.SearchUsers(ctx, s, f)
+			req.Len(set, int(f.Limit))
+			req.NoError(err)
+
+			f.Limit = 1
+			set, f, err = store.SearchUsers(ctx, s, f)
 			req.NoError(err)
 
 			// go to next page with different sorting

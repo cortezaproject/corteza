@@ -186,13 +186,12 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 	}
 
 	// check compatibility
-	ss := sort.Columns()
-	if len(p.keys) != len(ss) {
+	if len(p.keys) != len(sort) {
 		return nil, fmt.Errorf("incompatible sort")
 	}
 
 	for k := range p.keys {
-		if p.keys[k] != ss[k] {
+		if p.keys[k] != sort[k].Column {
 			return nil, fmt.Errorf("incompatible sort")
 		}
 	}

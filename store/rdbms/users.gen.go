@@ -148,7 +148,7 @@ func (s Store) fetchFullPageOfUsers(
 
 		// if limit is not set or we've already collected enough items
 		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched < limit {
+		if limit == 0 || fetched == 0 || fetched <= limit {
 			break
 		}
 
