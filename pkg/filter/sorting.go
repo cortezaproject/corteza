@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"regexp"
@@ -70,11 +71,16 @@ func parseSort(in string) (set SortExprSet, err error) {
 	return set, nil
 }
 
-// UnmarshalJSON parses stringified sort expression when passed inside JSON
+// UnmarshalJSON parses sort expression when passed inside JSON
 func (set *SortExprSet) UnmarshalJSON(in []byte) error {
 	tmp, err := parseSort(string(in))
 	*set = tmp
 	return err
+}
+
+// UnmarshalJSON parses sort expression when passed inside JSON
+func (set SortExprSet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(set.String())
 }
 
 // UnmarshalJSON parses stringified sort expression when passed inside JSON
