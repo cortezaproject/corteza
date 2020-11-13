@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
@@ -145,4 +146,8 @@ func Watchers(ctx context.Context) {
 
 	// each minute, 100 per page
 	go syncData.Watch(ctx, time.Second*60, 100)
+}
+
+func AddFederationLabel(entity label.LabeledResource, value string) {
+	entity.SetLabel("federation", value)
 }

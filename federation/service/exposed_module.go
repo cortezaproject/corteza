@@ -4,7 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	composeService "github.com/cortezaproject/corteza-server/compose/service"
+	cs "github.com/cortezaproject/corteza-server/compose/service"
+	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/store"
@@ -13,8 +14,8 @@ import (
 type (
 	exposedModule struct {
 		node      node
-		module    composeService.ModuleService
-		namespace composeService.NamespaceService
+		module    cs.ModuleService
+		namespace cs.NamespaceService
 		store     store.Storer
 		actionlog actionlog.Recorder
 	}
@@ -34,8 +35,8 @@ type (
 func ExposedModule() ExposedModuleService {
 	return &exposedModule{
 		node:      *DefaultNode,
-		module:    composeService.DefaultModule,
-		namespace: composeService.DefaultNamespace,
+		module:    cs.DefaultModule,
+		namespace: cs.DefaultNamespace,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
 	}
@@ -85,7 +86,13 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
 
-		if _, err := svc.node.FindByID(ctx, updated.NodeID); err != nil {
+		var (
+			m    *ct.Module
+			node *types.Node
+			old  *types.ExposedModule
+		)
+
+		if node, err = svc.node.FindByID(ctx, updated.NodeID); err != nil {
 			return ExposedModuleErrNodeNotFound()
 		}
 
@@ -93,18 +100,23 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 			return ExposedModuleErrComposeNamespaceNotFound()
 		}
 
-		if _, err := svc.module.With(ctx).FindByID(updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
+		if m, err = svc.module.With(ctx).FindByID(updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
-		old, err := svc.FindByID(ctx, updated.NodeID, updated.ID)
-
-		if err != nil {
+		if old, err = svc.FindByID(ctx, updated.NodeID, updated.ID); err != nil {
 			return ExposedModuleErrNotFound()
 		}
 
 		updated.UpdatedAt = now()
 		updated.CreatedAt = old.CreatedAt
+
+		// set labels
+		AddFederationLabel(m, node.BaseURL)
+
+		if _, err := svc.module.With(ctx).Update(m); err != nil {
+			return err
+		}
 
 		aProps.setModule(updated)
 
@@ -204,8 +216,12 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
 		// 	return ExposedModuleErrNotAllowedToCreate()
 		// }
+		var (
+			m    *ct.Module
+			node *types.Node
+		)
 
-		if _, err := svc.node.FindByID(ctx, new.NodeID); err != nil {
+		if node, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
 			return ExposedModuleErrNodeNotFound()
 		}
 
@@ -213,18 +229,13 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return ExposedModuleErrComposeNamespaceNotFound()
 		}
 
-		if _, err := svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
+		if m, err = svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
 		// Check for node - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return ExposedModuleErrNotUnique()
-		}
-
-		// Check for node - compose.Module combo
-		if err = svc.uniqueCheck(ctx, new); err != nil {
-			return err
 		}
 
 		new.ID = nextID()
@@ -234,6 +245,13 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 		// check if Fields can be unmarshaled to the fields structure
 		if new.Fields != nil {
+		}
+
+		// set labels
+		AddFederationLabel(m, node.BaseURL)
+
+		if _, err := svc.module.With(ctx).Update(m); err != nil {
+			return err
 		}
 
 		aProps.setModule(new)
