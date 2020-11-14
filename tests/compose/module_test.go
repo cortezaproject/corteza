@@ -264,6 +264,110 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
+func TestModuleFieldsUpdateExpressions(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "module.create")
+	ns := h.makeNamespace("some-namespace")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+	var (
+		m = &types.Module{
+			NamespaceID: ns.ID,
+		}
+
+		f = &types.ModuleField{
+			ID:   id.Next(),
+			Kind: "String",
+			Name: "existing",
+			Expressions: types.ModuleFieldExpr{
+				ValueExpr:  `"foo"`,
+				Sanitizers: []string{"value"},
+				Validators: []types.ModuleFieldValidator{
+					{
+						Test:  `value != ""`,
+						Error: "error",
+					},
+				},
+				DisableDefaultValidators: true,
+				Formatters:               []string{`"foo"`},
+				DisableDefaultFormatters: false,
+			},
+		}
+
+		aux = struct{ Response types.Module }{}
+	)
+
+	m.Fields = append(m.Fields, f)
+
+	// create module
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/", ns.ID)).
+		JSON(helpers.JSON(m)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&aux)
+
+	m = &aux.Response
+
+	h.a.NotEmpty(m.Fields)
+	f = m.Fields.FindByName("existing")
+	h.a.NotNil(f)
+	h.a.Equal(`"foo"`, f.Expressions.ValueExpr)
+	h.a.NotEmpty(f.Expressions.Sanitizers)
+	h.a.NotEmpty(f.Expressions.Validators)
+	h.a.True(f.Expressions.DisableDefaultValidators)
+	h.a.NotEmpty(f.Expressions.Formatters)
+	h.a.False(f.Expressions.DisableDefaultFormatters)
+
+	f.Expressions = types.ModuleFieldExpr{
+		ValueExpr:  `"bar"`,
+		Sanitizers: []string{`""`},
+		Validators: []types.ModuleFieldValidator{
+			{
+				Test:  `value == ""`,
+				Error: "foo",
+			},
+		},
+		DisableDefaultValidators: false,
+		Formatters:               []string{`"bar"`},
+		DisableDefaultFormatters: true,
+	}
+
+	h.apiInit().
+		Debug().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(helpers.JSON(m)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.apiInit().
+		Debug().
+		Get(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End().
+		JSON(&aux)
+
+	h.a.NotEmpty(aux.Response.Fields)
+	f = aux.Response.Fields.FindByName("existing")
+	h.a.NotNil(f)
+	h.a.Equal(`"bar"`, f.Expressions.ValueExpr)
+	h.a.NotEmpty(f.Expressions.Sanitizers)
+	h.a.NotEmpty(f.Expressions.Validators)
+	h.a.False(f.Expressions.DisableDefaultValidators)
+	h.a.NotEmpty(f.Expressions.Formatters)
+	h.a.True(f.Expressions.DisableDefaultFormatters)
+}
+
 func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
