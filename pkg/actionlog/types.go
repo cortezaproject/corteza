@@ -1,7 +1,6 @@
 package actionlog
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
 )
 
@@ -53,18 +52,15 @@ type (
 	}
 
 	Filter struct {
-		From     *time.Time `json:"from"`
-		To       *time.Time `json:"to"`
-		ActorID  []uint64   `json:"actorID"`
-		Resource string     `json:"resource"`
-		Action   string     `json:"action"`
+		FromTimestamp *time.Time `json:"from"`
+		ToTimestamp   *time.Time `json:"to"`
 
-		// @todo pending implementation
-		// Query   string     `json:"query"`
+		BeforeActionID uint64 `json:"beforeActionID"`
 
-		// Standard helpers for paging and sorting
-		filter.Sorting
-		filter.Paging
+		ActorID  []uint64 `json:"actorID"`
+		Resource string   `json:"resource"`
+		Action   string   `json:"action"`
+		Limit    uint     `json:"limit"`
 	}
 
 	loggableMetaValue interface {

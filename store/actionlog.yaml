@@ -33,6 +33,8 @@ rdbms:
     ActorID:   { column: actor_id }
 
 search:
+  enablePaging: false
+  enableSorting: false
   enableFilterCheckFunction: false
 
 update:
