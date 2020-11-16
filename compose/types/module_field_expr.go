@@ -8,7 +8,8 @@ import (
 
 type (
 	ModuleFieldExpr struct {
-		ValueExpr  string   `json:"value,omitempty"`
+		ValueExpr string `json:"value,omitempty"`
+
 		Sanitizers []string `json:"sanitizers,omitempty"`
 
 		Validators               []ModuleFieldValidator `json:"validators,omitempty"`
