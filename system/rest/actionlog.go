@@ -40,17 +40,14 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 	var (
 		err error
 		f   = actionlog.Filter{
-			From:     r.From,
-			To:       r.To,
-			ActorID:  payload.ParseUint64s(r.ActorID),
-			Resource: r.Resource,
-			Action:   r.Action,
+			FromTimestamp: r.From,
+			ToTimestamp:   r.To,
+			ActorID:       payload.ParseUint64s(r.ActorID),
+			Resource:      r.Resource,
+			Action:        r.Action,
+			Limit:         r.Limit,
 		}
 	)
-
-	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-		return nil, err
-	}
 
 	ee, f, err := ctrl.actionSvc.Find(ctx, f)
 

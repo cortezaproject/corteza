@@ -67,6 +67,8 @@ const (
 
 	MinEnsureFetchLimit = 10
 	MaxRefetches        = 100
+
+	MaxLimit = 1000
 )
 
 func Connect(ctx context.Context, cfg *Config) (s *Store, err error) {

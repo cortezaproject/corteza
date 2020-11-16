@@ -41,6 +41,11 @@ type (
 		// To
 		To *time.Time
 
+		// BeforeActionID GET parameter
+		//
+		// Entries before specified action ID
+		BeforeActionID uint64 `json:",string"`
+
 		// Resource GET parameter
 		//
 		// Resource
@@ -60,11 +65,6 @@ type (
 		//
 		// Limit
 		Limit uint
-
-		// PageCursor GET parameter
-		//
-		// Page cursor
-		PageCursor string
 	}
 )
 
@@ -76,13 +76,13 @@ func NewActionlogList() *ActionlogList {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"from":       r.From,
-		"to":         r.To,
-		"resource":   r.Resource,
-		"action":     r.Action,
-		"actorID":    r.ActorID,
-		"limit":      r.Limit,
-		"pageCursor": r.PageCursor,
+		"from":           r.From,
+		"to":             r.To,
+		"beforeActionID": r.BeforeActionID,
+		"resource":       r.Resource,
+		"action":         r.Action,
+		"actorID":        r.ActorID,
+		"limit":          r.Limit,
 	}
 }
 
@@ -94,6 +94,11 @@ func (r ActionlogList) GetFrom() *time.Time {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetTo() *time.Time {
 	return r.To
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ActionlogList) GetBeforeActionID() uint64 {
+	return r.BeforeActionID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -114,11 +119,6 @@ func (r ActionlogList) GetActorID() []string {
 // Auditable returns all auditable/loggable parameters
 func (r ActionlogList) GetLimit() uint {
 	return r.Limit
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r ActionlogList) GetPageCursor() string {
-	return r.PageCursor
 }
 
 // Fill processes request and fills internal variables
@@ -150,6 +150,12 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+		if val, ok := tmp["beforeActionID"]; ok && len(val) > 0 {
+			r.BeforeActionID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
 		if val, ok := tmp["resource"]; ok && len(val) > 0 {
 			r.Resource, err = val[0], nil
 			if err != nil {
@@ -175,12 +181,6 @@ func (r *ActionlogList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
-			r.PageCursor, err = val[0], nil
 			if err != nil {
 				return err
 			}

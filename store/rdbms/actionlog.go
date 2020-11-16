@@ -10,12 +10,19 @@ import (
 func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.SelectBuilder, err error) {
 	query = s.actionlogsSelectBuilder()
 
-	if f.From != nil {
-		query = query.Where(squirrel.GtOrEq{"ts": f.From})
+	// Always sort by ID descending
+	query = query.OrderBy("id DESC")
+
+	if f.BeforeActionID > 0 {
+		query = query.Where(squirrel.Lt{"id": f.BeforeActionID})
 	}
 
-	if f.To != nil {
-		query = query.Where(squirrel.LtOrEq{"ts": f.To})
+	if f.FromTimestamp != nil {
+		query = query.Where(squirrel.GtOrEq{"ts": f.FromTimestamp})
+	}
+
+	if f.ToTimestamp != nil {
+		query = query.Where(squirrel.LtOrEq{"ts": f.ToTimestamp})
 	}
 
 	if len(f.ActorID) > 0 {
@@ -29,6 +36,12 @@ func (s Store) convertActionlogFilter(f actionlog.Filter) (query squirrel.Select
 	if f.Action != "" {
 		query = query.Where(squirrel.Eq{"action": f.Action})
 	}
+
+	if f.Limit == 0 || f.Limit > MaxLimit {
+		f.Limit = MaxLimit
+	}
+
+	query = query.Limit(uint64(f.Limit))
 
 	return
 }

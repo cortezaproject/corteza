@@ -1207,6 +1207,10 @@ endpoints:
         type: "*time.Time"
         required: false
         title: To
+      - name: beforeActionID
+        type: uint64
+        required: false
+        title: Entries before specified action ID
       - name: resource
         required: false
         title: Resource
@@ -1222,6 +1226,3 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
-      - type: string
-        name: pageCursor
-        title: Page cursor
