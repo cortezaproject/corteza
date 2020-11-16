@@ -3,10 +3,13 @@ package federation
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/federation/rest"
 	"github.com/cortezaproject/corteza-server/federation/service"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -20,8 +23,6 @@ import (
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"os"
-	"testing"
 )
 
 type (
@@ -60,7 +61,7 @@ func InitTestApp() {
 
 	if r == nil {
 		r = chi.NewRouter()
-		r.Use(api.BaseMiddleware(logger.Default())...)
+		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
 	}

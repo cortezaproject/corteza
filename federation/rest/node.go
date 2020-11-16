@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -103,7 +104,7 @@ func (ctrl Node) HandshakeConfirm(ctx context.Context, r *request.NodeHandshakeC
 }
 
 func (ctrl Node) HandshakeComplete(ctx context.Context, r *request.NodeHandshakeComplete) (interface{}, error) {
-	return api.OK(), ctrl.svcNode.HandshakeComplete(ctx, r.NodeID, r.TokenA)
+	return api.OK(), ctrl.svcNode.HandshakeComplete(ctx, r.NodeID, r.AuthToken)
 }
 
 func (ctrl Node) makePayload(ctx context.Context, m *types.Node, err error) (*nodePayload, error) {

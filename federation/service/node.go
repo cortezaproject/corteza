@@ -53,13 +53,8 @@ func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.
 		sysUser:      u,
 		actionlog:    al,
 		tokenEncoder: th,
-
-		// name of this node
-		// @todo read this from settings
-		name: "Server A",
-
-		// @todo read this from settings
-		host: options.Host,
+		name:         options.Label,
+		host:         options.Host,
 
 		// @todo use HTTP_API_BASE_URL (HTTPServerOpt.ApiBaseUrl) to prefix URI path
 		baseURL: "/federation",
@@ -267,7 +262,7 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) error {
 	_, err := svc.updater(
 		ctx,
-		nodeID,
+		sharedNodeID,
 		NodeActionHandshakeInit,
 		func(ctx context.Context, n *types.Node) error {
 			// @todo need to check node status before we can proceed with initialization
@@ -320,15 +315,25 @@ func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
 }
 
 // HandshakeComplete is used by server B to handle handshake confirmation
-func (svc node) HandshakeComplete(ctx context.Context, nodeID uint64, token string) error {
-	_, err := svc.updater(ctx, nodeID, NodeActionHandshakeComplete, func(ctx context.Context, n *types.Node) error {
-		n.Status = types.NodeStatusPaired
+func (svc node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, token string) error {
+	var (
+		n   *types.Node
+		err error
+	)
 
+	if n, err = store.LookupFederationNodeBySharedNodeID(ctx, svc.store, sharedNodeID); err != nil {
+		return err
+	}
+
+	_, err = svc.updater(ctx, n.ID, NodeActionHandshakeComplete, func(ctx context.Context, n *types.Node) error {
+		n.AuthToken = token
+		n.Status = types.NodeStatusPaired
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()
 
 		return nil
 	}, nil)
+
 	return err
 }
 
@@ -437,7 +442,7 @@ func (node) decodePairingURI(uri string) (*types.Node, error) {
 		}
 
 		n.Name = parsedURI.Query().Get("name")
-		n.BaseURL = fmt.Sprintf("https://%s/%s", parsedURI.Host, strings.Trim(parsedURI.Path, "/"))
+		n.BaseURL = fmt.Sprintf("%s://%s/%s", parsedURI.Scheme, parsedURI.Host, strings.Trim(parsedURI.Path, "/"))
 		return nil
 	}()
 }

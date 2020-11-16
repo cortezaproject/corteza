@@ -129,7 +129,7 @@ endpoints:
         parameters:
           path: [ { name: nodeID, type: uint64, required: true, title: NodeID } ]
           post:
-            - name: tokenA
+            - name: authToken
               type: string
               required: true
               title: Node A token

@@ -123,10 +123,10 @@ type (
 		// NodeID
 		NodeID uint64 `json:",string"`
 
-		// TokenA POST parameter
+		// AuthToken POST parameter
 		//
 		// Node A token
-		TokenA string
+		AuthToken string
 	}
 )
 
@@ -618,8 +618,8 @@ func NewNodeHandshakeComplete() *NodeHandshakeComplete {
 // Auditable returns all auditable/loggable parameters
 func (r NodeHandshakeComplete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"nodeID": r.NodeID,
-		"tokenA": r.TokenA,
+		"nodeID":    r.NodeID,
+		"authToken": r.AuthToken,
 	}
 }
 
@@ -629,8 +629,8 @@ func (r NodeHandshakeComplete) GetNodeID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NodeHandshakeComplete) GetTokenA() string {
-	return r.TokenA
+func (r NodeHandshakeComplete) GetAuthToken() string {
+	return r.AuthToken
 }
 
 // Fill processes request and fills internal variables
@@ -653,8 +653,8 @@ func (r *NodeHandshakeComplete) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		if val, ok := req.Form["tokenA"]; ok && len(val) > 0 {
-			r.TokenA, err = val[0], nil
+		if val, ok := req.Form["authToken"]; ok && len(val) > 0 {
+			r.AuthToken, err = val[0], nil
 			if err != nil {
 				return err
 			}

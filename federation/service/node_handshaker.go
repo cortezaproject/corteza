@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/federation/types"
 	"net/http"
 	"strconv"
+
+	"github.com/cortezaproject/corteza-server/federation/types"
 )
 
 type (
@@ -40,7 +41,7 @@ func (h httpNodeHandshake) Init(ctx context.Context, n *types.Node, authToken st
 
 			// Share auth token for the federation service user for this node
 			"authToken":    authToken,
-			"sharedNodeID": strconv.FormatUint(n.ID, 10),
+			"sharedNodeID": strconv.FormatUint(n.SharedNodeID, 10),
 		}
 	)
 
@@ -60,6 +61,9 @@ func (h httpNodeHandshake) Complete(ctx context.Context, n *types.Node, authToke
 		}
 	)
 
+	// use n.AuthToken in context
+	ctx = context.WithValue(ctx, "authToken", n.AuthToken)
+
 	return h.send(ctx, endpoint, payload)
 }
 
@@ -72,6 +76,12 @@ func (h httpNodeHandshake) send(ctx context.Context, endpoint string, payload ma
 	req, err := http.NewRequest(http.MethodPost, endpoint, body)
 	if err != nil {
 		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if authToken := ctx.Value("authToken"); authToken != nil {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authToken))
 	}
 
 	rsp, err := h.httpClient.Do(req.WithContext(ctx))
