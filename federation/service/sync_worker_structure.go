@@ -63,7 +63,12 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 		lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeStructure)
 		basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", n.SharedNodeID)
 
-		z := []zap.Field{zap.Uint64("nodeID", n.ID), zap.String("host", n.BaseURL)}
+		z := []zap.Field{
+			zap.Uint64("nodeID", n.ID),
+			zap.String("host", n.BaseURL),
+			zap.String("delay", w.delay.String()),
+			zap.Int("pagesize", w.limit),
+		}
 
 		if lastSync != nil {
 			z = append(z, zap.Time("lastSync", *lastSync))
