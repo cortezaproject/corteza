@@ -9,7 +9,6 @@ import (
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/decoder"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -43,10 +42,6 @@ func WorkerData(sync *Sync, logger *zap.Logger) *syncWorkerData {
 }
 
 func (w *syncWorkerData) queueUrl(url *types.SyncerURI, urls chan Url, meta Processer) {
-	// s, _ := url.String()
-
-	// w.logger.Debug(fmt.Sprintf("adding %s to queue", s))
-
 	t := Url{
 		Url:  *url,
 		Meta: meta,
@@ -170,14 +165,12 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			s, err := url.Url.String()
 
 			if err != nil {
-				spew.Dump("ERR", err)
 				continue
 			}
 
 			responseBody, err := w.syncService.FetchUrl(ctx, s)
 
 			if err != nil {
-				spew.Dump("ERR", err)
 				continue
 			}
 
@@ -264,6 +257,8 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (int, erro
 			NamespaceID: dp.ComposeNamespaceID,
 			Values:      *dp.ModuleMappingValues,
 		}
+
+		AddFederationLabel(rec, dp.NodeBaseURL)
 
 		_, err := dp.SyncService.CreateRecord(ctx, rec)
 
