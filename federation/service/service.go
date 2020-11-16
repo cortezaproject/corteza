@@ -41,6 +41,8 @@ var (
 	// CurrentSettings represents current system settings
 	CurrentSettings = &types.AppSettings{}
 
+	DefaultOptions options.FederationOpt
+
 	DefaultActionlog actionlog.Recorder
 
 	DefaultNode          *node
@@ -65,6 +67,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	var (
 		hcd = healthcheck.Defaults()
 	)
+
+	DefaultOptions = c.Federation
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
@@ -142,11 +146,8 @@ func Watchers(ctx context.Context) {
 	syncStructure := WorkerStructure(syncService, DefaultLogger)
 	syncData := WorkerData(syncService, service.DefaultLogger)
 
-	// each minute, 10 per page
-	go syncStructure.Watch(ctx, time.Minute*2, 10)
-
-	// each minute, 100 per page
-	go syncData.Watch(ctx, time.Second*60, 100)
+	go syncStructure.Watch(ctx, time.Second*DefaultOptions.StructureMonitorInterval, DefaultOptions.StructurePageSize)
+	go syncData.Watch(ctx, time.Second*DefaultOptions.DataMonitorInterval, DefaultOptions.DataPageSize)
 }
 
 func AddFederationLabel(entity label.LabeledResource, value string) {

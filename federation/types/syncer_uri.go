@@ -14,8 +14,6 @@ type (
 	SyncerURI struct {
 		Limit    int
 		LastSync *time.Time
-		// todo
-		// LastSync *LastSyncTime
 		Path     string
 		BaseURL  string
 		NextPage string
