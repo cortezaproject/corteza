@@ -40,7 +40,7 @@ func (nn nodeSet) filter(f func(n *node) bool) nodeSet {
 func (nn nodeSet) findByRef(ref *resource.Ref) *node {
 	for _, n := range nn {
 		if n.res.ResourceType() == ref.ResourceType {
-			if n.res.Identifiers().HasAny(ref.Identifiers.StringSlice()...) {
+			if n.res.Identifiers().HasAny(ref.Identifiers) {
 				return n
 			}
 		}
