@@ -13,7 +13,7 @@ type (
 
 // @todo errors!
 func Encode(ctx context.Context, p Provider, ee ...Encoder) error {
-	ec := make(Ec)
+	var err error
 	rcc := make([]Rc, len(ee))
 
 	var wg sync.WaitGroup
@@ -21,7 +21,15 @@ func Encode(ctx context.Context, p Provider, ee ...Encoder) error {
 
 	for i, e := range ee {
 		rcc[i] = make(Rc)
-		go e.Encode(ctx, &wg, rcc[i], ec)
+
+		go func() {
+			defer wg.Done()
+
+			eErr := e.Encode(ctx, rcc[i])
+			if err != nil {
+				err = eErr
+			}
+		}()
 	}
 
 	for {

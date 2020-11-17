@@ -2,7 +2,6 @@ package envoy
 
 import (
 	"context"
-	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -14,8 +13,6 @@ type (
 
 	// Rc is an alias for the ResourceState channel
 	Rc chan *ResourceState
-	// Ec is an alias for the error channel
-	Ec chan error
 
 	Preparer interface {
 		Prepare(ctx context.Context, ee ...*ResourceState) error
@@ -25,7 +22,7 @@ type (
 	//
 	// Encoding errors are passed via Ec.
 	Encoder interface {
-		Encode(ctx context.Context, wg *sync.WaitGroup, sChan Rc, eChan Ec)
+		Encode(ctx context.Context, c Rc) error
 	}
 
 	PrepareEncoder interface {
