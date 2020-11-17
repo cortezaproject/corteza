@@ -48,11 +48,12 @@ func init() {
 
 func InitTestApp() {
 	if testApp == nil {
-		ctx := cli.Context()
+		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore = app.Store
 			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
+
 			eventbus.Set(eventBus)
 			return nil
 		})
@@ -97,7 +98,7 @@ func (h helper) secCtx() context.Context {
 
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
-	//InitTestApp()
+	// InitTestApp()
 
 	return apitest.
 		New().
