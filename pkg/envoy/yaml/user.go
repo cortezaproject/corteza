@@ -12,9 +12,6 @@ type (
 		// when user is at least partially defined
 		res *types.User `yaml:",inline"`
 
-		// all known modules on a user
-		modules composeModuleSet
-
 		// module's RBAC rules
 		rbac rbacRuleSet
 	}

@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -59,10 +60,10 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 				res: &rbac.Rule{
 					Access:    a,
 					Operation: rbac.Operation(op.Value),
-					Resource:  rbac.Resource(res),
 				},
 				refRole: roleRef,
 			}
+			rule.SetResource(res)
 			rr = append(rr, rule)
 			return nil
 		})
@@ -85,15 +86,15 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 }
 
 func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
-	res := &resource.Ref{
+	ref := &resource.Ref{
 		ResourceType: resI.ResourceType(),
 		Identifiers:  resI.Identifiers(),
 	}
 
 	rtr := make(rbacRuleSet, 0, len(rr))
 	for _, r := range rr {
-		r = r
-		r.resRef = res
+		r.SetResource(ref.ResourceType)
+		r.resRef = ref
 		rtr = append(rtr, r)
 	}
 
@@ -131,4 +132,38 @@ func (rr rbacRuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.resRef))
 	}
 	return nn, nil
+}
+
+func (r *rbacRule) SetResource(res string) {
+	if res == "" {
+		return
+	}
+
+	sp := ":"
+
+	res = strings.TrimSpace(res)
+	res = strings.TrimRight(res, sp)
+	rr := strings.Split(res, sp)
+
+	// When len is 1; only top-level defined (system, compose, messaging)
+	if len(rr) == 1 {
+		r.res.Resource = rbac.Resource(res)
+		return
+	}
+
+	// When len is 2; top-level and sub level defined (compose:namespace, system:user, ...)
+	if len(rr) == 2 {
+		r.res.Resource = rbac.Resource(res + sp)
+		return
+	}
+
+	//When len is 3; both levels defined; resource ref also provided
+	if len(rr) == 3 {
+		res = strings.Join(rr[0:2], sp) + sp
+		r.resRef = &resource.Ref{
+			ResourceType: strings.Join(rr[0:2], sp) + sp,
+			Identifiers:  resource.MakeIdentifiers(rr[2]),
+		}
+		r.res.Resource = rbac.Resource(res)
+	}
 }
