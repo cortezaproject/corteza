@@ -72,12 +72,12 @@ func TestRuleSet_merge(t *testing.T) {
 
 	for _, sc := range sCases {
 		// Apply changed and get update candidates
-		mrg := sc.old.merge(sc.new...)
-		del, upd := mrg.dirty()
+		mrg := sc.old.Merge(sc.new...)
+		del, upd := mrg.Dirty()
 
 		// Clear dirty flag so that we do not confuse DeepEqual
-		del.clear()
-		upd.clear()
+		del.Clear()
+		upd.Clear()
 
 		req.Equal(len(sc.del), len(del))
 		req.Equal(len(sc.upd), len(upd))
