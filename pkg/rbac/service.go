@@ -2,11 +2,12 @@ package rbac
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"sync"
-	"time"
 )
 
 type (
@@ -145,7 +146,7 @@ func (svc service) checkRules(wl Whitelist, rules ...*Rule) error {
 }
 
 func (svc *service) grant(rules ...*Rule) {
-	svc.rules = svc.rules.merge(rules...)
+	svc.rules = svc.rules.Merge(rules...)
 }
 
 // Watches for changes
@@ -205,7 +206,7 @@ func (svc *service) Reload(ctx context.Context) {
 }
 
 func (svc service) flush(ctx context.Context) (err error) {
-	d, u := svc.rules.dirty()
+	d, u := svc.rules.Dirty()
 
 	err = svc.store.DeleteRbacRule(ctx, d...)
 	if err != nil {
@@ -217,7 +218,7 @@ func (svc service) flush(ctx context.Context) (err error) {
 		return
 	}
 
-	u.clear()
+	u.Clear()
 	svc.rules = u
 	svc.logger.Debug("flushed rules",
 		zap.Int("updated", len(u)),

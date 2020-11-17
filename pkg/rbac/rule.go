@@ -21,10 +21,10 @@ const (
 	Allow Access = 1
 
 	// Deny - Operation over a resource is denied
-	Deny = 0
+	Deny Access = 0
 
 	// Inherit - Operation over a resource is not defined, inherit
-	Inherit = -1
+	Inherit Access = -1
 )
 
 func (r Rule) String() string {
