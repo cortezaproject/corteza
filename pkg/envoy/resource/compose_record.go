@@ -17,19 +17,24 @@ type (
 
 	ComposeRecord struct {
 		*base
-		// Res     *types.Record
 
 		Walker crsWalker
 
-		NsRef     *Ref
-		ModRef    *Ref
-		ModFields types.ModuleFieldSet
-		UserRef   map[string]string
+		NsRef  *Ref
+		ModRef *Ref
+
+		IDMap  map[string]uint64
+		RecMap map[string]*types.Record
 	}
 )
 
 func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
-	r := &ComposeRecord{base: &base{}}
+	r := &ComposeRecord{
+		base:   &base{},
+		IDMap:  make(map[string]uint64),
+		RecMap: make(map[string]*types.Record),
+	}
+
 	r.SetResourceType(COMPOSE_RECORD_RESOURCE_TYPE)
 	r.Walker = w
 
@@ -43,10 +48,4 @@ func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
 
 	return r
-}
-
-func (m *ComposeRecord) SearchQuery() types.RecordFilter {
-	f := types.RecordFilter{}
-
-	return f
 }

@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -13,29 +11,29 @@ type (
 		Res *types.Chart
 
 		// Might keep track of related namespace
+		NsRef  *Ref
+		ModRef RefSet
 	}
 )
 
-func NewComposeChart(res *types.Chart, nsRef string) *ComposeChart {
-	r := &ComposeChart{base: &base{}}
+func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeChart {
+	r := &ComposeChart{
+		base:   &base{},
+		ModRef: make(RefSet, len(mmRef)),
+	}
 	r.SetResourceType(COMPOSE_CHART_RESOURCE_TYPE)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	for i, mRef := range mmRef {
+		r.ModRef[i] = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, mRef)
+	}
 
 	return r
 }
 
-func (m *ComposeChart) SearchQuery() types.ChartFilter {
-	f := types.ChartFilter{
-		Handle: m.Res.Handle,
-	}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("chartID=%d", m.Res.ID)
-	}
-
-	return f
+func (r *ComposeChart) SysID() uint64 {
+	return r.Res.ID
 }
