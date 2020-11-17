@@ -1,10 +1,23 @@
 package resource
 
+import (
+	ct "github.com/cortezaproject/corteza-server/compose/types"
+	st "github.com/cortezaproject/corteza-server/system/types"
+)
+
 type (
 	Interface interface {
 		Identifiers() Identifiers
 		ResourceType() string
 		Refs() RefSet
+	}
+
+	InterfaceSet []Interface
+
+	IdentifiableInterface interface {
+		Interface
+
+		SysID() uint64
 	}
 
 	RefSet []*Ref
@@ -18,17 +31,24 @@ type (
 	Identifiers map[string]bool
 )
 
-const (
-	APPLICATION_RESOURCE_TYPE       = "application"
-	COMPOSE_CHART_RESOURCE_TYPE     = "composeChart"
-	COMPOSE_MODULE_RESOURCE_TYPE    = "composeModule"
-	COMPOSE_NAMESPACE_RESOURCE_TYPE = "composeNamespace"
-	COMPOSE_PAGE_RESOURCE_TYPE      = "composePage"
-	COMPOSE_RECORD_RESOURCE_TYPE    = "ComposeRecord"
-	RBAC_RESOURCE_TYPE              = "rbacRule"
-	ROLE_RESOURCE_TYPE              = "role"
-	USER_RESOURCE_TYPE              = "user"
+var (
+	APPLICATION_RESOURCE_TYPE       = st.ApplicationRBACResource.String()
+	COMPOSE_CHART_RESOURCE_TYPE     = ct.ChartRBACResource.String()
+	COMPOSE_MODULE_RESOURCE_TYPE    = ct.ModuleRBACResource.String()
+	COMPOSE_NAMESPACE_RESOURCE_TYPE = ct.NamespaceRBACResource.String()
+	COMPOSE_PAGE_RESOURCE_TYPE      = ct.PageRBACResource.String()
+	COMPOSE_RECORD_RESOURCE_TYPE    = "compose:record:"
+	RBAC_RESOURCE_TYPE              = "rbac:rule:"
+	ROLE_RESOURCE_TYPE              = st.RoleRBACResource.String()
+	SETTINGS_RESOURCE_TYPE          = "system:setting:"
+	USER_RESOURCE_TYPE              = st.UserRBACResource.String()
 )
+
+func MakeIdentifiers(ss ...string) Identifiers {
+	ii := make(Identifiers)
+	ii.Add(ss...)
+	return ii
+}
 
 func (ri Identifiers) Add(ii ...string) Identifiers {
 	for _, i := range ii {
@@ -48,8 +68,8 @@ func (ri Identifiers) Remove(ii ...string) Identifiers {
 	return ri
 }
 
-func (ri Identifiers) HasAny(ii ...string) bool {
-	for _, i := range ii {
+func (ri Identifiers) HasAny(ii Identifiers) bool {
+	for i := range ii {
 		if ri[i] {
 			return true
 		}
@@ -76,4 +96,15 @@ func (ss RefSet) FilterByResourceType(rt string) RefSet {
 	}
 
 	return rr
+}
+
+func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {
+	for _, r := range rr {
+		err = f(r)
+		if err != nil {
+			return
+		}
+	}
+
+	return nil
 }
