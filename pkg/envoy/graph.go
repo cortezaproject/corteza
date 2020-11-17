@@ -22,7 +22,7 @@ type (
 		conflicting nodeMap
 	}
 
-	ExecState struct {
+	ResourceState struct {
 		Res             resource.Interface
 		MissingDeps     resource.RefSet
 		Conflicting     bool
@@ -112,15 +112,15 @@ func (g *graph) Relink() {
 	}
 }
 
-func (g *graph) Next(ctx context.Context) (s *ExecState, err error) {
+func (g *graph) Next(ctx context.Context) (s *ResourceState, err error) {
 	return g.next(ctx, nil)
 }
 
-func (g *graph) NextOf(ctx context.Context, resTrype string) (s *ExecState, err error) {
+func (g *graph) NextOf(ctx context.Context, resTrype string) (s *ResourceState, err error) {
 	return g.next(ctx, &iterFilter{resourceType: resTrype})
 }
 
-func (g *graph) next(ctx context.Context, f *iterFilter) (s *ExecState, err error) {
+func (g *graph) next(ctx context.Context, f *iterFilter) (s *ResourceState, err error) {
 	upNN := g.removeProcessed(g.nodes())
 
 	if f != nil {
@@ -280,8 +280,8 @@ func (g *graph) nodeResource(nn ...*node) []resource.Interface {
 	return rr
 }
 
-func (g *graph) prepExecState(n *node, conflicting bool) *ExecState {
-	return &ExecState{
+func (g *graph) prepExecState(n *node, conflicting bool) *ResourceState {
+	return &ResourceState{
 		Res:             n.res,
 		DepResources:    g.nodeResource(g.childNodes(n)...),
 		ParentResources: g.nodeResource(g.parentNodes(n)...),

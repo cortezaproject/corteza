@@ -2,22 +2,39 @@ package envoy
 
 import (
 	"context"
+	"sync"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
 
 type (
 	graphBuilder struct {
-		pp []Processor
+		pp []Preparer
 	}
 
-	// Some special bits
-	Processor interface {
-		Process(ctx context.Context, state *ExecState) error
+	// Rc is an alias for the ResourceState channel
+	Rc chan *ResourceState
+	// Ec is an alias for the error channel
+	Ec chan error
+
+	Preparer interface {
+		Prepare(ctx context.Context, ee ...*ResourceState) error
+	}
+
+	// Encoder encodes all resources provided by the Rc until nil is passed
+	//
+	// Encoding errors are passed via Ec.
+	Encoder interface {
+		Encode(ctx context.Context, wg *sync.WaitGroup, sChan Rc, eChan Ec)
+	}
+
+	PrepareEncoder interface {
+		Preparer
+		Encoder
 	}
 )
 
-func NewGraphBuilder(pp ...Processor) *graphBuilder {
+func NewGraphBuilder(pp ...Preparer) *graphBuilder {
 	return &graphBuilder{
 		pp: pp,
 	}
@@ -67,8 +84,9 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 	g.invert()
 
 	// Do any dep. related preprocessing
-	var state *ExecState
+	var state *ResourceState
 	var err error
+
 	err = func() error {
 		for {
 			state, err = g.Next(ctx)
@@ -83,7 +101,7 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 			nState.MissingDeps = mMap[state.Res]
 
 			for _, p := range b.pp {
-				err = p.Process(ctx, nState)
+				err = p.Prepare(ctx, nState)
 				if err != nil {
 					return err
 				}
@@ -91,12 +109,12 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 		}
 	}()
 
-	g.Relink()
-
 	if err != nil {
 		return nil, err
 	}
 
+	g.Relink()
 	g.reset()
+
 	return g, nil
 }
