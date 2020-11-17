@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -12,8 +10,8 @@ type (
 		*base
 		Res *types.Page
 
-		// Might keep track of related namespace, page
-
+		NsRef  *Ref
+		ModRef *Ref
 	}
 )
 
@@ -24,20 +22,14 @@ func NewComposePage(pg *types.Page, nsRef, modRef string) *ComposePage {
 
 	r.AddIdentifier(identifiers(pg.Handle, pg.Title, pg.ID)...)
 
-	r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	if modRef != "" {
+		r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+	}
 
 	return r
 }
 
-func (m *ComposePage) SearchQuery() types.PageFilter {
-	f := types.PageFilter{
-		Handle: m.Res.Handle,
-	}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("pageID=%d", m.Res.ID)
-	}
-
-	return f
+func (r *ComposePage) SysID() uint64 {
+	return r.Res.ID
 }

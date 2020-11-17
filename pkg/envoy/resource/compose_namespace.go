@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -23,15 +21,6 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	return r
 }
 
-func (m *ComposeNamespace) SearchQuery() types.NamespaceFilter {
-	f := types.NamespaceFilter{
-		Slug: m.Res.Slug,
-		Name: m.Res.Name,
-	}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("namespaceID=%d", m.Res.ID)
-	}
-
-	return f
+func (r *ComposeNamespace) SysID() uint64 {
+	return r.Res.ID
 }

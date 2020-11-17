@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -24,15 +22,6 @@ func NewRole(rl *types.Role) *Role {
 	return r
 }
 
-func (m *Role) SearchQuery() types.RoleFilter {
-	f := types.RoleFilter{
-		Handle: m.Res.Handle,
-		Name:   m.Res.Name,
-	}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("roleID=%d", m.Res.ID)
-	}
-
-	return f
+func (r *Role) SysID() uint64 {
+	return r.Res.ID
 }

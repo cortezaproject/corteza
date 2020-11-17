@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -24,15 +22,6 @@ func NewUser(u *types.User) *User {
 	return r
 }
 
-func (m *User) SearchQuery() types.UserFilter {
-	f := types.UserFilter{
-		Handle: m.Res.Handle,
-		Email:  m.Res.Email,
-	}
-
-	if m.Res.ID > 0 {
-		f.Query = fmt.Sprintf("userID=%d", m.Res.ID)
-	}
-
-	return f
+func (r *User) SysID() uint64 {
+	return r.Res.ID
 }

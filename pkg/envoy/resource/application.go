@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"fmt"
-
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -24,14 +22,6 @@ func NewApplication(res *types.Application) *Application {
 	return r
 }
 
-func (r *Application) SearchQuery() types.ApplicationFilter {
-	f := types.ApplicationFilter{
-		Name: r.Res.Name,
-	}
-
-	if r.Res.ID > 0 {
-		f.Query = fmt.Sprintf("applicationID=%d", r.Res.ID)
-	}
-
-	return f
+func (r *Application) SysID() uint64 {
+	return r.Res.ID
 }

@@ -10,8 +10,8 @@ type (
 		Res *rbac.Rule
 
 		// Perhaps?
-		RefRole     string
-		RefResource string
+		RefRole     *Ref
+		RefResource *Ref
 	}
 )
 
@@ -19,21 +19,12 @@ func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref) *RbacRule {
 	r := &RbacRule{base: &base{}}
 	r.SetResourceType(RBAC_RESOURCE_TYPE)
 	r.Res = res
-	r.RefRole = refRole
 
-	r.AddRef(ROLE_RESOURCE_TYPE, refRole)
-	r.AddRef(resRef.ResourceType, resRef.Identifiers.StringSlice()...)
+	r.RefRole = r.AddRef(ROLE_RESOURCE_TYPE, refRole)
 
-	// @todo identifiers?
-	// Combination of resID, operation, rule?
+	if resRef != nil {
+		r.RefResource = r.AddRef(resRef.ResourceType, resRef.Identifiers.StringSlice()...)
+	}
 
 	return r
-}
-
-func (r *RbacRule) SearchQuery() rbac.RuleFilter {
-	f := rbac.RuleFilter{}
-
-	// @todo?
-
-	return f
 }
