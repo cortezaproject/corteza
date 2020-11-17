@@ -120,6 +120,10 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 		}
 
 		n := resource.NewComposeRecordSet(walker, w.nsRef, w.modRef)
+		for _, r := range w.rr {
+			n.IDMap[r.ID] = 0
+		}
+
 		nn = append(nn, n)
 	}
 

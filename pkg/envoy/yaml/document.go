@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
@@ -52,8 +53,31 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 func (doc *Document) Decode(ctx context.Context, l loader) ([]resource.Interface, error) {
 	nn := make([]resource.Interface, 0, 100)
 
+	mm := make([]envoy.Marshaller, 0, 20)
 	if doc.compose != nil {
-		if tmp, err := doc.compose.MarshalEnvoy(); err != nil {
+		mm = append(mm, doc.compose)
+	}
+	if doc.roles != nil {
+		mm = append(mm, doc.roles)
+	}
+	if doc.users != nil {
+		mm = append(mm, doc.users)
+	}
+	if doc.applications != nil {
+		mm = append(mm, doc.applications)
+	}
+	if doc.settings != nil {
+		mm = append(mm, doc.settings)
+	}
+	if doc.rbac != nil {
+		mm = append(mm, doc.rbac)
+	}
+	if doc.users != nil {
+		mm = append(mm, doc.users)
+	}
+
+	for _, m := range mm {
+		if tmp, err := m.MarshalEnvoy(); err != nil {
 			return nil, err
 		} else {
 			nn = append(nn, tmp...)

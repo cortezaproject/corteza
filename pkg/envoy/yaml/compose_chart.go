@@ -124,7 +124,11 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
-	rs := resource.NewComposeChart(wrap.res, wrap.refNamespace)
+	vv := make([]string, 0, len(wrap.refReportModules))
+	for _, v := range wrap.refReportModules {
+		vv = append(vv, v)
+	}
+	rs := resource.NewComposeChart(wrap.res, wrap.refNamespace, vv)
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),

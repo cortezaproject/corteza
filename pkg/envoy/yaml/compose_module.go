@@ -148,7 +148,9 @@ func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 			wrap.res.Name = k.Value
-			wrap.res.Label = k.Value
+			if wrap.res.Label == "" {
+				wrap.res.Label = k.Value
+			}
 		}
 
 		*set = append(*set, wrap)
