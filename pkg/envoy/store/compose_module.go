@@ -286,16 +286,15 @@ func findComposeModuleS(ctx context.Context, s store.Storer, nsID uint64, gf gen
 // findComposeModuleR looks for the module in the store
 func findComposeModuleR(rr resource.InterfaceSet, ii resource.Identifiers) (ns *types.Module) {
 	var modRes *resource.ComposeModule
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		modRes, ok = r.(*resource.ComposeModule)
+		mr, ok := r.(*resource.ComposeModule)
 		if !ok {
 			return nil
 		}
 
-		if !modRes.Identifiers().HasAny(r.Identifiers()) {
-			modRes = nil
+		if modRes.Identifiers().HasAny(ii) {
+			modRes = mr
 		}
 		return nil
 	})
