@@ -33,7 +33,7 @@ steps:
       RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
       RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
     commands:
-    - make release-clean release -j4 BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=unstable
+    - make release-clean release BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=unstable
     - make upload
     when:
       event: [ push ]
