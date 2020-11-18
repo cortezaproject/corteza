@@ -207,16 +207,15 @@ func findComposePageS(ctx context.Context, s store.Storer, nsID uint64, gf gener
 // findComposePageR looks for the page in the resources
 func findComposePageR(ctx context.Context, rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page) {
 	var pgRes *resource.ComposePage
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		pgRes, ok = r.(*resource.ComposePage)
+		pr, ok := r.(*resource.ComposePage)
 		if !ok {
 			return nil
 		}
 
-		if !pgRes.Identifiers().HasAny(r.Identifiers()) {
-			pgRes = nil
+		if pr.Identifiers().HasAny(ii) {
+			pgRes = pr
 		}
 		return nil
 	})

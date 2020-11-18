@@ -149,16 +149,15 @@ func findComposeNamespaceS(ctx context.Context, s store.Storer, gf genericFilter
 // findComposeNamespaceR looks for the namespace in the resources
 func findComposeNamespaceR(rr resource.InterfaceSet, ii resource.Identifiers) (ns *types.Namespace) {
 	var nsRes *resource.ComposeNamespace
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		nsRes, ok = r.(*resource.ComposeNamespace)
+		nr, ok := r.(*resource.ComposeNamespace)
 		if !ok {
 			return nil
 		}
 
-		if !nsRes.Identifiers().HasAny(r.Identifiers()) {
-			nsRes = nil
+		if nr.Identifiers().HasAny(ii) {
+			nsRes = nr
 		}
 		return nil
 	})

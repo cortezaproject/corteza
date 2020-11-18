@@ -143,16 +143,15 @@ func findRoleS(ctx context.Context, s store.Storer, gf genericFilter) (rl *types
 // findRoleR looks for the role in the resources
 func findRoleR(rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Role) {
 	var rlRes *resource.Role
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		rlRes, ok = r.(*resource.Role)
+		rr, ok := r.(*resource.Role)
 		if !ok {
 			return nil
 		}
 
-		if rlRes.Identifiers().HasAny(r.Identifiers()) {
-			rlRes = nil
+		if rr.Identifiers().HasAny(ii) {
+			rlRes = rr
 		}
 		return nil
 	})

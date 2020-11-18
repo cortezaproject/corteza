@@ -156,18 +156,16 @@ func findUserS(ctx context.Context, s store.Storer, gf genericFilter) (u *types.
 
 // findUserR looks for the user in the resources
 func findUserR(ctx context.Context, rr resource.InterfaceSet, ii resource.Identifiers) (u *types.User) {
-	// Try to find it in the parent resources
 	var uRes *resource.User
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		uRes, ok = r.(*resource.User)
+		ur, ok := r.(*resource.User)
 		if !ok {
 			return nil
 		}
 
-		if !uRes.Identifiers().HasAny(r.Identifiers()) {
-			uRes = nil
+		if uRes.Identifiers().HasAny(ii) {
+			uRes = ur
 		}
 		return nil
 	})

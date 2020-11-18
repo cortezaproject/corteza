@@ -202,16 +202,15 @@ func findComposeChartS(ctx context.Context, s store.Storer, nsID uint64, gf gene
 // findComposeChartR looks for the chart in the resources
 func findComposeChartR(rr resource.InterfaceSet, ii resource.Identifiers) (ch *types.Chart) {
 	var chRes *resource.ComposeChart
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		chRes, ok = r.(*resource.ComposeChart)
+		cr, ok := r.(*resource.ComposeChart)
 		if !ok {
 			return nil
 		}
 
-		if !chRes.Identifiers().HasAny(r.Identifiers()) {
-			chRes = nil
+		if chRes.Identifiers().HasAny(ii) {
+			chRes = cr
 		}
 		return nil
 	})

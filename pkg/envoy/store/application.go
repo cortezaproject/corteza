@@ -155,16 +155,15 @@ func findApplicationS(ctx context.Context, s store.Storer, gf genericFilter) (ap
 // findApplicationR looks for the app in the resource set
 func findApplicationR(rr resource.InterfaceSet, ii resource.Identifiers) (ap *types.Application) {
 	var apRes *resource.Application
-	var ok bool
 
 	rr.Walk(func(r resource.Interface) error {
-		apRes, ok = r.(*resource.Application)
+		ar, ok := r.(*resource.Application)
 		if !ok {
 			return nil
 		}
 
-		if !apRes.Identifiers().HasAny(r.Identifiers()) {
-			apRes = nil
+		if ar.Identifiers().HasAny(ii) {
+			apRes = ar
 		}
 
 		return nil
