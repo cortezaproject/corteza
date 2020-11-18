@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -51,7 +51,7 @@ func (n *rbacRuleState) Prepare(ctx context.Context, s store.Storer, state *envo
 		return err
 	}
 	if n.relRole == nil {
-		return errors.New("[rbac rule] couldn't resolve role; @todo error")
+		return roleErrUnresolved(n.res.RefRole.Identifiers)
 	}
 
 	// Check for resource if there is any
@@ -79,7 +79,7 @@ func (n *rbacRuleState) Encode(ctx context.Context, s store.Storer, state *envoy
 	// Resource?
 	if n.res.RefResource != nil {
 		if ir, ok := n.relResource.(resource.IdentifiableInterface); !ok {
-			return errors.New("[rbac rule] resource not identifiable; @todo error")
+			return rbacResourceErrUnidentifiable(n.relResource.Identifiers())
 		} else {
 			rule.Resource = rule.Resource.AppendID(ir.SysID())
 		}
@@ -128,4 +128,8 @@ func (n *rbacRuleState) findResourceR(ctx context.Context, rr resource.Interface
 		return r
 	}
 	return nil
+}
+
+func rbacResourceErrUnidentifiable(ii resource.Identifiers) error {
+	return fmt.Errorf("rbac resource unidentifiable %v", ii.StringSlice())
 }

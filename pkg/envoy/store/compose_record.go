@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"strconv"
 	"time"
 
@@ -44,7 +43,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 		return err
 	}
 	if n.relNS == nil {
-		return errors.New("@todo couldn't resolve namespace")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	n.relMod = findComposeModuleR(state.ParentResources, n.res.ModRef.Identifiers)
@@ -54,7 +53,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 			return err
 		}
 		if n.relMod == nil {
-			return errors.New("@todo couldn't resolve module")
+			return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
 		}
 
 		// Preload existing fields

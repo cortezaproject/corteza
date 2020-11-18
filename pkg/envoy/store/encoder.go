@@ -3,12 +3,12 @@ package store
 import (
 	"context"
 	"errors"
-	"sync"
+	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -46,6 +46,11 @@ type (
 		Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error)
 		Encode(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error)
 	}
+)
+
+var (
+	ErrUnknownResource        = errors.New("unknown resource")
+	ErrResourceStateUndefined = errors.New("undefined resource state")
 )
 
 // NewStoreEncoder initializes a fresh store encoder
@@ -94,7 +99,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		case *resource.ComposePage:
 			err = f(NewComposePageState(res, se.cfg), e)
 
-			// System things
+		// System things
 		case *resource.User:
 			err = f(NewUserState(res, se.cfg), e)
 		case *resource.Role:
@@ -107,11 +112,11 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 			err = f(NewRbacRuleState(res, se.cfg), e)
 
 		default:
-			return errors.New("[encoder] unknown resource; @todo error")
+			err = ErrUnknownResource
 		}
 
 		if err != nil {
-			return err
+			return se.WrapError("prepare", e.Res, err)
 		}
 	}
 
@@ -130,13 +135,20 @@ func (se *storeEncoder) Encode(ctx context.Context, rc envoy.Rc) error {
 
 			state := se.state[e.Res]
 			if state == nil {
-				return errors.New("Resource state not defined; @todo error")
+				err = ErrResourceStateUndefined
+			} else {
+				err = state.Encode(ctx, se.s, e)
 			}
 
-			err = state.Encode(ctx, se.s, e)
 			if err != nil {
-				return err
+				return se.WrapError("encode", e.Res, err)
+
 			}
 		}
 	})
+}
+
+func (se *storeEncoder) WrapError(act string, res resource.Interface, err error) error {
+	rt := strings.Join(strings.Split(strings.TrimSpace(strings.TrimRight(res.ResourceType(), ":")), ":"), " ")
+	return fmt.Errorf("store encoder %s %s %v: %s", act, rt, res.Identifiers().StringSlice(), err)
 }

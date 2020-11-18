@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -168,4 +169,8 @@ func findComposeNamespaceR(rr resource.InterfaceSet, ii resource.Identifiers) (n
 	}
 
 	return nil
+}
+
+func composeNamespaceErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("compose namespace unresolved %v", ii.StringSlice())
 }

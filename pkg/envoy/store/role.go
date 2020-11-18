@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -162,4 +163,8 @@ func findRoleR(rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Rol
 	}
 
 	return nil
+}
+
+func roleErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("role unresolved %v", ii.StringSlice())
 }
