@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -43,7 +42,7 @@ func (n *composePageState) Prepare(ctx context.Context, s store.Storer, state *e
 		return err
 	}
 	if n.relNS == nil {
-		return errors.New("@todo couldn't resolve namespace")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Can't do anything else, since the NS doesn't yet exist
@@ -59,7 +58,7 @@ func (n *composePageState) Prepare(ctx context.Context, s store.Storer, state *e
 			return err
 		}
 		if n.relMod == nil {
-			return errors.New("@todo couldn't resolve module")
+			return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
 		}
 	}
 
@@ -100,7 +99,7 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 	}
 
 	if res.NamespaceID <= 0 {
-		return errors.New("[chart] couldn't find related namespace; @todo error")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Module?

@@ -2,7 +2,7 @@ package store
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -28,6 +28,8 @@ func NewComposeModuleState(res *resource.ComposeModule, cfg *EncoderConfig) reso
 		cfg: cfg,
 
 		res: res,
+
+		recFields: make(map[string]uint64),
 	}
 }
 
@@ -43,26 +45,33 @@ func (n *composeModuleState) Prepare(ctx context.Context, s store.Storer, state 
 		return err
 	}
 	if n.relNS == nil {
-		return errors.New("@todo couldn't resolve namespace")
-	}
-
-	// Can't do anything else, since the NS doesn't yet exist
-	if n.relNS.ID <= 0 {
-		return nil
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Get related record field modules
 	for _, r := range n.res.ModRef {
-		mod, err := findComposeModuleRS(ctx, s, n.relNS.ID, state.ParentResources, r.Identifiers)
-		if err != nil {
-			return err
-		} else if mod == nil {
-			return errors.New("[mod prepare] couldn't find related module; @todo error")
+		var mod *types.Module
+		if n.relNS.ID > 0 {
+			mod, err = findComposeModuleS(ctx, s, n.relNS.ID, makeGenericFilter(r.Identifiers))
+			if err != nil {
+				return err
+			}
+		}
+		if mod == nil {
+			mod = findComposeModuleR(state.ParentResources, r.Identifiers)
+		}
+		if mod == nil {
+			return composeModuleErrUnresolvedRecordField(r.Identifiers)
 		}
 
 		for i := range r.Identifiers {
 			n.recFields[i] = mod.ID
 		}
+	}
+
+	// Can't do anything else, since the NS doesn't yet exist
+	if n.relNS.ID <= 0 {
+		return nil
 	}
 
 	// Try to get the original module
@@ -113,7 +122,7 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 	}
 
 	if res.NamespaceID <= 0 {
-		return errors.New("[module] couldn't find related namespace; @todo error")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Fields
@@ -128,9 +137,10 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 			refM := f.Options.String("module")
 			mID := n.recFields[refM]
 			if mID <= 0 {
-				mod := findComposeModuleR(state.ParentResources, resource.MakeIdentifiers(refM))
+				ii := resource.MakeIdentifiers(refM)
+				mod := findComposeModuleR(state.ParentResources, ii)
 				if mod == nil || mod.ID <= 0 {
-					return errors.New("[module field] couldn't find related module; @todo error")
+					return composeModuleErrUnresolvedRecordField(ii)
 				}
 				mID = mod.ID
 			}
@@ -320,4 +330,12 @@ func findComposeModuleFieldsS(ctx context.Context, s store.Storer, mod *types.Mo
 	}
 
 	return ff, nil
+}
+
+func composeModuleErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("compose module unresolved %v", ii.StringSlice())
+}
+
+func composeModuleErrUnresolvedRecordField(ii resource.Identifiers) error {
+	return fmt.Errorf("record module field unresolved %v", ii.StringSlice())
 }

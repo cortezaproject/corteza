@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -43,7 +42,7 @@ func (n *composeChartState) Prepare(ctx context.Context, s store.Storer, state *
 		return err
 	}
 	if n.relNS == nil {
-		return errors.New("@todo couldn't resolve namespace")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Can't do anything else, since the NS doesn't yet exist
@@ -57,6 +56,9 @@ func (n *composeChartState) Prepare(ctx context.Context, s store.Storer, state *
 		n.relMods[i], err = findComposeModuleRS(ctx, s, n.relNS.ID, state.ParentResources, mRef.Identifiers)
 		if err != nil {
 			return err
+		}
+		if n.relMods[i] == nil {
+			return composeModuleErrUnresolved(mRef.Identifiers)
 		}
 	}
 
@@ -96,7 +98,7 @@ func (n *composeChartState) Encode(ctx context.Context, s store.Storer, state *e
 		res.NamespaceID = ns.ID
 	}
 	if res.NamespaceID <= 0 {
-		return errors.New("[chart] couldn't find related namespace; @todo error")
+		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
 	// Report modules
@@ -106,7 +108,7 @@ func (n *composeChartState) Encode(ctx context.Context, s store.Storer, state *e
 			mod = findComposeModuleR(state.ParentResources, n.res.ModRef[i].Identifiers)
 		}
 		if mod == nil || mod.ID <= 0 {
-			return errors.New("[chart] couldn't find related report module; @todo error")
+			return composeModuleErrUnresolved(n.res.ModRef[i].Identifiers)
 		}
 
 		r.ModuleID = mod.ID
