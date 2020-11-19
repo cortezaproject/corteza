@@ -87,19 +87,25 @@ func (n *rbacRuleState) Encode(ctx context.Context, s store.Storer, state *envoy
 		rule.Resource = rule.Resource.AppendWildcard()
 	}
 
-	// There isn't anything to merge really, so Skip & MergeLeft skip it;
-	// Replace & MergeRight replace it.
-	//
-	// Replacing is handled after
-	switch n.cfg.OnExisting {
-	case Skip,
-		MergeLeft:
-		return nil
+	ee, _ := rbacRules.Filter(func(r *rbac.Rule) (bool, error) {
+		return (r.RoleID == rule.RoleID && r.Resource == rule.Resource && r.Operation == rule.Operation), nil
+	})
+
+	if len(ee) <= 0 {
+		rbacRules = rbacRules.Merge(rule)
+	} else {
+		// There isn't anything to merge really, so Skip & MergeLeft skip it;
+		// Replace & MergeRight replace it.
+		switch n.cfg.OnExisting {
+		case Skip,
+			MergeLeft:
+			return nil
+		}
+
+		rbacRules = rbacRules.Merge(rule)
 	}
 
-	nrr := rbacRules.Merge(rule)
-	d, u := nrr.Dirty()
-
+	d, u := rbacRules.Dirty()
 	err = store.DeleteRbacRule(ctx, s, d...)
 	if err != nil {
 		return
@@ -110,8 +116,7 @@ func (n *rbacRuleState) Encode(ctx context.Context, s store.Storer, state *envoy
 		return
 	}
 
-	nrr.Clear()
-	rbacRules = nrr
+	rbacRules.Clear()
 	return nil
 }
 

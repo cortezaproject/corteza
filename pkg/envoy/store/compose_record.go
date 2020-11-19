@@ -138,7 +138,7 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 		if rec.ID <= 0 && exists {
 			rec.ID = rm[r.ID].ID
 		} else {
-			rec.ID = nextID()
+			rec.ID = NextID()
 		}
 
 		im[r.ID] = rec.ID

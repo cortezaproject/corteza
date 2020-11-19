@@ -74,8 +74,11 @@ func (n *settingsState) Encode(ctx context.Context, s store.Storer, state *envoy
 			ss = append(ss, ns)
 		}
 	}
-
-	return store.UpsertSetting(ctx, s, ss...)
+	err = store.TruncateSettings(ctx, s)
+	if err != nil {
+		return err
+	}
+	return store.CreateSetting(ctx, s, ss...)
 }
 
 // mergeSettings merges b into a, prioritising a

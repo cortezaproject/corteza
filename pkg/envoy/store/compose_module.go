@@ -107,7 +107,7 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 		res.ID = n.mod.ID
 	}
 	if res.ID <= 0 {
-		res.ID = nextID()
+		res.ID = NextID()
 	}
 
 	if state.Conflicting {
@@ -126,8 +126,17 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 	}
 
 	// Fields
+	off := make(types.ModuleFieldSet, 0)
+	if n.mod != nil && n.mod.Fields != nil {
+		off = n.mod.Fields
+	}
 	for i, f := range res.Fields {
-		f.ID = res.ID
+		of := off.FindByName(f.Name)
+		if of != nil {
+			f.ID = of.ID
+		} else {
+			f.ID = NextID()
+		}
 		f.ModuleID = res.ID
 		f.Place = i
 		f.DeletedAt = nil
@@ -262,6 +271,10 @@ func findComposeModuleRS(ctx context.Context, s store.Storer, nsID uint64, rr re
 		return mod, nil
 	}
 
+	if nsID <= 0 {
+		return nil, nil
+	}
+
 	// Go in the store
 	return findComposeModuleS(ctx, s, nsID, makeGenericFilter(ii))
 }
@@ -303,7 +316,7 @@ func findComposeModuleR(rr resource.InterfaceSet, ii resource.Identifiers) (ns *
 			return nil
 		}
 
-		if modRes.Identifiers().HasAny(ii) {
+		if mr.Identifiers().HasAny(ii) {
 			modRes = mr
 		}
 		return nil

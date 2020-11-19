@@ -124,11 +124,14 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 }
 
 // Encode encodes available resource states using the given store encoder
-func (se *storeEncoder) Encode(ctx context.Context, rc envoy.Rc) error {
+func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	var e *envoy.ResourceState
 	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
 		for {
-			e = <-rc
+			e, err = p.Next(ctx)
+			if err != nil {
+				return err
+			}
 			if e == nil {
 				return nil
 			}
@@ -142,7 +145,6 @@ func (se *storeEncoder) Encode(ctx context.Context, rc envoy.Rc) error {
 
 			if err != nil {
 				return se.WrapError("encode", e.Res, err)
-
 			}
 		}
 	})

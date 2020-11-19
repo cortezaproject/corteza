@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -45,11 +46,6 @@ func (n *composeChartState) Prepare(ctx context.Context, s store.Storer, state *
 		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
-	// Can't do anything else, since the NS doesn't yet exist
-	if n.relNS.ID <= 0 {
-		return nil
-	}
-
 	// Get related modules
 	n.relMods = make(types.ModuleSet, len(n.res.ModRef))
 	for i, mRef := range n.res.ModRef {
@@ -83,7 +79,7 @@ func (n *composeChartState) Encode(ctx context.Context, s store.Storer, state *e
 		res.ID = n.chr.ID
 	}
 	if res.ID <= 0 {
-		res.ID = nextID()
+		res.ID = NextID()
 	}
 
 	// This is not possible, but let's do it anyway
@@ -170,6 +166,10 @@ func findComposeChartRS(ctx context.Context, s store.Storer, nsID uint64, rr res
 		return ch, nil
 	}
 
+	if nsID <= 0 {
+		return nil, nil
+	}
+
 	// Go in the store
 	return findComposeChartS(ctx, s, nsID, makeGenericFilter(ii))
 }
@@ -211,7 +211,7 @@ func findComposeChartR(rr resource.InterfaceSet, ii resource.Identifiers) (ch *t
 			return nil
 		}
 
-		if chRes.Identifiers().HasAny(ii) {
+		if cr.Identifiers().HasAny(ii) {
 			chRes = cr
 		}
 		return nil
@@ -223,4 +223,8 @@ func findComposeChartR(rr resource.InterfaceSet, ii resource.Identifiers) (ch *t
 	}
 
 	return nil
+}
+
+func composeChartErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("compose chart unresolved %v", ii.StringSlice())
 }

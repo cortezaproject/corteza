@@ -22,8 +22,8 @@ var (
 	// we'll use the pkg/handle to check for handles.
 	refy = regexp.MustCompile(`^[1-9](\d*)$`)
 
-	// wrapper around nextID that will aid service testing
-	nextID = func() uint64 {
+	// wrapper around NextID that will aid service testing
+	NextID = func() uint64 {
 		return id.Next()
 	}
 )
