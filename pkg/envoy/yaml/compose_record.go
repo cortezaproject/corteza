@@ -167,19 +167,26 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 			return nil
 
 		case "createdAt":
-			return v.Decode(wrap.sysValues["createdAt"])
+			wrap.sysValues["createdAt"] = v.Value
+			return nil
 		case "updatedAt":
-			return v.Decode(wrap.sysValues["updatedAt"])
+			wrap.sysValues["updatedAt"] = v.Value
+			return nil
 		case "deletedAt":
-			return v.Decode(wrap.sysValues["deletedAt"])
+			wrap.sysValues["deletedAt"] = v.Value
+			return nil
 		case "createdBy":
-			return v.Decode(wrap.refUser["createdBy"])
+			wrap.refUser["createdBy"] = v.Value
+			return nil
 		case "updatedBy":
-			return v.Decode(wrap.refUser["updatedBy"])
+			wrap.refUser["updatedBy"] = v.Value
+			return nil
 		case "deletedBy":
-			return v.Decode(wrap.refUser["deletedBy"])
+			wrap.refUser["deletedBy"] = v.Value
+			return nil
 		case "ownedBy":
-			return v.Decode(wrap.refUser["ownedBy"])
+			wrap.refUser["ownedBy"] = v.Value
+			return nil
 
 		}
 

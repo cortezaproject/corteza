@@ -89,24 +89,23 @@ func (g *graph) markConflicting(n *node) {
 }
 
 func (g *graph) Relink() {
+	for _, n := range g.nn {
+		n.cc = make(nodeSet, 0, len(n.cc))
+		n.pp = make(nodeSet, 0, len(n.pp))
+	}
+
 	for res := range g.resIndex {
 		n := g.resIndex[res]
 		if n == nil {
 			return
 		}
 
-		refs := res.Refs()
-		cc := g.childNodes(n)
-
-		for _, ref := range refs {
-			// If it's already linked, skip it
-			if cc.findByRef(ref) != nil {
-				continue
-			}
+		for _, ref := range res.Refs() {
 			// else find the node and link to it (if we can)
 			m := g.nn.findByRef(ref)
 			if m != nil {
 				g.addChild(n, m)
+				g.addParent(m, n)
 			}
 		}
 	}
