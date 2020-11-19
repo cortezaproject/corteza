@@ -117,8 +117,10 @@ func (set SortExprSet) Get(col string) *SortExpr {
 func (set SortExprSet) Clone() (out SortExprSet) {
 	out = make([]*SortExpr, len(set))
 	for i := range set {
-		out[i] = &SortExpr{}
-		*(out[i]) = *(set[i])
+		out[i] = &SortExpr{
+			Column:     set[i].Column,
+			Descending: set[i].Descending,
+		}
 	}
 
 	return out
@@ -135,6 +137,15 @@ func (set SortExprSet) Reverse() {
 func (set SortExprSet) Reversed() bool {
 	if len(set) > 0 {
 		return set[0].Descending
+	}
+
+	return false
+}
+
+// LastDescending returns true if last sort expr/col is descending
+func (set SortExprSet) LastDescending() bool {
+	if len(set) > 0 {
+		return set[len(set)-1].Descending
 	}
 
 	return false

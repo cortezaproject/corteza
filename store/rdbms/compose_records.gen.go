@@ -36,34 +36,46 @@ var _ = errors.Is
 func (s Store) fetchFullPageOfComposeRecords(
 	ctx context.Context, _mod *types.Module,
 	q squirrel.SelectBuilder,
-	sortColumns []string,
-	sortDesc bool,
+	sort filter.SortExprSet,
 	cursor *filter.PagingCursor,
-	limit uint,
+	reqItems uint,
 	check func(*types.Record) (bool, error),
+	cursorCond func(*filter.PagingCursor) squirrel.Sqlizer,
 ) (set []*types.Record, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*types.Record
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedOrder = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.ROrder
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
-		fetched uint
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = reqItems
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = cursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
 	)
 
 	set = make([]*types.Record, 0, DefaultSliceCapacity)
 
-	if cursor != nil {
-		cursor.Reverse = sortDesc
-	}
-
 	for try := 0; try < MaxRefetches; try++ {
-		tryQuery = setCursorCond(q, cursor)
+		if cursor != nil {
+			tryQuery = q.Where(cursorCond(cursor))
+		} else {
+			tryQuery = q
+		}
+
 		if limit > 0 {
+			// fetching + 1 so we know if there are more items
+			// we can fetch (next-page cursor)
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
@@ -71,50 +83,72 @@ func (s Store) fetchFullPageOfComposeRecords(
 			return nil, nil, nil, err
 		}
 
-		fetched = uint(len(aux))
-		if cursor != nil && prev == nil && fetched > 0 {
-			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
-			prev = s.collectComposeRecordCursorValues(aux[0], sortColumns...)
-		}
-
-		// Point cursor to the last fetched element
-		if fetched > limit && limit > 0 {
-			next = s.collectComposeRecordCursorValues(aux[limit-1], sortColumns...)
-
-			// we should use only as much as requested
-			set = append(set, aux[:limit]...)
-			break
-		} else {
-			set = append(set, aux...)
-		}
-
-		// if limit is not set or we've already collected enough items
-		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched <= limit {
+		if len(aux) == 0 {
+			// nothing fetched
 			break
 		}
 
-		// In case limit is set very low and we've missed records in the first fetch,
-		// make sure next fetch limit is a bit higher
-		if limit < MinEnsureFetchLimit {
-			limit = MinEnsureFetchLimit
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 {
+			// no max requested items specified, break out
+			break
 		}
 
-		// @todo improve strategy for collecting next page with lower limit
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			cursor = s.collectComposeRecordCursorValues(_mod, set[collected-1], sort...)
+
+			// Copy reverse flag from sorting
+			cursor.LThen = sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+			hasNext = true
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
 	}
 
 	if reversedOrder {
 		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
-		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
 
-		// and flip prev/next cursors too
-		prev, next = next, prev
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
 	}
 
-	if prev != nil {
-		prev.Reverse = true
+	if hasPrev {
+		prev = s.collectComposeRecordCursorValues(_mod, set[0], sort...)
+		prev.ROrder = true
+		prev.LThen = !sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectComposeRecordCursorValues(_mod, set[collected-1], sort...)
+		next.LThen = sort.Reversed()
 	}
 
 	return set, prev, next, nil

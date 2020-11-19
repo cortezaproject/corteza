@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 	"strings"
 )
 
@@ -24,33 +25,76 @@ const (
 // SearchComposeRecords returns all matching ComposeRecords from store
 func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f types.RecordFilter) (types.RecordSet, types.RecordFilter, error) {
 	var (
-		err error
 		set []*types.Record
 		q   squirrel.SelectBuilder
 	)
 
-	return set, f, func() error {
+	return set, f, func() (err error) {
 		q, err = s.convertComposeRecordFilter(m, f)
 		if err != nil {
-			return err
+			return
 		}
 
 		f.PrevPage, f.NextPage = nil, nil
+
+		if f.PageCursor != nil {
+			// Page cursor exists so we need to validate it against used sort
+			// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+			// from the cursor.
+			// This (extracted sorting info) is then returned as part of response
+			if f.Sort, err = f.PageCursor.Sort(nil); err != nil {
+				return err
+			}
+		}
+
+		// Make sure results are always sorted at least by primary keys
+		if f.Sort.Get("id") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "id",
+				Descending: f.Sort.LastDescending(),
+			})
+		}
+
+		// Cloned sorting instructions for the actual sorting
+		// Original are passed to the fetchFullPageOfUsers fn used for cursor creation so it MUST keep the initial
+		// direction information
 		sort := f.Sort.Clone()
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		if f.PageCursor != nil && f.PageCursor.Reverse {
+		if f.PageCursor != nil && f.PageCursor.ROrder {
 			sort.Reverse()
 		}
 
-		if q, err = s.composeRecordsSorter(m, q, f.Sort); err != nil {
-			return err
+		// Apply sorting expr from filter to query
+		if q, err = s.composeRecordsSorter(m, q, sort); err != nil {
+			return
 		}
 
-		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeRecords(ctx, m, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfComposeRecords(
+			ctx, m, q,
+			f.Sort, f.PageCursor, f.Limit,
+			f.Check,
+			func(cur *filter.PagingCursor) squirrel.Sqlizer {
+				// in case where records are sorted by module fields, we need
+				// to reconstruct the cursor with proper keys
+				return builders.CursorCondition(cur, func(key string) (string, error) {
+					if col, is := isRealRecordCol(key); is {
+						return col, nil
+					}
+
+					f := m.Fields.FindByName(key)
+					if f == nil {
+						return "", fmt.Errorf("unknown module field %q used in a cursor", key)
+					}
+
+					return s.config.CastModuleFieldToColumnType(f, f.Name)
+				})
+			},
+		)
+
 		if err != nil {
-			return err
+			return
 		}
 
 		f.PageCursor = nil
@@ -314,7 +358,43 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 		}
 	}
 
+	if f.PageCursor != nil {
+		var (
+			// Sort parser
+			sp = ql.NewParser()
+		)
+
+		// Resolve all identifiers found in sort
+		// into their table/column counterparts
+		sp.OnIdent = identResolver
+
+		if _, err = sp.ParseColumns(strings.Join(f.PageCursor.Keys(), ", ")); err != nil {
+			return
+		}
+	}
+
 	return
+}
+
+func (s Store) convertComposeRecordCursor(m *types.Module, from *filter.PagingCursor) (to *filter.PagingCursor) {
+	if from != nil {
+		to = &filter.PagingCursor{ROrder: from.ROrder, LThen: from.LThen}
+		// convert cursor keys field names (if used)
+		from.Walk(func(key string, val interface{}, desc bool) {
+			if col, has := s.sortableComposeRecordColumns()[strings.ToLower(key)]; has {
+				key = col
+			} else if f := m.Fields.FindByName(key); f != nil {
+				key, _ = s.config.CastModuleFieldToColumnType(f, key)
+			} else {
+				return
+			}
+
+			to.Set(key, val, desc)
+		})
+
+	}
+
+	return to
 }
 
 func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Module, set ...*types.Record) (err error) {
@@ -367,41 +447,49 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 }
 
 // Custom implementation for collecting cursor values from compose records AND it's values!
-func (s Store) collectComposeRecordCursorValues(res *types.Record, cc ...string) *filter.PagingCursor {
+func (s Store) collectComposeRecordCursorValues(m *types.Module, res *types.Record, sort ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cursor = &filter.PagingCursor{}
 
 		hasUnique bool
 		pkID      bool
 
-		collect = func(cc ...string) {
+		conv = s.sortableComposeRecordColumns()
+
+		collect = func(cc ...*filter.SortExpr) {
 			for _, c := range cc {
-				switch c {
+				switch conv[strings.ToLower(c.Column)] {
 				case "id":
-					cursor.Set(c, res.ID, false)
+					cursor.Set(c.Column, res.ID, c.Descending)
 					pkID = true
-				case "crd.created_at":
-					cursor.Set(c, res.CreatedAt, false)
-				case "crd.updated_at":
-					cursor.Set(c, res.UpdatedAt, false)
-				case "crd.deleted_at":
-					cursor.Set(c, res.DeletedAt, false)
+				case "created_at":
+					cursor.Set(c.Column, res.CreatedAt, c.Descending)
+				case "created_by":
+					cursor.Set(c.Column, res.CreatedBy, c.Descending)
+				case "updated_at":
+					cursor.Set(c.Column, res.UpdatedAt, c.Descending)
+				case "updated_by":
+					cursor.Set(c.Column, res.UpdatedBy, c.Descending)
+				case "deleted_at":
+					cursor.Set(c.Column, res.DeletedAt, c.Descending)
+				case "deleted_by":
+					cursor.Set(c.Column, res.DeletedBy, c.Descending)
+				case "owned_by":
+					cursor.Set(c.Column, res.OwnedBy, c.Descending)
 				default:
-					if rv := res.Values.Get(c, 0); rv != nil {
-						cursor.Set(fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, c), rv.Value, false)
+					if rv := res.Values.Get(c.Column, 0); rv != nil {
+						cursor.Set(c.Column, rv.Value, c.Descending)
 					} else {
-						cursor.Set(fmt.Sprintf("%s%s.value", composeRecordValueAliasPfx, c), nil, false)
+						cursor.Set(c.Column, nil, c.Descending)
 					}
 				}
 			}
 		}
 	)
 
-	collect(cc...)
+	collect(sort...)
 	if !hasUnique || !pkID {
-		collect(
-			"id",
-		)
+		collect(&filter.SortExpr{Column: "id"})
 	}
 
 	return cursor

@@ -19,5 +19,11 @@ func HttpClient(pfix string) (o *HTTPClientOpt) {
 
 	fill(o)
 
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
 	return
 }
