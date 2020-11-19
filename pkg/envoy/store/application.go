@@ -57,7 +57,7 @@ func (n *applicationState) Encode(ctx context.Context, s store.Storer, state *en
 		res.ID = n.app.ID
 	}
 	if res.ID <= 0 {
-		res.ID = nextID()
+		res.ID = NextID()
 	}
 
 	// This is not possible, but let's do it anyway

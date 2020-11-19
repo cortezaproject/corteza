@@ -22,7 +22,7 @@ type (
 	//
 	// Encoding errors are passed via Ec.
 	Encoder interface {
-		Encode(ctx context.Context, c Rc) error
+		Encode(ctx context.Context, p Provider) error
 	}
 
 	PrepareEncoder interface {

@@ -72,9 +72,6 @@ func (doc *Document) Decode(ctx context.Context, l loader) ([]resource.Interface
 	if doc.rbac != nil {
 		mm = append(mm, doc.rbac)
 	}
-	if doc.users != nil {
-		mm = append(mm, doc.users)
-	}
 
 	for _, m := range mm {
 		if tmp, err := m.MarshalEnvoy(); err != nil {

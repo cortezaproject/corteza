@@ -54,7 +54,7 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 		rl.ID = n.rl.ID
 	}
 	if rl.ID <= 0 {
-		rl.ID = nextID()
+		rl.ID = NextID()
 	}
 
 	// This is not possible, but let's do it anyway

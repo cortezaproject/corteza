@@ -11,11 +11,14 @@ import (
 
 type (
 	composePage struct {
-		res          *types.Page
-		children     composePageSet
+		res      *types.Page
+		children composePageSet
+
 		refNamespace string
 		refModule    string
-		rbac         rbacRuleSet
+		refParent    string
+
+		rbac rbacRuleSet
 	}
 	composePageSet []*composePage
 
@@ -59,6 +62,9 @@ func (wset composePageSet) setNamespaceRef(ref string) error {
 		}
 
 		res.refNamespace = ref
+		if res.children != nil {
+			res.children.setNamespaceRef(ref)
+		}
 	}
 
 	return nil
@@ -131,11 +137,27 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
-	rs := resource.NewComposePage(wrap.res, wrap.refNamespace, wrap.refModule)
+	rs := resource.NewComposePage(wrap.res, wrap.refNamespace, wrap.refModule, wrap.refParent)
+
 	return envoy.CollectNodes(
 		rs,
+		wrap.children.bindParent(rs),
 		wrap.rbac.bindResource(rs),
+
 		// @todo Not sure yet
 		// wrap.children,
 	)
+}
+
+func (rr composePageSet) bindParent(res resource.Interface) composePageSet {
+	rtr := make(composePageSet, 0, len(rr))
+	for _, r := range rr {
+		idd := res.Identifiers().StringSlice()
+		if len(idd) > 0 {
+			r.refParent = idd[0]
+		}
+		rtr = append(rtr, r)
+	}
+
+	return rtr
 }

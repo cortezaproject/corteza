@@ -55,7 +55,7 @@ func (n *composeNamespaceState) Encode(ctx context.Context, s store.Storer, stat
 		res.ID = n.ns.ID
 	}
 	if res.ID <= 0 {
-		res.ID = nextID()
+		res.ID = NextID()
 	}
 
 	// This is not possible, but let's do it anyway

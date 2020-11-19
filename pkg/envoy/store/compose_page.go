@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -17,8 +18,12 @@ type (
 		res *resource.ComposePage
 		pg  *types.Page
 
-		relNS  *types.Namespace
-		relMod *types.Module
+		relNS     *types.Namespace
+		relMod    *types.Module
+		relParent *types.Page
+
+		relMods   map[string]*types.Module
+		relCharts map[string]*types.Chart
 	}
 )
 
@@ -27,6 +32,9 @@ func NewComposePageState(res *resource.ComposePage, cfg *EncoderConfig) resource
 		cfg: cfg,
 
 		res: res,
+
+		relMods:   make(map[string]*types.Module),
+		relCharts: make(map[string]*types.Chart),
 	}
 }
 
@@ -45,11 +53,6 @@ func (n *composePageState) Prepare(ctx context.Context, s store.Storer, state *e
 		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
-	// Can't do anything else, since the NS doesn't yet exist
-	if n.relNS.ID <= 0 {
-		return nil
-	}
-
 	// Get related module
 	// If this isn't a record page, there is no related module
 	if n.res.ModRef != nil {
@@ -59,6 +62,45 @@ func (n *composePageState) Prepare(ctx context.Context, s store.Storer, state *e
 		}
 		if n.relMod == nil {
 			return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
+		}
+	}
+
+	// Get parent page
+	if n.res.ParentRef != nil {
+		n.relParent, err = findComposePageRS(ctx, s, n.relNS.ID, state.ParentResources, n.res.ParentRef.Identifiers)
+		if err != nil {
+			return err
+		}
+		if n.relParent == nil {
+			return composePageErrUnresolved(n.res.ParentRef.Identifiers)
+		}
+	}
+
+	// Get other related modules
+	for _, mr := range n.res.ModRefs {
+		mod, err := findComposeModuleRS(ctx, s, n.relNS.ID, state.ParentResources, mr.Identifiers)
+		if err != nil {
+			return err
+		}
+		if mod == nil {
+			return composeModuleErrUnresolved(mr.Identifiers)
+		}
+		for id := range mr.Identifiers {
+			n.relMods[id] = mod
+		}
+	}
+
+	// Get related charts
+	for _, cr := range n.res.ChartRefs {
+		chr, err := findComposeChartRS(ctx, s, n.relNS.ID, state.ParentResources, cr.Identifiers)
+		if err != nil {
+			return err
+		}
+		if chr == nil {
+			return composeChartErrUnresolved(cr.Identifiers)
+		}
+		for id := range cr.Identifiers {
+			n.relCharts[id] = chr
 		}
 	}
 
@@ -83,7 +125,7 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 		res.ID = n.pg.ID
 	}
 	if res.ID <= 0 {
-		res.ID = nextID()
+		res.ID = NextID()
 	}
 
 	// This is not possible, but let's do it anyway
@@ -108,6 +150,73 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 		if res.ModuleID <= 0 {
 			mod := findComposeModuleR(state.ParentResources, n.res.ModRef.Identifiers)
 			res.ModuleID = mod.ID
+		}
+	}
+
+	// Parent?
+	if n.res.ParentRef != nil {
+		res.SelfID = n.relParent.ID
+		if res.SelfID <= 0 {
+			mod := findComposePageR(state.ParentResources, n.res.ParentRef.Identifiers)
+			res.SelfID = mod.ID
+		}
+	}
+
+	// Blocks
+	getModID := func(id string) uint64 {
+		mod := n.relMods[id]
+		if mod == nil || mod.ID <= 0 {
+			mod = findComposeModuleR(state.ParentResources, resource.MakeIdentifiers(id))
+			if mod == nil || mod.ID <= 0 {
+				return 0
+			}
+		}
+		return mod.ID
+	}
+
+	for _, b := range res.Blocks {
+		switch b.Kind {
+		case "RecordList":
+			id, _ := b.Options["module"].(string)
+			if id == "" {
+				continue
+			}
+			mID := getModID(id)
+			if mID <= 0 {
+				return composeModuleErrUnresolved(resource.MakeIdentifiers(id))
+			}
+			b.Options["module"] = mID
+
+		case "Chart":
+			id, _ := b.Options["chart"].(string)
+			if id == "" {
+				continue
+			}
+			chr := n.relCharts[id]
+			if chr == nil || chr.ID <= 0 {
+				ii := resource.MakeIdentifiers(id)
+				chr = findComposeChartR(state.ParentResources, ii)
+				if chr == nil || chr.ID <= 0 {
+					return composeChartErrUnresolved(ii)
+				}
+			}
+			b.Options["chart"] = chr.ID
+
+		case "Metric":
+			mm, _ := b.Options["metrics"].([]interface{})
+			for _, m := range mm {
+				mops, _ := m.(map[string]interface{})
+				id, _ := mops["module"].(string)
+				if id == "" {
+					continue
+				}
+				mID := getModID(id)
+				if mID <= 0 {
+					return composeModuleErrUnresolved(resource.MakeIdentifiers(id))
+				}
+				mops["module"] = mID
+
+			}
 		}
 	}
 
@@ -167,9 +276,13 @@ func mergeComposePage(a, b *types.Page) *types.Page {
 //
 // Provided resources are prioritized.
 func findComposePageRS(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page, err error) {
-	pg = findComposePageR(ctx, rr, ii)
+	pg = findComposePageR(rr, ii)
 	if pg != nil {
 		return pg, nil
+	}
+
+	if nsID <= 0 {
+		return nil, nil
 	}
 
 	// Go in the store
@@ -204,7 +317,7 @@ func findComposePageS(ctx context.Context, s store.Storer, nsID uint64, gf gener
 }
 
 // findComposePageR looks for the page in the resources
-func findComposePageR(ctx context.Context, rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page) {
+func findComposePageR(rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page) {
 	var pgRes *resource.ComposePage
 
 	rr.Walk(func(r resource.Interface) error {
@@ -224,4 +337,8 @@ func findComposePageR(ctx context.Context, rr resource.InterfaceSet, ii resource
 		return pgRes.Res
 	}
 	return nil
+}
+
+func composePageErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("compose page unresolved %v", ii.StringSlice())
 }

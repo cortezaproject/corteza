@@ -1,0 +1,11 @@
+allow:
+  r1:
+    compose:
+      - access
+
+deny:
+  r1:
+    compose:namespace:
+      - access
+    messaging:
+      - access
