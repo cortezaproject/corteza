@@ -1,6 +1,9 @@
 package label
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestChanged(t *testing.T) {
 	tests := []struct {
@@ -9,7 +12,6 @@ func TestChanged(t *testing.T) {
 		new  map[string]string
 		want bool
 	}{
-		// TODO: Add test cases.
 		{
 			"2x nil",
 			nil,
@@ -51,6 +53,47 @@ func TestChanged(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Changed(tt.old, tt.new); got != tt.want {
 				t.Errorf("Changed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseStrings(t *testing.T) {
+	tests := []struct {
+		name    string
+		labels  []string
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			"set of pairs",
+			[]string{"aa=b"},
+			map[string]string{"aa": "b"},
+			false,
+		},
+		{
+			"empty json",
+			[]string{`{}`},
+			map[string]string{},
+			false,
+		},
+		{
+			"json",
+			[]string{`{"aa":"b"}`},
+			map[string]string{"aa": "b"},
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseStrings(tt.labels)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseStrings() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseStrings() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

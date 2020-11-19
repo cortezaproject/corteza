@@ -2,6 +2,7 @@ package label
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label/types"
@@ -42,14 +43,23 @@ func Changed(old, new map[string]string) bool {
 }
 
 // ParseStrings converts slice of strings with "key=val" format into
-func ParseStrings(ss []string) (map[string]string, error) {
+func ParseStrings(ss []string) (m map[string]string, err error) {
 	if len(ss) == 0 {
 		return nil, nil
 	}
 
-	m := make(map[string]string)
+	m = make(map[string]string)
 
 	for _, s := range ss {
+		if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+			// assume json
+			if err = json.Unmarshal([]byte(s), &m); err != nil {
+				return nil, err
+			}
+
+			continue
+		}
+
 		kv := strings.SplitN(s, "=", 2)
 		if len(kv) != 2 {
 			return nil, fmt.Errorf("invalid label format")
