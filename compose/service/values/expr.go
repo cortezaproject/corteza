@@ -3,8 +3,8 @@ package values
 import (
 	"context"
 	"fmt"
-	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 func makeInvalidExprErr(field *types.ModuleField, expr string, err error) types.RecordValueError {
@@ -30,15 +30,11 @@ func makeValueExprIncompErr(field *types.ModuleField) types.RecordValueError {
 	}
 }
 
-func parser() gval.Language {
-	return gval.Full()
-}
-
 // Expression evaluates expression in ModuleField.Expressions.Value and
 // assigns results to the record on that field
 func Expression(ctx context.Context, m *types.Module, r *types.Record, old *types.Record, rve *types.RecordValueErrorSet) {
 	var (
-		exprParser = parser()
+		exprParser = expr.Parser()
 
 		scope = make(map[string]interface{})
 
