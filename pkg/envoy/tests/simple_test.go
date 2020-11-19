@@ -436,6 +436,83 @@ func TestSimpleCases(t *testing.T) {
 				req.Len(rr, 3)
 			},
 		},
+
+		{
+			name:  "simple records; no ns",
+			suite: "simple",
+			file:  "records_no_ns",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeNamespaces(ctx),
+					s.TruncateComposeModules(ctx),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.Error(err)
+
+				req.True(strings.Contains(err.Error(), "prepare compose record"))
+				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
+			},
+			check: func(req *require.Assertions) {},
+		},
+
+		{
+			name:  "simple records; no mod",
+			suite: "simple",
+			file:  "records_no_mod",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeNamespaces(ctx),
+					s.TruncateComposeModules(ctx),
+
+					storeNamespace(ctx, s, 100, "ns1"),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.Error(err)
+
+				req.True(strings.Contains(err.Error(), "prepare compose record"))
+				req.True(strings.Contains(err.Error(), "compose module unresolved"))
+			},
+			check: func(req *require.Assertions) {},
+		},
+
+		{
+			name:  "simple records",
+			suite: "simple",
+			file:  "records",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeNamespaces(ctx),
+					s.TruncateComposeModules(ctx),
+
+					storeNamespace(ctx, s, 100, "ns1"),
+					storeModule(ctx, s, 100, 200, "mod1"),
+					storeModuleField(ctx, s, 200, 300, "f1"),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.NoError(err)
+			},
+			check: func(req *require.Assertions) {
+				m, err := store.LookupComposeModuleByID(ctx, s, 200)
+				req.NoError(err)
+				req.NotNil(m)
+
+				rr, _, err := store.SearchComposeRecords(ctx, s, m, types.RecordFilter{ModuleID: m.ID, NamespaceID: m.NamespaceID})
+				req.NoError(err)
+				req.NotNil(rr)
+				req.Len(rr, 1)
+
+				r := rr[0]
+				req.Equal(uint64(100), r.NamespaceID)
+				req.Equal(uint64(200), r.ModuleID)
+
+				req.Len(r.Values, 1)
+				v := r.Values[0]
+				req.Equal("v1", v.Value)
+			},
+		},
 	}
 
 	for _, c := range cases {

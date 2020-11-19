@@ -10,7 +10,6 @@ import (
 
 type (
 	composeRecord struct {
-		// res *types.Record `yaml:",inline"`
 		values    map[string]string
 		sysValues map[string]string
 
@@ -29,9 +28,6 @@ type (
 // UnmarshalYAML resolves set of record definitions, either sequence or map
 //
 // When resolving map, key is used as module handle
-//
-// { module-handle: [ { ... values ... } ] }
-// [ { module: module-handle, ... values ... } ]
 func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
@@ -102,7 +98,7 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 			ID: res.values["id"],
 
 			Values:    res.values,
-			RefUser:   res.refUser,
+			RefUsers:  res.refUser,
 			SysValues: res.sysValues,
 		}
 		recMap[res.refModule].rr = append(recMap[res.refModule].rr, r)

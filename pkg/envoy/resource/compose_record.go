@@ -9,7 +9,7 @@ type (
 		ID        string
 		Values    map[string]string
 		SysValues map[string]string
-		RefUser   map[string]string
+		RefUsers  map[string]string
 	}
 	ComposeRecordRawSet []*ComposeRecordRaw
 
@@ -39,10 +39,6 @@ func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 	r.Walker = w
 
 	r.AddIdentifier(identifiers(modRef)...)
-
-	// for _, u := range userRef {
-	// 	r.AddRef(USER_RESOURCE_TYPE, u)
-	// }
 
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)

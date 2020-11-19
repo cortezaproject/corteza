@@ -52,15 +52,17 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 		if err != nil {
 			return err
 		}
-		if n.relMod == nil {
-			return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
+		if n.relMod != nil {
+			// Preload existing fields
+			n.relMod.Fields, err = findComposeModuleFieldsS(ctx, s, n.relMod)
+			if err != nil {
+				return err
+			}
 		}
+	}
 
-		// Preload existing fields
-		n.relMod.Fields, err = findComposeModuleFieldsS(ctx, s, n.relMod)
-		if err != nil {
-			return err
-		}
+	if n.relMod == nil {
+		return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
 	}
 
 	// Add missing refs
@@ -148,27 +150,10 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 		}
 
 		// Sys values
-		//
 		// @todo
-		for k, v := range r.SysValues {
-			if v == "" {
-				continue
-			}
-
-			switch k {
-			case "createdAt":
-				// @todo set time
-				rec.CreatedAt = time.Now()
-
-			case "updatedAt":
-				// @todo set time
-				rec.UpdatedAt = nil
-
-			case "deletedAt":
-				// @todo set time
-				rec.DeletedAt = nil
-			}
-		}
+		//
+		// for k, v := range r.SysValues {
+		// }
 
 		rvs := make(types.RecordValueSet, 0, len(r.Values))
 		for k, v := range r.Values {
@@ -182,8 +167,11 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 			rvs = append(rvs, rv)
 		}
 
-		// @todo validator
 		rec.Values = rvSanitizer.Run(mod, rvs)
+		rve := rvValidator.Run(ctx, s, mod, rec)
+		if !rve.IsValid() {
+			return rve
+		}
 
 		// Create a new record
 		if !exists {
