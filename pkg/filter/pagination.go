@@ -30,10 +30,15 @@ type (
 	}
 
 	PagingCursor struct {
-		keys    []string
-		values  []interface{}
-		desc    []bool
-		Reverse bool
+		keys   []string
+		values []interface{}
+		desc   []bool
+
+		// sort in desc order
+		ROrder bool
+
+		// use < op instead of >
+		LThen bool
 	}
 
 	pagingCursorValue struct {
@@ -41,14 +46,23 @@ type (
 	}
 )
 
+var (
+	ErrIncompatibleSort = fmt.Errorf("sort incompatible with cursor; send empty sort")
+)
+
 func NewPaging(limit uint, cursor string) (p Paging, err error) {
 	p = Paging{Limit: limit}
-
 	if p.PageCursor, err = parseCursor(cursor); err != nil {
 		return
 	}
 
 	return
+}
+
+func (p *PagingCursor) Walk(fn func(string, interface{}, bool)) {
+	for i, key := range p.keys {
+		fn(key, p.values[i], p.desc[i])
+	}
 }
 
 func (p *PagingCursor) Set(k string, v interface{}, d bool) {
@@ -72,22 +86,37 @@ func (p *PagingCursor) Values() []interface{} {
 	return p.values
 }
 
+func (p *PagingCursor) IsLThen() bool {
+	return p.LThen
+}
+
 // Stirng to implement Stringer and to get human-readable representation of the cursor
 func (p *PagingCursor) String() string {
+
 	var o = "<"
 
-	for i, key := range p.keys {
-		o += fmt.Sprintf("%s: %v", key, p.values[i])
-		if p.desc[i] {
-			o += " DESC"
-		}
-		o += ", "
-	}
-
-	if p.Reverse {
-		o += "reverse"
+	if p == nil {
+		o += "nil"
 	} else {
-		o += "forward"
+		for i, key := range p.keys {
+			o += fmt.Sprintf("%s: %v", key, p.values[i])
+			if p.desc[i] {
+				o += " DESC"
+			}
+			o += ", "
+		}
+
+		if p.ROrder {
+			o += "[REV"
+		} else {
+			o += "[FWD"
+		}
+
+		if p.LThen {
+			o += ",<]"
+		} else {
+			o += ",>]"
+		}
 	}
 
 	return o + ">"
@@ -96,15 +125,17 @@ func (p *PagingCursor) String() string {
 // MarshalJSON serializes cursor struct as JSON and encodes it as base64 + adds quotes to be treated as JSON string
 func (p *PagingCursor) MarshalJSON() ([]byte, error) {
 	buf, err := json.Marshal(struct {
-		K []string
-		V []interface{}
-		D []bool
-		R bool
+		K  []string
+		V  []interface{}
+		D  []bool
+		R  bool
+		LT bool
 	}{
 		p.keys,
 		p.values,
 		p.desc,
-		p.Reverse,
+		p.ROrder,
+		p.LThen,
 	})
 
 	if err != nil {
@@ -126,10 +157,11 @@ func (p *PagingCursor) Encode() string {
 func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 	var (
 		aux struct {
-			K []string
-			V []pagingCursorValue
-			D []bool
-			R bool
+			K  []string
+			V  []pagingCursorValue
+			D  []bool
+			R  bool
+			LT bool
 		}
 	)
 
@@ -139,7 +171,8 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 
 	p.keys = aux.K
 	p.desc = aux.D
-	p.Reverse = aux.R
+	p.ROrder = aux.R
+	p.LThen = aux.LT
 
 	// json.Unmarshal treats uint64 in values ([]interface{}) as float64 and we don't like that.
 	p.values = make([]interface{}, len(aux.V))
@@ -175,7 +208,7 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 	}
 
 	if len(sort) == 0 {
-		// sort emprt, create it from cursor
+		// sort empty, create it from cursor
 		for k := range p.keys {
 			sort = append(sort, &SortExpr{
 				Column:     p.keys[k],
@@ -185,14 +218,16 @@ func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 		return sort, nil
 	}
 
-	// check compatibility
-	if len(p.keys) != len(sort) {
-		return nil, fmt.Errorf("incompatible sort")
+	// make sure there are at least as many keys in the sort as they
+	// are in the cursor
+	if len(p.keys) < len(sort) {
+		return nil, ErrIncompatibleSort
 	}
 
-	for k := range p.keys {
-		if p.keys[k] != sort[k].Column {
-			return nil, fmt.Errorf("incompatible sort")
+	// make sure keys from sort match the ones from cursor
+	for k := range sort {
+		if !(p.keys[k] == sort[k].Column && p.desc[k] == sort[k].Descending) {
+			return nil, ErrIncompatibleSort
 		}
 	}
 

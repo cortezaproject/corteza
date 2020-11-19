@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -39,30 +40,35 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 
 		// Paging enabled
 		// {search: {enablePaging:true}}
-		// Cleanup unwanted cursors (only relevant is f.PageCursor, next&prev are reset and returned)
+		// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 		f.PrevPage, f.NextPage = nil, nil
 
 		if f.PageCursor != nil {
 			// Page cursor exists so we need to validate it against used sort
+			// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+			// from the cursor.
+			// This (extracted sorting info) is then returned as part of response
 			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
 				return err
 			}
 		}
 
-		if len(f.Sort) == 0 {
-			f.Sort = filter.SortExprSet{}
-		}
-
 		// Make sure results are always sorted at least by primary keys
 		if f.Sort.Get("id") == nil {
-			f.Sort = append(f.Sort, &filter.SortExpr{Column: "id"})
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "id",
+				Descending: f.Sort.LastDescending(),
+			})
 		}
 
+		// Cloned sorting instructions for the actual sorting
+		// Original are passed to the fetchFullPageOfUsers fn used for cursor creation so it MUST keep the initial
+		// direction information
 		sort := f.Sort.Clone()
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		if f.PageCursor != nil && f.PageCursor.Reverse {
+		if f.PageCursor != nil && f.PageCursor.ROrder {
 			sort.Reverse()
 		}
 
@@ -71,7 +77,16 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 			return err
 		}
 
-		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfUsers(ctx, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfUsers(
+			ctx,
+			q, f.Sort, f.PageCursor,
+			f.Limit,
+			f.Check,
+			func(cur *filter.PagingCursor) squirrel.Sqlizer {
+				return builders.CursorCondition(cur, nil)
+			},
+		)
+
 		if err != nil {
 			return err
 		}
@@ -94,34 +109,46 @@ func (s Store) SearchUsers(ctx context.Context, f types.UserFilter) (types.UserS
 func (s Store) fetchFullPageOfUsers(
 	ctx context.Context,
 	q squirrel.SelectBuilder,
-	sortColumns []string,
-	sortDesc bool,
+	sort filter.SortExprSet,
 	cursor *filter.PagingCursor,
-	limit uint,
+	reqItems uint,
 	check func(*types.User) (bool, error),
+	cursorCond func(*filter.PagingCursor) squirrel.Sqlizer,
 ) (set []*types.User, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*types.User
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedOrder = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.ROrder
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
-		fetched uint
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = reqItems
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = cursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
 	)
 
 	set = make([]*types.User, 0, DefaultSliceCapacity)
 
-	if cursor != nil {
-		cursor.Reverse = sortDesc
-	}
-
 	for try := 0; try < MaxRefetches; try++ {
-		tryQuery = setCursorCond(q, cursor)
+		if cursor != nil {
+			tryQuery = q.Where(cursorCond(cursor))
+		} else {
+			tryQuery = q
+		}
+
 		if limit > 0 {
+			// fetching + 1 so we know if there are more items
+			// we can fetch (next-page cursor)
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
@@ -129,50 +156,72 @@ func (s Store) fetchFullPageOfUsers(
 			return nil, nil, nil, err
 		}
 
-		fetched = uint(len(aux))
-		if cursor != nil && prev == nil && fetched > 0 {
-			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
-			prev = s.collectUserCursorValues(aux[0], sortColumns...)
-		}
-
-		// Point cursor to the last fetched element
-		if fetched > limit && limit > 0 {
-			next = s.collectUserCursorValues(aux[limit-1], sortColumns...)
-
-			// we should use only as much as requested
-			set = append(set, aux[:limit]...)
-			break
-		} else {
-			set = append(set, aux...)
-		}
-
-		// if limit is not set or we've already collected enough items
-		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched <= limit {
+		if len(aux) == 0 {
+			// nothing fetched
 			break
 		}
 
-		// In case limit is set very low and we've missed records in the first fetch,
-		// make sure next fetch limit is a bit higher
-		if limit < MinEnsureFetchLimit {
-			limit = MinEnsureFetchLimit
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 {
+			// no max requested items specified, break out
+			break
 		}
 
-		// @todo improve strategy for collecting next page with lower limit
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			cursor = s.collectUserCursorValues(set[collected-1], sort...)
+
+			// Copy reverse flag from sorting
+			cursor.LThen = sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+			hasNext = true
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
 	}
 
 	if reversedOrder {
 		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
-		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
 
-		// and flip prev/next cursors too
-		prev, next = next, prev
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
 	}
 
-	if prev != nil {
-		prev.Reverse = true
+	if hasPrev {
+		prev = s.collectUserCursorValues(set[0], sort...)
+		prev.ROrder = true
+		prev.LThen = !sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectUserCursorValues(set[collected-1], sort...)
+		next.LThen = sort.Reversed()
 	}
 
 	return set, prev, next, nil
@@ -529,7 +578,7 @@ func (s Store) internalUserEncoder(res *types.User) store.Payload {
 // Known issue:
 //   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
 //   undeleted items)
-func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.PagingCursor {
+func (s Store) collectUserCursorValues(res *types.User, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cursor = &filter.PagingCursor{}
 
@@ -539,39 +588,39 @@ func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.Pa
 
 		pkId bool
 
-		collect = func(cc ...string) {
+		collect = func(cc ...*filter.SortExpr) {
 			for _, c := range cc {
-				switch c {
+				switch c.Column {
 				case "id":
-					cursor.Set(c, res.ID, false)
+					cursor.Set(c.Column, res.ID, c.Descending)
 
 					pkId = true
 				case "email":
-					cursor.Set(c, res.Email, false)
+					cursor.Set(c.Column, res.Email, c.Descending)
 					hasUnique = true
 
 				case "username":
-					cursor.Set(c, res.Username, false)
+					cursor.Set(c.Column, res.Username, c.Descending)
 					hasUnique = true
 
 				case "name":
-					cursor.Set(c, res.Name, false)
+					cursor.Set(c.Column, res.Name, c.Descending)
 
 				case "handle":
-					cursor.Set(c, res.Handle, false)
+					cursor.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
 
 				case "created_at":
-					cursor.Set(c, res.CreatedAt, false)
+					cursor.Set(c.Column, res.CreatedAt, c.Descending)
 
 				case "updated_at":
-					cursor.Set(c, res.UpdatedAt, false)
+					cursor.Set(c.Column, res.UpdatedAt, c.Descending)
 
 				case "suspended_at":
-					cursor.Set(c, res.SuspendedAt, false)
+					cursor.Set(c.Column, res.SuspendedAt, c.Descending)
 
 				case "deleted_at":
-					cursor.Set(c, res.DeletedAt, false)
+					cursor.Set(c.Column, res.DeletedAt, c.Descending)
 
 				}
 			}
@@ -580,7 +629,7 @@ func (s Store) collectUserCursorValues(res *types.User, cc ...string) *filter.Pa
 
 	collect(cc...)
 	if !hasUnique || !(pkId && true) {
-		collect("id")
+		collect(&filter.SortExpr{Column: "id", Descending: false})
 	}
 
 	return cursor

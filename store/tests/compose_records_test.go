@@ -2,11 +2,13 @@ package tests
 
 import (
 	"context"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 	"time"
 )
@@ -80,7 +82,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 					if v != nil {
 						out += v.Value
 					} else {
-						out += "<NULL>"
+						out += "<NIL>"
 					}
 
 				}
@@ -282,106 +284,305 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			req.NoError(err)
 			req.Len(set, 1)
 		})
+	})
 
-		t.Run("sorted", func(t *testing.T) {
-			var (
-				err error
-				set types.RecordSet
+	t.Run("paging and sorting", func(t *testing.T) {
+		var (
+			_, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "a"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "b"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "b"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v6"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v7"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v8"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v9"}, &types.RecordValue{Name: "str3", Value: "c"}),
+			)
+		)
 
-				req, _ = truncAndCreate(t,
-					makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
-				)
+		{
+			prevCur := 1
+			nextCur := 2
+			bothCur := prevCur | nextCur
 
-				f = types.RecordFilter{
-					ModuleID:    mod.ID,
-					NamespaceID: mod.NamespaceID,
+			// tests if cursors are properly set/unset by inspecting req. bits
+			testCursors := func(req *require.Assertions, b int, f types.RecordFilter) {
+				if b&prevCur == 0 {
+					req.Nil(f.PrevPage)
+				} else {
+					req.NotNil(f.PrevPage)
 				}
+
+				if b&nextCur == 0 {
+					req.Nil(f.NextPage)
+				} else {
+					req.NotNil(f.NextPage)
+				}
+			}
+
+			tcc := []struct {
+				// how data is sorted
+				sort string
+
+				// expected data
+				rval []string
+
+				// how cursors should be set when moving forward/backward
+				curr []int
+			}{
+				{
+					"id",
+					[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"id DESC",
+					[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"str1",
+					[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"str1 DESC",
+					[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"str3",
+					[]string{"v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v1,a", "v2,b;v3,b;v9,c"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+				{
+					"str3 DESC",
+					[]string{"v9,c;v3,b;v2,b", "v1,a;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>"},
+					[]int{nextCur, bothCur, prevCur},
+				},
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+
+					var (
+						req = require.New(t)
+
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 3
+
+					for p := 0; p < 3; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 1; p >= 0; p-- {
+						f.Sort = nil
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 3; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		}
+	})
+
+	t.Run("sort by system field, paged", func(t *testing.T) {
+		t.SkipNow()
+		var (
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
 			)
 
-			req.NoError(f.Sort.Set("str1"))
-			set, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("v1,three;v2,three;v3,three;v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
+			err error
+			set types.RecordSet
+			f   = types.RecordFilter{
+				ModuleID:    mod.ID,
+				NamespaceID: mod.NamespaceID,
+			}
+		)
 
-			req.NoError(f.Sort.Set("str1 DESC"))
-			set, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("v5,<NULL>;v4,<NULL>;v3,three;v2,three;v1,three", stringifyValues(set, "str1", "str3"))
+		// sorting by system field
 
-			req.NoError(f.Sort.Set("str3"))
-			set, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("<NULL>,v4;<NULL>,v5;three,v1;three,v2;three,v3", stringifyValues(set, "str3", "str1"))
+		f.Limit = 2
 
-			req.NoError(f.Sort.Set("str3 DESC"))
-			set, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("three,v1;three,v2;three,v3;<NULL>,v4;<NULL>,v5", stringifyValues(set, "str3", "str1"))
+		req.NoError(f.Sort.Set("str1, createdAt"))
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v1;v2", stringifyValues(set, "str1"))
+		req.NotNil(f.NextPage)
+		req.Nil(f.PrevPage)
 
-			req.NoError(f.Sort.Set("str3 DESC, str1 DESC"))
-			set, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("three,v3;three,v2;three,v1;<NULL>,v5;<NULL>,v4", stringifyValues(set, "str3", "str1"))
-		})
+		f.PageCursor = f.NextPage
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v3;v4", stringifyValues(set, "str1"))
+		req.NotNil(f.PrevPage)
+		req.NotNil(f.NextPage)
 
-		t.Run("sort by system field", func(t *testing.T) {
-			var (
-				req = require.New(t)
-				err error
-				f   = types.RecordFilter{
-					ModuleID:    mod.ID,
-					NamespaceID: mod.NamespaceID,
-				}
+		f.PageCursor = f.NextPage
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v5", stringifyValues(set, "str1"))
+		req.NotNil(f.PrevPage)
+		req.Nil(f.NextPage)
+
+		f.PageCursor = f.PrevPage
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v3;v4", stringifyValues(set, "str1"))
+		req.NotNil(f.PrevPage)
+		req.NotNil(f.NextPage)
+
+		f.Limit = 1
+		f.PageCursor = f.PrevPage
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v2", stringifyValues(set, "str1"))
+		req.NotNil(f.PrevPage)
+		req.NotNil(f.NextPage)
+
+		f.PageCursor = f.NextPage
+		f.Limit = 3
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v3;v4;v5", stringifyValues(set, "str1"))
+		req.Nil(f.NextPage)
+		req.NotNil(f.PrevPage) // we can't actually know if we're on the last page or not..
+
+		// sorting by module field
+
+		f.PageCursor = nil
+		f.Limit = 2
+		req.NoError(f.Sort.Set("str1 DESC"))
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v5;v4", stringifyValues(set, "str1"))
+		req.NotNil(f.NextPage)
+		req.Nil(f.PrevPage)
+
+		f.PageCursor = f.NextPage
+		f.Sort = nil
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v3;v2", stringifyValues(set, "str1"))
+		req.NotNil(f.NextPage)
+		req.NotNil(f.PrevPage)
+
+		f.PageCursor = f.PrevPage
+		f.Sort = nil
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v5;v4", stringifyValues(set, "str1"))
+		req.NotNil(f.NextPage)
+		req.Nil(f.PrevPage)
+	})
+
+	t.Run("paged", func(t *testing.T) {
+		var (
+			err error
+			set types.RecordSet
+
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v6"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v7"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v8"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v9"}),
 			)
 
-			req.NoError(f.Sort.Set("created_at"))
-			_, _, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-		})
+			f = types.RecordFilter{
+				ModuleID:    mod.ID,
+				NamespaceID: mod.NamespaceID,
+			}
+		)
 
-		t.Run("paged", func(t *testing.T) {
-			var (
-				err error
-				set types.RecordSet
+		req.NoError(f.Sort.Set("str1"))
+		f.Limit = 3
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(f.NextPage)
+		req.Nil(f.PrevPage)
+		req.Equal("v1,three;v2,three;v3,three", stringifyValues(set, "str1", "str3"))
 
-				req, _ = truncAndCreate(t,
-					makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
-					makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
-				)
+		f.PageCursor = f.NextPage
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("v4,<NIL>;v5,<NIL>;v6,<NIL>", stringifyValues(set, "str1", "str3"))
 
-				f = types.RecordFilter{
-					ModuleID:    mod.ID,
-					NamespaceID: mod.NamespaceID,
-				}
-			)
+		req.NoError(f.Sort.Set("str3 DESC, str1 ASC"))
+		f.PageCursor = nil
+		f.Limit = 1
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
 
-			req.NoError(f.Sort.Set("str1"))
-			f.Limit = 3
+		f.Limit = 1
+		req.NoError(f.Sort.Set("str1"))
+
+		f.PageCursor = nil
+		for p := 1; p <= 5; p++ {
+			if p > 1 {
+				f.Sort = nil
+			}
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
-			req.NotNil(f.NextPage)
-			req.Nil(f.PrevPage)
-			req.Equal("v1,three;v2,three;v3,three", stringifyValues(set, "str1", "str3"))
-
+			req.Equal(fmt.Sprintf("v%d", p), stringifyValues(set, "str1"))
+			//fmt.Printf("v%d\t%v\t%30s\t%30s\n", p, f.Sort, f.NextPage, f.PrevPage)
 			f.PageCursor = f.NextPage
-			set, f, err = s.SearchComposeRecords(ctx, mod, f)
-			req.NoError(err)
-			req.Equal("v4,<NULL>;v5,<NULL>", stringifyValues(set, "str1", "str3"))
+		}
 
-			req.NoError(f.Sort.Set("str3 DESC"))
-			f.PageCursor = nil
-			f.Limit = 1
+		f.PageCursor = f.PrevPage
+		for p := 4; p >= 1; p-- {
+			f.Sort = nil
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			//fmt.Printf("v%d\t%v\t%30s\t%30s\n", p, f.Sort, f.NextPage, f.PrevPage)
 			req.NoError(err)
-			req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
-		})
+			req.Equal(fmt.Sprintf("v%d", p), stringifyValues(set, "str1"))
+			f.PageCursor = f.PrevPage
+		}
 	})
 
 	t.Run("report", func(t *testing.T) {

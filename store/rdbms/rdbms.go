@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
@@ -408,19 +409,9 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 	}
 }
 
-func setCursorCond(q squirrel.SelectBuilder, cursor *filter.PagingCursor) squirrel.SelectBuilder {
+func BuildCursor(q squirrel.SelectBuilder, cursor *filter.PagingCursor) squirrel.SelectBuilder {
 	if cursor != nil && len(cursor.Keys()) > 0 {
-		const cursorTpl = `(%s) %s (?%s)`
-
-		//expecting row values to be greater then args
-		op := ">"
-		if cursor.Reverse {
-			//expecting row values to be lesser then args
-			op = "<"
-		}
-
-		pred := fmt.Sprintf(cursorTpl, strings.Join(cursor.Keys(), ", "), op, strings.Repeat(", ?", len(cursor.Keys())-1))
-		q = q.Where(pred, cursor.Values()...)
+		return q.Where(builders.CursorCondition(cursor, nil))
 	}
 
 	return q

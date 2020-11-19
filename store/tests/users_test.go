@@ -194,115 +194,171 @@ func testUsers(t *testing.T, s store.Users) {
 			req.Len(set, 1)
 			req.Equal(prefill[0].ID, set[0].ID)
 		})
+	})
 
-		t.Run("with paging", func(t *testing.T) {
-			req := require.New(t)
-			req.NoError(s.TruncateUsers(ctx))
+	t.Run("paging and sorting", func(t *testing.T) {
+		require.NoError(t, s.TruncateUsers(ctx))
+		require.NoError(t, s.CreateUser(ctx,
+			makeNew("01"),
+			makeNew("02"),
+			makeNew("03"),
+			makeNew("04"),
+			makeNew("05"),
+			makeNew("06"),
+			makeNew("07"),
+			makeNew("08"),
+			makeNew("09"),
+			makeNew("10"),
+		))
 
-			set := []*types.User{
-				makeNew("01"),
-				makeNew("02"),
-				makeNew("03"),
-				makeNew("04"),
-				makeNew("05"),
-				makeNew("06"),
-				makeNew("07"),
-				makeNew("08"),
-				makeNew("09"),
-				makeNew("10"),
+		{
+			tcc := []struct {
+				sort string
+				rval string
+			}{
+				{"email", "01..10"},
+				{"email DESC", "10..01"},
+				{"id, email", "01..10"},
+				{"id DESC, email DESC", "10..01"},
+				{"id DESC, email", "10..01"},
+				{"id, email DESC", "01..10"},
 			}
 
-			req.NoError(s.CreateUser(ctx, set...))
-			f := types.UserFilter{}
-			f.Sort.Set("email")
+			for _, tc := range tcc {
+				t.Run(tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
 
-			// Fetch first page
-			f.Limit = 3
-			set, f, err := store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 3)
-			req.NotNil(f.NextPage)
-			req.Nil(f.PrevPage)
-			req.Equal("01..03", stringifySetRange(set))
+						f   = types.UserFilter{}
+						set types.UserSet
+						err error
+					)
 
-			// 2nd page
-			f.Limit = 6
-			f.PageCursor = f.NextPage
-			set, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 6)
-			req.NotNil(f.NextPage)
-			req.NotNil(f.PrevPage)
-			req.Equal("04..09", stringifySetRange(set))
+					f.Sort.Set(tc.sort)
+					set, f, err = store.SearchUsers(ctx, s, f)
+					req.NoError(err)
+					req.Equal(tc.rval, stringifySetRange(set))
+					// req.Equal(tc.sort, f.Sort.String())
+					req.Nil(f.PrevPage)
+					req.Nil(f.NextPage)
+				})
+			}
+		}
 
-			// 3rd, last page (1 item left)
-			f.Limit = 2
-			f.PageCursor = f.NextPage
-			set, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 1)
-			req.Nil(f.NextPage)
-			req.NotNil(f.PrevPage)
-			req.Equal("10", stringifySetRange(set))
+		{
+			prevCur := 1
+			nextCur := 2
+			bothCur := prevCur | nextCur
 
-			// now, in reverse, last 3 items
-			f.Limit = 3
-			f.PageCursor = f.PrevPage
-			set, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 3)
-			req.NotNil(f.NextPage)
-			req.NotNil(f.PrevPage)
-			req.Equal("07..09", stringifySetRange(set))
+			// tests if cursors are properly set/unset by inspecting req. bits
+			testCursors := func(req *require.Assertions, b int, f types.UserFilter) {
+				if b&prevCur == 0 {
+					req.Nil(f.PrevPage)
+				} else {
+					req.NotNil(f.PrevPage)
+				}
 
-			// still in reverse, next 5 items
-			f.Limit = 5
-			f.PageCursor = f.PrevPage
-			set, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 5)
-			req.NotNil(f.NextPage)
-			req.NotNil(f.PrevPage)
-			req.Equal("02..06", stringifySetRange(set))
-
-			// still in reverse, last 5 items (actually, we'll only get 1)
-			f.Limit = 5
-			f.PageCursor = f.PrevPage
-			set, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 1)
-			req.Nil(f.PrevPage)
-			req.NotNil(f.NextPage)
-			req.Equal("01", stringifySetRange(set))
-		})
-
-		t.Run("with keyed paging and multi-key sorting", func(t *testing.T) {
-			req := require.New(t)
-			req.NoError(s.TruncateUsers(ctx))
-
-			set := []*types.User{
-				makeNew("01"),
-				makeNew("02"),
-				makeNew("03"),
-				makeNew("04"),
-				makeNew("05"),
+				if b&nextCur == 0 {
+					req.Nil(f.NextPage)
+				} else {
+					req.NotNil(f.NextPage)
+				}
 			}
 
-			req.NoError(s.CreateUser(ctx, set...))
-			f := types.UserFilter{}
-			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}, &filter.SortExpr{Column: "handle", Descending: true}}
+			tcc := []struct {
+				// how data is sorted
+				sort string
 
-			// Fetch first page
-			f.Limit = 3
-			set, f, err := store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Len(set, 3)
-			req.NotNil(f.NextPage)
-			req.Nil(f.PrevPage)
-			req.Equal("handle_05", set[0].Handle)
-			req.Equal("handle_03", set[2].Handle)
+				// expected data
+				rval []string
 
-		})
+				// how cursors should be set when moving forward/backward
+				curr []int
+			}{
+				{
+					"id",
+					[]string{"01..03", "04..06", "07..09", "10"},
+					[]int{nextCur, bothCur, bothCur, prevCur},
+				},
+				{
+					"id DESC",
+					[]string{"10..08", "07..05", "04..02", "01"},
+					[]int{nextCur, bothCur, bothCur, prevCur},
+				},
+				{
+					"email",
+					[]string{"01..03", "04..06", "07..09", "10"},
+					[]int{nextCur, bothCur, bothCur, prevCur},
+				},
+				{
+					"email DESC",
+					[]string{"10..08", "07..05", "04..02", "01"},
+					[]int{nextCur, bothCur, bothCur, prevCur},
+				},
+				{
+					"id DESC, email",
+					[]string{"10..08", "07..05", "04..02", "01"},
+					[]int{nextCur, bothCur, bothCur, prevCur},
+				},
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+
+					var (
+						req = require.New(t)
+
+						f   = types.UserFilter{}
+						set types.UserSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 3 // 3, 3, 3, 1
+
+					for p := 0; p < 4; p++ {
+						set, f, err = store.SearchUsers(ctx, s, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifySetRange(set))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 2; p >= 0; p-- {
+						f.Sort = nil
+						set, f, err = store.SearchUsers(ctx, s, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifySetRange(set))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 4; p++ {
+						set, f, err = store.SearchUsers(ctx, s, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifySetRange(set))
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		}
 
 		t.Run("with incompatible sort", func(t *testing.T) {
 			req := require.New(t)
@@ -331,76 +387,9 @@ func testUsers(t *testing.T, s store.Users) {
 
 			// go to next page with different sorting
 			f.PageCursor = f.NextPage
-			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "email", Descending: true}}
+			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "username", Descending: false}}
 			set, f, err = store.SearchUsers(ctx, s, f)
-			req.EqualError(err, "incompatible sort")
-		})
-
-		t.Run("with empty cursors", func(t *testing.T) {
-			req := require.New(t)
-			req.NoError(s.TruncateUsers(ctx))
-
-			set := []*types.User{makeNew("01"), makeNew("02")}
-
-			req.NoError(s.CreateUser(ctx, set...))
-
-			f := types.UserFilter{}
-			f.Limit = 2
-			_, f, err := store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Nil(f.NextPage)
-			req.Nil(f.PrevPage)
-
-			f.Limit = 1
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.NotNil(f.NextPage)
-			req.Nil(f.PrevPage)
-
-			f.PageCursor = f.NextPage
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Nil(f.NextPage)
-			req.NotNil(f.PrevPage)
-
-			f = types.UserFilter{}
-			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "id", Descending: true}}
-			f.Limit = 2
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Nil(f.NextPage)
-			req.Nil(f.PrevPage)
-
-			f.Limit = 1
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.NotNil(f.NextPage)
-			req.Nil(f.PrevPage)
-
-			f.PageCursor = f.NextPage
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Nil(f.NextPage)
-			req.NotNil(f.PrevPage)
-
-			// expecting empty next if check fn filters out resources
-			f = types.UserFilter{Check: func(user *types.User) (bool, error) {
-				return user.Handle != "handle_02", nil
-			}}
-			f.Sort = filter.SortExprSet{&filter.SortExpr{Column: "id", Descending: true}}
-			f.Limit = 1
-			_, f, err = store.SearchUsers(ctx, s, f)
-			req.NoError(err)
-			req.Nil(f.NextPage)
-			req.Nil(f.PrevPage)
-		})
-
-		t.Run("by role", func(t *testing.T) {
-			t.Skip("not implemented")
-		})
-
-		t.Run("search", func(t *testing.T) {
-			t.Skip("not implemented")
+			req.EqualError(err, filter.ErrIncompatibleSort.Error())
 		})
 	})
 
