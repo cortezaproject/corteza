@@ -10,7 +10,11 @@ import (
 func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 	var (
 		parseString = func(src string) (*composeRecord, error) {
-			w := &composeRecord{}
+			w := &composeRecord{
+				values:    make(map[string]string),
+				sysValues: make(map[string]string),
+				refUser:   make(map[string]string),
+			}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
 	)
@@ -21,19 +25,18 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 		w, err := parseString(``)
 		req.NoError(err)
 		req.NotNil(w)
-		req.Nil(w.res)
+		req.Empty(w.values)
 	})
 
 	t.Run("empty", func(t *testing.T) {
 		req := require.New(t)
 
-		w, err := parseString(`{ values: { foo: bar }, createdBy: foo, updatedAt: 2020-10-10T10:10:00Z, deletedBy: user }`)
+		w, err := parseString(`{ values: { foo: bar }, createdBy: foo, updatedAt: 2020-10-10T10:10:00Z }`)
 		req.NoError(err)
 		req.NotNil(w)
-		req.NotNil(w.res)
-		req.NotEmpty(w.res.Values)
-		req.NotEmpty(w.res.UpdatedAt)
-		req.Equal("bar", w.res.Values.Get("foo", 0).Value)
+		req.NotEmpty(w.values)
+		req.NotEmpty(w.sysValues)
+		req.Equal("bar", w.values["foo"])
 	})
 
 	t.Run("compose record file 1", func(t *testing.T) {
@@ -45,16 +48,16 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 		req.NotNil(doc.compose)
 		req.Len(doc.compose.Records, 3)
 
-		req.NotNil(doc.compose.Records[0].res)
+		req.NotEmpty(doc.compose.Records[0].values)
 		req.Equal("Department", doc.compose.Records[0].refModule)
-		rec := doc.compose.Records[0].res
-		req.Equal("Service", rec.Values.Get("Name", 0).Value)
-		req.Equal("50", rec.Values.Get("HourCost", 0).Value)
+		v := doc.compose.Records[0].values
+		req.Equal("Service", v["Name"])
+		req.Equal("50", v["HourCost"])
 
-		req.NotNil(doc.compose.Records[1].res)
+		req.NotEmpty(doc.compose.Records[1].values)
 		req.Equal("EmailTemplate", doc.compose.Records[1].refModule)
 
-		req.NotNil(doc.compose.Records[2].res)
+		req.NotEmpty(doc.compose.Records[2].values)
 		req.Equal("Settings", doc.compose.Records[2].refModule)
 
 		//req.NotNil(doc.compose.records[0].rbac)

@@ -44,6 +44,7 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		}
 
 		g, err := bl.Build(ctx, rr...)
+		g.invert()
 		req.NoError(err)
 		req.Len(g.nodes(), 1)
 
@@ -72,14 +73,14 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		req.NoError(err)
 		req.Len(g.nodes(), 2)
 
-		a := g.nodes()[0]
-		b := g.nodes()[1]
+		a := g.resIndex[rr[0]]
+		b := g.resIndex[rr[1]]
 		req.Len(g.childNodes(a), 1)
 		req.Equal(b, g.childNodes(a)[0])
 		req.Empty(g.parentNodes(a))
 
-		req.Len(b.pp, 1)
-		req.Equal(a, b.pp[0])
+		req.Len(g.parentNodes(b), 1)
+		req.Equal(a, g.parentNodes(b)[0])
 	})
 
 	t.Run("cyclic node link; a -> b -> a", func(t *testing.T) {
@@ -99,6 +100,7 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		}
 
 		g, err := bl.Build(ctx, rr...)
+		g.invert()
 		req.NoError(err)
 		req.Len(g.nodes(), 2)
 
@@ -127,6 +129,7 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		}
 
 		g, err := bl.Build(ctx, rr...)
+		g.invert()
 		req.NoError(err)
 		req.Len(g.nodes(), 1)
 
@@ -147,6 +150,7 @@ func TestGraphBuilder_Rel(t *testing.T) {
 		}
 
 		g, err := bl.Build(ctx, rr...)
+		g.invert()
 		req.NoError(err)
 		req.Len(g.nodes(), 1)
 
