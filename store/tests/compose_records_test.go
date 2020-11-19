@@ -328,6 +328,21 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			req.Equal("three,v3;three,v2;three,v1;<NULL>,v5;<NULL>,v4", stringifyValues(set, "str3", "str1"))
 		})
 
+		t.Run("sort by system field", func(t *testing.T) {
+			var (
+				req = require.New(t)
+				err error
+				f   = types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: mod.NamespaceID,
+				}
+			)
+
+			req.NoError(f.Sort.Set("created_at"))
+			_, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+		})
+
 		t.Run("paged", func(t *testing.T) {
 			var (
 				err error
