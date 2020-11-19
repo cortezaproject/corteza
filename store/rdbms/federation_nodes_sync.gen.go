@@ -30,44 +30,50 @@ func (s Store) SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncF
 		set []*types.NodeSync
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertFederationNodesSyncFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
-
-	// Cleanup anything we've accidentally received...
-	f.PrevPage, f.NextPage = nil, nil
-
-	// When cursor for a previous page is used it's marked as reversed
-	// This tells us to flip the descending flag on all used sort keys
-	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
-
-	// Sorting and paging are both enabled in definition yaml file
-	// {search: {enableSorting:true, enablePaging:true}}
-	curSort := f.Sort.Clone()
-
-	// If paging with reverse cursor, change the sorting
-	// direction for all columns we're sorting by
-	if reversedCursor {
-		curSort.Reverse()
-	}
 
 	return set, f, func() error {
-		set, err = s.fetchFullPageOfFederationNodesSyncs(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
-
+		q, err = s.convertFederationNodesSyncFilter(f)
 		if err != nil {
 			return err
 		}
 
-		if f.Limit > 0 && len(set) > 0 {
-			if f.PageCursor != nil && (!f.PageCursor.Reverse || uint(len(set)) == f.Limit) {
-				f.PrevPage = s.collectFederationNodesSyncCursorValues(set[0], curSort.Columns()...)
-				f.PrevPage.Reverse = true
-			}
+		// Paging enabled
+		// {search: {enablePaging:true}}
+		// Cleanup unwanted cursors (only relevant is f.PageCursor, next&prev are reset and returned)
+		f.PrevPage, f.NextPage = nil, nil
 
-			// Less items fetched then requested by page-limit
-			// not very likely there's another page
-			f.NextPage = s.collectFederationNodesSyncCursorValues(set[len(set)-1], curSort.Columns()...)
+		if f.PageCursor != nil {
+			// Page cursor exists so we need to validate it against used sort
+			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+				return err
+			}
+		}
+
+		if len(f.Sort) == 0 {
+			f.Sort = filter.SortExprSet{}
+		}
+
+		// Make sure results are always sorted at least by primary keys
+		if f.Sort.Get("rel_node") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_node"})
+		}
+
+		sort := f.Sort.Clone()
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		if f.PageCursor != nil && f.PageCursor.Reverse {
+			sort.Reverse()
+		}
+
+		// Apply sorting expr from filter to query
+		if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns()); err != nil {
+			return err
+		}
+
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationNodesSyncs(ctx, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		if err != nil {
+			return err
 		}
 
 		f.PageCursor = nil
@@ -79,58 +85,62 @@ func (s Store) SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncF
 //
 // Function applies:
 //  - cursor conditions (where ...)
-//  - sorting rules (order by ...)
 //  - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
-// are collected due to failed check on a specific row (by check fn). Function then moves cursor to the last item fetched
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
 func (s Store) fetchFullPageOfFederationNodesSyncs(
 	ctx context.Context,
 	q squirrel.SelectBuilder,
-	sort filter.SortExprSet,
+	sortColumns []string,
+	sortDesc bool,
 	cursor *filter.PagingCursor,
 	limit uint,
 	check func(*types.NodeSync) (bool, error),
-) ([]*types.NodeSync, error) {
+) (set []*types.NodeSync, prev, next *filter.PagingCursor, err error) {
 	var (
-		set  = make([]*types.NodeSync, 0, DefaultSliceCapacity)
-		aux  []*types.NodeSync
-		last *types.NodeSync
+		aux []*types.NodeSync
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedCursor = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.Reverse
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
 		fetched uint
-		err     error
 	)
 
-	// Make sure we always end our sort by primary keys
-	if sort.Get("rel_node") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "rel_node"})
-	}
+	set = make([]*types.NodeSync, 0, DefaultSliceCapacity)
 
-	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationNodesSyncColumns()); err != nil {
-		return nil, err
+	if cursor != nil {
+		cursor.Reverse = sortDesc
 	}
 
 	for try := 0; try < MaxRefetches; try++ {
 		tryQuery = setCursorCond(q, cursor)
 		if limit > 0 {
-			tryQuery = tryQuery.Limit(uint64(limit))
+			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, last, err = s.QueryFederationNodesSyncs(ctx, tryQuery, check); err != nil {
-			return nil, err
+		if aux, err = s.QueryFederationNodesSyncs(ctx, tryQuery, check); err != nil {
+			return nil, nil, nil, err
 		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
+			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
+			prev = s.collectFederationNodesSyncCursorValues(aux[0], sortColumns...)
+		}
+
+		// Point cursor to the last fetched element
+		if fetched > limit && limit > 0 {
+			next = s.collectFederationNodesSyncCursorValues(aux[limit-1], sortColumns...)
+
 			// we should use only as much as requested
-			set = append(set, aux[0:limit]...)
+			set = append(set, aux[:limit]...)
 			break
 		} else {
 			set = append(set, aux...)
@@ -138,7 +148,7 @@ func (s Store) fetchFullPageOfFederationNodesSyncs(
 
 		// if limit is not set or we've already collected enough items
 		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched < limit {
+		if limit == 0 || fetched == 0 || fetched <= limit {
 			break
 		}
 
@@ -149,23 +159,23 @@ func (s Store) fetchFullPageOfFederationNodesSyncs(
 		}
 
 		// @todo improve strategy for collecting next page with lower limit
-
-		// Point cursor to the last fetched element
-		if cursor = s.collectFederationNodesSyncCursorValues(last, sort.Columns()...); cursor == nil {
-			break
-		}
 	}
 
-	if reversedCursor {
-		// Cursor for previous page was used
-		// Fetched set needs to be reverseCursor because we've forced a descending order to
-		// get the previous page
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
 		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
+
+		// and flip prev/next cursors too
+		prev, next = next, prev
 	}
 
-	return set, nil
+	if prev != nil {
+		prev.Reverse = true
+	}
+
+	return set, prev, next, nil
 }
 
 // QueryFederationNodesSyncs queries the database, converts and checks each row and
@@ -177,39 +187,35 @@ func (s Store) QueryFederationNodesSyncs(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.NodeSync) (bool, error),
-) ([]*types.NodeSync, uint, *types.NodeSync, error) {
+) ([]*types.NodeSync, error) {
 	var (
 		set = make([]*types.NodeSync, 0, DefaultSliceCapacity)
 		res *types.NodeSync
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalFederationNodesSyncRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -217,7 +223,7 @@ func (s Store) QueryFederationNodesSyncs(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupFederationNodesSyncByNodeID searches for sync activity by node ID
@@ -437,7 +443,7 @@ func (Store) federationNodesSyncColumns(aa ...string) []string {
 	}
 }
 
-// {true true true true true}
+// {true true false true true true}
 
 // sortableFederationNodesSyncColumns returns all FederationNodesSync columns flagged as sortable
 //

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/system/service"
+	ss "github.com/cortezaproject/corteza-server/system/service"
+	st "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -18,15 +21,19 @@ type (
 		mapper               *Mapper
 		sharedModuleService  SharedModuleService
 		composeRecordService cs.RecordService
+		systemUserService    ss.UserService
+		systemRoleService    ss.RoleService
 	}
 )
 
-func NewSync(s *Syncer, m *Mapper, sm SharedModuleService, cs cs.RecordService) *Sync {
+func NewSync(s *Syncer, m *Mapper, sm SharedModuleService, cs cs.RecordService, us ss.UserService, rs ss.RoleService) *Sync {
 	return &Sync{
 		syncer:               s,
 		mapper:               m,
 		sharedModuleService:  sm,
 		composeRecordService: cs,
+		systemUserService:    us,
+		systemRoleService:    rs,
 	}
 }
 
@@ -142,4 +149,29 @@ func (s *Sync) GetLastSyncTime(ctx context.Context, nodeID uint64, syncType stri
 	}
 
 	return &ns.TimeOfAction, nil
+}
+
+// LoadUserWithRoles gets the federation user, that was
+// created at node pairing process
+func (s *Sync) LoadUserWithRoles(ctx context.Context, nodeID uint64) (*st.User, error) {
+	var (
+		u   *st.User
+		err error
+	)
+
+	// get the federated user, associated for this node
+	if u, err = s.systemUserService.With(ctx).FindByHandle(fmt.Sprintf("federation_%d", nodeID)); err != nil {
+		return nil, err
+	}
+
+	// attach the roles
+	rr, _, err := s.systemRoleService.With(ctx).Find(st.RoleFilter{MemberID: u.ID})
+
+	if err != nil {
+		return nil, err
+	}
+
+	u.SetRoles(rr.IDs())
+
+	return u, nil
 }

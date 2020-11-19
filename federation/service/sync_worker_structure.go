@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/decoder"
+	st "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
@@ -25,6 +27,8 @@ type (
 		SharedNodeID uint64
 		NodeBaseURL  string
 		SyncService  *Sync
+		Node         *types.Node
+		User         *st.User
 	}
 )
 
@@ -59,9 +63,20 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 
 	// get all shared modules and their module mappings
 	for _, n := range nodes {
+
+		// get the user, associated for this node
+		u, err := w.syncService.LoadUserWithRoles(ctx, n.ID)
+
+		if err != nil {
+			w.logger.Info("could not preload federation user, skipping", zap.Uint64("nodeID", n.ID), zap.Error(err))
+			continue
+		}
+
+		spew.Dump("user", u, u.Roles())
+
 		// get the last sync per-node
 		lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeStructure)
-		basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", n.SharedNodeID)
+		basePath := fmt.Sprintf("/nodes/%d/modules/exposed/", n.SharedNodeID)
 
 		z := []zap.Field{
 			zap.Uint64("nodeID", n.ID),
@@ -88,6 +103,8 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 			SharedNodeID: n.SharedNodeID,
 			NodeBaseURL:  n.BaseURL,
 			SyncService:  w.syncService,
+			User:         u,
+			Node:         n,
 		}
 
 		go w.queueUrl(&url, urls, processer)
@@ -138,6 +155,9 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 				continue
 			}
 
+			// use the authToken from node pairing
+			ctx = context.WithValue(ctx, FederationUserToken, url.Meta.(*structureProcesser).Node.AuthToken)
+
 			responseBody, err := w.syncService.FetchUrl(ctx, s)
 
 			if err != nil {
@@ -160,7 +180,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 				continue
 			}
 
-			basePath := fmt.Sprintf("/federation/nodes/%d/modules/exposed/", p.Meta.(*structureProcesser).SharedNodeID)
+			basePath := fmt.Sprintf("/nodes/%d/modules/exposed/", p.Meta.(*structureProcesser).SharedNodeID)
 
 			u := types.SyncerURI{
 				BaseURL: p.Meta.(*structureProcesser).NodeBaseURL,
@@ -206,7 +226,6 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 // the filtering that was used (limit)
 func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (int, error) {
 	processed := 0
-
 	o, err := decoder.DecodeFederationModuleSync([]byte(payload))
 
 	if err != nil {
@@ -216,6 +235,9 @@ func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (int,
 	if len(o) == 0 {
 		return processed, nil
 	}
+
+	// get the user that is tied to this node
+	ctx = auth.SetIdentityToContext(ctx, dp.User)
 
 	for _, em := range o {
 		new := &types.SharedModule{

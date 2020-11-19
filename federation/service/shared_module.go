@@ -6,6 +6,7 @@ import (
 	composeService "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -68,8 +69,7 @@ func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*t
 
 		new.ID = nextID()
 		new.CreatedAt = *now()
-		new.UpdatedAt = nil
-		new.DeletedAt = nil
+		new.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 		// check if Fields can be unmarshaled to the fields structure
 		if new.Fields != nil {
@@ -94,6 +94,7 @@ func (svc sharedModule) Update(ctx context.Context, updated *types.SharedModule)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		updated.UpdatedAt = now()
+		updated.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 		aProps.setModule(updated)
 

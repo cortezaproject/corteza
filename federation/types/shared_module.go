@@ -16,8 +16,11 @@ type (
 		Fields                     ModuleFieldSet `json:"fields"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string" `
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty" `
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
 	SharedModuleFilter struct {

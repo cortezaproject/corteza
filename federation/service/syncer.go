@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -38,6 +39,8 @@ type (
 	}
 )
 
+const FederationUserToken string = "authToken"
+
 func (h *Syncer) Queue(url Url, out chan Url) {
 	out <- url
 }
@@ -52,6 +55,13 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 		spew.Dump("ERR", err)
 		return nil, err
 	}
+
+	if authToken := ctx.Value(FederationUserToken); authToken != nil {
+		req.Header.Add("Authorization", `Bearer `+authToken.(string))
+	}
+
+	dr, _ := httputil.DumpRequest(req, true)
+	spew.Dump("> using headers", string(dr))
 
 	resp, err := client.Do(req)
 	if err != nil {

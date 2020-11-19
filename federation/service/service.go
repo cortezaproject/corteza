@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
+	ss "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
@@ -137,11 +138,17 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 }
 
 func Watchers(ctx context.Context) {
+	if !DefaultOptions.Enabled {
+		return
+	}
+
 	syncService := NewSync(
 		&Syncer{},
 		&Mapper{},
 		DefaultSharedModule,
-		cs.DefaultRecord)
+		cs.DefaultRecord,
+		ss.DefaultUser,
+		ss.DefaultRole)
 
 	syncStructure := WorkerStructure(syncService, DefaultLogger)
 	syncData := WorkerData(syncService, service.DefaultLogger)
