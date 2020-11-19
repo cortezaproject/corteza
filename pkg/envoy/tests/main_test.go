@@ -102,6 +102,20 @@ func storeModule(ctx context.Context, s store.Storer, nsID, modID uint64, ss ...
 	return store.CreateComposeModule(ctx, s, mod)
 }
 
+func storeModuleField(ctx context.Context, s store.Storer, modID, fieldID uint64, ss ...string) error {
+	f := &types.ModuleField{
+		ID:       fieldID,
+		ModuleID: modID,
+	}
+	if len(ss) > 0 {
+		f.Name = ss[0]
+	}
+	if len(ss) > 1 {
+		f.Label = ss[1]
+	}
+	return store.CreateComposeModuleField(ctx, s, f)
+}
+
 func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) error {
 	r := &stypes.Role{
 		ID: rID,
