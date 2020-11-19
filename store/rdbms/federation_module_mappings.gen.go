@@ -30,44 +30,56 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 		set []*types.ModuleMapping
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertFederationModuleMappingFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
-
-	// Cleanup anything we've accidentally received...
-	f.PrevPage, f.NextPage = nil, nil
-
-	// When cursor for a previous page is used it's marked as reversed
-	// This tells us to flip the descending flag on all used sort keys
-	reversedCursor := f.PageCursor != nil && f.PageCursor.Reverse
-
-	// Sorting and paging are both enabled in definition yaml file
-	// {search: {enableSorting:true, enablePaging:true}}
-	curSort := f.Sort.Clone()
-
-	// If paging with reverse cursor, change the sorting
-	// direction for all columns we're sorting by
-	if reversedCursor {
-		curSort.Reverse()
-	}
 
 	return set, f, func() error {
-		set, err = s.fetchFullPageOfFederationModuleMappings(ctx, q, curSort, f.PageCursor, f.Limit, f.Check)
-
+		q, err = s.convertFederationModuleMappingFilter(f)
 		if err != nil {
 			return err
 		}
 
-		if f.Limit > 0 && len(set) > 0 {
-			if f.PageCursor != nil && (!f.PageCursor.Reverse || uint(len(set)) == f.Limit) {
-				f.PrevPage = s.collectFederationModuleMappingCursorValues(set[0], curSort.Columns()...)
-				f.PrevPage.Reverse = true
-			}
+		// Paging enabled
+		// {search: {enablePaging:true}}
+		// Cleanup unwanted cursors (only relevant is f.PageCursor, next&prev are reset and returned)
+		f.PrevPage, f.NextPage = nil, nil
 
-			// Less items fetched then requested by page-limit
-			// not very likely there's another page
-			f.NextPage = s.collectFederationModuleMappingCursorValues(set[len(set)-1], curSort.Columns()...)
+		if f.PageCursor != nil {
+			// Page cursor exists so we need to validate it against used sort
+			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+				return err
+			}
+		}
+
+		if len(f.Sort) == 0 {
+			f.Sort = filter.SortExprSet{}
+		}
+
+		// Make sure results are always sorted at least by primary keys
+		if f.Sort.Get("rel_federation_module") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_federation_module"})
+		}
+		if f.Sort.Get("rel_compose_module") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_compose_module"})
+		}
+		if f.Sort.Get("rel_compose_namespace") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_compose_namespace"})
+		}
+
+		sort := f.Sort.Clone()
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		if f.PageCursor != nil && f.PageCursor.Reverse {
+			sort.Reverse()
+		}
+
+		// Apply sorting expr from filter to query
+		if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()); err != nil {
+			return err
+		}
+
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationModuleMappings(ctx, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		if err != nil {
+			return err
 		}
 
 		f.PageCursor = nil
@@ -79,66 +91,62 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 //
 // Function applies:
 //  - cursor conditions (where ...)
-//  - sorting rules (order by ...)
 //  - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
-// are collected due to failed check on a specific row (by check fn). Function then moves cursor to the last item fetched
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
 func (s Store) fetchFullPageOfFederationModuleMappings(
 	ctx context.Context,
 	q squirrel.SelectBuilder,
-	sort filter.SortExprSet,
+	sortColumns []string,
+	sortDesc bool,
 	cursor *filter.PagingCursor,
 	limit uint,
 	check func(*types.ModuleMapping) (bool, error),
-) ([]*types.ModuleMapping, error) {
+) (set []*types.ModuleMapping, prev, next *filter.PagingCursor, err error) {
 	var (
-		set  = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
-		aux  []*types.ModuleMapping
-		last *types.ModuleMapping
+		aux []*types.ModuleMapping
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedCursor = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.Reverse
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
 		fetched uint
-		err     error
 	)
 
-	// Make sure we always end our sort by primary keys
-	if sort.Get("rel_federation_module") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "rel_federation_module"})
-	}
+	set = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
 
-	if sort.Get("rel_compose_module") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "rel_compose_module"})
-	}
-
-	if sort.Get("rel_compose_namespace") == nil {
-		sort = append(sort, &filter.SortExpr{Column: "rel_compose_namespace"})
-	}
-
-	// Apply sorting expr from filter to query
-	if q, err = setOrderBy(q, sort, s.sortableFederationModuleMappingColumns()); err != nil {
-		return nil, err
+	if cursor != nil {
+		cursor.Reverse = sortDesc
 	}
 
 	for try := 0; try < MaxRefetches; try++ {
 		tryQuery = setCursorCond(q, cursor)
 		if limit > 0 {
-			tryQuery = tryQuery.Limit(uint64(limit))
+			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
-		if aux, fetched, last, err = s.QueryFederationModuleMappings(ctx, tryQuery, check); err != nil {
-			return nil, err
+		if aux, err = s.QueryFederationModuleMappings(ctx, tryQuery, check); err != nil {
+			return nil, nil, nil, err
 		}
 
-		if limit > 0 && uint(len(aux)) >= limit {
+		fetched = uint(len(aux))
+		if cursor != nil && prev == nil && fetched > 0 {
+			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
+			prev = s.collectFederationModuleMappingCursorValues(aux[0], sortColumns...)
+		}
+
+		// Point cursor to the last fetched element
+		if fetched > limit && limit > 0 {
+			next = s.collectFederationModuleMappingCursorValues(aux[limit-1], sortColumns...)
+
 			// we should use only as much as requested
-			set = append(set, aux[0:limit]...)
+			set = append(set, aux[:limit]...)
 			break
 		} else {
 			set = append(set, aux...)
@@ -146,7 +154,7 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 
 		// if limit is not set or we've already collected enough items
 		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched < limit {
+		if limit == 0 || fetched == 0 || fetched <= limit {
 			break
 		}
 
@@ -157,23 +165,23 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 		}
 
 		// @todo improve strategy for collecting next page with lower limit
-
-		// Point cursor to the last fetched element
-		if cursor = s.collectFederationModuleMappingCursorValues(last, sort.Columns()...); cursor == nil {
-			break
-		}
 	}
 
-	if reversedCursor {
-		// Cursor for previous page was used
-		// Fetched set needs to be reverseCursor because we've forced a descending order to
-		// get the previous page
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
 		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
+
+		// and flip prev/next cursors too
+		prev, next = next, prev
 	}
 
-	return set, nil
+	if prev != nil {
+		prev.Reverse = true
+	}
+
+	return set, prev, next, nil
 }
 
 // QueryFederationModuleMappings queries the database, converts and checks each row and
@@ -185,39 +193,35 @@ func (s Store) QueryFederationModuleMappings(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.ModuleMapping) (bool, error),
-) ([]*types.ModuleMapping, uint, *types.ModuleMapping, error) {
+) ([]*types.ModuleMapping, error) {
 	var (
 		set = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
 		res *types.ModuleMapping
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalFederationModuleMappingRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -225,7 +229,7 @@ func (s Store) QueryFederationModuleMappings(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id
@@ -449,7 +453,7 @@ func (Store) federationModuleMappingColumns(aa ...string) []string {
 	}
 }
 
-// {true true true true true}
+// {true true false true true true}
 
 // sortableFederationModuleMappingColumns returns all FederationModuleMapping columns flagged as sortable
 //

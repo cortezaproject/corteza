@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
@@ -11,6 +12,8 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	ss "github.com/cortezaproject/corteza-server/system/service"
+	st "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -106,11 +109,12 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExposed) (interface{}, error) {
 	var (
-		err error
-		em  *types.ExposedModule
+		err   error
+		em    *types.ExposedModule
+		users st.UserSet
 	)
 
-	if _, err := service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
+	if _, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
 		return nil, err
 	}
 
@@ -118,9 +122,18 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
+	if users, _, err = ss.DefaultUser.With(ctx).Find(st.UserFilter{}); err != nil {
+		return nil, err
+	}
+
+	users, _ = users.Filter(func(u *st.User) (bool, error) {
+		return strings.Contains(u.Handle, "federation_"), nil
+	})
+
 	f := ct.RecordFilter{
 		ModuleID: em.ComposeModuleID,
 		Query:    buildLastSyncQuery(r.LastSync),
+		Check:    ignoreFederated(users),
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
@@ -138,13 +151,7 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	// do the actual field filtering
-	err = list.Walk(func(r *ct.Record) error {
-		r.Values, err = r.Values.Filter(func(rv *ct.RecordValue) (bool, error) {
-			return em.Fields.HasField(rv.Name)
-		})
-
-		return err
-	})
+	err = list.Walk(filterExposedFields(em))
 
 	if err != nil {
 		return nil, err
@@ -171,4 +178,34 @@ func buildLastSyncQuery(ts uint64) string {
 		"(updated_at >= '%s' OR created_at >= '%s')",
 		t.UTC().Format(time.RFC3339),
 		t.UTC().Format(time.RFC3339))
+}
+
+// ignoreFederated matches the created user id with any
+// of the generated federated users and omits it
+func ignoreFederated(users st.UserSet) func(r *ct.Record) (bool, error) {
+	return func(r *ct.Record) (bool, error) {
+		var keep = true
+		users.Walk(func(u *st.User) error {
+			if u.ID == r.CreatedBy {
+				keep = false
+				return nil
+			}
+			return nil
+		})
+
+		return keep, nil
+	}
+}
+
+// filterExposedFields omits the fields that are not exposed as defined
+// in the exposed module definition in store
+func filterExposedFields(em *types.ExposedModule) func(r *ct.Record) error {
+	return func(r *ct.Record) error {
+		var err error
+		r.Values, err = r.Values.Filter(func(rv *ct.RecordValue) (bool, error) {
+			return em.Fields.HasField(rv.Name)
+		})
+
+		return err
+	}
 }

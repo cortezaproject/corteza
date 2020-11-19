@@ -503,6 +503,7 @@ func (Schema) FederationModuleShared() *Table {
 		ColumnDef("xref_module", ColumnTypeIdentifier),
 		ColumnDef("fields", ColumnTypeText),
 		CUDTimestamps,
+		CUDUsers,
 	)
 }
 
@@ -516,6 +517,7 @@ func (Schema) FederationModuleExposed() *Table {
 		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
 		ColumnDef("fields", ColumnTypeText),
 		CUDTimestamps,
+		CUDUsers,
 
 		AddIndex("unique_node_compose_module", IColumn("rel_node", "rel_compose_module", "rel_compose_namespace")),
 	)

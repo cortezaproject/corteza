@@ -29,15 +29,15 @@ func (s Store) SearchFederationNodes(ctx context.Context, f types.NodeFilter) (t
 		set []*types.Node
 		q   squirrel.SelectBuilder
 	)
-	q, err = s.convertFederationNodeFilter(f)
-	if err != nil {
-		return nil, f, err
-	}
 
 	return set, f, func() error {
-		set, _, _, err = s.QueryFederationNodes(ctx, q, f.Check)
-		return err
+		q, err = s.convertFederationNodeFilter(f)
+		if err != nil {
+			return err
+		}
 
+		set, err = s.QueryFederationNodes(ctx, q, f.Check)
+		return err
 	}()
 }
 
@@ -50,39 +50,35 @@ func (s Store) QueryFederationNodes(
 	ctx context.Context,
 	q squirrel.Sqlizer,
 	check func(*types.Node) (bool, error),
-) ([]*types.Node, uint, *types.Node, error) {
+) ([]*types.Node, error) {
 	var (
 		set = make([]*types.Node, 0, DefaultSliceCapacity)
 		res *types.Node
 
 		// Query rows with
 		rows, err = s.Query(ctx, q)
-
-		fetched uint
 	)
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	defer rows.Close()
 	for rows.Next() {
-		fetched++
 		if err = rows.Err(); err == nil {
 			res, err = s.internalFederationNodeRowScanner(rows)
 		}
 
 		if err != nil {
-			return nil, 0, nil, err
+			return nil, err
 		}
 
-		// If check function is set, call it and act accordingly
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
 		if check != nil {
 			if chk, err := check(res); err != nil {
-				return nil, 0, nil, err
+				return nil, err
 			} else if !chk {
-				// did not pass the check
-				// go with the next row
 				continue
 			}
 		}
@@ -90,7 +86,7 @@ func (s Store) QueryFederationNodes(
 		set = append(set, res)
 	}
 
-	return set, fetched, res, rows.Err()
+	return set, rows.Err()
 }
 
 // LookupFederationNodeByID searches for federation node by ID
@@ -332,7 +328,7 @@ func (Store) federationNodeColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false true}
+// {true true false false false true}
 
 // internalFederationNodeEncoder encodes fields from types.Node to store.Payload (map)
 //

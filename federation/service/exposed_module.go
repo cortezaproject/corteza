@@ -8,6 +8,7 @@ import (
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -110,6 +111,7 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 
 		updated.UpdatedAt = now()
 		updated.CreatedAt = old.CreatedAt
+		updated.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 		// set labels
 		AddFederationLabel(m, node.BaseURL)
@@ -205,12 +207,6 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		aProps = &exposedModuleActionProps{create: new}
 	)
 
-	// check if compose module actually exists
-	// TODO - how do we handle namespace?
-	// if _, err := svc.compose.With(ctx).FindByID(r.NamespaceID, new.ComposeModuleID); err == nil {
-	// 	return nil, ExposedModuleErrComposeModuleNotFound()
-	// }
-
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// TODO
 		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
@@ -235,13 +231,12 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 		// Check for node - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
-			return ExposedModuleErrNotUnique()
+			return err
 		}
 
 		new.ID = nextID()
 		new.CreatedAt = *now()
-		new.UpdatedAt = nil
-		new.DeletedAt = nil
+		new.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 		// check if Fields can be unmarshaled to the fields structure
 		if new.Fields != nil {
@@ -273,7 +268,9 @@ func (svc exposedModule) uniqueCheck(ctx context.Context, m *types.ExposedModule
 		ComposeNamespaceID: m.ComposeNamespaceID,
 	}
 
-	if set, _, err := store.SearchFederationExposedModules(ctx, svc.store, f); len(set) > 0 && err == nil {
+	set, _, err := store.SearchFederationExposedModules(ctx, svc.store, f)
+
+	if len(set) > 0 && err == nil {
 		return ExposedModuleErrNotUnique()
 	} else if err != nil {
 		return err
