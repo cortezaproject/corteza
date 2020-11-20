@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
@@ -36,7 +37,7 @@ func Decoder(l loader) *decoder {
 
 // CanDecodeFile
 func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
-	switch filepath.Ext(i.Name()) {
+	switch strings.Trim(filepath.Ext(i.Name()), ".") {
 	case "yaml", "yml":
 		return true
 	}
