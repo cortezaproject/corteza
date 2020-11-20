@@ -78,15 +78,13 @@ func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*gr
 		}
 	}
 
-	g.invert()
-
 	// Do any dep. related preprocessing
 	var state *ResourceState
 	var err error
 
 	err = func() error {
 		for {
-			state, err = g.Next(ctx)
+			state, err = g.NextInverted(ctx)
 			if err != nil {
 				return err
 			} else if state == nil {

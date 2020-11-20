@@ -128,7 +128,7 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	var e *envoy.ResourceState
 	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
 		for {
-			e, err = p.Next(ctx)
+			e, err = p.NextInverted(ctx)
 			if err != nil {
 				return err
 			}
