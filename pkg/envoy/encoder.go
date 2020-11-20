@@ -6,7 +6,7 @@ import (
 
 type (
 	Provider interface {
-		Next(ctx context.Context) (*ResourceState, error)
+		NextInverted(ctx context.Context) (*ResourceState, error)
 	}
 )
 

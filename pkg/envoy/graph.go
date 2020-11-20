@@ -111,6 +111,15 @@ func (g *graph) Relink() {
 	}
 }
 
+func (g *graph) NextInverted(ctx context.Context) (s *ResourceState, err error) {
+	g.inverted = true
+	defer func() {
+		g.inverted = false
+	}()
+
+	return g.next(ctx, nil)
+}
+
 func (g *graph) Next(ctx context.Context) (s *ResourceState, err error) {
 	return g.next(ctx, nil)
 }
