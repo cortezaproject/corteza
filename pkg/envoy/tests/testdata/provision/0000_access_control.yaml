@@ -1,0 +1,33 @@
+allow:
+  everyone:
+    compose:
+      - op1
+
+    compose:namespace:
+      - op1
+
+  admins:
+    compose:
+      - op1
+      - op1.sub
+
+    compose:namespace:
+      - op1
+      - op1.sub
+
+deny:
+  everyone:
+    compose:
+      - op2
+
+    compose:namespace:
+      - op2
+
+  admins:
+    compose:
+      - op2
+      - op2.sub
+
+    compose:namespace:
+      - op2
+      - op2.sub
