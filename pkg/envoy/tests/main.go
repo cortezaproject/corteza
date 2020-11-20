@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
@@ -62,6 +63,13 @@ func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) 
 
 	d := yaml.Decoder(nil)
 	return d.Decode(ctx, f, info)
+}
+
+func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
+	fp := path.Join("testdata", suite)
+	d := yaml.Decoder(nil)
+
+	return directory.Decode(ctx, fp, d)
 }
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {
