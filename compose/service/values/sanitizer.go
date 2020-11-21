@@ -2,6 +2,7 @@ package values
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
 	"strconv"
@@ -31,7 +32,7 @@ func Sanitizer() *sanitizer {
 // Existing data (when updating record) is not yet loaded at this point
 func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
 	var (
-		exprParser = parser()
+		exprParser = expr.Parser()
 	)
 
 	out = make([]*types.RecordValue, 0, len(vv))
