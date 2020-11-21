@@ -2,6 +2,7 @@ package values
 
 import (
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
 	"strings"
@@ -21,7 +22,7 @@ func Formatter() *formatter {
 
 func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordValueSet {
 	var (
-		exprParser = parser()
+		exprParser = expr.Parser()
 
 		log = logger.Default().
 			WithOptions(zap.AddStacktrace(zap.PanicLevel)).

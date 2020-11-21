@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store"
 	"math/big"
@@ -97,7 +98,7 @@ func (vldtr validator) Run(ctx context.Context, s store.Storer, m *types.Module,
 	var (
 		f *types.ModuleField
 
-		valParser = parser()
+		valParser = expr.Parser()
 		valDict   = r.Values.Dict(m.Fields)
 	)
 
