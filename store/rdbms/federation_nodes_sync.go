@@ -12,6 +12,10 @@ func (s Store) convertFederationNodesSyncFilter(f types.NodeSyncFilter) (query s
 		query = query.Where("fdns.rel_node = ?", f.NodeID)
 	}
 
+	if f.ModuleID > 0 {
+		query = query.Where("fdns.rel_module = ?", f.ModuleID)
+	}
+
 	if f.SyncStatus != "" {
 		query = query.Where("fdns.sync_status = ?", f.SyncStatus)
 	}
