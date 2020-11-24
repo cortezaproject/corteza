@@ -7,10 +7,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/decoder"
-	st "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -20,15 +16,6 @@ type (
 		logger      *zap.Logger
 		delay       time.Duration
 		limit       int
-	}
-
-	structureProcesser struct {
-		NodeID       uint64
-		SharedNodeID uint64
-		NodeBaseURL  string
-		SyncService  *Sync
-		Node         *types.Node
-		User         *st.User
 	}
 )
 
@@ -63,16 +50,16 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 
 	// get all shared modules and their module mappings
 	for _, n := range nodes {
-
 		// get the user, associated for this node
 		u, err := w.syncService.LoadUserWithRoles(ctx, n.ID)
 
 		if err != nil {
-			w.logger.Info("could not preload federation user, skipping", zap.Uint64("nodeID", n.ID), zap.Error(err))
+			w.logger.Info("could not preload federation user, skipping",
+				zap.Uint64("nodeID", n.ID),
+				zap.Error(err))
+
 			continue
 		}
-
-		spew.Dump("user", u, u.Roles())
 
 		// get the last sync per-node
 		lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeStructure)
@@ -99,12 +86,9 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 		}
 
 		processer := &structureProcesser{
-			NodeID:       n.ID,
-			SharedNodeID: n.SharedNodeID,
-			NodeBaseURL:  n.BaseURL,
-			SyncService:  w.syncService,
-			User:         u,
-			Node:         n,
+			SyncService: w.syncService,
+			User:        u,
+			Node:        n,
 		}
 
 		go w.queueUrl(&url, urls, processer)
@@ -148,20 +132,21 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			default:
 			}
 
-			s, err := url.Url.String()
-
-			if err != nil {
-				spew.Dump("ERR", err)
-				continue
-			}
+			s, _ := url.Url.String()
+			meta := url.Meta.(*structureProcesser)
 
 			// use the authToken from node pairing
-			ctx = context.WithValue(ctx, FederationUserToken, url.Meta.(*structureProcesser).Node.AuthToken)
+			ctx = context.WithValue(ctx, FederationUserToken, meta.Node.AuthToken)
 
 			responseBody, err := w.syncService.FetchUrl(ctx, s)
 
 			if err != nil {
-				spew.Dump("ERR", err)
+				w.logger.Error("could not fetch data from url, skipping",
+					zap.Error(err),
+					zap.String("url", s),
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
+
 				continue
 			}
 
@@ -172,116 +157,68 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 
 			payloads <- spayload
 		case p := <-payloads:
+			meta := p.Meta.(*structureProcesser)
 			body, err := ioutil.ReadAll(p.Payload)
 
 			// handle error
 			if err != nil {
-				spew.Dump("ERR", err)
+				w.logger.Error("could not read data from synced url, skipping",
+					zap.Error(err),
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
+
 				continue
 			}
 
-			basePath := fmt.Sprintf("/nodes/%d/modules/exposed/", p.Meta.(*structureProcesser).SharedNodeID)
+			basePath := fmt.Sprintf("/nodes/%d/modules/exposed/", meta.Node.SharedNodeID)
 
 			u := types.SyncerURI{
-				BaseURL: p.Meta.(*structureProcesser).NodeBaseURL,
+				BaseURL: p.Meta.(*structureProcesser).Node.BaseURL,
 				Path:    basePath,
 				Limit:   w.limit,
 			}
 
-			processed, err := w.syncService.ProcessPayload(ctx, body, urls, u, p.Meta.(*structureProcesser))
-			countProcess += processed
+			processed, errProcess := w.syncService.ProcessPayload(ctx, body, urls, u, meta)
+			countProcess += processed.(structureProcesserResponse).Processed
+
+			// error raised before the actual persist process
+			// ignore
+			if moduleID := processed.(structureProcesserResponse).ModuleID; moduleID == 0 {
+				w.logger.Info("no structure change from last change, skipping",
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
+
+				continue
+			}
+
+			syncStatus := types.NodeSyncStatusSuccess
+			if errProcess != nil {
+				syncStatus = types.NodeSyncStatusError
+			}
+
+			new := &types.NodeSync{
+				NodeID:       meta.Node.ID,
+				ModuleID:     processed.(structureProcesserResponse).ModuleID,
+				SyncStatus:   syncStatus,
+				SyncType:     types.NodeSyncTypeStructure,
+				TimeOfAction: time.Now().UTC(),
+			}
+
+			new, err = DefaultNodeSync.Create(ctx, new)
 
 			if err != nil {
-				w.logger.Info("error on handling payload", zap.Error(err))
+				w.logger.Info("could not update sync status", zap.Error(err))
+			}
+
+			if errProcess != nil {
+				w.logger.Info("error on handling payload", zap.Error(errProcess))
 			} else {
-				n, err := DefaultNode.FindBySharedNodeID(ctx, p.Meta.(*structureProcesser).SharedNodeID)
-
-				if err != nil {
-					w.logger.Info("could not update sync status", zap.Error(err))
-					continue
-				}
-
-				// add to db - nodes_sync
-				new := &types.NodeSync{
-					NodeID:       (*n).ID,
-					SyncStatus:   types.NodeSyncStatusSuccess,
-					SyncType:     types.NodeSyncTypeStructure,
-					TimeOfAction: time.Now().UTC(),
-				}
-
-				new, err = DefaultNodeSync.Create(ctx, new)
-
-				if err != nil {
-					w.logger.Info("could not update sync status", zap.Error(err))
-				}
-
-				w.logger.Info("processed objects", zap.Int("processed", processed), zap.Uint64("nodeID", n.ID), zap.String("host", n.BaseURL))
-			}
-		}
-	}
-}
-
-// Process gets the payload from syncer and
-// uses the decode package to decode the whole set, depending on
-// the filtering that was used (limit)
-func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (int, error) {
-	processed := 0
-	o, err := decoder.DecodeFederationModuleSync([]byte(payload))
-
-	if err != nil {
-		return processed, err
-	}
-
-	if len(o) == 0 {
-		return processed, nil
-	}
-
-	// get the user that is tied to this node
-	ctx = auth.SetIdentityToContext(ctx, dp.User)
-
-	for _, em := range o {
-		new := &types.SharedModule{
-			NodeID:                     dp.NodeID,
-			ExternalFederationModuleID: em.ID,
-			Fields:                     em.Fields,
-			Handle:                     em.Handle,
-			Name:                       em.Name,
-		}
-
-		existing, err := dp.SyncService.LookupSharedModule(ctx, new)
-
-		if err != nil {
-			continue
-		}
-
-		if existing == nil {
-			_, err := dp.SyncService.CreateSharedModule(ctx, new)
-
-			if err != nil {
-				continue
+				w.logger.Info("processed objects",
+					zap.Int("processed", processed.(structureProcesserResponse).Processed),
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
 			}
 
-			processed++
-			continue
-		}
-
-		canUpdate, err := dp.SyncService.CanUpdateSharedModule(ctx, new, existing)
-
-		if err != nil {
-			continue
-		}
-
-		if canUpdate {
-			_, err := dp.SyncService.UpdateSharedModule(ctx, existing)
-
-			if err != nil {
-				continue
-			}
-
-			processed++
-			continue
 		}
 	}
-
-	return processed, nil
 }

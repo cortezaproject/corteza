@@ -482,6 +482,38 @@ func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
 	return e
 }
 
+// SharedModuleErrFederationSyncStructureChanged returns "federation:shared_module.federationSyncStructureChanged" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func SharedModuleErrFederationSyncStructureChanged(mm ...*sharedModuleActionProps) *errors.Error {
+	var p = &sharedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("module structure changed", nil),
+
+		errors.Meta("type", "federationSyncStructureChanged"),
+		errors.Meta("resource", "federation:shared_module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(sharedModuleLogMetaKey{}, "could not update shared module, structure different"),
+		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // SharedModuleErrNotUnique returns "federation:shared_module.notUnique" as *errors.Error
 //
 //

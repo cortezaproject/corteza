@@ -235,12 +235,13 @@ func (s Store) LookupFederationNodesSyncByNodeID(ctx context.Context, node_id ui
 	})
 }
 
-// LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus searches for activity by node, type and status
+// LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus searches for activity by node, type and status
 //
 // It returns sync activity
-func (s Store) LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus(ctx context.Context, node_id uint64, sync_type string, sync_status string) (*types.NodeSync, error) {
+func (s Store) LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, node_id uint64, module_id uint64, sync_type string, sync_status string) (*types.NodeSync, error) {
 	return s.execLookupFederationNodesSync(ctx, squirrel.Eq{
 		s.preprocessColumn("fdns.rel_node", ""):    store.PreprocessValue(node_id, ""),
+		s.preprocessColumn("fdns.rel_module", ""):  store.PreprocessValue(module_id, ""),
 		s.preprocessColumn("fdns.sync_type", ""):   store.PreprocessValue(sync_type, ""),
 		s.preprocessColumn("fdns.sync_status", ""): store.PreprocessValue(sync_status, ""),
 	})
@@ -394,6 +395,7 @@ func (s Store) internalFederationNodesSyncRowScanner(row rowScanner) (res *types
 	} else {
 		err = row.Scan(
 			&res.NodeID,
+			&res.ModuleID,
 			&res.SyncType,
 			&res.SyncStatus,
 			&res.TimeOfAction,
@@ -437,6 +439,7 @@ func (Store) federationNodesSyncColumns(aa ...string) []string {
 
 	return []string{
 		alias + "rel_node",
+		alias + "rel_module",
 		alias + "sync_type",
 		alias + "sync_status",
 		alias + "time_action",
@@ -464,6 +467,7 @@ func (Store) sortableFederationNodesSyncColumns() map[string]string {
 func (s Store) internalFederationNodesSyncEncoder(res *types.NodeSync) store.Payload {
 	return store.Payload{
 		"rel_node":    res.NodeID,
+		"rel_module":  res.ModuleID,
 		"sync_type":   res.SyncType,
 		"sync_status": res.SyncStatus,
 		"time_action": res.TimeOfAction,

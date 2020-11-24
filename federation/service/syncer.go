@@ -6,11 +6,9 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -52,7 +50,6 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		spew.Dump("ERR", err)
 		return nil, err
 	}
 
@@ -60,12 +57,8 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 		req.Header.Add("Authorization", `Bearer `+authToken.(string))
 	}
 
-	dr, _ := httputil.DumpRequest(req, true)
-	spew.Dump("> using headers", string(dr))
-
 	resp, err := client.Do(req)
 	if err != nil {
-		spew.Dump("ERR", err)
 		return nil, err
 	}
 
@@ -76,7 +69,7 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 	return resp.Body, nil
 }
 
-func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url types.SyncerURI, processer Processer) (int, error) {
+func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url types.SyncerURI, processer Processer) (ProcesserResponse, error) {
 	aux, err := h.ParseHeader(ctx, payload)
 
 	if err != nil {

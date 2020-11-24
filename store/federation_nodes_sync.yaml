@@ -6,6 +6,7 @@ types:
 
 fields:
   - { field: NodeID, isPrimaryKey: true, sortable: true }
+  - { field: ModuleID }
   - { field: SyncType }
   - { field: SyncStatus }
   - { field: TimeOfAction, sortable: true }
@@ -17,7 +18,7 @@ lookups:
 
       It returns sync activity
 
-  - fields: [NodeID, SyncType, SyncStatus]
+  - fields: [NodeID, ModuleID, SyncType, SyncStatus]
     description: |-
       searches for activity by node, type and status
 
@@ -33,6 +34,7 @@ rdbms:
   customFilterConverter: true
   mapFields:
     NodeID: { column: rel_node }
+    ModuleID: { column: rel_module }
     SyncType: { column: sync_type }
     SyncStatus: { column: sync_status }
     TimeOfAction: { column: time_action }
