@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -42,7 +43,7 @@ func TestSyncerURIString(t *testing.T) {
 		{
 			name:   "last sync",
 			url:    &SyncerURI{Path: "/relative/path", LastSync: &now},
-			expect: "/relative/path?limit=0&lastSync=2020-10-23T11:11:11Z",
+			expect: fmt.Sprintf("/relative/path?limit=0&lastSync=%d", now.Unix()),
 		},
 	}
 
@@ -60,23 +61,29 @@ func TestSyncerURIParse(t *testing.T) {
 		req = require.New(t)
 	)
 
-	// TODO - add a parse last sync date
-	// now, _ := time.Parse("2006-01-02 15:04:05", "2020-10-23 11:11:11")
-
 	tests := []struct {
 		name   string
 		url    string
 		expect *SyncerURI
+		err    string
 	}{
 		{
 			name:   "parse limit",
 			url:    "https://example.url?limit=11",
 			expect: &SyncerURI{BaseURL: "https://example.url", Limit: 11},
+			err:    "",
 		},
 		{
 			name:   "parse path",
 			url:    "/path/to/endpoint/",
 			expect: &SyncerURI{Path: "/path/to/endpoint/"},
+			err:    "",
+		},
+		{
+			name:   "parse invalid url",
+			url:    "ht tps:/ /in valid",
+			expect: &SyncerURI{},
+			err:    `parse "ht tps:/ /in valid": first path segment in URL cannot contain colon`,
 		},
 	}
 
@@ -85,8 +92,47 @@ func TestSyncerURIParse(t *testing.T) {
 			s := &SyncerURI{}
 			err := s.Parse(tt.url)
 
+			errString := ""
+			if err != nil {
+				errString = err.Error()
+			}
+
 			req.Equal(tt.expect, s)
-			req.NoError(err)
+			req.Equal(tt.err, errString)
 		})
 	}
+}
+
+func TestSyncerURIParseLastSync(t *testing.T) {
+	var (
+		req = require.New(t)
+	)
+
+	tests := []struct {
+		name   string
+		url    string
+		expect string
+	}{
+		{
+			name:   "parse timestamp",
+			url:    "https://example.url?limit=11&lastSync=1603451471",
+			expect: "2020-10-23T13:11:11+02:00",
+		},
+		{
+			name:   "parse RFC3339",
+			url:    "https://example.url?limit=11&lastSync=2020-10-23T13:11:11Z",
+			expect: "2020-10-23T13:11:11Z",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SyncerURI{}
+			err := s.Parse(tt.url)
+
+			req.NoError(err)
+			req.Equal(tt.expect, s.LastSync.Format(time.RFC3339))
+		})
+	}
+
 }

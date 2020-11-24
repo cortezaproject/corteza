@@ -53,7 +53,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		checkNodeStatus = func(ID uint64, status string) {
 			n := h.lookupNodeByID(aNodeID)
 			h.a.NotNil(n)
-			h.a.Equal(n.Status, status)
+			h.a.Equal(status, n.Status)
 		}
 
 		getNodeAuthToken = func(ID uint64) string {
