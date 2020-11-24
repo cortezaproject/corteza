@@ -11,7 +11,6 @@ import (
 
 func TestMapper_merge(t *testing.T) {
 	var (
-		// out = &
 		tcc = []struct {
 			name   string
 			m      string
@@ -56,6 +55,43 @@ func TestMapper_merge(t *testing.T) {
 
 			mapper.Merge(&tc.in, &tc.out, mm)
 			req.Equal(tc.out, tc.expect)
+		})
+	}
+}
+
+func TestMapper_prepare(t *testing.T) {
+	var (
+		tcc = []struct {
+			name   string
+			m      string
+			expect ct.RecordValueSet
+		}{
+			{
+				"prepare values",
+				`[
+					{"origin":{"kind":"String","name":"AccountName","label":"Account Name","isMulti":false},"destination":{"kind":"String","name":"AccountName","label":"Account Name","isMulti":false}},
+					{"origin":{"kind":"String","name":"Phone","label":"Phone","isMulti":false},"destination":{"kind":"String","name":"Phone","label":"Phone","isMulti":false}},
+					{"origin":{"kind":"Url","name":"Twitter","label":"Twitter","isMulti":false},"destination":{"kind":"Url","name":"Twitter","label":"Twitter","isMulti":false}}
+				]`,
+				ct.RecordValueSet{&ct.RecordValue{Name: "AccountName", Value: ""}, &ct.RecordValue{Name: "Phone", Value: ""}, &ct.RecordValue{Name: "Twitter", Value: ""}},
+			},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+
+				mapper = &Mapper{}
+			)
+
+			// dont catch any helper errors
+			mm := &types.ModuleFieldMappingSet{}
+			json.Unmarshal([]byte(tc.m), mm)
+
+			out := mapper.Prepare(*mm)
+			req.Equal(tc.expect, out)
 		})
 	}
 }

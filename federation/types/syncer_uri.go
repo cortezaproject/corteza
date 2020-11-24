@@ -90,11 +90,7 @@ func parseLastSync(lastSync string) (*time.Time, error) {
 	}
 
 	// try different format if above fails
-	if t, err := time.Parse(time.RFC3339, lastSync); err == nil {
-		return &t, nil
-	}
-
-	t, err := time.Parse("2006-01-02", lastSync)
+	t, err := time.Parse(time.RFC3339, lastSync)
 
 	if err != nil {
 		return nil, err
