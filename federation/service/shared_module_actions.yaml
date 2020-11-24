@@ -60,6 +60,10 @@ errors:
     message: "stale data"
     severity: warning
 
+  - error: federationSyncStructureChanged
+    message: "module structure changed"
+    log: "could not update shared module, structure different"
+
   - error: notUnique
     message: "node not unique"
     log: "used duplicate node TODO"

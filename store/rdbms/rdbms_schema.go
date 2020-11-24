@@ -552,6 +552,7 @@ func (Schema) FederationNodes() *Table {
 func (Schema) FederationNodesSync() *Table {
 	return TableDef("federation_nodes_sync",
 		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("rel_module", ColumnTypeIdentifier),
 		ColumnDef("sync_type", ColumnTypeText),
 		ColumnDef("sync_status", ColumnTypeText),
 		ColumnDef("time_action", ColumnTypeTimestamp),

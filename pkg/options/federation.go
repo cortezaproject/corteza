@@ -21,7 +21,7 @@ func Federation() (o *FederationOpt) {
 		Label:                    `Example host`,
 		Host:                     `example.tld`,
 		StructureMonitorInterval: 3600,
-		StructurePageSize:        100,
+		StructurePageSize:        1,
 		DataMonitorInterval:      3600,
 		DataPageSize:             100,
 	}

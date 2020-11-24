@@ -17,7 +17,7 @@ type (
 	FederationNodesSyncs interface {
 		SearchFederationNodesSyncs(ctx context.Context, f types.NodeSyncFilter) (types.NodeSyncSet, types.NodeSyncFilter, error)
 		LookupFederationNodesSyncByNodeID(ctx context.Context, node_id uint64) (*types.NodeSync, error)
-		LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus(ctx context.Context, node_id uint64, sync_type string, sync_status string) (*types.NodeSync, error)
+		LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, node_id uint64, module_id uint64, sync_type string, sync_status string) (*types.NodeSync, error)
 
 		CreateFederationNodesSync(ctx context.Context, rr ...*types.NodeSync) error
 
@@ -47,11 +47,11 @@ func LookupFederationNodesSyncByNodeID(ctx context.Context, s FederationNodesSyn
 	return s.LookupFederationNodesSyncByNodeID(ctx, node_id)
 }
 
-// LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus searches for activity by node, type and status
+// LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus searches for activity by node, type and status
 //
 // It returns sync activity
-func LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus(ctx context.Context, s FederationNodesSyncs, node_id uint64, sync_type string, sync_status string) (*types.NodeSync, error) {
-	return s.LookupFederationNodesSyncByNodeIDSyncTypeSyncStatus(ctx, node_id, sync_type, sync_status)
+func LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, s FederationNodesSyncs, node_id uint64, module_id uint64, sync_type string, sync_status string) (*types.NodeSync, error) {
+	return s.LookupFederationNodesSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx, node_id, module_id, sync_type, sync_status)
 }
 
 // CreateFederationNodesSync creates one or more FederationNodesSyncs in store

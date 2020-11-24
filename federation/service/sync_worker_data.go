@@ -6,12 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/decoder"
-	st "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -21,19 +16,6 @@ type (
 		logger      *zap.Logger
 		delay       time.Duration
 		limit       int
-	}
-
-	dataProcesser struct {
-		ID                  uint64
-		NodeID              uint64
-		ComposeModuleID     uint64
-		ComposeNamespaceID  uint64
-		NodeBaseURL         string
-		ModuleMappings      *types.ModuleFieldMappingSet
-		ModuleMappingValues *ct.RecordValueSet
-		SyncService         *Sync
-		Node                *types.Node
-		User                *st.User
 	}
 )
 
@@ -70,50 +52,71 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 		u, err := w.syncService.LoadUserWithRoles(ctx, n.ID)
 
 		if err != nil {
-			w.logger.Info("could not preload federation user, skipping", zap.Uint64("nodeID", n.ID), zap.Error(err))
+			w.logger.Info("could not preload federation user, skipping",
+				zap.Uint64("nodeID", n.ID),
+				zap.Error(err))
+
 			continue
 		}
-
-		spew.Dump("user", u, u.Roles())
 
 		set, err := w.syncService.GetSharedModules(ctx, n.ID)
 
 		if err != nil {
-			w.logger.Info("could not get shared modules, skipping", zap.Uint64("nodeID", n.ID), zap.Error(err))
+			w.logger.Info("could not get shared modules, skipping",
+				zap.Uint64("nodeID", n.ID),
+				zap.Error(err))
+
 			continue
 		}
 
 		if len(set) == 0 {
-			w.logger.Info("there are no valid shared modules, skipping", zap.Uint64("nodeID", n.ID), zap.Error(err))
+			w.logger.Info("there are no valid shared modules, skipping",
+				zap.Uint64("nodeID", n.ID),
+				zap.Error(err))
+
 			continue
 		}
 
 		// go through set and prepare module mappings for it
 		for _, sm := range set {
+			z := []zap.Field{
+				zap.Uint64("nodeID", n.ID),
+				zap.Uint64("moduleID", sm.ID),
+				zap.String("host", n.BaseURL),
+				zap.String("delay", w.delay.String()),
+				zap.Int("pagesize", w.limit),
+			}
+
+			// if the last sync was error'd, log and skip
+			lastSyncStatus, err := w.syncService.GetLastStructureSyncStatus(ctx, n.ID, sm.ExternalFederationModuleID)
+
+			if err != nil {
+				w.logger.Info("could not get last sync status, skipping", z...)
+				continue
+			}
+
+			if lastSyncStatus == types.NodeSyncStatusError {
+				w.logger.Info("last structure sync was not complete, admin resolve needed, skipping", z...)
+				continue
+			}
+
 			mappings, _ := w.syncService.GetModuleMappings(ctx, sm.ID)
 
 			if mappings == nil {
-				w.logger.Info("could not prepare module mappings for shared module, skipping", zap.Uint64("nodeID", n.ID), zap.Uint64("moduleID", sm.ID))
+				w.logger.Info("could not prepare module mappings for shared module, skipping", z...)
 				continue
 			}
 
 			mappingValues, err := w.syncService.PrepareModuleMappings(ctx, mappings)
 
 			if err != nil || mappingValues == nil {
-				w.logger.Info("could not prepare module mappings for shared module, skipping", zap.Uint64("nodeID", n.ID), zap.Uint64("moduleID", sm.ID))
+				w.logger.Info("could not prepare module mappings for shared module, skipping", z...)
 				continue
 			}
 
 			// get the last sync per-node
 			lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeData)
 			basePath := fmt.Sprintf("/nodes/%d/modules/%d/records/", n.SharedNodeID, sm.ExternalFederationModuleID)
-
-			z := []zap.Field{
-				zap.Uint64("nodeID", n.ID),
-				zap.String("host", n.BaseURL),
-				zap.String("delay", w.delay.String()),
-				zap.Int("pagesize", w.limit),
-			}
 
 			if lastSync != nil {
 				z = append(z, zap.Time("lastSync", *lastSync))
@@ -130,12 +133,10 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 
 			processer := &dataProcesser{
 				ID:                  sm.ExternalFederationModuleID,
-				NodeID:              n.SharedNodeID,
 				ComposeModuleID:     mappings.ComposeModuleID,
 				ComposeNamespaceID:  mappings.ComposeNamespaceID,
 				ModuleMappings:      &mappings.FieldMapping,
 				ModuleMappingValues: &mappingValues,
-				NodeBaseURL:         n.BaseURL,
 				SyncService:         w.syncService,
 				User:                u,
 				Node:                n,
@@ -184,18 +185,21 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			default:
 			}
 
-			s, err := url.Url.String()
-
-			if err != nil {
-				continue
-			}
+			s, _ := url.Url.String()
+			meta := url.Meta.(*dataProcesser)
 
 			// use the authToken from node pairing
-			ctx = context.WithValue(ctx, FederationUserToken, url.Meta.(*dataProcesser).Node.AuthToken)
+			ctx = context.WithValue(ctx, FederationUserToken, meta.Node.AuthToken)
 
 			responseBody, err := w.syncService.FetchUrl(ctx, s)
 
 			if err != nil {
+				w.logger.Error("could not fetch data from url, skipping",
+					zap.Error(err),
+					zap.String("url", s),
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
+
 				continue
 			}
 
@@ -206,98 +210,58 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 
 			payloads <- spayload
 		case p := <-payloads:
-
+			meta := p.Meta.(*dataProcesser)
 			body, err := ioutil.ReadAll(p.Payload)
 
 			// handle error
 			if err != nil {
+				w.logger.Error("could not read data from synced url, skipping",
+					zap.Error(err),
+					zap.Uint64("nodeID", meta.Node.ID),
+					zap.String("host", meta.Node.BaseURL))
+
 				continue
 			}
 
-			basePath := fmt.Sprintf("/nodes/%d/modules/%d/records/", p.Meta.(*dataProcesser).NodeID, p.Meta.(*dataProcesser).ID)
+			basePath := fmt.Sprintf("/nodes/%d/modules/%d/records/", meta.Node.SharedNodeID, meta.ID)
 
 			u := types.SyncerURI{
-				BaseURL: p.Meta.(*dataProcesser).NodeBaseURL,
+				BaseURL: meta.NodeBaseURL,
 				Path:    basePath,
 				Limit:   w.limit,
 			}
 
-			processed, err := w.syncService.ProcessPayload(ctx, body, urls, u, p.Meta.(*dataProcesser))
-			countProcess += processed
+			processed, errProcess := w.syncService.ProcessPayload(ctx, body, urls, u, meta)
+			countProcess += processed.(dataProcesserResponse).Processed
+
+			// error raised before the actual persist process
+			// ignore
+			syncStatus := types.NodeSyncStatusSuccess
+			if errProcess != nil {
+				syncStatus = types.NodeSyncStatusError
+			}
+
+			new := &types.NodeSync{
+				NodeID:       meta.Node.ID,
+				ModuleID:     meta.ID,
+				SyncStatus:   syncStatus,
+				SyncType:     types.NodeSyncTypeStructure,
+				TimeOfAction: time.Now().UTC(),
+			}
+
+			new, err = DefaultNodeSync.Create(ctx, new)
 
 			if err != nil {
-				// handle error
-				w.logger.Info("error on handling payload", zap.Error(err))
+				w.logger.Info("could not update sync status", zap.Error(err))
+			}
+
+			if errProcess != nil {
+				w.logger.Info("error on persisting structure", zap.Error(errProcess))
 			} else {
-				// TODO
-				n, err := DefaultNode.FindBySharedNodeID(ctx, p.Meta.(*dataProcesser).NodeID)
-
-				if err != nil {
-					w.logger.Info("could not update sync status", zap.Error(err))
-					continue
-				}
-
-				// add to db - nodes_sync
-				new := &types.NodeSync{
-					NodeID:       (*n).ID,
-					SyncStatus:   types.NodeSyncStatusSuccess,
-					SyncType:     types.NodeSyncTypeData,
-					TimeOfAction: time.Now().UTC(),
-				}
-
-				// todo
-				new, err = DefaultNodeSync.Create(ctx, new)
-
-				if err != nil {
-					w.logger.Info("could not update sync status", zap.Error(err))
-				}
-
-				w.logger.Info("processed objects", zap.Int("processed", processed), zap.Uint64("nodeID", n.ID))
+				w.logger.Info("processed objects",
+					zap.Int("processed", processed.(dataProcesserResponse).Processed),
+					zap.Uint64("nodeID", meta.Node.ID))
 			}
 		}
 	}
-}
-
-// Process gets the payload from syncer and
-// uses the decode package to decode the whole set, depending on
-// the filtering that was used (limit)
-func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (int, error) {
-	processed := 0
-	o, err := decoder.DecodeFederationRecordSync([]byte(payload))
-
-	spew.Dump("got records", o)
-
-	if err != nil {
-		return processed, err
-	}
-
-	if len(o) == 0 {
-		return processed, nil
-	}
-
-	// get the user that is tied to this node
-	ctx = auth.SetIdentityToContext(ctx, dp.User)
-
-	for _, er := range o {
-		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
-
-		rec := &ct.Record{
-			ModuleID:    dp.ComposeModuleID,
-			NamespaceID: dp.ComposeNamespaceID,
-			Values:      *dp.ModuleMappingValues,
-		}
-
-		AddFederationLabel(rec, dp.NodeBaseURL)
-
-		_, err := dp.SyncService.CreateRecord(ctx, rec)
-
-		if err != nil {
-			spew.Dump("Error saving record", err, rec)
-			continue
-		}
-
-		processed++
-	}
-
-	return processed, nil
 }

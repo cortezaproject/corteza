@@ -17,6 +17,7 @@ type (
 
 	NodeSyncService interface {
 		Create(ctx context.Context, new *types.NodeSync) (*types.NodeSync, error)
+		Search(ctx context.Context, f types.NodeSyncFilter) (types.NodeSyncSet, types.NodeSyncFilter, error)
 		LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (*types.NodeSync, error)
 	}
 )
@@ -42,6 +43,10 @@ func (svc nodeSync) Create(ctx context.Context, new *types.NodeSync) (*types.Nod
 	})
 
 	return new, svc.recordAction(ctx, aProps, NodeSyncActionCreate, err)
+}
+
+func (svc nodeSync) Search(ctx context.Context, f types.NodeSyncFilter) (types.NodeSyncSet, types.NodeSyncFilter, error) {
+	return store.SearchFederationNodesSyncs(ctx, svc.store, f)
 }
 
 func (svc nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64, syncType string) (ns *types.NodeSync, err error) {

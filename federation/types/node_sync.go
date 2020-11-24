@@ -16,6 +16,7 @@ var (
 type (
 	NodeSync struct {
 		NodeID     uint64 `json:"nodeID,string"`
+		ModuleID   uint64 `json:"moduleID,string"`
 		SyncStatus string `json:"syncStatus"`
 		SyncType   string `json:"syncType"`
 
@@ -24,6 +25,7 @@ type (
 
 	NodeSyncFilter struct {
 		NodeID     uint64 `json:"nodeID"`
+		ModuleID   uint64 `json:"moduleID"`
 		SyncStatus string `json:"syncStatus"`
 		SyncType   string `json:"syncType"`
 

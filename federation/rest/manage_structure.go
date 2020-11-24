@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -110,8 +109,6 @@ func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStruct
 	default:
 		return nil, errors.New("TODO - http 400 bad request - either use ?exposed or ?shared")
 	}
-
-	spew.Dump("ERR", err)
 
 	return list, err
 }
