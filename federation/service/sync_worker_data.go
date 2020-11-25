@@ -245,7 +245,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 				NodeID:       meta.Node.ID,
 				ModuleID:     meta.ID,
 				SyncStatus:   syncStatus,
-				SyncType:     types.NodeSyncTypeStructure,
+				SyncType:     types.NodeSyncTypeData,
 				TimeOfAction: time.Now().UTC(),
 			}
 

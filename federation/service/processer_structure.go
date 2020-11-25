@@ -57,7 +57,7 @@ func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (Proc
 
 		if err != nil {
 			return structureProcesserResponse{
-				ModuleID:  existing.ExternalFederationModuleID,
+				ModuleID:  new.ExternalFederationModuleID,
 				Processed: processed,
 			}, err
 		}

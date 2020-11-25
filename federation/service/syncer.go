@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -12,7 +13,9 @@ import (
 )
 
 type (
-	Syncer struct{}
+	Syncer struct {
+		client http.Client
+	}
 
 	Url struct {
 		Url  types.SyncerURI
@@ -44,10 +47,6 @@ func (h *Syncer) Queue(url Url, out chan Url) {
 }
 
 func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
-	client := http.Client{
-		Timeout: time.Duration(3) * time.Second,
-	}
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -57,13 +56,13 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 		req.Header.Add("Authorization", `Bearer `+authToken.(string))
 	}
 
-	resp, err := client.Do(req)
+	resp, err := h.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New("404")
+		return nil, errors.New(fmt.Sprintf("invalid return status: %d", resp.StatusCode))
 	}
 
 	return resp.Body, nil
@@ -91,4 +90,12 @@ func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url 
 func (h *Syncer) ParseHeader(ctx context.Context, payload []byte) (aux AuxResponseSet, err error) {
 	err = json.Unmarshal(payload, &aux)
 	return
+}
+
+func NewSyncer() *Syncer {
+	return &Syncer{
+		client: http.Client{
+			Timeout: time.Duration(3) * time.Second,
+		},
+	}
 }

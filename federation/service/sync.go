@@ -11,7 +11,6 @@ import (
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/system/service"
 	ss "github.com/cortezaproject/corteza-server/system/service"
 	st "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -45,18 +44,20 @@ func NewSync(s *Syncer, m *Mapper, sm SharedModuleService, cs cs.RecordService, 
 // is possible
 func (s *Sync) CanUpdateSharedModule(ctx context.Context, new *types.SharedModule, existing *types.SharedModule) (bool, error) {
 	// check for mapped fields
-	fstr, err := json.Marshal(new.Fields)
-	f2str, err := json.Marshal(existing.Fields)
+	var (
+		fstr, f2str []byte
+		err         error
+	)
 
-	if err != nil {
+	if fstr, err = json.Marshal(new.Fields); err != nil {
 		return false, err
 	}
 
-	if string(fstr) == string(f2str) {
-		return true, nil
+	if f2str, err = json.Marshal(existing.Fields); err != nil {
+		return false, err
 	}
 
-	return false, nil
+	return string(fstr) == string(f2str), nil
 }
 
 // ProcessPayload passes the payload to the syncer lib
@@ -83,7 +84,7 @@ func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, er
 func (s *Sync) LookupSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
 	var sm *types.SharedModule
 
-	list, _, err := service.DefaultStore.SearchFederationSharedModules(ctx, types.SharedModuleFilter{
+	list, _, err := s.sharedModuleService.Find(ctx, types.SharedModuleFilter{
 		NodeID:                     new.NodeID,
 		ExternalFederationModuleID: new.ExternalFederationModuleID})
 
