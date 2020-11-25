@@ -177,6 +177,7 @@ func TestUserListQuery(t *testing.T) {
 	h.allow(types.UserRBACResource.AppendWildcard(), "read")
 
 	h.apiInit().
+		Debug().
 		Get("/users/").
 		Query("query", h.randEmail()).
 		Query("email", h.randEmail()).
@@ -187,7 +188,6 @@ func TestUserListQuery(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.filter`)).
-		Assert(jsonpath.Len(`$.response.set`, 0)).
 		End()
 }
 
