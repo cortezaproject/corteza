@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net/http"
 	"net/url"
@@ -164,7 +163,7 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 			body = http.MaxBytesReader(w, r.Body, 32<<10) // 32k limit
 		}
 
-		if err := svc.process(srup.ContentType, w, r, body); err != nil {
+		if err := svc.process(srup, w, r, body); err != nil {
 			return SinkErrProcessingError(sap).Wrap(err)
 		}
 
@@ -254,7 +253,6 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 
 	if srup.Path != "" {
 		if srup.Path != svc.pathCleanup(reqPath) {
-			spew.Dump(srup.Path, reqPath, svc.pathCleanup(reqPath))
 			return nil, SinkErrInvalidPath(sap)
 		}
 	}
@@ -282,11 +280,12 @@ func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 // b) Max-body-size check might be limited via sink params
 // and io.Reader that is passed is limited w/ io.LimitReader
 //
-func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Request, body io.Reader) error {
+func (svc *sink) process(srup *SinkRequestUrlParams, w http.ResponseWriter, r *http.Request, body io.Reader) error {
 	var (
-		err error
-		ctx = r.Context()
-		sap = &sinkActionProps{
+		err         error
+		ctx         = r.Context()
+		contentType = srup.ContentType
+		sap         = &sinkActionProps{
 			contentType: contentType,
 		}
 	)
@@ -329,6 +328,14 @@ func (svc *sink) process(contentType string, w http.ResponseWriter, r *http.Requ
 		// Step 2: remove prefix
 		if i := strings.Index(sanitizedURL.Path, SinkBaseURL); i > -1 {
 			sanitizedURL.Path = sanitizedURL.Path[i+len(SinkBaseURL):]
+		}
+
+		// Step 3: remove sink suffix if in path
+		if srup.SignatureInPath {
+			i := strings.Index(sanitizedURL.Path, SinkSignUrlParamName)
+			if i > 0 {
+				sanitizedURL.Path = sanitizedURL.Path[0 : i-1]
+			}
 		}
 
 		r.URL = sanitizedURL
