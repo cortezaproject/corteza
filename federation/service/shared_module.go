@@ -128,45 +128,6 @@ func (svc sharedModule) uniqueCheck(ctx context.Context, m *types.SharedModule) 
 	return nil
 }
 
-// func (svc sharedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64) error {
-// 	return trim1st(svc.updater(ctx, nodeID, moduleID, ModuleActionDelete, svc.handleDelete))
-// }
-
-// func (svc sharedModule) updater(ctx context.Context, nodeID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.SharedModule, error) {
-// 	var (
-// 		moduleChanged, fieldsChanged bool
-
-// 		n *types.Node
-// 		m *types.SharedModule
-// 		// m, old *types.SharedModule
-// 		aProps = &moduleActionProps{module: &types.SharedModule{ID: moduleID, NodeID: nodeID}}
-// 		err    error
-// 	)
-
-// 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-// 		if m, err = svc.store.LookupFederationSharedModuleByID(ctx, moduleID); err != nil {
-// 			return err
-// 		}
-
-// 		// TODO - handle node id also
-// 		if moduleChanged, fieldsChanged, err = fn(ctx, n, m); err != nil {
-// 			return err
-// 		}
-
-// 		return err
-// 	})
-
-// 	return m, svc.recordAction(ctx, aProps, action, err)
-// }
-
-// func (svc sharedModule) handleDelete(ctx context.Context, n *types.Node, m *types.SharedModule) (bool, bool, error) {
-// 	if err := store.DeleteFederationSharedModuleByID(ctx, svc.store, m.ID); err != nil {
-// 		return false, false, err
-// 	}
-
-// 	return false, false, nil
-// }
-
 func (svc sharedModule) Find(ctx context.Context, filter types.SharedModuleFilter) (set types.SharedModuleSet, f types.SharedModuleFilter, err error) {
 	var (
 		aProps = &sharedModuleActionProps{filter: &filter}
