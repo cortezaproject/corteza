@@ -230,7 +230,7 @@ func Test_validator_customExpr(t *testing.T) {
 	)
 
 	f.Expressions.Validators = []types.ModuleFieldValidator{
-		{Test: "value > 5", Error: "value is lower than 5"},
+		{Test: "value < 5", Error: "value is lower than 5"},
 	}
 	m.Fields = append(m.Fields, f)
 	r.Values = r.Values.Replace("num", "1")
