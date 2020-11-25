@@ -13,7 +13,7 @@ import (
 type (
 	decoder interface {
 		CanDecodeFile(os.FileInfo) bool
-		Decode(context.Context, io.Reader, os.FileInfo) ([]resource.Interface, error)
+		Decode(context.Context, io.Reader) ([]resource.Interface, error)
 	}
 )
 
@@ -61,8 +61,8 @@ func Decode(ctx context.Context, path string, decoders ...decoder) ([]resource.I
 		}
 		defer f.Close()
 
-		if dnn, err = d.Decode(ctx, f, info); err != nil {
-			return err
+		if dnn, err = d.Decode(ctx, f); err != nil {
+			return fmt.Errorf("failed to decode %s: %w", info.Name(), err)
 		}
 
 		nn = append(nn, dnn...)

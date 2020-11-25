@@ -50,7 +50,7 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 //
-func (doc *Document) Decode(ctx context.Context, l loader) ([]resource.Interface, error) {
+func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	nn := make([]resource.Interface, 0, 100)
 
 	mm := make([]envoy.Marshaller, 0, 20)
