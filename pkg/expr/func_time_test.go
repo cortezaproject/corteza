@@ -42,10 +42,10 @@ func Example_parseISODate() {
 }
 
 func Example_parseDate() {
-	eval(`date("1993-02-02 06:00:00+00:00")`, nil)
+	eval(`date("1993-02-02 06:00:00+01:10")`, nil)
 
 	// output:
-	// 1993-02-02 06:00:00 +0000 +0000
+	// 1993-02-02 06:00:00 +0110 +0110
 }
 
 func Example_parseDuration() {
