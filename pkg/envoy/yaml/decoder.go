@@ -2,7 +2,6 @@ package yaml
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,25 +13,19 @@ import (
 
 type (
 	// decoder is a wrapper struct for yaml related methods
-	decoder struct {
-		loader loader
-	}
-
-	loader interface {
-		LoadComposeNamespace()
-	}
+	decoder struct{}
 
 	EnvoyMarshler interface {
 		MarshalEnvoy() ([]resource.Interface, error)
 	}
 
 	nodeDecoder interface {
-		DecodeNodes(ctx context.Context, l loader) ([]resource.Interface, error)
+		DecodeNodes(ctx context.Context) ([]resource.Interface, error)
 	}
 )
 
-func Decoder(l loader) *decoder {
-	return &decoder{l}
+func Decoder() *decoder {
+	return &decoder{}
 }
 
 // CanDecodeFile
@@ -45,14 +38,14 @@ func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
 	return false
 }
 
-func (y *decoder) Decode(ctx context.Context, r io.Reader, i os.FileInfo) ([]resource.Interface, error) {
+func (y *decoder) Decode(ctx context.Context, r io.Reader) ([]resource.Interface, error) {
 	var (
 		doc = &Document{}
 	)
 
 	if err := yaml.NewDecoder(r).Decode(doc); err != nil {
-		return nil, fmt.Errorf("failed to decode %s: %w", i.Name(), err)
+		return nil, err
 	}
 
-	return doc.Decode(ctx, y.loader)
+	return doc.Decode(ctx)
 }

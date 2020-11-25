@@ -56,18 +56,13 @@ func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) 
 	}
 	defer f.Close()
 
-	info, err := os.Stat(fp)
-	if err != nil {
-		return nil, err
-	}
-
-	d := yaml.Decoder(nil)
-	return d.Decode(ctx, f, info)
+	d := yaml.Decoder()
+	return d.Decode(ctx, f)
 }
 
 func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
 	fp := path.Join("testdata", suite)
-	d := yaml.Decoder(nil)
+	d := yaml.Decoder()
 
 	return directory.Decode(ctx, fp, d)
 }
