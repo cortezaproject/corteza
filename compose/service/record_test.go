@@ -4,10 +4,14 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/sqlite3"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"testing"
 )
 
@@ -154,4 +158,115 @@ func TestProcUpdateOwnerChanged(t *testing.T) {
 	a.Equal(newRec.OwnedBy, uint64(9))
 	svc.procUpdate(ctx, store, 10, mod, newRec, oldRec)
 	a.Equal(newRec.OwnedBy, uint64(9))
+}
+
+func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		// uncomment to enable sql conn debugging
+		//ctx = logger.ContextWithValue(context.Background(), logger.MakeDebugLogger())
+		ctx    = context.Background()
+		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+	)
+
+	req.NoError(err)
+	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
+	req.NoError(store.TruncateComposeModules(ctx, s))
+	req.NoError(store.TruncateComposeModuleFields(ctx, s))
+	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
+	req.NoError(store.TruncateRbacRules(ctx, s))
+
+	var (
+		rbacService = rbac.NewService(zap.NewNop(), s)
+		ac          = AccessControl(rbacService)
+
+		svc = record{
+			sanitizer: values.Sanitizer(),
+			validator: values.Validator(),
+			ac:        ac,
+			store:     s,
+		}
+
+		userID      = nextID()
+		ns          = &types.Namespace{ID: nextID()}
+		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID}
+		stringField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "string", Kind: "String"}
+		boolField   = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
+
+		readerRole = &sysTypes.Role{Name: "reader", ID: nextID()}
+		writerRole = &sysTypes.Role{Name: "writer", ID: nextID()}
+
+		recChecked, recUnchecked *types.Record
+
+		valChecked = types.RecordValueSet{
+			&types.RecordValue{Name: "string", Value: "abc"},
+			&types.RecordValue{Name: "bool", Value: "1"},
+		}
+
+		valUnchecked = types.RecordValueSet{
+			&types.RecordValue{Name: "string", Value: "abc"},
+		}
+	)
+
+	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
+	req.NoError(store.CreateComposeModule(ctx, s, mod))
+	req.NoError(store.CreateComposeModuleField(ctx, s, stringField, boolField))
+
+	rbacService.Grant(ctx, ac.Whitelist(),
+		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.read"),
+		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.create"),
+		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.update"),
+		rbac.AllowRule(readerRole.ID, stringField.RBACResource(), "record.value.read"),
+		rbac.DenyRule(readerRole.ID, boolField.RBACResource(), "record.value.update"),
+
+		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.read"),
+		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.create"),
+		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.update"),
+		rbac.AllowRule(writerRole.ID, stringField.RBACResource(), "record.value.read"),
+		rbac.AllowRule(writerRole.ID, stringField.RBACResource(), "record.value.update"),
+	)
+
+	{
+		// security context w/ writer role
+		ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(userID, writerRole.ID))
+
+		svc := svc.With(ctx)
+
+		recChecked, err = svc.Create(&types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
+		req.NoError(err)
+
+		req.NotNil(recChecked.Values.Get("bool", 0))
+		req.Equal("1", recChecked.Values.Get("bool", 0).Value)
+
+		recUnchecked, err = svc.Create(&types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valUnchecked})
+		req.NoError(err)
+
+		req.Nil(recUnchecked.Values.Get("bool", 0))
+
+		// *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+
+		// security context w/ writer role
+		ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(userID, readerRole.ID))
+		svc = svc.With(ctx)
+
+		recChecked.Values = types.RecordValueSet{
+			&types.RecordValue{Name: "string", Value: "abc"},
+		}
+
+		recChecked, err = svc.Update(recChecked)
+		req.NoError(err)
+
+		req.NotNil(recChecked.Values.Get("bool", 0))
+		req.Equal("1", recChecked.Values.Get("bool", 0).Value)
+
+		recUnchecked.Values = types.RecordValueSet{
+			&types.RecordValue{Name: "string", Value: "abc"},
+		}
+
+		recUnchecked, err = svc.Update(recUnchecked)
+		req.NoError(err)
+		req.Nil(recUnchecked.Values.Get("bool", 0))
+	}
+
 }
