@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	graphBuilder struct {
+	builder struct {
 		pp []Preparer
 	}
 
@@ -31,13 +31,13 @@ type (
 	}
 )
 
-func NewGraphBuilder(pp ...Preparer) *graphBuilder {
-	return &graphBuilder{
+func NewBuilder(pp ...Preparer) *builder {
+	return &builder{
 		pp: pp,
 	}
 }
 
-func (b *graphBuilder) Build(ctx context.Context, rr ...resource.Interface) (*graph, error) {
+func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, error) {
 	g := newGraph()
 
 	// Prepare nodes for all resources

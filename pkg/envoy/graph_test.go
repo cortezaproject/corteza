@@ -13,7 +13,7 @@ func TestGraph_Walk(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("simple node link; a -> b", func(t *testing.T) {
-		bl := NewGraphBuilder()
+		bl := NewBuilder()
 
 		a := &testResource{
 			resType:     "test:resource:1:",
@@ -46,7 +46,7 @@ func TestGraph_Walk(t *testing.T) {
 	})
 
 	t.Run("cyclic node link; a -> b -> a", func(t *testing.T) {
-		bl := NewGraphBuilder()
+		bl := NewBuilder()
 
 		a := &testResource{
 			resType:     "test:resource:1:",
@@ -83,7 +83,7 @@ func TestGraph_Walk(t *testing.T) {
 	})
 
 	t.Run("self-cycle; a -> a", func(t *testing.T) {
-		bl := NewGraphBuilder()
+		bl := NewBuilder()
 
 		a := &testResource{
 			resType:     "test:resource:1:",

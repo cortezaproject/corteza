@@ -57,7 +57,7 @@ func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) 
 	defer f.Close()
 
 	d := yaml.Decoder()
-	return d.Decode(ctx, f)
+	return d.Decode(ctx, f, nil)
 }
 
 func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
@@ -69,7 +69,7 @@ func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {
 	se := es.NewStoreEncoder(s, nil)
-	bld := envoy.NewGraphBuilder(se)
+	bld := envoy.NewBuilder(se)
 	g, err := bld.Build(ctx, nn...)
 	if err != nil {
 		return err

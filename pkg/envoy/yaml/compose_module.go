@@ -11,10 +11,24 @@ import (
 )
 
 type (
+	mappingTpl struct {
+		resource.MappingTpl `yaml:",inline"`
+	}
+	mappingTplSet []*mappingTpl
+
+	composeRecordTpl struct {
+		Source string `yaml:"from"`
+
+		Key     []string
+		Mapping mappingTplSet
+	}
+
 	composeModule struct {
 		res          *types.Module
 		refNamespace string
 		rbac         rbacRuleSet
+
+		recTpl *composeRecordTpl
 	}
 	composeModuleSet []*composeModule
 
@@ -114,6 +128,13 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 			wrap.res.Fields = aux.set()
 			return nil
 
+		case "records":
+			if isKind(v, yaml.MappingNode) {
+				return v.Decode(&wrap.recTpl)
+			} else {
+				return nodeErr(n, "records definition must be a map")
+			}
+
 		}
 
 		return nil
@@ -122,10 +143,84 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 
 func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewComposeModule(wrap.res, wrap.refNamespace)
+
+	var crs *resource.ComposeRecordTemplate
+	if wrap.recTpl != nil {
+		s := wrap.recTpl
+
+		mtt := make(resource.MappingTplSet, 0, len(s.Mapping))
+		for _, m := range s.Mapping {
+			mtt = append(mtt, &m.MappingTpl)
+		}
+		crs = resource.NewComposeRecordTemplate(rs.Identifiers().First(), wrap.refNamespace, s.Source, mtt, s.Key...)
+	}
+
 	return envoy.CollectNodes(
 		rs,
+		crs,
 		wrap.rbac.bindResource(rs),
 	)
+}
+
+func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
+	return eachMap(n, func(k, v *yaml.Node) (err error) {
+		switch k.Value {
+		case "source", "origin", "from":
+			rt.Source = v.Value
+
+		case "key", "index", "pk":
+			if !isKind(v, yaml.SequenceNode) {
+				rt.Key = []string{v.Value}
+			} else {
+				rt.Key = make([]string, 0, 3)
+				eachSeq(v, func(y *yaml.Node) error {
+					rt.Key = append(rt.Key, v.Value)
+					return nil
+				})
+			}
+
+		case "mapping", "map":
+			rt.Mapping = make(mappingTplSet, 0, 20)
+			// When provided as a sequence node, map the fields based on the index.
+			// first cell is mapped to the first sequence value, second cell to the second, and so on.
+			// Omit cells with empty, /, or - value.
+			if isKind(v, yaml.SequenceNode) {
+				i := uint(0)
+				eachSeq(v, func(y *yaml.Node) error {
+					if v.Value == "" || v.Value == "/" || v.Value == "-" {
+						return nil
+					}
+
+					rt.Mapping = append(rt.Mapping, &mappingTpl{
+						MappingTpl: resource.MappingTpl{
+							Index: i,
+							Field: v.Value,
+						},
+					})
+					i++
+					return nil
+				})
+			} else if isKind(v, yaml.MappingNode) {
+				// When provided as a mapping node, it can be a simple cell: field map
+				// or a more complex underlying structure.
+				eachMap(v, func(k, v *yaml.Node) error {
+					m := &mappingTpl{}
+
+					if isKind(v, yaml.MappingNode) {
+						v.Decode(m)
+					} else {
+						m.Field = v.Value
+					}
+
+					m.Cell = k.Value
+					rt.Mapping = append(rt.Mapping, m)
+					return nil
+				})
+			}
+		}
+
+		return nil
+	})
 }
 
 func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
