@@ -103,3 +103,7 @@ func (cr *reader) Next() (map[string]string, error) {
 
 	return mr, nil
 }
+
+func (cr *reader) Count() uint64 {
+	return cr.count
+}

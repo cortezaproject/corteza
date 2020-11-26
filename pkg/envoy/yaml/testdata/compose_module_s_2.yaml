@@ -1,0 +1,7 @@
+namespace: ns1
+modules:
+  mod1:
+    records:
+      key:
+        - f1
+        - f2
