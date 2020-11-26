@@ -3,6 +3,7 @@ package resource
 type (
 	provider interface {
 		Fields() []string
+		Count() uint64
 		Next() (map[string]string, error)
 	}
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -62,9 +63,10 @@ func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) 
 
 func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
 	fp := path.Join("testdata", suite)
-	d := yaml.Decoder()
+	yd := yaml.Decoder()
+	cd := csv.Decoder()
 
-	return directory.Decode(ctx, fp, d)
+	return directory.Decode(ctx, fp, yd, cd)
 }
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {

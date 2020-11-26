@@ -83,3 +83,62 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.Equal(b.res.Access, rbac.Deny)
 	})
 }
+
+func TestComposeModule_Shaping(t *testing.T) {
+	t.Run("1 key; list mapping", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_s_1")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+		req.Len(doc.compose.Modules, 1)
+		m1 := doc.compose.Modules[0]
+
+		tp := m1.recTpl
+		req.NotNil(tp)
+		req.Equal("mod1.csv", tp.Source)
+		req.Equal([]string{"id"}, tp.Key)
+
+		req.Len(tp.Mapping, 2)
+		req.Equal(uint(0), tp.Mapping[0].Index)
+		req.Equal("f1", tp.Mapping[0].Field)
+		req.Equal(uint(3), tp.Mapping[1].Index)
+		req.Equal("f2", tp.Mapping[1].Field)
+	})
+
+	t.Run("2 keys", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_s_2")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+		req.Len(doc.compose.Modules, 1)
+		m1 := doc.compose.Modules[0]
+
+		tp := m1.recTpl
+		req.NotNil(tp)
+		req.Equal([]string{"f1", "f2"}, tp.Key)
+	})
+
+	t.Run("complex mapping", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_s_3")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+		req.Len(doc.compose.Modules, 1)
+		m1 := doc.compose.Modules[0]
+
+		tp := m1.recTpl
+		req.Len(tp.Mapping, 2)
+		req.Equal(uint(0), tp.Mapping[0].Index)
+		req.Equal("c1", tp.Mapping[0].Cell)
+		req.Equal("f1", tp.Mapping[0].Field)
+		req.Equal(uint(0), tp.Mapping[1].Index)
+		req.Equal("c2", tp.Mapping[1].Cell)
+		req.Equal("f2", tp.Mapping[1].Field)
+	})
+}

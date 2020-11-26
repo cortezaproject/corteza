@@ -173,7 +173,7 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 				rt.Key = []string{v.Value}
 			} else {
 				rt.Key = make([]string, 0, 3)
-				eachSeq(v, func(y *yaml.Node) error {
+				eachSeq(v, func(v *yaml.Node) error {
 					rt.Key = append(rt.Key, v.Value)
 					return nil
 				})
@@ -186,7 +186,9 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 			// Omit cells with empty, /, or - value.
 			if isKind(v, yaml.SequenceNode) {
 				i := uint(0)
-				eachSeq(v, func(y *yaml.Node) error {
+				eachSeq(v, func(v *yaml.Node) error {
+					defer func() { i++ }()
+
 					if v.Value == "" || v.Value == "/" || v.Value == "-" {
 						return nil
 					}
@@ -197,7 +199,6 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 							Field: v.Value,
 						},
 					})
-					i++
 					return nil
 				})
 			} else if isKind(v, yaml.MappingNode) {
