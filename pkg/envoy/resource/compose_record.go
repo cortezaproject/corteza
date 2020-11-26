@@ -1,14 +1,25 @@
 package resource
 
 import (
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
 type (
+	rawSysValues struct {
+		OwnedBy   string
+		CreatedAt string
+		CreatedBy string
+		UpdatedAt string
+		UpdatedBy string
+		DeletedAt string
+		DeletedBy string
+	}
 	ComposeRecordRaw struct {
 		ID        string
 		Values    map[string]string
-		SysValues map[string]string
+		SysValues *rawSysValues
 		RefUsers  map[string]string
 	}
 	ComposeRecordRawSet []*ComposeRecordRaw
@@ -44,4 +55,43 @@ func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
 
 	return r
+}
+
+// ApplyValues takes in a raw map of things and creates a proper structure for it
+func (cr *ComposeRecordRaw) ApplyValues(vv map[string]string) {
+	if cr.RefUsers == nil {
+		cr.RefUsers = make(map[string]string)
+	}
+	if cr.SysValues == nil {
+		cr.SysValues = &rawSysValues{}
+	}
+	if cr.Values == nil {
+		cr.Values = make(map[string]string)
+	}
+
+	for k, v := range vv {
+		switch strings.ToLower(k) {
+		case "ownedby":
+			cr.SysValues.OwnedBy = v
+			cr.RefUsers[v] = ""
+		case "createdat":
+			cr.SysValues.CreatedAt = v
+		case "createdby":
+			cr.SysValues.CreatedBy = v
+			cr.RefUsers[v] = ""
+		case "updatedat":
+			cr.SysValues.UpdatedAt = v
+		case "updatedby":
+			cr.SysValues.UpdatedBy = v
+			cr.RefUsers[v] = ""
+		case "deletedat":
+			cr.SysValues.DeletedAt = v
+		case "deletedby":
+			cr.SysValues.DeletedBy = v
+			cr.RefUsers[v] = ""
+
+		default:
+			cr.Values[k] = v
+		}
+	}
 }

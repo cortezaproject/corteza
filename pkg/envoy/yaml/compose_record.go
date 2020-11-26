@@ -96,11 +96,10 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 		r := &resource.ComposeRecordRaw{
 			// @todo change this probably
 			ID: res.values["id"],
-
-			Values:    res.values,
-			RefUsers:  res.refUser,
-			SysValues: res.sysValues,
 		}
+		r.ApplyValues(res.values)
+		r.ApplyValues(res.sysValues)
+
 		recMap[res.refModule].rr = append(recMap[res.refModule].rr, r)
 	}
 

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
@@ -38,7 +39,7 @@ func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
 	return false
 }
 
-func (y *decoder) Decode(ctx context.Context, r io.Reader) ([]resource.Interface, error) {
+func (y *decoder) Decode(ctx context.Context, r io.Reader, dctx *envoy.DecoderOpts) ([]resource.Interface, error) {
 	var (
 		doc = &Document{}
 	)

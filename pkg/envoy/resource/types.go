@@ -42,6 +42,7 @@ var (
 	ROLE_RESOURCE_TYPE              = st.RoleRBACResource.String()
 	SETTINGS_RESOURCE_TYPE          = "system:setting:"
 	USER_RESOURCE_TYPE              = st.UserRBACResource.String()
+	DATA_SOURCE_RESOURCE_TYPE       = "data:raw:"
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {
@@ -86,6 +87,14 @@ func (ri Identifiers) StringSlice() []string {
 	return ss
 }
 
+func (ri Identifiers) First() string {
+	ss := ri.StringSlice()
+	if len(ss) <= 0 {
+		return ""
+	}
+	return ss[0]
+}
+
 func (ss RefSet) FilterByResourceType(rt string) RefSet {
 	rr := make(RefSet, 0, len(ss))
 
@@ -96,6 +105,14 @@ func (ss RefSet) FilterByResourceType(rt string) RefSet {
 	}
 
 	return rr
+}
+
+func (ss RefSet) FirstByResourceType(rt string) *Ref {
+	rr := ss.FilterByResourceType(rt)
+	if len(rt) <= 0 {
+		return nil
+	}
+	return rr[0]
 }
 
 func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {

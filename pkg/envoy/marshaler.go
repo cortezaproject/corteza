@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -15,7 +16,8 @@ type (
 // MarshalMerge takes one or more nodes and Marshals and merges all
 func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 	for _, i := range ii {
-		if i == nil {
+		// i == nil is not enough in go
+		if i == nil || (reflect.ValueOf(i).Kind() == reflect.Ptr && reflect.ValueOf(i).IsNil()) {
 			continue
 		}
 
