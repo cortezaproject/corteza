@@ -1,0 +1,87 @@
+
+name: HTTPServer
+
+imports:
+  - github.com/cortezaproject/corteza-server/pkg/rand
+
+props:
+  - name: addr
+    env: HTTP_ADDR
+    default: ":80"
+
+  - name: logRequest
+    type: bool
+    env: HTTP_LOG_REQUEST
+    default: false
+    
+  - name: logResponse
+    type: bool
+    env: HTTP_LOG_RESPONSE
+    default: false
+
+  - name: tracing
+    type: bool
+    env: HTTP_ERROR_TRACING
+    default: false
+
+  - name: enableHealthcheckRoute
+    type: bool
+    env: HTTP_ENABLE_HEALTHCHECK_ROUTE
+    default: true
+
+  - name: enableVersionRoute 
+    type: bool
+    env: HTTP_ENABLE_VERSION_ROUTE
+    default: true
+
+  - name: enableDebugRoute     
+    type: bool
+    env: HTTP_ENABLE_DEBUG_ROUTE
+    default: false
+
+  - name: enableMetrics
+    type: bool
+    env: HTTP_METRICS
+    default: false
+
+  - name: metricsServiceLabel
+    env: HTTP_METRICS_NAME
+    default: "corteza"
+
+  - name: metricsUsername
+    env: HTTP_METRICS_USERNAME
+    default: "metrics"
+
+  - name: metricsPassword
+    env: HTTP_METRICS_PASSWORD
+    default: string(rand.Bytes(5))
+
+  - name: enablePanicReporting
+    type: bool
+    env: HTTP_REPORT_PANIC
+    default: true
+    
+  - name: apiEnabled
+    type: bool
+    env: HTTP_API_ENABLED
+    default: true
+
+  - name: apiBaseUrl
+    env: HTTP_API_BASE_URL
+
+  - name: webappEnabled
+    type: bool
+    env: HTTP_WEBAPP_ENABLED
+    default: false
+
+  - name: webappBaseUrl
+    env: HTTP_WEBAPP_BASE_URL
+    default: "/"
+
+  - name: webappBaseDir
+    env: HTTP_WEBAPP_BASE_DIR
+    default: "webapp/public"
+    
+  - name: webappList
+    env: HTTP_WEBAPP_LIST
+    default: "admin,auth,messaging,compose"

@@ -1,0 +1,7 @@
+
+name: environment
+
+props:
+  - name: environment
+    default: "production"
+    env: ENVIRONMENT

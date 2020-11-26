@@ -1,0 +1,61 @@
+
+name: corredor
+
+imports:
+  - "time"
+
+props:
+  - name: enabled
+    type: bool
+    default: true
+
+  - name: addr
+    default: "localhost:50051"
+
+  - name: maxBackoffDelay
+    type: time.Duration
+    default: time.Minute
+
+  - name: maxReceiveMessageSize
+    type: int
+    default: 2 << 23
+    
+  - name: defaultExecTimeout
+    type: time.Duration
+    default: time.Minute
+
+  - name: listTimeout
+    type: time.Duration
+    default: time.Second * 2
+
+  - name: listRefresh
+    type: time.Duration
+    default: time.Second * 5
+
+  - name: runAsEnabled
+    type: bool
+    default: true
+
+  - name: tlsCertEnabled
+    type: bool
+    env: corredor_client_certificates_enabled
+    default: false
+  
+  - name: tlsCertPath
+    env: corredor_client_certificates_path
+    default: "/certs/corredor/client"
+  
+  - name: tlsCertCA
+    env: CORREDOR_CLIENT_CERTIFICATES_CA
+    default: "ca.crt"
+  
+  - name: tlsCertPrivate
+    env: CORREDOR_CLIENT_CERTIFICATES_PRIVATE
+    default: "private.key"
+  
+  - name: tlsCertPublic
+    env: CORREDOR_CLIENT_CERTIFICATES_PUBLIC
+    default: "public.crt"
+  
+  - name: tlsServerName
+    env: CORREDOR_CLIENT_CERTIFICATES_SERVER_NAME

@@ -1,0 +1,15 @@
+
+name: auth
+
+imports:
+  - time
+  #- github.com/cortezaproject/corteza-server/pkg/rand
+
+props:
+  - name: secret
+    env: AUTH_JWT_SECRET
+    
+  - name: expiry
+    type: time.Duration
+    env: AUTH_JWT_EXPIRY
+    default: time.Hour * 24 * 30
