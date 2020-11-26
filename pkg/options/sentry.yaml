@@ -1,0 +1,32 @@
+
+name: sentry
+
+imports:
+  - github.com/cortezaproject/corteza-server/pkg/version
+  
+props:
+  - name: DSN
+
+  - name: debug
+    type: bool
+
+  - name: attachStacktrace
+    type: bool
+    default: true
+
+  - name: sampleRate
+    type: float32
+
+  - name: maxBreadcrumbs
+    type: int
+    default: 0
+
+  - name: serverName
+    env: SENTRY_SERVERNAME
+
+  - name: release
+    default: version.Version
+
+  - name: dist
+  
+  - name: environment

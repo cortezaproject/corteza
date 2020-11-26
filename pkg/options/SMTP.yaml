@@ -1,0 +1,22 @@
+
+name: SMTP
+
+props:
+  - name: host
+    default: "localhost"
+
+  - name: port
+    type: int
+    default: 25
+
+  - name: user
+
+  - name: pass
+
+  - name: from
+
+  - name: tlsInsecure
+    type: bool
+    default: false
+
+  - name: tlsServerName
