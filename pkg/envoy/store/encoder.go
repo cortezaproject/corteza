@@ -38,6 +38,14 @@ type (
 	// EncoderConfig allows us to configure the resource encoding process
 	EncoderConfig struct {
 		OnExisting mergeAlg
+		// Defer is called after the resource is encoded, regardles of the result
+		Defer func()
+		// DeferOk is called after the resource is encoded, only when successful
+		DeferOk func()
+		// DeferNok is called after the resource is encoded, only when failed
+		// If you return an error, the encoding will terminate.
+		// If you return nil (ignore the error), the encoding will continue.
+		DeferNok func(error) error
 	}
 
 	// resourceState allows each conforming struct to be initialized and encoded
