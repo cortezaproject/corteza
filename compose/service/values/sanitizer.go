@@ -73,6 +73,11 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			continue
 		}
 
+		if f.Expressions.ValueExpr != "" {
+			// do not do any sanitization if field has value expression!
+			continue
+		}
+
 		if v.IsDeleted() || !v.Updated {
 			// Ignore unchanged and deleted
 			continue
