@@ -6,9 +6,10 @@ The name of the .YAML will dedicate the name of the .gen.go file e.g. fileName1.
 
 The contents of the .YAML file should look like this:
 
-   name:
+   name: ...
 
-   imports:
+   imports: 
+      - ...
 
    props
       - name: ...
@@ -19,14 +20,13 @@ The contents of the .YAML file should look like this:
 
 
 **name**
-It is the name of the
+   - It is the name of the struct
 
-name: name of option
-imports - the list of needed imports
-props: - name -> name of variable
-props: - type -> the type of variable if not given it is "string" by
-default
-props: - env -> environment value that if it is not defined will be auto
-generated from "name" and "props: - name"
-props: - default -> the default value that is asigned to the "prop" 
-   - strings should be given in double quotations if they are to be qouted
+**imports** 
+   - The list of imports that are needed, if there are no imporsts you may skip this step
+
+**props**
+   - props: - *name* -> name of variable
+   - props: - *type* -> the type of variable if not given it is "string" by default
+   - props: - *env* -> environment value that if it is not defined will be auto generated from "name" and "props: - name"
+   - props: - *default* -> the default value that is asigned to the "prop" strings should be given in double quotations if they are to be qouted
