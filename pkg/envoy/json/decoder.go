@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/mime"
+	"github.com/gabriel-vasile/mimetype"
 )
 
 type (
@@ -35,8 +35,30 @@ func Decoder() *decoder {
 }
 
 // CanDecodeFile determines if the file can be decoded by this decoder
-func (d *decoder) CanDecodeFile(i os.FileInfo) bool {
-	return strings.Trim(filepath.Ext(i.Name()), ".") == "jsonl"
+func (d *decoder) CanDecodeFile(f io.Reader) bool {
+	var buff bytes.Buffer
+	tr := io.TeeReader(f, &buff)
+
+	_, ext, err := mimetype.DetectReader(tr)
+	if err != nil {
+		return false
+	}
+
+	if ext == "txt" {
+		if is, err := mime.JsonL(&buff); err != nil {
+			return false
+		} else if is {
+			ext = "jsonl"
+		}
+	}
+
+	return d.CanDecodeExt(ext)
+}
+
+func (d *decoder) CanDecodeExt(ext string) bool {
+	pt := strings.Split(ext, ".")
+	ext = strings.TrimSpace(pt[len(pt)-1])
+	return ext == "jsonl" || ext == "json"
 }
 
 // Decode decodes the given io.Reader into a generic resource dataset

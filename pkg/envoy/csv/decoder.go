@@ -5,12 +5,11 @@ import (
 	"context"
 	"encoding/csv"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/gabriel-vasile/mimetype"
 )
 
 type (
@@ -31,8 +30,18 @@ func Decoder() *decoder {
 }
 
 // CanDecodeFile determines if the file can be determined by this decoder
-func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
-	return strings.Trim(filepath.Ext(i.Name()), ".") == "csv"
+func (y *decoder) CanDecodeFile(f io.Reader) bool {
+	_, ext, err := mimetype.DetectReader(f)
+	if err != nil {
+		return false
+	}
+
+	return y.CanDecodeExt(ext)
+}
+
+func (y *decoder) CanDecodeExt(ext string) bool {
+	pt := strings.Split(ext, ".")
+	return strings.TrimSpace(pt[len(pt)-1]) == "csv"
 }
 
 // Decode decodes the given io.Reader into a generic resource dataset

@@ -3,8 +3,6 @@ package yaml
 import (
 	"context"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -29,14 +27,16 @@ func Decoder() *decoder {
 	return &decoder{}
 }
 
-// CanDecodeFile
-func (y *decoder) CanDecodeFile(i os.FileInfo) bool {
-	switch strings.Trim(filepath.Ext(i.Name()), ".") {
-	case "yaml", "yml":
-		return true
-	}
-
+// CanDecodeFile checks if the file can be handled by this decoder
+//
+// @todo Add support for this; current library is unable to detect this.
+func (y *decoder) CanDecodeFile(f io.Reader) bool {
 	return false
+}
+
+func (y *decoder) CanDecodeExt(ext string) bool {
+	pt := strings.Split(ext, ".")
+	return strings.TrimSpace(pt[len(pt)-1]) == "yaml"
 }
 
 func (y *decoder) Decode(ctx context.Context, r io.Reader, dctx *envoy.DecoderOpts) ([]resource.Interface, error) {
