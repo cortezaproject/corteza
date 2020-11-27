@@ -41,7 +41,7 @@ func TestDecoder(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(ds)
 		req.Equal(resource.MakeIdentifiers("records_1"), ds.Identifiers())
-		req.Equal([]string{"id", "c1", "c2", "c3"}, ds.P.Fields())
+		req.Subset([]string{"id", "c1", "c2", "c3"}, ds.P.Fields())
 		req.Equal(uint64(3), ds.P.Count())
 
 		for i := 0; i < 3; i++ {
