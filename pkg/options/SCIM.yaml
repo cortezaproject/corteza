@@ -1,0 +1,8 @@
+name: SCIM
+
+props:
+  - name: enabled
+    type: bool
+  - name: baseURL
+    default: "/scim"
+  - name: secret

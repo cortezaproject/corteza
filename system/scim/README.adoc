@@ -1,0 +1,6 @@
+= SCIM Support for Corteza
+
+Here is a bare minimum support for SCIM.
+
+NOTE: Experiments with github.com/imulab/go-scim lib failed due to complexity of the implementation
+and resources needed for bending the lib to our needs.

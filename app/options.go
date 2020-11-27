@@ -23,6 +23,7 @@ type (
 		Websocket   options.WebsocketOpt
 		Eventbus    options.EventbusOpt
 		Federation  options.FederationOpt
+		SCIM        options.SCIMOpt
 	}
 )
 
@@ -46,5 +47,6 @@ func NewOptions() *Options {
 		Websocket:   *options.Websocket(),
 		Eventbus:    *options.Eventbus(),
 		Federation:  *options.Federation(),
+		SCIM:        *options.SCIM(),
 	}
 }
