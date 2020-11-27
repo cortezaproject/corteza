@@ -85,7 +85,7 @@ func procOptions(mm ...string) (dd []*optionsDef, err error) {
 	return dd, nil
 }
 
-// Custom UnmarshelYAML function for
+// Custom UnmarshalYAML function for
 func (pd *optionsPropDefault) UnmarshalYAML(n *yaml.Node) error {
 
 	val := n.Value
