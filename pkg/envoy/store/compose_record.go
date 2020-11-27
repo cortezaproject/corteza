@@ -129,6 +129,24 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 	im := n.res.IDMap
 
 	return n.res.Walker(func(r *resource.ComposeRecordRaw) error {
+		// Simple wrapper to do some post-processing steps
+		dfr := func(err error) error {
+			if n.cfg.Defer != nil {
+				n.cfg.Defer()
+			}
+
+			if err != nil {
+				if n.cfg.DeferNok != nil {
+					return n.cfg.DeferNok(err)
+				}
+				return err
+			} else if n.cfg.DeferOk != nil {
+				n.cfg.DeferOk()
+			}
+
+			return nil
+		}
+
 		rec := &types.Record{
 			ID:          im[r.ID],
 			NamespaceID: nsID,
@@ -170,24 +188,17 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 		rec.Values = rvSanitizer.Run(mod, rvs)
 		rve := rvValidator.Run(ctx, s, mod, rec)
 		if !rve.IsValid() {
-			return rve
+			return dfr(rve)
 		}
 
 		// Create a new record
 		if !exists {
 			err = store.CreateComposeRecord(ctx, s, mod, rec)
-			if err != nil {
-				return err
-			}
-			return nil
+			return dfr(err)
 		}
 
 		// Update existing
 		err = store.UpdateComposeRecord(ctx, s, mod, rec)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return dfr(err)
 	})
 }
