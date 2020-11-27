@@ -128,7 +128,7 @@ func (s Store) {{ toggleExport .Search.Export "Search" $.Types.Plural }}(ctx con
 			f.Limit,
 			{{ if $.Search.EnableFilterCheckFn }}f.Check{{ else }}nil{{ end }},
 			func(cur *filter.PagingCursor) squirrel.Sqlizer {
-				return builders.NewCursor(cur, nil)
+				return builders.CursorCondition(cur, nil)
 			},
 		)
 
