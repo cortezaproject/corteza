@@ -106,7 +106,7 @@ func (o optionsDef) Package() string {
 
 func genOptions(tpl *template.Template, dd ...*optionsDef) (err error) {
 	var (
-		tplOptionsGen = tpl.Lookup("options.go.tpl")
+		tplOptionsGen = tpl.Lookup("options.gen.go.tpl")
 
 		dst string
 	)
