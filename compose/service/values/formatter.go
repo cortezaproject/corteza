@@ -38,6 +38,11 @@ func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordVal
 			continue
 		}
 
+		if fld.Expressions.ValueExpr != "" {
+			// do not do any validation if field has value expression!
+			continue
+		}
+
 		if !(fld.Expressions.DisableDefaultFormatters && len(fld.Expressions.Formatters) > 0) {
 			// Per field type validators
 			switch strings.ToLower(fld.Kind) {
