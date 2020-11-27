@@ -55,19 +55,6 @@ func (opt ModuleFieldOptions) Bool(key string) bool {
 	return false
 }
 
-// Bool returns option value for key as boolean true or false
-//
-// Invalid, non-existing are returned as false
-func (opt ModuleFieldOptions) String(key string) string {
-	if _, has := opt[key]; has {
-		if v, ok := opt[key].(string); ok {
-			return v
-		}
-	}
-
-	return ""
-}
-
 func (opt ModuleFieldOptions) Int64(key string) int64 {
 	return opt.Int64Def(key, 0)
 }
