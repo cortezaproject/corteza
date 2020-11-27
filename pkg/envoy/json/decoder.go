@@ -1,0 +1,117 @@
+package json
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+)
+
+type (
+	// wrapper struct for json related methods
+	decoder struct{}
+
+	// json decoder wrapper for additional bits
+	reader struct {
+		d      *json.Decoder
+		header []string
+		count  uint64
+	}
+)
+
+// Decoder initializes and returns a fresh JSON decoder
+//
+// @todo
+// We'll only do jsonl for now -- for record importing.
+// We'll expand this to work with other resources later on.
+func Decoder() *decoder {
+	return &decoder{}
+}
+
+// CanDecodeFile determines if the file can be decoded by this decoder
+func (d *decoder) CanDecodeFile(i os.FileInfo) bool {
+	return strings.Trim(filepath.Ext(i.Name()), ".") == "jsonl"
+}
+
+// Decode decodes the given io.Reader into a generic resource dataset
+func (d *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts) ([]resource.Interface, error) {
+	jr := &reader{}
+	var buff bytes.Buffer
+
+	// So we can reset to the start of the reader
+	tr := io.TeeReader(r, &buff)
+	err := jr.prepare(tr)
+	if err != nil {
+		return nil, err
+	}
+
+	jr.d = json.NewDecoder(&buff)
+
+	return []resource.Interface{resource.NewResourceDataset(do.Name, jr)}, nil
+}
+
+func (jr *reader) prepare(r io.Reader) (err error) {
+	jReader := json.NewDecoder(r)
+
+	// JSON can omit empty values, so we can't be 100% that all of the headers
+	// were read in the first go.
+	// We'll determine all of the headers below where we count the entries
+	hx := make(map[string]bool)
+	jr.header = make([]string, 0, 100)
+
+	aux := make(map[string]interface{})
+	for jReader.More() {
+		err = jReader.Decode(&aux)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return
+		}
+
+		// Get all the header fields
+		// @todo do we want to preserve order?
+		for h := range aux {
+			if !hx[h] {
+				jr.header = append(jr.header, h)
+				hx[h] = true
+			}
+		}
+
+		jr.count++
+	}
+
+	return nil
+}
+
+// Fields returns every available field in this dataset
+func (jr *reader) Fields() []string {
+	return jr.header
+}
+
+// Next returns the field: value mapping for the next row
+func (jr *reader) Next() (map[string]string, error) {
+	// It's over
+	if !jr.d.More() {
+		return nil, nil
+	}
+
+	mr := make(map[string]string)
+	err := jr.d.Decode(&mr)
+	if err == io.EOF {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return mr, nil
+}
+
+func (cr *reader) Count() uint64 {
+	return cr.count
+}

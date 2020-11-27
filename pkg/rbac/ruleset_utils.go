@@ -2,8 +2,8 @@ package rbac
 
 import "github.com/cortezaproject/corteza-server/pkg/slice"
 
-// merge applies new rules (changes) to existing set and mark all changes as dirty
-func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
+// Merge applies new rules (changes) to existing set and mark all changes as dirty
+func (set RuleSet) Merge(rules ...*Rule) (out RuleSet) {
 	var (
 		o    int
 		olen = len(set)
@@ -44,8 +44,8 @@ func (set RuleSet) merge(rules ...*Rule) (out RuleSet) {
 	return
 }
 
-// dirty returns list of changed (dirty==true) and deleted (Access==Inherit) rules
-func (set RuleSet) dirty() (inherited, rest RuleSet) {
+// Dirty returns list of changed (Dirty==true) and deleted (Access==Inherit) rules
+func (set RuleSet) Dirty() (inherited, rest RuleSet) {
 	inherited, rest = RuleSet{}, RuleSet{}
 
 	for _, r := range set {
@@ -61,7 +61,7 @@ func (set RuleSet) dirty() (inherited, rest RuleSet) {
 }
 
 // reset dirty flag
-func (set RuleSet) clear() {
+func (set RuleSet) Clear() {
 	_ = set.Walk(func(rule *Rule) error {
 		rule.dirty = false
 		return nil

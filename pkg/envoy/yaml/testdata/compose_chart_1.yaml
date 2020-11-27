@@ -1,0 +1,48 @@
+namespace: crm
+charts:
+  AccountsByRating:
+    name: Accounts by rating
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: Rating
+          meta: {}
+          modifier: (no grouping / buckets)
+          skipMissing: true
+        filter: ""
+        metrics:
+        - aggregate: AVG
+          field: count
+          fill: true
+          fixTooltips: false
+          label: Number of Accounts
+          lineTension: 0.4
+          type: line
+        module: Account
+        renderer: {}
+        yAxis:
+          label: Accounts
+      colorScheme: tableau.Tableau10
+  SalesYTD:
+    name: Sales YTD
+    config:
+      reports:
+      - dimensions:
+        - conditions: {}
+          field: LeadSource
+          meta:
+            steps:
+            - value: "150000"
+            - value: "500000"
+            - value: "1000000"
+          modifier: (no grouping / buckets)
+        filter: YEAR(created_at) = YEAR(NOW()) AND Amount IS NOT NULL
+        metrics:
+        - aggregate: SUM
+          field: Amount
+          type: gauge
+        module: Opportunity
+        renderer: {}
+      colorScheme: tableau.Traffic9
+    allow: { somerole: [ read ] }

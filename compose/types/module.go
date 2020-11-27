@@ -1,10 +1,11 @@
 package types
 
 import (
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/jmoiron/sqlx/types"
-	"time"
 )
 
 type (

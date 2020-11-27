@@ -1,0 +1,4 @@
+roles:
+  r1: Role1
+  r2:
+    name: Role2
