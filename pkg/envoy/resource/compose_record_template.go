@@ -48,3 +48,15 @@ func NewComposeRecordTemplate(modRef, nsRef, name string, fieldMap MappingTplSet
 	r.AddIdentifier(identifiers(name)...)
 	return r
 }
+
+// MapToMappingTplSet converts the given string map to a propper MappingTplSet
+func MapToMappingTplSet(b map[string]string) MappingTplSet {
+	mp := make(MappingTplSet, 0, len(b))
+	for c, f := range b {
+		mp = append(mp, &MappingTpl{
+			Cell:  c,
+			Field: f,
+		})
+	}
+	return mp
+}

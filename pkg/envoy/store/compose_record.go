@@ -153,7 +153,11 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 			ModuleID:    mod.ID,
 			CreatedAt:   time.Now(),
 		}
-		exists := rm[r.ID] != nil
+
+		exists := false
+		if r.ID != "" {
+			exists = rm[r.ID] != nil
+		}
 
 		if rec.ID <= 0 && exists {
 			rec.ID = rm[r.ID].ID
