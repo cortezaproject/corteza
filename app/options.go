@@ -24,29 +24,23 @@ type (
 	}
 )
 
-func NewOptions(prefix ...string) *Options {
-	var p = ""
-	if len(prefix) > 0 {
-		p = prefix[0]
-	}
+func NewOptions() *Options {
 
-	// @todo remover prefixes on opt constructors and
-	//       pass in EnvironmentOpt so we can have environment-dependant defaults
 	return &Options{
 		Environment: *options.Environment(),
 		ActionLog:   *options.ActionLog(),
 		Auth:        *options.Auth(),
-		SMTP:        *options.SMTP(p),
-		HTTPClient:  *options.HttpClient(p),
-		DB:          *options.DB(p),
-		Upgrade:     *options.Upgrade(p),
-		Provision:   *options.Provision(p),
-		Sentry:      *options.Sentry(p),
-		ObjStore:    *options.ObjectStore(p),
+		SMTP:        *options.SMTP(),
+		HTTPClient:  *options.HTTPClient(),
+		DB:          *options.DB(),
+		Upgrade:     *options.Upgrade(),
+		Provision:   *options.Provision(),
+		Sentry:      *options.Sentry(),
+		ObjStore:    *options.ObjectStore(),
 		Corredor:    *options.Corredor(),
-		Monitor:     *options.Monitor(p),
-		WaitFor:     *options.WaitFor(p),
-		HTTPServer:  *options.HTTP(p),
-		Websocket:   *options.Websocket(p),
+		Monitor:     *options.Monitor(),
+		WaitFor:     *options.WaitFor(),
+		HTTPServer:  *options.HTTPServer(),
+		Websocket:   *options.Websocket(),
 	}
 }

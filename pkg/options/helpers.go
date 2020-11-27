@@ -8,6 +8,12 @@ import (
 	"github.com/spf13/cast"
 )
 
+type (
+	filler interface {
+		fill()
+	}
+)
+
 func fill(opt interface{}) {
 	v := reflect.ValueOf(opt)
 	if v.Kind() != reflect.Ptr {

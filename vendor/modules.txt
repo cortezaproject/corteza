@@ -1,6 +1,8 @@
 # cloud.google.com/go v0.44.3
 ## explicit
 cloud.google.com/go/compute/metadata
+# github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
+## explicit
 # github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2
 ## explicit
 github.com/360EntSecGroup-Skylar/excelize/v2
@@ -34,6 +36,10 @@ github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
+# github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4
+## explicit
+# github.com/codegangsta/gin v0.0.0-20171026143024-cafe2ce98974
+## explicit
 # github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 ## explicit
 github.com/crusttech/go-oidc
@@ -147,6 +153,8 @@ github.com/markbates/goth/providers/github
 github.com/markbates/goth/providers/google
 github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
+# github.com/mattn/go-shellwords v1.0.10
+## explicit
 # github.com/mattn/go-sqlite3 v1.14.0
 ## explicit
 github.com/mattn/go-sqlite3
@@ -389,6 +397,8 @@ gopkg.in/mail.v2
 gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
+# gopkg.in/urfave/cli.v1 v1.20.0
+## explicit
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2

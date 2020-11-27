@@ -3,13 +3,14 @@ package codegen
 import (
 	"flag"
 	"fmt"
-	"github.com/Masterminds/sprig"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/fsnotify/fsnotify"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
+	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/fsnotify/fsnotify"
 )
 
 func Proc() {
@@ -47,6 +48,10 @@ func Proc() {
 		storeSrc     []string
 		storeDefs    []*storeDef
 
+		optionSrcPath = filepath.Join("pkg", "options", "*.yaml")
+		optionSrc     []string
+		optionDefs    []*optionsDef
+
 		tpls    *template.Template
 		tplBase = template.New("").
 			Funcs(map[string]interface{}{
@@ -55,6 +60,7 @@ func Proc() {
 				"unexport":        unexport,
 				"toggleExport":    toggleExport,
 				"toLower":         strings.ToLower,
+				"toUpper":         strings.ToUpper,
 				"cc2underscore":   cc2underscore,
 				"normalizeImport": normalizeImport,
 				"comment": func(text string, skip1st bool) string {
@@ -123,6 +129,9 @@ func Proc() {
 		storeSrc = glob(storeSrcPath)
 		output("loaded %d store definitions from %s\n", len(storeSrc), storeSrcPath)
 
+		optionSrc = glob(optionSrcPath)
+		output("loaded %d option defenitions from %s\n", len(optionSrc), optionSrcPath)
+
 		if watchChanges {
 			if watcher != nil {
 				watcher.Close()
@@ -137,6 +146,7 @@ func Proc() {
 			fileList = append(fileList, typeSrc...)
 			fileList = append(fileList, restSrc...)
 			fileList = append(fileList, storeSrc...)
+			fileList = append(fileList, optionSrc...)
 
 			for _, d := range fileList {
 				cli.HandleError(watcher.Add(d))
@@ -186,6 +196,14 @@ func Proc() {
 			}
 
 			if outputErr(err, "failed to process store:\n") {
+				return
+			}
+
+			if optionDefs, err = procOptions(optionSrc...); err == nil {
+				err = genOptions(tpls, optionDefs...)
+			}
+
+			if outputErr(err, "fail to process options:\n") {
 				return
 			}
 
