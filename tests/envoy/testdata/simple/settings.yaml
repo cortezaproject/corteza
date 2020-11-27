@@ -1,0 +1,4 @@
+settings:
+  privacy.mask.email: true
+  privacy.mask.name: true
+  auth.mail.email-confirmation.subject.en: Test

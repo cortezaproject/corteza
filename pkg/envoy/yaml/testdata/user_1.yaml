@@ -1,0 +1,5 @@
+users:
+  u1: u1@example.tld
+  u2:
+    name: John Doe
+    email: jdoe@example.tld

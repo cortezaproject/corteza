@@ -1,0 +1,1634 @@
+namespace: crm
+modules:
+  Account:
+    allow: { somerole: [ read ] }
+    name: Account
+    fields:
+      AccountName:
+        label: Account Name
+        kind: String
+        required: true
+      OwnerId:
+        label: Account Owner
+        kind: User
+        options:
+          presetWithAuthenticated: true
+          selectType: default
+      AccountSource:
+        label: Account Source
+        kind: Select
+        options:
+          options:
+          - text: Customer Referral
+            value: Customer Referral
+          - text: Direct
+            value: Direct
+          - text: Employee Referral
+            value: Employee Referral
+          - text: Event
+            value: Event
+          - text: Existing Customer
+            value: Existing Customer
+          - text: Inbound Call
+            value: Inbound Call
+          - text: Outbound List
+            value: Outbound List
+          - text: Partner Referral
+            value: Partner Referral
+          - text: Seminar
+            value: Seminar
+          - text: Social Media
+            value: Social Media
+          - text: Webinar
+            value: Webinar
+          - text: Website (Organic)
+            value: Website (Organic)
+          - text: Website (PPC)
+            value: Website (PPC)
+          - text: Word of Mouth
+            value: Word of Mouth
+          - text: Other
+            value: Other
+          selectType: default
+      BillingStreet:
+        label: Billing Street
+        kind: String
+      BillingCity:
+        label: Billing City
+        kind: String
+      BillingState:
+        label: Billing State
+        kind: String
+      BillingPostalCode:
+        label: Billing Postal Code
+        kind: String
+      BillingCountry:
+        label: Billing Country
+        kind: Select
+        options:
+          options:
+          - text: Afghanistan
+            value: Afghanistan
+          - text: Åland Islands
+            value: Åland Islands
+          - text: Albania
+            value: Albania
+          - text: Algeria
+            value: Algeria
+          - text: American Samoa
+            value: American Samoa
+          - text: Andorra
+            value: Andorra
+          - text: Angola
+            value: Angola
+          - text: Anguilla
+            value: Anguilla
+          - text: Antarctica
+            value: Antarctica
+          - text: Antigua And Barbuda
+            value: Antigua And Barbuda
+          - text: Argentina
+            value: Argentina
+          - text: Armenia
+            value: Armenia
+          - text: Aruba
+            value: Aruba
+          - text: Australia
+            value: Australia
+          - text: Austria
+            value: Austria
+          - text: Azerbaijan
+            value: Azerbaijan
+          - text: Bahamas
+            value: Bahamas
+          - text: Bahrain
+            value: Bahrain
+          - text: Bangladesh
+            value: Bangladesh
+          - text: Barbados
+            value: Barbados
+          - text: Belarus
+            value: Belarus
+          - text: Belgium
+            value: Belgium
+          - text: Belize
+            value: Belize
+          - text: Benin
+            value: Benin
+          - text: Bermuda
+            value: Bermuda
+          - text: Bhutan
+            value: Bhutan
+          - text: Bolivia
+            value: Bolivia
+          - text: Bosnia And Herzegovina
+            value: Bosnia And Herzegovina
+          - text: Botswana
+            value: Botswana
+          - text: Bouvet Island
+            value: Bouvet Island
+          - text: Brazil
+            value: Brazil
+          - text: British Indian Ocean Territory
+            value: British Indian Ocean Territory
+          - text: Brunei Darussalam
+            value: Brunei Darussalam
+          - text: Bulgaria
+            value: Bulgaria
+          - text: Burkina Faso
+            value: Burkina Faso
+          - text: Burundi
+            value: Burundi
+          - text: Cambodia
+            value: Cambodia
+          - text: Cameroon
+            value: Cameroon
+          - text: Canada
+            value: Canada
+          - text: Cape Verde
+            value: Cape Verde
+          - text: Cayman Islands
+            value: Cayman Islands
+          - text: Central African Republic
+            value: Central African Republic
+          - text: Chad
+            value: Chad
+          - text: Chile
+            value: Chile
+          - text: China
+            value: China
+          - text: Christmas Island
+            value: Christmas Island
+          - text: Cocos (Keeling) Islands
+            value: Cocos (Keeling) Islands
+          - text: Colombia
+            value: Colombia
+          - text: Comoros
+            value: Comoros
+          - text: Congo
+            value: Congo
+          - text: Congo; The Democratic Republic Of The
+            value: Congo; The Democratic Republic Of The
+          - text: Cook Islands
+            value: Cook Islands
+          - text: Costa Rica
+            value: Costa Rica
+          - text: Cote D'ivoire
+            value: Cote D'ivoire
+          - text: Croatia
+            value: Croatia
+          - text: Cuba
+            value: Cuba
+          - text: Cyprus
+            value: Cyprus
+          - text: Czechia
+            value: Czechia
+          - text: Denmark
+            value: Denmark
+          - text: Djibouti
+            value: Djibouti
+          - text: Dominica
+            value: Dominica
+          - text: Dominican Republic
+            value: Dominican Republic
+          - text: Ecuador
+            value: Ecuador
+          - text: Egypt
+            value: Egypt
+          - text: El Salvador
+            value: El Salvador
+          - text: Equatorial Guinea
+            value: Equatorial Guinea
+          - text: Eritrea
+            value: Eritrea
+          - text: Estonia
+            value: Estonia
+          - text: Ethiopia
+            value: Ethiopia
+          - text: Falkland Islands (Malvinas)
+            value: Falkland Islands (Malvinas)
+          - text: Faroe Islands
+            value: Faroe Islands
+          - text: Fiji
+            value: Fiji
+          - text: Finland
+            value: Finland
+          - text: France
+            value: France
+          - text: French Guiana
+            value: French Guiana
+          - text: French Polynesia
+            value: French Polynesia
+          - text: French Southern Territories
+            value: French Southern Territories
+          - text: Gabon
+            value: Gabon
+          - text: Gambia
+            value: Gambia
+          - text: Georgia
+            value: Georgia
+          - text: Germany
+            value: Germany
+          - text: Ghana
+            value: Ghana
+          - text: Gibraltar
+            value: Gibraltar
+          - text: Greece
+            value: Greece
+          - text: Greenland
+            value: Greenland
+          - text: Grenada
+            value: Grenada
+          - text: Guadeloupe
+            value: Guadeloupe
+          - text: Guam
+            value: Guam
+          - text: Guatemala
+            value: Guatemala
+          - text: Guernsey
+            value: Guernsey
+          - text: Guinea
+            value: Guinea
+          - text: Guinea-bissau
+            value: Guinea-bissau
+          - text: Guyana
+            value: Guyana
+          - text: Haiti
+            value: Haiti
+          - text: Heard Island And Mcdonald Islands
+            value: Heard Island And Mcdonald Islands
+          - text: Holy See (Vatican City State)
+            value: Holy See (Vatican City State)
+          - text: Honduras
+            value: Honduras
+          - text: Hong Kong
+            value: Hong Kong
+          - text: Hungary
+            value: Hungary
+          - text: Iceland
+            value: Iceland
+          - text: India
+            value: India
+          - text: Indonesia
+            value: Indonesia
+          - text: Iran; Islamic Republic Of
+            value: Iran; Islamic Republic Of
+          - text: Iraq
+            value: Iraq
+          - text: Ireland
+            value: Ireland
+          - text: Isle Of Man
+            value: Isle Of Man
+          - text: Israel
+            value: Israel
+          - text: Italy
+            value: Italy
+          - text: Jamaica
+            value: Jamaica
+          - text: Japan
+            value: Japan
+          - text: Jersey
+            value: Jersey
+          - text: Jordan
+            value: Jordan
+          - text: Kazakhstan
+            value: Kazakhstan
+          - text: Kenya
+            value: Kenya
+          - text: Kiribati
+            value: Kiribati
+          - text: Korea; Democratic People's Republic Of
+            value: Korea; Democratic People's Republic Of
+          - text: Korea; Republic Of
+            value: Korea; Republic Of
+          - text: Kuwait
+            value: Kuwait
+          - text: Kyrgyzstan
+            value: Kyrgyzstan
+          - text: Lao People's Democratic Republic
+            value: Lao People's Democratic Republic
+          - text: Latvia
+            value: Latvia
+          - text: Lebanon
+            value: Lebanon
+          - text: Lesotho
+            value: Lesotho
+          - text: Liberia
+            value: Liberia
+          - text: Libyan Arab Jamahiriya
+            value: Libyan Arab Jamahiriya
+          - text: Liechtenstein
+            value: Liechtenstein
+          - text: Lithuania
+            value: Lithuania
+          - text: Luxembourg
+            value: Luxembourg
+          - text: Macao
+            value: Macao
+          - text: Macedonia; The Former Yugoslav Republic Of
+            value: Macedonia; The Former Yugoslav Republic Of
+          - text: Madagascar
+            value: Madagascar
+          - text: Malawi
+            value: Malawi
+          - text: Malaysia
+            value: Malaysia
+          - text: Maldives
+            value: Maldives
+          - text: Mali
+            value: Mali
+          - text: Malta
+            value: Malta
+          - text: Marshall Islands
+            value: Marshall Islands
+          - text: Martinique
+            value: Martinique
+          - text: Mauritania
+            value: Mauritania
+          - text: Mauritius
+            value: Mauritius
+          - text: Mayotte
+            value: Mayotte
+          - text: Mexico
+            value: Mexico
+          - text: Micronesia; Federated States Of
+            value: Micronesia; Federated States Of
+          - text: Moldova; Republic Of
+            value: Moldova; Republic Of
+          - text: Monaco
+            value: Monaco
+          - text: Mongolia
+            value: Mongolia
+          - text: Montenegro
+            value: Montenegro
+          - text: Montserrat
+            value: Montserrat
+          - text: Morocco
+            value: Morocco
+          - text: Mozambique
+            value: Mozambique
+          - text: Myanmar
+            value: Myanmar
+          - text: Namibia
+            value: Namibia
+          - text: Nauru
+            value: Nauru
+          - text: Nepal
+            value: Nepal
+          - text: Netherlands
+            value: Netherlands
+          - text: Netherlands Antilles
+            value: Netherlands Antilles
+          - text: New Caledonia
+            value: New Caledonia
+          - text: New Zealand
+            value: New Zealand
+          - text: Nicaragua
+            value: Nicaragua
+          - text: Niger
+            value: Niger
+          - text: Nigeria
+            value: Nigeria
+          - text: Niue
+            value: Niue
+          - text: Norfolk Island
+            value: Norfolk Island
+          - text: Northern Mariana Islands
+            value: Northern Mariana Islands
+          - text: Norway
+            value: Norway
+          - text: Oman
+            value: Oman
+          - text: Pakistan
+            value: Pakistan
+          - text: Palau
+            value: Palau
+          - text: Palestinian Territory; Occupied
+            value: Palestinian Territory; Occupied
+          - text: Panama
+            value: Panama
+          - text: Papua New Guinea
+            value: Papua New Guinea
+          - text: Paraguay
+            value: Paraguay
+          - text: Peru
+            value: Peru
+          - text: Philippines
+            value: Philippines
+          - text: Pitcairn
+            value: Pitcairn
+          - text: Poland
+            value: Poland
+          - text: Portugal
+            value: Portugal
+          - text: Puerto Rico
+            value: Puerto Rico
+          - text: Qatar
+            value: Qatar
+          - text: Reunion
+            value: Reunion
+          - text: Romania
+            value: Romania
+          - text: Russian Federation
+            value: Russian Federation
+          - text: Rwanda
+            value: Rwanda
+          - text: Saint Helena
+            value: Saint Helena
+          - text: Saint Kitts And Nevis
+            value: Saint Kitts And Nevis
+          - text: Saint Lucia
+            value: Saint Lucia
+          - text: Saint Pierre And Miquelon
+            value: Saint Pierre And Miquelon
+          - text: Saint Vincent And The Grenadines
+            value: Saint Vincent And The Grenadines
+          - text: Samoa
+            value: Samoa
+          - text: San Marino
+            value: San Marino
+          - text: Sao Tome And Principe
+            value: Sao Tome And Principe
+          - text: Saudi Arabia
+            value: Saudi Arabia
+          - text: Senegal
+            value: Senegal
+          - text: Serbia
+            value: Serbia
+          - text: Seychelles
+            value: Seychelles
+          - text: Sierra Leone
+            value: Sierra Leone
+          - text: Singapore
+            value: Singapore
+          - text: Slovakia
+            value: Slovakia
+          - text: Slovenia
+            value: Slovenia
+          - text: Solomon Islands
+            value: Solomon Islands
+          - text: Somalia
+            value: Somalia
+          - text: South Africa
+            value: South Africa
+          - text: South Georgia And The South Sandwich Islands
+            value: South Georgia And The South Sandwich Islands
+          - text: Spain
+            value: Spain
+          - text: Sri Lanka
+            value: Sri Lanka
+          - text: Sudan
+            value: Sudan
+          - text: Suriname
+            value: Suriname
+          - text: Svalbard And Jan Mayen
+            value: Svalbard And Jan Mayen
+          - text: Swaziland
+            value: Swaziland
+          - text: Sweden
+            value: Sweden
+          - text: Switzerland
+            value: Switzerland
+          - text: Syrian Arab Republic
+            value: Syrian Arab Republic
+          - text: Taiwan; Province Of China
+            value: Taiwan; Province Of China
+          - text: Tajikistan
+            value: Tajikistan
+          - text: Tanzania; United Republic Of
+            value: Tanzania; United Republic Of
+          - text: Thailand
+            value: Thailand
+          - text: Timor-leste
+            value: Timor-leste
+          - text: Togo
+            value: Togo
+          - text: Tokelau
+            value: Tokelau
+          - text: Tonga
+            value: Tonga
+          - text: Trinidad And Tobago
+            value: Trinidad And Tobago
+          - text: Tunisia
+            value: Tunisia
+          - text: Turkey
+            value: Turkey
+          - text: Turkmenistan
+            value: Turkmenistan
+          - text: Turks And Caicos Islands
+            value: Turks And Caicos Islands
+          - text: Tuvalu
+            value: Tuvalu
+          - text: Uganda
+            value: Uganda
+          - text: Ukraine
+            value: Ukraine
+          - text: United Arab Emirates
+            value: United Arab Emirates
+          - text: United Kingdom
+            value: United Kingdom
+          - text: United States
+            value: United States
+          - text: United States Minor Outlying Islands
+            value: United States Minor Outlying Islands
+          - text: Uruguay
+            value: Uruguay
+          - text: Uzbekistan
+            value: Uzbekistan
+          - text: Vanuatu
+            value: Vanuatu
+          - text: Venezuela
+            value: Venezuela
+          - text: Viet Nam
+            value: Viet Nam
+          - text: Virgin Islands; British
+            value: Virgin Islands; British
+          - text: Virgin Islands; U.S.
+            value: Virgin Islands; U.S.
+          - text: Wallis And Futuna
+            value: Wallis And Futuna
+          - text: Western Sahara
+            value: Western Sahara
+          - text: Yemen
+            value: Yemen
+          - text: Zambia
+            value: Zambia
+          - text: Zimbabwe
+            value: Zimbabwe
+          selectType: default
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      NumberOfEmployees:
+        label: Employees
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      Fax:
+        label: Fax
+        kind: String
+      Industry:
+        label: Industry
+        kind: Select
+        options:
+          options:
+          - text: ""
+            value: ""
+          - text: Agriculture
+            value: Agriculture
+          - text: Apparel
+            value: Apparel
+          - text: Banking
+            value: Banking
+          - text: Biotechnology
+            value: Biotechnology
+          - text: Chemicals
+            value: Chemicals
+          - text: Communications
+            value: Communications
+          - text: Construction
+            value: Construction
+          - text: Consulting
+            value: Consulting
+          - text: Education
+            value: Education
+          - text: Electronics
+            value: Electronics
+          - text: Energy
+            value: Energy
+          - text: Engineering
+            value: Engineering
+          - text: Entertainment
+            value: Entertainment
+          - text: Environmental
+            value: Environmental
+          - text: Finance
+            value: Finance
+          - text: Food & Beverage
+            value: Food & Beverage
+          - text: Government
+            value: Government
+          - text: Healthcare
+            value: Healthcare
+          - text: Hospitality
+            value: Hospitality
+          - text: Insurance
+            value: Insurance
+          - text: Machinery
+            value: Machinery
+          - text: Manufacturing
+            value: Manufacturing
+          - text: Media
+            value: Media
+          - text: Not For Profit
+            value: Not For Profit
+          - text: Other
+            value: Other
+          - text: Recreation
+            value: Recreation
+          - text: Retail
+            value: Retail
+          - text: Shipping
+            value: Shipping
+          - text: Technology
+            value: Technology
+          - text: Telecommunications
+            value: Telecommunications
+          - text: Transportation
+            value: Transportation
+          - text: Utilities
+            value: Utilities
+          selectType: default
+      Ownership:
+        label: Ownership
+        kind: Select
+        options:
+          options:
+          - text: Public
+            value: Public
+          - text: Private
+            value: Private
+          selectType: default
+      ParentId:
+        label: Parent Account
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: default
+      Phone:
+        label: Phone
+        kind: String
+      Rating:
+        label: Rating
+        kind: Select
+        options:
+          options:
+          - text: ☆☆☆☆☆
+            value: ☆☆☆☆☆
+          - text: ★☆☆☆☆
+            value: ★☆☆☆☆
+          - text: ★★☆☆☆
+            value: ★★☆☆☆
+          - text: ★★★☆☆
+            value: ★★★☆☆
+          - text: ★★★★☆
+            value: ★★★★☆
+          - text: ★★★★★
+            value: ★★★★★
+          selectType: default
+      Sic:
+        label: SIC Code
+        kind: String
+      SicDesc:
+        label: SIC Description
+        kind: String
+      ShippingStreet:
+        label: Shipping Street
+        kind: String
+      ShippingCity:
+        label: Shipping City
+        kind: String
+      ShippingState:
+        label: Shipping State
+        kind: String
+      ShippingPostalCode:
+        label: Shipping Postal Code
+        kind: String
+      ShippingCountry:
+        label: Shipping Country
+        kind: Select
+        options:
+          options:
+          - text: Afghanistan
+            value: Afghanistan
+          - text: Åland Islands
+            value: Åland Islands
+          - text: Albania
+            value: Albania
+          - text: Algeria
+            value: Algeria
+          - text: American Samoa
+            value: American Samoa
+          - text: Andorra
+            value: Andorra
+          - text: Angola
+            value: Angola
+          - text: Anguilla
+            value: Anguilla
+          - text: Antarctica
+            value: Antarctica
+          - text: Antigua And Barbuda
+            value: Antigua And Barbuda
+          - text: Argentina
+            value: Argentina
+          - text: Armenia
+            value: Armenia
+          - text: Aruba
+            value: Aruba
+          - text: Australia
+            value: Australia
+          - text: Austria
+            value: Austria
+          - text: Azerbaijan
+            value: Azerbaijan
+          - text: Bahamas
+            value: Bahamas
+          - text: Bahrain
+            value: Bahrain
+          - text: Bangladesh
+            value: Bangladesh
+          - text: Barbados
+            value: Barbados
+          - text: Belarus
+            value: Belarus
+          - text: Belgium
+            value: Belgium
+          - text: Belize
+            value: Belize
+          - text: Benin
+            value: Benin
+          - text: Bermuda
+            value: Bermuda
+          - text: Bhutan
+            value: Bhutan
+          - text: Bolivia
+            value: Bolivia
+          - text: Bosnia And Herzegovina
+            value: Bosnia And Herzegovina
+          - text: Botswana
+            value: Botswana
+          - text: Bouvet Island
+            value: Bouvet Island
+          - text: Brazil
+            value: Brazil
+          - text: British Indian Ocean Territory
+            value: British Indian Ocean Territory
+          - text: Brunei Darussalam
+            value: Brunei Darussalam
+          - text: Bulgaria
+            value: Bulgaria
+          - text: Burkina Faso
+            value: Burkina Faso
+          - text: Burundi
+            value: Burundi
+          - text: Cambodia
+            value: Cambodia
+          - text: Cameroon
+            value: Cameroon
+          - text: Canada
+            value: Canada
+          - text: Cape Verde
+            value: Cape Verde
+          - text: Cayman Islands
+            value: Cayman Islands
+          - text: Central African Republic
+            value: Central African Republic
+          - text: Chad
+            value: Chad
+          - text: Chile
+            value: Chile
+          - text: China
+            value: China
+          - text: Christmas Island
+            value: Christmas Island
+          - text: Cocos (Keeling) Islands
+            value: Cocos (Keeling) Islands
+          - text: Colombia
+            value: Colombia
+          - text: Comoros
+            value: Comoros
+          - text: Congo
+            value: Congo
+          - text: Congo; The Democratic Republic Of The
+            value: Congo; The Democratic Republic Of The
+          - text: Cook Islands
+            value: Cook Islands
+          - text: Costa Rica
+            value: Costa Rica
+          - text: Cote D'ivoire
+            value: Cote D'ivoire
+          - text: Croatia
+            value: Croatia
+          - text: Cuba
+            value: Cuba
+          - text: Cyprus
+            value: Cyprus
+          - text: Czechia
+            value: Czechia
+          - text: Denmark
+            value: Denmark
+          - text: Djibouti
+            value: Djibouti
+          - text: Dominica
+            value: Dominica
+          - text: Dominican Republic
+            value: Dominican Republic
+          - text: Ecuador
+            value: Ecuador
+          - text: Egypt
+            value: Egypt
+          - text: El Salvador
+            value: El Salvador
+          - text: Equatorial Guinea
+            value: Equatorial Guinea
+          - text: Eritrea
+            value: Eritrea
+          - text: Estonia
+            value: Estonia
+          - text: Ethiopia
+            value: Ethiopia
+          - text: Falkland Islands (Malvinas)
+            value: Falkland Islands (Malvinas)
+          - text: Faroe Islands
+            value: Faroe Islands
+          - text: Fiji
+            value: Fiji
+          - text: Finland
+            value: Finland
+          - text: France
+            value: France
+          - text: French Guiana
+            value: French Guiana
+          - text: French Polynesia
+            value: French Polynesia
+          - text: French Southern Territories
+            value: French Southern Territories
+          - text: Gabon
+            value: Gabon
+          - text: Gambia
+            value: Gambia
+          - text: Georgia
+            value: Georgia
+          - text: Germany
+            value: Germany
+          - text: Ghana
+            value: Ghana
+          - text: Gibraltar
+            value: Gibraltar
+          - text: Greece
+            value: Greece
+          - text: Greenland
+            value: Greenland
+          - text: Grenada
+            value: Grenada
+          - text: Guadeloupe
+            value: Guadeloupe
+          - text: Guam
+            value: Guam
+          - text: Guatemala
+            value: Guatemala
+          - text: Guernsey
+            value: Guernsey
+          - text: Guinea
+            value: Guinea
+          - text: Guinea-bissau
+            value: Guinea-bissau
+          - text: Guyana
+            value: Guyana
+          - text: Haiti
+            value: Haiti
+          - text: Heard Island And Mcdonald Islands
+            value: Heard Island And Mcdonald Islands
+          - text: Holy See (Vatican City State)
+            value: Holy See (Vatican City State)
+          - text: Honduras
+            value: Honduras
+          - text: Hong Kong
+            value: Hong Kong
+          - text: Hungary
+            value: Hungary
+          - text: Iceland
+            value: Iceland
+          - text: India
+            value: India
+          - text: Indonesia
+            value: Indonesia
+          - text: Iran; Islamic Republic Of
+            value: Iran; Islamic Republic Of
+          - text: Iraq
+            value: Iraq
+          - text: Ireland
+            value: Ireland
+          - text: Isle Of Man
+            value: Isle Of Man
+          - text: Israel
+            value: Israel
+          - text: Italy
+            value: Italy
+          - text: Jamaica
+            value: Jamaica
+          - text: Japan
+            value: Japan
+          - text: Jersey
+            value: Jersey
+          - text: Jordan
+            value: Jordan
+          - text: Kazakhstan
+            value: Kazakhstan
+          - text: Kenya
+            value: Kenya
+          - text: Kiribati
+            value: Kiribati
+          - text: Korea; Democratic People's Republic Of
+            value: Korea; Democratic People's Republic Of
+          - text: Korea; Republic Of
+            value: Korea; Republic Of
+          - text: Kuwait
+            value: Kuwait
+          - text: Kyrgyzstan
+            value: Kyrgyzstan
+          - text: Lao People's Democratic Republic
+            value: Lao People's Democratic Republic
+          - text: Latvia
+            value: Latvia
+          - text: Lebanon
+            value: Lebanon
+          - text: Lesotho
+            value: Lesotho
+          - text: Liberia
+            value: Liberia
+          - text: Libyan Arab Jamahiriya
+            value: Libyan Arab Jamahiriya
+          - text: Liechtenstein
+            value: Liechtenstein
+          - text: Lithuania
+            value: Lithuania
+          - text: Luxembourg
+            value: Luxembourg
+          - text: Macao
+            value: Macao
+          - text: Macedonia; The Former Yugoslav Republic Of
+            value: Macedonia; The Former Yugoslav Republic Of
+          - text: Madagascar
+            value: Madagascar
+          - text: Malawi
+            value: Malawi
+          - text: Malaysia
+            value: Malaysia
+          - text: Maldives
+            value: Maldives
+          - text: Mali
+            value: Mali
+          - text: Malta
+            value: Malta
+          - text: Marshall Islands
+            value: Marshall Islands
+          - text: Martinique
+            value: Martinique
+          - text: Mauritania
+            value: Mauritania
+          - text: Mauritius
+            value: Mauritius
+          - text: Mayotte
+            value: Mayotte
+          - text: Mexico
+            value: Mexico
+          - text: Micronesia; Federated States Of
+            value: Micronesia; Federated States Of
+          - text: Moldova; Republic Of
+            value: Moldova; Republic Of
+          - text: Monaco
+            value: Monaco
+          - text: Mongolia
+            value: Mongolia
+          - text: Montenegro
+            value: Montenegro
+          - text: Montserrat
+            value: Montserrat
+          - text: Morocco
+            value: Morocco
+          - text: Mozambique
+            value: Mozambique
+          - text: Myanmar
+            value: Myanmar
+          - text: Namibia
+            value: Namibia
+          - text: Nauru
+            value: Nauru
+          - text: Nepal
+            value: Nepal
+          - text: Netherlands
+            value: Netherlands
+          - text: Netherlands Antilles
+            value: Netherlands Antilles
+          - text: New Caledonia
+            value: New Caledonia
+          - text: New Zealand
+            value: New Zealand
+          - text: Nicaragua
+            value: Nicaragua
+          - text: Niger
+            value: Niger
+          - text: Nigeria
+            value: Nigeria
+          - text: Niue
+            value: Niue
+          - text: Norfolk Island
+            value: Norfolk Island
+          - text: Northern Mariana Islands
+            value: Northern Mariana Islands
+          - text: Norway
+            value: Norway
+          - text: Oman
+            value: Oman
+          - text: Pakistan
+            value: Pakistan
+          - text: Palau
+            value: Palau
+          - text: Palestinian Territory; Occupied
+            value: Palestinian Territory; Occupied
+          - text: Panama
+            value: Panama
+          - text: Papua New Guinea
+            value: Papua New Guinea
+          - text: Paraguay
+            value: Paraguay
+          - text: Peru
+            value: Peru
+          - text: Philippines
+            value: Philippines
+          - text: Pitcairn
+            value: Pitcairn
+          - text: Poland
+            value: Poland
+          - text: Portugal
+            value: Portugal
+          - text: Puerto Rico
+            value: Puerto Rico
+          - text: Qatar
+            value: Qatar
+          - text: Reunion
+            value: Reunion
+          - text: Romania
+            value: Romania
+          - text: Russian Federation
+            value: Russian Federation
+          - text: Rwanda
+            value: Rwanda
+          - text: Saint Helena
+            value: Saint Helena
+          - text: Saint Kitts And Nevis
+            value: Saint Kitts And Nevis
+          - text: Saint Lucia
+            value: Saint Lucia
+          - text: Saint Pierre And Miquelon
+            value: Saint Pierre And Miquelon
+          - text: Saint Vincent And The Grenadines
+            value: Saint Vincent And The Grenadines
+          - text: Samoa
+            value: Samoa
+          - text: San Marino
+            value: San Marino
+          - text: Sao Tome And Principe
+            value: Sao Tome And Principe
+          - text: Saudi Arabia
+            value: Saudi Arabia
+          - text: Senegal
+            value: Senegal
+          - text: Serbia
+            value: Serbia
+          - text: Seychelles
+            value: Seychelles
+          - text: Sierra Leone
+            value: Sierra Leone
+          - text: Singapore
+            value: Singapore
+          - text: Slovakia
+            value: Slovakia
+          - text: Slovenia
+            value: Slovenia
+          - text: Solomon Islands
+            value: Solomon Islands
+          - text: Somalia
+            value: Somalia
+          - text: South Africa
+            value: South Africa
+          - text: South Georgia And The South Sandwich Islands
+            value: South Georgia And The South Sandwich Islands
+          - text: Spain
+            value: Spain
+          - text: Sri Lanka
+            value: Sri Lanka
+          - text: Sudan
+            value: Sudan
+          - text: Suriname
+            value: Suriname
+          - text: Svalbard And Jan Mayen
+            value: Svalbard And Jan Mayen
+          - text: Swaziland
+            value: Swaziland
+          - text: Sweden
+            value: Sweden
+          - text: Switzerland
+            value: Switzerland
+          - text: Syrian Arab Republic
+            value: Syrian Arab Republic
+          - text: Taiwan; Province Of China
+            value: Taiwan; Province Of China
+          - text: Tajikistan
+            value: Tajikistan
+          - text: Tanzania; United Republic Of
+            value: Tanzania; United Republic Of
+          - text: Thailand
+            value: Thailand
+          - text: Timor-leste
+            value: Timor-leste
+          - text: Togo
+            value: Togo
+          - text: Tokelau
+            value: Tokelau
+          - text: Tonga
+            value: Tonga
+          - text: Trinidad And Tobago
+            value: Trinidad And Tobago
+          - text: Tunisia
+            value: Tunisia
+          - text: Turkey
+            value: Turkey
+          - text: Turkmenistan
+            value: Turkmenistan
+          - text: Turks And Caicos Islands
+            value: Turks And Caicos Islands
+          - text: Tuvalu
+            value: Tuvalu
+          - text: Uganda
+            value: Uganda
+          - text: Ukraine
+            value: Ukraine
+          - text: United Arab Emirates
+            value: United Arab Emirates
+          - text: United Kingdom
+            value: United Kingdom
+          - text: United States
+            value: United States
+          - text: United States Minor Outlying Islands
+            value: United States Minor Outlying Islands
+          - text: Uruguay
+            value: Uruguay
+          - text: Uzbekistan
+            value: Uzbekistan
+          - text: Vanuatu
+            value: Vanuatu
+          - text: Venezuela
+            value: Venezuela
+          - text: Viet Nam
+            value: Viet Nam
+          - text: Virgin Islands; British
+            value: Virgin Islands; British
+          - text: Virgin Islands; U.S.
+            value: Virgin Islands; U.S.
+          - text: Wallis And Futuna
+            value: Wallis And Futuna
+          - text: Western Sahara
+            value: Western Sahara
+          - text: Yemen
+            value: Yemen
+          - text: Zambia
+            value: Zambia
+          - text: Zimbabwe
+            value: Zimbabwe
+          selectType: default
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - text: Channel Partner / Reseller
+            value: Channel Partner / Reseller
+          - text: Customer - Channel
+            value: Customer - Channel
+          - text: Customer - Direct
+            value: Customer - Direct
+          - text: Installation Partner
+            value: Installation Partner
+          - text: Pending
+            value: Pending
+          - text: Prospect
+            value: Prospect
+          - text: Technology Partner
+            value: Technology Partner
+          - text: Other
+            value: Other
+          selectType: default
+      AnnualRevenue:
+        label: Annual Revenue
+        kind: Select
+        options:
+          options:
+          - text: Less Than 500,000
+            value: Less Than 500,000
+          - text: 500,000 To 1 Million
+            value: 500,000 To 1 Million
+          - text: 1 To 2.5 Million
+            value: 1 To 2.5 Million
+          - text: 2.5 To 5 Million
+            value: 2.5 To 5 Million
+          - text: 5 To 10 Million
+            value: 5 To 10 Million
+          - text: 10 To 20 Million
+            value: 10 To 20 Million
+          - text: 20 To 50 Million
+            value: 20 To 50 Million
+          - text: 50 To 100 Million
+            value: 50 To 100 Million
+          - text: 100 To 500 Million
+            value: 100 To 500 Million
+          selectType: default
+      Website:
+        label: Website
+        kind: Url
+        multi: true
+      Twitter:
+        label: Twitter
+        kind: Url
+      LinkedIn:
+        label: LinkedIn
+        kind: Url
+      Facebook:
+        label: Facebook
+        kind: Url
+      CampaignId:
+        label: Campaign
+        kind: Record
+        options:
+          labelField: Name
+          module: Campaigns
+          queryFields:
+          - Name
+          selectType: multiple
+        multi: true
+  Campaigns:
+    name: Campaigns
+    fields:
+      IsActive:
+        label: Active
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      ActualCost:
+        label: Actual Cost
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+      BudgetedCost:
+        label: Budgeted Cost
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+      Name:
+        label: Campaign Name
+        kind: String
+      NumberOfConvertedLeads:
+        label: Converted Leads in Campaign
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+      EndDate:
+        label: End Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      ExpectedResponse:
+        label: Expected Response (%)
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: '%'
+      ExpectedRevenue:
+        label: Expected Revenue
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+      NumberOfLeads:
+        label: Leads in Campaign
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      NumberOfOpportunities:
+        label: Opportunities in Campaign
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      ParentId:
+        label: Parent Campaign
+        kind: Record
+        options:
+          labelField: ""
+          module: Campaigns
+          queryFields:
+          - Name
+          selectType: ""
+      NumberOfResponses:
+        label: Responses in Campaign
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      StartDate:
+        label: Start Date
+        kind: DateTime
+        options:
+          onlyDate: true
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - text: Aborted
+            value: Aborted
+          - text: Completed
+            value: Completed
+          - text: In Progress
+            value: In Progress
+          - text: Planned
+            value: Planned
+          - text: Tentative
+            value: Tentative
+          selectType: default
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - text: Lead Generation - Direct Mail
+            value: Lead Generation - Direct Mail
+          - text: Lead Generation - Conference
+            value: Lead Generation - Conference
+          - text: Lead Generation - Email Blast
+            value: Lead Generation - Email Blast
+          - text: Lead Generation - PPC
+            value: Lead Generation - PPC
+          - text: Lead Generation - Seminar
+            value: Lead Generation - Seminar
+          - text: Lead Generation - Trade Show
+            value: Lead Generation - Trade Show
+          - text: Lead Generation - Webinar
+            value: Lead Generation - Webinar
+          - text: Lead Generation - Website
+            value: Lead Generation - Website
+          - text: Brand Building - Print advertisement
+            value: Brand Building - Print advertisement
+          - text: Brand Building - Radio advertisement
+            value: Brand Building - Radio advertisement
+          - text: Brand Building - TV advertisement
+            value: Brand Building - TV advertisement
+          - text: Brand Building - Sponsoring
+            value: Brand Building - Sponsoring
+          - text: Brand Building - Social Media
+            value: Brand Building - Social Media
+          - text: Lead Generation - Contacting personal network
+            value: Lead Generation - Contacting personal network
+          selectType: default
+      AmountAllOpportunities:
+        label: Value Opportunities in Campaign
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+      AmountWonOpportunities:
+        label: Value Won Opportunities in Campaign
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+      NumberOfWonOpportunities:
+        label: Won Opportunities in Campaign
+        kind: Number
+        options:
+          format: "0"
+          precision: 0
+      NumberOfAccounts:
+        label: Accounts in Campaign
+        kind: Number
+        options:
+          format: ""
+          precision: 0
+      NumberOfContacts:
+        label: Contacts in Campaign
+        kind: Number
+        options:
+          format: ""
+          precision: 0
+  Case:
+    name: Case
+    fields:
+      AccountId:
+        label: Account Name
+        kind: Record
+        options:
+          labelField: AccountName
+          module: Account
+          queryFields:
+          - AccountName
+          selectType: ""
+      CaseNumber:
+        label: Case Number
+        kind: Number
+        options:
+          format: "0000000"
+          precision: 0
+      Origin:
+        label: Case Origin
+        kind: Select
+        options:
+          options:
+          - text: Email
+            value: Email
+          - text: Messaging
+            value: Messaging
+          - text: Phone
+            value: Phone
+          - text: Web
+            value: Web
+          - text: Other
+            value: Other
+          selectType: default
+      Reason:
+        label: Case Reason
+        kind: Select
+        options:
+          options:
+          - text: Documentation unclear
+            value: Documentation unclear
+          - text: Software bug
+            value: Software bug
+          - text: User didn't attend training
+            value: User didn't attend training
+          - text: Other
+            value: Other
+          selectType: default
+      IsClosed:
+        label: Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      IsClosedOnCreate:
+        label: Closed When Created
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      ContactId:
+        label: Contact Name
+        kind: Record
+        options:
+          labelField: RecordLabel
+          module: Contact
+          queryFields:
+          - RecordLabel
+          selectType: ""
+      ClosedDate:
+        label: Date/Time Closed
+        kind: DateTime
+      Description:
+        label: Description
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      IsEscalated:
+        label: Escalated
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      ParentId:
+        label: Parent Case
+        kind: Record
+        options:
+          labelField: Subject
+          module: Case
+          queryFields:
+          - AccountId
+          - CaseNumber
+          - Subject
+          selectType: ""
+      Priority:
+        label: Priority
+        kind: Select
+        options:
+          options:
+          - text: Low
+            value: Low
+          - text: Medium
+            value: Medium
+          - text: High
+            value: High
+          selectType: default
+      Status:
+        label: Status
+        kind: Select
+        options:
+          options:
+          - text: New
+            value: New
+          - text: Working
+            value: Working
+          - text: Escalated
+            value: Escalated
+          - text: Closed
+            value: Closed
+          selectType: default
+      Subject:
+        label: Subject
+        kind: String
+      Type:
+        label: Type
+        kind: Select
+        options:
+          options:
+          - text: Bug
+            value: Bug
+          - text: Feature Request
+            value: Feature Request
+          - text: Question
+            value: Question
+          - text: Other
+            value: Other
+          selectType: default
+      ProductId:
+        label: Product
+        kind: Record
+        options:
+          labelField: Name
+          module: Product
+          queryFields:
+          - ProductCode
+          - Name
+          selectType: ""
+      SolutionId:
+        label: Solution Record
+        kind: Record
+        options:
+          labelField: SolutionName
+          module: Solution
+          queryFields:
+          - SolutionNote
+          - SolutionNumber
+          - SolutionName
+          selectType: ""
+      File:
+        label: File(s)
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          maxSize: 0
+          mode: list
+        multi: true
+      SolutionName:
+        label: Solution Title
+        kind: String
+      SolutionNote:
+        label: Solution Details
+        kind: String
+        options:
+          multiLine: true
+          useRichTextEditor: true
+      SolutionFile:
+        label: Solution File(s)
+        kind: File
+        options:
+          allowDocuments: false
+          allowImages: false
+          maxSize: 0
+          mode: list
+        multi: true
+      SubmitAsSolution:
+        label: Submit as Solution Record when Case is Closed
+        kind: Bool
+        options:
+          falseLabel: "No"
+          trueLabel: "Yes"
+      OwnerId:
+        label: Case Owner
+        kind: User
+        options:
+          presetWithAuthenticated: true
+          selectType: default

@@ -1,0 +1,9 @@
+namespace: notThere
+modules:
+  mod1:
+    name: mod1 name
+    fields:
+      AccountName:
+        label: REP
+        kind: String
+        required: true

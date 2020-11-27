@@ -1,0 +1,206 @@
+namespace: crm
+pages:
+  - handle: Leads
+    title: Leads
+    allow: { somerole: [ read ] }
+    blocks:
+    - title: Leads by type
+      options:
+        chart: LeadsByType
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 0, 3, 8]
+    - title: New Leads Per Month
+      options:
+        chart: LeadsPerMonth
+      style:
+        variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+      kind: Chart
+      xywh: [9, 8, 3, 8]
+    - title: Leads
+      options:
+        allowExport: true
+        draggable: false
+        editFields: []
+        editable: false
+        fields:
+        - name: FirstName
+        - name: LastName
+        - name: Email
+        - name: Company
+        - name: Rating
+        - name: createdAt
+        hideRecordCloneButton: true
+        hideRecordEditButton: false
+        hideRecordReminderButton: true
+        hideRecordViewButton: true
+        module: Lead
+        perPage: 20
+        prefilter: ""
+        presort: createdAt DESC
+        selectMode: multi
+        selectable: true
+        selectionButtons: []
+      style:
+        variants: {border: primary, headerText: primary}
+      kind: RecordList
+      xywh: [0, 0, 9, 16]
+    children:
+      - handle: RecordPageForModuleLead
+        module: Lead
+        title: Record page for module "Lead"
+        blocks:
+        - title: Personal Data
+          options:
+            fields:
+            - name: FirstName
+            - name: LastName
+            - name: Salutation
+            - name: Title
+            - name: Phone
+            - name: MobilePhone
+            - name: Email
+            - name: Website
+            - name: Twitter
+            - name: LinkedIn
+            - name: Facebook
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [0, 0, 3, 15]
+        - title: Twitter feed
+          options:
+            profileSourceField: Twitter
+            profileUrl: ""
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: SocialFeed
+          xywh: [9, 0, 3, 31]
+        - title: Company Data
+          options:
+            fields:
+            - name: Company
+            - name: Industry
+            - name: AnnualRevenue
+            - name: NumberOfEmployees
+            - name: NumberOfEmployeesRange
+            - name: Country
+            - name: City
+            - name: Street
+            - name: State
+            - name: PostalCode
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [3, 0, 3, 15]
+        - title: Other Information
+          options:
+            fields:
+            - name: Rating
+            - name: CampaignId
+            - name: Status
+            - name: LeadSource
+            - name: OwnerId
+            - name: Description
+            - name: ConvertedAccountId
+            - name: ConvertedContactId
+            - name: ConvertedOpportunityId
+            - name: ConvertedDate
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Record
+          xywh: [6, 0, 3, 15]
+        - title: Notes
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Title
+            - name: Body
+            - name: createdAt
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Note
+            perPage: 20
+            prefilter: LeadId = ${recordID}
+            presort: createdAt DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 15, 6, 8]
+        - title: Events
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Type
+            - name: Subject
+            - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Event
+            perPage: 20
+            prefilter: LeadId = ${recordID}
+            presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [0, 23, 4, 8]
+        - title: Tasks
+          options:
+            allowExport: true
+            draggable: false
+            editFields: []
+            editable: false
+            fields:
+            - name: Type
+            - name: Subject
+            - name: Status
+            - name: ActivityDate
+            hideRecordCloneButton: true
+            hideRecordEditButton: false
+            hideRecordReminderButton: true
+            hideRecordViewButton: true
+            module: Task
+            perPage: 20
+            prefilter: LeadId = ${recordID}
+            presort: ActivityDate DESC
+            selectMode: multi
+            selectable: true
+            selectionButtons: []
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: RecordList
+          xywh: [4, 23, 5, 8]
+        - title: Lead Actions
+          options:
+            buttons:
+            - enabled: true
+              label: Convert this Lead into an Account
+              resourceType: compose:record
+              script: /client-scripts/compose/crm/Lead/ToAccount.js:default
+            - enabled: true
+              label: Convert this Lead into an Account and Opportunity
+              resourceType: compose:record
+              script: /client-scripts/compose/crm/Lead/ToAccountAndOpportunity.js:default
+            sealed: false
+          style:
+            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
+          kind: Automation
+          xywh: [6, 15, 3, 8]
+        visible: true

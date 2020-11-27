@@ -3,9 +3,10 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
