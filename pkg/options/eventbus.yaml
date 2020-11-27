@@ -1,0 +1,13 @@
+name: eventbus
+
+imports:
+  - time
+
+props:
+  - name: schedulerEnabled
+    type: bool
+    default: true
+
+  - name: schedulerInterval
+    type: time.Duration
+    default: time.Minute

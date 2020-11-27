@@ -21,6 +21,7 @@ type (
 		WaitFor     options.WaitForOpt
 		HTTPServer  options.HTTPServerOpt
 		Websocket   options.WebsocketOpt
+		Eventbus    options.EventbusOpt
 	}
 )
 
@@ -42,5 +43,6 @@ func NewOptions() *Options {
 		WaitFor:     *options.WaitFor(),
 		HTTPServer:  *options.HTTPServer(),
 		Websocket:   *options.Websocket(),
+		Eventbus:    *options.Eventbus(),
 	}
 }

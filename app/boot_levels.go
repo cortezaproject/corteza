@@ -98,15 +98,19 @@ func (app *CortezaApp) Setup() (err error) {
 
 	monitor.Setup(app.Log, app.Opt.Monitor)
 
-	scheduler.Setup(app.Log, eventbus.Service(), 0)
-	scheduler.Service().OnTick(
-		sysEvent.SystemOnInterval(),
-		sysEvent.SystemOnTimestamp(),
-		cmpEvent.ComposeOnInterval(),
-		cmpEvent.ComposeOnTimestamp(),
-		msgEvent.MessagingOnInterval(),
-		msgEvent.MessagingOnTimestamp(),
-	)
+	if app.Opt.Eventbus.SchedulerEnabled {
+		scheduler.Setup(app.Log, eventbus.Service(), app.Opt.Eventbus.SchedulerInterval)
+		scheduler.Service().OnTick(
+			sysEvent.SystemOnInterval(),
+			sysEvent.SystemOnTimestamp(),
+			cmpEvent.ComposeOnInterval(),
+			cmpEvent.ComposeOnTimestamp(),
+			msgEvent.MessagingOnInterval(),
+			msgEvent.MessagingOnTimestamp(),
+		)
+	} else {
+		app.Log.Debug("eventbus scheduler disabled (EVENTBUS_SCHEDULER_ENABLED=false)")
+	}
 
 	if err = corredor.Setup(app.Log, app.Opt.Corredor); err != nil {
 		return err
@@ -294,7 +298,9 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	defer sentry.Recover()
 
 	// Start scheduler
-	scheduler.Service().Start(ctx)
+	if app.Opt.Eventbus.SchedulerEnabled {
+		scheduler.Service().Start(ctx)
+	}
 
 	// Load corredor scripts & init watcher (script reloader)
 	corredor.Service().Load(ctx)
