@@ -3,7 +3,6 @@ package codegen
 import (
 	"bytes"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"go/format"
 	"io"
 	"os"
@@ -50,20 +49,20 @@ func WritePlainTo(tpl *template.Template, payload interface{}, tplName, dst stri
 	buf := bytes.Buffer{}
 
 	if err := tpl.ExecuteTemplate(&buf, tplName, payload); err != nil {
-		cli.HandleError(err)
+		handleError(err)
 	} else {
 		if dst == "" || dst == "-" {
 			output = os.Stdout
 		} else {
 			if output, err = os.Create(dst); err != nil {
-				cli.HandleError(err)
+				handleError(err)
 			}
 
 			defer output.Close()
 		}
 
 		if _, err := output.Write(buf.Bytes()); err != nil {
-			cli.HandleError(err)
+			handleError(err)
 		}
 	}
 }

@@ -3,14 +3,12 @@ package codegen
 import (
 	"flag"
 	"fmt"
+	"github.com/Masterminds/sprig"
+	"github.com/fsnotify/fsnotify"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/Masterminds/sprig"
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/fsnotify/fsnotify"
 )
 
 func Proc() {
@@ -138,7 +136,7 @@ func Proc() {
 			}
 
 			watcher, err = fsnotify.NewWatcher()
-			cli.HandleError(err)
+			handleError(err)
 
 			fileList = append(fileList, templatesSrc...)
 			fileList = append(fileList, actionSrc...)
@@ -149,7 +147,7 @@ func Proc() {
 			fileList = append(fileList, optionSrc...)
 
 			for _, d := range fileList {
-				cli.HandleError(watcher.Add(d))
+				handleError(watcher.Add(d))
 			}
 		}
 
@@ -219,7 +217,7 @@ func Proc() {
 		select {
 		case <-watcher.Events:
 		case err = <-watcher.Errors:
-			cli.HandleError(err)
+			handleError(err)
 		}
 	}
 }
@@ -227,8 +225,20 @@ func Proc() {
 func glob(path string) []string {
 	src, err := filepath.Glob(path)
 	if err != nil {
-		cli.HandleError(fmt.Errorf("failed to glob %q: %w", path, err))
+		handleError(fmt.Errorf("failed to glob %q: %w", path, err))
 	}
 
 	return src
+}
+
+// Similar to cli.HandleError but without cli pkg dependencies
+//
+// pkg/cli deps can give us issues when generating go files with invalid code
+func handleError(err error) {
+	if err == nil {
+		return
+	}
+
+	_, _ = fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(1)
 }
