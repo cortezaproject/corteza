@@ -76,11 +76,13 @@ func encode(w http.ResponseWriter, r *http.Request, payload interface{}) {
 
 	case *successWrap:
 		// main key is "success"
+		w.Header().Add("Content-Type", "application/json")
 		if err = enc.Encode(c); err != nil {
 			err = fmt.Errorf("failed to encode response: %w", err)
 		}
 
 	default:
+		w.Header().Add("Content-Type", "application/json")
 		// main key is "response"
 		aux := struct {
 			Response interface{} `json:"response"`
@@ -97,9 +99,8 @@ func encode(w http.ResponseWriter, r *http.Request, payload interface{}) {
 		}
 
 		errors.ServeHTTP(w, r, err, !DebugFromContext(r.Context()))
+		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 
 // Send handles first non-nil (and non-empty) payload and encodes it or it's results (when fn)

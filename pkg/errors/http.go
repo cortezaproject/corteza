@@ -29,11 +29,10 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
 	//	code = e.kind.httpStatus()
 	//}
 
-	w.WriteHeader(code)
-
 	if !mask && !acceptsJson {
 		// Prettify error for plain text debug output
 		w.Header().Set("Content-Type", "plain/text")
+		w.WriteHeader(code)
 		writeHttpPlain(w, err)
 		fmt.Fprintln(w, "Note: you are seeing this because system is running in development mode")
 		fmt.Fprintln(w, "and HTTP request is made without \"Accept: .../json\" headers")
@@ -41,6 +40,7 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 	writeHttpJSON(w, err, mask)
 }
 
