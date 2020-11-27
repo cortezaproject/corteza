@@ -14,7 +14,8 @@ import (
 
 type (
 	decoder interface {
-		CanDecodeFile(os.FileInfo) bool
+		CanDecodeExt(string) bool
+		CanDecodeFile(io.Reader) bool
 		Decode(context.Context, io.Reader, *envoy.DecoderOpts) ([]resource.Interface, error)
 	}
 )
@@ -46,22 +47,30 @@ func Decode(ctx context.Context, p string, decoders ...decoder) ([]resource.Inte
 			return nil
 		}
 
+		if f, err = os.Open(p); err != nil {
+			return err
+		}
+		defer f.Close()
+
 		for _, d = range decoders {
 			// find compatible decoder
-			if d.CanDecodeFile(info) {
+			if d.CanDecodeFile(f) {
+				break
+			}
+			// Do a fallback for extensions
+			if d.CanDecodeExt(info.Name()) {
 				break
 			}
 		}
-
 		if d == nil {
 			// no decoder found
 			return nil
 		}
 
-		if f, err = os.Open(p); err != nil {
+		_, err = f.Seek(0, 0)
+		if err != nil {
 			return err
 		}
-		defer f.Close()
 
 		dir, fn := path.Split(p)
 		do := &envoy.DecoderOpts{
