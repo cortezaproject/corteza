@@ -85,9 +85,13 @@ func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet
 }
 
 func (crt *composeRecordShaper) getKey(vv map[string]string, kk []string) (rtr string) {
+	if len(kk) <= 0 {
+		return ""
+	}
+
 	for _, k := range kk {
 		rtr += k + "."
 	}
 	// Remove the trailing dot
-	return rtr[0 : len(rtr)-1]
+	return vv[rtr[0:len(rtr)-1]]
 }
