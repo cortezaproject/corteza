@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
@@ -10,13 +14,13 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	estore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 const (
@@ -81,7 +85,7 @@ type (
 		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		Export(types.RecordFilter, Encoder) error
-		Import(*RecordImportSession, ImportSessionService) error
+		Import(*recordImportSession) error
 
 		Create(record *types.Record) (*types.Record, error)
 		Update(record *types.Record) (*types.Record, error)
@@ -108,17 +112,21 @@ type (
 		Records(fields map[string]string, Create decoder.RecordCreator) error
 	}
 
-	RecordImportSession struct {
-		Decoder     Decoder              `json:"-"`
-		CreatedAt   time.Time            `json:"createdAt"`
-		UpdatedAt   time.Time            `json:"updatedAt"`
-		OnError     string               `json:"onError"`
-		SessionID   uint64               `json:"sessionID,string"`
-		UserID      uint64               `json:"userID,string"`
-		NamespaceID uint64               `json:"namespaceID,string"`
-		ModuleID    uint64               `json:"moduleID,string"`
-		Fields      map[string]string    `json:"fields"`
-		Progress    RecordImportProgress `json:"progress"`
+	recordImportSession struct {
+		Name        string `json:"-"`
+		SessionID   uint64 `json:"sessionID,string"`
+		UserID      uint64 `json:"userID,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
+		ModuleID    uint64 `json:"moduleID,string"`
+
+		OnError  string                `json:"onError"`
+		Fields   map[string]string     `json:"fields"`
+		Progress *RecordImportProgress `json:"progress"`
+
+		CreatedAt time.Time `json:"createdAt"`
+		UpdatedAt time.Time `json:"updatedAt"`
+
+		Resources []resource.Interface `json:"-"`
 	}
 
 	RecordImportProgress struct {
@@ -313,50 +321,63 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 	return set, f, svc.recordAction(svc.ctx, aProps, RecordActionSearch, err)
 }
 
-func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (err error) {
+func (svc record) Import(ses *recordImportSession) (err error) {
 	var (
 		aProps = &recordActionProps{}
 	)
 
-	if ses.Decoder == nil {
-		return nil
-	}
-
 	err = func() (err error) {
-
 		if ses.Progress.StartedAt != nil {
-			return fmt.Errorf("Unable to start import: Import session already active")
+			return fmt.Errorf("unable to start import: import session already active")
 		}
 
 		sa := time.Now()
 		ses.Progress.StartedAt = &sa
-		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
 
-		err = ses.Decoder.Records(ses.Fields, func(mod *types.Record) error {
-			mod.NamespaceID = ses.NamespaceID
-			mod.ModuleID = ses.ModuleID
-			mod.OwnedBy = ses.UserID
+		// Prepare additional metadata
+		tpl := resource.NewComposeRecordTemplate(
+			strconv.FormatUint(ses.ModuleID, 10),
+			strconv.FormatUint(ses.NamespaceID, 10),
+			ses.Name,
+			resource.MapToMappingTplSet(ses.Fields),
+		)
 
-			_, err := svc.Create(mod)
-			if err != nil {
+		// Shape the data
+		ses.Resources = append(ses.Resources, tpl)
+		rt := resource.ComposeRecordShaper()
+		ses.Resources, err = resource.Shape(ses.Resources, rt)
+
+		// Build
+		cfg := &estore.EncoderConfig{
+			// For now the identifier is ignored, so this will never occur
+			OnExisting: estore.Skip,
+			Defer: func() {
+				ses.Progress.Completed++
+			},
+		}
+		if ses.OnError == IMPORT_ON_ERROR_SKIP {
+			cfg.DeferNok = func(err error) error {
 				ses.Progress.Failed++
 				ses.Progress.FailReason = err.Error()
 
-				if ses.OnError == IMPORT_ON_ERROR_FAIL {
-					fa := time.Now()
-					ses.Progress.FinishedAt = &fa
-					ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
-					return err
-				}
-			} else {
-				ses.Progress.Completed++
+				return nil
 			}
-			return nil
-		})
+		}
+		se := estore.NewStoreEncoder(svc.store, cfg)
+		bld := envoy.NewBuilder(se)
+		g, err := bld.Build(svc.ctx, ses.Resources...)
+		if err != nil {
+			return err
+		}
 
-		fa := time.Now()
-		ses.Progress.FinishedAt = &fa
-		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
+		// Encode
+		err = envoy.Encode(svc.ctx, g, se)
+		ses.Progress.FinishedAt = now()
+		if err != nil {
+			ses.Progress.FailReason = err.Error()
+			return err
+		}
+
 		return
 	}()
 

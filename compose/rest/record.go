@@ -5,7 +5,10 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/decoder"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/encoder"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -13,15 +16,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-	"net/http"
-	"path"
-	"strconv"
-	"strings"
 )
 
 type (
@@ -273,14 +271,7 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 }
 
 func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit) (interface{}, error) {
-	var (
-		err           error
-		recordDecoder service.Decoder
-		entryCount    uint64
-	)
-
-	// Access control.
-	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if _, err := ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -290,55 +281,7 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 	}
 	defer f.Close()
 
-	_, ext, err := mime.Type(f)
-	if err != nil {
-		return nil, err
-	}
-
-	if ext == "txt" {
-		if is, err := mime.JsonL(f); err != nil {
-			return nil, err
-		} else if is {
-			ext = "jsonl"
-		} else {
-			// As last resort, use extension of the upload filename
-			ext = strings.TrimLeft(path.Ext(r.Upload.Filename), ".")
-		}
-	}
-
-	// determine decoder
-	switch strings.ToLower(ext) {
-	case "json", "jsonl", "ldjson", "ndjson":
-		recordDecoder = decoder.NewStructuredDecoder(json.NewDecoder(f), f)
-
-	case "csv":
-		recordDecoder = decoder.NewFlatReader(csv.NewReader(f), f)
-
-	default:
-		// copied here from service/errors.go for backward compatibility
-		// @todo move this logic to service and use action/error pattern
-		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
-	}
-
-	entryCount, err = recordDecoder.EntryCount()
-	if err != nil {
-		return nil, err
-	}
-
-	header := recordDecoder.Header()
-	hh := make(map[string]string)
-	for _, h := range header {
-		hh[h] = ""
-	}
-
-	return ctrl.importSession.SetByID(
-		ctx,
-		0,
-		r.NamespaceID,
-		r.ModuleID,
-		hh,
-		&service.RecordImportProgress{EntryCount: entryCount},
-		recordDecoder)
+	return ctrl.importSession.Create(ctx, f, r.Upload.Filename, r.NamespaceID, r.ModuleID)
 }
 
 func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (interface{}, error) {
@@ -365,9 +308,8 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 
 	ses.OnError = r.OnError
 
-	// @todo routine
-	ctrl.record.With(ctx).Import(ses, ctrl.importSession)
-
+	// Errors are presented in the session
+	ctrl.record.With(ctx).Import(ses)
 	return ses, nil
 }
 

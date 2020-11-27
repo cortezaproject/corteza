@@ -3,13 +3,19 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"io"
 	"sync"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/json"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
 
 type (
-	recordSet []*RecordImportSession
+	recordSet []*recordImportSession
 
 	importSession struct {
 		l       sync.Mutex
@@ -17,8 +23,8 @@ type (
 	}
 
 	ImportSessionService interface {
-		FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error)
-		SetByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error)
+		Create(ctx context.Context, f io.ReadSeeker, name string, namespaceID, moduleID uint64) (*recordImportSession, error)
+		FindByID(ctx context.Context, sessionID uint64) (*recordImportSession, error)
 		DeleteByID(ctx context.Context, sessionID uint64) error
 	}
 )
@@ -39,7 +45,74 @@ func (svc *importSession) indexOf(userID, sessionID uint64) int {
 	return -1
 }
 
-func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error) {
+func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name string, namespaceID, moduleID uint64) (*recordImportSession, error) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+
+	// Prepare the session
+	sh := &recordImportSession{
+		Name:        name,
+		SessionID:   nextID(),
+		UserID:      auth.GetIdentityFromContext(ctx).Identity(),
+		NamespaceID: namespaceID,
+		ModuleID:    moduleID,
+
+		OnError:  IMPORT_ON_ERROR_FAIL,
+		Fields:   make(map[string]string),
+		Progress: &RecordImportProgress{},
+
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Decoders; We only need to do csv & yaml here
+	cd := csv.Decoder()
+	jd := json.Decoder()
+
+	// This will really be at most 1
+	var err error
+	do := &envoy.DecoderOpts{
+		Name: name,
+		Path: "",
+	}
+
+	sh.Resources, err = func() ([]resource.Interface, error) {
+		if cd.CanDecodeFile(f) {
+			f.Seek(0, 0)
+			return cd.Decode(ctx, f, do)
+		}
+
+		f.Seek(0, 0)
+		if jd.CanDecodeFile(f) {
+			f.Seek(0, 0)
+			return jd.Decode(ctx, f, do)
+		}
+
+		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Get some metadata
+	n, ok := (sh.Resources[0]).(*resource.ResourceDataset)
+	if !ok {
+		// @todo move this logic to service and use action/error pattern
+		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
+	}
+
+	sh.Progress.EntryCount = n.P.Count()
+	for _, f := range n.P.Fields() {
+		sh.Fields[f] = ""
+	}
+
+	// Create it
+	svc.records = append(svc.records, sh)
+	return sh, nil
+}
+
+func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*recordImportSession, error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -49,48 +122,6 @@ func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*Reco
 		return svc.records[i], nil
 	}
 	return nil, fmt.Errorf("compose.service.RecordImportSessionNotFound")
-}
-
-func (svc *importSession) SetByID(ctx context.Context, sessionID, namespaceID, moduleID uint64, fields map[string]string, progress *RecordImportProgress, decoder Decoder) (*RecordImportSession, error) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
-
-	userID := auth.GetIdentityFromContext(ctx).Identity()
-	i := svc.indexOf(userID, sessionID)
-	var ris *RecordImportSession
-
-	if i >= 0 {
-		ris = svc.records[i]
-	} else {
-		ris = &RecordImportSession{
-			SessionID: nextID(),
-			CreatedAt: time.Now(),
-		}
-		svc.records = append(svc.records, ris)
-		ris.UserID = userID
-	}
-	ris.UpdatedAt = time.Now()
-
-	if namespaceID > 0 {
-		ris.NamespaceID = namespaceID
-	}
-	if moduleID > 0 {
-		ris.ModuleID = moduleID
-	}
-	if fields != nil {
-		ris.Fields = fields
-	}
-	if progress != nil {
-		ris.Progress = *progress
-	}
-
-	if ris.Progress.FinishedAt != nil {
-		ris.Decoder = nil
-	} else if decoder != nil {
-		ris.Decoder = decoder
-	}
-
-	return ris, nil
 }
 
 // https://stackoverflow.com/a/37335777
