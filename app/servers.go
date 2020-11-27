@@ -7,8 +7,10 @@ import (
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
+	"github.com/cortezaproject/corteza-server/system/scim"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"net/http"
@@ -78,6 +80,33 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		)
 	} else {
 		app.Log.Info("JSON REST API disabled")
+	}
+
+	if app.Opt.SCIM.Enabled {
+		if app.Opt.SCIM.Secret == "" {
+			app.Log.
+				WithOptions(zap.AddStacktrace(zap.PanicLevel)).
+				Error("SCIM secret empty")
+		}
+
+		var (
+			baseUrl = "/" + strings.Trim(app.Opt.SCIM.BaseURL, "/")
+		)
+
+		app.Log.Debug(
+			"SCIM enabled",
+			zap.String("baseUrl", baseUrl),
+			logger.Mask("secret", app.Opt.SCIM.Secret),
+		)
+
+		r.Route(baseUrl, func(r chi.Router) {
+
+			if !app.Opt.Environment.IsDevelopment() {
+				r.Use(scim.Guard(app.Opt.SCIM))
+			}
+
+			scim.Routes(r)
+		})
 	}
 
 	if app.Opt.HTTPServer.WebappEnabled {

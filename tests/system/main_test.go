@@ -78,7 +78,6 @@ func InitTestApp() {
 			eventbus.Set(eventBus)
 			return nil
 		})
-
 	}
 
 	if r == nil {

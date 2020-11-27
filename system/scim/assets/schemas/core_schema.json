@@ -1,0 +1,128 @@
+{
+  "id": "core",
+  "name": "Core",
+  "description": "Shared attributes for all SCIM resources",
+  "attributes": [
+    {
+      "id": "schemas",
+      "name": "schemas",
+      "type": "reference",
+      "multiValued": true,
+      "required": true,
+      "caseExact": true,
+      "returned": "always",
+      "_index": 0,
+      "_path": "schemas",
+      "_annotations": {
+        "@AutoCompact": {}
+      }
+    },
+    {
+      "id": "id",
+      "name": "id",
+      "type": "string",
+      "caseExact": true,
+      "returned": "always",
+      "mutability": "readOnly",
+      "uniqueness": "global",
+      "_index": 1,
+      "_path": "id",
+      "_annotations": {
+        "@ReadOnly": {
+          "reset": true,
+          "copy": true
+        },
+        "@UUID": {}
+      }
+    },
+    {
+      "id": "externalId",
+      "name": "externalId",
+      "type": "string",
+      "_index": 2,
+      "_path": "externalId"
+    },
+    {
+      "id": "meta",
+      "name": "meta",
+      "type": "complex",
+      "mutability": "readOnly",
+      "_index": 3,
+      "_path": "meta",
+      "subAttributes": [
+        {
+          "id": "meta.resourceType",
+          "name": "resourceType",
+          "type": "string",
+          "caseExact": true,
+          "mutability": "readOnly",
+          "_index": 0,
+          "_path": "meta.resourceType",
+          "_annotations": {
+            "@ReadOnly": {
+              "reset": true,
+              "copy": true
+            }
+          }
+        },
+        {
+          "id": "meta.created",
+          "name": "created",
+          "type": "dateTime",
+          "mutability": "readOnly",
+          "_index": 1,
+          "_path": "meta.created",
+          "_annotations": {
+            "@ReadOnly": {
+              "reset": true,
+              "copy": true
+            }
+          }
+        },
+        {
+          "id": "meta.lastModified",
+          "name": "lastModified",
+          "type": "dateTime",
+          "mutability": "readOnly",
+          "_index": 2,
+          "_path": "meta.lastModified",
+          "_annotations": {
+            "@ReadOnly": {
+              "reset": true,
+              "copy": true
+            }
+          }
+        },
+        {
+          "id": "meta.location",
+          "name": "location",
+          "type": "reference",
+          "mutability": "readOnly",
+          "caseExact": true,
+          "_index": 3,
+          "_path": "meta.location",
+          "_annotations": {
+            "@ReadOnly": {
+              "reset": true,
+              "copy": true
+            }
+          }
+        },
+        {
+          "id": "meta.version",
+          "name": "version",
+          "type": "string",
+          "mutability": "readOnly",
+          "_index": 4,
+          "_path": "meta.version",
+          "_annotations": {
+            "@ReadOnly": {
+              "reset": true,
+              "copy": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
