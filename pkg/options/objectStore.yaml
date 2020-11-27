@@ -1,0 +1,32 @@
+
+name: objectStore
+
+props:
+  - name: path
+    env: STORAGE_PATH
+    default: "var/store"
+  
+  - name: minioEndpoint   
+    env: MINIO_ENDPOINT
+  
+  - name: minioSecure    
+    type: bool   
+    env: MINIO_SECURE
+    default: true
+  
+  - name: minioAccessKey  
+    env: MINIO_ACCESS_KEY
+  
+  - name: minioSecretKey  
+    env: MINIO_SECRET_KEY
+  
+  - name: minioSSECKey    
+    env: MINIO_SSEC_KEY
+  
+  - name: minioBucket     
+    env: MINIO_BUCKET
+  
+  - name: minioStrict    
+    type: bool   
+    env: MINIO_STRICT
+    default: false

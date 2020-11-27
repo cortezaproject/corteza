@@ -1,0 +1,11 @@
+
+name: actionLog
+
+props:
+  - name: enabled
+    type: bool
+    default: true
+    
+  - name: debug
+    type: bool
+    default: false

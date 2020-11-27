@@ -1,7 +1,14 @@
 package options
 
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/waitFor.yaml
+
 import (
-	"strings"
 	"time"
 )
 
@@ -16,11 +23,11 @@ type (
 	}
 )
 
-func WaitFor(pfix string) (o *WaitForOpt) {
+// WaitFor initializes and returns a WaitForOpt with default values
+func WaitFor() (o *WaitForOpt) {
 	o = &WaitForOpt{
 		Delay:                 0,
 		StatusPage:            true,
-		Services:              "",
 		ServicesTimeout:       time.Minute,
 		ServicesProbeTimeout:  time.Second * 30,
 		ServicesProbeInterval: time.Second * 5,
@@ -28,14 +35,14 @@ func WaitFor(pfix string) (o *WaitForOpt) {
 
 	fill(o)
 
+	// Function that allows access to custom logic inside the parent function.
+	// The custom logic in the other file should be like:
+	// func (o *WaitFor) Defaults() {...}
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
 	return
-}
-
-// Parses hosts and return slice of strings, one per host
-func (o WaitForOpt) GetServices() []string {
-	if len(o.Services) == 0 {
-		return []string{}
-	}
-
-	return strings.Split(o.Services, " ")
 }

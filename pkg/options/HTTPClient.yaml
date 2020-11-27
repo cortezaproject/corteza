@@ -1,0 +1,16 @@
+
+name: HTTPClient
+
+imports:
+  - time
+
+props:
+  - name: clientTSLInsecure
+    type: bool
+    env: HTTP_CLIENT_TSL_INSECURE
+    default: false
+    
+  - name: httpClientTimeout
+    type: time.Duration
+    env: HTTP_CLIENT_TIMEOUT
+    default: 30 * time.Second

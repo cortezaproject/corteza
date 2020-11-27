@@ -1,0 +1,11 @@
+
+name: upgrade
+
+props:
+  - name: Debug 
+    type: bool
+    default: false
+    
+  - name: Always
+    type: bool
+    default: true

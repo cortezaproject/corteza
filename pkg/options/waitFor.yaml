@@ -1,0 +1,34 @@
+
+name: waitFor
+
+imports:
+  - time
+
+props:
+  - name: Delay                 
+    type: time.Duration 
+    env: WAIT_FOR
+    default: 0
+
+  - name: StatusPage            
+    type: bool          
+    env: WAIT_FOR_STATUS_PAGE
+    default: true
+
+  - name: Services                     
+    env: WAIT_FOR_SERVICES
+
+  - name: ServicesTimeout       
+    type: time.Duration 
+    env: WAIT_FOR_SERVICES_TIMEOUT
+    default: time.Minute
+
+  - name: ServicesProbeTimeout  
+    type: time.Duration 
+    env: WAIT_FOR_SERVICES_PROBE_TIMEOUT
+    default: time.Second * 30
+    
+  - name: ServicesProbeInterval 
+    type: time.Duration 
+    env: WAIT_FOR_SERVICES_PROBE_INTERVAL
+    default: time.Second * 5

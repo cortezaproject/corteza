@@ -1,0 +1,10 @@
+
+name: monitor
+
+imports:
+  - time
+
+props:
+  - name: interval
+    type: time.Duration
+    default: 300 * time.Second
