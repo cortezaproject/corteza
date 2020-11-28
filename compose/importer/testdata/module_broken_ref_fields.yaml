@@ -1,7 +1,0 @@
-modules:
-  modA:
-    fields:
-      ref2:
-        kind: Record
-        options:
-          module: modFoo
