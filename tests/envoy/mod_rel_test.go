@@ -3,6 +3,7 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -62,7 +63,7 @@ func TestModuleRels(t *testing.T) {
 				ff := mod.Fields
 				req.Len(ff, 1)
 				req.Equal("Record", ff[0].Kind)
-				req.Equal(mod.ID, uint64(ff[0].Options.Int64("module")))
+				req.Equal(strconv.FormatUint(mod.ID, 10), ff[0].Options.String("moduleID"))
 			},
 		},
 
@@ -97,7 +98,7 @@ func TestModuleRels(t *testing.T) {
 				ff := mod.Fields
 				req.Len(ff, 1)
 				req.Equal("Record", ff[0].Kind)
-				req.Equal(pmod.ID, uint64(ff[0].Options.Int64("module")))
+				req.Equal(strconv.FormatUint(pmod.ID, 10), ff[0].Options.String("moduleID"))
 			},
 		},
 
@@ -133,7 +134,7 @@ func TestModuleRels(t *testing.T) {
 				ff := mod.Fields
 				req.Len(ff, 1)
 				req.Equal("Record", ff[0].Kind)
-				req.Equal(smod.ID, uint64(ff[0].Options.Int64("module")))
+				req.Equal(strconv.FormatUint(smod.ID, 10), ff[0].Options.String("moduleID"))
 			},
 		},
 	}

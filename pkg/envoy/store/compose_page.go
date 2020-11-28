@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -185,7 +186,25 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 			if mID <= 0 {
 				return composeModuleErrUnresolved(resource.MakeIdentifiers(id))
 			}
-			b.Options["module"] = mID
+			b.Options["moduleID"] = strconv.FormatUint(mID, 10)
+			delete(b.Options, "module")
+
+		case "Calendar":
+			ff, _ := b.Options["feeds"].([]interface{})
+			for _, f := range ff {
+				feed, _ := f.(map[string]interface{})
+				fOpts, _ := (feed["options"]).(map[string]interface{})
+				id, _ := fOpts["module"].(string)
+				if id == "" {
+					continue
+				}
+				mID := getModID(id)
+				if mID <= 0 {
+					return composeModuleErrUnresolved(resource.MakeIdentifiers(id))
+				}
+				fOpts["moduleID"] = strconv.FormatUint(mID, 10)
+				delete(fOpts, "module")
+			}
 
 		case "Chart":
 			id, _ := b.Options["chart"].(string)
@@ -200,7 +219,8 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 					return composeChartErrUnresolved(ii)
 				}
 			}
-			b.Options["chart"] = chr.ID
+			b.Options["chartID"] = strconv.FormatUint(chr.ID, 10)
+			delete(b.Options, "chart")
 
 		case "Metric":
 			mm, _ := b.Options["metrics"].([]interface{})
@@ -214,7 +234,8 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 				if mID <= 0 {
 					return composeModuleErrUnresolved(resource.MakeIdentifiers(id))
 				}
-				mops["module"] = mID
+				mops["moduleID"] = strconv.FormatUint(mID, 10)
+				delete(mops, "module")
 
 			}
 		}
