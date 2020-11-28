@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
 )
 
@@ -33,6 +34,8 @@ func (app *CortezaApp) InitCLI() {
 			return
 		}
 
+		// Provisioning doesn't automatically reload rbac rules, so this is required
+		rbac.Global().Reload(ctx)
 		return
 	})
 

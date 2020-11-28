@@ -2,35 +2,51 @@ package compose
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/compose/importer"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	impAux "github.com/cortezaproject/corteza-server/pkg/importer"
+
+	"github.com/cortezaproject/corteza-server/provision/util"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 )
 
-// provision only where there are no namespaces
-func hasNamespaces(ctx context.Context, s store.Storer) (bool, error) {
-	if set, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{}); err != nil {
+func hasNamespaces(ctx context.Context, s store.Storer, slug string) (bool, error) {
+	ns, err := store.LookupComposeNamespaceBySlug(ctx, s, slug)
+	if err == store.ErrNotFound {
+		return false, nil
+	} else if err != nil {
 		return false, err
-	} else {
-		return len(set) > 0, nil
 	}
+	return ns != nil, nil
 }
 
 func Provision(ctx context.Context, log *zap.Logger, s store.Storer) error {
-	if namespacesExist, err := hasNamespaces(ctx, s); err != nil {
+	log.Info("provisioning compose: system")
+	if err := util.EncodeStatik(ctx, s, Asset, "/system"); err != nil {
 		return err
-	} else if !namespacesExist {
-		log.Info("provisioning compose")
-		readers, err := impAux.ReadStatic(Asset)
-		if err != nil {
+	}
+	log.Info("provisioned compose: system")
+
+	if has, err := hasNamespaces(ctx, s, "crm"); !has && err == nil {
+		log.Info("provisioning compose: crm")
+		if err := util.EncodeStatik(ctx, s, Asset, "/crm"); err != nil {
 			return err
 		}
-
-		return importer.Import(ctx, nil, readers...)
+		log.Info("provisioned compose: crm")
+	} else if err != nil {
+		return err
 	} else {
-		log.Info("compose already provisioned")
+		log.Info("[skip] provisioning compose: crm")
+	}
+
+	if has, err := hasNamespaces(ctx, s, "service-solution"); !has && err == nil {
+		log.Info("provisioning compose: service-solution")
+		if err := util.EncodeStatik(ctx, s, Asset, "/service-solution"); err != nil {
+			return err
+		}
+		log.Info("provisioned compose: service-solution")
+	} else if err != nil {
+		return err
+	} else {
+		log.Info("[skip] provisioning compose: service-solution")
 	}
 
 	return nil

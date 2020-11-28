@@ -1,0 +1,57 @@
+applications:
+  - name: Messaging
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/default_icon.png
+      logo: /applications/default_logo.jpg
+      url: /messaging
+
+  - name: Low Code
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/default_icon.png
+      logo: /applications/default_logo.jpg
+      url: /admin
+
+
+  - name: Corteza Admin Area
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/default_icon.png
+      logo: /applications/default_logo.jpg
+      url: /admin
+
+  - name: Corteza Jitsi Bridge
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/jitsi_icon.png
+      logo: /applications/jitsi.png
+      url: /bridge/jitsi/
+
+  - name: Google Maps
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/google_maps_icon.png
+      logo: /applications/google_maps.png
+      url: /bridge/google-maps/
+
+  - name: CRM
+    enabled: true
+    unify:
+      listed: true
+      icon: newIconUrl
+      logo: newLogoUrl
+      url: /compose/ns/crm/pages
+
+  - name: Service Solution
+    enabled: true
+    unify:
+      listed: true
+      icon: newIconUrl
+      logo: newLogoUrl
+      url: /compose/ns/service-solution/pages

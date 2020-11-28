@@ -20,7 +20,8 @@ function download {
 
 function copyExtConfig {
   echo -e "\033[32mCopying ${2} ${1}\033[39m ... "
-  cp "${DIR}/${1}/config/${2}.yaml" "./compose/src/${2}_${1}.yaml"
+  mkdir -p "./compose/src/${1}"
+  cp "${DIR}/${1}/config/${2}.yaml" "./compose/src/${1}/${2}.yaml"
 }
 
 function cleanup {
