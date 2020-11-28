@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/decoder"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -104,12 +103,6 @@ type (
 
 	Encoder interface {
 		Record(*types.Record) error
-	}
-
-	Decoder interface {
-		Header() []string
-		EntryCount() (uint64, error)
-		Records(fields map[string]string, Create decoder.RecordCreator) error
 	}
 
 	recordImportSession struct {

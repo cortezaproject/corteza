@@ -1,4 +1,0 @@
-namespace: foo
-modules:
-  m1:
-    name: Module1

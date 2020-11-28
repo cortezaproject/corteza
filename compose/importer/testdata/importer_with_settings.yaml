@@ -1,8 +1,0 @@
-settings:
-  s1: v1
-  s2:
-  - v2
-  - v3
-  s3:
-    ss1: v4
-    ss2: v5

@@ -1,8 +1,0 @@
-records:
-  TestModule:
-  - values:
-      field1: val1.1
-      field2: val1.2
-  - values:
-      field1: val2.1
-      field2: val2.2
