@@ -3920,39 +3920,6 @@ pages:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
               xywh: [9, 0, 3, 12]
-            - title: Opportunity Qualification Weights
-              options:
-                fields:
-                - name: ScoreBudget
-                - name: ScoreAuthority
-                - name: ScoreNeed
-                - name: ScoreTimescale
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 12, 3, 8]
-            - title: Opportunity Facts Weighting
-              options:
-                fields:
-                - name: ScoreTurnover
-                - name: ScoreYearsInBusiness
-                - name: ScoreSource
-                - name: ScoreProductKnowlege
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [3, 12, 3, 8]
-            - title: Opportunity Cutsom Weighting
-              options:
-                fields:
-                - name: ScoreTechnicalDepth
-                - name: ScoreCompetition
-                - name: ScoreCriticality
-                - name: ScoreRepeatPurchase
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [6, 12, 3, 8]
             visible: false
         visible: true
     visible: true

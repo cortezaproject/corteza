@@ -280,6 +280,9 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
+
+		// Provisioning doesn't automatically reload rbac rules, so this is required
+		rbac.Global().Reload(ctx)
 	}
 
 	app.lvl = bootLevelProvisioned
