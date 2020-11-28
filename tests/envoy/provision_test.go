@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -117,7 +118,7 @@ func TestProvision(t *testing.T) {
 		req.Equal([]interface{}{"☆☆☆☆☆", "★☆☆☆☆"}, opt)
 
 		req.Equal("Record", m1.Fields[3].Kind)
-		req.Equal(m2.ID, uint64(m1.Fields[3].Options.Int64("module")))
+		req.Equal(strconv.FormatUint(m2.ID, 10), m1.Fields[3].Options.String("moduleID"))
 		opt = getOptSlice(req, "queryFields", m1.Fields[3])
 		req.Equal([]interface{}{"f1"}, opt)
 
@@ -125,12 +126,12 @@ func TestProvision(t *testing.T) {
 		req.Len(m1.Fields, 4)
 
 		req.Equal("Record", m2.Fields[1].Kind)
-		req.Equal(m2.ID, uint64(m2.Fields[1].Options.Int64("module")))
+		req.Equal(strconv.FormatUint(m2.ID, 10), m2.Fields[1].Options.String("moduleID"))
 		opt = getOptSlice(req, "queryFields", m2.Fields[1])
 		req.Equal([]interface{}{"f1"}, opt)
 
 		req.Equal("Record", m2.Fields[3].Kind)
-		req.Equal(m3.ID, uint64(m2.Fields[3].Options.Int64("module")))
+		req.Equal(strconv.FormatUint(m3.ID, 10), m2.Fields[3].Options.String("moduleID"))
 		opt = getOptSlice(req, "queryFields", m2.Fields[3])
 		req.Equal([]interface{}{"f1"}, opt)
 	})
@@ -162,10 +163,10 @@ func TestProvision(t *testing.T) {
 		req.Equal("pg1 b1 content body", pg1.Blocks[0].Options["body"])
 
 		req.Equal("RecordList", pg1.Blocks[1].Kind)
-		req.Equal(m1.ID, uint64((pg1.Blocks[1].Options["module"]).(float64)))
+		req.Equal(strconv.FormatUint(m1.ID, 10), (pg1.Blocks[1].Options["moduleID"].(string)))
 
 		req.Equal("Chart", pg1.Blocks[2].Kind)
-		req.Equal(ch1.ID, uint64((pg1.Blocks[2].Options["chart"]).(float64)))
+		req.Equal(strconv.FormatUint(ch1.ID, 10), (pg1.Blocks[2].Options["chartID"].(string)))
 
 		// pg2
 		req.Equal(m1.ID, pg2.ModuleID)

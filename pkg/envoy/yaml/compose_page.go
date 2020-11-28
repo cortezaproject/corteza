@@ -27,9 +27,15 @@ type (
 )
 
 func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
+	wx := make(map[uint64]int)
+
 	return each(n, func(k, v *yaml.Node) (err error) {
 		var (
-			wrap = &composePage{}
+			wrap = &composePage{
+				// Set this to something negative so we have an easier time determining
+				// if we should fix the pages weight
+				res: &types.Page{Weight: -1},
+			}
 		)
 
 		if v == nil {
@@ -48,6 +54,11 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 			// if name is not set, use handle
 			wrap.res.Title = wrap.res.Handle
 		}
+
+		if wrap.res.Weight < 0 {
+			wrap.res.Weight = wx[wrap.res.SelfID]
+		}
+		wx[wrap.res.SelfID]++
 
 		*wset = append(*wset, wrap)
 		return

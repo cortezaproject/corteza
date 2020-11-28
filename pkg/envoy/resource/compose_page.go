@@ -53,6 +53,17 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				r.ChartRefs = append(r.ChartRefs, r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id))
 			}
 
+		case "Calendar":
+			ff, _ := b.Options["feeds"].([]interface{})
+			for _, f := range ff {
+				feed, _ := f.(map[string]interface{})
+				fOpts, _ := (feed["options"]).(map[string]interface{})
+				id, _ := fOpts["module"].(string)
+				if id != "" {
+					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id))
+				}
+			}
+
 		case "Metric":
 			mm, _ := b.Options["metrics"].([]interface{})
 			for _, m := range mm {

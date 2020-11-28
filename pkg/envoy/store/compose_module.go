@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -154,7 +155,8 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 				mID = mod.ID
 			}
 
-			f.Options["module"] = mID
+			f.Options["moduleID"] = strconv.FormatUint(mID, 10)
+			delete(f.Options, "module")
 		}
 	}
 
