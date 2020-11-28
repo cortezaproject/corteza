@@ -1,8 +1,11 @@
 package app
 
 import (
+	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store"
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
 )
 
@@ -39,12 +42,18 @@ func (app *CortezaApp) InitCLI() {
 		return
 	})
 
+	storeInit := func(ctx context.Context) (store.Storer, error) {
+		err := app.InitStore(ctx)
+		return app.Store, err
+	}
+
 	app.Command.AddCommand(
 		systemCommands.Users(app),
 		systemCommands.Roles(app),
 		systemCommands.Auth(app),
 		systemCommands.RBAC(app),
 		systemCommands.Sink(app),
+		systemCommands.Import(storeInit),
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
