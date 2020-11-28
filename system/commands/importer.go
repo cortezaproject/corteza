@@ -1,40 +1,100 @@
 package commands
 
 import (
-	"io"
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/system/importer"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
+	"github.com/cortezaproject/corteza-server/store"
 )
 
-func Importer() *cobra.Command {
+func Import(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
+	var (
+		replaceOnExisting    bool
+		mergeLeftOnExisting  bool
+		mergeRightOnExisting bool
+	)
+
 	cmd := &cobra.Command{
 		Use:   "import",
-		Short: "Import",
+		Short: "Import data from yaml sources.",
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ff  []io.Reader
-				err error
 				ctx = auth.SetSuperUserContext(cli.Context())
 			)
 
+			s, err := storeInit(ctx)
+			cli.HandleError(err)
+
+			yd := yaml.Decoder()
+			nn := make([]resource.Interface, 0, 200)
+
 			if len(args) > 0 {
-				ff = make([]io.Reader, len(args))
-				for a, arg := range args {
-					ff[a], err = os.Open(arg)
+				for _, fn := range args {
+					mm, err := directory.Decode(ctx, fn, yd)
 					cli.HandleError(err)
+					nn = append(nn, mm...)
 				}
-				cli.HandleError(importer.Import(ctx, ff...))
 			} else {
-				cli.HandleError(importer.Import(ctx, os.Stdin))
+				do := &envoy.DecoderOpts{
+					Name: "stdin.yaml",
+					Path: "",
+				}
+				mm, err := yd.Decode(ctx, os.Stdin, do)
+				cli.HandleError(err)
+				nn = append(nn, mm...)
 			}
+
+			opt := &es.EncoderConfig{
+				OnExisting: es.Skip,
+			}
+
+			if replaceOnExisting {
+				opt.OnExisting = es.Replace
+			}
+			if mergeLeftOnExisting {
+				opt.OnExisting = es.MergeLeft
+			}
+			if mergeRightOnExisting {
+				opt.OnExisting = es.MergeRight
+			}
+
+			se := es.NewStoreEncoder(s, opt)
+			bld := envoy.NewBuilder(se)
+			g, err := bld.Build(ctx, nn...)
+			cli.HandleError(err)
+
+			cli.HandleError(envoy.Encode(ctx, g, se))
 		},
 	}
+
+	cmd.Flags().BoolVar(
+		&replaceOnExisting,
+		"replace-existing",
+		false,
+		"Replace any existing values. Default skips.",
+	)
+	cmd.Flags().BoolVar(
+		&mergeLeftOnExisting,
+		"merge-left-existing",
+		false,
+		"Update any existing values; existing data takes priority. Default skips.",
+	)
+	cmd.Flags().BoolVar(
+		&mergeRightOnExisting,
+		"merge-right-existing",
+		false,
+		"Update any existing values; new data takes priority. Default skips.",
+	)
 
 	return cmd
 }
