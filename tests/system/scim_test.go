@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/scim"
 	"github.com/cortezaproject/corteza-server/system/service"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
@@ -45,7 +44,6 @@ func TestScimUserGet(t *testing.T) {
 		Get(fmt.Sprintf("/Users/%d", u.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Contains(`$.schemas`, "urn:ietf:params:scim:schemas:core:2.0:User")).
 		Assert(jsonpath.Equal(`$.id`, fmt.Sprintf("%d", u.ID))).
 		End()
@@ -56,7 +54,6 @@ func TestScimUserCreate(t *testing.T) {
 	h.clearUsers()
 
 	h.scimApiInit().
-		Debug().
 		Post("/Users").
 		JSON(`{
   "schemas": [
@@ -76,13 +73,24 @@ func TestScimUserCreate(t *testing.T) {
 }`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
 	h.a.NoError(err)
 	h.a.Equal("foo", u.Username)
 	h.a.Equal("baz", u.Handle)
+}
+
+func TestScimUserCreateNoEmail(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	h.scimApiInit().
+		Post("/Users").
+		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
 }
 
 func TestScimUserCreateOverwrite(t *testing.T) {
@@ -92,12 +100,10 @@ func TestScimUserCreateOverwrite(t *testing.T) {
 	u := h.createUserWithEmail("foo@bar.com")
 
 	h.scimApiInit().
-		Debug().
 		Post("/Users").
 		JSON(`{"userName":"UPDATED","emails":[{"value":"foo@bar.com"}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
@@ -110,12 +116,10 @@ func TestScimUserExternalID(t *testing.T) {
 	h.clearUsers()
 
 	h.scimApiInit().
-		Debug().
 		Post("/Users").
 		JSON(`{"userName":"foo","emails":[{"value":"foo@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
@@ -123,12 +127,10 @@ func TestScimUserExternalID(t *testing.T) {
 	h.a.Equal("foo", u.Username)
 
 	h.scimApiInit().
-		Debug().
 		Post("/Users").
 		JSON(`{"userName":"baz","emails":[{"value":"baz@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err = store.LookupUserByEmail(context.Background(), service.DefaultStore, "baz@bar.com")
@@ -144,7 +146,6 @@ func TestScimUserReplace(t *testing.T) {
 	u := h.createUserWithEmail(h.randEmail())
 
 	h.scimApiInit().
-		Debug().
 		Put(fmt.Sprintf("/Users/%d", u.ID)).
 		JSON(`{
   "schemas": [
@@ -165,6 +166,25 @@ func TestScimUserReplace(t *testing.T) {
 	h.a.NoError(err)
 	h.a.NotNil(u)
 	h.a.Equal("foo@bar.com", u.Email)
+}
+
+func TestScimUserPassword(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	service.CurrentSettings.Auth.Internal.Enabled = true
+	auth := service.Auth()
+
+	h.scimApiInit().
+		Post("/Users").
+		JSON(`{"password":"foo$bar$baz 42","emails":[{"value":"baz@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		End()
+
+	u, err := auth.InternalLogin(context.Background(), "baz@bar.com", "foo$bar$baz 42")
+	h.a.NoError(err)
+	h.a.NotNil(u)
 }
 
 func TestScimUserDelete(t *testing.T) {
@@ -190,7 +210,6 @@ func TestScimGroupGet(t *testing.T) {
 		Get(fmt.Sprintf("/Groups/%d", u.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Contains(`$.schemas`, "urn:ietf:params:scim:schemas:core:2.0:Group")).
 		Assert(jsonpath.Equal(`$.id`, fmt.Sprintf("%d", u.ID))).
 		End()
@@ -201,12 +220,10 @@ func TestScimGroupCreate(t *testing.T) {
 	h.clearRoles()
 
 	h.scimApiInit().
-		Debug().
 		Post("/Groups").
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"foo"}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err := store.LookupRoleByName(context.Background(), service.DefaultStore, "foo")
@@ -219,12 +236,10 @@ func TestScimGroupExternalId(t *testing.T) {
 	h.clearRoles()
 
 	h.scimApiInit().
-		Debug().
 		Post("/Groups").
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"foo","externalId":"grp42"}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err := store.LookupRoleByName(context.Background(), service.DefaultStore, "foo")
@@ -232,12 +247,10 @@ func TestScimGroupExternalId(t *testing.T) {
 	h.a.Equal("foo", u.Name)
 
 	h.scimApiInit().
-		Debug().
 		Post("/Groups").
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"bar","externalId":"grp42"}`).
 		Expect(t).
 		Status(http.StatusCreated).
-		Assert(helpers.AssertNoErrors).
 		End()
 
 	u, err = store.LookupRoleByName(context.Background(), service.DefaultStore, "bar")
@@ -252,7 +265,6 @@ func TestScimGroupReplace(t *testing.T) {
 	u := h.repoMakeRole()
 
 	h.scimApiInit().
-		Debug().
 		Put(fmt.Sprintf("/Groups/%d", u.ID)).
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"bar"}`).
 		Expect(t).
