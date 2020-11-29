@@ -44,11 +44,18 @@ func Guard(opt options.SCIMOpt) func(next http.Handler) http.Handler {
 
 func Routes(r chi.Router) {
 	uh := &usersHandler{svc: service.DefaultUser}
-
 	r.Route("/Users", func(r chi.Router) {
 		r.Get("/{id}", uh.get)
 		r.Post("/", uh.create)
 		r.Put("/{id}", uh.replace)
 		r.Delete("/{id}", uh.delete)
+	})
+
+	gh := &groupsHandler{svc: service.DefaultRole}
+	r.Route("/Groups", func(r chi.Router) {
+		r.Get("/{id}", gh.get)
+		r.Post("/", gh.create)
+		r.Put("/{id}", gh.replace)
+		r.Delete("/{id}", gh.delete)
 	})
 }
