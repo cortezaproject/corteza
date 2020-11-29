@@ -63,7 +63,17 @@ func (h groupsHandler) createFromJSON(ctx context.Context, j io.Reader) (r *type
 	}
 
 	// do we need to upsert?
-	if *payload.Name != "" {
+	if payload.ExternalId != nil {
+		var rr types.RoleSet
+		rr, _, err = svc.Find(types.RoleFilter{Labels: map[string]string{groupLabel_SCIM_externalId: *payload.ExternalId}})
+		if err != nil {
+			return
+		}
+
+		if len(rr) > 0 {
+			r = rr[0]
+		}
+	} else if payload.Name != nil {
 		r, err = svc.FindByName(*payload.Name)
 		if err != nil && !errors.Is(err, service.RoleErrNotFound()) {
 			return

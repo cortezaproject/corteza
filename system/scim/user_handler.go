@@ -66,7 +66,17 @@ func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (u *types
 	}
 
 	// do we need to upsert?
-	if email := payload.Emails.getFirst(); email != "" {
+	if payload.ExternalId != nil {
+		var uu types.UserSet
+		uu, _, err = svc.Find(types.UserFilter{Labels: map[string]string{userLabel_SCIM_externalId: *payload.ExternalId}})
+		if err != nil {
+			return
+		}
+
+		if len(uu) > 0 {
+			u = uu[0]
+		}
+	} else if email := payload.Emails.getFirst(); email != "" {
 		u, err = svc.FindByEmail(email)
 		if err != nil && !errors.Is(err, service.UserErrNotFound()) {
 			return
