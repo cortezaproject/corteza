@@ -14,8 +14,9 @@ import (
 
 type (
 	usersHandler struct {
-		svc service.UserService
-		sec getSecurityContextFn
+		svc    service.UserService
+		rleSvc service.RoleService
+		sec    getSecurityContextFn
 	}
 )
 
@@ -57,7 +58,8 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 
 func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (u *types.User, err error) {
 	var (
-		svc     = h.svc.With(ctx)
+		svc = h.svc.With(ctx)
+		//roles   = h.rleSvc.With(ctx)
 		payload = &userResourceRequest{}
 	)
 
@@ -92,10 +94,21 @@ func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (u *types
 	payload.applyTo(u)
 
 	if u.ID > 0 {
-		return svc.Update(u)
+		u, err = svc.Update(u)
 	} else {
-		return svc.Create(u)
+		u, err = svc.Create(u)
 	}
+
+	if err != nil {
+		return
+	}
+
+	if payload.Groups != nil {
+		// remove existing, add new
+		// @todo
+	}
+
+	return u, nil
 }
 
 func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {

@@ -26,6 +26,10 @@ type (
 		Formatted string `json:"formatted"`
 	}
 
+	userGroupMembershipRequest struct {
+		Value string `json:"value"`
+	}
+
 	userResourceResponse struct {
 		Schemas    []string          `json:"schemas"`
 		Meta       *metaResponse     `json:"meta,omitempty"`
@@ -46,6 +50,8 @@ type (
 		Password   *string           `json:"password,omitempty"`
 		Name       *userNameResponse `json:"name"`
 		Emails     emailsResponse    `json:"emails,omitempty"`
+
+		Groups []*userGroupMembershipRequest `json:"groups,omitempty"`
 	}
 )
 
