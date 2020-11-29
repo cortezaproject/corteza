@@ -127,3 +127,79 @@ func TestScimUserDelete(t *testing.T) {
 		Status(http.StatusNoContent).
 		End()
 }
+
+func TestScimGroupGet(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	u := h.repoMakeRole()
+
+	h.scimApiInit().
+		Get(fmt.Sprintf("/Groups/%d", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Contains(`$.schemas`, "urn:ietf:params:scim:schemas:core:2.0:Group")).
+		Assert(jsonpath.Equal(`$.id`, fmt.Sprintf("%d", u.ID))).
+		End()
+}
+
+func TestScimGroupCreate(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	h.scimApiInit().
+		Debug().
+		Post("/Groups").
+		JSON(`{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Group"
+  ],
+  "displayName": "foo"
+}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err := store.LookupRoleByName(context.Background(), service.DefaultStore, "foo")
+	h.a.NoError(err)
+	h.a.Equal("foo", u.Name)
+}
+
+func TestScimGroupReplace(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	u := h.repoMakeRole()
+
+	h.scimApiInit().
+		Debug().
+		Put(fmt.Sprintf("/Groups/%d", u.ID)).
+		JSON(`{
+  "schemas": [
+    "urn:ietf:params:scim:schemas:core:2.0:Group"
+  ],
+  "displayName": "bar"
+}`).
+		Expect(t).
+		End()
+
+	u, err := store.LookupRoleByID(context.Background(), service.DefaultStore, u.ID)
+	h.a.NoError(err)
+	h.a.NotNil(u)
+	h.a.Equal("bar", u.Name)
+}
+
+func TestScimGroupDelete(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	u := h.repoMakeRole(h.randEmail())
+
+	h.scimApiInit().
+		Delete(fmt.Sprintf("/Groups/%d", u.ID)).
+		Expect(t).
+		Status(http.StatusNoContent).
+		End()
+}
