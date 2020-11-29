@@ -85,6 +85,58 @@ func TestScimUserCreate(t *testing.T) {
 	h.a.Equal("baz", u.Handle)
 }
 
+func TestScimUserCreateOverwrite(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	u := h.createUserWithEmail("foo@bar.com")
+
+	h.scimApiInit().
+		Debug().
+		Post("/Users").
+		JSON(`{"userName":"UPDATED","emails":[{"value":"foo@bar.com"}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
+	h.a.NoError(err)
+	h.a.Equal("UPDATED", u.Username)
+}
+
+func TestScimUserExternalID(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	h.scimApiInit().
+		Debug().
+		Post("/Users").
+		JSON(`{"userName":"foo","emails":[{"value":"foo@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
+	h.a.NoError(err)
+	h.a.Equal("foo", u.Username)
+
+	h.scimApiInit().
+		Debug().
+		Post("/Users").
+		JSON(`{"userName":"baz","emails":[{"value":"baz@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err = store.LookupUserByEmail(context.Background(), service.DefaultStore, "baz@bar.com")
+	h.a.NoError(err)
+	h.a.Equal("baz", u.Username)
+
+}
+
 func TestScimUserReplace(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
@@ -106,7 +158,7 @@ func TestScimUserReplace(t *testing.T) {
   ]
 }`).
 		Expect(t).
-		//Status(http.StatusNoContent).
+		Status(http.StatusOK).
 		End()
 
 	u, err := store.LookupUserByID(context.Background(), service.DefaultStore, u.ID)
@@ -151,12 +203,7 @@ func TestScimGroupCreate(t *testing.T) {
 	h.scimApiInit().
 		Debug().
 		Post("/Groups").
-		JSON(`{
-  "schemas": [
-    "urn:ietf:params:scim:schemas:core:2.0:Group"
-  ],
-  "displayName": "foo"
-}`).
+		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"foo"}`).
 		Expect(t).
 		Status(http.StatusCreated).
 		Assert(helpers.AssertNoErrors).
@@ -165,6 +212,37 @@ func TestScimGroupCreate(t *testing.T) {
 	u, err := store.LookupRoleByName(context.Background(), service.DefaultStore, "foo")
 	h.a.NoError(err)
 	h.a.Equal("foo", u.Name)
+}
+
+func TestScimGroupExternalId(t *testing.T) {
+	h := newHelper(t)
+	h.clearRoles()
+
+	h.scimApiInit().
+		Debug().
+		Post("/Groups").
+		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"foo","externalId":"grp42"}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err := store.LookupRoleByName(context.Background(), service.DefaultStore, "foo")
+	h.a.NoError(err)
+	h.a.Equal("foo", u.Name)
+
+	h.scimApiInit().
+		Debug().
+		Post("/Groups").
+		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"bar","externalId":"grp42"}`).
+		Expect(t).
+		Status(http.StatusCreated).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u, err = store.LookupRoleByName(context.Background(), service.DefaultStore, "bar")
+	h.a.NoError(err)
+	h.a.Equal("bar", u.Name)
 }
 
 func TestScimGroupReplace(t *testing.T) {
@@ -176,12 +254,7 @@ func TestScimGroupReplace(t *testing.T) {
 	h.scimApiInit().
 		Debug().
 		Put(fmt.Sprintf("/Groups/%d", u.ID)).
-		JSON(`{
-  "schemas": [
-    "urn:ietf:params:scim:schemas:core:2.0:Group"
-  ],
-  "displayName": "bar"
-}`).
+		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"bar"}`).
 		Expect(t).
 		End()
 
