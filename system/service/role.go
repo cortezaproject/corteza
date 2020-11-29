@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
@@ -156,11 +157,6 @@ func (svc role) FindByID(roleID uint64) (r *types.Role, err error) {
 		}
 
 		raProps.setRole(r)
-
-		if err = label.Load(svc.ctx, svc.store, r); err != nil {
-			return err
-		}
-
 		return nil
 	}()
 
@@ -172,7 +168,7 @@ func (svc role) findByID(roleID uint64) (*types.Role, error) {
 		return nil, RoleErrInvalidID()
 	}
 
-	return store.LookupRoleByID(svc.ctx, svc.store, roleID)
+	return svc.proc(store.LookupRoleByID(svc.ctx, svc.store, roleID))
 }
 
 func (svc role) FindByName(name string) (r *types.Role, err error) {
@@ -181,16 +177,11 @@ func (svc role) FindByName(name string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		if r, err = store.LookupRoleByName(svc.ctx, svc.store, name); err != nil {
+		if r, err = svc.proc(store.LookupRoleByName(svc.ctx, svc.store, name)); err != nil {
 			return err
 		}
 
 		raProps.setRole(r)
-
-		if err = label.Load(svc.ctx, svc.store, r); err != nil {
-			return err
-		}
-
 		return nil
 	}()
 
@@ -203,16 +194,11 @@ func (svc role) FindByHandle(h string) (r *types.Role, err error) {
 	)
 
 	err = func() error {
-		if r, err = store.LookupRoleByHandle(svc.ctx, svc.store, h); err != nil {
+		if r, err = svc.proc(store.LookupRoleByHandle(svc.ctx, svc.store, h)); err != nil {
 			return err
 		}
 
 		raProps.setRole(r)
-
-		if err = label.Load(svc.ctx, svc.store, r); err != nil {
-			return err
-		}
-
 		return nil
 	}()
 
@@ -237,6 +223,22 @@ func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types
 	} else {
 		return nil, RoleErrInvalidID()
 	}
+}
+
+func (svc role) proc(r *types.Role, err error) (*types.Role, error) {
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil, RoleErrNotFound()
+		}
+
+		return nil, err
+	}
+
+	if err = label.Load(svc.ctx, svc.store, r); err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (svc role) Create(new *types.Role) (r *types.Role, err error) {
