@@ -43,11 +43,11 @@ func Guard(opt options.SCIMOpt) func(next http.Handler) http.Handler {
 }
 
 func Routes(r chi.Router) {
-
 	r.Route("/Users", func(r chi.Router) {
 		uh := &usersHandler{
-			svc: service.DefaultUser,
-			sec: getSecurityContext,
+			svc:     service.DefaultUser,
+			passSvc: service.DefaultAuth,
+			sec:     getSecurityContext,
 		}
 
 		r.Get("/{id}", uh.get)

@@ -13,10 +13,15 @@ import (
 )
 
 type (
+	passwordSetter interface {
+		SetPassword(context.Context, uint64, string) error
+	}
+
 	usersHandler struct {
-		svc    service.UserService
-		rleSvc service.RoleService
-		sec    getSecurityContextFn
+		svc     service.UserService
+		rleSvc  service.RoleService
+		passSvc passwordSetter
+		sec     getSecurityContextFn
 	}
 )
 
@@ -108,6 +113,13 @@ func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (u *types
 		// @todo
 	}
 
+	if payload.Password != nil && *payload.Password != "" {
+		err = h.passSvc.SetPassword(ctx, u.ID, *payload.Password)
+		if err != nil {
+			return
+		}
+	}
+
 	return u, nil
 }
 
@@ -145,6 +157,13 @@ func (h usersHandler) updateFromJSON(ctx context.Context, id uint64, j io.Reader
 	}
 
 	payload.applyTo(u)
+
+	if payload.Password != nil && *payload.Password != "" {
+		err = h.passSvc.SetPassword(ctx, u.ID, *payload.Password)
+		if err != nil {
+			return
+		}
+	}
 
 	return h.svc.With(ctx).Update(u)
 }
