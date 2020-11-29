@@ -3,7 +3,6 @@ package scim
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -16,13 +15,14 @@ import (
 type (
 	groupsHandler struct {
 		svc service.RoleService
+		sec getSecurityContextFn
 	}
 )
 
 func (h groupsHandler) get(w http.ResponseWriter, r *http.Request) {
 	var (
 		id, _ = strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
-		ctx   = auth.SetSuperUserContext(r.Context())
+		ctx   = h.sec(r)
 		svc   = h.svc.With(ctx)
 	)
 
@@ -42,7 +42,7 @@ func (h groupsHandler) create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var (
-		ctx = auth.SetSuperUserContext(r.Context())
+		ctx = h.sec(r)
 	)
 
 	if u, err := h.createFromJSON(ctx, r.Body); err != nil {
@@ -99,7 +99,7 @@ func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var (
-		ctx        = auth.SetSuperUserContext(r.Context())
+		ctx        = h.sec(r)
 		groupID, _ = strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 	)
 
@@ -135,7 +135,7 @@ func (h groupsHandler) updateFromJSON(ctx context.Context, id uint64, j io.Reade
 
 func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
 	var (
-		ctx        = auth.SetSuperUserContext(r.Context())
+		ctx        = h.sec(r)
 		groupID, _ = strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 		svc        = h.svc.With(ctx)
 	)
