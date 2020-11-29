@@ -644,12 +644,12 @@ func RoleErrGeneric(mm ...*roleActionProps) *errors.Error {
 	return e
 }
 
-// RoleErrNotFOund returns "system:role.notFOund" as *errors.Error
+// RoleErrNotFound returns "system:role.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RoleErrNotFOund(mm ...*roleActionProps) *errors.Error {
+func RoleErrNotFound(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -660,7 +660,7 @@ func RoleErrNotFOund(mm ...*roleActionProps) *errors.Error {
 
 		p.Format("role not found", nil),
 
-		errors.Meta("type", "notFOund"),
+		errors.Meta("type", "notFound"),
 		errors.Meta("resource", "system:role"),
 
 		errors.Meta(rolePropsMetaKey{}, p),

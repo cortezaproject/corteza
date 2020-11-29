@@ -76,7 +76,7 @@ actions:
 
 
 errors:
-  - error: notFOund
+  - error: notFound
     message: "role not found"
     severity: warning
 
