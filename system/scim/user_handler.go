@@ -3,7 +3,6 @@ package scim
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -33,13 +32,13 @@ func (h usersHandler) get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if u, err := svc.FindByID(id); err != nil {
-		errors.ServeHTTP(w, r, err, !api.DebugFromContext(r.Context()))
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
 		return
 	} else {
-		send(w, newUserResourceResponse(u))
+		send(w, http.StatusOK, newUserResourceResponse(u))
 	}
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
@@ -50,10 +49,9 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if u, err := h.createFromJSON(ctx, r.Body); err != nil {
-		errors.ServeHTTP(w, r, err, !api.DebugFromContext(r.Context()))
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
 	} else {
-		w.WriteHeader(http.StatusCreated)
-		send(w, newUserResourceResponse(u))
+		send(w, http.StatusCreated, newUserResourceResponse(u))
 	}
 }
 
@@ -99,10 +97,9 @@ func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if u, err := h.updateFromJSON(ctx, userID, r.Body); err != nil {
-		errors.ServeHTTP(w, r, err, !api.DebugFromContext(r.Context()))
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
 	} else {
-		w.WriteHeader(http.StatusOK)
-		send(w, newUserResourceResponse(u))
+		send(w, http.StatusOK, newUserResourceResponse(u))
 	}
 }
 
@@ -137,7 +134,7 @@ func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := svc.Delete(userID); err != nil {
-		send(w, err)
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
