@@ -46,11 +46,13 @@ func Provision(ctx context.Context, log *zap.Logger, s store.Storer) (err error)
 		return err
 	}
 
-	// Provision from yumles
+	// Provision from YAML files
 	// - access control
 	// - settings
 	// - applications
-	err = util.EncodeStatik(ctx, s, Asset, "/")
+	if err = util.EncodeStatik(ctx, s, Asset, "/"); err != nil {
+		return err
+	}
 
 	// These ones need some extra things, so we'll leave them there
 	if err = authSettingsAutoDiscovery(ctx, log, service.DefaultSettings); err != nil {
