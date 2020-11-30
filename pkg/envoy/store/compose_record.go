@@ -72,7 +72,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 			refM := f.Options.String("module")
 			if refM != "" && refM != "0" {
 				// Make a reference with that module's records
-				n.res.AddRef(resource.COMPOSE_RECORD_RESOURCE_TYPE, refM)
+				n.res.AddRef(resource.COMPOSE_RECORD_RESOURCE_TYPE, refM).Constraint(n.res.NsRef)
 			}
 		}
 	}

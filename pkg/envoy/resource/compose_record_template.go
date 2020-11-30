@@ -41,8 +41,8 @@ func NewComposeRecordTemplate(modRef, nsRef, name string, fieldMap MappingTplSet
 	r.Key = key
 	r.FieldMap = fieldMap
 
-	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
 
 	r.SetResourceType(DATA_SOURCE_RESOURCE_TYPE)
 	r.AddIdentifier(identifiers(name)...)

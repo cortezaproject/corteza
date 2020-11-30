@@ -37,7 +37,51 @@ func NewBuilder(pp ...Preparer) *builder {
 	}
 }
 
+// Build builds the graph that is used for structured data processing
+//
+// Outline:
+// 1. Build an initial graph so that we can do some structured preprocessing.
+// 2. Preprocess the resources based on the initial graph. The initial graph
+//    should remain unchanged. Preprocessing can request additional references and
+//    constraints.
+// 3. Build a final graph based on the preprocessing modifications.
 func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, error) {
+	var err error
+
+	g := b.buildGraph(rr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Do any dep. related preprocessing
+	var state *ResourceState
+	err = func() error {
+		for {
+			state, err = g.NextInverted(ctx)
+			if err != nil {
+				return err
+			} else if state == nil {
+				return nil
+			}
+
+			for _, p := range b.pp {
+				err = p.Prepare(ctx, state)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	g = b.buildGraph(rr)
+	return g, nil
+}
+
+func (b *builder) buildGraph(rr []resource.Interface) *graph {
 	g := newGraph()
 
 	// Prepare nodes for all resources
@@ -45,9 +89,6 @@ func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, 
 	for _, r := range rr {
 		nn = nn.add(newNode(r))
 	}
-
-	// Let's keep track of the missing deps.
-	mMap := make(map[resource.Interface]resource.RefSet)
 
 	// Index all resources for nicer lookups
 	nIndex := make(nodeIndex)
@@ -73,43 +114,7 @@ func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, 
 		}
 
 		g.addNode(cNode)
-		if len(missingRefs) > 0 {
-			mMap[cNode.res] = missingRefs
-		}
 	}
 
-	// Do any dep. related preprocessing
-	var state *ResourceState
-	var err error
-
-	err = func() error {
-		for {
-			state, err = g.NextInverted(ctx)
-			if err != nil {
-				return err
-			} else if state == nil {
-				return nil
-			}
-
-			// Copy state so we don't alter the original one
-			nState := state
-			nState.MissingDeps = mMap[state.Res]
-
-			for _, p := range b.pp {
-				err = p.Prepare(ctx, nState)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}()
-
-	if err != nil {
-		return nil, err
-	}
-
-	g.Relink()
-	g.reset()
-
-	return g, nil
+	return g
 }

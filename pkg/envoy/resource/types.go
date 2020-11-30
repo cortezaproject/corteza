@@ -26,6 +26,7 @@ type (
 		// @todo should this become node type instead?
 		ResourceType string
 		Identifiers  Identifiers
+		Constraints  RefSet
 	}
 
 	Identifiers map[string]bool
@@ -124,4 +125,18 @@ func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {
 	}
 
 	return nil
+}
+
+// Constraint returns the current reference with added constraint
+func (r *Ref) Constraint(c *Ref) *Ref {
+	if r.Constraints == nil {
+		r.Constraints = make(RefSet, 0, 1)
+	}
+
+	r.Constraints = append(r.Constraints, &Ref{
+		ResourceType: c.ResourceType,
+		Identifiers:  MakeIdentifiers(c.Identifiers.StringSlice()...),
+	})
+
+	return r
 }
