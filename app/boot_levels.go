@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
@@ -19,12 +18,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
+	"github.com/cortezaproject/corteza-server/pkg/provision"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
-	"github.com/cortezaproject/corteza-server/provision/compose"
-	"github.com/cortezaproject/corteza-server/provision/messaging"
-	"github.com/cortezaproject/corteza-server/provision/system"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/auth/external"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
@@ -256,28 +253,12 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 	if !app.Opt.Provision.Always {
 		app.Log.Debug("provisioning skipped (PROVISION_ALWAYS=false)")
 	} else {
-		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 		defer sentry.Recover()
 
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 		ctx = auth.SetSuperUserContext(ctx)
 
-		if err = system.Provision(ctx, app.Log, app.Store); err != nil {
-			return fmt.Errorf("could not provision system: %w", err)
-		}
-
-		if err = compose.Provision(ctx, app.Log, app.Store); err != nil {
-			return fmt.Errorf("could not provision compose: %w", err)
-		}
-
-		if err = messaging.Provision(ctx, app.Log, app.Store); err != nil {
-			return fmt.Errorf("could not provision messaging: %w", err)
-		}
-
-		for errors.Unwrap(err) != nil {
-			err = errors.Unwrap(err)
-		}
-
-		if err != nil {
+		if err = provision.Run(ctx, app.Log, app.Store); err != nil {
 			return err
 		}
 

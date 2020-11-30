@@ -4,7 +4,7 @@ set -eu
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-BRANCH=${BRANCH:-"develop"}
+BRANCH=${BRANCH:-"2020.12.x"}
 ZIP="${BRANCH}.zip"
 URL=${URL:-"https://github.com/cortezaproject/corteza-ext/archive/${ZIP}"}
 DIR="corteza-ext-${BRANCH}"
@@ -19,9 +19,9 @@ function download {
 }
 
 function copyExtConfig {
-  echo -e "\033[32mCopying ${2} ${1}\033[39m ... "
-  mkdir -p "./compose/src/${1}"
-  cp "${DIR}/${1}/config/${2}.yaml" "./compose/src/${1}/${2}.yaml"
+  echo -e "\033[32mCopying ${3} ${2}\033[39m ... "
+  mkdir -p "./${1}_${2}"
+  cp -f "${DIR}/${2}/config/${3}.yaml" "./${1}_${2}/${3}.yaml"
 }
 
 function cleanup {
@@ -32,17 +32,17 @@ function cleanup {
 
 download
 
-copyExtConfig crm 1000_namespace
-copyExtConfig crm 1100_modules
-copyExtConfig crm 1200_charts
-copyExtConfig crm 1400_pages
-copyExtConfig crm 1500_record_settings
+copyExtConfig 700 crm 1000_namespace
+copyExtConfig 700 crm 1100_modules
+copyExtConfig 700 crm 1200_charts
+copyExtConfig 700 crm 1400_pages
+copyExtConfig 700 crm 1500_record_settings
 
-copyExtConfig service-solution 1000_namespace
-copyExtConfig service-solution 1100_modules
-copyExtConfig service-solution 1200_charts
-copyExtConfig service-solution 1400_pages
-copyExtConfig service-solution 1500_record_settings
+copyExtConfig 701 service-solution 1000_namespace
+copyExtConfig 701 service-solution 1100_modules
+copyExtConfig 701 service-solution 1200_charts
+copyExtConfig 701 service-solution 1400_pages
+copyExtConfig 701 service-solution 1500_record_settings
 
 cleanup
 
