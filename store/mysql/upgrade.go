@@ -176,6 +176,10 @@ func (u upgrader) AddColumn(ctx context.Context, table string, col *ddl.Column) 
 			return nil
 		}
 
+		if col.Type.Type == ddl.ColumnTypeText || col.Type.Type == ddl.ColumnTypeJson {
+			col.DefaultValue = ""
+		}
+
 		if err = u.Exec(ctx, u.ddl.AddColumn(table, col)); err != nil {
 			return err
 		}
