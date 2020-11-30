@@ -95,7 +95,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 
 	for _, e := range ee {
 		switch res := e.Res.(type) {
-		// Compose things
+		// Compose resources
 		case *resource.ComposeNamespace:
 			err = f(NewComposeNamespaceState(res, se.cfg), e)
 		case *resource.ComposeModule:
@@ -107,7 +107,7 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		case *resource.ComposePage:
 			err = f(NewComposePageState(res, se.cfg), e)
 
-		// System things
+		// System resources
 		case *resource.User:
 			err = f(NewUserState(res, se.cfg), e)
 		case *resource.Role:
