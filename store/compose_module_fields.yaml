@@ -17,6 +17,7 @@ fields:
   - { field: Visible,      type: bool }
   - { field: Multi,        type: bool }
   - { field: DefaultValue, type: "types.RecordValueSet" }
+  - { field: Expressions,  type: "types.ModuleFieldExpr" }
   - { field: CreatedAt }
   - { field: UpdatedAt }
   - { field: DeletedAt }

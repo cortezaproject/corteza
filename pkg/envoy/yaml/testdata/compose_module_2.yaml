@@ -1,0 +1,17 @@
+namespace: crm
+modules:
+  Account:
+    name: Expressions
+    fields:
+      full:
+        expressions:
+          valueExpr: "a > b"
+          sanitizers: [ "trim(value)" ]
+          validators:
+            - test: 'a == ""'
+              error: Value should not be empty
+          disableDefaultValidators: true
+      validatorKV:
+        expressions:
+          validators:
+            'value == ""': Value should be filled

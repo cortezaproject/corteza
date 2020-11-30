@@ -137,10 +137,10 @@ func Test_sanitizer_Run(t *testing.T) {
 			output:  "42.555556",
 		},
 		{
-			name:    "number precision; clamped between [0, 6]",
+			name:    "number precision; round",
 			kind:    "Number",
-			options: map[string]interface{}{"precision": -1},
-			input:   "42.4",
+			options: map[string]interface{}{"precision": 0},
+			input:   "41.6",
 			output:  "42",
 		},
 		{
@@ -162,6 +162,41 @@ func Test_sanitizer_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := sanitizer{}
 			m := &types.Module{Fields: types.ModuleFieldSet{&types.ModuleField{Name: "testField", Kind: tt.kind, Options: tt.options}}}
+			v := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.input}}
+			o := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.output, Ref: tt.outref}}
+
+			// Need to mark values as updated to trigger sanitization.
+			v.SetUpdatedFlag(true)
+			o.SetUpdatedFlag(true)
+			if sanitized := s.Run(m, v); !reflect.DeepEqual(sanitized, o) {
+				t.Errorf("\ninput value:\n%v\n\nresult of sanitization:\n%v\n\nexpected:\n%v\n", tt.input, sanitized, o)
+			}
+		})
+	}
+}
+
+func TestSanitizerExpr(t *testing.T) {
+	tests := []struct {
+		name   string
+		kind   string
+		expr   []string
+		input  string
+		output string
+		outref uint64
+	}{
+		{
+			name:   "cap numbers",
+			kind:   "Number",
+			expr:   []string{`value > 42 ? 42 : value`},
+			input:  "43",
+			output: "42",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := sanitizer{}
+			m := &types.Module{Fields: types.ModuleFieldSet{&types.ModuleField{Name: "testField", Kind: tt.kind}}}
+			m.Fields.FindByName("testField").Expressions.Sanitizers = tt.expr
 			v := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.input}}
 			o := types.RecordValueSet{&types.RecordValue{Name: "testField", Value: tt.output, Ref: tt.outref}}
 

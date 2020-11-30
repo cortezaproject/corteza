@@ -315,6 +315,7 @@ func (Schema) ComposeModuleField() *Table {
 		ColumnDef("kind", ColumnTypeText),
 		ColumnDef("options", ColumnTypeJson),
 		ColumnDef("default_value", ColumnTypeJson),
+		ColumnDef("expressions", ColumnTypeJson),
 		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("label", ColumnTypeText),
 		ColumnDef("is_private", ColumnTypeBoolean),
