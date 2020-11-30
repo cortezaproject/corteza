@@ -17,10 +17,6 @@ type (
 	EnvoyMarshler interface {
 		MarshalEnvoy() ([]resource.Interface, error)
 	}
-
-	nodeDecoder interface {
-		DecodeNodes(ctx context.Context) ([]resource.Interface, error)
-	}
 )
 
 func Decoder() *decoder {
@@ -31,12 +27,16 @@ func Decoder() *decoder {
 //
 // @todo Add support for this; current library is unable to detect this.
 func (y *decoder) CanDecodeFile(f io.Reader) bool {
-	return false
+	// relying on can-decode-ext for now
+	return true
 }
 
-func (y *decoder) CanDecodeExt(ext string) bool {
-	pt := strings.Split(ext, ".")
-	return strings.TrimSpace(pt[len(pt)-1]) == "yaml"
+func (y *decoder) CanDecodeExt(name string) bool {
+	var (
+		pt  = strings.Split(name, ".")
+		ext = strings.TrimSpace(pt[len(pt)-1])
+	)
+	return ext == "yaml" || ext == "yml"
 }
 
 func (y *decoder) Decode(ctx context.Context, r io.Reader, dctx *envoy.DecoderOpts) ([]resource.Interface, error) {

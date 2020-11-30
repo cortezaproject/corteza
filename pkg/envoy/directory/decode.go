@@ -25,8 +25,6 @@ func Decode(ctx context.Context, p string, decoders ...decoder) ([]resource.Inte
 	var (
 		f *os.File
 
-		d decoder
-
 		// decoded nodes
 		dnn []resource.Interface
 
@@ -52,37 +50,37 @@ func Decode(ctx context.Context, p string, decoders ...decoder) ([]resource.Inte
 		}
 		defer f.Close()
 
-		for _, d = range decoders {
-			// find compatible decoder
-			if d.CanDecodeFile(f) {
-				break
+		for _, d := range decoders {
+			if !d.CanDecodeFile(f) {
+				// decoder can not handle this file
+				continue
 			}
-			// Do a fallback for extensions
-			if d.CanDecodeExt(info.Name()) {
-				break
+
+			if !d.CanDecodeExt(info.Name()) {
+				// this decoder can not handle this extension
+				continue
 			}
-		}
-		if d == nil {
-			// no decoder found
+
+			if _, err = f.Seek(0, 0); err != nil {
+				return err
+			}
+
+			dir, fn := path.Split(p)
+			do := &envoy.DecoderOpts{
+				Name: fn,
+				Path: dir,
+			}
+
+			if dnn, err = d.Decode(ctx, f, do); err != nil {
+				return fmt.Errorf("failed to decode %s: %w", info.Name(), err)
+			}
+
+			nn = append(nn, dnn...)
+
+			// found compatible decoder
 			return nil
 		}
 
-		_, err = f.Seek(0, 0)
-		if err != nil {
-			return err
-		}
-
-		dir, fn := path.Split(p)
-		do := &envoy.DecoderOpts{
-			Name: fn,
-			Path: dir,
-		}
-
-		if dnn, err = d.Decode(ctx, f, do); err != nil {
-			return fmt.Errorf("failed to decode %s: %w", info.Name(), err)
-		}
-
-		nn = append(nn, dnn...)
 		return nil
 	})
 }
