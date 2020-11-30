@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/deinterfacer"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -17,6 +16,7 @@ import (
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	sqlTypes "github.com/jmoiron/sqlx/types"
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"regexp"
@@ -516,10 +516,10 @@ func expPageBlocks(in types.PageBlocks, pages types.PageSet, modules types.Modul
 
 func expPageBlocks_Automation(b *types.PageBlock) {
 	bb := make([]interface{}, 0)
-	_ = deinterfacer.Each(b.Options["buttons"], func(_ int, _ string, btn interface{}) error {
+	_ = each(b.Options["buttons"], func(_ int, _ string, btn interface{}) error {
 		button := map[string]interface{}{}
 
-		_ = deinterfacer.Each(btn, func(_ int, k string, v interface{}) error {
+		_ = each(btn, func(_ int, k string, v interface{}) error {
 			switch k {
 			case "triggerID", "scriptID":
 				// if s := scripts.FindByID(deinterfacer.ToUint64(v)); s != nil {
@@ -541,10 +541,10 @@ func expPageBlocks_Automation(b *types.PageBlock) {
 
 func expPageBlocks_Calendar(b *types.PageBlock, modules types.ModuleSet) {
 	ff := make([]interface{}, 0)
-	_ = deinterfacer.Each(b.Options["feeds"], func(_ int, _ string, def interface{}) error {
+	_ = each(b.Options["feeds"], func(_ int, _ string, def interface{}) error {
 		feed := map[string]interface{}{}
 
-		_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+		_ = each(def, func(_ int, k string, v interface{}) error {
 			switch k {
 			case "options":
 				expEncodeModuleInMap(v, modules)
@@ -565,10 +565,10 @@ func expPageBlocks_Calendar(b *types.PageBlock, modules types.ModuleSet) {
 
 func expPageBlocks_Metric(b *types.PageBlock, modules types.ModuleSet) {
 	mm := make([]interface{}, 0)
-	_ = deinterfacer.Each(b.Options["metrics"], func(_ int, _ string, def interface{}) error {
+	_ = each(b.Options["metrics"], func(_ int, _ string, def interface{}) error {
 		metric := map[string]interface{}{}
 
-		_ = deinterfacer.Each(def, func(_ int, k string, v interface{}) error {
+		_ = each(def, func(_ int, k string, v interface{}) error {
 			switch k {
 			case "moduleID":
 				metric["module"] = expEncodeModule(v, modules)
@@ -587,7 +587,7 @@ func expPageBlocks_Metric(b *types.PageBlock, modules types.ModuleSet) {
 }
 
 func expEncodeModule(id interface{}, modules types.ModuleSet) string {
-	if moduleID := deinterfacer.ToUint64(id); moduleID > 0 {
+	if moduleID := cast.ToUint64(id); moduleID > 0 {
 		if module := modules.FindByID(moduleID); module != nil {
 			return makeHandleFromName(module.Name, module.Handle, "module-%d", module.ID)
 		}
@@ -685,4 +685,39 @@ func makeHandleFromName(name, currentHandle, def string, id uint64) string {
 	}
 
 	return fmt.Sprintf(def, id)
+}
+
+// each() tries to resolve interface{} into map[interface{}]interface{} or []interface{}
+// and calls fn() for each entry
+func each(i interface{}, fn func(int, string, interface{}) error) (err error) {
+	if kv, ok := i.(map[interface{}]interface{}); ok {
+		for k, v := range kv {
+			if key, ok := k.(string); !ok {
+				err = fmt.Errorf("unsupported key type: %T (%+v)", k, k)
+			} else {
+				err = fn(-1, key, v)
+			}
+
+			if err != nil {
+				return
+			}
+		}
+	} else if kv, ok := i.(map[string]interface{}); ok {
+		for k, v := range kv {
+			err = fn(-1, k, v)
+
+			if err != nil {
+				return
+			}
+		}
+	} else if slice, ok := i.([]interface{}); ok {
+		_ = slice
+		for index, i := range slice {
+			if err = fn(index, "", i); err != nil {
+				return
+			}
+		}
+	}
+
+	return
 }
