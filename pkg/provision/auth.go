@@ -252,7 +252,7 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 
 		// provision environmental variable name
 		// we're using full variable name here so developers
-		// can find where things are comming from
+		// can find where things are coming from
 		env string
 
 		// default value

@@ -1,7 +1,7 @@
 package resource
 
 type (
-	// A simple wrapper struct for related things
+	// A simple wrapper struct for related resources
 	composeRecordShaper struct{}
 )
 
