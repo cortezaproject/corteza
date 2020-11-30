@@ -18,7 +18,7 @@ func NewMessagingChannel(res *types.Channel) *MessagingChannel {
 	r.SetResourceType(MESSAGING_CHANNEL_RESOURCE_TYPE)
 	r.Res = res
 
-	r.AddIdentifier(identifiers(res.ID)...)
+	r.AddIdentifier(identifiers(res.ID, res.Name)...)
 
 	return r
 }
