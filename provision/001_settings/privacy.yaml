@@ -1,0 +1,3 @@
+settings:
+  privacy.mask.email: true
+  privacy.mask.name: true

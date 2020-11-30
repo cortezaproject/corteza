@@ -1,0 +1,28 @@
+= Provision config files
+
+By default, Corteza provisions itself with all config files found in this directory.
+Provisioning process can be configured via `PROVISION_CONFIG_PATHS`.
+
+Extensions (`8xx-xxxxx`) are installed from https://github.com/cortezaproject/corteza-ext by release procedure.
+Manual installation of extensions is also possible by running `./update.sh` shell script in this directory
+
+== Naming/numeration rules
+
+0xx::
+Base resources, configuration, access control rules
+
+1xx::
+Additional resources
+
+2xx..6xx::
+Reserved
+
+7xx::
+Reserved for extensions
+
+8xx::
+Reserved for custom/user configuration
+
+9xx::
+Temporary, deprecated, obsolete
+

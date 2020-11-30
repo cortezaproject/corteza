@@ -1,19 +1,24 @@
-package system
+package provision
 
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"net/url"
-	"os"
-	"strings"
-
-	"github.com/spf13/cast"
-	"go.uber.org/zap"
-
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cast"
+	"go.uber.org/zap"
+	"net/url"
+	"os"
+	"strings"
+)
+
+type (
+	settingsService interface {
+		FindByPrefix(context.Context, ...string) (types.SettingValueSet, error)
+		BulkSet(context.Context, types.SettingValueSet) error
+	}
 )
 
 var (
