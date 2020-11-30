@@ -2,7 +2,6 @@ package yaml
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
@@ -12,6 +11,7 @@ type (
 	// Document defines the supported yaml structure
 	Document struct {
 		compose      *compose
+		messaging    *messaging
 		roles        roleSet
 		users        userSet
 		applications applicationSet
@@ -22,6 +22,10 @@ type (
 
 func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 	if err = n.Decode(&doc.compose); err != nil {
+		return
+	}
+
+	if err = n.Decode(&doc.messaging); err != nil {
 		return
 	}
 
@@ -56,6 +60,9 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	mm := make([]envoy.Marshaller, 0, 20)
 	if doc.compose != nil {
 		mm = append(mm, doc.compose)
+	}
+	if doc.messaging != nil {
+		mm = append(mm, doc.messaging)
 	}
 	if doc.roles != nil {
 		mm = append(mm, doc.roles)

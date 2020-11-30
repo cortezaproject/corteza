@@ -2,6 +2,7 @@ package resource
 
 import (
 	ct "github.com/cortezaproject/corteza-server/compose/types"
+	mt "github.com/cortezaproject/corteza-server/messaging/types"
 	st "github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -44,6 +45,7 @@ var (
 	SETTINGS_RESOURCE_TYPE          = "system:setting:"
 	USER_RESOURCE_TYPE              = st.UserRBACResource.String()
 	DATA_SOURCE_RESOURCE_TYPE       = "data:raw:"
+	MESSAGING_CHANNEL_RESOURCE_TYPE = mt.ChannelRBACResource.String()
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {
