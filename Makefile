@@ -80,6 +80,8 @@ release: build $(BUILD_DEST_DIR)/$(RELEASE_NAME)
 $(BUILD_DEST_DIR)/$(RELEASE_NAME):
 	@ mkdir -p $(RELEASE_BASEDIR) $(RELEASE_BASEDIR)/bin
 	@ cp $(RELEASE_EXTRA_FILES) $(RELEASE_BASEDIR)/
+	@ cp -r provision $(RELEASE_BASEDIR)
+	@ rm -f $(RELEASE_BASEDIR)/provision/README.adoc $(RELEASE_BASEDIR)/provision/update.sh
 	@ cp $(BUILD_DEST_DIR)/$(BUILD_BIN_NAME) $(RELEASE_BASEDIR)/bin/$(BUILD_FLAVOUR)-server
 	tar -C $(dir $(RELEASE_BASEDIR)) -czf $(BUILD_DEST_DIR)/$(RELEASE_NAME) $(notdir $(RELEASE_BASEDIR))
 
