@@ -10,7 +10,8 @@ package options
 
 type (
 	ProvisionOpt struct {
-		Always bool `env:"PROVISION_ALWAYS"`
+		Always bool   `env:"PROVISION_ALWAYS"`
+		Path   string `env:"PROVISION_PATH"`
 	}
 )
 
@@ -18,6 +19,7 @@ type (
 func Provision() (o *ProvisionOpt) {
 	o = &ProvisionOpt{
 		Always: true,
+		Path:   "provision/*",
 	}
 
 	fill(o)

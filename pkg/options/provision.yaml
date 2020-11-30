@@ -5,3 +5,5 @@ props:
   - name: always
     type: bool
     default: true
+  - name: path
+    default: "provision/*"

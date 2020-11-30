@@ -258,7 +258,7 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
 		ctx = auth.SetSuperUserContext(ctx)
 
-		if err = provision.Run(ctx, app.Log, app.Store); err != nil {
+		if err = provision.Run(ctx, app.Log, app.Store, app.Opt.Provision.Path); err != nil {
 			return err
 		}
 
