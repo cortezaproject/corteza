@@ -52,7 +52,7 @@ func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 	r.AddIdentifier(identifiers(modRef)...)
 
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
 
 	return r
 }

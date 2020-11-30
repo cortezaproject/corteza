@@ -28,7 +28,7 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 	for i, mRef := range mmRef {
-		r.ModRef[i] = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, mRef)
+		r.ModRef[i] = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, mRef).Constraint(r.NsRef)
 	}
 
 	return r

@@ -32,11 +32,11 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 	if modRef != "" {
-		r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef)
+		r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
 	}
 
 	if parentRef != "" {
-		r.ParentRef = r.AddRef(COMPOSE_PAGE_RESOURCE_TYPE, parentRef)
+		r.ParentRef = r.AddRef(COMPOSE_PAGE_RESOURCE_TYPE, parentRef).Constraint(r.NsRef)
 	}
 
 	for _, b := range pg.Blocks {
@@ -44,13 +44,13 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		case "RecordList":
 			id, _ := b.Options["module"].(string)
 			if id != "" {
-				r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id))
+				r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
 			}
 
 		case "Chart":
 			id, _ := b.Options["chart"].(string)
 			if id != "" {
-				r.ChartRefs = append(r.ChartRefs, r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id))
+				r.ChartRefs = append(r.ChartRefs, r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id).Constraint(r.NsRef))
 			}
 
 		case "Calendar":
@@ -60,7 +60,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				fOpts, _ := (feed["options"]).(map[string]interface{})
 				id, _ := fOpts["module"].(string)
 				if id != "" {
-					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id))
+					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
 				}
 			}
 
@@ -70,7 +70,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				mops, _ := m.(map[string]interface{})
 				id, _ := mops["module"].(string)
 				if id != "" {
-					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id))
+					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
 				}
 			}
 		}

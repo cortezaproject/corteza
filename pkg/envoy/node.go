@@ -12,7 +12,10 @@ type (
 		cc nodeSet
 	}
 
-	nodeIndex map[string]map[string]*node
+	// resource type -> identifier -> []nodes
+	// There can be multiple resources with same identifier; for example
+	// two modules under different namespaces.
+	nodeIndex map[string]map[string]nodeSet
 )
 
 func newNode(res resource.Interface) *node {
@@ -35,18 +38,6 @@ func (nn nodeSet) filter(f func(n *node) bool) nodeSet {
 		}
 	}
 	return mm
-}
-
-func (nn nodeSet) findByRef(ref *resource.Ref) *node {
-	for _, n := range nn {
-		if n.res.ResourceType() == ref.ResourceType {
-			if n.res.Identifiers().HasAny(ref.Identifiers) {
-				return n
-			}
-		}
-	}
-
-	return nil
 }
 
 func (nn nodeSet) has(m *node) bool {
@@ -81,26 +72,47 @@ func (ri nodeIndex) Add(nn ...*node) {
 	for _, n := range nn {
 		rt := n.res.ResourceType()
 		if _, has := ri[rt]; !has {
-			ri[rt] = make(map[string]*node)
+			ri[rt] = make(map[string]nodeSet)
 		}
 
 		for i := range n.res.Identifiers() {
-			ri[rt][i] = n
+			if ri[rt][i] == nil {
+				ri[rt][i] = make(nodeSet, 0, 5)
+			}
+			ri[rt][i] = append(ri[rt][i], n)
 		}
 	}
 }
 
 func (ri nodeIndex) GetRef(ref *resource.Ref) *node {
-	res, has := ri[ref.ResourceType]
+	refIi, has := ri[ref.ResourceType]
 	if !has {
 		return nil
 	}
 
 	for i := range ref.Identifiers {
-		r, has := res[i]
-		if has {
-			return r
+		rr, has := refIi[i]
+		if !has || len(rr) == 0 {
+			continue
 		}
+
+		// No constraints? no worries
+		if ref.Constraints == nil || len(ref.Constraints) == 0 {
+			return rr[0]
+		}
+
+		// Constraints? check if ok
+		// If this loop makes you sick, don't worry; this will be at most 3x3x1
+		for _, r := range rr {
+			for _, c := range ref.Constraints {
+				for _, ref := range r.res.Refs() {
+					if ref.ResourceType == c.ResourceType && ref.Identifiers.HasAny(c.Identifiers) {
+						return r
+					}
+				}
+			}
+		}
+
 	}
 
 	return nil

@@ -24,7 +24,6 @@ type (
 
 	ResourceState struct {
 		Res             resource.Interface
-		MissingDeps     resource.RefSet
 		Conflicting     bool
 		DepResources    []resource.Interface
 		ParentResources []resource.Interface
@@ -86,29 +85,6 @@ func (g *graph) markProcessed(n *node) {
 }
 func (g *graph) markConflicting(n *node) {
 	g.conflicting = g.conflicting.add(n)
-}
-
-func (g *graph) Relink() {
-	for _, n := range g.nn {
-		n.cc = make(nodeSet, 0, len(n.cc))
-		n.pp = make(nodeSet, 0, len(n.pp))
-	}
-
-	for res := range g.resIndex {
-		n := g.resIndex[res]
-		if n == nil {
-			return
-		}
-
-		for _, ref := range res.Refs() {
-			// else find the node and link to it (if we can)
-			m := g.nn.findByRef(ref)
-			if m != nil {
-				g.addChild(n, m)
-				g.addParent(m, n)
-			}
-		}
-	}
 }
 
 func (g *graph) NextInverted(ctx context.Context) (s *ResourceState, err error) {

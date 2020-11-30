@@ -33,7 +33,7 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 		case "Record":
 			refM := f.Options.String("module")
 			if refM != "" && refM != "0" {
-				r.ModRef = append(r.ModRef, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refM))
+				r.ModRef = append(r.ModRef, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refM).Constraint(r.NsRef))
 			}
 		}
 	}
