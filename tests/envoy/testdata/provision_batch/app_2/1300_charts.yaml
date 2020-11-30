@@ -1,0 +1,8 @@
+namespace: ns2
+charts:
+  chr1:
+    name: ns2 chr1 name
+    config:
+      reports:
+      - dimensions:
+        module: mod1

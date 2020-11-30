@@ -67,6 +67,8 @@ func TestProvision(t *testing.T) {
 	err = ce(
 		err,
 
+		s.TruncateRbacRules(ctx),
+		s.TruncateRoles(ctx),
 		s.TruncateActionlogs(ctx),
 		s.TruncateApplications(ctx),
 		s.TruncateAttachments(ctx),
@@ -76,6 +78,7 @@ func TestProvision(t *testing.T) {
 		s.TruncateComposeModules(ctx),
 		s.TruncateComposeModuleFields(ctx),
 		s.TruncateComposePages(ctx),
+		s.TruncateComposeRecords(ctx, nil),
 
 		storeRole(ctx, s, 1, "everyone"),
 		storeRole(ctx, s, 2, "admins"),

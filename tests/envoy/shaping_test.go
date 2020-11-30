@@ -57,11 +57,17 @@ func TestShaping_simple(t *testing.T) {
 	err = ce(
 		err,
 
-		s.TruncateRoleMembers(ctx),
+		s.TruncateRbacRules(ctx),
 		s.TruncateRoles(ctx),
+		s.TruncateActionlogs(ctx),
+		s.TruncateApplications(ctx),
+		s.TruncateAttachments(ctx),
+		s.TruncateComposeAttachments(ctx),
+		s.TruncateComposeCharts(ctx),
 		s.TruncateComposeNamespaces(ctx),
 		s.TruncateComposeModules(ctx),
 		s.TruncateComposeModuleFields(ctx),
+		s.TruncateComposePages(ctx),
 
 		storeRole(ctx, s, 1, "everyone"),
 		storeRole(ctx, s, 2, "admins"),
