@@ -139,6 +139,9 @@ github.com/joho/godotenv/autoload
 github.com/lann/builder
 # github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
 github.com/lann/ps
+# github.com/lestrrat-go/strftime v1.0.3
+## explicit
+github.com/lestrrat-go/strftime
 # github.com/lib/pq v1.1.0
 ## explicit
 github.com/lib/pq

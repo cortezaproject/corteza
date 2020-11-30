@@ -28,6 +28,8 @@ type (
 		Multi        bool           `json:"isMulti"`
 		DefaultValue RecordValueSet `json:"defaultValue"`
 
+		Expressions ModuleFieldExpr `json:"expressions"`
+
 		Labels map[string]string `json:"labels,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`

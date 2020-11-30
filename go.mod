@@ -45,6 +45,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
+	github.com/lestrrat-go/strftime v1.0.3
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.50.0
 	github.com/mattn/go-shellwords v1.0.10 // indirect

@@ -2,7 +2,6 @@ package yaml
 
 import (
 	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -37,6 +36,16 @@ type (
 		rbac rbacRuleSet
 	}
 	composeModuleFieldSet []*composeModuleField
+
+	// aux struct to help us with decoding of module field
+	composeModuleFieldAux struct {
+		*types.ModuleField
+
+		Expressions *composeModuleFieldExprAux
+	}
+
+	// aux struct for decoding module field expressions
+	composeModuleFieldExprAux types.ModuleFieldExpr
 )
 
 func (wset *composeModuleSet) UnmarshalYAML(n *yaml.Node) error {
@@ -267,9 +276,19 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		wrap.res = &types.ModuleField{}
 	}
 
-	if err = n.Decode(&wrap.res); err != nil {
+	// cast existing field expressions struct to aux struct
+	exprAux := composeModuleFieldExprAux(wrap.res.Expressions)
+
+	// construct field aux struct from resource and aux expr struct
+	// this way yaml pkg can help us with field unmarshalling but
+	// we catch expressions and do our own magic
+	aux := &composeModuleFieldAux{ModuleField: wrap.res, Expressions: &exprAux}
+	if err = n.Decode(aux); err != nil {
 		return
 	}
+
+	// cast unmarshalled expressions back to original type
+	wrap.res.Expressions = types.ModuleFieldExpr(exprAux)
 
 	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
@@ -294,6 +313,53 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 			}
 
 			wrap.res.DefaultValue = rvs
+		}
+
+		return nil
+	})
+}
+
+func (aux *composeModuleFieldExprAux) UnmarshalYAML(n *yaml.Node) (err error) {
+	return eachMap(n, func(k *yaml.Node, v *yaml.Node) error {
+		switch k.Value {
+		case "valueExpr", "value":
+			aux.ValueExpr = v.Value
+			return nil
+		case "sanitizer":
+			aux.Sanitizers = []string{v.Value}
+			return nil
+		case "sanitizers":
+			return eachSeq(v, func(san *yaml.Node) error {
+				aux.Sanitizers = append(aux.Sanitizers, san.Value)
+				return nil
+			})
+		case "validator", "validators":
+			return each(v, func(k *yaml.Node, v *yaml.Node) error {
+				vld := &types.ModuleFieldValidator{}
+				if isKind(v, yaml.MappingNode) {
+					if err := v.Decode(vld); err != nil {
+						return err
+					}
+				} else {
+					vld.Test = k.Value
+					vld.Error = v.Value
+				}
+
+				aux.Validators = append(aux.Validators, *vld)
+				return nil
+			})
+		case "disableDefaultValidators":
+			return v.Decode(&aux.DisableDefaultValidators)
+		case "formatter":
+			aux.Formatters = []string{v.Value}
+			return nil
+		case "formatters":
+			return eachSeq(v, func(fmt *yaml.Node) error {
+				aux.Formatters = append(aux.Formatters, fmt.Value)
+				return nil
+			})
+		case "disableDefaultFormatters":
+			return v.Decode(&aux.DisableDefaultFormatters)
 		}
 
 		return nil

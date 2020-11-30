@@ -157,6 +157,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		oo = append(oo, &types.RecordBulkOperation{
 			Record:    rr,
 			Operation: types.OperationTypeCreate,
+			ID:        "parent:0",
 		})
 	}
 

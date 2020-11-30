@@ -14,8 +14,13 @@ type (
 )
 
 const (
+	moduleFieldOptionExpression         = "expression"
 	moduleFieldOptionIsUnique           = "isUnique"
 	moduleFieldOptionIsUniqueMultiValue = "isUniqueMultiValue"
+
+	moduleFieldNumberOptionPrecision         = "precision"
+	moduleFieldNumberOptionPrecisionMin uint = 0
+	moduleFieldNumberOptionPrecisionMax uint = 6
 )
 
 func (opt *ModuleFieldOptions) Scan(value interface{}) error {
@@ -123,4 +128,20 @@ func (opt ModuleFieldOptions) IsUniqueMultiValue() bool {
 func (opt ModuleFieldOptions) SetIsUniqueMultiValue(value bool) {
 	// SetIsUniqueMultiValue - should value in this field be unique in the multi-value set?
 	opt[moduleFieldOptionIsUniqueMultiValue] = value
+}
+
+func (opt ModuleFieldOptions) Precision() (p uint) {
+	p = uint(opt.Int64(moduleFieldNumberOptionPrecision))
+
+	if p < moduleFieldNumberOptionPrecisionMin {
+		p = moduleFieldNumberOptionPrecisionMin
+	} else if p > moduleFieldNumberOptionPrecisionMax {
+		p = moduleFieldNumberOptionPrecisionMax
+	}
+
+	return
+}
+
+func (opt ModuleFieldOptions) SetPrecision(p uint) {
+	opt[moduleFieldNumberOptionPrecision] = p
 }
