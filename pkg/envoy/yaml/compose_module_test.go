@@ -59,10 +59,39 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.NotNil(doc.compose)
 		req.Len(doc.compose.Modules, 3)
 		req.Equal(30, len(doc.compose.Modules[0].res.Fields))
+		req.NotNil(doc.compose.Modules[0].res.Fields.FindByName("AccountSource"))
 		req.Equal(21, len(doc.compose.Modules[1].res.Fields))
+		req.NotNil(doc.compose.Modules[1].res.Fields.FindByName("NumberOfConvertedLeads"))
 		req.Equal(23, len(doc.compose.Modules[2].res.Fields))
 		req.NotNil(doc.compose.Modules[0].rbac)
 		req.NotEmpty(doc.compose.Modules[0].rbac)
+	})
+
+	t.Run("doc 2", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_module_2")
+		req.NoError(err)
+		req.NotNil(doc)
+		req.NotNil(doc.compose)
+		req.Len(doc.compose.Modules, 1)
+		req.Len(doc.compose.Modules[0].res.Fields, 2)
+
+		full := doc.compose.Modules[0].res.Fields.FindByName("full")
+		vaKV := doc.compose.Modules[0].res.Fields.FindByName("validatorKV")
+
+		req.Equal("a > b", full.Expressions.ValueExpr)
+		req.Len(full.Expressions.Sanitizers, 1)
+		req.Contains(full.Expressions.Sanitizers, "trim(value)")
+		req.Len(full.Expressions.Validators, 1)
+		req.Equal(`a == ""`, full.Expressions.Validators[0].Test)
+		req.Equal("Value should not be empty", full.Expressions.Validators[0].Error)
+		req.True(full.Expressions.DisableDefaultValidators)
+
+		req.Len(vaKV.Expressions.Validators, 1)
+		req.Equal(`value == ""`, vaKV.Expressions.Validators[0].Test)
+		req.Equal("Value should be filled", vaKV.Expressions.Validators[0].Error)
+
 	})
 
 	t.Run("doc rbac", func(t *testing.T) {
