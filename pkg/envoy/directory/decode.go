@@ -53,6 +53,11 @@ func Decode(ctx context.Context, p string, decoders ...decoder) ([]resource.Inte
 		for _, d := range decoders {
 			if !d.CanDecodeFile(f) {
 				// decoder can not handle this file
+				// Make sure to reset it, as the above check consumes the reader
+				if _, err = f.Seek(0, 0); err != nil {
+					return err
+				}
+
 				continue
 			}
 

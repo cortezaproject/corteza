@@ -44,6 +44,8 @@ func TestProvision_batch(t *testing.T) {
 	err = ce(
 		err,
 
+		s.TruncateRoles(ctx),
+		s.TruncateRbacRules(ctx),
 		s.TruncateActionlogs(ctx),
 		s.TruncateApplications(ctx),
 		s.TruncateAttachments(ctx),
@@ -187,15 +189,4 @@ func checkBatchProvision(ctx context.Context, t *testing.T, req *require.Asserti
 		v := rr[0].Values.FilterByName("s1")[0]
 		req.Equal(fmt.Sprintf("%s value", slug), v.Value)
 	})
-}
-
-func fullModLoad(ctx context.Context, s store.Storer, req *require.Assertions, nsID uint64, handle string) (*types.Module, error) {
-	mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, handle)
-	req.NoError(err)
-	req.NotNil(mod)
-
-	mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
-	req.NoError(err)
-	req.NotNil(mod.Fields)
-	return mod, err
 }
