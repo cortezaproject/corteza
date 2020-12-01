@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 )
@@ -26,6 +27,8 @@ var (
 	NextID = func() uint64 {
 		return id.Next()
 	}
+
+	exprP = expr.Parser()
 )
 
 // makeGenericFilter is a helper to determine the base resource filter.

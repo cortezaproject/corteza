@@ -21,6 +21,8 @@ type (
 		Values    map[string]string
 		SysValues *rawSysValues
 		RefUsers  map[string]string
+
+		Config *EnvoyConfig
 	}
 	ComposeRecordRawSet []*ComposeRecordRaw
 

@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 
@@ -125,6 +126,37 @@ func storeModuleField(ctx context.Context, s store.Storer, modID, fieldID uint64
 		f.Label = ss[1]
 	}
 	return store.CreateComposeModuleField(ctx, s, f)
+}
+
+func storeRecord(ctx context.Context, s store.Storer, nsID, moduleID, recordID uint64, vv ...string) error {
+	r := &types.Record{
+		ID:          recordID,
+		ModuleID:    moduleID,
+		NamespaceID: nsID,
+		Values:      make(types.RecordValueSet, 0, len(vv)),
+	}
+
+	mod := &types.Module{
+		ID:          moduleID,
+		NamespaceID: nsID,
+		Fields:      make(types.ModuleFieldSet, 0, len(vv)),
+	}
+
+	for i, v := range vv {
+		r.Values = append(r.Values, &types.RecordValue{
+			RecordID: recordID,
+			Name:     fmt.Sprintf("f%d", i+1),
+			Value:    v,
+		})
+
+		mod.Fields = append(mod.Fields, &types.ModuleField{
+			ModuleID: moduleID,
+			Kind:     "String",
+			Name:     fmt.Sprintf("f%d", i+1),
+		})
+	}
+
+	return store.CreateComposeRecord(ctx, s, mod, r)
 }
 
 func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) error {

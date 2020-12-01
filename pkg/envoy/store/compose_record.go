@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -20,6 +21,9 @@ type (
 
 		relNS  *types.Namespace
 		relMod *types.Module
+
+		// Little helper flag for conditional encoding
+		modEmpty bool
 	}
 )
 
@@ -46,6 +50,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
+	n.modEmpty = true
 	n.relMod = findComposeModuleR(state.ParentResources, n.res.ModRef.Identifiers)
 	if n.relMod == nil && n.relNS.ID > 0 {
 		n.relMod, err = findComposeModuleS(ctx, s, n.relNS.ID, makeGenericFilter(n.res.ModRef.Identifiers))
@@ -58,6 +63,17 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 			if err != nil {
 				return err
 			}
+
+			// Check if empty
+			rr, _, err := store.SearchComposeRecords(ctx, s, n.relMod, types.RecordFilter{
+				ModuleID:    n.relMod.ID,
+				NamespaceID: n.relNS.ID,
+				Paging:      filter.Paging{Limit: 1},
+			})
+			if err != nil && err != store.ErrNotFound {
+				return err
+			}
+			n.modEmpty = len(rr) == 0
 		}
 	}
 
@@ -129,6 +145,30 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 	im := n.res.IDMap
 
 	return n.res.Walker(func(r *resource.ComposeRecordRaw) error {
+		// So we don't have to worry about nil
+		cfg := r.Config
+		if cfg == nil {
+			cfg = &resource.EnvoyConfig{}
+		}
+
+		if cfg.SkipIf != "" {
+			evl, err := exprP.NewEvaluable(cfg.SkipIf)
+			if err != nil {
+				return err
+			}
+			// @todo expand this
+			skip, err := evl.EvalBool(ctx, map[string]interface{}{
+				"empty": n.modEmpty,
+			})
+			if err != nil {
+				return err
+			}
+
+			if skip {
+				return nil
+			}
+		}
+
 		// Simple wrapper to do some post-processing steps
 		dfr := func(err error) error {
 			if n.cfg.Defer != nil {

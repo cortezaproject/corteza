@@ -1,0 +1,13 @@
+namespace: ns1
+records:
+  mod1:
+  - (envoy):
+      skipIf: "!empty"
+    values:
+      f1: f1 value
+
+  mod2:
+  - (envoy):
+      skipIf: "!empty"
+    values:
+      f1: f1 value
