@@ -205,9 +205,9 @@ func (s Store) execUpsertComposeRecordValues(ctx context.Context, set store.Payl
 		s.config,
 		s.composeRecordValueTable(),
 		set,
-		"record_id",
-		"name",
-		"place",
+		s.preprocessColumn("record_id", ""),
+		s.preprocessColumn("name", ""),
+		s.preprocessColumn("place", ""),
 	)
 
 	if err != nil {

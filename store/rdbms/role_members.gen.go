@@ -201,8 +201,8 @@ func (s Store) execUpsertRoleMembers(ctx context.Context, set store.Payload) err
 		s.config,
 		s.roleMemberTable(),
 		set,
-		"rel_user",
-		"rel_role",
+		s.preprocessColumn("rel_user", ""),
+		s.preprocessColumn("rel_role", ""),
 	)
 
 	if err != nil {

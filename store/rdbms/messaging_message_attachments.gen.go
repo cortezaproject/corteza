@@ -188,7 +188,7 @@ func (s Store) execUpsertMessagingMessageAttachments(ctx context.Context, set st
 		s.config,
 		s.messagingMessageAttachmentTable(),
 		set,
-		"rel_message",
+		s.preprocessColumn("rel_message", ""),
 	)
 
 	if err != nil {

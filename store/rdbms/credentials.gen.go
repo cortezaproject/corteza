@@ -212,7 +212,7 @@ func (s Store) execUpsertCredentials(ctx context.Context, set store.Payload) err
 		s.config,
 		s.credentialsTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

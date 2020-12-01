@@ -202,9 +202,9 @@ func (s Store) execUpsertRbacRules(ctx context.Context, set store.Payload) error
 		s.config,
 		s.rbacRuleTable(),
 		set,
-		"rel_role",
-		"resource",
-		"operation",
+		s.preprocessColumn("rel_role", ""),
+		s.preprocessColumn("resource", ""),
+		s.preprocessColumn("operation", ""),
 	)
 
 	if err != nil {

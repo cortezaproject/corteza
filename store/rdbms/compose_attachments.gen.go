@@ -222,7 +222,7 @@ func (s Store) execUpsertComposeAttachments(ctx context.Context, set store.Paylo
 		s.config,
 		s.composeAttachmentTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

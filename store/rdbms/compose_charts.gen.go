@@ -418,7 +418,7 @@ func (s Store) execUpsertComposeCharts(ctx context.Context, set store.Payload) e
 		s.config,
 		s.composeChartTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

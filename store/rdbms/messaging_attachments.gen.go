@@ -222,7 +222,7 @@ func (s Store) execUpsertMessagingAttachments(ctx context.Context, set store.Pay
 		s.config,
 		s.messagingAttachmentTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

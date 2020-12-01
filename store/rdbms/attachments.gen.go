@@ -222,7 +222,7 @@ func (s Store) execUpsertAttachments(ctx context.Context, set store.Payload) err
 		s.config,
 		s.attachmentTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

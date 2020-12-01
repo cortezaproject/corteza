@@ -204,8 +204,8 @@ func (s Store) execUpsertMessagingChannelMembers(ctx context.Context, set store.
 		s.config,
 		s.messagingChannelMemberTable(),
 		set,
-		"rel_channel",
-		"rel_user",
+		s.preprocessColumn("rel_channel", ""),
+		s.preprocessColumn("rel_user", ""),
 	)
 
 	if err != nil {

@@ -213,7 +213,7 @@ func (s Store) execUpsertComposeModuleFields(ctx context.Context, set store.Payl
 		s.config,
 		s.composeModuleFieldTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

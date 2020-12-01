@@ -183,9 +183,9 @@ func (s Store) execUpsertMessagingUnreads(ctx context.Context, set store.Payload
 		s.config,
 		s.messagingUnreadTable(),
 		set,
-		"rel_channel",
-		"rel_reply_to",
-		"rel_user",
+		s.preprocessColumn("rel_channel", ""),
+		s.preprocessColumn("rel_reply_to", ""),
+		s.preprocessColumn("rel_user", ""),
 	)
 
 	if err != nil {

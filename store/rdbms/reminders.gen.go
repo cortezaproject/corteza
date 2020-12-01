@@ -408,7 +408,7 @@ func (s Store) execUpsertReminders(ctx context.Context, set store.Payload) error
 		s.config,
 		s.reminderTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {
