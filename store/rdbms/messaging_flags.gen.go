@@ -210,7 +210,7 @@ func (s Store) execUpsertMessagingFlags(ctx context.Context, set store.Payload) 
 		s.config,
 		s.messagingFlagTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

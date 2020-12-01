@@ -61,15 +61,37 @@ func testSettings(t *testing.T, s store.Settings) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		t.Skip("Should pass(afaik) but doesn't")
-
 		req, setting := truncAndCreate(t)
-		setting.Name = "new-name"
+		setting.Value = []byte(`42`)
 		req.NoError(s.UpdateSetting(ctx, setting))
 
 		fetched, err := s.LookupSettingByNameOwnedBy(ctx, setting.Name, setting.OwnedBy)
 		req.NoError(err)
-		req.Equal("new-name", fetched.Name)
+		req.Equal(string(`42`), string(fetched.Value))
+	})
+
+	t.Run("upsert", func(t *testing.T) {
+		req := require.New(t)
+		req.NoError(s.TruncateSettings(ctx))
+
+		t.Run("new", func(t *testing.T) {
+			req := require.New(t)
+			req.NoError(s.UpsertSetting(ctx, &types.SettingValue{Name: "foo", Value: []byte(`"foo"`)}))
+			v, err := s.LookupSettingByNameOwnedBy(ctx, "foo", 0)
+			req.NoError(err)
+			req.NotNil(v)
+			req.Equal(string(`"foo"`), string(v.Value))
+		})
+
+		t.Run("existing", func(t *testing.T) {
+			req.NoError(s.CreateSetting(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"created"`)}))
+			req.NoError(s.UpsertSetting(ctx, &types.SettingValue{Name: "baz", Value: []byte(`"updated"`)}))
+			v, err := s.LookupSettingByNameOwnedBy(ctx, "baz", 0)
+			req.NoError(err)
+			req.NotNil(v)
+			req.Equal(string(`"updated"`), string(v.Value))
+		})
+
 	})
 
 	t.Run("delete", func(t *testing.T) {

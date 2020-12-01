@@ -228,7 +228,7 @@ func (Schema) Labels() *Table {
 		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(resourceLength)),
 		ColumnDef("value", ColumnTypeText),
 
-		PrimaryKey(IColumn("kind", "rel_resource", "name")),
+		AddIndex("unique_kind_res_name", IColumn("kind", "rel_resource"), IExpr("LOWER(name)")),
 	)
 }
 

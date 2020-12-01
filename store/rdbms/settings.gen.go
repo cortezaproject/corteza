@@ -92,7 +92,7 @@ func (s Store) QuerySettings(
 // LookupSettingByNameOwnedBy searches for settings by name and owner
 func (s Store) LookupSettingByNameOwnedBy(ctx context.Context, name string, owned_by uint64) (*types.SettingValue, error) {
 	return s.execLookupSetting(ctx, squirrel.Eq{
-		s.preprocessColumn("st.name", ""):      store.PreprocessValue(name, ""),
+		s.preprocessColumn("st.name", "lower"): store.PreprocessValue(name, "lower"),
 		s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(owned_by, ""),
 	})
 }
@@ -130,7 +130,7 @@ func (s Store) partialSettingUpdate(ctx context.Context, onlyColumns []string, r
 		err = s.execUpdateSettings(
 			ctx,
 			squirrel.Eq{
-				s.preprocessColumn("st.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
+				s.preprocessColumn("st.name", "lower"): store.PreprocessValue(res.Name, "lower"), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
 			},
 			s.internalSettingEncoder(res).Skip("name", "rel_owner").Only(onlyColumns...))
 		if err != nil {
@@ -163,7 +163,7 @@ func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (er
 	for _, res := range rr {
 
 		err = s.execDeleteSettings(ctx, squirrel.Eq{
-			s.preprocessColumn("st.name", ""): store.PreprocessValue(res.Name, ""), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
+			s.preprocessColumn("st.name", "lower"): store.PreprocessValue(res.Name, "lower"), s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(res.OwnedBy, ""),
 		})
 		if err != nil {
 			return err
@@ -176,7 +176,7 @@ func (s Store) DeleteSetting(ctx context.Context, rr ...*types.SettingValue) (er
 // DeleteSettingByNameOwnedBy Deletes row from the settings table
 func (s Store) DeleteSettingByNameOwnedBy(ctx context.Context, name string, ownedBy uint64) error {
 	return s.execDeleteSettings(ctx, squirrel.Eq{
-		s.preprocessColumn("st.name", ""):      store.PreprocessValue(name, ""),
+		s.preprocessColumn("st.name", "lower"): store.PreprocessValue(name, "lower"),
 		s.preprocessColumn("st.rel_owner", ""): store.PreprocessValue(ownedBy, ""),
 	})
 }
@@ -222,8 +222,8 @@ func (s Store) execUpsertSettings(ctx context.Context, set store.Payload) error 
 		s.config,
 		s.settingTable(),
 		set,
-		"name",
-		"rel_owner",
+		s.preprocessColumn("name", "lower"),
+		s.preprocessColumn("rel_owner", ""),
 	)
 
 	if err != nil {

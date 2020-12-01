@@ -523,7 +523,7 @@ func (s Store) execUpsert{{ export $.Types.Plural }}(ctx context.Context, set st
 		set,
 {{ range $.RDBMS.Columns }}
 	{{- if or .IsPrimaryKey -}}
-		{{ printf "%q" .Column }},
+		s.preprocessColumn({{ printf "%q" .Column }}, {{ printf "%q" .LookupFilterPreprocess }}),
 	{{ end }}
 {{- end }}
 	)

@@ -212,7 +212,7 @@ func (s Store) execUpsertMessagingMentions(ctx context.Context, set store.Payloa
 		s.config,
 		s.messagingMentionTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

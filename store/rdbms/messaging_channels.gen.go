@@ -408,7 +408,7 @@ func (s Store) execUpsertMessagingChannels(ctx context.Context, set store.Payloa
 		s.config,
 		s.messagingChannelTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

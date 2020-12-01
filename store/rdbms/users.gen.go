@@ -441,7 +441,7 @@ func (s Store) execUpsertUsers(ctx context.Context, set store.Payload) error {
 		s.config,
 		s.userTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

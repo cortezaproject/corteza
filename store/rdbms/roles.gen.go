@@ -432,7 +432,7 @@ func (s Store) execUpsertRoles(ctx context.Context, set store.Payload) error {
 		s.config,
 		s.roleTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

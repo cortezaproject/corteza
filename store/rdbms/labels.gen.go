@@ -214,9 +214,9 @@ func (s Store) execUpsertLabels(ctx context.Context, set store.Payload) error {
 		s.config,
 		s.labelTable(),
 		set,
-		"kind",
-		"rel_resource",
-		"name",
+		s.preprocessColumn("kind", ""),
+		s.preprocessColumn("rel_resource", ""),
+		s.preprocessColumn("name", "lower"),
 	)
 
 	if err != nil {
