@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -32,17 +33,10 @@ type (
 	composeModuleSet []*composeModule
 
 	composeModuleField struct {
-		res  *types.ModuleField `yaml:",inline"`
+		res  *types.ModuleField
 		rbac rbacRuleSet
 	}
 	composeModuleFieldSet []*composeModuleField
-
-	// aux struct to help us with decoding of module field
-	composeModuleFieldAux struct {
-		*types.ModuleField
-
-		Expressions *composeModuleFieldExprAux
-	}
 
 	// aux struct for decoding module field expressions
 	composeModuleFieldExprAux types.ModuleFieldExpr
@@ -273,22 +267,9 @@ func (set composeModuleFieldSet) set() (out types.ModuleFieldSet) {
 
 func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
+		wrap.rbac = make(rbacRuleSet, 0, 10)
 		wrap.res = &types.ModuleField{}
 	}
-
-	// cast existing field expressions struct to aux struct
-	exprAux := composeModuleFieldExprAux(wrap.res.Expressions)
-
-	// construct field aux struct from resource and aux expr struct
-	// this way yaml pkg can help us with field unmarshalling but
-	// we catch expressions and do our own magic
-	aux := &composeModuleFieldAux{ModuleField: wrap.res, Expressions: &exprAux}
-	if err = n.Decode(aux); err != nil {
-		return
-	}
-
-	// cast unmarshalled expressions back to original type
-	wrap.res.Expressions = types.ModuleFieldExpr(exprAux)
 
 	if wrap.rbac, err = decodeRbac(n); err != nil {
 		return
@@ -298,6 +279,39 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
 			return fmt.Errorf("name should be encoded as field definition key")
+
+		case "place":
+			return decodeScalar(v, "module place", &wrap.res.Place)
+
+		case "kind":
+			return decodeScalar(v, "module kind", &wrap.res.Kind)
+
+		case "label":
+			return decodeScalar(v, "module label", &wrap.res.Label)
+
+		case "private":
+			return decodeScalar(v, "module private", &wrap.res.Private)
+
+		case "required":
+			return decodeScalar(v, "module required", &wrap.res.Required)
+
+		case "visible":
+			return decodeScalar(v, "module visible", &wrap.res.Visible)
+
+		case "multi":
+			return decodeScalar(v, "module multi", &wrap.res.Multi)
+
+		case "options":
+			if err = v.Decode(&wrap.res.Options); err != nil {
+				return err
+			}
+
+		case "expressions":
+			ea := composeModuleFieldExprAux{}
+			if err = v.Decode(&ea); err != nil {
+				return err
+			}
+			wrap.res.Expressions = types.ModuleFieldExpr(ea)
 
 		case "default":
 			var rvs = types.RecordValueSet{}

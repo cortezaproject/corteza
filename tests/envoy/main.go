@@ -149,3 +149,14 @@ func ce(ee ...error) error {
 	}
 	return nil
 }
+
+func fullModLoad(ctx context.Context, s store.Storer, req *require.Assertions, nsID uint64, handle string) (*types.Module, error) {
+	mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, handle)
+	req.NoError(err)
+	req.NotNil(mod)
+
+	mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
+	req.NoError(err)
+	req.NotNil(mod.Fields)
+	return mod, err
+}
