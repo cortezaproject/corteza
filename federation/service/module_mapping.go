@@ -13,9 +13,16 @@ import (
 type (
 	moduleMapping struct {
 		store     store.Storer
+		node      node
+		ac        moduleMappingAccessController
 		module    cs.ModuleService
+		smodule   SharedModuleService
 		namespace cs.NamespaceService
 		actionlog actionlog.Recorder
+	}
+
+	moduleMappingAccessController interface {
+		CanMapModule(ctx context.Context, r *types.SharedModule) bool
 	}
 
 	ModuleMappingService interface {
@@ -23,8 +30,6 @@ type (
 		FindByID(ctx context.Context, federationModuleID uint64) (*types.ModuleMapping, error)
 		Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error)
 		Update(ctx context.Context, updated *types.ModuleMapping) (*types.ModuleMapping, error)
-		// FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
-		// DeleteByID(ctx context.Context, federationModuleID uint64) error
 	}
 
 	moduleMappingUpdateHandler func(ctx context.Context, c *types.ModuleMapping) (bool, bool, error)
@@ -32,26 +37,58 @@ type (
 
 func ModuleMapping() ModuleMappingService {
 	return &moduleMapping{
+		ac:        DefaultAccessControl,
+		node:      *DefaultNode,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
+		smodule:   DefaultSharedModule,
 		module:    cs.DefaultModule,
 		namespace: cs.DefaultNamespace,
 	}
 }
 
-func (svc moduleMapping) FindByID(ctx context.Context, federationModuleID uint64) (m *types.ModuleMapping, err error) {
+func (svc moduleMapping) FindByID(ctx context.Context, federationModuleID uint64) (mm *types.ModuleMapping, err error) {
 	err = func() error {
-		if m, err = store.LookupFederationModuleMappingByFederationModuleID(ctx, svc.store, federationModuleID); err != nil {
+		var (
+			sm *types.SharedModule
+		)
+
+		if mm, err = store.LookupFederationModuleMappingByFederationModuleID(ctx, svc.store, federationModuleID); err != nil {
 			return err
+		}
+
+		// fetch shared module for access check
+		if sm, err = svc.smodule.FindByID(ctx, mm.NodeID, federationModuleID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanMapModule(ctx, sm) {
+			return ModuleMappingErrNotAllowedToMap()
 		}
 
 		return nil
 	}()
 
-	return m, err
+	return
 }
 
 func (svc moduleMapping) Find(ctx context.Context, filter types.ModuleMappingFilter) (set types.ModuleMappingSet, f types.ModuleMappingFilter, err error) {
+	// @todo - optimise this access check
+	filter.Check = func(res *types.ModuleMapping) (bool, error) {
+		// fetch shared module for this
+		sm, err := svc.smodule.FindByID(ctx, res.NodeID, res.FederationModuleID)
+
+		if err != nil {
+			return false, err
+		}
+
+		if !svc.ac.CanMapModule(ctx, sm) {
+			return false, ModuleMappingErrNotAllowedToMap()
+		}
+
+		return true, nil
+	}
+
 	err = func() error {
 		if set, f, err = store.SearchFederationModuleMappings(ctx, svc.store, filter); err != nil {
 			return err
@@ -60,7 +97,7 @@ func (svc moduleMapping) Find(ctx context.Context, filter types.ModuleMappingFil
 		return nil
 	}()
 
-	return set, f, err
+	return
 }
 
 func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (*types.ModuleMapping, error) {
@@ -69,16 +106,17 @@ func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
 		var (
-			m *ct.Module
+			m  *ct.Module
+			sm *types.SharedModule
 		)
 
 		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
 			return ModuleMappingErrComposeNamespaceNotFound()
+		}
+
+		if _, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
+			return ModuleMappingErrNodeNotFound()
 		}
 
 		// Check for federation module - compose.Module combo
@@ -88,6 +126,14 @@ func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (
 
 		if m, err = svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
 			return ModuleMappingErrComposeModuleNotFound()
+		}
+
+		if sm, err = svc.smodule.FindByID(ctx, new.NodeID, new.FederationModuleID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanMapModule(ctx, sm) {
+			return ModuleMappingErrNotAllowedToMap()
 		}
 
 		if err = store.CreateFederationModuleMapping(ctx, s, new); err != nil {
@@ -113,12 +159,9 @@ func (svc moduleMapping) Update(ctx context.Context, updated *types.ModuleMappin
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
 		var (
-			m *ct.Module
+			m  *ct.Module
+			sm *types.SharedModule
 		)
 
 		if _, err := svc.namespace.With(ctx).FindByID(updated.ComposeNamespaceID); err != nil {
@@ -127,6 +170,14 @@ func (svc moduleMapping) Update(ctx context.Context, updated *types.ModuleMappin
 
 		if m, err = svc.module.With(ctx).FindByID(updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
 			return ModuleMappingErrComposeModuleNotFound()
+		}
+
+		if sm, err = svc.smodule.FindByID(ctx, updated.NodeID, updated.FederationModuleID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanMapModule(ctx, sm) {
+			return ModuleMappingErrNotAllowedToMap()
 		}
 
 		if err = store.UpdateFederationModuleMapping(ctx, s, updated); err != nil {

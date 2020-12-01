@@ -37,6 +37,9 @@ type (
 
 	nodePayload struct {
 		*types.Node
+
+		CanManageNode   bool `json:"canManageNode"`
+		CanCreateModule bool `json:"canCreateModule"`
 	}
 )
 
@@ -114,6 +117,9 @@ func (ctrl Node) makePayload(ctx context.Context, m *types.Node, err error) (*no
 
 	return &nodePayload{
 		Node: m,
+
+		CanCreateModule: service.DefaultAccessControl.CanCreateModule(ctx, m),
+		CanManageNode:   service.DefaultAccessControl.CanManageNode(ctx, m),
 	}, nil
 }
 

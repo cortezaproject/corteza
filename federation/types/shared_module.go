@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -37,3 +38,12 @@ type (
 		filter.Paging
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (m SharedModule) RBACResource() rbac.Resource {
+	return ModuleRBACResource.AppendID(m.ID)
+}
+
+func (m SharedModule) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}

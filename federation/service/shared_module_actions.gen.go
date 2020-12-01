@@ -576,70 +576,6 @@ func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 	return e
 }
 
-// SharedModuleErrNotAllowedToRead returns "federation:shared_module.notAllowedToRead" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func SharedModuleErrNotAllowedToRead(mm ...*sharedModuleActionProps) *errors.Error {
-	var p = &sharedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to read this module", nil),
-
-		errors.Meta("type", "notAllowedToRead"),
-		errors.Meta("resource", "federation:shared_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
-		errors.Meta(sharedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// SharedModuleErrNotAllowedToListModules returns "federation:shared_module.notAllowedToListModules" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func SharedModuleErrNotAllowedToListModules(mm ...*sharedModuleActionProps) *errors.Error {
-	var p = &sharedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list modules", nil),
-
-		errors.Meta("type", "notAllowedToListModules"),
-		errors.Meta("resource", "federation:shared_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not list modules; insufficient permissions"),
-		errors.Meta(sharedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
 // SharedModuleErrNotAllowedToCreate returns "federation:shared_module.notAllowedToCreate" as *errors.Error
 //
 //
@@ -672,12 +608,12 @@ func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.E
 	return e
 }
 
-// SharedModuleErrNotAllowedToUpdate returns "federation:shared_module.notAllowedToUpdate" as *errors.Error
+// SharedModuleErrNotAllowedToManage returns "federation:shared_module.notAllowedToManage" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToUpdate(mm ...*sharedModuleActionProps) *errors.Error {
+func SharedModuleErrNotAllowedToManage(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -686,13 +622,13 @@ func SharedModuleErrNotAllowedToUpdate(mm ...*sharedModuleActionProps) *errors.E
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to update this module", nil),
+		p.Format("not allowed to manage this module", nil),
 
-		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("type", "notAllowedToManage"),
 		errors.Meta("resource", "federation:shared_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not update {module}; insufficient permissions"),
+		errors.Meta(sharedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
@@ -704,12 +640,12 @@ func SharedModuleErrNotAllowedToUpdate(mm ...*sharedModuleActionProps) *errors.E
 	return e
 }
 
-// SharedModuleErrNotAllowedToDelete returns "federation:shared_module.notAllowedToDelete" as *errors.Error
+// SharedModuleErrNotAllowedToMap returns "federation:shared_module.notAllowedToMap" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func SharedModuleErrNotAllowedToDelete(mm ...*sharedModuleActionProps) *errors.Error {
+func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Error {
 	var p = &sharedModuleActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -718,45 +654,13 @@ func SharedModuleErrNotAllowedToDelete(mm ...*sharedModuleActionProps) *errors.E
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to delete this module", nil),
+		p.Format("not allowed to map this module", nil),
 
-		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("type", "notAllowedToMap"),
 		errors.Meta("resource", "federation:shared_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
-		errors.Meta(sharedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// SharedModuleErrNotAllowedToUndelete returns "federation:shared_module.notAllowedToUndelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func SharedModuleErrNotAllowedToUndelete(mm ...*sharedModuleActionProps) *errors.Error {
-	var p = &sharedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to undelete this module", nil),
-
-		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "federation:shared_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(sharedModuleLogMetaKey{}, "could not map {module}; insufficient permissions"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

@@ -694,70 +694,6 @@ func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *
 	return e
 }
 
-// ExposedModuleErrNotAllowedToRead returns "federation:exposed_module.notAllowedToRead" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ExposedModuleErrNotAllowedToRead(mm ...*exposedModuleActionProps) *errors.Error {
-	var p = &exposedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to read this module", nil),
-
-		errors.Meta("type", "notAllowedToRead"),
-		errors.Meta("resource", "federation:exposed_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
-		errors.Meta(exposedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ExposedModuleErrNotAllowedToListModules returns "federation:exposed_module.notAllowedToListModules" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ExposedModuleErrNotAllowedToListModules(mm ...*exposedModuleActionProps) *errors.Error {
-	var p = &exposedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list modules", nil),
-
-		errors.Meta("type", "notAllowedToListModules"),
-		errors.Meta("resource", "federation:exposed_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not list modules; insufficient permissions"),
-		errors.Meta(exposedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
 // ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" as *errors.Error
 //
 //
@@ -790,12 +726,12 @@ func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors
 	return e
 }
 
-// ExposedModuleErrNotAllowedToUpdate returns "federation:exposed_module.notAllowedToUpdate" as *errors.Error
+// ExposedModuleErrNotAllowedToManage returns "federation:exposed_module.notAllowedToManage" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ExposedModuleErrNotAllowedToUpdate(mm ...*exposedModuleActionProps) *errors.Error {
+func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors.Error {
 	var p = &exposedModuleActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -804,77 +740,13 @@ func ExposedModuleErrNotAllowedToUpdate(mm ...*exposedModuleActionProps) *errors
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to update this module", nil),
+		p.Format("not allowed to manage this module", nil),
 
-		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("type", "notAllowedToManage"),
 		errors.Meta("resource", "federation:exposed_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not update {module}; insufficient permissions"),
-		errors.Meta(exposedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ExposedModuleErrNotAllowedToDelete returns "federation:exposed_module.notAllowedToDelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ExposedModuleErrNotAllowedToDelete(mm ...*exposedModuleActionProps) *errors.Error {
-	var p = &exposedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to delete this module", nil),
-
-		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "federation:exposed_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
-		errors.Meta(exposedModulePropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ExposedModuleErrNotAllowedToUndelete returns "federation:exposed_module.notAllowedToUndelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ExposedModuleErrNotAllowedToUndelete(mm ...*exposedModuleActionProps) *errors.Error {
-	var p = &exposedModuleActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to undelete this module", nil),
-
-		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "federation:exposed_module"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(exposedModuleLogMetaKey{}, "could not manage {module}; insufficient permissions"),
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

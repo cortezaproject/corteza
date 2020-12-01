@@ -5,3 +5,4 @@ roles:
   # placeholder, admin role is created programmatically
   # with a fixed ID before configs are processed
   - admins
+  - federation

@@ -92,6 +92,7 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
 func (svc service) Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool {
 	// Checking rules
+	// spew.Dump("checking rules", res.RBACResource(), roles, svc.Check(res.RBACResource(), op, roles...), "end checking rules")
 	var v = svc.Check(res.RBACResource(), op, roles...)
 	if v != Inherit {
 		return v == Allow

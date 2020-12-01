@@ -73,26 +73,14 @@ errors:
     message: "node does not exist"
     severity: warning
 
-  - error: notAllowedToRead
-    message: "not allowed to read this module"
-    log: "could not read {module}; insufficient permissions"
-
-  - error: notAllowedToListModules
-    message: "not allowed to list modules"
-    log: "could not list modules; insufficient permissions"
-
   - error: notAllowedToCreate
     message: "not allowed to create modules"
     log: "could not create modules; insufficient permissions"
 
-  - error: notAllowedToUpdate
-    message: "not allowed to update this module"
-    log: "could not update {module}; insufficient permissions"
+  - error: notAllowedToManage
+    message: "not allowed to manage this module"
+    log: "could not read {module}; insufficient permissions"
 
-  - error: notAllowedToDelete
-    message: "not allowed to delete this module"
-    log: "could not delete {module}; insufficient permissions"
-
-  - error: notAllowedToUndelete
-    message: "not allowed to undelete this module"
-    log: "could not undelete {module}; insufficient permissions"
+  - error: notAllowedToMap
+    message: "not allowed to map this module"
+    log: "could not map {module}; insufficient permissions"

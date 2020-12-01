@@ -51,6 +51,7 @@ func InitTestApp() {
 		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+			service.DefaultLogger = app.Log
 			service.DefaultStore = app.Store
 			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 
@@ -108,13 +109,13 @@ func (h helper) apiInit() *apitest.APITest {
 }
 
 func (h helper) mockPermissions(rules ...*rbac.Rule) {
-	//h.noError(rbac.Global().Grant(
-	//	// TestService we use does not have any backend storage,
-	//	context.Background(),
-	//	// We want to make sure we did not make a mistake with any of the mocked resources or actions
-	//	service.DefaultAccessControl.Whitelist(),
-	//	rules...,
-	//))
+	h.noError(rbac.Global().Grant(
+		// TestService we use does not have any backend storage,
+		context.Background(),
+		// We want to make sure we did not make a mistake with any of the mocked resources or actions
+		service.DefaultAccessControl.Whitelist(),
+		rules...,
+	))
 }
 
 // Prepends allow access rule for federation service for everyone

@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 )
 
 var _ = errors.Is
@@ -39,36 +40,47 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 
 		// Paging enabled
 		// {search: {enablePaging:true}}
-		// Cleanup unwanted cursors (only relevant is f.PageCursor, next&prev are reset and returned)
+		// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
 		f.PrevPage, f.NextPage = nil, nil
 
 		if f.PageCursor != nil {
 			// Page cursor exists so we need to validate it against used sort
+			// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+			// from the cursor.
+			// This (extracted sorting info) is then returned as part of response
 			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
 				return err
 			}
 		}
 
-		if len(f.Sort) == 0 {
-			f.Sort = filter.SortExprSet{}
-		}
-
 		// Make sure results are always sorted at least by primary keys
 		if f.Sort.Get("rel_federation_module") == nil {
-			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_federation_module"})
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "rel_federation_module",
+				Descending: f.Sort.LastDescending(),
+			})
 		}
 		if f.Sort.Get("rel_compose_module") == nil {
-			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_compose_module"})
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "rel_compose_module",
+				Descending: f.Sort.LastDescending(),
+			})
 		}
 		if f.Sort.Get("rel_compose_namespace") == nil {
-			f.Sort = append(f.Sort, &filter.SortExpr{Column: "rel_compose_namespace"})
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "rel_compose_namespace",
+				Descending: f.Sort.LastDescending(),
+			})
 		}
 
+		// Cloned sorting instructions for the actual sorting
+		// Original are passed to the fetchFullPageOfUsers fn used for cursor creation so it MUST keep the initial
+		// direction information
 		sort := f.Sort.Clone()
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		if f.PageCursor != nil && f.PageCursor.Reverse {
+		if f.PageCursor != nil && f.PageCursor.ROrder {
 			sort.Reverse()
 		}
 
@@ -77,7 +89,16 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 			return err
 		}
 
-		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationModuleMappings(ctx, q, sort.Columns(), sort.Reversed(), f.PageCursor, f.Limit, f.Check)
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfFederationModuleMappings(
+			ctx,
+			q, f.Sort, f.PageCursor,
+			f.Limit,
+			f.Check,
+			func(cur *filter.PagingCursor) squirrel.Sqlizer {
+				return builders.CursorCondition(cur, nil)
+			},
+		)
+
 		if err != nil {
 			return err
 		}
@@ -100,34 +121,46 @@ func (s Store) SearchFederationModuleMappings(ctx context.Context, f types.Modul
 func (s Store) fetchFullPageOfFederationModuleMappings(
 	ctx context.Context,
 	q squirrel.SelectBuilder,
-	sortColumns []string,
-	sortDesc bool,
+	sort filter.SortExprSet,
 	cursor *filter.PagingCursor,
-	limit uint,
+	reqItems uint,
 	check func(*types.ModuleMapping) (bool, error),
+	cursorCond func(*filter.PagingCursor) squirrel.Sqlizer,
 ) (set []*types.ModuleMapping, prev, next *filter.PagingCursor, err error) {
 	var (
 		aux []*types.ModuleMapping
 
 		// When cursor for a previous page is used it's marked as reversed
 		// This tells us to flip the descending flag on all used sort keys
-		reversedOrder = cursor != nil && cursor.Reverse
+		reversedOrder = cursor != nil && cursor.ROrder
 
 		// copy of the select builder
 		tryQuery squirrel.SelectBuilder
 
-		fetched uint
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = reqItems
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = cursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
 	)
 
 	set = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
 
-	if cursor != nil {
-		cursor.Reverse = sortDesc
-	}
-
 	for try := 0; try < MaxRefetches; try++ {
-		tryQuery = setCursorCond(q, cursor)
+		if cursor != nil {
+			tryQuery = q.Where(cursorCond(cursor))
+		} else {
+			tryQuery = q
+		}
+
 		if limit > 0 {
+			// fetching + 1 so we know if there are more items
+			// we can fetch (next-page cursor)
 			tryQuery = tryQuery.Limit(uint64(limit + 1))
 		}
 
@@ -135,50 +168,72 @@ func (s Store) fetchFullPageOfFederationModuleMappings(
 			return nil, nil, nil, err
 		}
 
-		fetched = uint(len(aux))
-		if cursor != nil && prev == nil && fetched > 0 {
-			// Cursor for previous page is calculated only when cursor is used (so, not on first page)
-			prev = s.collectFederationModuleMappingCursorValues(aux[0], sortColumns...)
-		}
-
-		// Point cursor to the last fetched element
-		if fetched > limit && limit > 0 {
-			next = s.collectFederationModuleMappingCursorValues(aux[limit-1], sortColumns...)
-
-			// we should use only as much as requested
-			set = append(set, aux[:limit]...)
-			break
-		} else {
-			set = append(set, aux...)
-		}
-
-		// if limit is not set or we've already collected enough items
-		// we can break the loop right away
-		if limit == 0 || fetched == 0 || fetched <= limit {
+		if len(aux) == 0 {
+			// nothing fetched
 			break
 		}
 
-		// In case limit is set very low and we've missed records in the first fetch,
-		// make sure next fetch limit is a bit higher
-		if limit < MinEnsureFetchLimit {
-			limit = MinEnsureFetchLimit
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 {
+			// no max requested items specified, break out
+			break
 		}
 
-		// @todo improve strategy for collecting next page with lower limit
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			cursor = s.collectFederationModuleMappingCursorValues(set[collected-1], sort...)
+
+			// Copy reverse flag from sorting
+			cursor.LThen = sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+			hasNext = true
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
 	}
 
 	if reversedOrder {
 		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
-		for i, j := 0, len(set)-1; i < j; i, j = i+1, j-1 {
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
 			set[i], set[j] = set[j], set[i]
 		}
 
-		// and flip prev/next cursors too
-		prev, next = next, prev
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
 	}
 
-	if prev != nil {
-		prev.Reverse = true
+	if hasPrev {
+		prev = s.collectFederationModuleMappingCursorValues(set[0], sort...)
+		prev.ROrder = true
+		prev.LThen = !sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectFederationModuleMappingCursorValues(set[collected-1], sort...)
+		next.LThen = sort.Reversed()
 	}
 
 	return set, prev, next, nil
@@ -378,9 +433,9 @@ func (s Store) execUpsertFederationModuleMappings(ctx context.Context, set store
 		s.config,
 		s.federationModuleMappingTable(),
 		set,
-		"rel_federation_module",
-		"rel_compose_module",
-		"rel_compose_namespace",
+		s.preprocessColumn("rel_federation_module", ""),
+		s.preprocessColumn("rel_compose_module", ""),
+		s.preprocessColumn("rel_compose_namespace", ""),
 	)
 
 	if err != nil {
@@ -491,7 +546,7 @@ func (s Store) internalFederationModuleMappingEncoder(res *types.ModuleMapping) 
 // Known issue:
 //   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
 //   undeleted items)
-func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMapping, cc ...string) *filter.PagingCursor {
+func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMapping, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
 		cursor = &filter.PagingCursor{}
 
@@ -505,19 +560,19 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 
 		pkRel_compose_namespace bool
 
-		collect = func(cc ...string) {
+		collect = func(cc ...*filter.SortExpr) {
 			for _, c := range cc {
-				switch c {
+				switch c.Column {
 				case "rel_federation_module":
-					cursor.Set(c, res.FederationModuleID, false)
+					cursor.Set(c.Column, res.FederationModuleID, c.Descending)
 
 					pkRel_federation_module = true
 				case "rel_compose_module":
-					cursor.Set(c, res.ComposeModuleID, false)
+					cursor.Set(c.Column, res.ComposeModuleID, c.Descending)
 
 					pkRel_compose_module = true
 				case "rel_compose_namespace":
-					cursor.Set(c, res.ComposeNamespaceID, false)
+					cursor.Set(c.Column, res.ComposeNamespaceID, c.Descending)
 
 					pkRel_compose_namespace = true
 
@@ -528,7 +583,7 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 
 	collect(cc...)
 	if !hasUnique || !(pkRel_federation_module && pkRel_compose_module && pkRel_compose_namespace && true) {
-		collect("rel_federation_module", "rel_compose_module", "rel_compose_namespace")
+		collect(&filter.SortExpr{Column: "rel_federation_module", Descending: false}, &filter.SortExpr{Column: "rel_compose_module", Descending: false}, &filter.SortExpr{Column: "rel_compose_namespace", Descending: false})
 	}
 
 	return cursor

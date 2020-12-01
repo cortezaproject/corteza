@@ -1,8 +1,10 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 var (
@@ -47,3 +49,12 @@ type (
 		Deleted filter.State `json:"deleted"`
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (n Node) RBACResource() rbac.Resource {
+	return NodeRBACResource.AppendID(n.ID)
+}
+
+func (n Node) DynamicRoles(userID uint64) []uint64 {
+	return nil
+}

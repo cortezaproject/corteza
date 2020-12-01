@@ -13,9 +13,14 @@ import (
 type (
 	sharedModule struct {
 		node      node
+		ac        sharedModuleAccessController
 		compose   composeService.ModuleService
 		store     store.Storer
 		actionlog actionlog.Recorder
+	}
+
+	sharedModuleAccessController interface {
+		CanCreateModule(ctx context.Context, r *types.Node) bool
 	}
 
 	SharedModuleService interface {
@@ -28,6 +33,7 @@ type (
 
 func SharedModule() SharedModuleService {
 	return &sharedModule{
+		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
 		compose:   composeService.DefaultModule,
 		store:     DefaultStore,
@@ -53,16 +59,18 @@ func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*t
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
+		var (
+			node *types.Node
+		)
 
-		if _, err := svc.node.FindByID(ctx, new.NodeID); err != nil {
+		if node, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
 			return SharedModuleErrNodeNotFound()
 		}
 
-		// Check for node - compose.Module combo
+		if !svc.ac.CanCreateModule(ctx, node) {
+			return SharedModuleErrNotAllowedToCreate()
+		}
+
 		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
 		}
@@ -98,7 +106,7 @@ func (svc sharedModule) Update(ctx context.Context, updated *types.SharedModule)
 
 		aProps.setModule(updated)
 
-		if _, err := svc.node.FindByID(ctx, updated.NodeID); err != nil {
+		if _, err = svc.node.FindByID(ctx, updated.NodeID); err != nil {
 			return SharedModuleErrNodeNotFound()
 		}
 

@@ -1031,7 +1031,6 @@ endpoints:
     path: "/"
     method: GET
     title: Retrieve defined permissions
-
   - name: effective
     path: "/effective"
     method: GET

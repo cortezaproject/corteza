@@ -498,6 +498,36 @@ func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *
 	return e
 }
 
+// ModuleMappingErrNodeNotFound returns "federation:module_mapping.nodeNotFound" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ModuleMappingErrNodeNotFound(mm ...*moduleMappingActionProps) *errors.Error {
+	var p = &moduleMappingActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("node does not exist", nil),
+
+		errors.Meta("type", "nodeNotFound"),
+		errors.Meta("resource", "federation:module_mapping"),
+
+		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ModuleMappingErrModuleMappingExists returns "federation:module_mapping.moduleMappingExists" as *errors.Error
 //
 //
@@ -528,12 +558,12 @@ func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *error
 	return e
 }
 
-// ModuleMappingErrNotAllowedToRead returns "federation:module_mapping.notAllowedToRead" as *errors.Error
+// ModuleMappingErrNotAllowedToMap returns "federation:module_mapping.notAllowedToMap" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ModuleMappingErrNotAllowedToRead(mm ...*moduleMappingActionProps) *errors.Error {
+func ModuleMappingErrNotAllowedToMap(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -542,141 +572,13 @@ func ModuleMappingErrNotAllowedToRead(mm ...*moduleMappingActionProps) *errors.E
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to read this module", nil),
+		p.Format("not allowed to map this module", nil),
 
-		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("type", "notAllowedToMap"),
 		errors.Meta("resource", "federation:module_mapping"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleMappingLogMetaKey{}, "could not read module; insufficient permissions"),
-		errors.Meta(moduleMappingPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ModuleMappingErrNotAllowedToListModules returns "federation:module_mapping.notAllowedToListModules" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ModuleMappingErrNotAllowedToListModules(mm ...*moduleMappingActionProps) *errors.Error {
-	var p = &moduleMappingActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list modules", nil),
-
-		errors.Meta("type", "notAllowedToListModules"),
-		errors.Meta("resource", "federation:module_mapping"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleMappingLogMetaKey{}, "could not list modules; insufficient permissions"),
-		errors.Meta(moduleMappingPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ModuleMappingErrNotAllowedToCreate returns "federation:module_mapping.notAllowedToCreate" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ModuleMappingErrNotAllowedToCreate(mm ...*moduleMappingActionProps) *errors.Error {
-	var p = &moduleMappingActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to create modules", nil),
-
-		errors.Meta("type", "notAllowedToCreate"),
-		errors.Meta("resource", "federation:module_mapping"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleMappingLogMetaKey{}, "could not create modules; insufficient permissions"),
-		errors.Meta(moduleMappingPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ModuleMappingErrNotAllowedToUpdate returns "federation:module_mapping.notAllowedToUpdate" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ModuleMappingErrNotAllowedToUpdate(mm ...*moduleMappingActionProps) *errors.Error {
-	var p = &moduleMappingActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to update this module", nil),
-
-		errors.Meta("type", "notAllowedToUpdate"),
-		errors.Meta("resource", "federation:module_mapping"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleMappingLogMetaKey{}, "could not update module; insufficient permissions"),
-		errors.Meta(moduleMappingPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ModuleMappingErrNotAllowedToDelete returns "federation:module_mapping.notAllowedToDelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ModuleMappingErrNotAllowedToDelete(mm ...*moduleMappingActionProps) *errors.Error {
-	var p = &moduleMappingActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to delete this module", nil),
-
-		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "federation:module_mapping"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleMappingLogMetaKey{}, "could not delete module; insufficient permissions"),
+		errors.Meta(moduleMappingLogMetaKey{}, "could not manage mapping; insufficient permissions"),
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

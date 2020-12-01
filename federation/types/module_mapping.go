@@ -6,6 +6,7 @@ import (
 
 type (
 	ModuleMapping struct {
+		NodeID             uint64                `json:"nodeID,string"`
 		FederationModuleID uint64                `json:"federationModuleID,string"`
 		ComposeModuleID    uint64                `json:"composeModuleID,string"`
 		ComposeNamespaceID uint64                `json:"composeNamespaceID,string"`
@@ -13,6 +14,7 @@ type (
 	}
 
 	ModuleMappingFilter struct {
+		NodeID             uint64 `json:"nodeID"`
 		ComposeModuleID    uint64 `json:"composeModuleID"`
 		ComposeNamespaceID uint64 `json:"composeNamespaceID"`
 		FederationModuleID uint64 `json:"federationModuleID"`
