@@ -9,7 +9,9 @@ import (
 
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	st "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 )
@@ -32,6 +34,20 @@ func (h mockNodeHandshake) Complete(ctx context.Context, n *types.Node, t string
 
 func (h helper) clearNodes() {
 	h.noError(store.TruncateFederationNodes(context.Background(), service.DefaultStore))
+}
+
+func (h helper) prepareRBAC() {
+	h.allow(types.FederationRBACResource, rbac.Operation("access"))
+	h.allow(types.FederationRBACResource, rbac.Operation("node.create"))
+	h.allow(types.FederationRBACResource, rbac.Operation("pair"))
+	h.allow("federation:node:*", rbac.Operation("manage"))
+
+	h.noError(service.DefaultStore.CreateRole(context.Background(), &st.Role{
+		ID:   h.roleID,
+		Name: "federation",
+	}))
+
+	h.noError(service.DefaultStore.CreateUser(context.Background(), h.cUser))
 }
 
 func (h helper) lookupNodeByID(ID uint64) *types.Node {
@@ -64,6 +80,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 
 	service.DefaultNode.SetHandshaker(nil)
 
+	h.prepareRBAC()
 	h.clearNodes()
 
 	{
@@ -92,7 +109,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		t.Log("Step #2, request pairing URI")
 
 		h.apiInit().
-			//Debug().
+			// Debug().
 			Post(fmt.Sprintf("/nodes/%d/uri", aNodeID)).
 			Expect(t).
 			Status(http.StatusOK).
@@ -112,7 +129,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		t.Log("Step #3, use pairing URI to create node on the 2nd server")
 
 		h.apiInit().
-			//Debug().
+			// Debug().
 			Post("/nodes/").
 			FormData("pairingURI", aNodeURI).
 			Expect(t).
@@ -134,7 +151,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		t.Log("Step #4, admin of 2nd server requests list of nodes")
 
 		h.apiInit().
-			//Debug().
+			// Debug().
 			Get("/nodes/").
 			Query("status", types.NodeStatusPending).
 			Expect(t).
@@ -153,10 +170,10 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		service.DefaultNode.SetHandshaker(&mockNodeHandshake{
 			init: func(ctx context.Context, n *types.Node, authToken string) error {
 				h.apiInit().
-					//Debug().
+					// Debug().
 					// make sure we do not use test auth-token for authentication but
 					// we do it with pairing token
-					Intercept(helpers.ReqHeaderAuthBearer(nil)).
+					Intercept(helpers.ReqHeaderRawAuthBearer(n.AuthToken)).
 					Post(fmt.Sprintf("/nodes/%d/handshake", n.SharedNodeID)).
 					FormData("pairToken", n.PairToken).
 					FormData("authToken", authToken).
@@ -170,7 +187,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		})
 
 		h.apiInit().
-			//Debug().
+			// Debug().
 			Post(fmt.Sprintf("/nodes/%d/pair", bNodeID)).
 			Expect(t).
 			Status(http.StatusOK).

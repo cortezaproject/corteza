@@ -15,10 +15,16 @@ import (
 type (
 	exposedModule struct {
 		node      node
+		ac        exposedModuleAccessController
 		module    cs.ModuleService
 		namespace cs.NamespaceService
 		store     store.Storer
 		actionlog actionlog.Recorder
+	}
+
+	exposedModuleAccessController interface {
+		CanCreateModule(ctx context.Context, r *types.Node) bool
+		CanManageModule(ctx context.Context, r *types.ExposedModule) bool
 	}
 
 	ExposedModuleService interface {
@@ -26,7 +32,6 @@ type (
 		Update(ctx context.Context, updated *types.ExposedModule) (*types.ExposedModule, error)
 		Find(ctx context.Context, filter types.ExposedModuleFilter) (types.ExposedModuleSet, types.ExposedModuleFilter, error)
 		FindByID(ctx context.Context, nodeID uint64, moduleID uint64) (*types.ExposedModule, error)
-		// FindByAny(ctx context.Context, nodeID uint64, identifier interface{}) (*types.ExposedModule, error)
 		DeleteByID(ctx context.Context, nodeID, moduleID uint64) (*types.ExposedModule, error)
 	}
 
@@ -35,6 +40,7 @@ type (
 
 func ExposedModule() ExposedModuleService {
 	return &exposedModule{
+		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
 		module:    cs.DefaultModule,
 		namespace: cs.DefaultNamespace,
@@ -70,6 +76,10 @@ func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID u
 			return err
 		}
 
+		if !svc.ac.CanManageModule(ctx, module) {
+			return ExposedModuleErrNotAllowedToManage()
+		}
+
 		return nil
 	}()
 
@@ -82,11 +92,6 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
-
 		var (
 			m    *ct.Module
 			node *types.Node
@@ -95,6 +100,10 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 
 		if node, err = svc.node.FindByID(ctx, updated.NodeID); err != nil {
 			return ExposedModuleErrNodeNotFound()
+		}
+
+		if !svc.ac.CanManageModule(ctx, updated) {
+			return ExposedModuleErrNotAllowedToManage()
 		}
 
 		if _, err := svc.namespace.With(ctx).FindByID(updated.ComposeNamespaceID); err != nil {
@@ -167,18 +176,26 @@ func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
+		var (
+			m *types.ExposedModule
+		)
 
-		m, err := svc.FindByID(ctx, nodeID, moduleID)
-
-		if err != nil {
-			return ExposedModuleErrComposeNamespaceNotFound()
+		if _, err = svc.node.FindByID(ctx, nodeID); err != nil {
+			return ExposedModuleErrNodeNotFound()
 		}
 
-		if err := store.DeleteFederationExposedModuleByID(ctx, svc.store, moduleID); err != nil {
+		if m, err = svc.FindByID(ctx, nodeID, moduleID); err != nil {
+			return err
+		}
+
+		if !svc.ac.CanManageModule(ctx, m) {
+			return ExposedModuleErrNotAllowedToManage()
+		}
+
+		m.DeletedAt = now()
+		m.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
+
+		if err = store.UpdateFederationExposedModule(ctx, s, m); err != nil {
 			return err
 		}
 
@@ -191,6 +208,14 @@ func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64
 }
 
 func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFilter) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
+	filter.Check = func(res *types.ExposedModule) (bool, error) {
+		if !svc.ac.CanManageModule(ctx, res) {
+			return false, ExposedModuleErrNotAllowedToManage()
+		}
+
+		return true, nil
+	}
+
 	err = func() error {
 		if set, f, err = store.SearchFederationExposedModules(ctx, svc.store, filter); err != nil {
 			return err
@@ -208,10 +233,6 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 	)
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// TODO
-		// if !svc.ac.CanCreateFederationExposedModule(ctx, ns) {
-		// 	return ExposedModuleErrNotAllowedToCreate()
-		// }
 		var (
 			m    *ct.Module
 			node *types.Node
@@ -219,6 +240,10 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 		if node, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
 			return ExposedModuleErrNodeNotFound()
+		}
+
+		if !svc.ac.CanCreateModule(ctx, node) {
+			return ExposedModuleErrNotAllowedToCreate()
 		}
 
 		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
@@ -229,7 +254,6 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
-		// Check for node - compose.Module combo
 		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
 		}

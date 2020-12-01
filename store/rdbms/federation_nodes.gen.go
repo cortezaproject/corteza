@@ -237,7 +237,7 @@ func (s Store) execUpsertFederationNodes(ctx context.Context, set store.Payload)
 		s.config,
 		s.federationNodeTable(),
 		set,
-		"id",
+		s.preprocessColumn("id", ""),
 	)
 
 	if err != nil {

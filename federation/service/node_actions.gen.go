@@ -645,6 +645,102 @@ func NodeErrPairingTokenInvalid(mm ...*nodeActionProps) *errors.Error {
 	return e
 }
 
+// NodeErrNotAllowedToCreate returns "federation:node.notAllowedToCreate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrNotAllowedToCreate(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create nodes", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "federation:node"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeLogMetaKey{}, "could not create nodes; insufficient permissions"),
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NodeErrNotAllowedToManage returns "federation:node.notAllowedToManage" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrNotAllowedToManage(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to manage this node", nil),
+
+		errors.Meta("type", "notAllowedToManage"),
+		errors.Meta("resource", "federation:node"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeLogMetaKey{}, "could not manage {node}; insufficient permissions"),
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// NodeErrNotAllowedToPair returns "federation:node.notAllowedToPair" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrNotAllowedToPair(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to pair this node", nil),
+
+		errors.Meta("type", "notAllowedToPair"),
+		errors.Meta("resource", "federation:node"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeLogMetaKey{}, "could not pair {node}; insufficient permissions"),
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 

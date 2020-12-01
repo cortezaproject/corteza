@@ -79,3 +79,15 @@ errors:
 
   - error: pairingTokenInvalid
     message: "pairing token invalid"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create nodes"
+    log: "could not create nodes; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage this node"
+    log: "could not manage {node}; insufficient permissions"
+  
+  - error: notAllowedToPair
+    message: "not allowed to pair this node"
+    log: "could not pair {node}; insufficient permissions"

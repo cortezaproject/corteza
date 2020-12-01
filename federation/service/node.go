@@ -37,6 +37,14 @@ type (
 		baseURL string
 
 		handshaker nodeHandshaker
+
+		ac nodeAccessController
+	}
+
+	nodeAccessController interface {
+		CanPair(ctx context.Context) bool
+		CanCreateNode(ctx context.Context) bool
+		CanManageNode(ctx context.Context, r *types.Node) bool
 	}
 
 	nodeUpdateHandler func(ctx context.Context, n *types.Node) error
@@ -47,12 +55,13 @@ type (
 	}
 )
 
-func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.TokenHandler, options options.FederationOpt) *node {
+func Node(s store.Storer, u service.UserService, al actionlog.Recorder, th auth.TokenHandler, options options.FederationOpt, ac nodeAccessController) *node {
 	return &node{
 		store:        s,
 		sysUser:      u,
 		actionlog:    al,
 		tokenEncoder: th,
+		ac:           ac,
 		name:         options.Label,
 		host:         options.Host,
 
@@ -72,6 +81,14 @@ func (svc node) Search(ctx context.Context, filter types.NodeFilter) (set types.
 		aProps = &nodeActionProps{filter: &filter}
 	)
 
+	filter.Check = func(res *types.Node) (bool, error) {
+		if !svc.ac.CanManageNode(ctx, res) {
+			return false, NodeErrNotAllowedToManage()
+		}
+
+		return true, nil
+	}
+
 	err = func() error {
 		if set, f, err = store.SearchFederationNodes(ctx, svc.store, filter); err != nil {
 			return err
@@ -85,9 +102,14 @@ func (svc node) Search(ctx context.Context, filter types.NodeFilter) (set types.
 
 // Create is used on server A to create federation with server B
 func (svc node) Create(ctx context.Context, new *types.Node) (*types.Node, error) {
+	var (
+		aProps = &nodeActionProps{}
+		n      *types.Node
+		err    error
+	)
 
 	// @todo verify new.baseURL; if it's set it must be valid URL that returns 200
-	var (
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		n = &types.Node{
 			ID:        nextID(),
 			Name:      new.Name,
@@ -96,9 +118,12 @@ func (svc node) Create(ctx context.Context, new *types.Node) (*types.Node, error
 			CreatedAt: *now(),
 		}
 
-		aProps = &nodeActionProps{node: n}
-		err    = store.CreateFederationNode(ctx, svc.store, n)
-	)
+		if !svc.ac.CanCreateNode(ctx) {
+			return NodeErrNotAllowedToCreate()
+		}
+
+		return store.CreateFederationNode(ctx, s, n)
+	})
 
 	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
 }
@@ -110,6 +135,11 @@ func (svc node) Read(ctx context.Context, ID uint64) (*types.Node, error) {
 		aProps = &nodeActionProps{node: n}
 	)
 
+	// permission takes precedence over any db error
+	if n != nil && !svc.ac.CanManageNode(ctx, n) {
+		err = NodeErrNotAllowedToManage()
+	}
+
 	return n, svc.recordAction(ctx, aProps, NodeActionCreate, err)
 }
 
@@ -120,7 +150,16 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 		aProps   = &nodeActionProps{pairingURI: uri}
 	)
 
-	n, err = svc.decodePairingURI(uri)
+	err = func(ctx context.Context) error {
+		if !svc.ac.CanPair(ctx) {
+			return NodeErrNotAllowedToPair()
+		}
+
+		n, err = svc.decodePairingURI(uri)
+
+		return err
+	}(ctx)
+
 	if err != nil {
 		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
 	}
@@ -129,7 +168,9 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 	aProps.setNode(existing)
 
 	if errors.Is(err, store.ErrNotFound) {
-		// @todo access-control
+		if !svc.ac.CanCreateNode(ctx) {
+			return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, NodeErrNotAllowedToCreate())
+		}
 
 		n.ID = nextID()
 		n.CreatedAt = *now()
@@ -142,7 +183,9 @@ func (svc node) CreateFromPairingURI(ctx context.Context, uri string) (n *types.
 	} else if err != nil {
 		return nil, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, err)
 	} else {
-		// @todo access-control
+		if !svc.ac.CanManageNode(ctx, n) {
+			return n, svc.recordAction(ctx, aProps, NodeActionCreateFromPairingURI, NodeErrNotAllowedToManage())
+		}
 
 		// Node with the same sharing ID and domain already exists
 		// so we'll reset status and tokens
@@ -202,8 +245,6 @@ func (svc node) Update(ctx context.Context, upd *types.Node) (*types.Node, error
 
 func (svc node) DeleteByID(ctx context.Context, ID uint64) error {
 	_, err := svc.updater(ctx, ID, NodeActionDelete, func(ctx context.Context, n *types.Node) error {
-		// @todo access-control
-
 		n.DeletedAt = now()
 		n.DeletedBy = auth.GetIdentityFromContext(ctx).Identity()
 
@@ -214,8 +255,6 @@ func (svc node) DeleteByID(ctx context.Context, ID uint64) error {
 
 func (svc node) UndeleteByID(ctx context.Context, ID uint64) error {
 	_, err := svc.updater(ctx, ID, NodeActionUndelete, func(ctx context.Context, n *types.Node) error {
-		// @todo access-control
-
 		n.DeletedAt = nil
 		n.DeletedBy = 0
 
@@ -226,12 +265,15 @@ func (svc node) UndeleteByID(ctx context.Context, ID uint64) error {
 
 // Pair is used on server B to send request to server A
 func (svc node) Pair(ctx context.Context, nodeID uint64) error {
+	if !svc.ac.CanPair(ctx) {
+		return NodeErrNotAllowedToPair()
+	}
+
 	_, err := svc.updater(
 		ctx,
 		nodeID,
 		NodeActionPair,
 		func(ctx context.Context, n *types.Node) error {
-
 			// Handle federated user
 			u, err := svc.fetchFederatedUser(ctx, n)
 			if err != nil {
@@ -260,6 +302,10 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 
 // HandshakeInit is used on server A to handle pairing request (see Pair fn above) from server B
 func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken string, sharedNodeID uint64, authToken string) error {
+	// if !svc.ac.CanPair(ctx) {
+	// 	return NodeErrNotAllowedToPair()
+	// }
+
 	_, err := svc.updater(
 		ctx,
 		sharedNodeID,
@@ -290,6 +336,10 @@ func (svc node) HandshakeInit(ctx context.Context, nodeID uint64, pairToken stri
 
 // HandshakeConfirm is used by server A to manually confirm the handshake
 func (svc node) HandshakeConfirm(ctx context.Context, nodeID uint64) error {
+	if !svc.ac.CanPair(ctx) {
+		return NodeErrNotAllowedToPair()
+	}
+
 	_, err := svc.updater(ctx, nodeID, NodeActionHandshakeConfirm, func(ctx context.Context, n *types.Node) error {
 		// Handle federated user
 		u, err := svc.fetchFederatedUser(ctx, n)
@@ -321,6 +371,10 @@ func (svc node) HandshakeComplete(ctx context.Context, sharedNodeID uint64, toke
 		err error
 	)
 
+	if !svc.ac.CanPair(ctx) {
+		return NodeErrNotAllowedToPair()
+	}
+
 	if n, err = store.LookupFederationNodeBySharedNodeID(ctx, svc.store, sharedNodeID); err != nil {
 		return err
 	}
@@ -346,6 +400,7 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 
 	err = func() error {
 		n, err = store.LookupFederationNodeByID(ctx, svc.store, nodeID)
+
 		if errors.Is(err, store.ErrNotFound) {
 			return NodeErrNotFound()
 		}
@@ -355,6 +410,12 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 		if err = fn(ctx, n); err != nil {
 			return err
 		}
+
+		// any other type of access check
+		// should be done in fn() before
+		// if !svc.ac.CanManageNode(ctx, n) {
+		// 	return NodeErrNotAllowedToManage()
+		// }
 
 		if err = store.UpdateFederationNode(ctx, svc.store, n); err != nil {
 			return err
@@ -373,11 +434,23 @@ func (svc node) updater(ctx context.Context, nodeID uint64, action func(...*node
 }
 
 func (svc node) FindBySharedNodeID(ctx context.Context, sharedNodeID uint64) (*types.Node, error) {
-	return svc.store.LookupFederationNodeBySharedNodeID(ctx, sharedNodeID)
+	n, err := svc.store.LookupFederationNodeBySharedNodeID(ctx, sharedNodeID)
+
+	if !svc.ac.CanManageNode(ctx, n) {
+		return nil, NodeErrNotAllowedToManage()
+	}
+
+	return n, err
 }
 
 func (svc node) FindByID(ctx context.Context, nodeID uint64) (*types.Node, error) {
-	return svc.store.LookupFederationNodeByID(ctx, nodeID)
+	n, err := svc.store.LookupFederationNodeByID(ctx, nodeID)
+
+	if !svc.ac.CanManageNode(ctx, n) {
+		return nil, NodeErrNotAllowedToManage()
+	}
+
+	return n, err
 }
 
 // Looks for existing user or crates a new one
@@ -395,18 +468,32 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 	}
 
 	if service.UserErrNotFound().Is(err) {
-		// @todo add label to mark this user as "federation service user"
-		//       federation=<nodeID>
-
-		// Create a user to service this node
-		u, err = svc.sysUser.With(ctx).Create(&sysTypes.User{
+		user := &sysTypes.User{
 			Email:  strconv.FormatUint(n.ID, 10) + "@federation.corteza",
 			Handle: uHandle,
-		})
+		}
+
+		AddFederationLabel(user, n.BaseURL)
+
+		// Create a user to service this node
+		r, err := service.DefaultRole.With(ctx).FindByName("federation")
 
 		if err != nil {
 			return nil, err
 		}
+
+		u, err = svc.sysUser.With(ctx).Create(user)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if err = service.DefaultRole.With(ctx).MemberAdd(r.ID, u.ID); err != nil {
+			return nil, err
+		}
+
+		u.SetRoles(append(u.Roles(), r.ID))
+
 		return u, nil
 	}
 

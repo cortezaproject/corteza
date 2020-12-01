@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	ss "github.com/cortezaproject/corteza-server/system/service"
@@ -38,6 +39,8 @@ var (
 	DefaultStore store.Storer
 
 	DefaultLogger *zap.Logger
+
+	DefaultAccessControl *accessControl
 
 	// CurrentSettings represents current system settings
 	CurrentSettings = &types.AppSettings{}
@@ -91,6 +94,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
+	DefaultAccessControl = AccessControl(rbac.Global())
+
 	if DefaultStore == nil {
 		const svcPath = "federation"
 		if c.Storage.MinioEndpoint != "" {
@@ -128,7 +133,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "Store/Federation")
 
-	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler, c.Federation)
+	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler, c.Federation, DefaultAccessControl)
 	DefaultNodeSync = NodeSync()
 	DefaultExposedModule = ExposedModule()
 	DefaultSharedModule = SharedModule()

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +30,6 @@ func WorkerStructure(sync *Sync, logger *zap.Logger) *syncWorkerStructure {
 }
 
 func (w *syncWorkerStructure) queueUrl(url *types.SyncerURI, urls chan Url, meta Processer) {
-	// s, _ := url.String()
-
-	// w.logger.Debug(fmt.Sprintf("adding %s to queue", s))
-
 	t := Url{
 		Url:  *url,
 		Meta: meta,
@@ -131,8 +128,8 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 				return
 			default:
 			}
-
 			s, _ := url.Url.String()
+			spew.Dump("URL", s)
 			meta := url.Meta.(*structureProcesser)
 
 			// use the authToken from node pairing
