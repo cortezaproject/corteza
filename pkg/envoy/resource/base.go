@@ -6,6 +6,11 @@ type (
 		ii Identifiers
 		rr RefSet
 	}
+
+	EnvoyConfig struct {
+		// SkipIf determines when the encoding should be skipped for this resource
+		SkipIf string
+	}
 )
 
 // State management methods

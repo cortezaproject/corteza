@@ -513,6 +513,53 @@ func TestSimpleCases(t *testing.T) {
 				req.Equal("v1", v.Value)
 			},
 		},
+
+		{
+			name:  "simple records; conditional",
+			suite: "simple",
+			file:  "records_conditional",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeRecords(ctx, nil),
+					s.TruncateComposeModuleFields(ctx),
+					s.TruncateComposeModules(ctx),
+					s.TruncateComposeNamespaces(ctx),
+
+					storeNamespace(ctx, s, 100, "ns1"),
+
+					storeModule(ctx, s, 100, 200, "mod1"),
+					storeModuleField(ctx, s, 200, 300, "f1"),
+					storeRecord(ctx, s, 100, 200, 400, "existing value"),
+
+					storeModule(ctx, s, 100, 201, "mod2"),
+					storeModuleField(ctx, s, 201, 301, "f1"),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.NoError(err)
+			},
+			check: func(req *require.Assertions) {
+				mod1, err := store.LookupComposeModuleByID(ctx, s, 200)
+				req.NoError(err)
+				req.NotNil(mod1)
+
+				mod2, err := store.LookupComposeModuleByID(ctx, s, 201)
+				req.NoError(err)
+				req.NotNil(mod2)
+
+				rr1, _, err := store.SearchComposeRecords(ctx, s, mod1, types.RecordFilter{ModuleID: mod1.ID, NamespaceID: mod1.NamespaceID})
+				req.NoError(err)
+				req.NotNil(rr1)
+				req.Len(rr1, 1)
+				req.Equal("existing value", rr1[0].Values.FilterByName("f1")[0].Value)
+
+				rr2, _, err := store.SearchComposeRecords(ctx, s, mod2, types.RecordFilter{ModuleID: mod2.ID, NamespaceID: mod2.NamespaceID})
+				req.NoError(err)
+				req.NotNil(rr2)
+				req.Len(rr2, 1)
+				req.Equal("f1 value", rr2[0].Values.FilterByName("f1")[0].Value)
+			},
+		},
 	}
 
 	for _, c := range cases {

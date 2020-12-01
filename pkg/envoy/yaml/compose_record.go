@@ -13,6 +13,8 @@ type (
 		values    map[string]string
 		sysValues map[string]string
 
+		eCfg *resource.EnvoyConfig
+
 		refModule    string
 		refNamespace string
 		// createdBy, updatedBy, deletedBy, ownedBy
@@ -95,7 +97,8 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 
 		r := &resource.ComposeRecordRaw{
 			// @todo change this probably
-			ID: res.values["id"],
+			ID:     res.values["id"],
+			Config: res.eCfg,
 		}
 		r.ApplyValues(res.values)
 		r.ApplyValues(res.sysValues)
@@ -152,6 +155,10 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	//if wrap.rbac, err = decodeRbac(types.RecordRBACResource, n); err != nil {
 	//	return
 	//}
+
+	if wrap.eCfg, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
 
 	return eachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
