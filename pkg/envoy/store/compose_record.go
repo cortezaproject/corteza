@@ -23,7 +23,7 @@ type (
 		relMod *types.Module
 
 		// Little helper flag for conditional encoding
-		modEmpty bool
+		missing bool
 	}
 )
 
@@ -50,7 +50,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 		return composeNamespaceErrUnresolved(n.res.NsRef.Identifiers)
 	}
 
-	n.modEmpty = true
+	n.missing = true
 	n.relMod = findComposeModuleR(state.ParentResources, n.res.ModRef.Identifiers)
 	if n.relMod == nil && n.relNS.ID > 0 {
 		n.relMod, err = findComposeModuleS(ctx, s, n.relNS.ID, makeGenericFilter(n.res.ModRef.Identifiers))
@@ -73,7 +73,7 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 			if err != nil && err != store.ErrNotFound {
 				return err
 			}
-			n.modEmpty = len(rr) == 0
+			n.missing = len(rr) == 0
 		}
 	}
 
@@ -158,7 +158,7 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 			}
 			// @todo expand this
 			skip, err := evl.EvalBool(ctx, map[string]interface{}{
-				"empty": n.modEmpty,
+				"missing": n.missing,
 			})
 			if err != nil {
 				return err
