@@ -2,9 +2,9 @@
 
 This file is meant to help with the creation of a .YAML file inside options package.
 
-The name of the .YAML will dedicate the name of the .gen.go file e.g. fileName1.yaml -> fileName1.gen.go, filename2.yaml -> filename2.gen.go
+The name of the *.YAML* will dedicate the name of the *.gen.go* file e.g. fileName1.yaml -> fileName1.gen.go, filename2.yaml -> filename2.gen.go
 
-The contents of the .YAML file should look like this:
+The contents of the *.YAML* file should look like this:
 
    name: ...
 
@@ -16,17 +16,20 @@ The contents of the .YAML file should look like this:
         type: ...
         env: ...
         default: ...
+        description: ...
       
 
 
-**name**
-   - It is the name of the struct
+**name**: ::
+* It is the name of the struct
 
-**imports** 
-   - The list of imports that are needed, if there are no imporsts you may skip this step
+**imports**: :: 
+* The list of imports that are needed, if there are no imporsts you may skip this step
 
-**props**
-   - props: - *name* -> name of variable
-   - props: - *type* -> the type of variable if not given it is "string" by default
-   - props: - *env* -> environment value that if it is not defined will be auto generated from "name" and "props: - name"
-   - props: - *default* -> the default value that is asigned to the "prop" strings should be given in double quotations if they are to be qouted
+**props**: ::
+* *name* -> name of variable
+* *type* -> the type of variable if not given it is "string" by default
+* *env* -> environment value that if it is not defined will be auto generated from "name" and "props: - name"
+* *default* -> the default value that is asigned to the "prop" strings should be given in double quotations if they are to be qouted
+* *description* -> description contains the "comment" for the entire prop line
+

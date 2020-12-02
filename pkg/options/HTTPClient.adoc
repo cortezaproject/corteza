@@ -1,0 +1,23 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/HTTPClient.yaml
+
+= HTTPClient
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *HTTP_CLIENT_TSL_INSECURE*
+|`bool`
+|false|Allow insecure (invalid, expired TSL/SSL certificates) connections.
+[IMPORTANT]
+We strongly recommend keeping this value set to false except for local development or demos.
+
+3+| *HTTP_CLIENT_TIMEOUT*
+|`time.Duration`
+|30 * time.Second|Default timeout for clients.
+|===
