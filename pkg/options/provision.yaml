@@ -5,3 +5,4 @@ props:
   - name: always
     type: bool
     default: true
+    description: Controls if provision should run when the server starts.
