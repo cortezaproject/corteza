@@ -5,7 +5,9 @@ props:
   - name: enabled
     type: bool
     default: true
+    description: Enable action logging.
     
   - name: debug
     type: bool
     default: false
+    description: Enable debug action logging.

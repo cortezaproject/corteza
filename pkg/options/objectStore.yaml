@@ -5,9 +5,11 @@ props:
   - name: path
     env: STORAGE_PATH
     default: "var/store"
+    description: Location where uploaded files are stored.
   
   - name: minioEndpoint   
     env: MINIO_ENDPOINT
+    description: 
   
   - name: minioSecure    
     type: bool   

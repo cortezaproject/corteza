@@ -8,80 +8,99 @@ props:
   - name: addr
     env: HTTP_ADDR
     default: ":80"
+    description: IP and port for the HTTP server.
 
   - name: logRequest
     type: bool
     env: HTTP_LOG_REQUEST
     default: false
+    description: Log HTTP requests.
     
   - name: logResponse
     type: bool
     env: HTTP_LOG_RESPONSE
     default: false
+    description: Log HTTP responses.
 
   - name: tracing
     type: bool
     env: HTTP_ERROR_TRACING
     default: false
+    description:
+
 
   - name: enableHealthcheckRoute
     type: bool
     env: HTTP_ENABLE_HEALTHCHECK_ROUTE
     default: true
+    description: 
 
   - name: enableVersionRoute 
     type: bool
     env: HTTP_ENABLE_VERSION_ROUTE
     default: true
+    description: Enable `/version` route.
 
   - name: enableDebugRoute     
     type: bool
     env: HTTP_ENABLE_DEBUG_ROUTE
     default: false
+    description: Enable `/debug` route.
 
   - name: enableMetrics
     type: bool
     env: HTTP_METRICS
     default: false
+    description: Enable (prometheus) metrics.
 
   - name: metricsServiceLabel
     env: HTTP_METRICS_NAME
     default: "corteza"
+    description: Name for metrics endpoint.
 
   - name: metricsUsername
     env: HTTP_METRICS_USERNAME
     default: "metrics"
+    description: Username for the metrics endpoint.
 
   - name: metricsPassword
     env: HTTP_METRICS_PASSWORD
     default: string(rand.Bytes(5))
+    description: Password for the metrics endpoint.
 
   - name: enablePanicReporting
     type: bool
     env: HTTP_REPORT_PANIC
     default: true
+    description: Report HTTP panic to Sentry.
     
   - name: apiEnabled
     type: bool
     env: HTTP_API_ENABLED
     default: true
+    description:
 
   - name: apiBaseUrl
     env: HTTP_API_BASE_URL
+    description:
 
   - name: webappEnabled
     type: bool
     env: HTTP_WEBAPP_ENABLED
     default: false
+    description:
 
   - name: webappBaseUrl
     env: HTTP_WEBAPP_BASE_URL
     default: "/"
+    description:
 
   - name: webappBaseDir
     env: HTTP_WEBAPP_BASE_DIR
     default: "webapp/public"
+    description:
     
   - name: webappList
     env: HTTP_WEBAPP_LIST
     default: "admin,auth,messaging,compose"
+    description:

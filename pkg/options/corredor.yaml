@@ -8,17 +8,21 @@ props:
   - name: enabled
     type: bool
     default: true
+    description: Enable/disable Corredor integration
 
   - name: addr
     default: "localhost:50051"
+    description: Hostname and port of the Corredor gRPC server.
 
   - name: maxBackoffDelay
     type: time.Duration
     default: time.Minute
+    description: Max delay for backoff on connection.
 
   - name: maxReceiveMessageSize
     type: int
     default: 2 << 23
+    description: Max message size that can be recived.
     
   - name: defaultExecTimeout
     type: time.Duration
@@ -38,11 +42,11 @@ props:
 
   - name: tlsCertEnabled
     type: bool
-    env: corredor_client_certificates_enabled
+    env: CORREDOR_CLIENT_CERTIFICATES_ENABLED
     default: false
   
   - name: tlsCertPath
-    env: corredor_client_certificates_path
+    env: CORREDOR_CLIENT_CERTIFICATES_PATH
     default: "/certs/corredor/client"
   
   - name: tlsCertCA
