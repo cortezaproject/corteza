@@ -1,0 +1,20 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/actionLog.yaml
+
+= ActionLog
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *ACTIONLOG_ENABLED*
+|`bool`
+|true|Enable action logging.
+3+| *ACTIONLOG_DEBUG*
+|`bool`
+|false|Enable debug action logging.
+|===

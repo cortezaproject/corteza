@@ -1,0 +1,36 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/SMTP.yaml
+
+= SMTP
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *SMTP_HOST*
+|`string`
+|"localhost"|The SMTP server hostname. 
+
+3+| *SMTP_PORT*
+|`int`
+|25|The SMTP post.
+3+| *SMTP_USER*
+|`string`
+||The SMTP username.
+3+| *SMTP_PASS*
+|`string`
+||The SMTP password.
+3+| *SMTP_FROM*
+|`string`
+||The SMTP `from` email parameter
+3+| *SMTP_TLS_INSECURE*
+|`bool`
+|false|Allow insecure (invalid, expired TLS certificates) connections.
+3+| *SMTP_TLS_SERVER_NAME*
+|`string`
+||
+|===

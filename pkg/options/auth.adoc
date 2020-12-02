@@ -1,0 +1,23 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/auth.yaml
+
+= Auth
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *AUTH_JWT_SECRET*
+|`string`
+||Secret used for signing JWT tokens.
+[IMPORTANT]
+Make sure to provide a secret. If you don’t, a random value is assigned — this causes all of the tokens to become invalid after a server restart.
+
+3+| *AUTH_JWT_EXPIRY*
+|`time.Duration`
+|time.Hour * 24 * 30|Experation time for the auth JWT tokens.
+|===
