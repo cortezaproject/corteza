@@ -1,0 +1,17 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/monitor.yaml
+
+= Monitor
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *MONITOR_INTERVAL*
+|`time.Duration`
+|300 * time.Second|Output (log) interval for monitoring.
+|===

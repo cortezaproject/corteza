@@ -1,0 +1,17 @@
+// This file is auto-generated.
+//
+// Changes to this file may cause incorrect behavior and will be lost if
+// the code is regenerated.
+//
+// Definitions file that controls how this file is generated:
+// pkg/options/DB.yaml
+
+= DB
+
+[cols="2,3,5a"]
+|===
+|Type|Default value|Description
+3+| *DB_DSN*
+|`string`
+|"sqlite3://file::memory:?cache=shared&mode=memory"|Database connection string.
+|===
