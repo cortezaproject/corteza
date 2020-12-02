@@ -4,20 +4,30 @@
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// {{ .Source }}
-
-= {{ export $.Name }}
-
-[cols="2,3,5a"]
-|===
-|Type|Default value|Description
-
-{{- range $prop := $.Properties }}
-3+| *{{ toUpper $prop.Env }}*
-|`{{ $prop.Type }}`
-|{{- if $prop.Default }}
-   {{- $prop.Default -}}
- {{- end -}}
-|{{ $prop.Description }}
+{{- range .Definitions }}
+//  - {{ .Source }}
 {{- end }}
-|===
+
+
+{{ range .Definitions }}
+
+= {{ .Docs.Title }}
+
+{{ .Docs.Intro }}
+
+{{ range .Properties }}
+
+== *{{ toUpper .Env }}* `{{ .Type }}`
+
+{{ if .Default }}
+Default::
+	`{{ .Default }}`
+{{ end -}}
+{{ if .Description }}
+Description::
+	{{ .Description }}
+{{ end -}}
+
+{{ end }}
+{{ end }}
+

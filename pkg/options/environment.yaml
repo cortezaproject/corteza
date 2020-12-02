@@ -1,5 +1,5 @@
-
-name: environment
+docs:
+  title: Environment
 
 props:
   - name: environment

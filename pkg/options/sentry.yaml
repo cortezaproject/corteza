@@ -1,9 +1,17 @@
-
-name: sentry
-
 imports:
   - github.com/cortezaproject/corteza-server/pkg/version
-  
+
+docs:
+  title: Sentry monitoring
+  intro: |
+    [NOTE]
+    ====
+    These parameters help in the development and testing process.
+    When you are deploying to production, these should be disabled to improve performance and reduce storage usage.
+
+    You should configure external services such as Sentry or ELK to keep track of logs and error reports.
+    ====
+
 props:
   - name: DSN
     description: Set to enable Sentry client.
@@ -36,6 +44,6 @@ props:
 
   - name: dist
     description: Set reported distribution.
-  
+
   - name: environment
     description: Set reported environment.

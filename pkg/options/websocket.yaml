@@ -1,21 +1,19 @@
-
-name: websocket
-
-imports: 
+imports:
   - time
 
-props: 
-  - name: Timeout     
+docs:
+  title: Websocket server
+
+props:
+  - name: Timeout
     type: time.Duration
     default: 15 * time.Second
     description: Time before `WsServer` gets timed out.
 
-  - name: PingTimeout 
+  - name: PingTimeout
     type: time.Duration
     default: 120 * time.Second
-    description: 
 
-  - name: PingPeriod  
+  - name: PingPeriod
     type: time.Duration
     default: ((120 * time.Second) * 9) / 10
-    description: 

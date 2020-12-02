@@ -1,5 +1,5 @@
-
-name: provision
+docs:
+  title: Provisioning
 
 props:
   - name: always

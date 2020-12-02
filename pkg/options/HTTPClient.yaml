@@ -1,8 +1,8 @@
-
-name: HTTPClient
-
 imports:
   - time
+
+docs:
+  title: HTTP Client
 
 props:
   - name: clientTSLInsecure
@@ -13,7 +13,7 @@ props:
       Allow insecure (invalid, expired TSL/SSL certificates) connections.
       [IMPORTANT]
       We strongly recommend keeping this value set to false except for local development or demos.
-    
+
   - name: httpClientTimeout
     type: time.Duration
     env: HTTP_CLIENT_TIMEOUT

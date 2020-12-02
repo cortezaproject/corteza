@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"io"
 	"os"
 	"path"
@@ -18,6 +19,11 @@ type (
 
 		Name string
 
+		Docs struct {
+			Title string
+			Intro string
+		}
+
 		// List of imports
 		// Used only by generated file and not pre-generated-user-file
 		Imports []string `yaml:"imports"`
@@ -28,10 +34,11 @@ type (
 	optionsPropSet []*optionsProp
 
 	optionsProp struct {
-		Name        string
-		Type        string
-		Env         string
-		Default     *optionsPropDefault
+		Name    string
+		Type    string
+		Env     string
+		Default *optionsPropDefault
+
 		Description string
 	}
 
@@ -54,7 +61,15 @@ func procOptions(mm ...string) (dd []*optionsDef, err error) {
 
 			defer f.Close()
 
-			d = &optionsDef{}
+			fname := path.Base(m)
+
+			d = &optionsDef{
+				Name: fname[:len(fname)-len(path.Ext(fname))],
+			}
+
+			if d.Docs.Title == "" {
+				d.Docs.Title = d.Name
+			}
 
 			if err := yaml.NewDecoder(f).Decode(d); err != nil {
 				return err
@@ -107,33 +122,45 @@ func (o optionsDef) Package() string {
 
 func genOptions(tpl *template.Template, dd ...*optionsDef) (err error) {
 	var (
-		tplOptionsGen = tpl.Lookup("options.gen.go.tpl")
-
-		tplOptionsAdoc = tpl.Lookup("options.gen.adoc.tpl")
+		tplOptions = tpl.Lookup("options.gen.go.tpl")
 
 		dst string
 	)
 
 	for _, d := range dd {
 		dst = path.Join(d.outputDir, path.Base(d.Source)[:strings.LastIndex(path.Base(d.Source), ".")]+".gen.go")
-		err = goTemplate(dst, tplOptionsGen, d)
-		if err != nil {
-			return
-		}
-		dst = path.Join(d.outputDir, path.Base(d.Source)[:strings.LastIndex(path.Base(d.Source), ".")]+".adoc")
-		err = goTemplate(dst, tplOptionsAdoc, d)
+		err = goTemplate(dst, tplOptions, d)
 		if err != nil {
 			return
 		}
 	}
 
-	// for _, d := range dd {
-	// 	dst = path.Join(d.outputDir, path.Base(d.Source)[:strings.LastIndex(path.Base(d.Source), ".")]+".adoc")
-	// 	err = goTemplate(dst, tplOptionsAdoc, d)
-	// 	if err != nil {
-	// 		return
-	// 	}
-	// }
-
 	return nil
+}
+
+func genOptionsDocs(tpl *template.Template, docsPath string, dd ...*optionsDef) (err error) {
+	var (
+		tplOptionsAdoc = tpl.Lookup("options.gen.adoc.tpl")
+
+		dst string
+	)
+
+	dst = path.Join(docsPath, "option_env_variables_gen.adoc")
+	return plainTemplate(dst, tplOptionsAdoc, map[string]interface{}{
+		"Definitions": dd,
+		"Import":      collectOptionsDefImports("", dd...),
+	})
+}
+
+func collectOptionsDefImports(basePkg string, dd ...*optionsDef) []string {
+	ii := make([]string, 0, len(dd))
+	for _, d := range dd {
+		for _, i := range d.Imports {
+			if !slice.HasString(ii, i) && (basePkg == "" || !strings.HasSuffix(i, basePkg)) {
+				ii = append(ii, i)
+			}
+		}
+	}
+
+	return ii
 }

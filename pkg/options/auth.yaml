@@ -1,9 +1,8 @@
-
-name: auth
-
 imports:
   - time
-  #- github.com/cortezaproject/corteza-server/pkg/rand
+
+docs:
+  title: Authentication
 
 props:
   - name: secret
@@ -11,8 +10,12 @@ props:
     description: |
       Secret used for signing JWT tokens.
       [IMPORTANT]
-      Make sure to provide a secret. If you don’t, a random value is assigned — this causes all of the tokens to become invalid after a server restart.
-    
+      ====
+      Make sure to provide a secret.
+      If you don't, a random value is assigned -- this causes all of the tokens to become invalid after a server restart.
+      ====
+
+
   - name: expiry
     type: time.Duration
     env: AUTH_JWT_EXPIRY
