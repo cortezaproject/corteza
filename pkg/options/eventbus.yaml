@@ -1,7 +1,8 @@
-name: eventbus
-
 imports:
   - time
+
+docs:
+  title: Events and scheduler
 
 props:
   - name: schedulerEnabled

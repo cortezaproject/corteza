@@ -12,11 +12,19 @@ import (
 )
 
 func Proc() {
+	const (
+		docPathOptions = "/dev-ops-guide/server-configuration"
+	)
+
 	var (
 		err error
 
 		watchChanges bool
 		beVerbose    bool
+		docPath      string
+
+		genCode = true
+		genDocs = false
 
 		fileList []string
 		watcher  *fsnotify.Watcher
@@ -96,8 +104,9 @@ func Proc() {
 		}
 	)
 
-	flag.BoolVar(&watchChanges, "w", false, "regenerate code on template or definition change")
+	flag.BoolVar(&watchChanges, "w", false, "regenerate on change of template or definition files")
 	flag.BoolVar(&beVerbose, "v", false, "output loaded definitions, templates and outputs")
+	flag.StringVar(&docPath, "d", "", "generate docs on template or definition change")
 	flag.Parse()
 
 	defer func() {
@@ -105,6 +114,17 @@ func Proc() {
 			watcher.Close()
 		}
 	}()
+
+	if len(docPath) > 0 {
+		docPath = strings.TrimRight(docPath, "/") + "/src/modules/ROOT/pages"
+		if i, err := os.Stat(docPath); err != nil {
+			handleError(err)
+		} else if !i.IsDir() {
+			handleError(fmt.Errorf("expecting directory: %q", docPath))
+		}
+
+		genDocs = true
+	}
 
 	for {
 		fileList = make([]string, 0, 100)
@@ -128,7 +148,7 @@ func Proc() {
 		output("loaded %d store definitions from %s\n", len(storeSrc), storeSrcPath)
 
 		optionSrc = glob(optionSrcPath)
-		output("loaded %d option defenitions from %s\n", len(optionSrc), optionSrcPath)
+		output("loaded %d option definitions from %s\n", len(optionSrc), optionSrcPath)
 
 		if watchChanges {
 			if watcher != nil {
@@ -158,7 +178,9 @@ func Proc() {
 			}
 
 			if actionDefs, err = procActions(actionSrc...); err == nil {
-				err = genActions(tpls, actionDefs...)
+				if genCode {
+					err = genActions(tpls, actionDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process actions:\n") {
@@ -166,7 +188,9 @@ func Proc() {
 			}
 
 			if eventDefs, err = procEvents(eventSrc...); err == nil {
-				err = genEvents(tpls, eventDefs...)
+				if genCode {
+					err = genEvents(tpls, eventDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process events:\n") {
@@ -174,7 +198,9 @@ func Proc() {
 			}
 
 			if typeDefs, err = procTypes(typeSrc...); err == nil {
-				err = genTypes(tpls, typeDefs...)
+				if genCode {
+					err = genTypes(tpls, typeDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process types:\n") {
@@ -182,7 +208,9 @@ func Proc() {
 			}
 
 			if restDefs, err = procRest(restSrc...); err == nil {
-				err = genRest(tpls, restDefs...)
+				if genCode {
+					err = genRest(tpls, restDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process rest:\n") {
@@ -190,7 +218,9 @@ func Proc() {
 			}
 
 			if storeDefs, err = procStore(storeSrc...); err == nil {
-				err = genStore(tpls, storeDefs...)
+				if genCode {
+					err = genStore(tpls, storeDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process store:\n") {
@@ -198,7 +228,13 @@ func Proc() {
 			}
 
 			if optionDefs, err = procOptions(optionSrc...); err == nil {
-				err = genOptions(tpls, optionDefs...)
+				if genCode {
+					err = genOptions(tpls, optionDefs...)
+				}
+
+				if genDocs && err == nil {
+					err = genOptionsDocs(tpls, docPath+docPathOptions, optionDefs...)
+				}
 			}
 
 			if outputErr(err, "fail to process options:\n") {

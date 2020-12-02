@@ -1,34 +1,36 @@
-
-name: objectStore
+docs:
+  title: Object (file) storage
+  intro:
+    The MinIO integration allows you to replace local storage with cloud storage.
+    When configured, `STORAGE_PATH` is not needed.
 
 props:
   - name: path
     env: STORAGE_PATH
     default: "var/store"
     description: Location where uploaded files are stored.
-  
-  - name: minioEndpoint   
+
+  - name: minioEndpoint
     env: MINIO_ENDPOINT
-    description: 
-  
-  - name: minioSecure    
-    type: bool   
+
+  - name: minioSecure
+    type: bool
     env: MINIO_SECURE
     default: true
-  
-  - name: minioAccessKey  
+
+  - name: minioAccessKey
     env: MINIO_ACCESS_KEY
-  
-  - name: minioSecretKey  
+
+  - name: minioSecretKey
     env: MINIO_SECRET_KEY
-  
-  - name: minioSSECKey    
+
+  - name: minioSSECKey
     env: MINIO_SSEC_KEY
-  
-  - name: minioBucket     
+
+  - name: minioBucket
     env: MINIO_BUCKET
-  
-  - name: minioStrict    
-    type: bool   
+
+  - name: minioStrict
+    type: bool
     env: MINIO_STRICT
     default: false

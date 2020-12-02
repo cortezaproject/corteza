@@ -1,14 +1,14 @@
-
-name: upgrade
+docs:
+  title: Data store (database) upgrade
 
 props:
-  - name: Debug 
+  - name: Debug
     type: bool
     default: false
     description: |
       Enable/disable debug logging.
       To enable debug logging set `UPGRADE_DEBUG=true`.
-    
+
   - name: Always
     type: bool
     default: true

@@ -44,27 +44,29 @@ func goTemplate(dst string, tpl *template.Template, payload interface{}) (err er
 	return nil
 }
 
-func WritePlainTo(tpl *template.Template, payload interface{}, tplName, dst string) {
+func plainTemplate(dst string, tpl *template.Template, payload interface{}) (err error) {
 	var output io.WriteCloser
 	buf := bytes.Buffer{}
 
-	if err := tpl.ExecuteTemplate(&buf, tplName, payload); err != nil {
-		handleError(err)
-	} else {
-		if dst == "" || dst == "-" {
-			output = os.Stdout
-		} else {
-			if output, err = os.Create(dst); err != nil {
-				handleError(err)
-			}
-
-			defer output.Close()
-		}
-
-		if _, err := output.Write(buf.Bytes()); err != nil {
-			handleError(err)
-		}
+	if err := tpl.Execute(&buf, payload); err != nil {
+		return err
 	}
+
+	if dst == "" || dst == "-" {
+		output = os.Stdout
+	} else {
+		if output, err = os.Create(dst); err != nil {
+			return err
+		}
+
+		defer output.Close()
+	}
+
+	if _, err := output.Write(buf.Bytes()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func camelCase(pp ...string) (out string) {

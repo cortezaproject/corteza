@@ -1,5 +1,5 @@
-
-name: DB
+docs:
+  title: Connection to data store backend
 
 props:
   - name: DSN
