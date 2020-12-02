@@ -28,10 +28,11 @@ type (
 	optionsPropSet []*optionsProp
 
 	optionsProp struct {
-		Name    string
-		Type    string
-		Env     string
-		Default *optionsPropDefault
+		Name        string
+		Type        string
+		Env         string
+		Default     *optionsPropDefault
+		Description string
 	}
 
 	optionsPropDefault string
@@ -108,6 +109,8 @@ func genOptions(tpl *template.Template, dd ...*optionsDef) (err error) {
 	var (
 		tplOptionsGen = tpl.Lookup("options.gen.go.tpl")
 
+		tplOptionsAdoc = tpl.Lookup("options.gen.adoc.tpl")
+
 		dst string
 	)
 
@@ -117,6 +120,20 @@ func genOptions(tpl *template.Template, dd ...*optionsDef) (err error) {
 		if err != nil {
 			return
 		}
+		dst = path.Join(d.outputDir, path.Base(d.Source)[:strings.LastIndex(path.Base(d.Source), ".")]+".adoc")
+		err = goTemplate(dst, tplOptionsAdoc, d)
+		if err != nil {
+			return
+		}
 	}
+
+	// for _, d := range dd {
+	// 	dst = path.Join(d.outputDir, path.Base(d.Source)[:strings.LastIndex(path.Base(d.Source), ".")]+".adoc")
+	// 	err = goTemplate(dst, tplOptionsAdoc, d)
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
+
 	return nil
 }
