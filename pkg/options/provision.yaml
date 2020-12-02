@@ -5,5 +5,8 @@ props:
   - name: always
     type: bool
     default: true
+    description: Controls if provision should run when the server starts.
+
   - name: path
     default: "provision/*"
+    description: Colon seperated paths to config files for provisioning.
