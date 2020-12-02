@@ -47,9 +47,7 @@ func TestSettings(t *testing.T) {
 		req.NotNil(ss)
 		req.Len(ss, 4)
 
-		req.Equal("s1.opt.1", ss[0].Name)
-		req.Equal("s1.opt.2", ss[1].Name)
-		req.Equal("s2.opt.1", ss[2].Name)
-		req.Equal("s2.opt.2", ss[3].Name)
+		rs := []string{ss[0].Name, ss[1].Name, ss[2].Name, ss[3].Name}
+		req.Subset(rs, []string{"s1.opt.1", "s1.opt.2", "s2.opt.1", "s2.opt.2"})
 	})
 }
