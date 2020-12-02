@@ -47,9 +47,9 @@ func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *Resou
 
 			// Get the bits in order
 			rRaw := &ComposeRecordRaw{
-				ID: crt.getKey(mr, def.Key),
+				ID:     crt.getKey(mr, def.Key),
+				Values: crt.mapValues(mr, def.FieldMap),
 			}
-			rRaw.ApplyValues(crt.mapValues(mr, def.FieldMap))
 
 			// Process it
 			err = f(rRaw)

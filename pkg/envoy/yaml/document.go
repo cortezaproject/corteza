@@ -15,7 +15,7 @@ type (
 		roles        roleSet
 		users        userSet
 		applications applicationSet
-		settings     settings
+		settings     *settings
 		rbac         rbacRuleSet
 	}
 )

@@ -11,6 +11,8 @@ type (
 	messagingChannel struct {
 		// when messagingChannel is at least partially defined
 		res *types.Channel `yaml:",inline"`
+		ts  *resource.Timestamps
+		us  *resource.Userstamps
 
 		// module's RBAC rules
 		rbac rbacRuleSet
@@ -35,7 +37,7 @@ func (wset *messagingChannelSet) UnmarshalYAML(n *yaml.Node) error {
 		}
 
 		wrap.res = &types.Channel{}
-		if err = v.Decode(&wrap.res); err != nil {
+		if err = v.Decode(&wrap); err != nil {
 			return
 		}
 
@@ -76,11 +78,20 @@ func (wrap *messagingChannel) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+	if wrap.us, err = decodeUserstamps(n); err != nil {
+		return
+	}
+
 	return nil
 }
 
 func (wrap messagingChannel) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewMessagingChannel(wrap.res)
+	rs.SetTimestamps(wrap.ts)
+	rs.SetUserstamps(wrap.us)
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -61,6 +62,26 @@ func (n *userState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 	// This is not possible, but let's do it anyway
 	if state.Conflicting {
 		return nil
+	}
+
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				res.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			res.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			res.DeletedAt = toTime(ts.DeletedAt)
+		}
+		if ts.SuspendedAt != "" {
+			res.SuspendedAt = toTime(ts.SuspendedAt)
+		}
 	}
 
 	// Create a fresh user
@@ -164,7 +185,7 @@ func findUserR(ctx context.Context, rr resource.InterfaceSet, ii resource.Identi
 			return nil
 		}
 
-		if uRes.Identifiers().HasAny(ii) {
+		if ur.Identifiers().HasAny(ii) {
 			uRes = ur
 		}
 		return nil
@@ -176,4 +197,8 @@ func findUserR(ctx context.Context, rr resource.InterfaceSet, ii resource.Identi
 	}
 
 	return nil
+}
+
+func userErrUnresolved(ii resource.Identifiers) error {
+	return fmt.Errorf("user unresolved %v", ii.StringSlice())
 }

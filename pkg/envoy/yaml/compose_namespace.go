@@ -12,6 +12,7 @@ type (
 	composeNamespace struct {
 		// when namespace is at least partially defined
 		res *types.Namespace `yaml:",inline"`
+		ts  *resource.Timestamps
 
 		// all known modules on a namespace
 		modules composeModuleSet
@@ -103,6 +104,10 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+
 	return each(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "modules":
@@ -125,6 +130,8 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 
 func (wrap composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {
 	nsr := resource.NewComposeNamespace(wrap.res)
+	nsr.SetTimestamps(wrap.ts)
+
 	return envoy.CollectNodes(
 		nsr,
 		wrap.modules,

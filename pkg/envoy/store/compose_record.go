@@ -21,6 +21,7 @@ type (
 
 		relNS  *types.Namespace
 		relMod *types.Module
+		relUsr map[string]uint64
 
 		// Little helper flag for conditional encoding
 		missing bool
@@ -81,6 +82,12 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 		return composeModuleErrUnresolved(n.res.ModRef.Identifiers)
 	}
 
+	// Sys users
+	n.relUsr = make(map[string]uint64)
+	if err = resolveUserRefs(ctx, s, state.ParentResources, n.res.UserRefs(), n.relUsr); err != nil {
+		return err
+	}
+
 	// Add missing refs
 	for _, f := range n.relMod.Fields {
 		switch f.Kind {
@@ -138,6 +145,15 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 	if mod.ID <= 0 {
 		m := findComposeModuleR(state.ParentResources, n.res.ModRef.Identifiers)
 		mod.ID = m.ID
+	}
+
+	// Sys users
+	for idf, ID := range n.relUsr {
+		if ID != 0 {
+			continue
+		}
+		u := findUserR(ctx, state.ParentResources, resource.MakeIdentifiers(idf))
+		n.relUsr[idf] = u.ID
 	}
 
 	// Some pointing
@@ -211,11 +227,36 @@ func (n *composeRecordState) Encode(ctx context.Context, s store.Storer, state *
 			return nil
 		}
 
-		// Sys values
-		// @todo
-		//
-		// for k, v := range r.SysValues {
-		// }
+		// Timestamps
+		if r.Ts != nil {
+			if r.Ts.CreatedAt != "" {
+				t := toTime(r.Ts.CreatedAt)
+				if t != nil {
+					rec.CreatedAt = *t
+				}
+			}
+			if r.Ts.UpdatedAt != "" {
+				rec.UpdatedAt = toTime(r.Ts.UpdatedAt)
+			}
+			if r.Ts.DeletedAt != "" {
+				rec.DeletedAt = toTime(r.Ts.DeletedAt)
+			}
+		}
+		// Userstamps
+		if r.Us != nil {
+			if r.Us.CreatedBy != "" {
+				rec.CreatedBy = n.relUsr[r.Us.CreatedBy]
+			}
+			if r.Us.UpdatedBy != "" {
+				rec.UpdatedBy = n.relUsr[r.Us.UpdatedBy]
+			}
+			if r.Us.DeletedBy != "" {
+				rec.DeletedBy = n.relUsr[r.Us.DeletedBy]
+			}
+			if r.Us.OwnedBy != "" {
+				rec.OwnedBy = n.relUsr[r.Us.OwnedBy]
+			}
+		}
 
 		rvs := make(types.RecordValueSet, 0, len(r.Values))
 		for k, v := range r.Values {

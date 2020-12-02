@@ -134,6 +134,23 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 		return nil
 	}
 
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				res.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			res.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			res.DeletedAt = toTime(ts.DeletedAt)
+		}
+	}
+
 	// Namespace
 	res.NamespaceID = n.relNS.ID
 	if res.NamespaceID <= 0 {

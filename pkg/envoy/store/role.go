@@ -62,6 +62,26 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 		return nil
 	}
 
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				rl.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			rl.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			rl.DeletedAt = toTime(ts.DeletedAt)
+		}
+		if ts.ArchivedAt != "" {
+			rl.ArchivedAt = toTime(ts.ArchivedAt)
+		}
+	}
+
 	// Create a fresh role
 	if !exists {
 		return store.CreateRole(ctx, s, rl)

@@ -11,6 +11,7 @@ type (
 	role struct {
 		// when role is at least partially defined
 		res *types.Role
+		ts  *resource.Timestamps
 
 		// all known modules on a role
 		modules composeModuleSet
@@ -47,7 +48,7 @@ func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 		case yaml.MappingNode:
-			if err = v.Decode(&wrap.res); err != nil {
+			if err = v.Decode(&wrap); err != nil {
 				return
 			}
 		}
@@ -93,11 +94,17 @@ func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+
 	return nil
 }
 
 func (wrap role) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewRole(wrap.res)
+	rs.SetTimestamps(wrap.ts)
+
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),

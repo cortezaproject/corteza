@@ -11,6 +11,7 @@ type (
 	application struct {
 		// when application is at least partially defined
 		res *types.Application `yaml:",inline"`
+		ts  *resource.Timestamps
 
 		// module's RBAC rules
 		rbac rbacRuleSet
@@ -43,7 +44,7 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 		case yaml.MappingNode:
-			if err = v.Decode(&wrap.res); err != nil {
+			if err = v.Decode(&wrap); err != nil {
 				return
 			}
 
@@ -77,6 +78,9 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.res = &types.Application{}
 	}
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
 
 	if err = n.Decode(&wrap.res); err != nil {
 		return
@@ -91,6 +95,8 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 
 func (wrap application) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewApplication(wrap.res)
+	rs.SetTimestamps(wrap.ts)
+
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),

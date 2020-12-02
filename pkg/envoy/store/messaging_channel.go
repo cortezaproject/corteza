@@ -2,8 +2,9 @@ package store
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/messaging/types"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/messaging/types"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -16,6 +17,8 @@ type (
 
 		res *resource.MessagingChannel
 		ch  *types.Channel
+
+		relUsr map[string]uint64
 	}
 )
 
@@ -30,6 +33,12 @@ func (n *messagingChannelState) Prepare(ctx context.Context, s store.Storer, rs 
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
 		n.res.Res.CreatedAt = time.Now()
+	}
+
+	// Sys users
+	n.relUsr = make(map[string]uint64)
+	if err = resolveUserRefs(ctx, s, rs.ParentResources, n.res.UserRefs(), n.relUsr); err != nil {
+		return err
 	}
 
 	// Get the existing channel
@@ -57,9 +66,46 @@ func (n *messagingChannelState) Encode(ctx context.Context, s store.Storer, stat
 		res.ID = NextID()
 	}
 
+	// Sys users
+	for idf, ID := range n.relUsr {
+		if ID != 0 {
+			continue
+		}
+		u := findUserR(ctx, state.ParentResources, resource.MakeIdentifiers(idf))
+		n.relUsr[idf] = u.ID
+	}
+
 	// This is not possible, but let's do it anyway
 	if state.Conflicting {
 		return nil
+	}
+
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				res.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			res.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			res.DeletedAt = toTime(ts.DeletedAt)
+		}
+		if ts.ArchivedAt != "" {
+			res.ArchivedAt = toTime(ts.ArchivedAt)
+		}
+	}
+
+	// Userstamps
+	us := n.res.Userstamps()
+	if us != nil {
+		if us.CreatedBy != "" {
+			res.CreatorID = n.relUsr[us.CreatedBy]
+		}
 	}
 
 	// Create fresh messagingChannel

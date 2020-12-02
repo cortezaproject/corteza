@@ -65,6 +65,23 @@ func (n *applicationState) Encode(ctx context.Context, s store.Storer, state *en
 		return nil
 	}
 
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				res.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			res.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			res.DeletedAt = toTime(ts.DeletedAt)
+		}
+	}
+
 	// Create fresh application
 	if !exists {
 		return store.CreateApplication(ctx, s, res)

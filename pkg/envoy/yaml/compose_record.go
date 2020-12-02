@@ -10,15 +10,14 @@ import (
 
 type (
 	composeRecord struct {
-		values    map[string]string
-		sysValues map[string]string
+		values map[string]string
+		ts     *resource.Timestamps
+		us     *resource.Userstamps
 
 		eCfg *resource.EnvoyConfig
 
 		refModule    string
 		refNamespace string
-		// createdBy, updatedBy, deletedBy, ownedBy
-		refUser map[string]string
 	}
 	composeRecordSet []*composeRecord
 
@@ -77,9 +76,10 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 
 	type (
 		rw struct {
-			rr     resource.ComposeRecordRawSet
-			nsRef  string
-			modRef string
+			rr      resource.ComposeRecordRawSet
+			nsRef   string
+			modRef  string
+			refUser resource.Identifiers
 		}
 	)
 
@@ -89,9 +89,10 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 	for _, res := range wset {
 		if recMap[res.refModule] == nil {
 			recMap[res.refModule] = &rw{
-				rr:     make(resource.ComposeRecordRawSet, 0, 10),
-				nsRef:  res.refNamespace,
-				modRef: res.refModule,
+				rr:      make(resource.ComposeRecordRawSet, 0, 10),
+				nsRef:   res.refNamespace,
+				modRef:  res.refModule,
+				refUser: make(resource.Identifiers),
 			}
 		}
 
@@ -99,9 +100,17 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 			// @todo change this probably
 			ID:     res.values["id"],
 			Config: res.eCfg,
+			Values: res.values,
+			Ts:     res.ts,
+			Us:     res.us,
 		}
-		r.ApplyValues(res.values)
-		r.ApplyValues(res.sysValues)
+
+		recMap[res.refModule].refUser.Add(
+			res.us.CreatedBy,
+			res.us.UpdatedBy,
+			res.us.DeletedBy,
+			res.us.OwnedBy,
+		)
 
 		recMap[res.refModule].rr = append(recMap[res.refModule].rr, r)
 	}
@@ -118,6 +127,7 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 		}
 
 		n := resource.NewComposeRecordSet(walker, w.nsRef, w.modRef)
+		n.SetUserRefs(w.refUser.StringSlice())
 		for _, r := range w.rr {
 			n.IDMap[r.ID] = 0
 		}
@@ -141,14 +151,8 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 }
 
 func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
-	if wrap.refUser == nil {
-		wrap.refUser = make(map[string]string)
-	}
 	if wrap.values == nil {
 		wrap.values = make(map[string]string)
-	}
-	if wrap.sysValues == nil {
-		wrap.sysValues = make(map[string]string)
 	}
 
 	// @todo enable when records are ready for RBAC
@@ -157,6 +161,13 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	//}
 
 	if wrap.eCfg, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+	if wrap.us, err = decodeUserstamps(n); err != nil {
 		return
 	}
 
@@ -170,28 +181,6 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 			if err := v.Decode(&wrap.values); err != nil {
 				return err
 			}
-			return nil
-
-		case "createdAt":
-			wrap.sysValues["createdAt"] = v.Value
-			return nil
-		case "updatedAt":
-			wrap.sysValues["updatedAt"] = v.Value
-			return nil
-		case "deletedAt":
-			wrap.sysValues["deletedAt"] = v.Value
-			return nil
-		case "createdBy":
-			wrap.refUser["createdBy"] = v.Value
-			return nil
-		case "updatedBy":
-			wrap.refUser["updatedBy"] = v.Value
-			return nil
-		case "deletedBy":
-			wrap.refUser["deletedBy"] = v.Value
-			return nil
-		case "ownedBy":
-			wrap.refUser["ownedBy"] = v.Value
 			return nil
 
 		}
