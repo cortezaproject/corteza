@@ -63,6 +63,23 @@ func (n *composeNamespaceState) Encode(ctx context.Context, s store.Storer, stat
 		return nil
 	}
 
+	// Timestamps
+	ts := n.res.Timestamps()
+	if ts != nil {
+		if ts.CreatedAt != "" {
+			t := toTime(ts.CreatedAt)
+			if t != nil {
+				res.CreatedAt = *t
+			}
+		}
+		if ts.UpdatedAt != "" {
+			res.UpdatedAt = toTime(ts.UpdatedAt)
+		}
+		if ts.DeletedAt != "" {
+			res.DeletedAt = toTime(ts.DeletedAt)
+		}
+	}
+
 	// Create a fresh namespace
 	if !exists {
 		return store.CreateComposeNamespace(ctx, s, res)

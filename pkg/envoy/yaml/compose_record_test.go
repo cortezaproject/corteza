@@ -11,9 +11,7 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 	var (
 		parseString = func(src string) (*composeRecord, error) {
 			w := &composeRecord{
-				values:    make(map[string]string),
-				sysValues: make(map[string]string),
-				refUser:   make(map[string]string),
+				values: make(map[string]string),
 			}
 			return w, yaml.Unmarshal([]byte(src), w)
 		}
@@ -35,7 +33,8 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 		req.NoError(err)
 		req.NotNil(w)
 		req.NotEmpty(w.values)
-		req.NotEmpty(w.sysValues)
+		req.NotNil(w.ts)
+		req.NotNil(w.us)
 		req.Equal("bar", w.values["foo"])
 	})
 

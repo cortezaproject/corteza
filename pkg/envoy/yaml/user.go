@@ -11,6 +11,7 @@ type (
 	user struct {
 		// when user is at least partially defined
 		res *types.User `yaml:",inline"`
+		ts  *resource.Timestamps
 
 		// module's RBAC rules
 		rbac rbacRuleSet
@@ -44,7 +45,7 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 		case yaml.MappingNode:
-			if err = v.Decode(&wrap.res); err != nil {
+			if err = v.Decode(&wrap); err != nil {
 				return
 			}
 
@@ -94,11 +95,17 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+
 	return nil
 }
 
 func (wrap user) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewUser(wrap.res)
+	rs.SetTimestamps(wrap.ts)
+
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),
