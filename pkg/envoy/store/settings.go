@@ -14,80 +14,73 @@ type (
 	settingsState struct {
 		cfg *EncoderConfig
 
-		res *resource.Settings
-		ss  types.SettingValueSet
+		res types.SettingValueSet
+		exs types.SettingValueSet
 	}
+)
+
+var (
+	// gSettingsState will aggregate all of the setting resources.
+	gSettingsState *settingsState = nil
 )
 
 func NewSettingsState(res *resource.Settings, cfg *EncoderConfig) resourceState {
 	return &settingsState{
 		cfg: cfg,
 
-		res: res,
+		res: res.Res,
 	}
 }
 
 func (n *settingsState) Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
-	// Preload settings
-	n.ss, _, err = store.SearchSettings(ctx, s, types.SettingsFilter{})
-	if err == store.ErrNotFound {
-		n.ss = make(types.SettingValueSet, 0, len(n.res.Res))
-	} else if err != nil {
-		return err
-	}
+	// Init global state
+	if gSettingsState == nil {
+		gSettingsState = &settingsState{
+			cfg: n.cfg,
+		}
 
-	// Default values
-	for _, s := range n.res.Res {
-		if s.UpdatedAt.IsZero() {
-			s.UpdatedAt = time.Now()
+		// Preload settings
+		gSettingsState.exs, _, err = store.SearchSettings(ctx, s, types.SettingsFilter{})
+		if err == store.ErrNotFound {
+			gSettingsState.exs = make(types.SettingValueSet, 0, len(n.res))
+		} else if err != nil {
+			return err
 		}
 	}
 
-	// Nothing else to do.
-	// Settings can't conflict either.
+	// Default values
+	for _, s := range n.res {
+		if s.UpdatedAt.IsZero() {
+			s.UpdatedAt = time.Now()
+		}
+
+		gSettingsState.res = append(gSettingsState.res, s)
+	}
 
 	return nil
 }
 
 func (n *settingsState) Encode(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
-	ss := make(types.SettingValueSet, 0, len(n.res.Res))
+	ss := make(types.SettingValueSet, 0, len(n.res))
 
-	for _, ns := range n.res.Res {
-		os := n.ss.First(ns.Name)
+	for _, ns := range n.res {
+		os := n.exs.First(ns.Name)
 		if os != nil {
 			// Update existing setting
 			switch n.cfg.OnExisting {
-			case Skip:
+			case Skip,
+				MergeLeft:
 				ss = append(ss, os)
 
-			case Replace:
+			case Replace,
+				MergeRight:
 				ss = append(ss, ns)
-
-			case MergeLeft:
-				ss = append(ss, mergeSettings(os, ns))
-
-			case MergeRight:
-				ss = append(ss, mergeSettings(ns, os))
 			}
 		} else {
 			// Create fresh setting
 			ss = append(ss, ns)
 		}
 	}
-	err = store.TruncateSettings(ctx, s)
-	if err != nil {
-		return err
-	}
-	return store.CreateSetting(ctx, s, ss...)
-}
 
-// mergeSettings merges b into a, prioritising a
-func mergeSettings(a, b *types.SettingValue) *types.SettingValue {
-	c := *a
-
-	if len(c.Value) <= 0 {
-		c.Value = b.Value
-	}
-
-	return &c
+	return store.UpsertSetting(ctx, s, ss...)
 }
