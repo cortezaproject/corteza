@@ -2,11 +2,12 @@ package codegen
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"os"
 	"path"
 	"strings"
 	"text/template"
+
+	"gopkg.in/yaml.v3"
 )
 
 type (

@@ -2,14 +2,15 @@ package codegen
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"gopkg.in/yaml.v3"
 )
 
 type (
