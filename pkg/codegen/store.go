@@ -2,13 +2,14 @@ package codegen
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
-	"gopkg.in/yaml.v2"
 	"os"
 	"path"
 	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"gopkg.in/yaml.v3"
 )
 
 type (
@@ -593,11 +594,12 @@ func (ff storeTypeRdbmsColumnSetDef) PrimaryKeyFields() storeTypeRdbmsColumnSetD
 }
 
 // UnmarshalYAML makes sure that export flag is set to true when not explicity disabled
-func (d *storeTypeLookups) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (d *storeTypeLookups) UnmarshalYAML(n *yaml.Node) error {
 	type dAux storeTypeLookups
 	var aux = (*dAux)(d)
 	aux.Export = true
-	return unmarshal(aux)
+
+	return n.Decode(aux)
 }
 
 func (d *storeTypeLookups) Fields() storeTypeFieldSetDef {
