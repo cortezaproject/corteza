@@ -203,3 +203,16 @@ func makeEventGroup(pfix string, ee []string) (out []string) {
 
 	return
 }
+
+func genEventsDocs(tpl *template.Template, docsPath string, dd ...*eventsDef) (err error) {
+	var (
+		tplEventsAdoc = tpl.Lookup("events.gen.adoc.tpl")
+
+		dst string
+	)
+
+	dst = path.Join(docsPath, "events_env_variables.gen.adoc")
+	return plainTemplate(dst, tplEventsAdoc, map[string]interface{}{
+		"Definitions": dd,
+	})
+}
