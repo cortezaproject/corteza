@@ -4,26 +4,45 @@
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// {{ .Source }}
-
-= {{ $.ResourceString }}
-
-
-.List of events on `{{ $.ResourceString }}`
-{{- range $event := $.Events.MakeEvents }}
-- `{{ $event }}`
+{{- range .Definitions }}
+//  - {{ .Source }}
 {{- end }}
 
-.Event arguments for `{{ $.ResourceString }}`
-[%header,cols=3*]
-|===
-|Name
-|Type
-|Immutable
+{{- range .Definitions }}
+{{- range .Resources }}
 
-{{- range $p := $.Events.Properties }}
-|`{{ camelCase $p.Name }}`
-|`{{ $p.Type }}`
-|{{ $p.Immutable }}
+= {{ .ResourceString }}
+
+== Events
+
+.Events:
+{{- range $ba := .BeforeAfter }}
+* `before('{{ $ba }}')`
 {{- end }}
+{{- range $ba := .BeforeAfter }}
+* `after('{{ $ba }}')`
+{{- end }}
+{{- range $on := .On }}
+* `on('{{ $on }}')`
+{{- end }}
+
+== Argument properties
+
+.Argument properties:
+[%header, cols=3*]
 |===
+|Name|Type|Immutable
+{{- range $p := .Properties }}
+| `{{ $p.Name }}`
+| `{{ $p.Type }}`
+{{- if $p.Immutable }}
+| yes
+{{ else }}
+| no
+{{ end -}}
+
+{{ end -}}
+|===
+
+{{- end }}
+{{- end }}

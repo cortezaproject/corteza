@@ -3,12 +3,13 @@ package codegen
 import (
 	"flag"
 	"fmt"
-	"github.com/Masterminds/sprig"
-	"github.com/fsnotify/fsnotify"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
+	"github.com/fsnotify/fsnotify"
 )
 
 func Proc() {
@@ -190,6 +191,9 @@ func Proc() {
 			if eventDefs, err = procEvents(eventSrc...); err == nil {
 				if genCode {
 					err = genEvents(tpls, eventDefs...)
+				}
+				if genDocs && err == nil {
+					err = genEventsDocs(tpls, docPath+docPathOptions, eventDefs...)
 				}
 			}
 
