@@ -7,8 +7,8 @@ types:
     labelResourceType: role
   RoleMember:
     noIdField: true
-  Credentials:
-  Reminder:
-  Attachment:
+  Credentials: {}
+  Reminder: {}
+  Attachment: {}
   SettingValue:
     noIdField: true
