@@ -2,7 +2,6 @@ package codegen
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"io"
 	"os"
 	"path"
@@ -148,19 +147,5 @@ func genOptionsDocs(tpl *template.Template, docsPath string, dd ...*optionsDef) 
 	dst = path.Join(docsPath, "option_env_variables_gen.adoc")
 	return plainTemplate(dst, tplOptionsAdoc, map[string]interface{}{
 		"Definitions": dd,
-		"Import":      collectOptionsDefImports("", dd...),
 	})
-}
-
-func collectOptionsDefImports(basePkg string, dd ...*optionsDef) []string {
-	ii := make([]string, 0, len(dd))
-	for _, d := range dd {
-		for _, i := range d.Imports {
-			if !slice.HasString(ii, i) && (basePkg == "" || !strings.HasSuffix(i, basePkg)) {
-				ii = append(ii, i)
-			}
-		}
-	}
-
-	return ii
 }
