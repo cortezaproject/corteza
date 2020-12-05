@@ -8,37 +8,44 @@
 //  - {{ .Source }}
 {{- end }}
 
+= Resources and events
 {{- range .Definitions }}
 {{- range .Resources }}
 
-= {{ .ResourceString }}
+== {{ .ResourceString }}
 
-== Events
+=== Events
 
-.Events:
+{{- if .BeforeAfter }}
+.Before/after events:
 {{- range $ba := .BeforeAfter }}
 * `before('{{ $ba }}')`
 {{- end }}
 {{- range $ba := .BeforeAfter }}
 * `after('{{ $ba }}')`
 {{- end }}
+{{- end }}
+
+{{ if .On -}}
+.On events:
 {{- range $on := .On }}
 * `on('{{ $on }}')`
 {{- end }}
+{{- end }}
 
-== Argument properties
+=== Exec arguments
 
 .Argument properties:
 [%header, cols=3*]
 |===
-|Name|Type|Immutable
+|Name|Type|Mutable
 {{- range $p := .Properties }}
 | `{{ $p.Name }}`
 | `{{ $p.Type }}`
 {{- if $p.Immutable }}
-| yes
-{{ else }}
 | no
+{{ else }}
+| yes
 {{ end -}}
 
 {{ end -}}

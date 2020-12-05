@@ -14,7 +14,7 @@ import (
 
 func Proc() {
 	const (
-		docPathOptions = "/dev-ops-guide/server-configuration"
+		docGenBase = "/partials/generated"
 	)
 
 	var (
@@ -117,7 +117,7 @@ func Proc() {
 	}()
 
 	if len(docPath) > 0 {
-		docPath = strings.TrimRight(docPath, "/") + "/src/modules/ROOT/pages"
+		docPath = strings.TrimRight(docPath, "/") + "/src/modules/ROOT"
 		if i, err := os.Stat(docPath); err != nil {
 			handleError(err)
 		} else if !i.IsDir() {
@@ -193,7 +193,7 @@ func Proc() {
 					err = genEvents(tpls, eventDefs...)
 				}
 				if genDocs && err == nil {
-					err = genEventsDocs(tpls, docPath+docPathOptions, eventDefs...)
+					err = genEventsDocs(tpls, docPath+docGenBase, eventDefs...)
 				}
 			}
 
@@ -237,7 +237,7 @@ func Proc() {
 				}
 
 				if genDocs && err == nil {
-					err = genOptionsDocs(tpls, docPath+docPathOptions, optionDefs...)
+					err = genOptionsDocs(tpls, docPath+docGenBase, optionDefs...)
 				}
 			}
 
