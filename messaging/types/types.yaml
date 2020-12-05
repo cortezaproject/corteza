@@ -1,9 +1,9 @@
 types:
-  Attachment:
-  Mention:
-  MessageFlag:
-  Message:
-  Channel:
+  Attachment: {}
+  Mention: {}
+  MessageFlag: {}
+  Message: {}
+  Channel: {}
   ChannelMember:
     noIdField: true
   Command:

@@ -1,7 +1,7 @@
 types:
   Namespace:
     labelResourceType: compose:namespace
-  Attachment:
+  Attachment: {}
   Module:
     labelResourceType: compose:module
   ModuleField:
