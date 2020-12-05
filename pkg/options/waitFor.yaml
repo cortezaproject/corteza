@@ -3,7 +3,7 @@ imports:
 
 docs:
   title: Delay system startup
-  intro:
+  intro: |-
     You can configure these options to defer API execution until another external (HTTP) service is up and running.
 
     [ TIP ]
@@ -11,15 +11,14 @@ docs:
     Delaying API execution can come in handy in complex setups where execution order is important.
     ====
 
-
 props:
   - name: Delay
     type: time.Duration
     env: WAIT_FOR
     default: 0
-    description: |
+    description: |-
       Delays API startup for the amount of time specified (10s, 2m...).
-      This delay happens before service (`WAIT_FOR_SERVICES`) probing.
+          This delay happens before service (`WAIT_FOR_SERVICES`) probing.
 
   - name: StatusPage
     type: bool
@@ -29,11 +28,14 @@ props:
 
   - name: Services
     env: WAIT_FOR_SERVICES
-    description: |
-      Space delimited list of hosts and/or URLs to probe. Host format: `host` or
-      `host:443` (port will default to 80).
+    description: |-
+      Space delimited list of hosts and/or URLs to probe.
+          Host format: `host` or `host:443` (port will default to 80).
 
+      [NOTE]
+      ====
       Services are probed in parallel.
+      ====
 
   - name: ServicesTimeout
     type: time.Duration

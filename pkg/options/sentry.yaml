@@ -3,7 +3,7 @@ imports:
 
 docs:
   title: Sentry monitoring
-  intro: |
+  intro: |-
     [NOTE]
     ====
     These parameters help in the development and testing process.

@@ -144,7 +144,7 @@ func genOptionsDocs(tpl *template.Template, docsPath string, dd ...*optionsDef) 
 		dst string
 	)
 
-	dst = path.Join(docsPath, "option_env_variables_gen.adoc")
+	dst = path.Join(docsPath, "env-options.gen.adoc")
 	return plainTemplate(dst, tplOptionsAdoc, map[string]interface{}{
 		"Definitions": dd,
 	})

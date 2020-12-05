@@ -7,14 +7,14 @@ docs:
 props:
   - name: secret
     env: AUTH_JWT_SECRET
-    description: |
+    description: |-
       Secret used for signing JWT tokens.
+
       [IMPORTANT]
       ====
       Make sure to provide a secret.
       If you don't, a random value is assigned -- this causes all of the tokens to become invalid after a server restart.
       ====
-
 
   - name: expiry
     type: time.Duration

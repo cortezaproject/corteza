@@ -1,12 +1,12 @@
 docs:
   title: Email sending
-  intro: |
+  intro: |-
     Configure your local SMTP server or use one of the available providers
 
 props:
   - name: host
     default: "localhost"
-    description: |
+    description: |-
       The SMTP server hostname.
 
   - name: port

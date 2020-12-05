@@ -211,7 +211,7 @@ func genEventsDocs(tpl *template.Template, docsPath string, dd ...*eventsDef) (e
 		dst string
 	)
 
-	dst = path.Join(docsPath, "events_env_variables.gen.adoc")
+	dst = path.Join(docsPath, "resource-events.gen.adoc")
 	return plainTemplate(dst, tplEventsAdoc, map[string]interface{}{
 		"Definitions": dd,
 	})
