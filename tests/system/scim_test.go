@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
+	"github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/scim"
@@ -12,22 +13,24 @@ import (
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"net/http"
+	"regexp"
 	"testing"
 )
 
-var (
-	scimRoutes chi.Router
-)
-
 // apitest basics, initialize, set handler, add auth
-func (h helper) scimApiInit() *apitest.APITest {
+func (h helper) scimApiInit(ffn ...func(*scim.Config)) *apitest.APITest {
 	InitTestApp()
-
-	if scimRoutes == nil {
+	var (
+		scimConfig scim.Config
 		scimRoutes = chi.NewRouter()
-		scimRoutes.Use(server.BaseMiddleware(false, logger.Default())...)
-		scim.Routes(scimRoutes)
+	)
+
+	for _, fn := range ffn {
+		fn(&scimConfig)
 	}
+
+	scimRoutes.Use(server.BaseMiddleware(false, logger.Default())...)
+	scim.Routes(scimRoutes, scimConfig)
 
 	return apitest.
 		New().
@@ -89,7 +92,7 @@ func TestScimUserCreateNoEmail(t *testing.T) {
 		Post("/Users").
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
-		Status(http.StatusBadRequest).
+		Status(http.StatusInternalServerError).
 		End()
 }
 
@@ -287,4 +290,38 @@ func TestScimGroupDelete(t *testing.T) {
 		Expect(t).
 		Status(http.StatusNoContent).
 		End()
+}
+
+func TestScimUserReplaceOnExternalId(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	// creating a new user and assigning an external ID label to it
+	u := h.createUserWithEmail(h.randEmail())
+	const externalId = `2819c223-7f76-453a-919d-413861904646`
+	h.a.NoError(store.UpsertLabel(h.secCtx(), service.DefaultStore, &types.Label{
+		Kind:       u.LabelResourceKind(),
+		ResourceID: u.LabelResourceID(),
+		Name:       "SCIM_externalId",
+		Value:      externalId,
+	}))
+
+	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
+		Put(fmt.Sprintf("/Users/%s", externalId)).
+		JSON(`{"emails":[{"value":"baz@bar.com"}],"externalId":"` + externalId + `","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+
+	u, err := store.LookupUserByID(context.Background(), service.DefaultStore, u.ID)
+	h.a.NoError(err)
+	h.a.NotNil(u)
+	h.a.Equal("baz@bar.com", u.Email)
+}
+
+func scimSetWithExternalId(c *scim.Config) {
+	c.ExternalIdAsPrimary = true
+}
+func scimSetWithUUIDValidator(c *scim.Config) {
+	c.ExternalIdValidator = regexp.MustCompile(`^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`)
 }

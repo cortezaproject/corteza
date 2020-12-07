@@ -10,16 +10,19 @@ package options
 
 type (
 	SCIMOpt struct {
-		Enabled bool   `env:"SCIM_ENABLED"`
-		BaseURL string `env:"SCIM_BASE_URL"`
-		Secret  string `env:"SCIM_SECRET"`
+		Enabled              bool   `env:"SCIM_ENABLED"`
+		BaseURL              string `env:"SCIM_BASE_URL"`
+		Secret               string `env:"SCIM_SECRET"`
+		ExternalIdAsPrimary  bool   `env:"SCIM_EXTERNAL_ID_AS_PRIMARY"`
+		ExternalIdValidation string `env:"SCIM_EXTERNAL_ID_VALIDATION"`
 	}
 )
 
 // SCIM initializes and returns a SCIMOpt with default values
 func SCIM() (o *SCIMOpt) {
 	o = &SCIMOpt{
-		BaseURL: "/scim",
+		BaseURL:              "/scim",
+		ExternalIdValidation: "$[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}^",
 	}
 
 	fill(o)
