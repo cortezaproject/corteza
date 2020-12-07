@@ -1,6 +1,7 @@
 package scim
 
 import (
+	"fmt"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"net/http"
 	"time"
@@ -45,7 +46,11 @@ func newGroupMetaResponse(u *types.Role) *metaResponse {
 	return rsp
 }
 
-func newErrorResonse(httpStatus int, err error) *errorResponse {
+func newErrorfResponse(httpStatus int, format string, aa ...interface{}) *errorResponse {
+	return newErrorResponse(httpStatus, fmt.Errorf(format, aa...))
+}
+
+func newErrorResponse(httpStatus int, err error) *errorResponse {
 	if httpStatus == 0 {
 		httpStatus = http.StatusInternalServerError
 	}
@@ -60,4 +65,8 @@ func newErrorResonse(httpStatus int, err error) *errorResponse {
 	}
 
 	return er
+}
+
+func (e *errorResponse) Error() string {
+	return e.Detail
 }

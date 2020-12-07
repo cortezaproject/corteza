@@ -14,6 +14,14 @@ func send(w http.ResponseWriter, status int, payload interface{}) {
 	}
 }
 
-func sendError(w http.ResponseWriter, err *errorResponse) {
-	send(w, err.Status, err)
+func sendError(w http.ResponseWriter, err error) {
+	var (
+		status = http.StatusInternalServerError
+	)
+
+	if er, ok := err.(*errorResponse); ok {
+		status = er.Status
+	}
+
+	send(w, status, err)
 }
