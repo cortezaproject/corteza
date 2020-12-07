@@ -6,8 +6,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi"
-	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -18,8 +18,9 @@ type (
 		externalIdAsPrimary bool
 		externalIdValidator *regexp.Regexp
 
-		svc service.RoleService
-		sec getSecurityContextFn
+		svc     service.RoleService
+		passSvc passwordSetter
+		sec     getSecurityContextFn
 	}
 )
 
@@ -39,46 +40,91 @@ func (h groupsHandler) create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var (
-		ctx = h.sec(r)
+		ctx      = h.sec(r)
+		svc      = h.svc.With(ctx)
+		payload  = &groupResourceRequest{}
+		err      error
+		existing *types.Role
+		code     = http.StatusBadRequest
 	)
 
-	if u, code, err := h.createFromJSON(ctx, r.Body); err != nil {
+	if err = payload.decodeJSON(r.Body); err != nil {
 		sendError(w, newErrorResonse(code, err))
-	} else {
-		send(w, http.StatusCreated, newGroupResourceResponse(u))
+		return
 	}
+
+	{
+		// do we need to upsert?
+		if payload.ExternalId != nil {
+			existing, code, err = h.lookupByExternalId(ctx, *payload.ExternalId)
+			if err != nil && code != http.StatusNotFound {
+				sendError(w, newErrorResonse(code, err))
+				return
+			}
+		} else if *payload.Name != "" {
+			existing, err = svc.FindByName(*payload.Name)
+			if err != nil && !errors.Is(err, service.RoleErrNotFound()) {
+				sendError(w, newErrorResonse(http.StatusInternalServerError, err))
+				return
+			}
+		}
+	}
+
+	res, code, err := h.save(ctx, payload, existing)
+	if err != nil {
+		sendError(w, newErrorResonse(code, err))
+		return
+	}
+
+	code = http.StatusOK
+	if res.UpdatedAt == nil {
+		code = http.StatusCreated
+	}
+
+	send(w, code, newGroupResourceResponse(res))
 }
 
-func (h groupsHandler) createFromJSON(ctx context.Context, j io.Reader) (res *types.Role, code int, err error) {
+func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
 	var (
-		svc     = h.svc.With(ctx)
-		payload = &groupResourceRequest{}
+		ctx      = h.sec(r)
+		existing = h.lookup(ctx, chi.URLParam(r, "id"), w)
+		payload  = &groupResourceRequest{}
 	)
 
-	code = http.StatusBadRequest
-	if err = payload.decodeJSON(j); err != nil {
+	if err := payload.decodeJSON(r.Body); err != nil {
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
+		return
 	}
 
-	// do we need to upsert?
-	if payload.ExternalId != nil {
-		res, code, err = h.lookupByExternalId(ctx, *payload.ExternalId)
-		if err != nil && code != http.StatusNotFound {
-			return
-		}
-	} else if payload.Name != nil {
-		res, err = svc.FindByName(*payload.Name)
-		if err != nil && !errors.Is(err, service.RoleErrNotFound()) {
-			return nil, http.StatusInternalServerError, err
-		}
+	res, code, err := h.save(ctx, payload, existing)
+	if err != nil {
+		sendError(w, newErrorResonse(code, err))
+		return
 	}
 
-	if res == nil || res.ID == 0 {
+	code = http.StatusOK
+	if res.UpdatedAt == nil {
+		code = http.StatusCreated
+	}
+
+	send(w, code, newGroupResourceResponse(res))
+}
+
+func (h groupsHandler) save(ctx context.Context, req *groupResourceRequest, existing *types.Role) (res *types.Role, code int, err error) {
+	var (
+		svc = h.svc.With(ctx)
+	)
+
+	if existing == nil {
 		// in case when we did not find a valid group,
 		// start from blank
-		res = &types.Role{}
+		existing = &types.Role{}
 	}
 
-	payload.applyTo(res)
+	res = existing
+	req.applyTo(res)
 
 	if res.ID > 0 {
 		res, err = svc.Update(res)
@@ -91,39 +137,6 @@ func (h groupsHandler) createFromJSON(ctx context.Context, j io.Reader) (res *ty
 	}
 
 	return res, 0, nil
-}
-
-func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	var (
-		ctx      = h.sec(r)
-		existing = h.lookup(ctx, chi.URLParam(r, "id"), w)
-	)
-
-	if existing == nil {
-		return
-	}
-
-	if res, err := h.updateFromJSON(ctx, existing, r.Body); err != nil {
-		sendError(w, newErrorResonse(http.StatusBadRequest, err))
-	} else {
-		send(w, http.StatusOK, newGroupResourceResponse(res))
-	}
-}
-
-func (h groupsHandler) updateFromJSON(ctx context.Context, res *types.Role, j io.Reader) (*types.Role, error) {
-	var (
-		payload = &groupResourceRequest{}
-	)
-
-	if err := payload.decodeJSON(j); err != nil {
-		return nil, err
-	}
-
-	payload.applyTo(res)
-
-	return h.svc.With(ctx).Update(res)
 }
 
 func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
@@ -161,13 +174,13 @@ func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWri
 
 		return role
 	} else {
-		resId, err := strconv.ParseUint(id, 10, 64)
-		if err != nil || resId == 0 {
+		groupId, err := strconv.ParseUint(id, 10, 64)
+		if err != nil || groupId == 0 {
 			sendError(w, newErrorResonse(http.StatusBadRequest, err))
 			return nil
 		}
 
-		role, err := svc.FindByID(resId)
+		role, err := svc.FindByID(groupId)
 		if err != nil {
 			sendError(w, newErrorResonse(http.StatusBadRequest, err))
 			return nil
@@ -178,6 +191,7 @@ func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWri
 }
 
 func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *types.Role, code int, err error) {
+	spew.Dump(id)
 	if h.externalIdValidator != nil && !h.externalIdValidator.MatchString(id) {
 		return nil, http.StatusBadRequest, fmt.Errorf("invalid external ID")
 	}
@@ -189,10 +203,10 @@ func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *ty
 
 	switch len(rr) {
 	case 0:
-		return nil, http.StatusNotFound, fmt.Errorf("role not found")
+		return nil, http.StatusNotFound, fmt.Errorf("group not found")
 	case 1:
 		return rr[0], 0, nil
 	default:
-		return nil, http.StatusPreconditionFailed, fmt.Errorf("more than one role matches this externalId")
+		return nil, http.StatusPreconditionFailed, fmt.Errorf("more than one group matches this externalId")
 	}
 }

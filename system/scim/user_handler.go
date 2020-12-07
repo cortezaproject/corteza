@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi"
-	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -45,48 +44,91 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var (
-		ctx = h.sec(r)
+		ctx      = h.sec(r)
+		svc      = h.svc.With(ctx)
+		payload  = &userResourceRequest{}
+		err      error
+		existing *types.User
+		code     = http.StatusBadRequest
 	)
 
-	if u, code, err := h.createFromJSON(ctx, r.Body); err != nil {
+	if err = payload.decodeJSON(r.Body); err != nil {
 		sendError(w, newErrorResonse(code, err))
-	} else {
-		send(w, http.StatusCreated, newUserResourceResponse(u))
-	}
-}
-
-func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (res *types.User, code int, err error) {
-	var (
-		svc = h.svc.With(ctx)
-		//roles   = h.rleSvc.With(ctx)
-		payload = &userResourceRequest{}
-	)
-
-	code = http.StatusBadRequest
-	if err = payload.decodeJSON(j); err != nil {
 		return
 	}
 
-	// do we need to upsert?
-	if payload.ExternalId != nil {
-		res, code, err = h.lookupByExternalId(ctx, *payload.ExternalId)
-		if err != nil && code != http.StatusNotFound {
-			return
-		}
-	} else if email := payload.Emails.getFirst(); email != "" {
-		res, err = svc.FindByEmail(email)
-		if err != nil && !errors.Is(err, service.UserErrNotFound()) {
-			return nil, http.StatusInternalServerError, err
+	{
+		// do we need to upsert?
+		if payload.ExternalId != nil {
+			existing, code, err = h.lookupByExternalId(ctx, *payload.ExternalId)
+			if err != nil && code != http.StatusNotFound {
+				sendError(w, newErrorResonse(code, err))
+				return
+			}
+		} else if email := payload.Emails.getFirst(); email != "" {
+			existing, err = svc.FindByEmail(email)
+			if err != nil && !errors.Is(err, service.UserErrNotFound()) {
+				sendError(w, newErrorResonse(http.StatusInternalServerError, err))
+				return
+			}
 		}
 	}
 
-	if res == nil || !res.Valid() {
+	res, code, err := h.save(ctx, payload, existing)
+	if err != nil {
+		sendError(w, newErrorResonse(code, err))
+		return
+	}
+
+	code = http.StatusOK
+	if res.UpdatedAt == nil {
+		code = http.StatusCreated
+	}
+
+	send(w, code, newUserResourceResponse(res))
+}
+
+func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var (
+		ctx      = h.sec(r)
+		existing = h.lookup(ctx, chi.URLParam(r, "id"), w)
+		payload  = &userResourceRequest{}
+	)
+
+	if err := payload.decodeJSON(r.Body); err != nil {
+		sendError(w, newErrorResonse(http.StatusBadRequest, err))
+		return
+	}
+
+	res, code, err := h.save(ctx, payload, existing)
+	if err != nil {
+		sendError(w, newErrorResonse(code, err))
+		return
+	}
+
+	code = http.StatusOK
+	if res.UpdatedAt == nil {
+		code = http.StatusCreated
+	}
+
+	send(w, code, newUserResourceResponse(res))
+}
+
+func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existing *types.User) (res *types.User, code int, err error) {
+	var (
+		svc = h.svc.With(ctx)
+	)
+
+	if existing == nil || !existing.Valid() {
 		// in case when we did not find a valid user,
 		// start from blank
-		res = &types.User{}
+		existing = &types.User{}
 	}
 
-	payload.applyTo(res)
+	res = existing
+	req.applyTo(res)
 
 	if res.ID > 0 {
 		res, err = svc.Update(res)
@@ -98,47 +140,14 @@ func (h usersHandler) createFromJSON(ctx context.Context, j io.Reader) (res *typ
 		return nil, http.StatusInternalServerError, err
 	}
 
-	if payload.Password != nil && *payload.Password != "" {
-		err = h.passSvc.SetPassword(ctx, res.ID, *payload.Password)
+	if req.Password != nil && *req.Password != "" {
+		err = h.passSvc.SetPassword(ctx, res.ID, *req.Password)
 		if err != nil {
 			return
 		}
 	}
 
 	return res, 0, nil
-}
-
-func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	var (
-		ctx      = h.sec(r)
-		existing = h.lookup(ctx, chi.URLParam(r, "id"), w)
-	)
-
-	if existing == nil {
-		return
-	}
-
-	if res, err := h.updateFromJSON(ctx, existing, r.Body); err != nil {
-		sendError(w, newErrorResonse(http.StatusBadRequest, err))
-	} else {
-		send(w, http.StatusOK, newUserResourceResponse(res))
-	}
-}
-
-func (h usersHandler) updateFromJSON(ctx context.Context, res *types.User, j io.Reader) (*types.User, error) {
-	var (
-		payload = &userResourceRequest{}
-	)
-
-	if err := payload.decodeJSON(j); err != nil {
-		return nil, err
-	}
-
-	payload.applyTo(res)
-
-	return h.svc.With(ctx).Update(res)
 }
 
 func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
@@ -166,7 +175,7 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 	var (
 		svc = h.svc.With(ctx)
 	)
-	spew.Dump(h.externalIdAsPrimary)
+
 	if h.externalIdAsPrimary {
 		role, code, err := h.lookupByExternalId(ctx, id)
 		if err != nil {
