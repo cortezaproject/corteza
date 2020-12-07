@@ -3,16 +3,16 @@ applications:
     enabled: true
     unify:
       listed: true
-      icon: /applications/default_icon.png
-      logo: /applications/default_logo.jpg
+      icon: /applications/messaging.png
+      logo: /applications/messaging.png
       url: /messaging
 
   - name: Low Code
     enabled: true
     unify:
       listed: true
-      icon: /applications/default_icon.png
-      logo: /applications/default_logo.jpg
+      icon: /applications/low-code-platform.png
+      logo: /applications/low-code-platform.png
       url: /admin
 
 
@@ -20,38 +20,38 @@ applications:
     enabled: true
     unify:
       listed: true
-      icon: /applications/default_icon.png
-      logo: /applications/default_logo.jpg
+      icon: /applications/admin-area.png
+      logo: /applications/admin-area.jpg
       url: /admin
 
   - name: Corteza Jitsi Bridge
     enabled: true
     unify:
       listed: true
-      icon: /applications/jitsi_icon.png
-      logo: /applications/jitsi.png
+      icon: /applications/video-conference.png
+      logo: /applications/video-conference.png
       url: /bridge/jitsi/
 
   - name: Google Maps
     enabled: true
     unify:
       listed: true
-      icon: /applications/google_maps_icon.png
-      logo: /applications/google_maps.png
+      icon: /applications/google-maps.png
+      logo: /applications/google-maps.png
       url: /bridge/google-maps/
 
   - name: CRM
     enabled: true
     unify:
       listed: true
-      icon: newIconUrl
-      logo: newLogoUrl
+      icon: /applications/low-code-crm-app.png
+      logo: /applications/low-code-crm-app.png
       url: /compose/ns/crm/pages
 
   - name: Service Solution
     enabled: true
     unify:
       listed: true
-      icon: newIconUrl
-      logo: newLogoUrl
+      icon: /applications/low-code-service-solution-app.png
+      logo: /applications/low-code-service-solution-app.png
       url: /compose/ns/service-solution/pages
