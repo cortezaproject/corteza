@@ -53,39 +53,39 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err = payload.decodeJSON(r.Body); err != nil {
-		sendError(w, newErrorResonse(code, err))
+		sendError(w, newErrorResponse(code, err))
 		return
 	}
 
 	{
 		// do we need to upsert?
 		if payload.ExternalId != nil {
-			existing, code, err = h.lookupByExternalId(ctx, *payload.ExternalId)
-			if err != nil && code != http.StatusNotFound {
-				sendError(w, newErrorResonse(code, err))
+			existing, err = h.lookupByExternalId(ctx, *payload.ExternalId)
+			if err != nil {
+				sendError(w, newErrorResponse(code, err))
 				return
 			}
 		} else if email := payload.Emails.getFirst(); email != "" {
 			existing, err = svc.FindByEmail(email)
 			if err != nil && !errors.Is(err, service.UserErrNotFound()) {
-				sendError(w, newErrorResonse(http.StatusInternalServerError, err))
+				sendError(w, newErrorResponse(http.StatusInternalServerError, err))
 				return
 			}
 		}
 	}
 
-	res, code, err := h.save(ctx, payload, existing)
+	res, err := h.save(ctx, payload, existing)
 	if err != nil {
-		sendError(w, newErrorResonse(code, err))
+		sendError(w, err)
 		return
 	}
 
-	code = http.StatusOK
+	status := http.StatusOK
 	if res.UpdatedAt == nil {
-		code = http.StatusCreated
+		status = http.StatusCreated
 	}
 
-	send(w, code, newUserResourceResponse(res))
+	send(w, status, newUserResourceResponse(res))
 }
 
 func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
@@ -98,25 +98,25 @@ func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := payload.decodeJSON(r.Body); err != nil {
-		sendError(w, newErrorResonse(http.StatusBadRequest, err))
+		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 		return
 	}
 
-	res, code, err := h.save(ctx, payload, existing)
+	res, err := h.save(ctx, payload, existing)
 	if err != nil {
-		sendError(w, newErrorResonse(code, err))
+		sendError(w, err)
 		return
 	}
 
-	code = http.StatusOK
+	status := http.StatusOK
 	if res.UpdatedAt == nil {
-		code = http.StatusCreated
+		status = http.StatusCreated
 	}
 
-	send(w, code, newUserResourceResponse(res))
+	send(w, status, newUserResourceResponse(res))
 }
 
-func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existing *types.User) (res *types.User, code int, err error) {
+func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existing *types.User) (res *types.User, err error) {
 	var (
 		svc = h.svc.With(ctx)
 	)
@@ -137,7 +137,7 @@ func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existi
 	}
 
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, err
 	}
 
 	if req.Password != nil && *req.Password != "" {
@@ -147,7 +147,7 @@ func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existi
 		}
 	}
 
-	return res, 0, nil
+	return res, nil
 }
 
 func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +162,7 @@ func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := svc.Delete(res.ID); err != nil {
-		sendError(w, newErrorResonse(http.StatusBadRequest, err))
+		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
@@ -177,23 +177,27 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 	)
 
 	if h.externalIdAsPrimary {
-		role, code, err := h.lookupByExternalId(ctx, id)
+		res, err := h.lookupByExternalId(ctx, id)
 		if err != nil {
-			sendError(w, newErrorResonse(code, err))
+			sendError(w, err)
 			return nil
 		}
 
-		return role
+		if res == nil {
+			sendError(w, newErrorResponse(http.StatusNotFound, fmt.Errorf("user not found")))
+		}
+
+		return res
 	} else {
 		groupId, err := strconv.ParseUint(id, 10, 64)
 		if err != nil || groupId == 0 {
-			sendError(w, newErrorResonse(http.StatusBadRequest, err))
+			sendError(w, newErrorResponse(http.StatusBadRequest, err))
 			return nil
 		}
 
 		role, err := svc.FindByID(groupId)
 		if err != nil {
-			sendError(w, newErrorResonse(http.StatusBadRequest, err))
+			sendError(w, newErrorResponse(http.StatusBadRequest, err))
 			return nil
 		}
 
@@ -201,23 +205,23 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 	}
 }
 
-func (h usersHandler) lookupByExternalId(ctx context.Context, id string) (r *types.User, code int, err error) {
+func (h usersHandler) lookupByExternalId(ctx context.Context, id string) (r *types.User, err error) {
 	spew.Dump(id)
 	if h.externalIdValidator != nil && !h.externalIdValidator.MatchString(id) {
-		return nil, http.StatusBadRequest, fmt.Errorf("invalid external ID")
+		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
 	rr, _, err := h.svc.With(ctx).Find(types.UserFilter{Labels: map[string]string{groupLabel_SCIM_externalId: id}})
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}
 
 	switch len(rr) {
 	case 0:
-		return nil, http.StatusNotFound, fmt.Errorf("user not found")
+		return nil, nil
 	case 1:
-		return rr[0], 0, nil
+		return rr[0], nil
 	default:
-		return nil, http.StatusPreconditionFailed, fmt.Errorf("more than one user matches this externalId")
+		return nil, newErrorfResponse(http.StatusPreconditionFailed, "more than one user matches this externalId")
 	}
 }
