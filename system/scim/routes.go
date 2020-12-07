@@ -8,6 +8,14 @@ import (
 	"github.com/goware/statik/fs"
 	"go.uber.org/zap"
 	"net/http"
+	"regexp"
+)
+
+type (
+	Config struct {
+		ExternalIdAsPrimary bool
+		ExternalIdValidator *regexp.Regexp
+	}
 )
 
 var (
@@ -42,9 +50,12 @@ func Guard(opt options.SCIMOpt) func(next http.Handler) http.Handler {
 	}
 }
 
-func Routes(r chi.Router) {
+func Routes(r chi.Router, cfg Config) {
 	r.Route("/Users", func(r chi.Router) {
 		uh := &usersHandler{
+			externalIdAsPrimary: cfg.ExternalIdAsPrimary,
+			externalIdValidator: cfg.ExternalIdValidator,
+
 			svc:     service.DefaultUser,
 			passSvc: service.DefaultAuth,
 			sec:     getSecurityContext,
@@ -58,6 +69,9 @@ func Routes(r chi.Router) {
 
 	r.Route("/Groups", func(r chi.Router) {
 		gh := &groupsHandler{
+			externalIdAsPrimary: cfg.ExternalIdAsPrimary,
+			externalIdValidator: cfg.ExternalIdValidator,
+
 			svc: service.DefaultRole,
 			sec: getSecurityContext,
 		}
