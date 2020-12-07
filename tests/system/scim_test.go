@@ -106,7 +106,7 @@ func TestScimUserCreateOverwrite(t *testing.T) {
 		Post("/Users").
 		JSON(`{"userName":"UPDATED","emails":[{"value":"foo@bar.com"}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
-		Status(http.StatusCreated).
+		Status(http.StatusOK).
 		End()
 
 	u, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, "foo@bar.com")
@@ -133,7 +133,7 @@ func TestScimUserExternalID(t *testing.T) {
 		Post("/Users").
 		JSON(`{"userName":"baz","emails":[{"value":"baz@bar.com"}],"externalId":"foo42","schemas":["urn:ietf:params:scim:schemas:core:2.0:User"]}`).
 		Expect(t).
-		Status(http.StatusCreated).
+		Status(http.StatusOK).
 		End()
 
 	u, err = store.LookupUserByEmail(context.Background(), service.DefaultStore, "baz@bar.com")
@@ -253,7 +253,7 @@ func TestScimGroupExternalId(t *testing.T) {
 		Post("/Groups").
 		JSON(`{"schemas":["urn:ietf:params:scim:schemas:core:2.0:Group"],"displayName":"bar","externalId":"grp42"}`).
 		Expect(t).
-		Status(http.StatusCreated).
+		Status(http.StatusOK).
 		End()
 
 	u, err = store.LookupRoleByName(context.Background(), service.DefaultStore, "bar")
