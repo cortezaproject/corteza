@@ -10,6 +10,7 @@ fields:
   - { field: SharedNodeID }
   - { field: BaseURL }
   - { field: Status }
+  - { field: Contact }
   - { field: PairToken }
   - { field: AuthToken }
   - { field: CreatedBy }

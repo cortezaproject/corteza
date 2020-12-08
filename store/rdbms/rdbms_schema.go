@@ -541,6 +541,7 @@ func (Schema) FederationNodes() *Table {
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("base_url", ColumnTypeText),
 		ColumnDef("status", ColumnTypeText),
+		ColumnDef("contact", ColumnTypeVarchar, ColumnTypeLength(emailLength)),
 		ColumnDef("pair_token", ColumnTypeText),
 		ColumnDef("auth_token", ColumnTypeText),
 

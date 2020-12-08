@@ -114,6 +114,7 @@ func (svc node) Create(ctx context.Context, new *types.Node) (*types.Node, error
 			ID:        nextID(),
 			Name:      new.Name,
 			BaseURL:   new.BaseURL,
+			Contact:   new.Contact,
 			Status:    types.NodeStatusPending,
 			CreatedAt: *now(),
 		}
@@ -235,6 +236,7 @@ func (svc node) Update(ctx context.Context, upd *types.Node) (*types.Node, error
 	return svc.updater(ctx, upd.ID, NodeActionUpdate, func(ctx context.Context, n *types.Node) error {
 		n.Name = upd.Name
 		n.BaseURL = upd.BaseURL
+		n.Contact = upd.Contact
 
 		n.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 		n.UpdatedAt = now()
