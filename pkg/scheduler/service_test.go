@@ -39,12 +39,12 @@ func TestMainServiceFunctions(t *testing.T) {
 	r := require.New(t)
 
 	const (
-		loopInterval = time.Millisecond
+		loopInterval = time.Millisecond * 100
 		actionWait   = loopInterval * 10
 	)
 
 	r.Nil(gScheduler)
-	Setup(zap.NewNop(), eventbus.New(), time.Second)
+	Setup(zap.NewNop(), eventbus.New(), loopInterval)
 	r.NotNil(gScheduler)
 	r.False(gScheduler.Started())
 	r.Equal(gScheduler, Service())
