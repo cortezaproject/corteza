@@ -5,12 +5,13 @@ fields:
   - { field: UserID, isPrimaryKey: true }
   - { field: RoleID, isPrimaryKey: true }
 
-rdbms:
-  alias: rm
-  table: role_members
-
 search:
   enableSorting: false
   enablePaging: false
-  customFilterConverter: true
   enableFilterCheckFunction: false
+
+rdbms:
+  alias: rm
+  table: role_members
+  customFilterConverter: true
+

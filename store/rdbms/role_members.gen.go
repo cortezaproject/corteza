@@ -31,7 +31,10 @@ func (s Store) SearchRoleMembers(ctx context.Context, f types.RoleMemberFilter) 
 	)
 
 	return set, f, func() error {
-		q = s.roleMembersSelectBuilder()
+		q, err = s.convertRoleMemberFilter(f)
+		if err != nil {
+			return err
+		}
 
 		set, err = s.QueryRoleMembers(ctx, q, nil)
 		return err
