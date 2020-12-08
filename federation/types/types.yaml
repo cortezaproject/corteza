@@ -1,8 +1,8 @@
 types:
-  Node:
+  Node: {}
   NodeSync:
     noIdField: true
-  ExposedModule:
-  SharedModule:
+  ExposedModule: {}
+  SharedModule: {}
   ModuleMapping:
     noIdField: true
