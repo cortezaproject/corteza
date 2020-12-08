@@ -52,6 +52,11 @@ type (
 		// Name for this node
 		Name string
 
+		// Contact POST parameter
+		//
+		// Contact email
+		Contact string
+
 		// PairingURI POST parameter
 		//
 		// Pairing URI
@@ -82,6 +87,11 @@ type (
 		//
 		// Name for this node
 		Name string
+
+		// Contact POST parameter
+		//
+		// Contact email
+		Contact string
 
 		// BaseURL POST parameter
 		//
@@ -197,6 +207,7 @@ func (r NodeCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"baseURL":    r.BaseURL,
 		"name":       r.Name,
+		"contact":    r.Contact,
 		"pairingURI": r.PairingURI,
 	}
 }
@@ -209,6 +220,11 @@ func (r NodeCreate) GetBaseURL() string {
 // Auditable returns all auditable/loggable parameters
 func (r NodeCreate) GetName() string {
 	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeCreate) GetContact() string {
+	return r.Contact
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -245,6 +261,13 @@ func (r *NodeCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["contact"]; ok && len(val) > 0 {
+			r.Contact, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -361,6 +384,7 @@ func (r NodeUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"nodeID":  r.NodeID,
 		"name":    r.Name,
+		"contact": r.Contact,
 		"baseURL": r.BaseURL,
 	}
 }
@@ -373,6 +397,11 @@ func (r NodeUpdate) GetNodeID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r NodeUpdate) GetName() string {
 	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NodeUpdate) GetContact() string {
+	return r.Contact
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -402,6 +431,13 @@ func (r *NodeUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["contact"]; ok && len(val) > 0 {
+			r.Contact, err = val[0], nil
 			if err != nil {
 				return err
 			}

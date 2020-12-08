@@ -22,6 +22,8 @@ type (
 		// Base URL of the remote server
 		BaseURL string `json:"baseURL"`
 
+		Contact string `json:"contact"`
+
 		// Node ID on the remote server that points back to us
 		SharedNodeID uint64 `json:"sharedNodeID,string"`
 

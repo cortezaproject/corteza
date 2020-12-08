@@ -65,6 +65,7 @@ func (ctrl Node) Create(ctx context.Context, r *request.NodeCreate) (interface{}
 		n := &types.Node{
 			BaseURL: r.BaseURL,
 			Name:    r.Name,
+			Contact: r.Contact,
 		}
 
 		n, err := ctrl.svcNode.Create(ctx, n)
@@ -82,6 +83,7 @@ func (ctrl Node) Update(ctx context.Context, r *request.NodeUpdate) (interface{}
 		ID:      r.NodeID,
 		Name:    r.Name,
 		BaseURL: r.BaseURL,
+		Contact: r.Contact,
 	})
 
 	return ctrl.makePayload(ctx, n, err)
