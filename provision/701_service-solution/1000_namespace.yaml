@@ -1,3 +1,4 @@
 namespaces:
   service-solution:
+    (envoy): { skipIf: "!missing" }
     name: Service Solution
