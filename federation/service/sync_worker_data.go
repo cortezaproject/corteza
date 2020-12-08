@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"go.uber.org/zap"
 )
 
@@ -159,9 +160,10 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 	w.delay = delay
 	w.limit = limit
 
-	// todo - get auth from the node
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	ctx = auth.SetSuperUserContext(ctx)
 
 	ticker := time.NewTicker(delay)
 

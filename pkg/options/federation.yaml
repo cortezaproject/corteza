@@ -1,0 +1,33 @@
+name: federation
+
+imports:
+  - time
+
+props:
+  - name: Enabled
+    type: bool
+    env: FEDERATION_ENABLED
+
+  - name: Label
+    type: string
+    env: FEDERATION_LABEL
+
+  - name: Host
+    type: string
+    env: FEDERATION_HOST
+
+  - name: StructureMonitorInterval
+    type: time.Duration
+    env: FEDERATION_SYNC_STRUCTURE_MONITOR_INTERVAL
+
+  - name: StructurePageSize
+    type: int
+    env: FEDERATION_SYNC_STRUCTURE_PAGE_SIZE
+
+  - name: DataMonitorInterval
+    type: time.Duration
+    env: FEDERATION_SYNC_DATA_MONITOR_INTERVAL
+
+  - name: DataPageSize
+    type: int
+    env: FEDERATION_SYNC_DATA_PAGE_SIZE
