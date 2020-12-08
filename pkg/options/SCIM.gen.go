@@ -22,7 +22,7 @@ type (
 func SCIM() (o *SCIMOpt) {
 	o = &SCIMOpt{
 		BaseURL:              "/scim",
-		ExternalIdValidation: "$[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}^",
+		ExternalIdValidation: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
 	}
 
 	fill(o)

@@ -72,13 +72,15 @@ func Routes(r chi.Router, cfg Config) {
 			externalIdAsPrimary: cfg.ExternalIdAsPrimary,
 			externalIdValidator: cfg.ExternalIdValidator,
 
-			svc: service.DefaultRole,
-			sec: getSecurityContext,
+			svc:     service.DefaultRole,
+			userSvc: service.DefaultUser,
+			sec:     getSecurityContext,
 		}
 
 		r.Get("/{id}", gh.get)
 		r.Post("/", gh.create)
 		r.Put("/{id}", gh.replace)
+		r.Patch("/{id}", gh.patch)
 		r.Delete("/{id}", gh.delete)
 	})
 }

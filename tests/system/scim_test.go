@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
-	"github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/scim"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
@@ -299,12 +299,7 @@ func TestScimUserReplaceOnExternalId(t *testing.T) {
 	// creating a new user and assigning an external ID label to it
 	u := h.createUserWithEmail(h.randEmail())
 	const externalId = `2819c223-7f76-453a-919d-413861904646`
-	h.a.NoError(store.UpsertLabel(h.secCtx(), service.DefaultStore, &types.Label{
-		Kind:       u.LabelResourceKind(),
-		ResourceID: u.LabelResourceID(),
-		Name:       "SCIM_externalId",
-		Value:      externalId,
-	}))
+	h.setLabel(u, "SCIM_externalId", externalId)
 
 	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
 		Put(fmt.Sprintf("/Users/%s", externalId)).
@@ -317,6 +312,68 @@ func TestScimUserReplaceOnExternalId(t *testing.T) {
 	h.a.NoError(err)
 	h.a.NotNil(u)
 	h.a.Equal("baz@bar.com", u.Email)
+}
+
+func TestScimPatchingGroupMembership(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+	h.clearRoles()
+	h.clearRoleMembers()
+
+	isMember := func(r *types.Role, u *types.User) bool {
+		mm, _, err := store.SearchRoleMembers(h.secCtx(), service.DefaultStore, types.RoleMemberFilter{RoleID: r.ID, UserID: u.ID})
+		h.a.NoError(err)
+		return len(mm) > 0
+	}
+
+	const (
+		user1Id = `00000000-0000-0000-0000-000000000001`
+		user2Id = `00000000-0000-0000-0000-000000000002`
+		groupId = `00000000-0000-0000-0001-000000000001`
+	)
+
+	// creating a new user and assigning an external ID label to it
+	u1 := h.createUserWithEmail(h.randEmail())
+	h.setLabel(u1, "SCIM_externalId", user1Id)
+
+	u2 := h.createUserWithEmail(h.randEmail())
+	h.setLabel(u2, "SCIM_externalId", user2Id)
+
+	r := h.createRole(&types.Role{})
+	h.setLabel(r, "SCIM_externalId", groupId)
+
+	h.a.False(isMember(r, u1))
+	h.a.False(isMember(r, u2))
+
+	// add only user #1
+	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
+		Patch(fmt.Sprintf("/Groups/%s", groupId)).
+		JSON(fmt.Sprintf(
+			`{"Operations":[{"op":"add","path":"members","value":[{"value":%q}]}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
+			user1Id,
+		)).
+		Expect(t).
+		Status(http.StatusNoContent).
+		End()
+
+	h.a.True(isMember(r, u1))
+	h.a.False(isMember(r, u2))
+
+	// remove user #1, add user #2
+	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
+		Patch(fmt.Sprintf("/Groups/%s", groupId)).
+		JSON(fmt.Sprintf(
+			`{"Operations":[{"op":"add","path":"members","value":[{"value":%q}]},{"op":"remove","path":"members","value":[{"value":%q}]}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
+			user2Id,
+			user1Id,
+		)).
+		Expect(t).
+		Status(http.StatusNoContent).
+		End()
+
+	h.a.False(isMember(r, u1))
+	h.a.True(isMember(r, u2))
+
 }
 
 func scimSetWithExternalId(c *scim.Config) {

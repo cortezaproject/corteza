@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi"
 	"net/http"
 	"regexp"
@@ -206,12 +205,15 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 }
 
 func (h usersHandler) lookupByExternalId(ctx context.Context, id string) (r *types.User, err error) {
-	spew.Dump(id)
-	if h.externalIdValidator != nil && !h.externalIdValidator.MatchString(id) {
+	return lookupUserByExternalId(ctx, h.svc, h.externalIdValidator, id)
+}
+
+func lookupUserByExternalId(ctx context.Context, svc service.UserService, v *regexp.Regexp, id string) (r *types.User, err error) {
+	if v != nil && !v.MatchString(id) {
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := h.svc.With(ctx).Find(types.UserFilter{Labels: map[string]string{groupLabel_SCIM_externalId: id}})
+	rr, _, err := svc.With(ctx).Find(types.UserFilter{Labels: map[string]string{userLabel_SCIM_externalId: id}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}
