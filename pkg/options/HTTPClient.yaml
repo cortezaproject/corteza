@@ -12,7 +12,7 @@ props:
     description: |-
       Allow insecure (invalid, expired TSL/SSL certificates) connections.
 
-      IMPORTANT
+      [IMPORTANT]
       ====
       We strongly recommend keeping this value set to false except for local development or demos.
       ====
