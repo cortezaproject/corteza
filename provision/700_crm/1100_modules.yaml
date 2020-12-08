@@ -1,6 +1,7 @@
 namespace: crm
 modules:
   Account:
+    (envoy): { skipIf: "!missing" }
     name: Account
     fields:
       AccountName:
@@ -52,15 +53,27 @@ modules:
       BillingStreet:
         label: Billing Street
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       BillingCity:
         label: Billing City
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       BillingState:
         label: Billing State
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       BillingPostalCode:
         label: Billing Postal Code
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       BillingCountry:
         label: Billing Country
         kind: Select
@@ -555,6 +568,12 @@ modules:
           - text: Zimbabwe
             value: Zimbabwe
           selectType: default
+      GeneratedBillingAddress:
+        label: Generated Billing Address
+        kind: String
+        private: true
+        expressions:
+          valueExpr: trim(trim(trim(BillingStreet?BillingStreet:"") + "\n" + trim(trim(trim(BillingPostalCode?BillingPostalCode:"") + " " + trim(BillingCity?BillingCity:"")) + " " + trim(BillingState?BillingState:""))) + "\n" + trim(BillingCountry?BillingCountry:""))
       Description:
         label: Description
         kind: String
@@ -691,15 +710,27 @@ modules:
       ShippingStreet:
         label: Shipping Street
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       ShippingCity:
         label: Shipping City
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       ShippingState:
         label: Shipping State
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       ShippingPostalCode:
         label: Shipping Postal Code
         kind: String
+        expressions:
+          sanitizers:
+            - "trim(value)"
       ShippingCountry:
         label: Shipping Country
         kind: Select
@@ -1194,6 +1225,12 @@ modules:
           - text: Zimbabwe
             value: Zimbabwe
           selectType: default
+      GeneratedShippingAddress:
+        label: Generated Shipping Address
+        kind: String
+        private: true
+        expressions:
+          valueExpr: trim(trim(trim(ShippingStreet?ShippingStreet:"") + "\n" + trim(trim(trim(ShippingPostalCode?ShippingPostalCode:"") + " " + trim(ShippingCity?ShippingCity:"")) + " " + trim(ShippingState?ShippingState:""))) + "\n" + trim(ShippingCountry?ShippingCountry:""))
       Type:
         label: Type
         kind: Select
@@ -1264,6 +1301,7 @@ modules:
           selectType: multiple
         multi: true
   AccountContactRole:
+    (envoy): { skipIf: "!missing" }
     name: AccountContactRole
     fields:
       AccountId:
@@ -1320,6 +1358,7 @@ modules:
             value: Other
           selectType: default
   Campaigns:
+    (envoy): { skipIf: "!missing" }
     name: Campaigns
     fields:
       IsActive:
@@ -1490,6 +1529,7 @@ modules:
           format: ""
           precision: 0
   Case:
+    (envoy): { skipIf: "!missing" }
     name: Case
     fields:
       AccountId:
@@ -1688,6 +1728,7 @@ modules:
           presetWithAuthenticated: true
           selectType: default
   CaseUpdate:
+    (envoy): { skipIf: "!missing" }
     name: CaseUpdate
     fields:
       CaseId:
@@ -1730,6 +1771,7 @@ modules:
           falseLabel: "No"
           trueLabel: "Yes"
   Contact:
+    (envoy): { skipIf: "!missing" }
     name: Contact
     fields:
       AccountId:
@@ -2943,6 +2985,7 @@ modules:
           selectType: multiple
         multi: true
   Contract:
+    (envoy): { skipIf: "!missing" }
     name: Contract
     fields:
       AccountId:
@@ -4127,6 +4170,7 @@ modules:
           mode: list
         multi: true
   ContractContactRole:
+    (envoy): { skipIf: "!missing" }
     name: ContractContactRole
     fields:
       ContactId:
@@ -4187,6 +4231,7 @@ modules:
             value: Other
           selectType: default
   ContractLineItem:
+    (envoy): { skipIf: "!missing" }
     name: ContractLineItem
     fields:
       Description:
@@ -4301,6 +4346,7 @@ modules:
           multiLine: false
           useRichTextEditor: false
   EmailTemplate:
+    (envoy): { skipIf: "!missing" }
     name: EmailTemplate
     fields:
       IsActive:
@@ -4355,6 +4401,7 @@ modules:
           multiLine: true
           useRichTextEditor: true
   Entitlement:
+    (envoy): { skipIf: "!missing" }
     name: Entitlement
     fields:
       AccountId:
@@ -4437,6 +4484,7 @@ modules:
             value: Dedicated Support
           selectType: default
   EntitlementContact:
+    (envoy): { skipIf: "!missing" }
     name: EntitlementContact
     fields:
       ContactId:
@@ -4464,6 +4512,7 @@ modules:
           - Name
           selectType: ""
   EntitlementTemplate:
+    (envoy): { skipIf: "!missing" }
     name: EntitlementTemplate
     fields:
       BusinessHours:
@@ -4500,6 +4549,7 @@ modules:
           - Phone
           - Web
   Event:
+    (envoy): { skipIf: "!missing" }
     name: Event
     fields:
       IsAllDayEvent:
@@ -4645,6 +4695,7 @@ modules:
           - Subject
           selectType: ""
   Idea:
+    (envoy): { skipIf: "!missing" }
     name: Idea
     fields:
       Categories:
@@ -4720,24 +4771,37 @@ modules:
           format: "0"
           precision: 0
   Lead:
+    (envoy): { skipIf: "!missing" }
     name: Lead
     fields:
       Street:
         label: Address Street
         kind: String
         private: true
+        expressions:
+          sanitizers:
+            - "trim(value)"
       City:
         label: Address City
         kind: String
         private: true
+        expressions:
+          sanitizers:
+            - "trim(value)"
       State:
         label: Address State
         kind: String
         private: true
+        expressions:
+          sanitizers:
+            - "trim(value)"
       PostalCode:
         label: Address Postal Code
         kind: String
         private: true
+        expressions:
+          sanitizers:
+            - "trim(value)"
       Country:
         label: Address Country
         kind: Select
@@ -5233,6 +5297,12 @@ modules:
             value: Zimbabwe
           selectType: default
         private: true
+      GeneratedAddress:
+        label: Generated Address
+        kind: String
+        private: true
+        expressions:
+          valueExpr: trim(trim(trim(Street?Street:"") + "\n" + trim(trim(trim(PostalCode?PostalCode:"") + " " + trim(City?City:"")) + " " + trim(State?State:""))) + "\n" + trim(Country?Country:""))
       AnnualRevenue:
         label: Annual Revenue
         kind: Select
@@ -5575,6 +5645,8 @@ modules:
         label: Record Label
         kind: String
         private: true
+        expressions:
+          valueExpr: trim(FirstName + " " + LastName)
       CampaignId:
         label: Campaign
         kind: Record
@@ -5586,6 +5658,7 @@ modules:
           selectType: multiple
         multi: true
   Note:
+    (envoy): { skipIf: "!missing" }
     name: Note
     fields:
       Body:
@@ -5826,6 +5899,7 @@ modules:
           mode: list
         multi: true
   Opportunity:
+    (envoy): { skipIf: "!missing" }
     name: Opportunity
     fields:
       AccountId:
@@ -6065,6 +6139,7 @@ modules:
           mode: list
         multi: true
   OpportunityCompetitor:
+    (envoy): { skipIf: "!missing" }
     name: OpportunityCompetitor
     fields:
       CompetitorName:
@@ -6092,6 +6167,7 @@ modules:
           multiLine: true
           useRichTextEditor: true
   OpportunityContactRole:
+    (envoy): { skipIf: "!missing" }
     name: OpportunityContactRole
     fields:
       ContactId:
@@ -6132,6 +6208,7 @@ modules:
           - Technical Buyer
           - Other
   OpportunityLineItem:
+    (envoy): { skipIf: "!missing" }
     name: OpportunityLineItem
     fields:
       ServiceDate:
@@ -6222,6 +6299,7 @@ modules:
           precision: 2
           suffix: €
   Pricebook:
+    (envoy): { skipIf: "!missing" }
     name: Pricebook
     fields:
       IsActive:
@@ -6245,6 +6323,7 @@ modules:
         label: Price Book Name
         kind: String
   PricebookEntry:
+    (envoy): { skipIf: "!missing" }
     name: PricebookEntry
     fields:
       IsActive:
@@ -6298,6 +6377,7 @@ modules:
           multiLine: false
           useRichTextEditor: false
   Product:
+    (envoy): { skipIf: "!missing" }
     name: Product
     fields:
       IsActive:
@@ -6355,6 +6435,7 @@ modules:
           - Name
           selectType: default
   Question:
+    (envoy): { skipIf: "!missing" }
     name: Question
     fields:
       BestReplyId:
@@ -6393,6 +6474,7 @@ modules:
           format: 0
           precision: 0
   Quote:
+    (envoy): { skipIf: "!missing" }
     name: Quote
     fields:
       AccountId:
@@ -7443,6 +7525,10 @@ modules:
           format: "0.00"
           precision: 2
           suffix: €
+        expressions:
+          validators:
+            - test: "value < 0"
+              error: Discount can not be a negative number
       Email:
         label: Email
         kind: Email
@@ -7452,13 +7538,6 @@ modules:
       Fax:
         label: Fax
         kind: String
-      GrandTotal:
-        label: Grand Total (calculated)
-        kind: Number
-        options:
-          format: "0.00"
-          precision: 2
-          suffix: €
       LineItemCount:
         label: Line Items
         kind: Number
@@ -8521,6 +8600,11 @@ modules:
           format: "0"
           precision: 2
           suffix: €
+        expressions:
+          validators:
+            - test: "value < 0"
+              error: Shipping and Handling can not be a negative number
+
       Status:
         label: Status
         kind: Select
@@ -8550,6 +8634,10 @@ modules:
           format: "0.00"
           precision: 2
           suffix: €
+        expressions:
+          validators:
+            - test: "value < 0"
+              error: Sub total can not be a negative number
       Tax:
         label: Tax
         kind: Number
@@ -8557,6 +8645,10 @@ modules:
           format: "0.00"
           precision: "2"
           suffix: '%'
+        expressions:
+          validators:
+            - test: "value < 0"
+              error: Tax can not be a negative number
       TotalPrice:
         label: Total Price (calculated)
         kind: Number
@@ -8564,10 +8656,22 @@ modules:
           format: "0.00"
           precision: 2
           suffix: €
+        expressions:
+          valueExpr: max(max((Subtotal?Subtotal:0) - (Discount?Discount:0), 0) + (ShippingHandling?ShippingHandling:0))
+      GrandTotal:
+        label: Grand Total (calculated)
+        kind: Number
+        options:
+          format: "0.00"
+          precision: 2
+          suffix: €
+        expressions:
+          valueExpr: "TotalPrice * (Tax ? 1+Tax/100 : 1)"
       RecordLabel:
         label: Record Label
         kind: String
   QuoteLineItem:
+    (envoy): { skipIf: "!missing" }
     name: QuoteLineItem
     fields:
       ServiceDate:
@@ -8666,6 +8770,7 @@ modules:
         options:
           multiLine: true
   Reply:
+    (envoy): { skipIf: "!missing" }
     name: Reply
     fields:
       DownVotes:
@@ -8712,6 +8817,7 @@ modules:
           queryFields:
           - Title
   Settings:
+    (envoy): { skipIf: "!missing" }
     name: Settings
     fields:
       QuoteExpirationDays:
@@ -8770,6 +8876,7 @@ modules:
           format: "0000000"
           precision: 0
   Solution:
+    (envoy): { skipIf: "!missing" }
     name: Solution
     fields:
       IsPublished:
@@ -8846,6 +8953,7 @@ modules:
           mode: list
         multi: true
   Task:
+    (envoy): { skipIf: "!missing" }
     name: Task
     fields:
       AccountId:
@@ -9016,6 +9124,7 @@ modules:
           - Subject
           selectType: default
   Vote:
+    (envoy): { skipIf: "!missing" }
     name: Vote
     fields:
       IdeaId:

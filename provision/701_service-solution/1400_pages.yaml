@@ -1,6 +1,7 @@
 namespace: service-solution
 pages:
   - handle: Home
+    (envoy): { skipIf: "!missing" }
     title: Home
     blocks:
     - title: All Cases
@@ -73,6 +74,7 @@ pages:
       xywh: [9, 11, 3, 5]
     visible: true
   - handle: Cases
+    (envoy): { skipIf: "!missing" }
     title: Cases
     blocks:
     - title: All cases
@@ -118,6 +120,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleCase
+        (envoy): { skipIf: "!missing" }
         module: Case
         title: Record page for module "Case"
         blocks:
@@ -239,6 +242,7 @@ pages:
           xywh: [3, 3, 6, 2]
         pages:
           - handle: RecordPageForModuleAttachement
+            (envoy): { skipIf: "!missing" }
             module: Attachement
             title: Record page for module "Attachement"
             blocks:
@@ -254,6 +258,7 @@ pages:
               xywh: [0, 0, 5, 18]
             visible: false
           - handle: RecordPageForModuleUpdate
+            (envoy): { skipIf: "!missing" }
             module: Update
             title: Record page for module "Update"
             blocks:
@@ -296,6 +301,7 @@ pages:
             visible: false
         visible: false
       - handle: AllMyCases
+        (envoy): { skipIf: "!missing" }
         title: All my cases
         blocks:
         - title: All my cases
@@ -328,6 +334,7 @@ pages:
           xywh: [0, 0, 12, 16]
         visible: true
       - handle: MyNewCases
+        (envoy): { skipIf: "!missing" }
         title: My new cases
         blocks:
         - title: My new cases
@@ -361,6 +368,7 @@ pages:
         visible: true
     visible: true
   - handle: Accounts
+    (envoy): { skipIf: "!missing" }
     title: Accounts
     blocks:
     - title: Accounts
@@ -405,6 +413,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleAccount
+        (envoy): { skipIf: "!missing" }
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -515,6 +524,7 @@ pages:
           xywh: [0, 21, 6, 9]
         visible: false
       - handle: Contacts
+        (envoy): { skipIf: "!missing" }
         title: Contacts
         blocks:
         - title: Contacts
@@ -548,6 +558,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleContact
+            (envoy): { skipIf: "!missing" }
             module: Contact
             title: Record page for module "Contact"
             blocks:
@@ -641,6 +652,7 @@ pages:
               xywh: [0, 20, 9, 9]
             pages:
               - handle: RecordPageForModuleEmailMessage
+                (envoy): { skipIf: "!missing" }
                 module: EmailMessage
                 title: Record page for module "Email Message"
                 blocks:
@@ -701,6 +713,7 @@ pages:
             visible: false
         visible: true
       - handle: Entitlements
+        (envoy): { skipIf: "!missing" }
         title: Entitlements
         blocks:
         - title: Entitlements
@@ -734,6 +747,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlement
+            (envoy): { skipIf: "!missing" }
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -777,6 +791,7 @@ pages:
         visible: true
     visible: true
   - handle: Products
+    (envoy): { skipIf: "!missing" }
     title: Products
     blocks:
     - title: Products
@@ -823,6 +838,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleProduct
+        (envoy): { skipIf: "!missing" }
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -921,6 +937,7 @@ pages:
           xywh: [3, 0, 3, 10]
         visible: false
       - handle: EntitlementTemplates
+        (envoy): { skipIf: "!missing" }
         title: Entitlement Templates
         blocks:
         - title: Entitlement Templates
@@ -951,6 +968,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlementTemplate
+            (envoy): { skipIf: "!missing" }
             module: EntitlementTemplate
             title: Record page for module "EntitlementTemplate"
             blocks:
@@ -989,6 +1007,7 @@ pages:
         visible: true
     visible: true
   - handle: KnowledgeBase
+    (envoy): { skipIf: "!missing" }
     title: Knowledge Base
     blocks:
     - title: Knowledge Base
@@ -1034,6 +1053,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleKnowledgeBase
+        (envoy): { skipIf: "!missing" }
         module: KnowledgeBase
         title: Record page for module "Knowledge Base"
         blocks:
@@ -1090,6 +1110,7 @@ pages:
         visible: false
     visible: true
   - handle: Departments
+    (envoy): { skipIf: "!missing" }
     title: Departments
     blocks:
     - title: Departments
@@ -1135,6 +1156,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleDepartment
+        (envoy): { skipIf: "!missing" }
         module: Department
         title: Record page for module "Department"
         blocks:
@@ -1182,6 +1204,7 @@ pages:
         visible: false
     visible: true
   - handle: Dashboard
+    (envoy): { skipIf: "!missing" }
     title: Dashboard
     blocks:
     - title: Cases by category
@@ -1326,6 +1349,7 @@ pages:
       xywh: [9, 24, 3, 6]
     visible: true
   - handle: Settings
+    (envoy): { skipIf: "!missing" }
     title: Settings
     blocks:
     - title: Settings
@@ -1351,6 +1375,7 @@ pages:
       xywh: [0, 0, 12, 5]
     pages:
       - handle: RecordPageForModuleSettings
+        (envoy): { skipIf: "!missing" }
         module: Settings
         title: Record page for module "Settings"
         blocks:
@@ -1370,6 +1395,7 @@ pages:
           xywh: [0, 0, 6, 17]
         visible: false
       - handle: EmailTemplates
+        (envoy): { skipIf: "!missing" }
         title: Email Templates
         blocks:
         - title: Email Templates
@@ -1400,6 +1426,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEmailTemplate
+            (envoy): { skipIf: "!missing" }
             module: EmailTemplate
             title: Record page for module "Email Template"
             blocks:

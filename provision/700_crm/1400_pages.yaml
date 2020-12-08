@@ -1,6 +1,7 @@
 namespace: crm
 pages:
   - handle: Home
+    (envoy): { skipIf: "!missing" }
     title: Home
     blocks:
     - title: My New Leads
@@ -221,6 +222,7 @@ pages:
       xywh: [8, 0, 4, 11]
     visible: true
   - handle: Leads
+    (envoy): { skipIf: "!missing" }
     title: Leads
     blocks:
     - title: Leads by type
@@ -267,6 +269,7 @@ pages:
       xywh: [0, 0, 9, 16]
     pages:
       - handle: RecordPageForModuleLead
+        (envoy): { skipIf: "!missing" }
         module: Lead
         title: Record page for module "Lead"
         blocks:
@@ -424,6 +427,7 @@ pages:
           xywh: [6, 15, 3, 8]
         visible: true
       - handle: MyLeads
+        (envoy): { skipIf: "!missing" }
         title: My Leads
         blocks:
         - title: My Leads
@@ -459,6 +463,7 @@ pages:
           xywh: [0, 0, 12, 17]
         visible: true
       - handle: AllNewLeads
+        (envoy): { skipIf: "!missing" }
         title: All New Leads
         blocks:
         - title: New Leads
@@ -495,6 +500,7 @@ pages:
         visible: true
     visible: true
   - handle: Accounts
+    (envoy): { skipIf: "!missing" }
     title: Accounts
     blocks:
     - title: All accounts
@@ -542,6 +548,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleAccount
+        (envoy): { skipIf: "!missing" }
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -799,6 +806,7 @@ pages:
           xywh: [9, 17, 3, 7]
         pages:
           - handle: RecordPageForModuleAccountContactRole
+            (envoy): { skipIf: "!missing" }
             module: AccountContactRole
             title: Record page for module "AccountContactRole"
             blocks:
@@ -815,6 +823,7 @@ pages:
         visible: true
     visible: true
   - handle: Contacts
+    (envoy): { skipIf: "!missing" }
     title: Contacts
     blocks:
     - title: List of Contacts
@@ -859,6 +868,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleContact
+        (envoy): { skipIf: "!missing" }
         module: Contact
         title: Record page for module "Contact"
         blocks:
@@ -1032,6 +1042,7 @@ pages:
         visible: false
     visible: true
   - handle: Opportunities
+    (envoy): { skipIf: "!missing" }
     title: Opportunities
     blocks:
     - title: List of Opportunities
@@ -1084,6 +1095,7 @@ pages:
       xywh: [8, 0, 2, 6]
     pages:
       - handle: RecordPageForModuleOpportunity
+        (envoy): { skipIf: "!missing" }
         module: Opportunity
         title: Record page for module "Opportunity"
         blocks:
@@ -1310,6 +1322,7 @@ pages:
           xywh: [8, 18, 4, 8]
         pages:
           - handle: RecordPageForModuleOpportunityContactRole
+            (envoy): { skipIf: "!missing" }
             module: OpportunityContactRole
             title: Record page for module "OpportunityContactRole"
             blocks:
@@ -1324,6 +1337,7 @@ pages:
               xywh: [0, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleOpportunityLineItem
+            (envoy): { skipIf: "!missing" }
             module: OpportunityLineItem
             title: Record page for module "OpportunityLineItem"
             blocks:
@@ -1364,6 +1378,7 @@ pages:
               xywh: [8, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleOpportunityCompetitor
+            (envoy): { skipIf: "!missing" }
             module: OpportunityCompetitor
             title: Record page for module "OpportunityCompetitor"
             blocks:
@@ -1382,6 +1397,7 @@ pages:
         visible: false
     visible: true
   - handle: Quotes
+    (envoy): { skipIf: "!missing" }
     title: Quotes
     blocks:
     - title: List of Quotes
@@ -1430,6 +1446,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleQuote
+        (envoy): { skipIf: "!missing" }
         module: Quote
         title: Record page for module "Quote"
         blocks:
@@ -1645,6 +1662,7 @@ pages:
           xywh: [4, 11, 4, 1]
         pages:
           - handle: RecordPageForModuleQuoteLineItem
+            (envoy): { skipIf: "!missing" }
             module: QuoteLineItem
             title: Record page for module "QuoteLineItem"
             blocks:
@@ -1669,6 +1687,7 @@ pages:
         visible: false
     visible: true
   - handle: Contracts
+    (envoy): { skipIf: "!missing" }
     title: Contracts
     blocks:
     - title: List of Contracts
@@ -1716,6 +1735,7 @@ pages:
       xywh: [9, 0, 3, 9]
     pages:
       - handle: RecordPageForModuleContract
+        (envoy): { skipIf: "!missing" }
         module: Contract
         title: Record page for module "Contract"
         blocks:
@@ -1919,6 +1939,7 @@ pages:
           xywh: [0, 10, 6, 9]
         pages:
           - handle: RecordPageForModuleContractContactRole
+            (envoy): { skipIf: "!missing" }
             module: ContractContactRole
             title: Record page for module "ContractContactRole"
             blocks:
@@ -1933,6 +1954,7 @@ pages:
               xywh: [0, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleEntitlement
+            (envoy): { skipIf: "!missing" }
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -1999,6 +2021,7 @@ pages:
               xywh: [8, 0, 4, 13]
             pages:
               - handle: RecordPageForModuleEntitlementContact
+                (envoy): { skipIf: "!missing" }
                 module: EntitlementContact
                 title: Record page for module "EntitlementContact"
                 blocks:
@@ -2012,6 +2035,7 @@ pages:
                   xywh: [0, 0, 4, 14]
                 visible: false
               - handle: RecordPageForModuleEntitlementTemplate
+                (envoy): { skipIf: "!missing" }
                 module: EntitlementTemplate
                 title: Record page for module "EntitlementTemplate"
                 blocks:
@@ -2029,6 +2053,7 @@ pages:
                 visible: false
             visible: false
           - handle: RecordPageForModuleContractLineItem
+            (envoy): { skipIf: "!missing" }
             module: ContractLineItem
             title: Record page for module "ContractLineItem"
             blocks:
@@ -2068,6 +2093,7 @@ pages:
         visible: false
     visible: true
   - handle: Campaigns
+    (envoy): { skipIf: "!missing" }
     title: Campaigns
     blocks:
     - title: List of Campaigns
@@ -2184,6 +2210,7 @@ pages:
       xywh: [10, 0, 2, 4]
     pages:
       - handle: RecordPageForModuleCampaign
+        (envoy): { skipIf: "!missing" }
         module: Campaigns
         title: Record page for module "Campaign"
         blocks:
@@ -2342,6 +2369,7 @@ pages:
         visible: false
     visible: true
   - handle: Products
+    (envoy): { skipIf: "!missing" }
     title: Products
     blocks:
     - title: List of Products
@@ -2385,6 +2413,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleProduct
+        (envoy): { skipIf: "!missing" }
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -2498,6 +2527,7 @@ pages:
           xywh: [8, 0, 4, 10]
         visible: false
       - handle: PriceBook
+        (envoy): { skipIf: "!missing" }
         title: Price book
         blocks:
         - title: Price Books
@@ -2542,6 +2572,7 @@ pages:
           xywh: [9, 8, 3, 8]
         pages:
           - handle: RecordPageForModulePricebook
+            (envoy): { skipIf: "!missing" }
             module: Pricebook
             title: Record page for module "Pricebook"
             blocks:
@@ -2608,6 +2639,7 @@ pages:
               xywh: [0, 14, 12, 8]
             pages:
               - handle: RecordPageForModulePricebookEntry
+                (envoy): { skipIf: "!missing" }
                 module: PricebookEntry
                 title: Record page for module "PricebookEntry"
                 blocks:
@@ -2626,6 +2658,7 @@ pages:
         visible: true
     visible: true
   - handle: Events
+    (envoy): { skipIf: "!missing" }
     title: Events
     blocks:
     - title: List of Events
@@ -2738,6 +2771,7 @@ pages:
       xywh: [3, 0, 6, 16]
     pages:
       - handle: RecordPageForModuleEvent
+        (envoy): { skipIf: "!missing" }
         module: Event
         title: Record page for module "Event"
         blocks:
@@ -2789,6 +2823,7 @@ pages:
         visible: false
     visible: true
   - handle: Tasks
+    (envoy): { skipIf: "!missing" }
     title: Tasks
     blocks:
     - title: List of Tasks
@@ -2837,6 +2872,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleTask
+        (envoy): { skipIf: "!missing" }
         module: Task
         title: Record page for module "Task"
         blocks:
@@ -2886,6 +2922,7 @@ pages:
         visible: false
     visible: true
   - handle: Dashboards
+    (envoy): { skipIf: "!missing" }
     title: Dashboards
     blocks:
     - title: Leads per day
@@ -2953,6 +2990,7 @@ pages:
       xywh: [6, 14, 3, 7]
     pages:
       - handle: LeadFunnelDashboard
+        (envoy): { skipIf: "!missing" }
         title: Lead Funnel Dashboard
         blocks:
         - title: Number of Leads in Campaigns
@@ -3091,6 +3129,7 @@ pages:
           xywh: [9, 18, 3, 7]
         visible: true
       - handle: ForecastDashboard
+        (envoy): { skipIf: "!missing" }
         title: Forecast Dashboard
         blocks:
         - title: Sales YTD
@@ -3151,6 +3190,7 @@ pages:
           xywh: [0, 6, 6, 8]
         visible: true
       - handle: KPIsAndSalesActivitiesDashboard
+        (envoy): { skipIf: "!missing" }
         title: KPIs and Sales Activities Dashboard
         blocks:
         - title: New Leads
@@ -3337,6 +3377,7 @@ pages:
           xywh: [6, 22, 6, 7]
         visible: true
       - handle: ExecutiveDailyViewDashboard
+        (envoy): { skipIf: "!missing" }
         title: Executive Daily View Dashboard
         blocks:
         - title: Sales Pipeline
@@ -3440,6 +3481,7 @@ pages:
         visible: true
     visible: true
   - handle: More
+    (envoy): { skipIf: "!missing" }
     title: More
     blocks:
     - title: Additional CRM modules
@@ -3449,6 +3491,7 @@ pages:
       xywh: [0, 0, 3, 3]
     pages:
       - handle: Notes
+        (envoy): { skipIf: "!missing" }
         title: Notes
         blocks:
         - title: List of Notes
@@ -3482,6 +3525,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleNote
+            (envoy): { skipIf: "!missing" }
             module: Note
             title: Record page for module "Note"
             blocks:
@@ -3521,6 +3565,7 @@ pages:
             visible: false
         visible: true
       - handle: Cases
+        (envoy): { skipIf: "!missing" }
         title: Cases
         blocks:
         - title: List of Cases
@@ -3588,6 +3633,7 @@ pages:
           xywh: [8, 5, 2, 6]
         pages:
           - handle: RecordPageForModuleCase
+            (envoy): { skipIf: "!missing" }
             module: Case
             title: Record page for module "Case"
             blocks:
@@ -3766,6 +3812,7 @@ pages:
               xywh: [6, 0, 3, 12]
             pages:
               - handle: RecordPageForModuleCaseUpdate
+                (envoy): { skipIf: "!missing" }
                 module: CaseUpdate
                 title: Record page for module "CaseUpdate"
                 blocks:
@@ -3787,6 +3834,7 @@ pages:
             visible: false
         visible: true
       - handle: Solutions
+        (envoy): { skipIf: "!missing" }
         title: Solutions
         blocks:
         - title: List of Solutions
@@ -3832,6 +3880,7 @@ pages:
           xywh: [9, 8, 3, 8]
         pages:
           - handle: RecordPageForModuleSolution
+            (envoy): { skipIf: "!missing" }
             module: Solution
             title: Record page for module "Solution"
             blocks:
@@ -3851,6 +3900,7 @@ pages:
             visible: false
         visible: true
       - handle: DefaultSettings
+        (envoy): { skipIf: "!missing" }
         title: Default Settings
         description: A list of defaults values which are called upon in automation
           processes.
@@ -3879,6 +3929,7 @@ pages:
           xywh: [0, 0, 12, 7]
         pages:
           - handle: RecordPageForModuleDefaultSettings
+            (envoy): { skipIf: "!missing" }
             module: Settings
             title: Record page for module "DefaultSettings"
             blocks:
@@ -3924,6 +3975,7 @@ pages:
         visible: true
     visible: true
   - handle: UnpublishedModules
+    (envoy): { skipIf: "!missing" }
     title: Unpublished modules
     blocks:
     - title: Temp
@@ -3933,6 +3985,7 @@ pages:
       xywh: [0, 0, 3, 3]
     pages:
       - handle: RecordPageForModuleQuestion
+        (envoy): { skipIf: "!missing" }
         module: Question
         title: Record page for module "Question"
         blocks:
@@ -3993,6 +4046,7 @@ pages:
           xywh: [4, 0, 8, 13]
         pages:
           - handle: RecordPageForModuleReply
+            (envoy): { skipIf: "!missing" }
             module: Reply
             title: Record page for module "Reply"
             blocks:
@@ -4022,6 +4076,7 @@ pages:
               xywh: [6, 0, 6, 20]
             visible: false
           - handle: RecordPageForModuleVote
+            (envoy): { skipIf: "!missing" }
             module: Vote
             title: Record page for module "Vote"
             blocks:
@@ -4044,6 +4099,7 @@ pages:
             visible: false
         visible: false
       - handle: Ideas
+        (envoy): { skipIf: "!missing" }
         title: Ideas
         blocks:
         - title: List of Ideas
@@ -4072,6 +4128,7 @@ pages:
           xywh: [0, 0, 12, 20]
         pages:
           - handle: RecordPageForModuleIdea
+            (envoy): { skipIf: "!missing" }
             module: Idea
             title: Record page for module "Idea"
             blocks:
@@ -4117,6 +4174,7 @@ pages:
             visible: false
         visible: false
       - handle: Emails
+        (envoy): { skipIf: "!missing" }
         title: Emails
         blocks:
         - title: List of Email Templates
@@ -4133,6 +4191,7 @@ pages:
           xywh: [8, 0, 4, 20]
         pages:
           - handle: RecordPageForModuleEmailTemplate
+            (envoy): { skipIf: "!missing" }
             module: EmailTemplate
             title: Record page for module "EmailTemplate"
             blocks:
@@ -4149,6 +4208,7 @@ pages:
             visible: false
         visible: false
       - handle: Questions
+        (envoy): { skipIf: "!missing" }
         title: Questions
         blocks:
         - title: List of Questions

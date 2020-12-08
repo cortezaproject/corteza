@@ -1,6 +1,7 @@
 namespace: service-solution
 modules:
   Account:
+    (envoy): { skipIf: "!missing" }
     name: Account
     fields:
       AccountName:
@@ -706,6 +707,7 @@ modules:
           precision: "2"
           prefix: $
   Attachement:
+    (envoy): { skipIf: "!missing" }
     name: Attachement
     fields:
       File:
@@ -729,6 +731,7 @@ modules:
         label: Name
         kind: String
   Case:
+    (envoy): { skipIf: "!missing" }
     name: Case
     fields:
       Status:
@@ -880,6 +883,7 @@ modules:
         label: PreviousStatus
         kind: String
   Contact:
+    (envoy): { skipIf: "!missing" }
     name: Contact
     fields:
       AccountId:
@@ -1583,6 +1587,7 @@ modules:
         kind: String
         private: true
   Department:
+    (envoy): { skipIf: "!missing" }
     name: Department
     meta: '{}'
     fields:
@@ -1624,6 +1629,7 @@ modules:
           multiLine: false
           useRichTextEditor: false
   EmailMessage:
+    (envoy): { skipIf: "!missing" }
     name: EmailMessage
     meta: '{}'
     fields:
@@ -1678,6 +1684,7 @@ modules:
           - Number
           selectType: default
   EmailTemplate:
+    (envoy): { skipIf: "!missing" }
     name: EmailTemplate
     meta: '{}'
     fields:
@@ -1699,6 +1706,7 @@ modules:
         options:
           multiLine: true
   Entitlement:
+    (envoy): { skipIf: "!missing" }
     name: Entitlement
     fields:
       AccountId:
@@ -1764,6 +1772,7 @@ modules:
           - Year(s)
           selectType: default
   EntitlementTemplate:
+    (envoy): { skipIf: "!missing" }
     name: EntitlementTemplate
     fields:
       Name:
@@ -1796,6 +1805,7 @@ modules:
           selectType: multiple
         multi: true
   KnowledgeBase:
+    (envoy): { skipIf: "!missing" }
     name: KnowledgeBase
     fields:
       Number:
@@ -1881,6 +1891,7 @@ modules:
           - Name
           selectType: default
   Product:
+    (envoy): { skipIf: "!missing" }
     name: Product
     fields:
       IsActive:
@@ -1956,6 +1967,7 @@ modules:
           options: []
           selectType: default
   Settings:
+    (envoy): { skipIf: "!missing" }
     name: Settings
     meta: '{}'
     fields:
@@ -2005,6 +2017,7 @@ modules:
           - Name
           selectType: default
   Update:
+    (envoy): { skipIf: "!missing" }
     name: Update
     fields:
       CaseId:

@@ -1,7 +1,8 @@
 namespace: crm
 records:
   Settings:
-  - values:
+  - (envoy): { skipIf: "!missing" }
+    values:
       QuoteExpirationDays: "30"
       QuoteNextNumber: "1"
       OpportunityCloseDateDays: "30"
