@@ -8,22 +8,28 @@
 //  - {{ .Source }}
 {{- end }}
 
-= ENV options
 {{ range .Definitions }}
-== {{ .Docs.Title }}
+= {{ .Docs.Title }}
 {{ if .Docs.Intro }}
 {{ .Docs.Intro }}
 {{ end }}
 {{- range .Properties }}
-=== *{{ toUpper .Env }}* `{{ .Type }}`
+== *{{ toUpper .Env }}*
+
+=== Type
+
+`{{ .Type }}`
 
 {{ if or .Default .Description -}}
 {{ if .Default -}}
-Default::
-    `{{ .Default }}`
+=== Default
+
+`{{ .Default }}`
+
 {{ end -}}
 {{ if .Description -}}
-Description::
-    {{ .Description }}
+=== Description
+
+{{ .Description }}
 {{ end -}}{{ end -}}
 {{ end }}{{ end }}

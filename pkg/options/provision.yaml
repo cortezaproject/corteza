@@ -1,5 +1,16 @@
 docs:
   title: Provisioning
+  intro: |-
+    Provisioning allows you to configure a {PRODUCT_NAME} instance when deployed.
+    It occurs automatically after the {PRODUCT_NAME} server starts.
+
+    [IMPORTANT]
+    ====
+    We recommend you to keep provisioning enabled as it simplifies version updates by updating the database and updating settings.
+
+    If you're doing local development or some debugging, you can disable this.
+    ====
+
 
 props:
   - name: always
