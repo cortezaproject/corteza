@@ -47,8 +47,7 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 		}, nil
 	}
 
-	// get the user that is tied to this node
-	ctx = auth.SetIdentityToContext(ctx, dp.User)
+	ctx = auth.SetSuperUserContext(ctx)
 
 	for _, er := range o {
 		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
