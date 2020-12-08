@@ -9,10 +9,13 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	label "github.com/cortezaproject/corteza-server/pkg/label"
+	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -164,4 +167,13 @@ func (h helper) noError(err error) {
 	}
 
 	h.a.NoError(err)
+}
+
+func (h helper) setLabel(res label.LabeledResource, name, value string) {
+	h.a.NoError(store.UpsertLabel(h.secCtx(), service.DefaultStore, &ltype.Label{
+		Kind:       res.LabelResourceKind(),
+		ResourceID: res.LabelResourceID(),
+		Name:       name,
+		Value:      value,
+	}))
 }

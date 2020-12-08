@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi"
 	"net/http"
 	"regexp"
@@ -19,7 +19,7 @@ type (
 		externalIdValidator *regexp.Regexp
 
 		svc     service.RoleService
-		passSvc passwordSetter
+		userSvc service.UserService
 		sec     getSecurityContextFn
 	}
 )
@@ -111,6 +111,121 @@ func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
 	send(w, status, newGroupResourceResponse(res))
 }
 
+// patches group
+//
+// only supports adding and removing members
+func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	var (
+		ctx     = h.sec(r)
+		svc     = h.svc.With(ctx)
+		res     = h.lookup(ctx, chi.URLParam(r, "id"), w)
+		payload = &operationsRequest{}
+	)
+
+	if res == nil {
+		return
+	}
+
+	if err := payload.decodeJSON(r.Body); err != nil {
+		sendError(w, newErrorResponse(http.StatusBadRequest, err))
+		return
+	}
+
+	var (
+		u           *types.User
+		ops         = make([]func() error, 0, len(payload.Operations))
+		err         error
+		memberships = make(map[uint64]bool)
+	)
+
+	{
+		// collect all existing memberships into a simple map
+		// to ensure we dont step on our feet (too much)
+		//
+		// this is not 100% bulletproof for concurrent modifications
+		mm, _, err := store.SearchRoleMembers(ctx, service.DefaultStore, types.RoleMemberFilter{RoleID: res.ID})
+		if err != nil {
+			sendError(w, err)
+			return
+		}
+
+		for _, m := range mm {
+			memberships[m.UserID] = true
+		}
+	}
+
+	// validate and collect operations
+	for _, op := range payload.Operations {
+		if op.Path != "members" {
+			// allow only "members" path
+			sendError(w, newErrorfResponse(http.StatusBadRequest, "unsupported path: %q", op.Path))
+			return
+		}
+
+		// iterate through operation's values, load user and schedule op
+		for _, userExternalId := range op.Value {
+			u, err = lookupUserByExternalId(ctx, h.userSvc, h.externalIdValidator, userExternalId.Value)
+			if err != nil {
+				sendError(w, err)
+				return
+			}
+
+			if u == nil {
+				sendError(w, newErrorfResponse(http.StatusBadRequest, "no such user: %q", userExternalId.Value))
+				return
+			}
+
+			// making sure u is not overwritten
+			// in the next iteration
+			memberId := u.ID
+
+			switch op.Operation {
+			case patchOpAdd:
+				// support for add operation,
+				// check if there members already exist
+				ops = append(ops, func() error {
+					if memberships[memberId] {
+						// already added
+						return nil
+					}
+
+					memberships[memberId] = true
+					return svc.MemberAdd(res.ID, memberId)
+				})
+
+			case patchOpRemove:
+				// support for remove operation,
+				// check if there members are missing
+				ops = append(ops, func() error {
+					if !memberships[memberId] {
+						// already removed
+						return nil
+					}
+
+					delete(memberships, memberId)
+					return svc.MemberRemove(res.ID, memberId)
+				})
+
+			default:
+				sendError(w, newErrorfResponse(http.StatusBadRequest, "unsupported operation: %q", op.Operation))
+				return
+			}
+		}
+	}
+
+	// run all scheduled ops
+	for _, op := range ops {
+		if err = op(); err != nil {
+			sendError(w, err)
+			return
+		}
+	}
+
+	send(w, http.StatusNoContent, nil)
+}
+
 func (h groupsHandler) save(ctx context.Context, req *groupResourceRequest, existing *types.Role) (res *types.Role, err error) {
 	var (
 		svc = h.svc.With(ctx)
@@ -194,7 +309,6 @@ func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWri
 }
 
 func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *types.Role, err error) {
-	spew.Dump(id)
 	if h.externalIdValidator != nil && !h.externalIdValidator.MatchString(id) {
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}

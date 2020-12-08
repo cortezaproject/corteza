@@ -20,6 +20,23 @@ func (h helper) clearRoles() {
 	h.noError(store.TruncateRoles(context.Background(), service.DefaultStore))
 }
 
+func (h helper) clearRoleMembers() {
+	h.noError(store.TruncateRoleMembers(context.Background(), service.DefaultStore))
+}
+
+func (h helper) createRole(res *types.Role) *types.Role {
+	if res.ID == 0 {
+		res.ID = id.Next()
+	}
+
+	if res.CreatedAt.IsZero() {
+		res.CreatedAt = time.Now()
+	}
+
+	h.a.NoError(service.DefaultStore.CreateRole(context.Background(), res))
+	return res
+}
+
 func (h helper) repoMakeRole(ss ...string) *types.Role {
 	var r = &types.Role{
 		ID:        id.Next(),
