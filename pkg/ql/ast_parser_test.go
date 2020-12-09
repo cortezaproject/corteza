@@ -2,6 +2,7 @@ package ql
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
 )
@@ -285,7 +286,7 @@ func TestAstParser_ColumnParser(t *testing.T) {
 	var tests = []struct {
 		in   string
 		cols Columns
-		err  error
+		err  string
 	}{
 		{
 			in: `a AS b`,
@@ -358,15 +359,43 @@ func TestAstParser_ColumnParser(t *testing.T) {
 				},
 			},
 		},
+		{
+			in: `-- - DATE_FORMAT(some_date, '%Y-%m-01')`,
+			cols: Columns{
+				Column{
+					Expr: ASTNodes{
+						Function{
+							Name: "DATE_FORMAT",
+							Arguments: ASTSet{
+								Ident{Value: "some_date"},
+								LString{Value: "%Y-%m-01"},
+							},
+						},
+					},
+				},
+			},
+			err: "unknown operator '-- -'",
+		},
 	}
 
-	p := NewParser()
-	for i, test := range tests {
-		if cols, err := p.ParseColumns(test.in); err != test.err {
-			t.Fatalf("%d. %s: error mismatch:\n  expected: %v\n        got: %v\n\n", i, test.in, test.err, err)
-		} else if test.err == nil && !reflect.DeepEqual(test.cols, cols) {
-			t.Errorf("%d. %s\n\ncols does not match:\n\nexpected: %#v\n     got: %#v\n\n", i, test.in, test.cols, cols)
-		}
+	for _, test := range tests {
+		t.Run(test.in, func(t *testing.T) {
+			var (
+				p   = NewParser()
+				req = require.New(t)
+			)
+
+			cols, err := p.ParseColumns(test.in)
+			if test.err == "" {
+				req.NoError(err)
+			} else {
+				req.Error(err, test.err)
+			}
+
+			if err == nil {
+				req.Equal(test.cols, cols)
+			}
+		})
 	}
 }
 
@@ -388,7 +417,6 @@ func TestAstParser_IdentModifier(t *testing.T) {
 			ident.Value = fmt.Sprintf("__wrap_%s_wrap__", ident.Value)
 			return ident, nil
 		}
-
 		if tree, err := p.ParseExpression(test.in); err != test.err {
 			t.Fatalf("%d. error mismatch:\n  expected: %v\n        got: %v\n\n", i, test.err, err)
 		} else if test.err == nil && test.out != tree.String() {
