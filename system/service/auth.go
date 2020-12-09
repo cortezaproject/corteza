@@ -381,6 +381,7 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			}
 		}
 
+		u = nUser
 		if !nUser.EmailConfirmed {
 			err = svc.sendEmailAddressConfirmationToken(ctx, nUser)
 			if err != nil {
@@ -390,7 +391,6 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, nil)
 		}
 
-		u = nUser
 		return nil
 	}()
 
