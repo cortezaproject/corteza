@@ -3,6 +3,7 @@ package ql
 import (
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"strings"
 )
 
 // SelectStatement represents a SQL SELECT statement.
@@ -65,6 +66,29 @@ type (
 	}
 )
 
+var (
+	operators = map[string]bool{
+		`=`:        true,
+		`!=`:       true,
+		`<`:        true,
+		`>`:        true,
+		`>=`:       true,
+		`<=`:       true,
+		`<>`:       true,
+		`+`:        true,
+		`-`:        true,
+		`*`:        true,
+		`/`:        true,
+		`AND`:      true,
+		`OR`:       true,
+		`XOR`:      true,
+		`NOT LIKE`: true,
+		`LIKE`:     true,
+		`IS`:       true,
+		`IS NOT`:   true,
+	}
+)
+
 func (n LNull) Validate() (err error) { return }
 func (n LNull) String() string        { return "NULL" }
 
@@ -83,8 +107,13 @@ func (n LString) String() string        { return fmt.Sprintf("%q", n.Value) }
 func (n LNumber) Validate() (err error) { return }
 func (n LNumber) String() string        { return n.Value }
 
-func (n Operator) Validate() (err error) { return }
-func (n Operator) String() string        { return n.Kind }
+func (n Operator) Validate() (err error) {
+	if !operators[strings.ToUpper(n.Kind)] {
+		return fmt.Errorf("unknown operator '%s'", n.Kind)
+	}
+	return
+}
+func (n Operator) String() string { return n.Kind }
 
 func (n Keyword) Validate() (err error) { return }
 func (n Keyword) String() string        { return n.Keyword }
@@ -98,7 +127,10 @@ func (n Function) String() string        { return fmt.Sprintf("%s(%s)", n.Name, 
 func (n Ident) Validate() (err error) { return }
 func (n Ident) String() string        { return n.Value }
 
-func (n Column) Validate() (err error) { return }
+func (n Column) Validate() (err error) {
+	return n.Expr.Validate()
+}
+
 func (n Column) String() (out string) {
 	out = n.Expr.String()
 	if n.Alias != "" {
@@ -158,7 +190,15 @@ func (nn ASTSet) String() (out string) {
 	return
 }
 
-func (nn Columns) Validate() (err error) { return }
+func (nn Columns) Validate() (err error) {
+	for _, n := range nn {
+		if err = n.Validate(); err != nil {
+			return
+		}
+	}
+
+	return
+}
 func (nn Columns) String() (out string) {
 	for i, n := range nn {
 		if i > 0 {
