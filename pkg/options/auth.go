@@ -1,12 +1,18 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"crypto/md5"
+	"fmt"
 )
 
 func (o *AuthOpt) Defaults() {
-
 	if o.Secret == "" {
-		o.Secret = string(rand.Bytes(32))
+		// if JWT secret is empty generate it from virtualhost/hostname and DB_DSN value.
+		// this will keep the secret the same through restarts
+		o.Secret = EnvString("DB_DSN", "memory")
+		// pick one of the env that holds hostname
+		o.Secret += EnvString("HOSTNAME", "localhost")
+
+		o.Secret = fmt.Sprintf("%x", md5.Sum([]byte(o.Secret)))
 	}
 }
