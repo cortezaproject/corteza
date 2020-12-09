@@ -32,6 +32,13 @@ type (
 	}
 )
 
+var (
+	nowPtr = func() *time.Time {
+		n := time.Now()
+		return &n
+	}
+)
+
 func (v RecordValue) IsUpdated() bool {
 	return v.Updated
 }
@@ -224,7 +231,7 @@ func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
 			Value:     set[s].Value,
 			Ref:       set[s].Ref,
 			Place:     set[s].Place,
-			DeletedAt: &time.Time{},
+			DeletedAt: nowPtr(),
 			Updated:   true,
 			OldValue:  set[s].Value,
 		})
