@@ -12,8 +12,8 @@ props:
 
       [IMPORTANT]
       ====
-      Make sure to provide a secret.
-      If you don't, a random value is assigned -- this causes all of the tokens to become invalid after a server restart.
+      If JWT secret is not set, system auto-generates one from DB_DSN and HOSTNAME environment variables.
+      Generated secret will change if you change any of variables.
       ====
 
   - name: expiry
