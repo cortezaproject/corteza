@@ -41,8 +41,7 @@ func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (Proc
 		}, nil
 	}
 
-	// get the user that is tied to this node
-	ctx = auth.SetIdentityToContext(ctx, dp.User)
+	ctx = auth.SetSuperUserContext(ctx)
 
 	for _, em := range o {
 		new := &types.SharedModule{
