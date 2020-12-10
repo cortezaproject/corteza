@@ -10,8 +10,9 @@ import (
 type (
 	application struct {
 		// when application is at least partially defined
-		res *types.Application `yaml:",inline"`
-		ts  *resource.Timestamps
+		res    *types.Application `yaml:",inline"`
+		ts     *resource.Timestamps
+		config *resource.EnvoyConfig
 
 		// module's RBAC rules
 		rbac rbacRuleSet
@@ -78,6 +79,10 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.res = &types.Application{}
 	}
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
@@ -96,6 +101,7 @@ func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
 func (wrap application) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewApplication(wrap.res)
 	rs.SetTimestamps(wrap.ts)
+	rs.SetConfig(wrap.config)
 
 	return envoy.CollectNodes(
 		rs,

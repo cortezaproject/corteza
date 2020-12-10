@@ -21,7 +21,7 @@ type (
 
 func NewApplicationState(res *resource.Application, cfg *EncoderConfig) resourceState {
 	return &applicationState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 		res: res,
 	}
 }
@@ -82,6 +82,14 @@ func (n *applicationState) Encode(ctx context.Context, s store.Storer, state *en
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create fresh application
 	if !exists {
 		return store.CreateApplication(ctx, s, res)
@@ -89,13 +97,13 @@ func (n *applicationState) Encode(ctx context.Context, s store.Storer, state *en
 
 	// Update existing application
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeApplications(n.app, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeApplications(res, n.app)
 	}
 

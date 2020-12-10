@@ -24,7 +24,7 @@ type (
 
 func NewMessagingChannelState(res *resource.MessagingChannel, cfg *EncoderConfig) resourceState {
 	return &messagingChannelState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 		res: res,
 	}
 }
@@ -108,6 +108,14 @@ func (n *messagingChannelState) Encode(ctx context.Context, s store.Storer, stat
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create fresh messagingChannel
 	if !exists {
 		return store.CreateMessagingChannel(ctx, s, res)
@@ -115,13 +123,13 @@ func (n *messagingChannelState) Encode(ctx context.Context, s store.Storer, stat
 
 	// Update existing messagingChannel
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeMessagingChannels(n.ch, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeMessagingChannels(res, n.ch)
 	}
 

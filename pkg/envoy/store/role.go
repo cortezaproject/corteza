@@ -22,7 +22,7 @@ type (
 
 func NewRole(res *resource.Role, cfg *EncoderConfig) resourceState {
 	return &roleState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 	}
@@ -82,6 +82,14 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create a fresh role
 	if !exists {
 		return store.CreateRole(ctx, s, rl)
@@ -89,13 +97,13 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 
 	// Update existing roles
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		rl = mergeRole(n.rl, rl)
 
-	case MergeRight:
+	case resource.MergeRight:
 		rl = mergeRole(rl, n.rl)
 	}
 

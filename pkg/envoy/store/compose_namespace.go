@@ -22,7 +22,7 @@ type (
 
 func NewComposeNamespaceState(res *resource.ComposeNamespace, cfg *EncoderConfig) resourceState {
 	return &composeNamespaceState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 	}
@@ -80,6 +80,14 @@ func (n *composeNamespaceState) Encode(ctx context.Context, s store.Storer, stat
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create a fresh namespace
 	if !exists {
 		return store.CreateComposeNamespace(ctx, s, res)
@@ -87,13 +95,13 @@ func (n *composeNamespaceState) Encode(ctx context.Context, s store.Storer, stat
 
 	// Update existing namespace
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeComposeNamespaces(n.ns, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeComposeNamespaces(res, n.ns)
 	}
 

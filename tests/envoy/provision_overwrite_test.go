@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
@@ -65,22 +66,22 @@ func TestProvision_overwriting(t *testing.T) {
 	req.NoError(err)
 	store.TruncateComposeRecords(ctx, s, nil)
 
-	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: su.Replace})
+	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: resource.Replace})
 	req.NoError(err)
 	checkBatchProvision(ctx, t, req, s, "ns1")
 	store.TruncateComposeRecords(ctx, s, nil)
 
-	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: su.Skip})
+	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: resource.Skip})
 	req.NoError(err)
 	checkBatchProvision(ctx, t, req, s, "ns1")
 	store.TruncateComposeRecords(ctx, s, nil)
 
-	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: su.MergeLeft})
+	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: resource.MergeLeft})
 	req.NoError(err)
 	checkBatchProvision(ctx, t, req, s, "ns1")
 	store.TruncateComposeRecords(ctx, s, nil)
 
-	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: su.MergeRight})
+	req, err = prepare(ctx, s, t, "provision_batch/app_1", &su.EncoderConfig{OnExisting: resource.MergeRight})
 	req.NoError(err)
 	checkBatchProvision(ctx, t, req, s, "ns1")
 	store.TruncateComposeRecords(ctx, s, nil)

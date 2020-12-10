@@ -343,7 +343,7 @@ func (svc record) Import(ses *recordImportSession) (err error) {
 		// Build
 		cfg := &estore.EncoderConfig{
 			// For now the identifier is ignored, so this will never occur
-			OnExisting: estore.Skip,
+			OnExisting: resource.Skip,
 			Defer: func() {
 				ses.Progress.Completed++
 			},

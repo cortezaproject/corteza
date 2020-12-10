@@ -24,8 +24,10 @@ type (
 	}
 
 	composeModule struct {
-		res          *types.Module
-		ts           *resource.Timestamps
+		res    *types.Module
+		ts     *resource.Timestamps
+		config *resource.EnvoyConfig
+
 		refNamespace string
 		rbac         rbacRuleSet
 
@@ -108,6 +110,10 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
@@ -152,6 +158,7 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewComposeModule(wrap.res, wrap.refNamespace)
 	rs.SetTimestamps(wrap.ts)
+	rs.SetConfig(wrap.config)
 
 	var crs *resource.ComposeRecordTemplate
 	if wrap.recTpl != nil {

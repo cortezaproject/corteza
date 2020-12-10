@@ -30,7 +30,7 @@ type (
 
 func NewComposePageState(res *resource.ComposePage, cfg *EncoderConfig) resourceState {
 	return &composePageState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 
@@ -113,6 +113,7 @@ func (n *composePageState) Prepare(ctx context.Context, s store.Storer, state *e
 
 	if n.pg != nil {
 		n.res.Res.ID = n.pg.ID
+		n.res.Res.NamespaceID = n.pg.NamespaceID
 	}
 	return nil
 }
@@ -258,6 +259,14 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create a fresh page
 	if !exists {
 		return store.CreateComposePage(ctx, s, res)
@@ -265,13 +274,13 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 
 	// Update existing page
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeComposePage(n.pg, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeComposePage(res, n.pg)
 	}
 

@@ -55,17 +55,17 @@ func Import(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Co
 			}
 
 			opt := &es.EncoderConfig{
-				OnExisting: es.Skip,
+				OnExisting: resource.Skip,
 			}
 
 			if replaceOnExisting {
-				opt.OnExisting = es.Replace
+				opt.OnExisting = resource.Replace
 			}
 			if mergeLeftOnExisting {
-				opt.OnExisting = es.MergeLeft
+				opt.OnExisting = resource.MergeLeft
 			}
 			if mergeRightOnExisting {
-				opt.OnExisting = es.MergeRight
+				opt.OnExisting = resource.MergeRight
 			}
 
 			se := es.NewStoreEncoder(s, opt)

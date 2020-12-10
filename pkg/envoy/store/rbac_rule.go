@@ -30,7 +30,7 @@ var (
 
 func NewRbacRuleState(res *resource.RbacRule, cfg *EncoderConfig) resourceState {
 	return &rbacRuleState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 	}
@@ -97,8 +97,8 @@ func (n *rbacRuleState) Encode(ctx context.Context, s store.Storer, state *envoy
 		// There isn't anything to merge really, so Skip & MergeLeft skip it;
 		// Replace & MergeRight replace it.
 		switch n.cfg.OnExisting {
-		case Skip,
-			MergeLeft:
+		case resource.Skip,
+			resource.MergeLeft:
 			return nil
 		}
 

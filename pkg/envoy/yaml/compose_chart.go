@@ -11,8 +11,10 @@ import (
 
 type (
 	composeChart struct {
-		res          *types.Chart
-		ts           *resource.Timestamps
+		res    *types.Chart
+		ts     *resource.Timestamps
+		config *resource.EnvoyConfig
+
 		refNamespace string
 
 		// pointer to report and module reference
@@ -98,6 +100,10 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
@@ -135,6 +141,7 @@ func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
 	}
 	rs := resource.NewComposeChart(wrap.res, wrap.refNamespace, vv)
 	rs.SetTimestamps(wrap.ts)
+	rs.SetConfig(wrap.config)
 	return envoy.CollectNodes(
 		rs,
 		wrap.rbac.bindResource(rs),

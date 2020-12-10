@@ -10,8 +10,9 @@ import (
 type (
 	role struct {
 		// when role is at least partially defined
-		res *types.Role
-		ts  *resource.Timestamps
+		res    *types.Role
+		ts     *resource.Timestamps
+		config *resource.EnvoyConfig
 
 		// all known modules on a role
 		modules composeModuleSet
@@ -94,6 +95,10 @@ func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
@@ -104,6 +109,7 @@ func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 func (wrap role) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewRole(wrap.res)
 	rs.SetTimestamps(wrap.ts)
+	rs.SetConfig(wrap.config)
 
 	return envoy.CollectNodes(
 		rs,

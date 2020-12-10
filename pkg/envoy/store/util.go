@@ -105,3 +105,54 @@ func resolveUserRefs(ctx context.Context, s store.Storer, pr []resource.Interfac
 	}
 	return nil
 }
+
+func mergeConfig(ec *EncoderConfig, rs *resource.EnvoyConfig) *EncoderConfig {
+	// Nothing we can do
+	if rs == nil {
+		return ec
+	}
+
+	// Take resource config as base
+	rr := &EncoderConfig{
+		OnExisting: rs.OnExisting,
+		SkipIf:     rs.SkipIf,
+	}
+
+	// Default to store config
+	rr.Defer = ec.Defer
+	rr.DeferNok = ec.DeferNok
+	rr.DeferOk = ec.DeferOk
+	if rr.OnExisting == resource.Default {
+		rr.OnExisting = ec.OnExisting
+	}
+	if rr.SkipIf == "" {
+		rr.SkipIf = ec.SkipIf
+	}
+
+	return rr
+}
+
+func basicSkipEval(ctx context.Context, cfg *EncoderConfig, missing bool) (bool, error) {
+	if cfg == nil {
+		cfg = &EncoderConfig{}
+	}
+
+	if cfg.SkipIf != "" {
+		evl, err := exprP.NewEvaluable(cfg.SkipIf)
+		if err != nil {
+			return false, err
+		}
+		// @todo expand this
+		skip, err := evl.EvalBool(ctx, map[string]interface{}{
+			"missing": missing,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		return skip, nil
+	}
+
+	// Don't skip by default
+	return false, nil
+}

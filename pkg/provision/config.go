@@ -2,6 +2,9 @@ package provision
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -9,8 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"path/filepath"
-	"strings"
 )
 
 // imports configuration files from path(s)
@@ -20,7 +21,7 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 	var (
 		yd  = yaml.Decoder()
 		nn  = make([]resource.Interface, 0, 200)
-		se  = es.NewStoreEncoder(s, &es.EncoderConfig{OnExisting: es.Skip})
+		se  = es.NewStoreEncoder(s, &es.EncoderConfig{OnExisting: resource.MergeLeft})
 		bld = envoy.NewBuilder(se)
 
 		sources = make([]string, 0, 16)

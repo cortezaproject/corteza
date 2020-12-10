@@ -22,7 +22,7 @@ type (
 
 func NewUserState(res *resource.User, cfg *EncoderConfig) resourceState {
 	return &userState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 	}
@@ -84,6 +84,14 @@ func (n *userState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create a fresh user
 	if !exists {
 		return store.CreateUser(ctx, s, res)
@@ -91,13 +99,13 @@ func (n *userState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 
 	// Update existing user
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeUsers(n.u, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeUsers(res, n.u)
 	}
 

@@ -64,17 +64,6 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 			if err != nil {
 				return err
 			}
-
-			// Check if empty
-			rr, _, err := store.SearchComposeRecords(ctx, s, n.relMod, types.RecordFilter{
-				ModuleID:    n.relMod.ID,
-				NamespaceID: n.relNS.ID,
-				Paging:      filter.Paging{Limit: 1},
-			})
-			if err != nil && err != store.ErrNotFound {
-				return err
-			}
-			n.missing = len(rr) == 0
 		}
 	}
 
@@ -104,6 +93,17 @@ func (n *composeRecordState) Prepare(ctx context.Context, s store.Storer, state 
 	if n.relNS.ID <= 0 {
 		return nil
 	}
+
+	// Check if empty
+	rr, _, err := store.SearchComposeRecords(ctx, s, n.relMod, types.RecordFilter{
+		ModuleID:    n.relMod.ID,
+		NamespaceID: n.relNS.ID,
+		Paging:      filter.Paging{Limit: 1},
+	})
+	if err != nil && err != store.ErrNotFound {
+		return err
+	}
+	n.missing = len(rr) == 0
 
 	// Try to get existing records
 	//

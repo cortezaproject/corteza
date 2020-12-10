@@ -11,17 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-const (
-	// Skip skips the existing resource
-	Skip mergeAlg = iota
-	// Replace replaces the existing resource
-	Replace
-	// MergeLeft updates the existing resource, giving priority to the existing data
-	MergeLeft
-	// MergeRight updates the existing resource, giving priority to the new data
-	MergeRight
-)
-
 type (
 	storeEncoder struct {
 		s   store.Storer
@@ -33,11 +22,12 @@ type (
 		state map[resource.Interface]resourceState
 	}
 
-	mergeAlg int
-
 	// EncoderConfig allows us to configure the resource encoding process
 	EncoderConfig struct {
-		OnExisting mergeAlg
+		// OnExisting defines what to do if the resource exists
+		OnExisting resource.MergeAlg
+		// Skip if defines a pkg/expr expression when to skip the resource
+		SkipIf string
 		// Defer is called after the resource is encoded, regardles of the result
 		Defer func()
 		// DeferOk is called after the resource is encoded, only when successful
@@ -67,7 +57,7 @@ var (
 func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 	if cfg == nil {
 		cfg = &EncoderConfig{
-			OnExisting: Skip,
+			OnExisting: resource.Skip,
 		}
 	}
 
