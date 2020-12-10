@@ -11,8 +11,10 @@ import (
 
 type (
 	composePage struct {
-		res      *types.Page
-		ts       *resource.Timestamps
+		res    *types.Page
+		ts     *resource.Timestamps
+		config *resource.EnvoyConfig
+
 		children composePageSet
 
 		refNamespace string
@@ -110,6 +112,10 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
 	if wrap.ts, err = decodeTimestamps(n); err != nil {
 		return
 	}
@@ -155,14 +161,12 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewComposePage(wrap.res, wrap.refNamespace, wrap.refModule, wrap.refParent)
 	rs.SetTimestamps(wrap.ts)
+	rs.SetConfig(wrap.config)
 
 	return envoy.CollectNodes(
 		rs,
 		wrap.children.bindParent(rs),
 		wrap.rbac.bindResource(rs),
-
-		// @todo Not sure yet
-		// wrap.children,
 	)
 }
 

@@ -26,7 +26,7 @@ var (
 
 func NewSettingsState(res *resource.Settings, cfg *EncoderConfig) resourceState {
 	return &settingsState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res.Res,
 	}
@@ -68,12 +68,12 @@ func (n *settingsState) Encode(ctx context.Context, s store.Storer, state *envoy
 		if os != nil {
 			// Update existing setting
 			switch n.cfg.OnExisting {
-			case Skip,
-				MergeLeft:
+			case resource.Skip,
+				resource.MergeLeft:
 				ss = append(ss, os)
 
-			case Replace,
-				MergeRight:
+			case resource.Replace,
+				resource.MergeRight:
 				ss = append(ss, ns)
 			}
 		} else {

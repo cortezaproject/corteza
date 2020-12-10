@@ -114,6 +114,44 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
+			name:  "simple mods; conditional",
+			suite: "simple",
+			file:  "modules_conditional",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeRecords(ctx, nil),
+					s.TruncateComposeModuleFields(ctx),
+					s.TruncateComposeModules(ctx),
+					s.TruncateComposeNamespaces(ctx),
+
+					storeNamespace(ctx, s, 100, "ns1"),
+
+					storeModule(ctx, s, 100, 200, "mod1", "mod1 name"),
+					storeModuleField(ctx, s, 200, 300, "f1"),
+
+					storeModule(ctx, s, 100, 201, "mod2", "mod2 name"),
+					storeModuleField(ctx, s, 201, 301, "f1"),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.NoError(err)
+			},
+			check: func(req *require.Assertions) {
+				mod1, err := store.LookupComposeModuleByID(ctx, s, 200)
+				req.NoError(err)
+				req.NotNil(mod1)
+
+				mod2, err := store.LookupComposeModuleByID(ctx, s, 201)
+				req.NoError(err)
+				req.NotNil(mod2)
+
+				// The first one overwrites merge alg to replace, the second one defaults to skip
+				req.Equal("mod1 name (EDITED)", mod1.Name)
+				req.Equal("mod2 name", mod2.Name)
+			},
+		},
+
+		{
 			name:  "simple charts; no ns",
 			suite: "simple",
 			file:  "charts_no_ns",

@@ -25,7 +25,7 @@ type (
 
 func NewComposeChartState(res *resource.ComposeChart, cfg *EncoderConfig) resourceState {
 	return &composeChartState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 	}
@@ -66,6 +66,7 @@ func (n *composeChartState) Prepare(ctx context.Context, s store.Storer, state *
 
 	if n.chr != nil {
 		n.res.Res.ID = n.chr.ID
+		n.res.Res.NamespaceID = n.chr.NamespaceID
 	}
 	return nil
 }
@@ -127,6 +128,14 @@ func (n *composeChartState) Encode(ctx context.Context, s store.Storer, state *e
 		r.ModuleID = mod.ID
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create fresh chart
 	if !exists {
 		return store.CreateComposeChart(ctx, s, res)
@@ -134,13 +143,13 @@ func (n *composeChartState) Encode(ctx context.Context, s store.Storer, state *e
 
 	// Update existing chart
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeComposeChart(n.chr, res)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeComposeChart(res, n.chr)
 	}
 

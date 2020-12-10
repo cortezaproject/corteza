@@ -26,7 +26,7 @@ type (
 
 func NewComposeModuleState(res *resource.ComposeModule, cfg *EncoderConfig) resourceState {
 	return &composeModuleState{
-		cfg: cfg,
+		cfg: mergeConfig(cfg, res.Config()),
 
 		res: res,
 
@@ -95,6 +95,7 @@ func (n *composeModuleState) Prepare(ctx context.Context, s store.Storer, state 
 
 	if n.mod != nil {
 		n.res.Res.ID = n.mod.ID
+		n.res.Res.NamespaceID = n.mod.NamespaceID
 	}
 	return nil
 }
@@ -177,6 +178,14 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 		}
 	}
 
+	// Evaluate the resource skip expression
+	// @todo expand available parameters; similar implementation to compose/types/record@Dict
+	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
+		return err
+	} else if skip {
+		return nil
+	}
+
 	// Create a fresh module
 	if !exists {
 		err = store.CreateComposeModule(ctx, s, res)
@@ -194,14 +203,14 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 
 	// Update existing module
 	switch n.cfg.OnExisting {
-	case Skip:
+	case resource.Skip:
 		return nil
 
-	case MergeLeft:
+	case resource.MergeLeft:
 		res = mergeComposeModule(n.mod, res)
 		res.Fields = mergeComposeModuleFields(n.mod.Fields, res.Fields)
 
-	case MergeRight:
+	case resource.MergeRight:
 		res = mergeComposeModule(res, n.mod)
 		res.Fields = mergeComposeModuleFields(res.Fields, n.mod.Fields)
 	}

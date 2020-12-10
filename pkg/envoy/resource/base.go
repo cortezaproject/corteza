@@ -8,12 +8,14 @@ type (
 
 		ts    *Timestamps
 		us    *Userstamps
+		cfg   *EnvoyConfig
 		urefs RefSet
 	}
 
 	EnvoyConfig struct {
 		// SkipIf determines when the encoding should be skipped for this resource
-		SkipIf string
+		SkipIf     string
+		OnExisting MergeAlg
 	}
 
 	Timestamps struct {
@@ -29,6 +31,21 @@ type (
 		DeletedBy string
 		OwnedBy   string
 	}
+
+	MergeAlg int
+)
+
+const (
+	// Default takes the operation defined default
+	Default MergeAlg = iota
+	// Skip skips the existing resource
+	Skip
+	// Replace replaces the existing resource
+	Replace
+	// MergeLeft updates the existing resource, giving priority to the existing data
+	MergeLeft
+	// MergeRight updates the existing resource, giving priority to the new data
+	MergeRight
 )
 
 // State management methods
@@ -83,6 +100,13 @@ func (t *base) SetUserstamps(us *Userstamps) {
 }
 func (t *base) Userstamps() *Userstamps {
 	return t.us
+}
+
+func (t *base) SetConfig(cfg *EnvoyConfig) {
+	t.cfg = cfg
+}
+func (t *base) Config() *EnvoyConfig {
+	return t.cfg
 }
 
 func (t *base) SetUserRefs(uu []string) {

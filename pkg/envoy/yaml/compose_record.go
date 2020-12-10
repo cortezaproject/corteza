@@ -13,8 +13,7 @@ type (
 		values map[string]string
 		ts     *resource.Timestamps
 		us     *resource.Userstamps
-
-		eCfg *resource.EnvoyConfig
+		config *resource.EnvoyConfig
 
 		refModule    string
 		refNamespace string
@@ -99,7 +98,7 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 		r := &resource.ComposeRecordRaw{
 			// @todo change this probably
 			ID:     res.values["id"],
-			Config: res.eCfg,
+			Config: res.config,
 			Values: res.values,
 			Ts:     res.ts,
 			Us:     res.us,
@@ -160,7 +159,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	//	return
 	//}
 
-	if wrap.eCfg, err = decodeEnvoyConfig(n); err != nil {
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
 		return
 	}
 
