@@ -8,7 +8,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -131,7 +130,6 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			default:
 			}
 			s, _ := url.Url.String()
-			spew.Dump("URL", s)
 			meta := url.Meta.(*structureProcesser)
 
 			// use the authToken from node pairing

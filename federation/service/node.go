@@ -506,7 +506,7 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 //
 // Four parts are collected from the given URI:
 //  1) node host from URI's host
-//  2) shared node ID (rom URI's username
+//  2) shared node ID from URI's username
 //  3) shared token from URI's password
 //  4) name of the node from query string param "name" (optional)
 func (node) decodePairingURI(uri string) (*types.Node, error) {
