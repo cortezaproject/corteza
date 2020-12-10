@@ -26,7 +26,15 @@ type (
 
 // Federation initializes and returns a FederationOpt with default values
 func Federation() (o *FederationOpt) {
-	o = &FederationOpt{}
+	o = &FederationOpt{
+		Enabled:                  false,
+		Label:                    "Federation label",
+		Host:                     "Federation host",
+		StructureMonitorInterval: time.Minute * 2,
+		StructurePageSize:        1,
+		DataMonitorInterval:      time.Second * 60,
+		DataPageSize:             100,
+	}
 
 	fill(o)
 

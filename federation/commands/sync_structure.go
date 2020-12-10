@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"time"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/federation/service"
@@ -21,6 +20,6 @@ func commandSyncStructure(ctx context.Context) func(*cobra.Command, []string) {
 			ss.DefaultRole)
 
 		syncStructure := service.WorkerStructure(syncService, service.DefaultLogger)
-		syncStructure.Watch(ctx, time.Second*service.DefaultOptions.StructureMonitorInterval, service.DefaultOptions.StructurePageSize)
+		syncStructure.Watch(ctx, service.DefaultOptions.StructureMonitorInterval, service.DefaultOptions.StructurePageSize)
 	}
 }
