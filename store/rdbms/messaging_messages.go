@@ -109,6 +109,10 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 	//   that belong to filtered channels and we've contributed to (or stated it)
 	originals := squirrel.
 		Select("id AS original_id").
+		// reset placeholder to question;
+		// this will help us a bit lower with the CTE on
+		// postgresql (uses $<number> placeholder)
+		PlaceholderFormat(squirrel.Question).
 		From(s.messagingMessageTable()).
 		Where(squirrel.And{
 			squirrel.Eq{
@@ -129,6 +133,10 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 
 	// Prepare the actual message selector
 	base := s.messagingMessagesSelectBuilder().
+		// reset placeholder to question;
+		// this will help us a bit lower with the CTE on
+		// postgresql (uses $<number> placeholder)
+		PlaceholderFormat(squirrel.Question).
 		Where(squirrel.Eq{"msg.deleted_at": nil}).
 		Join("originals ON (original_id IN (id, reply_to))")
 
@@ -138,8 +146,8 @@ func (s Store) SearchMessagingThreads(ctx context.Context, filter types.MessageF
 	}
 
 	// Create CTE with originals & base
-	cte := squirrel.ConcatExpr("WITH originals AS (", originals, ") ", base)
-
+	cte := SquirrelConcatExpr("WITH originals AS (", originals, ") ", base)
+	cte = cte.PlaceholderFormat(s.config.PlaceholderFormat)
 	if set, err = s.QueryMessagingMessages(ctx, cte, nil); err != nil {
 		return nil, filter, err
 	}

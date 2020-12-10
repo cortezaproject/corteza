@@ -11,6 +11,7 @@ import (
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type (
@@ -24,6 +25,7 @@ type (
 func (h helper) makeMessage(msg string, ch *types.Channel, u *sysTypes.User) *types.Message {
 	m := &types.Message{
 		ID:        id.Next(),
+		CreatedAt: time.Now(),
 		Message:   msg,
 		ChannelID: ch.ID,
 		UserID:    u.ID,
