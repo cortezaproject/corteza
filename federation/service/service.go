@@ -147,6 +147,8 @@ func Watchers(ctx context.Context) {
 		return
 	}
 
+	DefaultLogger.Info("Starting federation - warning, this is still an experimental feature")
+
 	syncService := NewSync(
 		&Syncer{},
 		&Mapper{},
@@ -156,10 +158,17 @@ func Watchers(ctx context.Context) {
 		ss.DefaultRole)
 
 	syncStructure := WorkerStructure(syncService, DefaultLogger)
-	syncData := WorkerData(syncService, service.DefaultLogger)
+	syncData := WorkerData(syncService, DefaultLogger)
 
-	go syncStructure.Watch(ctx, time.Second*DefaultOptions.StructureMonitorInterval, DefaultOptions.StructurePageSize)
-	go syncData.Watch(ctx, time.Second*DefaultOptions.DataMonitorInterval, DefaultOptions.DataPageSize)
+	go syncStructure.Watch(
+		ctx,
+		time.Second*DefaultOptions.StructureMonitorInterval,
+		DefaultOptions.StructurePageSize)
+
+	go syncData.Watch(
+		ctx,
+		time.Second*DefaultOptions.DataMonitorInterval,
+		DefaultOptions.DataPageSize)
 }
 
 func AddFederationLabel(entity label.LabeledResource, value string) {
