@@ -12,7 +12,7 @@ type (
 )
 
 func SquirrelConcatExpr(args ...interface{}) *squirrelConcatExpr {
-	return &squirrelConcatExpr{args: args}
+	return &squirrelConcatExpr{args: args, f: squirrel.Question}
 }
 
 func (w *squirrelConcatExpr) PlaceholderFormat(f squirrel.PlaceholderFormat) *squirrelConcatExpr {
