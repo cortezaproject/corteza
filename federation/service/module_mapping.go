@@ -141,7 +141,7 @@ func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (
 		}
 
 		// set labels
-		AddFederationLabel(m, "")
+		AddFederationLabel(m, "federation", "")
 
 		if _, err := svc.module.With(ctx).Update(m); err != nil {
 			return err
@@ -185,7 +185,7 @@ func (svc moduleMapping) Update(ctx context.Context, updated *types.ModuleMappin
 		}
 
 		// set labels
-		AddFederationLabel(m, "")
+		AddFederationLabel(m, "federation", "")
 
 		if _, err := svc.module.With(ctx).Update(m); err != nil {
 			return err

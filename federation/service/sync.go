@@ -80,6 +80,17 @@ func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, er
 	return s.composeRecordService.With(ctx).Create(rec)
 }
 
+// UpdateRecord wraps the compose Record service Update
+func (s *Sync) UpdateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
+	return s.composeRecordService.With(ctx).Update(rec)
+}
+
+// FindRecord find the record via federation label
+func (s *Sync) FindRecords(ctx context.Context, filter ct.RecordFilter) (set ct.RecordSet, err error) {
+	set, _, err = s.composeRecordService.With(ctx).Find(filter)
+	return
+}
+
 // LookupSharedModule find the shared module if exists
 func (s *Sync) LookupSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
 	var sm *types.SharedModule
@@ -101,14 +112,17 @@ func (s *Sync) LookupSharedModule(ctx context.Context, new *types.SharedModule) 
 	return sm, nil
 }
 
+// UpdateSharedModule wraps the federation SharedModule service Update
 func (s *Sync) UpdateSharedModule(ctx context.Context, updated *types.SharedModule) (*types.SharedModule, error) {
 	return s.sharedModuleService.Update(ctx, updated)
 }
 
+// CreateSharedModule wraps the federation SharedModule service Create
 func (s *Sync) CreateSharedModule(ctx context.Context, new *types.SharedModule) (*types.SharedModule, error) {
 	return s.sharedModuleService.Create(ctx, new)
 }
 
+// GetPairedNodes finds successfuly paired nodes
 func (s *Sync) GetPairedNodes(ctx context.Context) (types.NodeSet, error) {
 	set, _, err := DefaultNode.Search(ctx, types.NodeFilter{Status: types.NodeStatusPaired})
 

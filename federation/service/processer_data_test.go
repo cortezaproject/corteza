@@ -25,6 +25,9 @@ type (
 	testRecordServicePersistSuccess struct {
 		cs.RecordService
 	}
+	testRecordServiceUpdateSuccess struct {
+		cs.RecordService
+	}
 	testRecordServicePersistError struct {
 		cs.RecordService
 	}
@@ -50,7 +53,7 @@ func TestProcesserData_persist(t *testing.T) {
 		}{
 			{
 				"successful persist on valid mapping",
-				`{"response": {"set": [{"recordID":"1","values":[{"name":"Facebook","value":"foobar"}]}]}}`,
+				`{"response": {"set": [{"recordID":"1","values":[{"name":"Facebook","value":"foobar"}],"createdAt":"2020-12-05T10:10:10Z"}]}}`,
 				`[{"origin":{"kind":"String","name":"Description","label":"Description","isMulti":false},"destination":{"kind":"String","name":"Name","label":"Description","isMulti":false}},{"origin":{"kind":"Url","name":"Facebook","label":"Facebook","isMulti":false},"destination":{"kind":"Url","name":"Fb","label":"Facebook","isMulti":false}}]`,
 				1,
 				"",
@@ -60,6 +63,21 @@ func TestProcesserData_persist(t *testing.T) {
 					&Mapper{},
 					&testSharedModuleService{},
 					&testRecordServicePersistSuccess{},
+					&testUserService{},
+					&testRoleService{}),
+			},
+			{
+				"successful update on valid mapping and existing federated record",
+				`{"response": {"set": [{"recordID":"1","values":[{"name":"Facebook","value":"foobar"}],"createdAt":"2020-12-05T10:10:10Z", "updatedAt":"2020-12-06T10:10:10Z"}]}}`,
+				`[{"origin":{"kind":"String","name":"Description","label":"Description","isMulti":false},"destination":{"kind":"String","name":"Name","label":"Description","isMulti":false}},{"origin":{"kind":"Url","name":"Facebook","label":"Facebook","isMulti":false},"destination":{"kind":"Url","name":"Fb","label":"Facebook","isMulti":false}}]`,
+				1,
+				"",
+				&ct.RecordValueSet{&ct.RecordValue{Name: "Fb", Value: ""}},
+				NewSync(
+					&Syncer{},
+					&Mapper{},
+					&testSharedModuleService{},
+					&testRecordServiceUpdateSuccess{},
 					&testUserService{},
 					&testRoleService{}),
 			},
@@ -161,14 +179,33 @@ func TestProcesserData_persist(t *testing.T) {
 	}
 }
 
+// create success
 func (s testRecordServicePersistSuccess) Create(record *ct.Record) (*ct.Record, error) {
 	return nil, nil
+}
+
+func (s testRecordServicePersistSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+	return ct.RecordSet{}, ct.RecordFilter{}, nil
 }
 
 func (s testRecordServicePersistSuccess) With(_ context.Context) cs.RecordService {
 	return &testRecordServicePersistSuccess{}
 }
 
+// update success
+func (s testRecordServiceUpdateSuccess) Update(record *ct.Record) (*ct.Record, error) {
+	return nil, nil
+}
+
+func (s testRecordServiceUpdateSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+	return ct.RecordSet{&ct.Record{ID: 2}}, ct.RecordFilter{}, nil
+}
+
+func (s testRecordServiceUpdateSuccess) With(_ context.Context) cs.RecordService {
+	return &testRecordServiceUpdateSuccess{}
+}
+
+// create error
 func (s testRecordServicePersistError) Create(record *ct.Record) (*ct.Record, error) {
 	return nil, errors.New("mocked error")
 }

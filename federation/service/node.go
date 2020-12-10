@@ -475,7 +475,7 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 			Handle: uHandle,
 		}
 
-		AddFederationLabel(user, n.BaseURL)
+		AddFederationLabel(user, "federation", n.BaseURL)
 
 		// Create a user to service this node
 		r, err := service.DefaultRole.With(ctx).FindByName("federation")
