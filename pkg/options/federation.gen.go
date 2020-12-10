@@ -29,7 +29,7 @@ func Federation() (o *FederationOpt) {
 	o = &FederationOpt{
 		Enabled:                  false,
 		Label:                    "Federation label",
-		Host:                     "Federation host",
+		Host:                     "local.cortezaproject.org",
 		StructureMonitorInterval: time.Minute * 2,
 		StructurePageSize:        1,
 		DataMonitorInterval:      time.Second * 60,

@@ -1,5 +1,3 @@
-name: federation
-
 imports:
   - time
 
@@ -18,7 +16,7 @@ props:
 
   - name: Host
     type: string
-    default: "Federation host"
+    default: "local.cortezaproject.org"
     env: FEDERATION_HOST
     description: Host that is used during node pairing, also included in invitation
 
