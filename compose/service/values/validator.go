@@ -334,27 +334,42 @@ func (vldtr validator) vRecord(ctx context.Context, s store.Storer, v *types.Rec
 }
 
 func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
-	// @todo validate v.Value against
 	var (
-		options = f.Options["options"]
-		sbm     = make(map[string]bool)
+		sbm          = make(map[string]bool)
+		options, has = f.Options["options"]
 	)
 
-	if oo, ok := options.([]string); ok {
+	if !has {
+		return e2s(makeInternalErr(f, fmt.Errorf("missing select options definition")))
+	}
+
+	switch oo := options.(type) {
+	case []string:
 		sbm = slice.ToStringBoolMap(oo)
-	} else if oo, ok := options.([]map[string]string); ok {
+	case []interface{}:
 		for _, o := range oo {
-			sbm[o["value"]] = true
+			switch c := o.(type) {
+			case map[string]string:
+				if value, has := c["value"]; has {
+					sbm[value] = true
+				}
+			case map[string]interface{}:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						sbm[value] = true
+					}
+				}
+
+			}
 		}
-	} else if options == nil {
-		return nil
-	} else {
+	}
+
+	if len(sbm) == 0 {
 		return e2s(makeInternalErr(f, fmt.Errorf("invalid select options definition")))
 	}
 
 	if !sbm[v.Value] {
 		return e2s(makeInvalidValueErr(f, v.Value))
-
 	}
 
 	return nil
