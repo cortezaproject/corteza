@@ -169,7 +169,7 @@ func (s Store) UpdateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 			// Make sure all record-values are linked to the record
 			res.Values.SetRecordID(res.ID)
 
-			err = s.createComposeRecordValue(ctx, nil, res.Values...)
+			err = s.createComposeRecordValue(ctx, nil, res.Values.GetClean()...)
 		}
 	}
 

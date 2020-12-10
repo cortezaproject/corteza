@@ -252,6 +252,28 @@ func TestRecordUpdate(t *testing.T) {
 	h.a.NotNil(r)
 }
 
+func TestRecordUpdate_deleteOld(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	record := h.makeRecord(module, &types.RecordValue{Name: "name", Value: "test name"}, &types.RecordValue{Name: "email", Value: "test@email.tld"})
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "test@email.tld"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response.values`, 1)).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r)
+	h.a.Empty(r.Values.FilterByName("name"))
+}
+
 func TestRecordDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
@@ -544,6 +566,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 			t.Run("field:name", func(t *testing.T) {
 				// Try to change name, (not readable), expect it to work
 				b().JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-name"}]}`)).
+					Header("Accept", "application/json").
 					Expect(t).
 					Status(http.StatusOK).
 					Assert(helpers.AssertNoErrors).
@@ -553,6 +576,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 			t.Run("field:description", func(t *testing.T) {
 				// Try to change description, (no perm. rules), expect it to work
 				b().JSON(fmt.Sprintf(`{"values": [{"name": "description", "value": "changed-description"}]}`)).
+					Header("Accept", "application/json").
 					Expect(t).
 					Status(http.StatusOK).
 					Assert(helpers.AssertNoErrors).

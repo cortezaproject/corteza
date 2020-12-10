@@ -340,7 +340,6 @@ func TestModuleFieldsUpdateExpressions(t *testing.T) {
 	}
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		JSON(helpers.JSON(m)).
 		Expect(t).
@@ -349,7 +348,6 @@ func TestModuleFieldsUpdateExpressions(t *testing.T) {
 		End()
 
 	h.apiInit().
-		Debug().
 		Get(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
 		Expect(t).
 		Status(http.StatusOK).
