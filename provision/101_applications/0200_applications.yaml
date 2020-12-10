@@ -1,46 +1,15 @@
 applications:
-  - name: Messaging
-    enabled: true
-    unify:
-      listed: true
-      icon: /applications/messaging.png
-      logo: /applications/messaging.png
-      url: /messaging
-
   - name: Low Code
+    (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
       icon: /applications/low-code-platform.png
       logo: /applications/low-code-platform.png
-      url: /admin
+      url: /compose
 
-
-  - name: Corteza Admin Area
-    enabled: true
-    unify:
-      listed: true
-      icon: /applications/admin-area.png
-      logo: /applications/admin-area.jpg
-      url: /admin
-
-  - name: Corteza Jitsi Bridge
-    enabled: true
-    unify:
-      listed: true
-      icon: /applications/video-conference.png
-      logo: /applications/video-conference.png
-      url: /bridge/jitsi/
-
-  - name: Google Maps
-    enabled: true
-    unify:
-      listed: true
-      icon: /applications/google-maps.png
-      logo: /applications/google-maps.png
-      url: /bridge/google-maps/
-
-  - name: CRM
+  - name: CRM Suite
+    (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
@@ -49,9 +18,46 @@ applications:
       url: /compose/ns/crm/pages
 
   - name: Service Solution
+    (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
       icon: /applications/low-code-service-solution-app.png
       logo: /applications/low-code-service-solution-app.png
       url: /compose/ns/service-solution/pages
+
+  - name: Messaging
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/messaging.png
+      logo: /applications/messaging.png
+      url: /messaging
+
+  - name: Jitsi Bridge
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/video-conference.png
+      logo: /applications/video-conference.png
+      url: /bridge/jitsi/
+
+  - name: Google Maps
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/google-maps.png
+      logo: /applications/google-maps.png
+      url: /bridge/google-maps/
+
+  - name: Admin Area
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/admin-area.png
+      logo: /applications/admin-area.png
+      url: /admin
