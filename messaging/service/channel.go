@@ -363,7 +363,9 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 
 		_ = svc.flushSystemMessages()
 
-		return svc.sendChannelEvent(ch)
+		// sending copy of channel to event so that members are not accidentally overwritten
+		var evCh = *ch
+		return svc.sendChannelEvent(&evCh)
 	})
 
 	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionCreate, err)

@@ -1,41 +1,48 @@
 package rdbms
 
 import (
-	"strings"
-
 	"github.com/Masterminds/squirrel"
 )
 
 type (
 	squirrelConcatExpr struct {
-		parts []string
-		args  []interface{}
-		err   error
+		f    squirrel.PlaceholderFormat
+		args []interface{}
 	}
 )
 
-func SquirrelConcatExpr(args ...interface{}) squirrel.Sqlizer {
-	var w = new(squirrelConcatExpr)
+func SquirrelConcatExpr(args ...interface{}) *squirrelConcatExpr {
+	return &squirrelConcatExpr{args: args}
+}
 
-	for _, a := range args {
-		if w.err != nil {
-			break
-		}
-
-		switch o := a.(type) {
-		case string:
-			w.parts = append(w.parts, o)
-		case squirrel.Sqlizer:
-			p, a, err := o.ToSql()
-			w.parts = append(w.parts, p)
-			w.args = append(w.args, a...)
-			w.err = err
-		}
-	}
-
+func (w *squirrelConcatExpr) PlaceholderFormat(f squirrel.PlaceholderFormat) *squirrelConcatExpr {
+	w.f = f
 	return w
 }
 
-func (w *squirrelConcatExpr) ToSql() (string, []interface{}, error) {
-	return strings.Join(w.parts, ""), w.args, w.err
+func (w *squirrelConcatExpr) ToSql() (sql string, args []interface{}, err error) {
+	var (
+		partSql  string
+		partArgs []interface{}
+	)
+
+	for _, a := range w.args {
+		switch o := a.(type) {
+		case string:
+			sql += o
+		case squirrel.Sqlizer:
+			if partSql, partArgs, err = o.ToSql(); err != nil {
+				return
+			}
+
+			sql += partSql
+			args = append(args, partArgs...)
+		}
+	}
+
+	if sql, err = w.f.ReplacePlaceholders(sql); err != nil {
+		return
+	}
+
+	return
 }

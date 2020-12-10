@@ -190,7 +190,7 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 				//
 				// reset unreads for all members
 				var mm types.ChannelMemberSet
-				mm, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(original.ChannelID))
+				mm, _, err = store.SearchMessagingChannelMembers(ctx, s, types.ChannelMemberFilterChannels(original.ChannelID))
 				if err != nil {
 					return err
 				}
@@ -567,7 +567,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 			return nil
 		}
 
-		if msg, err = store.LookupMessagingMessageByID(svc.ctx, svc.store, messageID); err != nil {
+		if msg, err = store.LookupMessagingMessageByID(ctx, s, messageID); err != nil {
 			return
 		}
 
@@ -901,7 +901,7 @@ func (svc message) updateMentions(ctx context.Context, s store.Storer, messageID
 			return fmt.Errorf("could not delete mentions: %w", err)
 		}
 	} else {
-		return store.DeleteMessagingMentionByID(svc.ctx, svc.store, messageID)
+		return store.DeleteMessagingMentionByID(ctx, s, messageID)
 	}
 
 	return nil

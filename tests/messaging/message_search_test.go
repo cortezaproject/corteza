@@ -118,6 +118,7 @@ func TestMessageSearchToID(t *testing.T) {
 }
 
 func TestMessageThreadSearch(t *testing.T) {
+	//t.Skipf("skip, not used")
 	h := newHelper(t)
 	ch := h.repoMakePublicCh()
 
@@ -129,6 +130,7 @@ func TestMessageThreadSearch(t *testing.T) {
 
 	h.apiInit().
 		Get("/search/threads").
+		Header("Accept", "application/json").
 		Query("query", "searchTestMessageThreadA").
 		Expect(t).
 		Status(http.StatusOK).

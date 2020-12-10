@@ -21,7 +21,6 @@ func TestMessagesCreate(t *testing.T) {
 	}{}
 
 	h.apiInit().
-		Debug().
 		Post(fmt.Sprintf("/channels/%d/messages/", ch.ID)).
 		Header("Accept", "application/json").
 		JSON(`{"message":"new message"}`).

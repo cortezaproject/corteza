@@ -24,7 +24,7 @@ func (set ChannelMemberSet) MembersOf(channelID uint64) []uint64 {
 
 // AllMemberIDs returns IDs of all members
 func (set ChannelMemberSet) AllMemberIDs() []uint64 {
-	var mmof = make([]uint64, 0)
+	var mmof = make([]uint64, 0, len(set))
 
 	for i := range set {
 		mmof = append(mmof, set[i].UserID)

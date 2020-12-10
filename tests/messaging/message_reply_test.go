@@ -22,6 +22,7 @@ func TestMessagesReply(t *testing.T) {
 		}{}
 		h.apiInit().
 			Post(fmt.Sprintf("/channels/%d/messages/%d/replies", msg.ChannelID, msg.ID)).
+			Header("Accept", "application/json").
 			JSON(`{"message":"new reply"}`).
 			Expect(t).
 			Status(http.StatusOK).
@@ -49,6 +50,7 @@ func TestMessagesReply(t *testing.T) {
 
 	h.apiInit().
 		Get("/search/threads").
+		Header("Accept", "application/json").
 		Query("channelID", fmt.Sprintf("%d", msg.ChannelID)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -59,6 +61,7 @@ func TestMessagesReply(t *testing.T) {
 	// Remove one of the replies
 	h.apiInit().
 		Delete(fmt.Sprintf("/channels/%d/messages/%d", msg.ChannelID, reply2ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
