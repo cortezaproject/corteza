@@ -45,6 +45,7 @@ func TestRecordUpdate_batch(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "Some Name"}], "records": [{"refField": "another_record", "set": [{"moduleID": "%d", "recordID": "%d", "values": [{"name": "name", "value": "Another Name"}]}]}]}`, childModule.ID, childRecord.ID)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -70,6 +71,7 @@ func TestRecordDelete_batch(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "Some Name"}], "records": [{"refField": "another_record", "set": [{"deletedAt": "2020-05-15T15:01:02+02:00", "moduleID": "%d", "recordID": "%d", "values": [{"name": "name", "value": "Another Name"}]}]}]}`, childModule.ID, childRecord.ID)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -98,6 +100,7 @@ func TestRecordMixed_batch(t *testing.T) {
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "Some Name"}], "records": [{"refField": "another_record", "set": [{"moduleID": "%d", "values": [{"name": "name", "value": "Added Name"}]},{"moduleID": "%d", "recordID": "%d", "values": [{"name": "name", "value": "Another Name"}]}]}]}`, childModule.ID, childModule.ID, childRecord.ID)).
 		Expect(t).
 		Status(http.StatusOK).

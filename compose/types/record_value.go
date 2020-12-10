@@ -191,10 +191,11 @@ func (set RecordValueSet) GetClean() (out RecordValueSet) {
 		}
 
 		out = append(out, &RecordValue{
-			Name:  set[s].Name,
-			Value: set[s].Value,
-			Ref:   set[s].Ref,
-			Place: set[s].Place,
+			RecordID: set[s].RecordID,
+			Name:     set[s].Name,
+			Value:    set[s].Value,
+			Ref:      set[s].Ref,
+			Place:    set[s].Place,
 		})
 	}
 
