@@ -115,7 +115,7 @@ func GenericBundleHandler(ctx context.Context, svc *service, bundleName, bundleT
 		// Serve bundle directly for now
 		bundle := svc.GetBundle(ctx, bundleName, bundleType)
 		if bundle == nil {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
