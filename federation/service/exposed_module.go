@@ -123,7 +123,7 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 		updated.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 
 		// set labels
-		AddFederationLabel(m, node.BaseURL)
+		AddFederationLabel(m, "federation", node.BaseURL)
 
 		if _, err := svc.module.With(ctx).Update(m); err != nil {
 			return err
@@ -267,7 +267,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		}
 
 		// set labels
-		AddFederationLabel(m, node.BaseURL)
+		AddFederationLabel(m, "federation", node.BaseURL)
 
 		if _, err := svc.module.With(ctx).Update(m); err != nil {
 			return err

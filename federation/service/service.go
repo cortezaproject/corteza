@@ -162,15 +162,15 @@ func Watchers(ctx context.Context) {
 
 	go syncStructure.Watch(
 		ctx,
-		time.Second*DefaultOptions.StructureMonitorInterval,
+		DefaultOptions.StructureMonitorInterval,
 		DefaultOptions.StructurePageSize)
 
 	go syncData.Watch(
 		ctx,
-		time.Second*DefaultOptions.DataMonitorInterval,
+		DefaultOptions.DataMonitorInterval,
 		DefaultOptions.DataPageSize)
 }
 
-func AddFederationLabel(entity label.LabeledResource, value string) {
-	entity.SetLabel("federation", value)
+func AddFederationLabel(entity label.LabeledResource, key string, value string) {
+	entity.SetLabel(key, value)
 }

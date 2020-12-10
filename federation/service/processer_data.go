@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
@@ -32,6 +33,11 @@ type (
 // uses the decode package to decode the whole set, depending on
 // the filtering that was used (limit)
 func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (ProcesserResponse, error) {
+	var (
+		rec *ct.Record
+		err error
+	)
+
 	processed := 0
 	o, err := decoder.DecodeFederationRecordSync([]byte(payload))
 
@@ -52,15 +58,40 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 	for _, er := range o {
 		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
 
-		rec := &ct.Record{
-			ModuleID:    dp.ComposeModuleID,
-			NamespaceID: dp.ComposeNamespaceID,
-			Values:      *dp.ModuleMappingValues,
+		if er.UpdatedAt != nil {
+
+			rec, err = dp.findRecordByFederationID(ctx, er.ID, dp.ComposeModuleID, dp.ComposeNamespaceID)
+
+			if err != nil {
+				// could not find existing record
+				continue
+			}
+
+			if rec != nil {
+				rec.Values = *dp.ModuleMappingValues
+			}
 		}
 
-		AddFederationLabel(rec, dp.NodeBaseURL)
+		// if the record was updated on origin, but we somehow do not have it
+		// create it anyway
+		if rec == nil {
 
-		_, err := dp.SyncService.CreateRecord(ctx, rec)
+			rec = &ct.Record{
+				ModuleID:    dp.ComposeModuleID,
+				NamespaceID: dp.ComposeNamespaceID,
+				Values:      *dp.ModuleMappingValues,
+			}
+
+			AddFederationLabel(rec, "federation", dp.NodeBaseURL)
+			AddFederationLabel(rec, "federation_extrecord", fmt.Sprintf("%d", er.ID))
+
+		}
+
+		if rec.ID != 0 {
+			_, err = dp.SyncService.UpdateRecord(ctx, rec)
+		} else {
+			_, err = dp.SyncService.CreateRecord(ctx, rec)
+		}
 
 		if err != nil {
 			continue
@@ -72,4 +103,21 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 	return dataProcesserResponse{
 		Processed: processed,
 	}, nil
+}
+
+// findRecordByFederationID finds any already existing records via
+// federation label
+func (dp *dataProcesser) findRecordByFederationID(ctx context.Context, recordID, moduleID, namespaceID uint64) (r *ct.Record, err error) {
+	filter := ct.RecordFilter{
+		NamespaceID: namespaceID,
+		ModuleID:    moduleID,
+		Labels:      map[string]string{"federation_extrecord": fmt.Sprintf("%d", recordID)}}
+
+	if s, err := dp.SyncService.FindRecords(ctx, filter); err == nil {
+		if len(s) == 1 {
+			r = s[0]
+		}
+	}
+
+	return
 }
