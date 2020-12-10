@@ -27,19 +27,6 @@ steps:
       - refs/tags/20??.9.*
       - refs/tags/20??.12.*
 
-  - name: "Build unstable release"
-    image: cortezaproject/corteza-server-builder:1.15
-    environment:
-      RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
-      RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
-    commands:
-    - make release-clean release BUILD_OS=linux BUILDARCH=amd64 BUILD_VERSION=${DRONE_BRANCH}
-    - make upload
-    when:
-      event: [ push ]
-      branch:
-       - unstable
-
 ---
 
 kind: pipeline
