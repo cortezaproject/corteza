@@ -1,0 +1,8 @@
+namespace: ns1
+records:
+  mod1:
+    - values:
+        f1: "mod1 f1 v1"
+  mod2:
+    - values:
+        f1: "mod2 f1 v1"

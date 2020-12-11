@@ -1,8 +1,10 @@
 package yaml
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
@@ -61,5 +63,28 @@ func TestComposeRecord_UnmarshalYAML(t *testing.T) {
 
 		//req.NotNil(doc.compose.records[0].rbac)
 		//req.NotEmpty(doc.compose.records[0].rbac.rules)
+	})
+}
+
+func TestComposeRecord_MarshalEnvoy(t *testing.T) {
+	t.Run("compose record file 2", func(t *testing.T) {
+		req := require.New(t)
+
+		doc, err := parseDocument("compose_record_2")
+		rr, err := doc.compose.MarshalEnvoy()
+		req.NoError(err)
+		req.Len(rr, 3)
+
+		for ri, r := range rr {
+			rec, ok := r.(*resource.ComposeRecord)
+			req.True(ok)
+			req.NotNil(rec)
+
+			rec.Walker(func(r *resource.ComposeRecordRaw) error {
+				req.Equal(fmt.Sprintf("mod%d f1 v1", ri+1), r.Values["f1"])
+				req.Equal(fmt.Sprintf("mod%d f2 v1", ri+1), r.Values["f2"])
+				return nil
+			})
+		}
 	})
 }
