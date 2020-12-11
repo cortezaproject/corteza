@@ -340,7 +340,7 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 	)
 
 	if !has {
-		return e2s(makeInternalErr(f, fmt.Errorf("missing select options definition")))
+		return nil
 	}
 
 	switch oo := options.(type) {
