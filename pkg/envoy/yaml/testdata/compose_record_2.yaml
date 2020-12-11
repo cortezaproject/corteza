@@ -1,0 +1,14 @@
+namespace: service-solution
+records:
+  mod1:
+  - values:
+      f1: "mod1 f1 v1"
+      f2: "mod1 f2 v1"
+  mod2:
+  - values:
+      f1: "mod2 f1 v1"
+      f2: "mod2 f2 v1"
+  mod3:
+  - values:
+      f1: "mod3 f1 v1"
+      f2: "mod3 f2 v1"

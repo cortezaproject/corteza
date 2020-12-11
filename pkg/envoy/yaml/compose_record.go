@@ -82,17 +82,22 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 		}
 	)
 
-	// moduleRef to values set
-	recMap := make(map[string]*rw)
+	// We'll do a list of wrappers & a map of wrappers to preserve order and keep
+	// optimal lookups
+	rww := make([]*rw, 0, len(wset))
+	rrx := make(map[string]*rw)
 
 	for _, res := range wset {
-		if recMap[res.refModule] == nil {
-			recMap[res.refModule] = &rw{
+		// A bit stronger index just in case
+		ix := res.refNamespace + "/" + res.refModule
+		if _, ok := rrx[ix]; !ok {
+			rrx[ix] = &rw{
 				rr:      make(resource.ComposeRecordRawSet, 0, 10),
 				nsRef:   res.refNamespace,
 				modRef:  res.refModule,
 				refUser: make(resource.Identifiers),
 			}
+			rww = append(rww, rrx[ix])
 		}
 
 		r := &resource.ComposeRecordRaw{
@@ -104,19 +109,21 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 			Us:     res.us,
 		}
 
-		recMap[res.refModule].refUser.Add(
+		rrx[ix].refUser.Add(
 			res.us.CreatedBy,
 			res.us.UpdatedBy,
 			res.us.DeletedBy,
 			res.us.OwnedBy,
 		)
 
-		recMap[res.refModule].rr = append(recMap[res.refModule].rr, r)
+		rrx[ix].rr = append(rrx[ix].rr, r)
 	}
 
-	for _, w := range recMap {
+	for _, w := range rww {
+		cw := *w
+
 		walker := func(f func(r *resource.ComposeRecordRaw) error) error {
-			for _, r := range w.rr {
+			for _, r := range cw.rr {
 				err := f(r)
 				if err != nil {
 					return err
