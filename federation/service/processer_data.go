@@ -58,11 +58,20 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 	for _, er := range o {
 		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
 
+		if er.DeletedAt != nil {
+			// find the record
+			if rec, err = dp.findRecordByFederationID(ctx, er.ID, dp.ComposeModuleID, dp.ComposeNamespaceID); err != nil {
+				continue
+			}
+
+			dp.SyncService.DeleteRecord(ctx, rec)
+			processed++
+
+			continue
+		}
+
 		if er.UpdatedAt != nil {
-
-			rec, err = dp.findRecordByFederationID(ctx, er.ID, dp.ComposeModuleID, dp.ComposeNamespaceID)
-
-			if err != nil {
+			if rec, err = dp.findRecordByFederationID(ctx, er.ID, dp.ComposeModuleID, dp.ComposeNamespaceID); err != nil {
 				// could not find existing record
 				continue
 			}
@@ -75,7 +84,6 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 		// if the record was updated on origin, but we somehow do not have it
 		// create it anyway
 		if rec == nil {
-
 			rec = &ct.Record{
 				ModuleID:    dp.ComposeModuleID,
 				NamespaceID: dp.ComposeNamespaceID,
@@ -84,7 +92,6 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 
 			AddFederationLabel(rec, "federation", dp.NodeBaseURL)
 			AddFederationLabel(rec, "federation_extrecord", fmt.Sprintf("%d", er.ID))
-
 		}
 
 		if rec.ID != 0 {

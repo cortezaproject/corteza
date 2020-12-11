@@ -28,6 +28,9 @@ type (
 	testRecordServiceUpdateSuccess struct {
 		cs.RecordService
 	}
+	testRecordServiceDeleteSuccess struct {
+		cs.RecordService
+	}
 	testRecordServicePersistError struct {
 		cs.RecordService
 	}
@@ -78,6 +81,21 @@ func TestProcesserData_persist(t *testing.T) {
 					&Mapper{},
 					&testSharedModuleService{},
 					&testRecordServiceUpdateSuccess{},
+					&testUserService{},
+					&testRoleService{}),
+			},
+			{
+				"successful delete on valid mapping and existing federated record",
+				`{"response": {"set": [{"recordID":"1","values":[{"name":"Facebook","value":"foobar"}],"createdAt":"2020-12-05T10:10:10Z", "deletedAt":"2020-12-07T10:10:10Z"}]}}`,
+				`[{"origin":{"kind":"String","name":"Description","label":"Description","isMulti":false},"destination":{"kind":"String","name":"Name","label":"Description","isMulti":false}},{"origin":{"kind":"Url","name":"Facebook","label":"Facebook","isMulti":false},"destination":{"kind":"Url","name":"Fb","label":"Facebook","isMulti":false}}]`,
+				1,
+				"",
+				&ct.RecordValueSet{&ct.RecordValue{Name: "Fb", Value: ""}},
+				NewSync(
+					&Syncer{},
+					&Mapper{},
+					&testSharedModuleService{},
+					&testRecordServiceDeleteSuccess{},
 					&testUserService{},
 					&testRoleService{}),
 			},
@@ -203,6 +221,19 @@ func (s testRecordServiceUpdateSuccess) Find(filter ct.RecordFilter) (ct.RecordS
 
 func (s testRecordServiceUpdateSuccess) With(_ context.Context) cs.RecordService {
 	return &testRecordServiceUpdateSuccess{}
+}
+
+// delete success
+func (s testRecordServiceDeleteSuccess) DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error {
+	return nil
+}
+
+func (s testRecordServiceDeleteSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+	return ct.RecordSet{&ct.Record{ID: 2, ModuleID: 2, NamespaceID: 2}}, ct.RecordFilter{}, nil
+}
+
+func (s testRecordServiceDeleteSuccess) With(_ context.Context) cs.RecordService {
+	return &testRecordServiceDeleteSuccess{}
 }
 
 // create error

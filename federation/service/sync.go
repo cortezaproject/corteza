@@ -85,6 +85,11 @@ func (s *Sync) UpdateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, er
 	return s.composeRecordService.With(ctx).Update(rec)
 }
 
+// DeleteRecord wraps the compose Record service Update
+func (s *Sync) DeleteRecord(ctx context.Context, rec *ct.Record) error {
+	return s.composeRecordService.With(ctx).DeleteByID(rec.NamespaceID, rec.ModuleID, rec.ID)
+}
+
 // FindRecord find the record via federation label
 func (s *Sync) FindRecords(ctx context.Context, filter ct.RecordFilter) (set ct.RecordSet, err error) {
 	set, _, err = s.composeRecordService.With(ctx).Find(filter)

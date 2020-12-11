@@ -134,6 +134,7 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		ModuleID: em.ComposeModuleID,
 		Query:    buildLastSyncQuery(r.LastSync),
 		Check:    ignoreFederated(users),
+		Deleted:  filter.StateInclusive,
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
@@ -175,7 +176,8 @@ func buildLastSyncQuery(ts uint64) string {
 	}
 
 	return fmt.Sprintf(
-		"(updated_at >= '%s' OR created_at >= '%s')",
+		"(updated_at >= '%s' OR created_at >= '%s' OR deleted_at >= '%s')",
+		t.UTC().Format(time.RFC3339),
 		t.UTC().Format(time.RFC3339),
 		t.UTC().Format(time.RFC3339))
 }
