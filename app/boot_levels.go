@@ -137,8 +137,11 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 			return err
 		}
 	}
+
+	app.Log.Info("running store update")
+
 	if !app.Opt.Upgrade.Always {
-		app.Log.Debug("store upgrade skipped (UPGRADE_ALWAYS=false)")
+		app.Log.Info("store upgrade skipped (UPGRADE_ALWAYS=false)")
 	} else {
 		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Upgrade)
 
@@ -146,10 +149,9 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 		log := zap.NewNop()
 		if app.Opt.Upgrade.Debug {
 			log = app.Log.Named("store.upgrade")
-			log.Debug("store upgrade running in debug mode (UPGRADE_DEBUG=true)")
+			log.Info("store upgrade running in debug mode (UPGRADE_DEBUG=true)")
 		} else {
-			app.Log.Debug("store upgrade running (to enable upgrade debug logging set UPGRADE_DEBUG=true)")
-
+			app.Log.Info("store upgrade running (to enable upgrade debug logging set UPGRADE_DEBUG=true)")
 		}
 
 		if err = store.Upgrade(ctx, log, app.Store); err != nil {
