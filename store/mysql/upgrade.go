@@ -73,7 +73,7 @@ func (u upgrader) Before(ctx context.Context) error {
 			return err
 		}
 
-		u.log.Debug(fmt.Sprintf("%s table Deleted", migrations))
+		u.log.Debug(fmt.Sprintf("%s table removed", migrations))
 
 		return nil
 	}()
