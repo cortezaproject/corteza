@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -11,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"strconv"
 )
 
 type (
@@ -214,7 +215,8 @@ func (svc role) FindByAny(ctx context.Context, identifier interface{}) (r *types
 			return svc.With(ctx).FindByID(ID)
 		} else {
 			r, err = svc.With(ctx).FindByHandle(strIdentifier)
-			if err == nil && r.ID == 0 {
+
+			if (err == nil && r.ID == 0) || errors.IsNotFound(err) {
 				return svc.With(ctx).FindByName(strIdentifier)
 			}
 

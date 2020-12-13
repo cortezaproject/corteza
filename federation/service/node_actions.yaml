@@ -1,0 +1,93 @@
+# List of loggable service actions
+
+resource: federation:node
+service: node
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: node
+    type: "*types.Node"
+    fields: [ Name, BaseURL, ID, Status ]
+  - name: pairingURI
+  - name: filter
+    type: "*types.NodeFilter"
+    fields: [ query, status ]
+
+actions:
+  - action: search
+    log: "searched for nodes"
+
+  - action: lookup
+    log: "looked-up for a {node}"
+    severity: info
+
+  - action: create
+    log: "created {node}"
+
+  - action: createFromPairingURI
+    log: "created {node} from pairing URI"
+
+  - action: recreateFromPairingURI
+    log: "recreate {node} from pairing URI"
+
+  - action: update
+    log: "updated {node}"
+
+
+  - action: delete
+    log: "deleted {node}"
+
+  - action: undelete
+    log: "undeleted {node}"
+
+  - action: ottRegenerated
+    log: "regenerated one-time-token for {node}"
+
+  - action: pair
+    log: "{node} pairing started"
+
+  - action: handshakeInit
+    log: "{node} handshake initialized"
+
+  - action: handshakeConfirm
+    log: "{node} handshake confirmed"
+
+  - action: handshakeComplete
+    log: "{node} handshake completed"
+
+errors:
+  - error: notFound
+    message: "node does not exist"
+    severity: warning
+
+  - error: pairingURIInvalid
+    message: "pairing URI invalid: {err}"
+#
+  - error: pairingURITokenInvalid
+    message: "pairing URI with invalid pairing token"
+
+  - error: pairingURISourceIDInvalid
+    message: "pairing URI without source node ID"
+
+  - error: pairingTokenInvalid
+    message: "pairing token invalid"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create nodes"
+    log: "could not create nodes; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage this node"
+    log: "could not manage {node}; insufficient permissions"
+  
+  - error: notAllowedToPair
+    message: "not allowed to pair this node"
+    log: "could not pair {node}; insufficient permissions"

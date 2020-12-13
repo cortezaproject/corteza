@@ -1,0 +1,74 @@
+# List of loggable service actions
+
+resource: federation:module_mapping
+service: moduleMapping
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: created
+    type: "*types.ModuleMapping"
+    fields: [ FederationModuleID, ComposeModuleID ]
+  - name: mapping
+    type: "*types.ModuleMapping"
+    fields: [ FederationModuleID, ComposeModuleID ]
+  - name: changed
+    type: "*types.ModuleMapping"
+    fields: [ FederationModuleID, ComposeModuleID ]
+  - name: filter
+    type: "*types.ModuleMappingFilter"
+    fields: [ query, sort, limit ]
+
+actions:
+  - action: search
+    log: "searched for modules"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a module"
+    severity: info
+
+  - action: create
+    log: "created module"
+
+  - action: update
+    log: "updated module"
+
+  - action: delete
+    log: "deleted module"
+
+errors:
+  - error: notFound
+    message: "module mapping does not exist"
+    severity: warning
+
+  - error: composeModuleNotFound
+    message: "compose module not found"
+    severity: "warning"
+
+  - error: composeNamespaceNotFound
+    message: "compose namespace not found"
+    severity: "warning"
+
+  - error: federationModuleNotFound
+    message: "federation module not found"
+    severity: "warning"
+
+  - error: nodeNotFound
+    message: "node does not exist"
+    severity: warning
+
+  - error: moduleMappingExists
+    message: "module mapping already exists"
+    # severity: "warning"
+
+  - error: notAllowedToMap
+    message: "not allowed to map this module"
+    log: "could not manage mapping; insufficient permissions"

@@ -16,6 +16,11 @@ package store
 //  - store/compose_record_values.yaml
 //  - store/compose_records.yaml
 //  - store/credentials.yaml
+//  - store/federation_exposed_modules.yaml
+//  - store/federation_module_mappings.yaml
+//  - store/federation_nodes.yaml
+//  - store/federation_nodes_sync.yaml
+//  - store/federation_shared_modules.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
 //  - store/messaging_channel_members.yaml
@@ -51,6 +56,11 @@ type (
 		ComposeRecordValues
 		ComposeRecords
 		Credentials
+		FederationExposedModules
+		FederationModuleMappings
+		FederationNodes
+		FederationNodesSyncs
+		FederationSharedModules
 		Labels
 		MessagingAttachments
 		MessagingChannelMembers

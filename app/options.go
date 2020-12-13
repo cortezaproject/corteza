@@ -22,6 +22,7 @@ type (
 		HTTPServer  options.HTTPServerOpt
 		Websocket   options.WebsocketOpt
 		Eventbus    options.EventbusOpt
+		Federation  options.FederationOpt
 	}
 )
 
@@ -44,5 +45,6 @@ func NewOptions() *Options {
 		HTTPServer:  *options.HTTPServer(),
 		Websocket:   *options.Websocket(),
 		Eventbus:    *options.Eventbus(),
+		Federation:  *options.Federation(),
 	}
 }

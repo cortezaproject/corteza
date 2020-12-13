@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"fmt"
+
 	. "github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 )
 
@@ -73,6 +74,11 @@ func (s Schema) Tables() []*Table {
 		s.MessagingMessageAttachment(),
 		s.MessagingMessageFlag(),
 		s.MessagingUnread(),
+		s.FederationModuleShared(),
+		s.FederationModuleExposed(),
+		s.FederationModuleMapping(),
+		s.FederationNodes(),
+		s.FederationNodesSync(),
 	}
 }
 
@@ -485,5 +491,71 @@ func (Schema) MessagingUnread() *Table {
 		ColumnDef("count", ColumnTypeInteger),
 		ColumnDef("rel_last_message", ColumnTypeIdentifier),
 		PrimaryKey(IColumn("rel_channel", "rel_reply_to", "rel_user")),
+	)
+}
+
+func (Schema) FederationModuleShared() *Table {
+	return TableDef("federation_module_shared",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("xref_module", ColumnTypeIdentifier),
+		ColumnDef("fields", ColumnTypeText),
+		CUDTimestamps,
+		CUDUsers,
+	)
+}
+
+func (Schema) FederationModuleExposed() *Table {
+	return TableDef("federation_module_exposed",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
+		ColumnDef("fields", ColumnTypeText),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_node_compose_module", IColumn("rel_node", "rel_compose_module", "rel_compose_namespace")),
+	)
+}
+
+func (Schema) FederationModuleMapping() *Table {
+	return TableDef("federation_module_mapping",
+		ColumnDef("rel_federation_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_module", ColumnTypeIdentifier),
+		ColumnDef("rel_compose_namespace", ColumnTypeIdentifier),
+		ColumnDef("field_mapping", ColumnTypeText),
+
+		AddIndex("unique_module_compose_module", IColumn("rel_federation_module", "rel_compose_module", "rel_compose_namespace")),
+	)
+}
+
+func (Schema) FederationNodes() *Table {
+	return TableDef("federation_nodes",
+		ID,
+		ColumnDef("shared_node_id", ColumnTypeIdentifier),
+		ColumnDef("name", ColumnTypeText),
+		ColumnDef("base_url", ColumnTypeText),
+		ColumnDef("status", ColumnTypeText),
+		ColumnDef("contact", ColumnTypeVarchar, ColumnTypeLength(emailLength)),
+		ColumnDef("pair_token", ColumnTypeText),
+		ColumnDef("auth_token", ColumnTypeText),
+
+		CUDTimestamps,
+		CUDUsers,
+	)
+}
+
+func (Schema) FederationNodesSync() *Table {
+	return TableDef("federation_nodes_sync",
+		ColumnDef("rel_node", ColumnTypeIdentifier),
+		ColumnDef("rel_module", ColumnTypeIdentifier),
+		ColumnDef("sync_type", ColumnTypeText),
+		ColumnDef("sync_status", ColumnTypeText),
+		ColumnDef("time_action", ColumnTypeTimestamp),
 	)
 }

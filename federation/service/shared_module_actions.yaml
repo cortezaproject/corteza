@@ -1,0 +1,86 @@
+# List of loggable service actions
+
+resource: federation:shared_module
+service: sharedModule
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+props:
+  - name: module
+    type: "*types.SharedModule"
+    fields: [ ID ]
+  - name: changed
+    type: "*types.SharedModule"
+    fields: [ ID ]
+  - name: filter
+    type: "*types.SharedModuleFilter"
+    fields: [ query, sort, limit ]
+  - name: node
+    type: "*types.Node"
+    fields: [ ID, Name ]
+
+actions:
+  - action: search
+    log: "searched for modules"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {module}"
+    severity: info
+
+  - action: create
+    log: "created {module}"
+
+  - action: update
+    log: "updated {module}"
+
+  - action: delete
+    log: "deleted {module}"
+
+  - action: undelete
+    log: "undeleted {module}"
+
+errors:
+  - error: notFound
+    message: "module does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: federationSyncStructureChanged
+    message: "module structure changed"
+    log: "could not update shared module, structure different"
+
+  - error: notUnique
+    message: "node not unique"
+    log: "used duplicate node TODO"
+    severity: warning
+
+  - error: nodeNotFound
+    message: "node does not exist"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create modules"
+    log: "could not create modules; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage this module"
+    log: "could not read {module}; insufficient permissions"
+
+  - error: notAllowedToMap
+    message: "not allowed to map this module"
+    log: "could not map {module}; insufficient permissions"
