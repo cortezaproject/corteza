@@ -1,0 +1,33 @@
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+types:
+  type: types.ModuleMapping
+
+fields:
+  - { field: FederationModuleID, isPrimaryKey: true, sortable: true }
+  - { field: ComposeModuleID, isPrimaryKey: true, sortable: true }
+  - { field: ComposeNamespaceID, isPrimaryKey: true, sortable: true }
+  - { field: FieldMapping, type: "json.Text" }
+
+lookups:
+  - fields: [FederationModuleID, ComposeModuleID, ComposeNamespaceID]
+    description: |-
+      searches for module mapping by federation module id and compose module id
+
+      It returns module mapping
+  - fields: [FederationModuleID]
+    description: |-
+      searches for module mapping by federation module id
+
+      It returns module mapping
+
+rdbms:
+  alias: cmd
+  table: federation_module_mapping
+  customFilterConverter: true
+  mapFields:
+    FederationModuleID: { column: rel_federation_module }
+    ComposeModuleID: { column: rel_compose_module }
+    ComposeNamespaceID: { column: rel_compose_namespace }
+    FieldMapping: { column: field_mapping }

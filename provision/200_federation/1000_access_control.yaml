@@ -1,0 +1,34 @@
+allow:
+  admins:
+    federation:
+      - grant
+      - access
+      - pair
+      - settings.read
+      - settings.manage
+      - node.create
+    
+    federation:node:
+      - manage
+      - module.create
+
+    federation:module:
+      - manage
+      - map
+  
+  federation:
+    federation:
+      - grant
+      - access
+      - pair
+      - settings.read
+      - settings.manage
+      - node.create
+    
+    federation:node:
+      - manage
+      - module.create
+
+    federation:module:
+      - manage
+      - map

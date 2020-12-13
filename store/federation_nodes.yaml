@@ -1,0 +1,49 @@
+import:
+  - github.com/cortezaproject/corteza-server/federation/types
+
+types:
+  type: types.Node
+
+fields:
+  - { field: ID }
+  - { field: Name }
+  - { field: SharedNodeID }
+  - { field: BaseURL }
+  - { field: Status }
+  - { field: Contact }
+  - { field: PairToken }
+  - { field: AuthToken }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+
+lookups:
+  - fields: [ID]
+    description: |-
+      searches for federation node by ID
+
+      It returns federation node
+
+  - fields: [BaseURL, SharedNodeID]
+    description: |-
+      searches for node by shared-node-id and base-url
+
+  - fields: [SharedNodeID]
+    description: |-
+      searches for node by shared-node-id
+
+search:
+  enablePaging: false
+  enableSorting: false
+
+rdbms:
+  alias: fdn
+  table: federation_nodes
+  customFilterConverter: true
+  mapFields:
+    BaseURL: { column: base_url }
+    SharedNodeID: { column: shared_node_id }

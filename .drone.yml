@@ -39,16 +39,16 @@ steps:
     pull: always
     environment:
       GOFLAGS: -mod=vendor
-      CGO_ENABLED: 1
+      CGO_ENABLED: "1"
       GOOS: linux
       GOARCH: amd64
       CI: circleci
 
       # Corteza basics
-      AUTH_OIDC_ENABLED: 0
+      AUTH_OIDC_ENABLED: "0"
       AUTH_JWT_SECRET: FBjddkvwQib0d4usifnEGVr1bncuVeD7
-      CORREDOR_CLIENT_CERTIFICATES_ENABLED: false
-      CORREDOR_ENABLED: false
+      CORREDOR_CLIENT_CERTIFICATES_ENABLED: "false"
+      CORREDOR_ENABLED: "false"
 
       # Storage backends
       DB_DSN: sqlite3://file::memory:?cache=shared&mode=memory
