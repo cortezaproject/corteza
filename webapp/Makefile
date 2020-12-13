@@ -11,6 +11,7 @@ PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL
 all: install
 
 install: $(PACKAGES)
+	rm -rf $(addprefix public/,$(APPS))
 	mkdir -p $(addprefix public/,$(APPS))
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-one-$(VERSION).tar.gz -C public
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-auth-$(VERSION).tar.gz -C public/auth
