@@ -111,17 +111,17 @@ func TestSyncerURIParseLastSync(t *testing.T) {
 	tests := []struct {
 		name   string
 		url    string
-		expect string
+		expect time.Time
 	}{
 		{
 			name:   "parse timestamp",
 			url:    "https://example.url?limit=11&lastSync=1603451471",
-			expect: "2020-10-23T13:11:11+02:00",
+			expect: dateToUTC("Fri Oct 23 11:11:11 2020"),
 		},
 		{
 			name:   "parse RFC3339",
 			url:    "https://example.url?limit=11&lastSync=2020-10-23T13:11:11Z",
-			expect: "2020-10-23T13:11:11Z",
+			expect: dateToUTC("Fri Oct 23 13:11:11 2020"),
 		},
 	}
 
@@ -131,8 +131,13 @@ func TestSyncerURIParseLastSync(t *testing.T) {
 			err := s.Parse(tt.url)
 
 			req.NoError(err)
-			req.Equal(tt.expect, s.LastSync.Format(time.RFC3339))
+			req.Equal(tt.expect.Unix(), s.LastSync.UTC().Unix())
 		})
 	}
 
+}
+
+func dateToUTC(dt string) time.Time {
+	d, _ := time.Parse(time.ANSIC, dt)
+	return d.UTC()
 }
