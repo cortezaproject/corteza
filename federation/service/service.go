@@ -95,10 +95,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 }
 
 func Watchers(ctx context.Context) {
-	if !DefaultOptions.Enabled {
-		return
-	}
-
 	DefaultLogger.Info("Starting federation - warning, this is still an experimental feature")
 
 	syncService := NewSync(
