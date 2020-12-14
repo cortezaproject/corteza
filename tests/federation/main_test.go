@@ -51,6 +51,8 @@ func InitTestApp() {
 		ctx := logger.ContextWithValue(cli.Context(), logger.MakeDebugLogger())
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+			app.Opt.Federation.Enabled = true
+
 			service.DefaultLogger = app.Log
 			service.DefaultStore = app.Store
 			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
