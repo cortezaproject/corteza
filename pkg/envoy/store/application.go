@@ -157,18 +157,16 @@ func findApplicationS(ctx context.Context, s store.Storer, gf genericFilter) (ap
 		}
 	}
 
-	q := gf.handle
-	if q == "" {
-		q = gf.name
-	}
-
-	if q != "" {
+	for _, i := range gf.identifiers {
 		var aa types.ApplicationSet
-		aa, _, err = store.SearchApplications(ctx, s, types.ApplicationFilter{Name: q})
+		aa, _, err = store.SearchApplications(ctx, s, types.ApplicationFilter{Name: i})
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}
-		if len(aa) > 0 {
+		if len(aa) > 1 {
+			return nil, resourceErrIdentifierNotUnique(i)
+		}
+		if len(aa) == 1 {
 			ap = aa[0]
 			return
 		}

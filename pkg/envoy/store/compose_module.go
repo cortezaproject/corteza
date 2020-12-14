@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -309,6 +310,10 @@ func findComposeModuleRS(ctx context.Context, s store.Storer, nsID uint64, rr re
 
 // findComposeModuleS looks for the module in the store
 func findComposeModuleS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (mod *types.Module, err error) {
+	if nsID == 0 {
+		return nil, nil
+	}
+
 	if gf.id > 0 {
 		mod, err = store.LookupComposeModuleByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {
@@ -320,8 +325,25 @@ func findComposeModuleS(ctx context.Context, s store.Storer, nsID uint64, gf gen
 		}
 	}
 
-	if gf.handle != "" {
-		mod, err = store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, gf.handle)
+	for _, i := range gf.identifiers {
+		mod, err = store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, i)
+		if err == store.ErrNotFound {
+			var mm types.ModuleSet
+			mm, _, err = store.SearchComposeModules(ctx, s, types.ModuleFilter{
+				NamespaceID: nsID,
+				Name:        i,
+				Paging: filter.Paging{
+					Limit: 2,
+				},
+			})
+			if len(mm) > 1 {
+				return nil, resourceErrIdentifierNotUnique(i)
+			}
+			if len(mm) == 1 {
+				mod = mm[0]
+			}
+		}
+
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

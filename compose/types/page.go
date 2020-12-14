@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
 
@@ -59,6 +60,7 @@ type (
 		ParentID    uint64 `json:"parentID,string,omitempty"`
 		Root        bool   `json:"root,omitempty"`
 		Handle      string `json:"handle"`
+		Title       string `json:"title"`
 		Query       string `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
