@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -202,6 +203,10 @@ func findComposeChartRS(ctx context.Context, s store.Storer, nsID uint64, rr res
 
 // findComposeChartS looks for the chart in the store
 func findComposeChartS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (ch *types.Chart, err error) {
+	if nsID == 0 {
+		return nil, nil
+	}
+
 	if gf.id > 0 {
 		ch, err = store.LookupComposeChartByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {
@@ -213,8 +218,25 @@ func findComposeChartS(ctx context.Context, s store.Storer, nsID uint64, gf gene
 		}
 	}
 
-	if gf.handle != "" {
-		ch, err = store.LookupComposeChartByNamespaceIDHandle(ctx, s, nsID, gf.handle)
+	for _, i := range gf.identifiers {
+		ch, err = store.LookupComposeChartByNamespaceIDHandle(ctx, s, nsID, i)
+		if err == store.ErrNotFound {
+			var cc types.ChartSet
+			cc, _, err = store.SearchComposeCharts(ctx, s, types.ChartFilter{
+				NamespaceID: nsID,
+				Name:        i,
+				Paging: filter.Paging{
+					Limit: 2,
+				},
+			})
+			if len(cc) > 1 {
+				return nil, resourceErrIdentifierNotUnique(i)
+			}
+			if len(cc) == 1 {
+				ch = cc[0]
+			}
+		}
+
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

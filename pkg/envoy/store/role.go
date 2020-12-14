@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -155,8 +156,24 @@ func findRoleS(ctx context.Context, s store.Storer, gf genericFilter) (rl *types
 		}
 	}
 
-	if gf.handle != "" {
-		rl, err = store.LookupRoleByHandle(ctx, s, gf.handle)
+	for _, i := range gf.identifiers {
+		rl, err = store.LookupRoleByHandle(ctx, s, i)
+		if err == store.ErrNotFound {
+			var rr types.RoleSet
+			rr, _, err = store.SearchRoles(ctx, s, types.RoleFilter{
+				Name: i,
+				Paging: filter.Paging{
+					Limit: 2,
+				},
+			})
+			if len(rr) > 1 {
+				return nil, resourceErrIdentifierNotUnique(i)
+			}
+			if len(rr) == 1 {
+				rl = rr[0]
+			}
+		}
+
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

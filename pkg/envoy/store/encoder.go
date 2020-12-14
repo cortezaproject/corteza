@@ -156,3 +156,7 @@ func (se *storeEncoder) WrapError(act string, res resource.Interface, err error)
 	rt := strings.Join(strings.Split(strings.TrimSpace(strings.TrimRight(res.ResourceType(), ":")), ":"), " ")
 	return fmt.Errorf("store encoder %s %s %v: %s", act, rt, res.Identifiers().StringSlice(), err)
 }
+
+func resourceErrIdentifierNotUnique(i string) error {
+	return fmt.Errorf("bad resource identifier %v: not unique", i)
+}

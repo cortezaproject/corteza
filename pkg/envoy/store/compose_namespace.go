@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -158,8 +159,24 @@ func findComposeNamespaceS(ctx context.Context, s store.Storer, gf genericFilter
 		}
 	}
 
-	if gf.handle != "" {
-		ns, err = store.LookupComposeNamespaceBySlug(ctx, s, gf.handle)
+	for _, i := range gf.identifiers {
+		ns, err = store.LookupComposeNamespaceBySlug(ctx, s, i)
+		if err == store.ErrNotFound {
+			var nn types.NamespaceSet
+			nn, _, err = store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{
+				Name: i,
+				Paging: filter.Paging{
+					Limit: 2,
+				},
+			})
+			if len(nn) > 1 {
+				return nil, resourceErrIdentifierNotUnique(i)
+			}
+			if len(nn) == 1 {
+				ns = nn[0]
+			}
+		}
+
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

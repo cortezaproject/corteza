@@ -8,16 +8,14 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
 type (
 	genericFilter struct {
-		id     uint64
-		handle string
-		name   string
+		id          uint64
+		identifiers []string
 	}
 )
 
@@ -49,10 +47,8 @@ func makeGenericFilter(ii resource.Identifiers) (f genericFilter) {
 				continue
 			}
 			f.id = id
-		} else if handle.IsValid(i) && f.handle == "" {
-			f.handle = i
-		} else if f.name == "" {
-			f.name = i
+		} else {
+			f.identifiers = append(f.identifiers, i)
 		}
 	}
 

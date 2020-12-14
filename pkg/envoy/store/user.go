@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -169,8 +170,22 @@ func findUserS(ctx context.Context, s store.Storer, gf genericFilter) (u *types.
 		}
 	}
 
-	if gf.handle != "" {
-		u, err = store.LookupUserByHandle(ctx, s, gf.handle)
+	for _, i := range gf.identifiers {
+		// email
+		if _, err = mail.ParseAddress(i); err != nil {
+			u, err = store.LookupUserByEmail(ctx, s, i)
+			if err == store.ErrNotFound {
+				return nil, nil
+			} else if err != nil {
+				return nil, err
+			}
+		}
+
+		// Handle & username
+		u, err = store.LookupUserByHandle(ctx, s, i)
+		if err == store.ErrNotFound {
+			u, err = store.LookupUserByUsername(ctx, s, i)
+		}
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

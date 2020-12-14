@@ -2,11 +2,12 @@ package rdbms
 
 import (
 	"context"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
-	"strings"
 )
 
 func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.SelectBuilder, err error) {
@@ -39,6 +40,10 @@ func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.Sele
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cpg.handle)": strings.ToLower(f.Handle)})
+	}
+
+	if f.Title != "" {
+		query = query.Where(squirrel.Eq{"LOWER(cpg.title)": strings.ToLower(f.Title)})
 	}
 
 	return

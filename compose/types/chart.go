@@ -3,10 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type (
@@ -45,6 +46,7 @@ type (
 		NamespaceID uint64   `json:"namespaceID,string"`
 		ChartID     []uint64 `json:"chartID"`
 		Handle      string   `json:"handle"`
+		Name        string   `json:"name"`
 		Query       string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`

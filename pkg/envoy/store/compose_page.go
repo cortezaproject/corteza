@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -338,6 +339,10 @@ func findComposePageRS(ctx context.Context, s store.Storer, nsID uint64, rr reso
 
 // findComposePageS looks for the page in the store
 func findComposePageS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (pg *types.Page, err error) {
+	if nsID == 0 {
+		return nil, nil
+	}
+
 	if gf.id > 0 {
 		pg, err = store.LookupComposePageByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {
@@ -349,8 +354,25 @@ func findComposePageS(ctx context.Context, s store.Storer, nsID uint64, gf gener
 		}
 	}
 
-	if gf.handle != "" {
-		pg, err = store.LookupComposePageByNamespaceIDHandle(ctx, s, nsID, gf.handle)
+	for _, i := range gf.identifiers {
+		pg, err = store.LookupComposePageByNamespaceIDHandle(ctx, s, nsID, i)
+		if err == store.ErrNotFound {
+			var pp types.PageSet
+			pp, _, err = store.SearchComposePages(ctx, s, types.PageFilter{
+				NamespaceID: nsID,
+				Title:       i,
+				Paging: filter.Paging{
+					Limit: 2,
+				},
+			})
+			if len(pp) > 1 {
+				return nil, resourceErrIdentifierNotUnique(i)
+			}
+			if len(pp) == 1 {
+				pg = pp[0]
+			}
+		}
+
 		if err != nil && err != store.ErrNotFound {
 			return nil, err
 		}

@@ -1,10 +1,11 @@
 package rdbms
 
 import (
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"strings"
 )
 
 func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.SelectBuilder, err error) {
@@ -34,6 +35,10 @@ func (s Store) convertComposeChartFilter(f types.ChartFilter) (query squirrel.Se
 
 	if f.Handle != "" {
 		query = query.Where(squirrel.Eq{"LOWER(cch.handle)": strings.ToLower(f.Handle)})
+	}
+
+	if f.Name != "" {
+		query = query.Where(squirrel.Eq{"LOWER(cch.name)": strings.ToLower(f.Name)})
 	}
 
 	return
