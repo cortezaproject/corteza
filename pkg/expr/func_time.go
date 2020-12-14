@@ -1,9 +1,10 @@
 package expr
 
 import (
+	"time"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/lestrrat-go/strftime"
-	"time"
 )
 
 func TimeFunctions() []gval.Language {
@@ -64,6 +65,6 @@ func modTime(t time.Time, mod interface{}) (time.Time, error) {
 // More details here:
 // https://github.com/lestrrat-go/strftime#supported-conversion-specifications
 func strfTime(t time.Time, f string) string {
-	o, _ := strftime.Format(f, t)
+	o, _ := strftime.Format(f, t, strftime.WithMilliseconds('b'))
 	return o
 }

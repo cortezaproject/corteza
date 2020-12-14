@@ -1,8 +1,10 @@
 package expr
 
 import (
-	"github.com/PaesslerAG/gval"
+	"fmt"
 	"strings"
+
+	"github.com/PaesslerAG/gval"
 )
 
 func StringFunctions() []gval.Language {
@@ -15,6 +17,7 @@ func StringFunctions() []gval.Language {
 		gval.Function("toUpper", strings.ToUpper),
 		gval.Function("shortest", shortest),
 		gval.Function("longest", longest),
+		gval.Function("format", fmt.Sprintf),
 	}
 }
 
