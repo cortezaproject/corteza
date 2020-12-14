@@ -2,6 +2,7 @@ package provision
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"path/filepath"
 	"strings"
 
@@ -18,6 +19,11 @@ import (
 //
 // paths can be colon delimited list of absolute or relative paths and/or with glob pattern
 func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths string) error {
+	if can, err := canImportConfig(ctx, s); !can || err != nil {
+		log.Info("config import skipped, already provisioned")
+		return err
+	}
+
 	var (
 		yd  = yaml.Decoder()
 		nn  = make([]resource.Interface, 0, 200)
@@ -54,4 +60,11 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 	}
 
 	return nil
+}
+
+// canImportConfig checks state of the store and
+// verifies if Corteza should be provisioned (ie config should be imported)
+func canImportConfig(ctx context.Context, s store.Storer) (bool, error) {
+	rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+	return len(rr) == 0, err
 }
