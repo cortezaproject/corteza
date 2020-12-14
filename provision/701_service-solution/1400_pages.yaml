@@ -1,7 +1,7 @@
 namespace: service-solution
 pages:
   - handle: Home
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Home
     blocks:
     - title: All Cases
@@ -74,7 +74,7 @@ pages:
       xywh: [9, 11, 3, 5]
     visible: true
   - handle: Cases
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Cases
     blocks:
     - title: All cases
@@ -120,7 +120,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleCase
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: Case
         title: Record page for module "Case"
         blocks:
@@ -242,7 +242,7 @@ pages:
           xywh: [3, 3, 6, 2]
         pages:
           - handle: RecordPageForModuleAttachement
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: Attachement
             title: Record page for module "Attachement"
             blocks:
@@ -258,7 +258,7 @@ pages:
               xywh: [0, 0, 5, 18]
             visible: false
           - handle: RecordPageForModuleUpdate
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: Update
             title: Record page for module "Update"
             blocks:
@@ -301,7 +301,7 @@ pages:
             visible: false
         visible: false
       - handle: AllMyCases
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: All my cases
         blocks:
         - title: All my cases
@@ -334,7 +334,7 @@ pages:
           xywh: [0, 0, 12, 16]
         visible: true
       - handle: MyNewCases
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: My new cases
         blocks:
         - title: My new cases
@@ -368,7 +368,7 @@ pages:
         visible: true
     visible: true
   - handle: Accounts
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Accounts
     blocks:
     - title: Accounts
@@ -413,7 +413,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleAccount
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: Account
         title: Record page for module "Account"
         blocks:
@@ -524,7 +524,7 @@ pages:
           xywh: [0, 21, 6, 9]
         visible: false
       - handle: Contacts
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: Contacts
         blocks:
         - title: Contacts
@@ -558,7 +558,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleContact
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: Contact
             title: Record page for module "Contact"
             blocks:
@@ -652,7 +652,7 @@ pages:
               xywh: [0, 20, 9, 9]
             pages:
               - handle: RecordPageForModuleEmailMessage
-                (envoy): { skipIf: "!missing" }
+                (envoy): { onExisting: "skip" }
                 module: EmailMessage
                 title: Record page for module "Email Message"
                 blocks:
@@ -700,10 +700,16 @@ pages:
                 - title: Actions
                   options:
                     buttons:
-                    - label: Load selected tempate in to email message
+                    - enabled: true
+                      label: Load selected template in to email message
                       variant: primary
-                    - label: Send email to the contact
+                      resourceType: compose:record
+                      script: /client-scripts/compose/service-solution/EmailMessage/TemplateLoad.js:default
+                    - enabled: true
+                      label: Send email to the contact
                       variant: success
+                      resourceType: compose:record
+                      script: /client-scripts/compose/service-solution/EmailMessage/SendEmail.js:default
                   style:
                     variants: {bodyBg: white, border: primary, headerBg: white,
                       headerText: primary}
@@ -713,7 +719,7 @@ pages:
             visible: false
         visible: true
       - handle: Entitlements
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: Entitlements
         blocks:
         - title: Entitlements
@@ -747,7 +753,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlement
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: Entitlement
             title: Record page for module "Entitlement"
             blocks:
@@ -791,7 +797,7 @@ pages:
         visible: true
     visible: true
   - handle: Products
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Products
     blocks:
     - title: Products
@@ -838,7 +844,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleProduct
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: Product
         title: Record page for module "Product"
         blocks:
@@ -937,7 +943,7 @@ pages:
           xywh: [3, 0, 3, 10]
         visible: false
       - handle: EntitlementTemplates
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: Entitlement Templates
         blocks:
         - title: Entitlement Templates
@@ -968,7 +974,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlementTemplate
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: EntitlementTemplate
             title: Record page for module "EntitlementTemplate"
             blocks:
@@ -1007,7 +1013,7 @@ pages:
         visible: true
     visible: true
   - handle: KnowledgeBase
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Knowledge Base
     blocks:
     - title: Knowledge Base
@@ -1053,7 +1059,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleKnowledgeBase
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: KnowledgeBase
         title: Record page for module "Knowledge Base"
         blocks:
@@ -1110,7 +1116,7 @@ pages:
         visible: false
     visible: true
   - handle: Departments
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Departments
     blocks:
     - title: Departments
@@ -1156,7 +1162,7 @@ pages:
       xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleDepartment
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: Department
         title: Record page for module "Department"
         blocks:
@@ -1175,7 +1181,7 @@ pages:
             fields:
             - name: TotalTime
             - name: TotalCost
-            - name: DepartmentSelect
+            - name: Name
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
@@ -1204,7 +1210,7 @@ pages:
         visible: false
     visible: true
   - handle: Dashboard
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Dashboard
     blocks:
     - title: Cases by category
@@ -1349,7 +1355,7 @@ pages:
       xywh: [9, 24, 3, 6]
     visible: true
   - handle: Settings
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     title: Settings
     blocks:
     - title: Settings
@@ -1375,7 +1381,7 @@ pages:
       xywh: [0, 0, 12, 5]
     pages:
       - handle: RecordPageForModuleSettings
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         module: Settings
         title: Record page for module "Settings"
         blocks:
@@ -1395,7 +1401,7 @@ pages:
           xywh: [0, 0, 6, 17]
         visible: false
       - handle: EmailTemplates
-        (envoy): { skipIf: "!missing" }
+        (envoy): { onExisting: "skip" }
         title: Email Templates
         blocks:
         - title: Email Templates
@@ -1426,7 +1432,7 @@ pages:
           xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEmailTemplate
-            (envoy): { skipIf: "!missing" }
+            (envoy): { onExisting: "skip" }
             module: EmailTemplate
             title: Record page for module "Email Template"
             blocks:

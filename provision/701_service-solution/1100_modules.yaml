@@ -1,7 +1,7 @@
 namespace: service-solution
 modules:
   Account:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Account
     fields:
       AccountName:
@@ -686,12 +686,6 @@ modules:
       Facebook:
         label: Facebook
         kind: String
-      AccountSelect:
-        label: Accounts
-        kind: Select
-        options:
-          options: []
-          selectType: default
       TotalTime:
         label: Total time of all cases
         kind: Number
@@ -707,7 +701,7 @@ modules:
           precision: "2"
           prefix: $
   Attachement:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Attachement
     fields:
       File:
@@ -731,7 +725,7 @@ modules:
         label: Name
         kind: String
   Case:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Case
     fields:
       Status:
@@ -845,6 +839,8 @@ modules:
       Number:
         label: Case Number
         kind: String
+        expressions:
+          valueExpr: "\"Ticket#\" + strftime(new.createdAt, \"%Y%m%d%H%M%S%b\")"
       ProductId:
         label: Product
         kind: Record
@@ -883,7 +879,7 @@ modules:
         label: PreviousStatus
         kind: String
   Contact:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contact
     fields:
       AccountId:
@@ -1587,7 +1583,7 @@ modules:
         kind: String
         private: true
   Department:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Department
     meta: '{}'
     fields:
@@ -1622,14 +1618,8 @@ modules:
           format: "0.00"
           precision: "2"
           prefix: $
-      DepartmentSelect:
-        label: Departments
-        kind: Select
-        options:
-          multiLine: false
-          useRichTextEditor: false
   EmailMessage:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EmailMessage
     meta: '{}'
     fields:
@@ -1684,7 +1674,7 @@ modules:
           - Number
           selectType: default
   EmailTemplate:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EmailTemplate
     meta: '{}'
     fields:
@@ -1706,7 +1696,7 @@ modules:
         options:
           multiLine: true
   Entitlement:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Entitlement
     fields:
       AccountId:
@@ -1772,7 +1762,7 @@ modules:
           - Year(s)
           selectType: default
   EntitlementTemplate:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EntitlementTemplate
     fields:
       Name:
@@ -1805,7 +1795,7 @@ modules:
           selectType: multiple
         multi: true
   KnowledgeBase:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: KnowledgeBase
     fields:
       Number:
@@ -1891,7 +1881,7 @@ modules:
           - Name
           selectType: default
   Product:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Product
     fields:
       IsActive:
@@ -1967,7 +1957,7 @@ modules:
           options: []
           selectType: default
   Settings:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Settings
     meta: '{}'
     fields:
@@ -2017,7 +2007,7 @@ modules:
           - Name
           selectType: default
   Update:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Update
     fields:
       CaseId:

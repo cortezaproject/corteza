@@ -1,7 +1,7 @@
 namespace: crm
 modules:
   Account:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Account
     fields:
       AccountName:
@@ -1301,7 +1301,7 @@ modules:
           selectType: multiple
         multi: true
   AccountContactRole:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: AccountContactRole
     fields:
       AccountId:
@@ -1358,7 +1358,7 @@ modules:
             value: Other
           selectType: default
   Campaigns:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Campaigns
     fields:
       IsActive:
@@ -1529,7 +1529,7 @@ modules:
           format: ""
           precision: 0
   Case:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Case
     fields:
       AccountId:
@@ -1541,6 +1541,18 @@ modules:
           queryFields:
           - AccountName
           selectType: ""
+      SuppliedEmail:
+        label: Contact Email
+        kind: Email
+        private: true
+      SuppliedName:
+        label: Contact Name
+        kind: String
+        private: true
+      SuppliedPhone:
+        label: Contact Phone
+        kind: String
+        private: true
       CaseNumber:
         label: Case Number
         kind: Number
@@ -1728,7 +1740,7 @@ modules:
           presetWithAuthenticated: true
           selectType: default
   CaseUpdate:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: CaseUpdate
     fields:
       CaseId:
@@ -1771,7 +1783,7 @@ modules:
           falseLabel: "No"
           trueLabel: "Yes"
   Contact:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contact
     fields:
       AccountId:
@@ -2985,7 +2997,7 @@ modules:
           selectType: multiple
         multi: true
   Contract:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contract
     fields:
       AccountId:
@@ -4170,7 +4182,7 @@ modules:
           mode: list
         multi: true
   ContractContactRole:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: ContractContactRole
     fields:
       ContactId:
@@ -4231,7 +4243,7 @@ modules:
             value: Other
           selectType: default
   ContractLineItem:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: ContractLineItem
     fields:
       Description:
@@ -4346,7 +4358,7 @@ modules:
           multiLine: false
           useRichTextEditor: false
   EmailTemplate:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EmailTemplate
     fields:
       IsActive:
@@ -4401,7 +4413,7 @@ modules:
           multiLine: true
           useRichTextEditor: true
   Entitlement:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Entitlement
     fields:
       AccountId:
@@ -4484,7 +4496,7 @@ modules:
             value: Dedicated Support
           selectType: default
   EntitlementContact:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EntitlementContact
     fields:
       ContactId:
@@ -4512,7 +4524,7 @@ modules:
           - Name
           selectType: ""
   EntitlementTemplate:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: EntitlementTemplate
     fields:
       BusinessHours:
@@ -4549,7 +4561,7 @@ modules:
           - Phone
           - Web
   Event:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Event
     fields:
       IsAllDayEvent:
@@ -4695,7 +4707,7 @@ modules:
           - Subject
           selectType: ""
   Idea:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Idea
     fields:
       Categories:
@@ -4771,7 +4783,7 @@ modules:
           format: "0"
           precision: 0
   Lead:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Lead
     fields:
       Street:
@@ -5658,7 +5670,7 @@ modules:
           selectType: multiple
         multi: true
   Note:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Note
     fields:
       Body:
@@ -5899,7 +5911,7 @@ modules:
           mode: list
         multi: true
   Opportunity:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Opportunity
     fields:
       AccountId:
@@ -6139,7 +6151,7 @@ modules:
           mode: list
         multi: true
   OpportunityCompetitor:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: OpportunityCompetitor
     fields:
       CompetitorName:
@@ -6167,7 +6179,7 @@ modules:
           multiLine: true
           useRichTextEditor: true
   OpportunityContactRole:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: OpportunityContactRole
     fields:
       ContactId:
@@ -6208,7 +6220,7 @@ modules:
           - Technical Buyer
           - Other
   OpportunityLineItem:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: OpportunityLineItem
     fields:
       ServiceDate:
@@ -6299,7 +6311,7 @@ modules:
           precision: 2
           suffix: €
   Pricebook:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Pricebook
     fields:
       IsActive:
@@ -6323,7 +6335,7 @@ modules:
         label: Price Book Name
         kind: String
   PricebookEntry:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: PricebookEntry
     fields:
       IsActive:
@@ -6377,7 +6389,7 @@ modules:
           multiLine: false
           useRichTextEditor: false
   Product:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Product
     fields:
       IsActive:
@@ -6435,7 +6447,7 @@ modules:
           - Name
           selectType: default
   Question:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Question
     fields:
       BestReplyId:
@@ -6474,7 +6486,7 @@ modules:
           format: 0
           precision: 0
   Quote:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Quote
     fields:
       AccountId:
@@ -8671,7 +8683,7 @@ modules:
         label: Record Label
         kind: String
   QuoteLineItem:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: QuoteLineItem
     fields:
       ServiceDate:
@@ -8770,7 +8782,7 @@ modules:
         options:
           multiLine: true
   Reply:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Reply
     fields:
       DownVotes:
@@ -8817,7 +8829,7 @@ modules:
           queryFields:
           - Title
   Settings:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Settings
     fields:
       QuoteExpirationDays:
@@ -8876,7 +8888,7 @@ modules:
           format: "0000000"
           precision: 0
   Solution:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Solution
     fields:
       IsPublished:
@@ -8953,7 +8965,7 @@ modules:
           mode: list
         multi: true
   Task:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Task
     fields:
       AccountId:
@@ -9124,7 +9136,7 @@ modules:
           - Subject
           selectType: default
   Vote:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Vote
     fields:
       IdeaId:

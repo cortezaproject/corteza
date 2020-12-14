@@ -1,6 +1,6 @@
 namespaces:
   crm:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: CRM
     allow:
       everyone:

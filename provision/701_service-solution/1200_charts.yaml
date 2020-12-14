@@ -1,7 +1,7 @@
 namespace: service-solution
 charts:
   ActiveEntitlements:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Number of active entitlements
     config:
       reports:
@@ -20,7 +20,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   AverageTimeSpentPerCase:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Average time spent per case
     config:
       reports:
@@ -40,7 +40,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CaseUpdatesPerType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Case updates per type
     config:
       reports:
@@ -60,7 +60,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesByCategory:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by category
     config:
       reports:
@@ -83,7 +83,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesByPriority:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by priority
     config:
       reports:
@@ -104,7 +104,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by status
     config:
       reports:
@@ -125,7 +125,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   ClosedCasesPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Closed cases per month
     config:
       reports:
@@ -150,7 +150,7 @@ charts:
           label: Cases
       colorScheme: tableau.Tableau10
   CostPerCategory:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total cost per category
     config:
       reports:
@@ -174,7 +174,7 @@ charts:
           label: $
       colorScheme: tableau.Tableau10
   CostPerProductFamily:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cost per product family
     config:
       reports:
@@ -197,13 +197,13 @@ charts:
           label: $
       colorScheme: tableau.Tableau10
   CostsPerAccount:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total costs per account
     config:
       reports:
       - dimensions:
         - conditions: {}
-          field: AccountSelect
+          field: AccountName
           meta: {}
           modifier: (no grouping / buckets)
         filter: ""
@@ -220,7 +220,7 @@ charts:
           label: $
       colorScheme: tableau.Tableau10
   KnowledgeBaseArticlesPerType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Knowledge Base articles per type
     config:
       reports:
@@ -241,7 +241,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   KnowledgeBaseItemsCreatedPerDay:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Knowledge Base items created per day
     config:
       reports:
@@ -264,7 +264,7 @@ charts:
           label: KB Items
       colorScheme: tableau.Tableau10
   NewCasesByMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: New cases per month
     config:
       reports:
@@ -290,13 +290,13 @@ charts:
           label: Cases
       colorScheme: tableau.Tableau10
   TimePerAccount:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total time spend per account
     config:
       reports:
       - dimensions:
         - conditions: {}
-          field: AccountSelect
+          field: AccountName
           meta: {}
           modifier: (no grouping / buckets)
         filter: ""
@@ -311,7 +311,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau20
   TimeSpentPerProductFamily:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Time Spent per Product Family
     config:
       reports:
@@ -335,13 +335,13 @@ charts:
         renderer: {}
       colorScheme: tableau.ClassicMedium10
   TotalCostPerDepartment:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total costs per department
     config:
       reports:
       - dimensions:
         - conditions: {}
-          field: DepartmentSelect
+          field: Name
           meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
@@ -359,7 +359,7 @@ charts:
           label: $
       colorScheme: tableau.Tableau10
   TotalCostPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total cost per month
     config:
       reports:
@@ -381,7 +381,7 @@ charts:
           label: $
       colorScheme: tableau.Tableau10
   TotalTimeSpentPerCategory:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: 'Total time spent per category '
     config:
       reports:
@@ -403,13 +403,13 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   TotalTimeSpentPerDepartment:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total time spent per department
     config:
       reports:
       - dimensions:
         - conditions: {}
-          field: DepartmentSelect
+          field: Name
           meta: {}
           modifier: (no grouping / buckets)
           skipMissing: true
@@ -425,7 +425,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   TotalTimeSpentPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Total time spent per month
     config:
       reports:
