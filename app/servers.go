@@ -11,6 +11,7 @@ import (
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
+	"net/http"
 	"strings"
 	"sync"
 )
@@ -59,20 +60,43 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				app.WsServer.ApiServerRoutes(r)
 			})
 
+			r.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
+				// redirect to endpoint with slash
+				http.Redirect(w, r, "/"+apiBaseUrl+"/docs/", http.StatusPermanentRedirect)
+			})
 			r.HandleFunc("/docs*", server.ServeDocs("/"+apiBaseUrl+"/docs"))
 		})
+
+		app.Log.Info(
+			"JSON REST API enabled",
+			zap.String("baseUrl", app.Opt.HTTPServer.ApiBaseUrl),
+		)
+
+		app.Log.Info(
+			"API docs enabled",
+			zap.String("baseUrl", app.Opt.HTTPServer.ApiBaseUrl+"/docs"),
+		)
+	} else {
+		app.Log.Info("JSON REST API disabled")
 	}
 
 	if app.Opt.HTTPServer.WebappEnabled {
-		app.Log.Debug(
-			"serving web applications",
-			zap.String("baseUrl", webappBaseUrl),
+		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer))
+
+		app.Log.Info(
+			"client web applications enabled",
+			zap.String("baseUrl", app.Opt.HTTPServer.WebappBaseUrl),
 			zap.String("baseDir", app.Opt.HTTPServer.WebappBaseDir),
 		)
-		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer))
+	} else {
+		app.Log.Info("client web applications disabled")
 	}
 
 	if app.Opt.Federation.Enabled {
 		r.Route("/federation", federationRest.MountRoutes)
+	} else {
+		app.Log.Info(
+			"federation API disabled",
+		)
 	}
 }
