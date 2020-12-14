@@ -3,10 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
@@ -16,8 +20,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"strconv"
-	"time"
 )
 
 type (
@@ -164,21 +166,25 @@ func RegisterIteratorProviders() {
 	// Register resource finders on iterator
 	corredor.Service().RegisterIteratorProvider(
 		"compose:record",
-		func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) error {
+		func(ctx context.Context, f map[string]string, h eventbus.HandlerFn, action string) (err error) {
 			rf := types.RecordFilter{Query: f["query"]}
 			rf.Sort.Set(f["sort"])
 
+			var limit uint
 			if lString, has := f["limit"]; has {
-				if limit, err := strconv.ParseUint(lString, 10, 32); err != nil {
+				if limit64, err := strconv.ParseUint(lString, 10, 32); err != nil {
 					return fmt.Errorf("can not parse iterator limit param: %w", err)
 				} else {
-					rf.Limit = uint(limit)
+					// We specify the bit size during parsing, so this is fine
+					limit = uint(limit64)
 				}
 			}
 
-			//panic("refactor")
-			//rf.Paging.Limit =
-			//rf.ParsePagination(f)
+			page := f["page"]
+			rf.Paging, err = filter.NewPaging(uint(limit), page)
+			if err != nil {
+				return err
+			}
 
 			if nsLookup, has := f["namespace"]; !has {
 				return fmt.Errorf("namespace for record iteration filter not defined")
