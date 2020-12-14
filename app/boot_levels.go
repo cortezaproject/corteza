@@ -240,17 +240,19 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		PingPeriod:  app.Opt.Websocket.PingPeriod,
 	})
 
-	// Initializes federation services
-	//
-	// Note: this is a legacy approach, all services from all 3 apps
-	// will most likely be merged in the future
-	err = fdrService.Initialize(ctx, app.Log, app.Store, fdrService.Config{
-		ActionLog:  app.Opt.ActionLog,
-		Federation: app.Opt.Federation,
-	})
+	if app.Opt.Federation.Enabled {
+		// Initializes federation services
+		//
+		// Note: this is a legacy approach, all services from all 3 apps
+		// will most likely be merged in the future
+		err = fdrService.Initialize(ctx, app.Log, app.Store, fdrService.Config{
+			ActionLog:  app.Opt.ActionLog,
+			Federation: app.Opt.Federation,
+		})
 
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
 	}
 
 	// Initialize external authentication (from default settings)
@@ -314,7 +316,10 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	sysService.Watchers(ctx)
 	cmpService.Watchers(ctx)
 	msgService.Watchers(ctx)
-	fedService.Watchers(ctx)
+
+	if app.Opt.Federation.Enabled {
+		fedService.Watchers(ctx)
+	}
 
 	rbac.Global().Watch(ctx)
 
