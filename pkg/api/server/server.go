@@ -41,14 +41,13 @@ func (s *server) MountRoutes(mm ...func(chi.Router)) {
 
 func (s server) Serve(ctx context.Context) {
 	s.log.Info(
-		"Starting HTTP server with REST API",
+		"starting HTTP server",
 		zap.String("address", s.httpOpt.Addr),
-		zap.String("baseUrl", s.httpOpt.ApiBaseUrl),
 	)
 
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
-		s.log.Error("Can not start server", zap.Error(err))
+		s.log.Error("can not start server", zap.Error(err))
 		return
 	}
 
@@ -100,7 +99,7 @@ func (s server) Serve(ctx context.Context) {
 		}
 	}
 
-	s.log.Info("Server stopped", zap.Error(err))
+	s.log.Info("HTTP server stopped", zap.Error(err))
 }
 
 func (s server) bindMiscRoutes(router chi.Router) {
