@@ -1,7 +1,7 @@
 namespace: crm
 charts:
   AccountsByRating:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Accounts by rating
     config:
       reports:
@@ -26,7 +26,7 @@ charts:
           label: Accounts
       colorScheme: tableau.Tableau10
   AccountsByType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Accounts by type
     config:
       reports:
@@ -46,7 +46,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   ActiveCampaignsByType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Active campaigns by type
     config:
       reports:
@@ -63,7 +63,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau20
   CampaignAmountAllOpportunitiesVsTarget:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Campaign amount all opportunities vs target
     config:
       reports:
@@ -85,7 +85,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Traffic9
   CampaignAmountAllWonOpportunitiesVsTarget:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Campaign amount all won opportunities vs target
     config:
       reports:
@@ -107,7 +107,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Traffic9
   CampaignCostVsRevenue:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Campaign cost vs revenue
     config:
       reports:
@@ -146,7 +146,7 @@ charts:
           label: Euro
       colorScheme: tableau.Tableau10
   CampaignCosts:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Campaign costs
     config:
       reports:
@@ -170,7 +170,7 @@ charts:
           label: Value
       colorScheme: tableau.Tableau10
   CasesByOrigin:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by origin
     config:
       reports:
@@ -187,7 +187,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesByPriority:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by priority
     config:
       reports:
@@ -205,7 +205,7 @@ charts:
         renderer: {}
       colorScheme: office.Wisp6
   CasesByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by status
     config:
       reports:
@@ -222,7 +222,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesByType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases by type
     config:
       reports:
@@ -239,7 +239,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   CasesPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Cases per month
     config:
       reports:
@@ -267,7 +267,7 @@ charts:
           label: Cases
       colorScheme: tableau.Tableau20
   ContactsPerCountry:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contacts per country
     config:
       reports:
@@ -291,7 +291,7 @@ charts:
           label: Contacts
       colorScheme: tableau.Tableau20
   ContactsPerSeniorLeveltitle:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contacts per senior level title
     config:
       reports:
@@ -313,7 +313,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   ContractsByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contracts by Status
     config:
       reports:
@@ -330,7 +330,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   ContractsPerStartingMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Contracts per starting month
     config:
       reports:
@@ -359,7 +359,7 @@ charts:
           label: Activated contracts
       colorScheme: tableau.Tableau20
   Dealsize:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Dealsize
     config:
       reports:
@@ -394,7 +394,7 @@ charts:
           label: Euro
       colorScheme: tableau.Tableau10
   EventsPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Events per month
     config:
       reports:
@@ -417,7 +417,7 @@ charts:
           label: Events
       colorScheme: tableau.Tableau10
   EventsPerType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Events per type
     config:
       reports:
@@ -434,7 +434,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   LeadFunnel:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Lead funnel
     config:
       reports:
@@ -460,7 +460,7 @@ charts:
         renderer: {}
       colorScheme: tableau.ClassicMedium10
   LeadsByCountry:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Leads by country
     config:
       reports:
@@ -485,7 +485,7 @@ charts:
           label: Leads per country
       colorScheme: tableau.Tableau10
   LeadsByRating:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Leads by rating
     config:
       reports:
@@ -505,7 +505,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   LeadsBySource:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Leads by source
     config:
       reports:
@@ -524,7 +524,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau20
   LeadsByType:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Leads by type
     config:
       reports:
@@ -547,7 +547,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   LeadsPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Leads per month
     config:
       reports:
@@ -575,7 +575,7 @@ charts:
           label: Leads
       colorScheme: tableau.Tableau20
   MonthlySales:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Monthly sales
     config:
       reports:
@@ -610,7 +610,7 @@ charts:
           max: ""
       colorScheme: tableau.Tableau20
   NumberOfOpportunitiesVsTarget:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Number of opportunities vs target
     config:
       reports:
@@ -631,7 +631,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Traffic9
   OpportunitiesCreatedPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Opportunities created per month
     config:
       reports:
@@ -659,7 +659,7 @@ charts:
           beginAtZero: true
           label: Opportunities
   OpportunityLineItemsValue:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Opportunity line items value
     config:
       reports:
@@ -680,7 +680,7 @@ charts:
           label: value
       colorScheme: tableau.Tableau20
   OpportunitySalesPipeline:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Opportunity sales pipeline
     config:
       reports:
@@ -709,7 +709,7 @@ charts:
         renderer: {}
       colorScheme: tableau.ClassicMedium10
   OpportunityStatusFunnel:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Opportunity status funn
     config:
       reports:
@@ -737,7 +737,7 @@ charts:
         renderer: {}
       colorScheme: tableau.ClassicMedium10
   PriceBookEntriesPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Price book entries per month
     config:
       reports:
@@ -760,7 +760,7 @@ charts:
           label: Price book entries
       colorScheme: tableau.Tableau10
   PriceBooksCreatedPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Price books created per month
     config:
       reports:
@@ -783,7 +783,7 @@ charts:
           label: Price books
       colorScheme: tableau.Tableau10
   ProductsAddedPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Products added per month
     config:
       reports:
@@ -805,7 +805,7 @@ charts:
           label: Products
       colorScheme: tableau.Tableau10
   ProductsPerFamily:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Products per family
     config:
       reports:
@@ -823,7 +823,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   QuotesByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Quotes by status
     config:
       reports:
@@ -841,7 +841,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau20
   QuotesPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Quotes per month
     config:
       reports:
@@ -871,7 +871,7 @@ charts:
           label: Quotes
       colorScheme: tableau.Tableau20
   SalesVsTarget:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Sales vs target
     config:
       reports:
@@ -894,7 +894,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Traffic9
   SalesYTD:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Sales YTD
     config:
       reports:
@@ -916,7 +916,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Traffic9
   SolutionsByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Solutions by status
     config:
       reports:
@@ -933,7 +933,7 @@ charts:
         renderer: {}
       colorScheme: tableau.Tableau10
   SolutionsCreatedPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Solutions created per month
     config:
       reports:
@@ -956,7 +956,7 @@ charts:
           label: Solutions
       colorScheme: tableau.Tableau10
   TasksByStatus:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Tasks by status
     config:
       reports:
@@ -974,7 +974,7 @@ charts:
         renderer: {}
       colorScheme: tableau.ClassicGreenOrange6
   TasksPerMonth:
-    (envoy): { skipIf: "!missing" }
+    (envoy): { onExisting: "skip" }
     name: Tasks per month
     config:
       reports:
