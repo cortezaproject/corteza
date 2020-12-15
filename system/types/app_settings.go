@@ -121,7 +121,7 @@ type (
 						Sticky bool   `json:"sticky"`
 					} `json:"tabs"`
 				} `kv:"panels,final" json:"panels"`
-			} `kv:"one" json:"One"`
+			} `kv:"one" json:"one"`
 
 			// Admin struct {} `kv:"admin"`
 		} `kv:"ui" json:"ui"`
