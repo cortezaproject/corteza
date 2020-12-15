@@ -157,7 +157,6 @@ func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.Re
 		}
 
 		att = &types.Attachment{
-			ID:      nextID(),
 			OwnerID: currentUserID,
 			Name:    strings.TrimSpace(name),
 			Kind:    types.AttachmentKindSettings,
@@ -183,6 +182,9 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 	var (
 		aaProps = &attachmentActionProps{}
 	)
+
+	att.ID = nextID()
+	att.CreatedAt = *now()
 
 	if svc.files == nil {
 		return errors.New("can not create attachment: store handler not set")
