@@ -16,7 +16,6 @@ type (
 
 		// Config flags
 		inverted bool
-		dry      bool
 
 		processed   nodeMap
 		conflicting nodeMap
@@ -27,11 +26,6 @@ type (
 		Conflicting     bool
 		DepResources    []resource.Interface
 		ParentResources []resource.Interface
-	}
-
-	// Provides a filter for graph iterator
-	iterFilter struct {
-		resourceType string
 	}
 )
 
@@ -54,6 +48,10 @@ func (g *graph) addNode(nn ...*node) {
 
 func (g *graph) removeNode(nn ...*node) {
 	g.nn = g.nn.remove(nn...)
+	for _, n := range nn {
+		g.removeChild(n)
+		g.removeParent(n)
+	}
 }
 
 func (g *graph) invert() {
@@ -93,31 +91,11 @@ func (g *graph) NextInverted(ctx context.Context) (s *ResourceState, err error) 
 		g.inverted = false
 	}()
 
-	return g.next(ctx, nil)
+	return g.Next(ctx)
 }
 
 func (g *graph) Next(ctx context.Context) (s *ResourceState, err error) {
-	return g.next(ctx, nil)
-}
-
-func (g *graph) NextOf(ctx context.Context, resTrype string) (s *ResourceState, err error) {
-	return g.next(ctx, &iterFilter{resourceType: resTrype})
-}
-
-func (g *graph) next(ctx context.Context, f *iterFilter) (s *ResourceState, err error) {
 	upNN := g.removeProcessed(g.nodes())
-
-	if f != nil {
-		upC := make(nodeSet, 0, len(upNN))
-		if f.resourceType != "" {
-			for _, n := range upNN {
-				if n.res.ResourceType() == f.resourceType {
-					upC = append(upC, n)
-				}
-			}
-		}
-		upNN = upC
-	}
 
 	// We are done here
 	if len(upNN) <= 0 {
@@ -139,36 +117,76 @@ func (g *graph) next(ctx context.Context, f *iterFilter) (s *ResourceState, err 
 		// Prepare the required context for the processing.
 		// Perform some basic cleanup.
 		es := g.prepExecState(nx, false)
-
 		g.markProcessed(nx)
 
 		return es, nil
 	}
 
-	// There are only conflicting nodes...
-	// Determine a conflicting node that should be partially resolved
-	for _, upN := range upNN {
-		if !g.conflicting.has(upN) {
-			nx = upN
-			break
+	// There are only conflicting nodes
+	// Try to get a cycle node to resolve the conflict
+	nx = g.findCycleNode(g.removeConflicting(upNN))
+
+	if nx == nil {
+		// This is basically impossible, unless I've messed up the algorithm
+		return nil, errors.New("could not determine non-conflicting node")
+	}
+
+	// Prepare the required context for the processing.
+	es := g.prepExecState(nx, true)
+	g.markConflicting(nx)
+
+	return es, nil
+}
+
+// findCycleNode returns the first graph node that caused a cycle
+//
+// General outline:
+//  * DFS from a start node(s)
+//  * if a child node is already in path, return that node
+//  * else return nil and cleanup the path until the first node with
+//    unprocessed child nodes
+//
+// @note we could complicate this further by doing cycle enumeration algorithms.
+//       I might do it when no one is watching :)
+func (g *graph) findCycleNode(nn nodeSet) *node {
+	path := make(nodeMap)
+	processed := make(nodeMap)
+
+	for _, n := range nn {
+		if !processed.has(n) {
+			m := g.traverse(n, path, processed)
+			if m != nil {
+				return m
+			}
 		}
 	}
 
-	if nx != nil {
-		// Prepare the required context for the processing.
-		es := g.prepExecState(nx, true)
-
-		g.markConflicting(nx)
-
-		return es, nil
-	} else {
-		return nil, errors.New("Uhoh, couldn't determine node; @todo error")
-	}
+	return nil
 }
 
-func (g *graph) reset() {
-	g.conflicting = make(nodeMap)
-	g.processed = make(nodeMap)
+func (g *graph) traverse(n *node, path, processed nodeMap) *node {
+	processed.add(n)
+
+	// Found ourselves a cycle
+	if path.has(n) {
+		return n
+	}
+	// Nothing else to look at
+	if len(g.childNodes(n)) == 0 {
+		return nil
+	}
+
+	path.add(n)
+
+	for _, c := range g.childNodes(n) {
+		m := g.traverse(c, path, processed)
+		if m != nil {
+			return m
+		}
+	}
+
+	path.remove(n)
+	return nil
 }
 
 // util
@@ -206,11 +224,6 @@ func (g *graph) addChild(n *node, mm ...*node) {
 }
 
 func (g *graph) removeChild(n *node, mm ...*node) {
-	// Dryrun shouldn't remove any nodes
-	if g.dry {
-		return
-	}
-
 	if len(mm) <= 0 {
 		if g.inverted {
 			n.pp = make(nodeSet, 0, 10)
@@ -235,11 +248,6 @@ func (g *graph) addParent(n *node, mm ...*node) {
 }
 
 func (g *graph) removeParent(n *node, mm ...*node) {
-	// Dryrun shouldn't remove any nodes
-	if g.dry {
-		return
-	}
-
 	if len(mm) <= 0 {
 		if g.inverted {
 			n.cc = make(nodeSet, 0, 10)

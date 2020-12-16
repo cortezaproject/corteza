@@ -149,6 +149,30 @@ func mergeMessagingChannels(a, b *types.Channel) *types.Channel {
 	if c.Name == "" {
 		c.Name = b.Name
 	}
+	if c.Topic == "" {
+		c.Topic = b.Topic
+	}
+	if c.Type == "" {
+		c.Type = b.Type
+	}
+	if c.Meta == nil {
+		c.Meta = b.Meta
+	}
+	c.MembershipPolicy = b.MembershipPolicy
+	c.CreatorID = b.CreatorID
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.ArchivedAt == nil {
+		c.ArchivedAt = b.ArchivedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
+	}
 
 	return &c
 }

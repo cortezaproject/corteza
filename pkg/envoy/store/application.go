@@ -123,6 +123,17 @@ func mergeApplications(a, b *types.Application) *types.Application {
 	if c.Name == "" {
 		c.Name = b.Name
 	}
+	c.OwnerID = b.OwnerID
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
+	}
 
 	// I'll just compare the entire struct for now
 	if c.Unify == nil || *c.Unify == (types.ApplicationUnify{}) {

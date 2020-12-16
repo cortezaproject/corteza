@@ -298,9 +298,10 @@ func (n *composePageState) Encode(ctx context.Context, s store.Storer, state *en
 func mergeComposePage(a, b *types.Page) *types.Page {
 	c := a.Clone()
 
-	if c.SelfID <= 0 {
-		c.SelfID = b.SelfID
-	}
+	c.SelfID = b.SelfID
+	c.NamespaceID = b.NamespaceID
+	c.ModuleID = b.ModuleID
+	c.Weight = b.Weight
 	if c.Handle == "" {
 		c.Handle = b.Handle
 	}
@@ -315,6 +316,16 @@ func mergeComposePage(a, b *types.Page) *types.Page {
 	}
 	if len(c.Children) <= 0 {
 		c.Children = b.Children
+	}
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
 	}
 
 	return c

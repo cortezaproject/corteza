@@ -102,10 +102,10 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 		return nil
 
 	case resource.MergeLeft:
-		rl = mergeRole(n.rl, rl)
+		rl = mergeRoles(n.rl, rl)
 
 	case resource.MergeRight:
-		rl = mergeRole(rl, n.rl)
+		rl = mergeRoles(rl, n.rl)
 	}
 
 	err = store.UpdateRole(ctx, s, rl)
@@ -117,8 +117,8 @@ func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.Res
 	return nil
 }
 
-// mergeRole merges b into a, prioritising a
-func mergeRole(a, b *types.Role) *types.Role {
+// mergeRoles merges b into a, prioritising a
+func mergeRoles(a, b *types.Role) *types.Role {
 	c := *a
 
 	if c.Name == "" {
@@ -126,6 +126,19 @@ func mergeRole(a, b *types.Role) *types.Role {
 	}
 	if c.Handle == "" {
 		c.Handle = b.Handle
+	}
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.ArchivedAt == nil {
+		c.ArchivedAt = b.ArchivedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
 	}
 
 	return &c

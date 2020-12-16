@@ -138,8 +138,21 @@ func mergeUsers(a, b *types.User) *types.User {
 	if c.Kind == "" {
 		c.Kind = b.Kind
 	}
-	if *c.Meta == (types.UserMeta{}) {
+	if c.Meta == nil {
 		c.Meta = b.Meta
+	}
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.SuspendedAt == nil {
+		c.SuspendedAt = b.SuspendedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
 	}
 
 	return &c

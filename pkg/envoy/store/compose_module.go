@@ -245,6 +245,8 @@ func mergeComposeModuleFields(a, b types.ModuleFieldSet) types.ModuleFieldSet {
 				continue
 			}
 
+			fa.ModuleID = fb.ModuleID
+			fa.Place = fb.Place
 			if fa.Kind == "" {
 				fa.Kind = fb.Kind
 			}
@@ -257,8 +259,30 @@ func mergeComposeModuleFields(a, b types.ModuleFieldSet) types.ModuleFieldSet {
 			if fa.Options == nil {
 				fa.Options = fb.Options
 			}
-			if fa.DefaultValue == nil || len(fa.DefaultValue) <= 0 {
+			if fa.DefaultValue == nil {
 				fa.DefaultValue = fb.DefaultValue
+			}
+			if fa.Expressions.ValueExpr == "" {
+				fa.Expressions.ValueExpr = fb.Expressions.ValueExpr
+			}
+			if len(fa.Expressions.Sanitizers) == 0 {
+				fa.Expressions.Sanitizers = fb.Expressions.Sanitizers
+			}
+			if len(fa.Expressions.Validators) == 0 {
+				fa.Expressions.Validators = fb.Expressions.Validators
+			}
+			if len(fa.Expressions.Formatters) == 0 {
+				fa.Expressions.Formatters = fb.Expressions.Formatters
+			}
+
+			if fa.CreatedAt.IsZero() {
+				fa.CreatedAt = fb.CreatedAt
+			}
+			if fa.UpdatedAt == nil {
+				fa.UpdatedAt = fb.UpdatedAt
+			}
+			if fa.DeletedAt == nil {
+				fa.DeletedAt = fb.DeletedAt
 			}
 
 			goto out
@@ -281,6 +305,17 @@ func mergeComposeModule(a, b *types.Module) *types.Module {
 	}
 	if c.Name == "" {
 		c.Name = b.Name
+	}
+	c.NamespaceID = b.NamespaceID
+
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
 	}
 
 	// I'll just compare the entire struct for now
