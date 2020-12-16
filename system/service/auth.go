@@ -429,7 +429,9 @@ func (svc auth) InternalLogin(ctx context.Context, email string, password string
 		)
 
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
-		if err != nil {
+		if errors.IsNotFound(err) {
+			return AuthErrInvalidCredentials(aam)
+		} else if err != nil {
 			return err
 		}
 
