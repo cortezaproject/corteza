@@ -126,6 +126,16 @@ func mergeComposeNamespaces(a, b *types.Namespace) *types.Namespace {
 		c.Slug = b.Slug
 	}
 
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
+	}
+
 	// I'll just compare the entire struct for now
 	if c.Meta == (types.NamespaceMeta{}) {
 		c.Meta = b.Meta

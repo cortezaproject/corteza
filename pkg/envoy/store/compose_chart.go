@@ -173,6 +173,16 @@ func mergeComposeChart(a, b *types.Chart) *types.Chart {
 	if c.Name == "" {
 		c.Name = b.Name
 	}
+	c.NamespaceID = b.NamespaceID
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = b.CreatedAt
+	}
+	if c.UpdatedAt == nil {
+		c.UpdatedAt = b.UpdatedAt
+	}
+	if c.DeletedAt == nil {
+		c.DeletedAt = b.DeletedAt
+	}
 
 	if len(c.Config.Reports) <= 0 {
 		c.Config.Reports = b.Config.Reports

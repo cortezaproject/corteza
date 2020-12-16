@@ -29,7 +29,6 @@ func CollectNodes(ii ...interface{}) (nn []resource.Interface, err error) {
 
 		case Marshaller:
 			if tmp, err := c.MarshalEnvoy(); err != nil {
-				println(err)
 				return nil, err
 			} else {
 				nn = append(nn, tmp...)

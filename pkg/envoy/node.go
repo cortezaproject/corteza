@@ -30,16 +30,6 @@ func (nn nodeSet) add(mm ...*node) nodeSet {
 	return append(nn, mm...)
 }
 
-func (nn nodeSet) filter(f func(n *node) bool) nodeSet {
-	mm := make(nodeSet, 0, len(nn))
-	for _, n := range nn {
-		if f(n) {
-			mm = append(mm, n)
-		}
-	}
-	return mm
-}
-
 func (nn nodeSet) has(m *node) bool {
 	for _, n := range nn {
 		if n == m {

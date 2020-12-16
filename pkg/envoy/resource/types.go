@@ -64,14 +64,6 @@ func (ri Identifiers) Add(ii ...string) Identifiers {
 	return ri
 }
 
-func (ri Identifiers) Remove(ii ...string) Identifiers {
-	for _, i := range ii {
-		delete(ri, i)
-	}
-
-	return ri
-}
-
 func (ri Identifiers) HasAny(ii Identifiers) bool {
 	for i := range ii {
 		if ri[i] {
@@ -96,26 +88,6 @@ func (ri Identifiers) First() string {
 		return ""
 	}
 	return ss[0]
-}
-
-func (ss RefSet) FilterByResourceType(rt string) RefSet {
-	rr := make(RefSet, 0, len(ss))
-
-	for _, s := range ss {
-		if s.ResourceType == rt {
-			rr = append(rr, s)
-		}
-	}
-
-	return rr
-}
-
-func (ss RefSet) FirstByResourceType(rt string) *Ref {
-	rr := ss.FilterByResourceType(rt)
-	if len(rt) <= 0 {
-		return nil
-	}
-	return rr[0]
 }
 
 func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {

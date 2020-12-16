@@ -643,6 +643,77 @@ func TestSimpleCases(t *testing.T) {
 				req.Equal("f1 value", rr2[0].Values.FilterByName("f1")[0].Value)
 			},
 		},
+
+		{
+			name:  "base access control",
+			suite: "simple",
+			file:  "access_control_base",
+			pre: func() (err error) {
+				return ce(
+					s.TruncateComposeRecords(ctx, nil),
+					s.TruncateComposeModuleFields(ctx),
+					s.TruncateComposeModules(ctx),
+					s.TruncateComposeNamespaces(ctx),
+					s.TruncateComposePages(ctx),
+					s.TruncateComposeCharts(ctx),
+					s.TruncateUsers(ctx),
+					s.TruncateRoles(ctx),
+					s.TruncateMessagingChannels(ctx),
+					s.TruncateRbacRules(ctx),
+				)
+			},
+			post: func(req *require.Assertions, err error) {
+				req.NoError(err)
+			},
+			check: func(req *require.Assertions) {
+
+				role, err := store.LookupRoleByHandle(ctx, s, "everyone")
+				req.NoError(err)
+				req.NotNil(role)
+
+				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+				req.NoError(err)
+				req.Len(rr, 18)
+
+				// Check that the role is ok
+				rr.Walk(func(r *rbac.Rule) error {
+					req.Equal(role.ID, r.RoleID)
+					return nil
+				})
+
+				resources := []string{
+					"compose:namespace:",
+					"compose:namespace:",
+					"compose:module:",
+					"compose:module:",
+					"compose:page:",
+					"compose:page:",
+					"compose:chart:",
+					"compose:chart:",
+					"messaging:channel:",
+					"messaging:channel:",
+					"system:role:",
+					"system:role:",
+					"system:user:",
+					"system:user:",
+					"system:application:",
+					"system:application:",
+					"compose",
+					"compose",
+				}
+
+				for i, res := range resources {
+					req.Equal(rbac.Resource(res), rr[i].Resource.TrimID())
+					if i%2 == 0 {
+						req.Equal(rbac.Operation("op1"), rr[i].Operation)
+						req.Equal(rbac.Allow, rr[i].Access)
+					} else {
+						req.Equal(rbac.Operation("op2"), rr[i].Operation)
+						req.Equal(rbac.Deny, rr[i].Access)
+					}
+				}
+			},
+		},
 	}
 
 	for _, c := range cases {

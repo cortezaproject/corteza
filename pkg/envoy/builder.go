@@ -49,9 +49,6 @@ func (b *builder) Build(ctx context.Context, rr ...resource.Interface) (*graph, 
 	var err error
 
 	g := b.buildGraph(rr)
-	if err != nil {
-		return nil, err
-	}
 
 	// Do any dep. related preprocessing
 	var state *ResourceState
