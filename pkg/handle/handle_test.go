@@ -10,7 +10,6 @@ func TestIsValid(t *testing.T) {
 		handle string
 		want   bool
 	}{
-		// TODO: Add test cases.
 		{"empty", "", true},
 		{"alphanum", "a1", true},
 		{"alpha", "abc", true},

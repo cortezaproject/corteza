@@ -59,7 +59,6 @@ func Test_RecordEncoding(t *testing.T) {
 			structResult: `{"createdAt":"2017-09-09T17:00:00Z","deletedAt":null,"ownedBy":"12345","recordID":"12345"}` + "\n" +
 				`{"createdAt":"1970-01-01T03:25:45Z","deletedAt":null,"fff":["1","2"],"foo":"bar","ownedBy":"12345","recordID":"54321"}` + "\n",
 		},
-		// TODO: Add test cases.
 	}
 
 	for _, tt := range tests {

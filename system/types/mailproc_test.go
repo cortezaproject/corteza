@@ -15,7 +15,6 @@ func Test_mailProcMessage(t *testing.T) {
 		wantOut *MailMessage
 		wantErr bool
 	}{
-		// TODO: Add test cases.
 		{name: "basics",
 			input: `
 From: <sender@testing.cortezaproject.org>
