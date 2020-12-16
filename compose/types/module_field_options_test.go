@@ -12,7 +12,6 @@ func TestModuleFieldOptions_Int64Def(t *testing.T) {
 		def  int64
 		want int64
 	}{
-		// TODO: Add test cases.
 		{"unexisting", ModuleFieldOptions{}, "k", 42, 42},
 		{"nil", ModuleFieldOptions{"k": nil}, "k", 42, 42},
 		{"bool", ModuleFieldOptions{"k": true}, "k", 42, 42},

@@ -356,7 +356,6 @@ func Test_auth_validateToken(t *testing.T) {
 		wantID          uint64
 		wantCredentials string
 	}{
-		// TODO: Add test cases.
 		{
 			name:            "empty",
 			wantID:          0,
