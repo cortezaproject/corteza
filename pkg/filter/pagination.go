@@ -27,6 +27,18 @@ type (
 		// value of {cursor} will be copied here
 		// read-only
 		PrevPage *PagingCursor `json:"prevPage,omitempty"`
+
+		IncPageNavigation bool `json:"incPageNavigation,omitempty"`
+		IncTotal          bool `json:"incTotal,omitempty"`
+
+		PageNavigation []*Page `json:"pageNavigation,omitempty"`
+		Total          uint    `json:"total,omitempty"`
+	}
+
+	Page struct {
+		Page   uint          `json:"page"`
+		Count  uint          `json:"items"`
+		Cursor *PagingCursor `json:"cursor"`
 	}
 
 	PagingCursor struct {

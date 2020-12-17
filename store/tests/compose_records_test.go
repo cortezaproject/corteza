@@ -422,7 +422,6 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 	})
 
 	t.Run("sort by system field, paged", func(t *testing.T) {
-		t.SkipNow()
 		var (
 			req, _ = truncAndCreate(t,
 				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}),
@@ -583,6 +582,58 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			req.Equal(fmt.Sprintf("v%d", p), stringifyValues(set, "str1"))
 			f.PageCursor = f.PrevPage
 		}
+	})
+
+	t.Run("page navigation", func(t *testing.T) {
+		var (
+			err error
+			set types.RecordSet
+
+			req, _ = truncAndCreate(t,
+				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v6"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v7"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v8"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v9"}),
+			)
+
+			f = types.RecordFilter{
+				ModuleID:    mod.ID,
+				NamespaceID: mod.NamespaceID,
+			}
+		)
+
+		req.NoError(f.Sort.Set("str1"))
+		f.Limit = 2
+		f.IncPageNavigation = true
+		f.IncTotal = true
+
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.NotNil(f.PageNavigation)
+		req.Equal(uint(9), f.Total)
+		req.Len(f.PageNavigation, 5)
+
+		f.PageCursor = f.PageNavigation[1].Cursor
+		f.IncPageNavigation = false
+		f.IncTotal = false
+		set, _, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.Equal("v3;v4", stringifyValues(set, "str1"))
+
+		f.PageCursor = f.PageNavigation[4].Cursor
+		f.IncPageNavigation = false
+		f.IncTotal = false
+		set, _, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.Equal("v9", stringifyValues(set, "str1"))
 	})
 
 	t.Run("report", func(t *testing.T) {

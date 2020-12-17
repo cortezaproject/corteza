@@ -105,6 +105,9 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		return nil, err
 	}
 
+	f.IncTotal = r.IncTotal
+	f.IncPageNavigation = r.IncPageNavigation
+
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
 		return nil, err
 	}
