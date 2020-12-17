@@ -94,6 +94,16 @@ type (
 		// Limit
 		Limit uint
 
+		// IncTotal GET parameter
+		//
+		// Include total records counter
+		IncTotal bool
+
+		// IncPageNavigation GET parameter
+		//
+		// Include page navigation
+		IncPageNavigation bool
+
 		// PageCursor GET parameter
 		//
 		// Page cursor
@@ -519,15 +529,17 @@ func NewRecordList() *RecordList {
 // Auditable returns all auditable/loggable parameters
 func (r RecordList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"namespaceID": r.NamespaceID,
-		"moduleID":    r.ModuleID,
-		"query":       r.Query,
-		"filter":      r.Filter,
-		"labels":      r.Labels,
-		"deleted":     r.Deleted,
-		"limit":       r.Limit,
-		"pageCursor":  r.PageCursor,
-		"sort":        r.Sort,
+		"namespaceID":       r.NamespaceID,
+		"moduleID":          r.ModuleID,
+		"query":             r.Query,
+		"filter":            r.Filter,
+		"labels":            r.Labels,
+		"deleted":           r.Deleted,
+		"limit":             r.Limit,
+		"incTotal":          r.IncTotal,
+		"incPageNavigation": r.IncPageNavigation,
+		"pageCursor":        r.PageCursor,
+		"sort":              r.Sort,
 	}
 }
 
@@ -564,6 +576,16 @@ func (r RecordList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r RecordList) GetLimit() uint {
 	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordList) GetIncTotal() bool {
+	return r.IncTotal
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordList) GetIncPageNavigation() bool {
+	return r.IncPageNavigation
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -624,6 +646,18 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
 			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incTotal"]; ok && len(val) > 0 {
+			r.IncTotal, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incPageNavigation"]; ok && len(val) > 0 {
+			r.IncPageNavigation, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

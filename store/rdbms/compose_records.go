@@ -17,6 +17,23 @@ const (
 	composeRecordValueJoinTpl  = "compose_record_value AS {alias} ON ({alias}.record_id = crd.id AND {alias}.name = '{field}' AND {alias}.deleted_at IS NULL)"
 )
 
+func buildComposeRecordsCursor(cfg *Config, m *types.Module) func(cur *filter.PagingCursor) squirrel.Sqlizer {
+	return func(cur *filter.PagingCursor) squirrel.Sqlizer {
+		return builders.CursorCondition(cur, func(key string) (string, error) {
+			if col, is := isRealRecordCol(key); is {
+				return col, nil
+			}
+
+			f := m.Fields.FindByName(key)
+			if f == nil {
+				return "", fmt.Errorf("unknown module field %q used in a cursor", key)
+			}
+
+			return cfg.CastModuleFieldToColumnType(f, f.Name)
+		})
+	}
+}
+
 // @todo support for partitioned records (records are partitioned into multiple record tables
 //       in this case, values are no longer separated into record_value (key-value) table but encoded as JSON
 // @todo support for partitioned record with (optional) physical columns for record values
@@ -38,6 +55,10 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 		f.PrevPage, f.NextPage = nil, nil
 
 		if f.PageCursor != nil {
+			if f.IncPageNavigation || f.IncTotal {
+				return fmt.Errorf("not allowed to fetch page navigation or total item count with page cursor")
+			}
+
 			// Page cursor exists so we need to validate it against used sort
 			// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 			// from the cursor.
@@ -75,29 +96,96 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 			ctx, m, q,
 			f.Sort, f.PageCursor, f.Limit,
 			f.Check,
-			func(cur *filter.PagingCursor) squirrel.Sqlizer {
-				// in case where records are sorted by module fields, we need
-				// to reconstruct the cursor with proper keys
-				return builders.CursorCondition(cur, func(key string) (string, error) {
-					if col, is := isRealRecordCol(key); is {
-						return col, nil
-					}
-
-					f := m.Fields.FindByName(key)
-					if f == nil {
-						return "", fmt.Errorf("unknown module field %q used in a cursor", key)
-					}
-
-					return s.config.CastModuleFieldToColumnType(f, f.Name)
-				})
-			},
+			buildComposeRecordsCursor(s.config, m),
 		)
 
 		if err != nil {
 			return
 		}
 
+		if f.IncPageNavigation || f.IncTotal {
+			if f.IncTotal {
+				// Calc total from the number of items fetched
+				// even if we do build the page navigation
+				f.Total = uint(len(set))
+			}
+			if f.Limit > 0 && uint(len(set)) == f.Limit {
+				// Build page navigation ONLY when limit is set and
+				// there are less items fetched then requested limit
+				if nav, err := s.composeRecordsPageNavigation(ctx, m, q, f); err != nil {
+					return err
+				} else {
+					f.Total = nav.Total
+					f.PageNavigation = nav.PageNavigation
+				}
+
+			}
+		}
+
 		f.PageCursor = nil
+		return nil
+	}()
+}
+
+func (s Store) composeRecordsPageNavigation(ctx context.Context, m *types.Module, q squirrel.SelectBuilder, f types.RecordFilter) (types.RecordFilter, error) {
+	return f, func() (err error) {
+		// reset output on filter
+		f.Total = 0
+		f.PageNavigation = make([]*filter.Page, 0, 100)
+		f.NextPage = nil
+		f.PrevPage = nil
+
+		var (
+			page *filter.Page
+			set  []*types.Record
+			next *filter.PagingCursor
+		)
+
+		for {
+			set, _, next, err = s.fetchFullPageOfComposeRecords(
+				ctx, m, q,
+				f.Sort, next, f.Limit,
+				f.Check,
+				buildComposeRecordsCursor(s.config, m),
+			)
+
+			if err != nil {
+				return err
+			}
+
+			page = &filter.Page{
+				Page:  uint(len(f.PageNavigation) + 1),
+				Count: uint(len(set)),
+
+				// this is not correct cursor for next page (next) should actually go
+				// to the next entry under page navigation
+				Cursor: next,
+			}
+
+			if f.IncTotal {
+				f.Total += page.Count
+			}
+
+			if f.IncPageNavigation {
+				f.PageNavigation = append(f.PageNavigation, page)
+			}
+
+			if next == nil {
+				break
+			}
+		}
+
+		if len(f.PageNavigation) > 0 {
+			// reorder cursors and move them forward for 1 page,
+			// going from last to 1st
+			for p := len(f.PageNavigation) - 1; p > 0; p-- {
+				f.PageNavigation[p].Cursor = f.PageNavigation[p-1].Cursor
+			}
+
+			// no need for cursor on the 1st page.
+			f.PageNavigation[0].Cursor = nil
+		}
+
 		return nil
 	}()
 }

@@ -549,6 +549,12 @@ endpoints:
       - type: uint
         name: limit
         title: Limit
+      - name: incTotal
+        type: bool
+        title: Include total records counter
+      - name: incPageNavigation
+        type: bool
+        title: Include page navigation
       - type: string
         name: pageCursor
         title: Page cursor
