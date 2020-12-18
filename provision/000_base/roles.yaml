@@ -1,8 +1,10 @@
 roles:
-  # placeholder, everyone role is created programmatically
-  # with a fixed ID before configs are processed
-  - everyone
-  # placeholder, admin role is created programmatically
-  # with a fixed ID before configs are processed
-  - admins
-  - federation
+  # Placeholders for programmatically created roles.
+  # These are created in provision/roles.go
+  admins:
+    name: Administrators
+  everyone:
+    name: Everyone
+
+  federation:
+    name: Federation
