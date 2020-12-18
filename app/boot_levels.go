@@ -53,6 +53,25 @@ func (app *CortezaApp) Setup() (err error) {
 		return nil
 	}
 
+	{
+		// Raise warnings about experimental parts that are enabled
+		log := app.Log.WithOptions(zap.AddStacktrace(zap.PanicLevel), zap.WithCaller(false))
+
+		if app.Opt.Federation.Enabled {
+			log.Warn("Record Federation is still in EXPERIMENTAL phase")
+		}
+
+		if app.Opt.SCIM.Enabled {
+			log.Warn("Support for SCIM protocol is still in EXPERIMENTAL phase")
+		}
+
+		if app.Opt.DB.IsSQLite() {
+			log.Warn("You're using SQLite as a storage backend")
+			log.Warn("Should be used only for testing")
+			log.Warn("You may experience unstability and data loss")
+		}
+	}
+
 	hcd := healthcheck.Defaults()
 	hcd.Add(scheduler.Healthcheck, "Scheduler")
 	hcd.Add(mail.Healthcheck, "Mail")

@@ -10,3 +10,7 @@ func (o *DBOpt) Defaults() {
 		o.DSN = "mysql://" + o.DSN
 	}
 }
+
+func (o DBOpt) IsSQLite() bool {
+	return strings.HasPrefix(o.DSN, "sqlite3")
+}
