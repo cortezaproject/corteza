@@ -863,8 +863,7 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 }
 
 func (svc record) recordInfoUpdate(r *types.Record) {
-	now := time.Now()
-	r.UpdatedAt = &now
+	r.UpdatedAt = now()
 	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
 }
 

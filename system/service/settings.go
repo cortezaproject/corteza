@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"strings"
-	"time"
 )
 
 type (
@@ -108,14 +108,14 @@ func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) 
 	var current *types.SettingValue
 	current, err = store.LookupSettingByNameOwnedBy(ctx, svc.store, v.Name, v.OwnedBy)
 	if errors.IsNotFound(err) {
-		v.UpdatedAt = time.Now()
+		v.UpdatedAt = *now()
 		err = store.CreateSetting(ctx, svc.store, v)
 	} else if err != nil {
 		return err
 	}
 
 	if !current.Eq(v) {
-		v.UpdatedAt = time.Now()
+		v.UpdatedAt = *now()
 		err = store.UpdateSetting(ctx, svc.store, v)
 	}
 
@@ -140,7 +140,7 @@ func (svc settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err 
 	} else {
 		vv = current.Changed(vv)
 		_ = vv.Walk(func(v *types.SettingValue) error {
-			v.UpdatedAt = time.Now()
+			v.UpdatedAt = *now()
 			return nil
 		})
 

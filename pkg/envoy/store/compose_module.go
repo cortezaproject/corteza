@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -38,7 +37,7 @@ func NewComposeModuleState(res *resource.ComposeModule, cfg *EncoderConfig) reso
 func (n *composeModuleState) Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = time.Now()
+		n.res.Res.CreatedAt = *now()
 	}
 
 	// Get relate namespace
@@ -160,7 +159,7 @@ func (n *composeModuleState) Encode(ctx context.Context, s store.Storer, state *
 		f.ModuleID = res.ID
 		f.Place = i
 		f.DeletedAt = nil
-		f.CreatedAt = time.Now()
+		f.CreatedAt = *now()
 
 		if f.Kind == "Record" {
 			refM := f.Options.String("module")

@@ -48,7 +48,7 @@ var (
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
-		c := time.Now()
+		c := time.Now().Round(time.Second)
 		return &c
 	}
 

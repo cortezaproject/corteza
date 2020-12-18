@@ -16,13 +16,15 @@ func roles(ctx context.Context, s store.Storer) error {
 		return nil
 	}
 
+	now := time.Now().Round(time.Second)
+
 	rr := types.RoleSet{
 		&types.Role{ID: rbac.AdminsRoleID, Name: "Administrators", Handle: "admins"},
 		&types.Role{ID: rbac.EveryoneRoleID, Name: "Everyone", Handle: "everyone"},
 	}
 
 	err := rr.Walk(func(r *types.Role) error {
-		r.CreatedAt = time.Now()
+		r.CreatedAt = now
 		return store.CreateRole(ctx, s, r)
 	})
 

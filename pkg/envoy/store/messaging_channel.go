@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/messaging/types"
 
@@ -32,7 +31,7 @@ func NewMessagingChannelState(res *resource.MessagingChannel, cfg *EncoderConfig
 func (n *messagingChannelState) Prepare(ctx context.Context, s store.Storer, rs *envoy.ResourceState) (err error) {
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = time.Now()
+		n.res.Res.CreatedAt = *now()
 	}
 
 	// Sys users
