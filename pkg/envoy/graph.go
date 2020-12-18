@@ -171,14 +171,15 @@ func (g *graph) traverse(n *node, path, processed nodeMap) *node {
 	if path.has(n) {
 		return n
 	}
+	cnn := g.removeProcessed(g.removeConflicting(g.childNodes(n)))
 	// Nothing else to look at
-	if len(g.childNodes(n)) == 0 {
+	if len(cnn) == 0 {
 		return nil
 	}
 
 	path.add(n)
 
-	for _, c := range g.childNodes(n) {
+	for _, c := range cnn {
 		m := g.traverse(c, path, processed)
 		if m != nil {
 			return m
