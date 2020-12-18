@@ -43,8 +43,9 @@ func (h helper) prepareRBAC() {
 	h.allow("federation:node:*", rbac.Operation("manage"))
 
 	h.noError(service.DefaultStore.CreateRole(context.Background(), &st.Role{
-		ID:   h.roleID,
-		Name: "federation",
+		ID:     h.roleID,
+		Name:   "Federation",
+		Handle: "federation",
 	}))
 
 	h.noError(service.DefaultStore.CreateUser(context.Background(), h.cUser))
