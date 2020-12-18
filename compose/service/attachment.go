@@ -348,6 +348,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 
 	// preset attachment ID because we need ref for storage
 	att.ID = nextID()
+	att.CreatedAt = *now()
 
 	if att.OwnerID == 0 {
 		att.OwnerID = auth.GetIdentityFromContext(svc.ctx).Identity()
