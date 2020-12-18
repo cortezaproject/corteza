@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -32,7 +31,7 @@ func NewRole(res *resource.Role, cfg *EncoderConfig) resourceState {
 func (n *roleState) Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = time.Now()
+		n.res.Res.CreatedAt = *now()
 	}
 
 	n.rl, err = findRoleS(ctx, s, makeGenericFilter(n.res.Identifiers()))

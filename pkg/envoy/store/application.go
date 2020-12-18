@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -29,7 +28,7 @@ func NewApplicationState(res *resource.Application, cfg *EncoderConfig) resource
 func (n *applicationState) Prepare(ctx context.Context, s store.Storer, rs *envoy.ResourceState) (err error) {
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = time.Now()
+		n.res.Res.CreatedAt = *now()
 	}
 	if n.res.Res.Unify == nil {
 		n.res.Res.Unify = &types.ApplicationUnify{}

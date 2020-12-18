@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -35,7 +34,7 @@ func NewComposeChartState(res *resource.ComposeChart, cfg *EncoderConfig) resour
 func (n *composeChartState) Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
 	// Initial values
 	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = time.Now()
+		n.res.Res.CreatedAt = *now()
 	}
 
 	// Get relate namespace

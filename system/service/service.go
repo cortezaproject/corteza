@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -16,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -89,7 +90,7 @@ var (
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
-		c := time.Now()
+		c := time.Now().Round(time.Second)
 		return &c
 	}
 

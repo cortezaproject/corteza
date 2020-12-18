@@ -29,6 +29,12 @@ var (
 		return id.Next()
 	}
 
+	// wrapper around time.Now() that will aid testing
+	now = func() *time.Time {
+		c := time.Now().Round(time.Second)
+		return &c
+	}
+
 	exprP = expr.Parser()
 )
 

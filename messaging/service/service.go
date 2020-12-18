@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -12,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -53,7 +54,7 @@ var (
 
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
-		c := time.Now()
+		c := time.Now().Round(time.Second)
 		return &c
 	}
 

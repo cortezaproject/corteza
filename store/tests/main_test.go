@@ -2,6 +2,10 @@ package tests
 
 import (
 	"context"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/mysql"
@@ -10,14 +14,11 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
-	"os"
-	"testing"
-	"time"
 )
 
 var (
 	now = func() *time.Time {
-		n := time.Now()
+		n := time.Now().Round(time.Second)
 		return &n
 	}
 )

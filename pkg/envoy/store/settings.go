@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -51,7 +50,7 @@ func (n *settingsState) Prepare(ctx context.Context, s store.Storer, state *envo
 	// Default values
 	for _, s := range n.res {
 		if s.UpdatedAt.IsZero() {
-			s.UpdatedAt = time.Now()
+			s.UpdatedAt = *now()
 		}
 
 		gSettingsState.res = append(gSettingsState.res, s)
