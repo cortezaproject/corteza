@@ -116,10 +116,8 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 		}
 
 		att = &types.Attachment{
-			ID:        nextID(),
-			OwnerID:   currentUserID,
-			Name:      strings.TrimSpace(name),
-			CreatedAt: *now(),
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
 		}
 
 		err = svc.create(name, size, fh, att)
@@ -139,6 +137,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 			ChannelID:  channelID,
 			ReplyTo:    replyTo,
 			UserID:     currentUserID,
+			CreatedAt:  *now(),
 		}
 
 		if strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
@@ -168,6 +167,9 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 	var (
 		aProps = &attachmentActionProps{}
 	)
+
+	att.ID = nextID()
+	att.CreatedAt = *now()
 
 	if svc.files == nil {
 		return fmt.Errorf("can not create attachment: store handler not set")
