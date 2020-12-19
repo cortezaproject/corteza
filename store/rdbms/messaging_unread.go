@@ -95,7 +95,7 @@ func (s Store) ResetMessagingUnreadThreads(ctx context.Context, userID, channelI
 		set = store.Payload{"count": 0}
 	)
 
-	return s.execUpdateComposeRecordValues(ctx, cnd, set)
+	return s.execUpdateMessagingUnreads(ctx, cnd, set)
 }
 
 // PresetMessagingUnread presets channel unread records for all users (and threads in that channel)
