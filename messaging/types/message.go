@@ -118,19 +118,19 @@ func (mtype MessageType) IsEditable() bool {
 	return false
 }
 
-//func (mtype *MessageType) Scan(value interface{}) error {
-//	switch value.(type) {
-//	case nil:
-//		*mtype = MessageTypeSimpleMessage
-//	case []uint8:
-//		*mtype = MessageType(string(value.([]uint8)))
-//		if !mtype.IsValid() {
-//			return errors.Errorf("Can not scan %v into MessageType", value)
-//		}
-//	}
-//
-//	return nil
-//}
+func (mtype *MessageType) Scan(value interface{}) error {
+	switch value.(type) {
+	case nil:
+		*mtype = MessageTypeSimpleMessage
+	case []uint8:
+		*mtype = MessageType(string(value.([]uint8)))
+		if !mtype.IsValid() {
+			return errors.Errorf("Can not scan %v into MessageType", value)
+		}
+	}
+
+	return nil
+}
 
 func (mtype MessageType) Value() (driver.Value, error) {
 	if mtype == MessageTypeSimpleMessage {
