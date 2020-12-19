@@ -484,7 +484,7 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 		return nil
 	})
 
-	return lastReadMessageID, count, threadCount, fmt.Errorf("unable to mark as read: %w", err)
+	return lastReadMessageID, count, threadCount, err
 }
 
 // React on a message with an emoji
