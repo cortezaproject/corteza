@@ -15,13 +15,16 @@ func MountRoutes(r chi.Router) {
 	// Protect all _private_ routes
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
-		r.Use(middlewareAllowedAccess)
-
-		handlers.NewNode(Node{}.New()).MountRoutes(r)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
-		handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
 
-		handlers.NewSyncData((SyncData{}.New())).MountRoutes(r)
-		handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
+		r.Group(func(r chi.Router) {
+			r.Use(middlewareAllowedAccess)
+
+			handlers.NewNode(Node{}.New()).MountRoutes(r)
+			handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
+
+			handlers.NewSyncData((SyncData{}.New())).MountRoutes(r)
+			handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
+		})
 	})
 }

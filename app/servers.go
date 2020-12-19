@@ -63,6 +63,10 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				app.WsServer.ApiServerRoutes(r)
 			})
 
+			if app.Opt.Federation.Enabled {
+				r.Route("/federation", federationRest.MountRoutes)
+			}
+
 			r.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 				// redirect to endpoint with slash
 				http.Redirect(w, r, "/"+apiBaseUrl+"/docs/", http.StatusPermanentRedirect)
@@ -137,13 +141,5 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		)
 	} else {
 		app.Log.Info("client web applications disabled")
-	}
-
-	if app.Opt.Federation.Enabled {
-		r.Route("/federation", federationRest.MountRoutes)
-	} else {
-		app.Log.Info(
-			"federation API disabled",
-		)
 	}
 }
