@@ -160,5 +160,9 @@ func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f type
 		return nil, err
 	}
 
+	if len(uu) == 0 {
+		uu = make([]*types.User, 0)
+	}
+
 	return &userSetPayload{Filter: f, Set: uu}, nil
 }
