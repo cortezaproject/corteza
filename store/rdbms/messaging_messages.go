@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/store"
@@ -88,13 +89,19 @@ func (s Store) convertMessagingMessageFilter(f types.MessageFilter) (query squir
 		if flagQuery, err = s.convertMessagingFlagFilter(types.MessageFlagFilter{Flag: flag}); err != nil {
 			return
 		} else {
-			query = query.
-				Where(squirrel.Eq{"msg.id": flagQuery})
+
+			if fqSql, fqArgs, fqErr := flagQuery.Where("msg.id = mmf.rel_message").ToSql(); err != nil {
+				return query, fqErr
+			} else {
+				query = query.
+					Where(fmt.Sprintf("EXISTS (%s)", fqSql), fqArgs...)
+			}
 		}
 	}
 
 	// Manually sorting & limiting for BC
 	query = query.
+		PlaceholderFormat(s.config.PlaceholderFormat).
 		OrderBy("id DESC").
 		Limit(uint64(f.Limit))
 	return
