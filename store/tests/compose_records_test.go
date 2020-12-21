@@ -521,9 +521,9 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			set types.RecordSet
 
 			req, _ = truncAndCreate(t,
-				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "three"}),
-				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "three"}),
-				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "three"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "w3.1"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v2"}, &types.RecordValue{Name: "str3", Value: "w3.2"}),
+				makeNew(&types.RecordValue{Name: "str1", Value: "v3"}, &types.RecordValue{Name: "str3", Value: "w3.3"}),
 				makeNew(&types.RecordValue{Name: "str1", Value: "v4"}),
 				makeNew(&types.RecordValue{Name: "str1", Value: "v5"}),
 				makeNew(&types.RecordValue{Name: "str1", Value: "v6"}),
@@ -544,7 +544,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.NoError(err)
 		req.NotNil(f.NextPage)
 		req.Nil(f.PrevPage)
-		req.Equal("v1,three;v2,three;v3,three", stringifyValues(set, "str1", "str3"))
+		req.Equal("v1,w3.1;v2,w3.2;v3,w3.3", stringifyValues(set, "str1", "str3"))
 
 		f.PageCursor = f.NextPage
 		set, f, err = s.SearchComposeRecords(ctx, mod, f)
@@ -556,10 +556,12 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		f.Limit = 1
 		set, f, err = s.SearchComposeRecords(ctx, mod, f)
 		req.NoError(err)
-		req.Equal("three,v1", stringifyValues(set, "str3", "str1"))
+		req.Equal("w3.3,v3", stringifyValues(set, "str3", "str1"))
 
 		f.Limit = 1
 		req.NoError(f.Sort.Set("str1"))
+
+		validOrderOfStr1 := []int{0, 1, 2, 3, 4, 5, 6, 7}
 
 		f.PageCursor = nil
 		for p := 1; p <= 5; p++ {
@@ -568,8 +570,8 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			}
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
 			req.NoError(err)
-			req.Equal(fmt.Sprintf("v%d", p), stringifyValues(set, "str1"))
-			//fmt.Printf("v%d\t%v\t%30s\t%30s\n", p, f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str1", "str3"), f.Sort, f.NextPage, f.PrevPage)
 			f.PageCursor = f.NextPage
 		}
 
@@ -577,9 +579,63 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		for p := 4; p >= 1; p-- {
 			f.Sort = nil
 			set, f, err = s.SearchComposeRecords(ctx, mod, f)
-			//fmt.Printf("v%d\t%v\t%30s\t%30s\n", p, f.Sort, f.NextPage, f.PrevPage)
 			req.NoError(err)
-			req.Equal(fmt.Sprintf("v%d", p), stringifyValues(set, "str1"))
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str1", "str3"), f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
+			f.PageCursor = f.PrevPage
+		}
+
+		f.Limit = 1
+
+		req.NoError(f.Sort.Set("str3 DESC, id DESC"))
+		f.PageCursor = nil
+
+		validOrderOfStr1 = []int{0, 3, 2, 1, 9, 8, 7}
+
+		for p := 1; p <= 6; p++ {
+			if p > 1 {
+				f.Sort = nil
+			}
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str3", "str1"), f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
+			f.PageCursor = f.NextPage
+		}
+
+		f.PageCursor = f.PrevPage
+		for p := 5; p >= 1; p-- {
+			f.Sort = nil
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str3", "str1"), f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
+			f.PageCursor = f.PrevPage
+		}
+
+		req.NoError(f.Sort.Set("str3 ASC, id ASC"))
+		f.PageCursor = nil
+
+		validOrderOfStr1 = []int{0, 4, 5, 6, 7, 8, 9, 1, 2}
+
+		for p := 1; p <= len(validOrderOfStr1)-1; p++ {
+			if p > 1 {
+				f.Sort = nil
+			}
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str3", "str1"), f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
+			f.PageCursor = f.NextPage
+		}
+
+		f.PageCursor = f.PrevPage
+		for p := len(validOrderOfStr1) - 2; p >= 1; p-- {
+			f.Sort = nil
+			set, f, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			//fmt.Printf("%-30s\t%v\t%30s\t%30s\n", stringifyValues(set, "str3", "str1"), f.Sort, f.NextPage, f.PrevPage)
+			req.Equal(fmt.Sprintf("v%d", validOrderOfStr1[p]), stringifyValues(set, "str1"))
 			f.PageCursor = f.PrevPage
 		}
 	})
