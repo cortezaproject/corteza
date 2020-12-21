@@ -349,6 +349,8 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 	case []interface{}:
 		for _, o := range oo {
 			switch c := o.(type) {
+			case string:
+				sbm[c] = true
 			case map[string]string:
 				if value, has := c["value"]; has {
 					sbm[value] = true
