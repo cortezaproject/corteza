@@ -869,9 +869,11 @@ func (svc message) extractMentions(m *types.Message) (mm types.MentionSet) {
 
 	// Prepopulated with all we know from message
 	tpl := types.Mention{
+		ID:            nextID(),
 		ChannelID:     m.ChannelID,
 		MessageID:     m.ID,
 		MentionedByID: m.UserID,
+		CreatedAt:     *now(),
 	}
 
 	for m := 0; m < len(match); m++ {
