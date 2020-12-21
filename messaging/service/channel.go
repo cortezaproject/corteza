@@ -275,21 +275,20 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 		mm := svc.buildMemberSet(chCreatorID, new.Members...)
 
 		if new.Type == types.ChannelTypeGroup {
-			if ch, err = store.LookupMessagingChannelByMemberSet(ctx, s, mm.AllMemberIDs()...); err != nil {
+			ch, err = store.LookupMessagingChannelByMemberSet(ctx, s, mm.AllMemberIDs()...)
+			if err == nil {
+				if err = svc.preloadExtras(ctx, s, ch); err != nil {
+					return
+				}
+
+				if !ch.CanObserve {
+					return ChannelErrNotAllowedToRead()
+				} else {
+					// Group already exists so let's just return it
+					return nil
+				}
+			} else if !errors.IsNotFound(err) {
 				return
-			}
-
-			if err = svc.preloadExtras(ctx, s, ch); err != nil {
-				return
-			}
-
-			if ch != nil && ch.CanObserve {
-				// Group already exists so let's just return it
-				return nil
-			}
-
-			if ch != nil && !ch.CanObserve {
-				return ChannelErrNotAllowedToRead()
 			}
 		}
 
