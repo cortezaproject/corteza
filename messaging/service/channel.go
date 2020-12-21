@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -349,6 +350,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 
 		// Copy all member IDs to channel's member slice
 		ch.Members = mm.AllMemberIDs()
+		ch.Member = mm.FindByUserID(chCreatorID)
 
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
@@ -865,6 +867,9 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 			svc.event.Join(memberID, channelID)
 
 			out = append(out, member)
+
+			ch.Member = member
+			ch.Members = out.AllMemberIDs()
 		}
 
 		// Push channel to all members
