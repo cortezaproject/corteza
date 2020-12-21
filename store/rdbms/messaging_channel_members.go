@@ -32,7 +32,7 @@ func (s Store) getMessagingChannelMembersQuery(memberIDs ...uint64) squirrel.Sel
 		return memberIDs[i] < memberIDs[j]
 	})
 
-	// Concatentating members fore
+	// Concatenating members fore
 	list := ""
 	for i := range memberIDs {
 		if i > 0 {
@@ -41,10 +41,10 @@ func (s Store) getMessagingChannelMembersQuery(memberIDs ...uint64) squirrel.Sel
 		list += strconv.FormatUint(memberIDs[i], 10)
 	}
 
-	return s.messagingChannelMembersSelectBuilder().
-		GroupBy("cm.rel_channel").
+	return s.SelectBuilder(s.messagingChannelMemberTable("mcm"), "mcm.rel_channel").
+		GroupBy("mcm.rel_channel").
 		Having(squirrel.Eq{
 			"COUNT(*)": len(memberIDs),
-			"GROUP_CONCAT(cm.rel_user ORDER BY 1 ASC SEPARATOR ',')": list,
+			"GROUP_CONCAT(mcm.rel_user ORDER BY 1 ASC SEPARATOR ',')": list,
 		})
 }

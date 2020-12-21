@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"strings"
@@ -9,10 +10,18 @@ import (
 
 // CountReplies counts unread thread info
 func (s Store) LookupMessagingChannelByMemberSet(ctx context.Context, memberIDs ...uint64) (ch *types.Channel, err error) {
-	return s.execLookupMessagingChannel(ctx, squirrel.And{
-		squirrel.Eq{"type": types.ChannelTypeGroup},
-		squirrel.Eq{"id": s.getMessagingChannelMembersQuery(memberIDs...)},
-	})
+	// prepare subquery that merges
+	mcmq := s.getMessagingChannelMembersQuery(memberIDs...).
+		Where("mch.id = mcm.rel_channel")
+
+	if sql, args, err := mcmq.ToSql(); err != nil {
+		return nil, err
+	} else {
+		return s.execLookupMessagingChannel(ctx, squirrel.And{
+			squirrel.Eq{"type": types.ChannelTypeGroup},
+			squirrel.Expr(fmt.Sprintf("EXISTS (%s)", sql), args...),
+		})
+	}
 }
 
 func (s Store) convertMessagingChannelFilter(f types.ChannelFilter) (query squirrel.SelectBuilder, err error) {
