@@ -1769,6 +1769,7 @@ modules:
           - Fax
           - Letter
           - Visit
+          - State change
       File:
         label: File
         kind: File
@@ -5658,7 +5659,7 @@ modules:
         kind: String
         private: true
         expressions:
-          valueExpr: trim(FirstName + " " + LastName)
+          valueExpr: "trim((FirstName ? FirstName : \"\") + \" \" + (LastName ? LastName : \"\"))"
       CampaignId:
         label: Campaign
         kind: Record
