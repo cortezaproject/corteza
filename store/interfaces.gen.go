@@ -36,6 +36,9 @@ package store
 //  - store/roles.yaml
 //  - store/settings.yaml
 //  - store/users.yaml
+//  - store/workflow_sessions.yaml
+//  - store/workflow_triggers.yaml
+//  - store/workflows.yaml
 //
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
@@ -76,5 +79,8 @@ type (
 		Roles
 		Settings
 		Users
+		WorkflowSessions
+		WorkflowTriggers
+		Workflows
 	}
 )

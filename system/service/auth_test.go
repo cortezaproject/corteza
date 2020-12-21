@@ -299,7 +299,7 @@ func Test_auth_checkPassword(t *testing.T) {
 		rval bool
 	}{
 		{
-			name: "empty set",
+			name: "empty workflows",
 			rval: false,
 			args: args{}},
 		{

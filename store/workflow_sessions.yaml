@@ -1,0 +1,28 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+fields:
+  - { field: ID }
+  - { field: WorkflowID }
+  - { field: Triggered }
+  - { field: TriggeredBy }
+  - { field: ExecutedAs, type: uint64 }
+  - { field: WallTime,   type: "time.Duration" }
+  - { field: UserTime,   type: "time.Duration" }
+  - { field: Input,      type: "types.Variables" }
+  - { field: Output,     type: "types.Variables" }
+  - { field: Trace,      type: "types.WorkflowSessionTraceStep" }
+  - { field: CreatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt }
+  - { field: DeletedAt }
+  - { field: PurgeAt   }
+
+rdbms:
+  alias: wfses
+  table: workflow_sessions
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false

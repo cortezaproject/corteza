@@ -12,3 +12,15 @@ types:
   Attachment: {}
   SettingValue:
     noIdField: true
+  Workflow:
+    labelResourceType: workflow
+  WorkflowTrigger: {}
+  WorkflowPath:
+    noIdField: true
+  WorkflowStep: {}
+  WorkflowSession: {}
+  WorkflowState: {}
+  WorkflowFunction:
+    noIdField: true
+  WorkflowExpression:
+    noIdField: true

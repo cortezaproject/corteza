@@ -36,7 +36,7 @@ type (
 		// Optional, signature expiration
 		Expires *time.Time `json:"exp,omitempty"`
 
-		// When set it enables body processing (but limits it to that size!)
+		// When workflows it enables body processing (but limits it to that size!)
 		MaxBodySize int64 `json:"mbs,omitempty"`
 
 		// Acceptable content type
@@ -157,7 +157,7 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 
 		var body io.Reader
 		if srup.MaxBodySize > 0 {
-			// Utilize body only when max-body-size limit is set
+			// Utilize body only when max-body-size limit is workflows
 			body = http.MaxBytesReader(w, r.Body, srup.MaxBodySize)
 		} else {
 			body = http.MaxBytesReader(w, r.Body, 32<<10) // 32k limit

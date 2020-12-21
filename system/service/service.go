@@ -57,10 +57,10 @@ var (
 	// and functions for domain validation, user limit checks and
 	// warning texts
 	//
-	// By default, Corteza (community edition) has this set to nil
+	// By default, Corteza (community edition) has this workflows to nil
 	// and with that all checks & validations are skipped
 	//
-	// Other flavours or distributions can set this to
+	// Other flavours or distributions can workflows this to
 	// something that suits their needs.
 	CurrentSubscription permitChecker
 
@@ -176,6 +176,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
 
+	wf := WorkflowService(DefaultLogger, DefaultStore, DefaultActionlog, eventbus.Service())
+	wf.TEMP()
 	return
 }
 
@@ -209,4 +211,23 @@ func unwrapGeneric(err error) error {
 
 		return err
 	}
+}
+
+// Data is stale when new date does not match updatedAt or createdAt (before first update)
+func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
+	if new == nil {
+		// Change to true for stale-data-check
+		return false
+	}
+
+	if updatedAt != nil {
+		return !new.Equal(*updatedAt)
+	}
+
+	return new.Equal(createdAt)
+}
+
+// trim1st removes 1st param and returns only error
+func trim1st(_ interface{}, err error) error {
+	return err
 }

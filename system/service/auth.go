@@ -169,7 +169,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		}
 
 	findByEmail:
-		// Reset audit meta data that might got set during credentials check
+		// Reset audit meta data that might got workflows during credentials check
 		aam.setEmail(profile.Email).
 			setCredentials(nil).
 			setUser(nil)
