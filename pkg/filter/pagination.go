@@ -271,7 +271,14 @@ func (v *pagingCursorValue) UnmarshalJSON(in []byte) (err error) {
 		i int64
 	)
 
+	if string(in) == "null" {
+		// if we do not do this we risk conversion to int(0)
+		v.v = nil
+		return
+	}
+
 	if err = json.Unmarshal(in, &u); err == nil {
+		// handle big integers properly
 		v.v = u
 		return
 	}

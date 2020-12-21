@@ -61,4 +61,42 @@ func Test_cursorValueUnmarshal(t *testing.T) {
 
 	req.NoError(pcv.UnmarshalJSON([]byte(`"foo"`)))
 	req.Equal(pcv.v, "foo")
+
+	req.NoError(pcv.UnmarshalJSON([]byte(`null`)))
+	req.Nil(pcv.v)
+}
+
+func Test_cursorUnmarshal(t *testing.T) {
+	var (
+		tt = []struct {
+			name   string
+			json   string
+			cursor *PagingCursor
+		}{
+			{
+				"null",
+				`{"K":["StageName","id"],"V":[null,210277506916442116],"D":[false,false],"R":false,"LT":false}`,
+				&PagingCursor{
+					keys:   []string{"StageName", "id"},
+					values: []interface{}{nil, uint64(210277506916442116)},
+					desc:   []bool{false, false},
+					ROrder: false,
+					LThen:  false,
+				},
+			},
+		}
+	)
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+				cur = &PagingCursor{}
+			)
+
+			req.NoError(cur.UnmarshalJSON([]byte(tc.json)))
+			req.Equal(cur, tc.cursor)
+		})
+	}
+
 }
