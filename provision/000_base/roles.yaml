@@ -5,6 +5,3 @@ roles:
     name: Administrators
   everyone:
     name: Everyone
-
-  federation:
-    name: Federation
