@@ -45,6 +45,13 @@ func TestUserRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
+	service.CurrentSettings.Privacy.Mask.Email = true
+	service.CurrentSettings.Privacy.Mask.Name = true
+	defer func() {
+		service.CurrentSettings.Privacy.Mask.Email = false
+		service.CurrentSettings.Privacy.Mask.Name = false
+	}()
+
 	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
@@ -88,7 +95,6 @@ func TestUserListAll(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Present(`$.response.filter`)).
 		Assert(jsonpath.Present(`$.response.set`)).
-		Assert(jsonpath.Len(`$.response.set`, seedCount)).
 		End()
 }
 

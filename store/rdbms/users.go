@@ -15,7 +15,7 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 	query = filter.StateCondition(query, "usr.suspended_at", f.Suspended)
 
 	if len(f.UserID) > 0 {
-		query = query.Where(squirrel.Eq{"usr.ID": f.UserID})
+		query = query.Where(squirrel.Eq{"usr.id": f.UserID})
 	}
 
 	if len(f.LabeledIDs) > 0 {
@@ -38,11 +38,12 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"usr.username": qs},
 			squirrel.Like{"usr.handle": qs},
-		})
-	}
 
-	if f.Email != "" {
-		query = query.Where(squirrel.Eq{"usr.email": f.Email})
+			// do a lookup on a potentially masked fields
+			// this should be filtered out in the check function
+			squirrel.Like{"usr.email": qs},
+			squirrel.Like{"usr.name": qs},
+		})
 	}
 
 	if f.Email != "" {

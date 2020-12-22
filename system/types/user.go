@@ -64,6 +64,9 @@ type (
 		// Store then loads additional resources to satisfy the paging parameters
 		Check func(*User) (bool, error) `json:"-"`
 
+		MaskedEmailsEnabled bool `json:"-"`
+		MaskedNamesEnabled  bool `json:"-"`
+
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
