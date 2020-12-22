@@ -50,14 +50,14 @@ func testMessagingChannelMembers(t *testing.T, s store.MessagingChannelMembers) 
 	t.Run("update", func(t *testing.T) {
 		req, messagingChannelMember := truncAndCreate(t)
 		messagingChannelMember.Type = types.ChannelMembershipType("member")
-		
+
 		req.NoError(s.UpdateMessagingChannelMember(ctx, messagingChannelMember))
-		
+
 		set, _, err := s.SearchMessagingChannelMembers(ctx, types.ChannelMemberFilter{ChannelID: []uint64{messagingChannelMember.ChannelID}, MemberID: []uint64{messagingChannelMember.UserID}})
 		req.NoError(err)
 		req.Equal(types.ChannelMembershipType("member"), set[0].Type)
 	})
-	
+
 	t.Run("upsert", func(t *testing.T) {
 		t.Run("existing", func(t *testing.T) {
 			req, messagingChannelMember := truncAndCreate(t)

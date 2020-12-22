@@ -11,8 +11,7 @@ import (
 // CountReplies counts unread thread info
 func (s Store) LookupMessagingChannelByMemberSet(ctx context.Context, memberIDs ...uint64) (ch *types.Channel, err error) {
 	// prepare subquery that merges
-	mcmq := s.getMessagingChannelMembersQuery(memberIDs...).
-		Where("mch.id = mcm.rel_channel")
+	mcmq := s.getMessagingChannelMembersQuery(squirrel.Expr("mch.id = mcm.rel_channel"), memberIDs...)
 
 	if sql, args, err := mcmq.ToSql(); err != nil {
 		return nil, err

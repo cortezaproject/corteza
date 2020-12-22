@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
+func testMessagingChannels(t *testing.T, s store.Storer) {
 	var (
 		ctx = context.Background()
 		req = require.New(t)
@@ -123,5 +123,45 @@ func testMessagingChannels(t *testing.T, s store.MessagingChannels) {
 		req.Len(set, 2)
 
 		_ = f // dummy
+	})
+
+	t.Run("lookup by member set", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			ch1, ch2, ch3, ch4 = makeNew("one"), makeNew("two"), makeNew("three"), makeNew("four")
+		)
+
+		ch1.Type = types.ChannelTypeGroup
+		ch2.Type = types.ChannelTypeGroup
+		ch3.Type = types.ChannelTypeGroup
+		ch4.Type = types.ChannelTypeGroup
+
+		req.NoError(store.TruncateMessagingChannels(ctx, s))
+		req.NoError(store.TruncateMessagingChannelMembers(ctx, s))
+		req.NoError(store.CreateMessagingChannel(ctx, s, ch1, ch2, ch3))
+		req.NoError(store.CreateMessagingChannelMember(ctx, s,
+			// fits
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch1.ID, UserID: 1000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch1.ID, UserID: 2000},
+
+			// one to many
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch2.ID, UserID: 1000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch2.ID, UserID: 2000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch2.ID, UserID: 3000},
+
+			// no diff
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch3.ID, UserID: 1000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch3.ID, UserID: 5000},
+
+			// one only
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch4.ID, UserID: 1000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch4.ID, UserID: 4000},
+			&types.ChannelMember{CreatedAt: time.Time{}, ChannelID: ch4.ID, UserID: 5000},
+		))
+
+		ch, err := s.LookupMessagingChannelByMemberSet(ctx, 1000, 2000)
+		req.NoError(err)
+		req.Equal(ch.ID, ch1.ID)
 	})
 }
