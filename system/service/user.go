@@ -275,7 +275,7 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 		return nil, err
 	}
 
-	svc.handlePrivateData(u)
+	svc.handlePrivateData(svc.ctx, u)
 
 	return u, nil
 }
@@ -289,12 +289,23 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
+	filter.MaskedEmailsEnabled = svc.settings.Privacy.Mask.Email
+	filter.MaskedNamesEnabled = svc.settings.Privacy.Mask.Name
 	filter.Check = func(res *types.User) (bool, error) {
 		if !svc.ac.CanReadUser(svc.ctx, res) {
 			return false, nil
 		}
 
-		svc.handlePrivateData(res)
+		if svc.maskEmail(svc.ctx, res) && ((len(filter.Query) > 0 && strings.HasPrefix(res.Email, filter.Query)) || res.Email == filter.Email) {
+			// user email matched but it will be masked later on, so exclude it to prevent data probing
+			return false, nil
+		}
+
+		if svc.maskName(svc.ctx, res) && (len(filter.Query) > 0 && strings.HasPrefix(res.Name, filter.Query)) {
+			// user mail matched but it will be masked later on, so exclude it to prevent data probing
+			return false, nil
+		}
+
 		return true, nil
 	}
 
@@ -338,7 +349,7 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 		}
 
 		return uu.Walk(func(u *types.User) error {
-			svc.handlePrivateData(u)
+			svc.handlePrivateData(svc.ctx, u)
 			return nil
 		})
 	}()
@@ -661,14 +672,22 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 }
 
 // Masks (or leaves as-is) private data on user
-func (svc user) handlePrivateData(u *types.User) {
-	if !svc.ac.CanUnmaskEmail(svc.ctx, u) {
+func (svc user) handlePrivateData(ctx context.Context, u *types.User) {
+	if svc.maskEmail(ctx, u) {
 		u.Email = maskPrivateDataEmail
 	}
 
-	if !svc.ac.CanUnmaskName(svc.ctx, u) {
+	if svc.maskName(ctx, u) {
 		u.Name = maskPrivateDataName
 	}
+}
+
+func (svc user) maskEmail(ctx context.Context, u *types.User) bool {
+	return svc.settings.Privacy.Mask.Email && !svc.ac.CanUnmaskEmail(ctx, u)
+}
+
+func (svc user) maskName(ctx context.Context, u *types.User) bool {
+	return svc.settings.Privacy.Mask.Name && !svc.ac.CanUnmaskName(ctx, u)
 }
 
 // Preloader collects all ids of users, loads them and sets them back
