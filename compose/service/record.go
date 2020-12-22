@@ -279,6 +279,14 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 			return err
 		}
 
+		filter.Check = func(res *types.Record) (bool, error) {
+			if !svc.ac.CanReadRecord(svc.ctx, m) {
+				return false, nil
+			}
+
+			return true, nil
+		}
+
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
 				svc.ctx,
