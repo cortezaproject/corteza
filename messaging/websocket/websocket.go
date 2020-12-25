@@ -58,7 +58,9 @@ func (ws Websocket) Open(w http.ResponseWriter, r *http.Request) {
 	session.user = identity
 
 	if err := session.Handle(); err != nil {
-		logger.Default().Error("websocket session handler error", zap.Error(err))
+		logger.Default().
+			WithOptions(zap.AddStacktrace(zap.PanicLevel)).
+			Warn("websocket session handler error", zap.Error(err))
 	}
 
 }
