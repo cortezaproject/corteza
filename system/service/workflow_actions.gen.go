@@ -19,14 +19,14 @@ import (
 )
 
 type (
-	workflowServiceActionProps struct {
+	workflowActionProps struct {
 		workflow *types.Workflow
 		new      *types.Workflow
 		update   *types.Workflow
 		filter   *types.WorkflowFilter
 	}
 
-	workflowServiceAction struct {
+	workflowAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -36,11 +36,11 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *workflowServiceActionProps
+		props *workflowActionProps
 	}
 
-	workflowServiceLogMetaKey   struct{}
-	workflowServicePropsMetaKey struct{}
+	workflowLogMetaKey   struct{}
+	workflowPropsMetaKey struct{}
 )
 
 var (
@@ -51,55 +51,55 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setWorkflow updates workflowServiceActionProps's workflow
+// setWorkflow updates workflowActionProps's workflow
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *workflowServiceActionProps) setWorkflow(workflow *types.Workflow) *workflowServiceActionProps {
+func (p *workflowActionProps) setWorkflow(workflow *types.Workflow) *workflowActionProps {
 	p.workflow = workflow
 	return p
 }
 
-// setNew updates workflowServiceActionProps's new
+// setNew updates workflowActionProps's new
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *workflowServiceActionProps) setNew(new *types.Workflow) *workflowServiceActionProps {
+func (p *workflowActionProps) setNew(new *types.Workflow) *workflowActionProps {
 	p.new = new
 	return p
 }
 
-// setUpdate updates workflowServiceActionProps's update
+// setUpdate updates workflowActionProps's update
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *workflowServiceActionProps) setUpdate(update *types.Workflow) *workflowServiceActionProps {
+func (p *workflowActionProps) setUpdate(update *types.Workflow) *workflowActionProps {
 	p.update = update
 	return p
 }
 
-// setFilter updates workflowServiceActionProps's filter
+// setFilter updates workflowActionProps's filter
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *workflowServiceActionProps) setFilter(filter *types.WorkflowFilter) *workflowServiceActionProps {
+func (p *workflowActionProps) setFilter(filter *types.WorkflowFilter) *workflowActionProps {
 	p.filter = filter
 	return p
 }
 
-// Serialize converts workflowServiceActionProps to actionlog.Meta
+// Serialize converts workflowActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p workflowServiceActionProps) Serialize() actionlog.Meta {
+func (p workflowActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -126,7 +126,7 @@ func (p workflowServiceActionProps) Serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p workflowServiceActionProps) Format(in string, err error) string {
+func (p workflowActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -208,8 +208,8 @@ func (p workflowServiceActionProps) Format(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *workflowServiceAction) String() string {
-	var props = &workflowServiceActionProps{}
+func (a *workflowAction) String() string {
+	var props = &workflowActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -218,7 +218,7 @@ func (a *workflowServiceAction) String() string {
 	return props.Format(a.log, nil)
 }
 
-func (e *workflowServiceAction) ToAction() *actionlog.Action {
+func (e *workflowAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
 		Resource:    e.resource,
 		Action:      e.action,
@@ -232,12 +232,12 @@ func (e *workflowServiceAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// WorkflowServiceActionSearch returns "system:workflow.search" action
+// WorkflowActionSearch returns "system:workflow.search" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionSearch(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionSearch(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "search",
@@ -252,12 +252,12 @@ func WorkflowServiceActionSearch(props ...*workflowServiceActionProps) *workflow
 	return a
 }
 
-// WorkflowServiceActionLookup returns "system:workflow.lookup" action
+// WorkflowActionLookup returns "system:workflow.lookup" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionLookup(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionLookup(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "lookup",
@@ -272,12 +272,12 @@ func WorkflowServiceActionLookup(props ...*workflowServiceActionProps) *workflow
 	return a
 }
 
-// WorkflowServiceActionCreate returns "system:workflow.create" action
+// WorkflowActionCreate returns "system:workflow.create" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionCreate(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionCreate(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "create",
@@ -292,12 +292,12 @@ func WorkflowServiceActionCreate(props ...*workflowServiceActionProps) *workflow
 	return a
 }
 
-// WorkflowServiceActionUpdate returns "system:workflow.update" action
+// WorkflowActionUpdate returns "system:workflow.update" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionUpdate(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionUpdate(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "update",
@@ -312,12 +312,12 @@ func WorkflowServiceActionUpdate(props ...*workflowServiceActionProps) *workflow
 	return a
 }
 
-// WorkflowServiceActionDelete returns "system:workflow.delete" action
+// WorkflowActionDelete returns "system:workflow.delete" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionDelete(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionDelete(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "delete",
@@ -332,12 +332,12 @@ func WorkflowServiceActionDelete(props ...*workflowServiceActionProps) *workflow
 	return a
 }
 
-// WorkflowServiceActionUndelete returns "system:workflow.undelete" action
+// WorkflowActionUndelete returns "system:workflow.undelete" action
 //
 // This function is auto-generated.
 //
-func WorkflowServiceActionUndelete(props ...*workflowServiceActionProps) *workflowServiceAction {
-	a := &workflowServiceAction{
+func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
 		timestamp: time.Now(),
 		resource:  "system:workflow",
 		action:    "undelete",
@@ -356,13 +356,13 @@ func WorkflowServiceActionUndelete(props ...*workflowServiceActionProps) *workfl
 // *********************************************************************************************************************
 // Error constructors
 
-// WorkflowServiceErrGeneric returns "system:workflow.generic" as *errors.Error
+// WorkflowErrGeneric returns "system:workflow.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrGeneric(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrGeneric(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -376,8 +376,8 @@ func WorkflowServiceErrGeneric(mm ...*workflowServiceActionProps) *errors.Error 
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "{err}"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "{err}"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -388,13 +388,13 @@ func WorkflowServiceErrGeneric(mm ...*workflowServiceActionProps) *errors.Error 
 	return e
 }
 
-// WorkflowServiceErrNotFound returns "system:workflow.notFound" as *errors.Error
+// WorkflowErrNotFound returns "system:workflow.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotFound(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotFound(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -407,7 +407,7 @@ func WorkflowServiceErrNotFound(mm ...*workflowServiceActionProps) *errors.Error
 		errors.Meta("type", "notFound"),
 		errors.Meta("resource", "system:workflow"),
 
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -418,13 +418,13 @@ func WorkflowServiceErrNotFound(mm ...*workflowServiceActionProps) *errors.Error
 	return e
 }
 
-// WorkflowServiceErrInvalidID returns "system:workflow.invalidID" as *errors.Error
+// WorkflowErrInvalidID returns "system:workflow.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrInvalidID(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrInvalidID(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -437,7 +437,7 @@ func WorkflowServiceErrInvalidID(mm ...*workflowServiceActionProps) *errors.Erro
 		errors.Meta("type", "invalidID"),
 		errors.Meta("resource", "system:workflow"),
 
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -448,13 +448,13 @@ func WorkflowServiceErrInvalidID(mm ...*workflowServiceActionProps) *errors.Erro
 	return e
 }
 
-// WorkflowServiceErrInvalidHandle returns "system:workflow.invalidHandle" as *errors.Error
+// WorkflowErrInvalidHandle returns "system:workflow.invalidHandle" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrInvalidHandle(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrInvalidHandle(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -467,7 +467,7 @@ func WorkflowServiceErrInvalidHandle(mm ...*workflowServiceActionProps) *errors.
 		errors.Meta("type", "invalidHandle"),
 		errors.Meta("resource", "system:workflow"),
 
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -478,13 +478,13 @@ func WorkflowServiceErrInvalidHandle(mm ...*workflowServiceActionProps) *errors.
 	return e
 }
 
-// WorkflowServiceErrStaleData returns "system:workflow.staleData" as *errors.Error
+// WorkflowErrStaleData returns "system:workflow.staleData" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrStaleData(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrStaleData(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -497,7 +497,7 @@ func WorkflowServiceErrStaleData(mm ...*workflowServiceActionProps) *errors.Erro
 		errors.Meta("type", "staleData"),
 		errors.Meta("resource", "system:workflow"),
 
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -508,13 +508,13 @@ func WorkflowServiceErrStaleData(mm ...*workflowServiceActionProps) *errors.Erro
 	return e
 }
 
-// WorkflowServiceErrNotAllowedToRead returns "system:workflow.notAllowedToRead" as *errors.Error
+// WorkflowErrNotAllowedToRead returns "system:workflow.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotAllowedToRead(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotAllowedToRead(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -528,8 +528,8 @@ func WorkflowServiceErrNotAllowedToRead(mm ...*workflowServiceActionProps) *erro
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "failed to read {workflow.handle}; insufficient permissions"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "failed to read {workflow.handle}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -540,13 +540,13 @@ func WorkflowServiceErrNotAllowedToRead(mm ...*workflowServiceActionProps) *erro
 	return e
 }
 
-// WorkflowServiceErrNotAllowedToCreate returns "system:workflow.notAllowedToCreate" as *errors.Error
+// WorkflowErrNotAllowedToCreate returns "system:workflow.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotAllowedToCreate(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotAllowedToCreate(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -560,8 +560,8 @@ func WorkflowServiceErrNotAllowedToCreate(mm ...*workflowServiceActionProps) *er
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "failed to create workflow; insufficient permissions"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "failed to create workflow; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -572,13 +572,13 @@ func WorkflowServiceErrNotAllowedToCreate(mm ...*workflowServiceActionProps) *er
 	return e
 }
 
-// WorkflowServiceErrNotAllowedToUpdate returns "system:workflow.notAllowedToUpdate" as *errors.Error
+// WorkflowErrNotAllowedToUpdate returns "system:workflow.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotAllowedToUpdate(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotAllowedToUpdate(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -592,8 +592,8 @@ func WorkflowServiceErrNotAllowedToUpdate(mm ...*workflowServiceActionProps) *er
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "failed to update {workflow}; insufficient permissions"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "failed to update {workflow}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -604,13 +604,13 @@ func WorkflowServiceErrNotAllowedToUpdate(mm ...*workflowServiceActionProps) *er
 	return e
 }
 
-// WorkflowServiceErrNotAllowedToDelete returns "system:workflow.notAllowedToDelete" as *errors.Error
+// WorkflowErrNotAllowedToDelete returns "system:workflow.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotAllowedToDelete(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotAllowedToDelete(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -624,8 +624,8 @@ func WorkflowServiceErrNotAllowedToDelete(mm ...*workflowServiceActionProps) *er
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "failed to delete {workflow}; insufficient permissions"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "failed to delete {workflow}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -636,13 +636,13 @@ func WorkflowServiceErrNotAllowedToDelete(mm ...*workflowServiceActionProps) *er
 	return e
 }
 
-// WorkflowServiceErrNotAllowedToUndelete returns "system:workflow.notAllowedToUndelete" as *errors.Error
+// WorkflowErrNotAllowedToUndelete returns "system:workflow.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrNotAllowedToUndelete(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrNotAllowedToUndelete(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -656,8 +656,8 @@ func WorkflowServiceErrNotAllowedToUndelete(mm ...*workflowServiceActionProps) *
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "failed to undelete {workflow}; insufficient permissions"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "failed to undelete {workflow}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -668,13 +668,13 @@ func WorkflowServiceErrNotAllowedToUndelete(mm ...*workflowServiceActionProps) *
 	return e
 }
 
-// WorkflowServiceErrHandleNotUnique returns "system:workflow.handleNotUnique" as *errors.Error
+// WorkflowErrHandleNotUnique returns "system:workflow.handleNotUnique" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func WorkflowServiceErrHandleNotUnique(mm ...*workflowServiceActionProps) *errors.Error {
-	var p = &workflowServiceActionProps{}
+func WorkflowErrHandleNotUnique(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -688,8 +688,8 @@ func WorkflowServiceErrHandleNotUnique(mm ...*workflowServiceActionProps) *error
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowServiceLogMetaKey{}, "used duplicate handle ({workflow}) for workflow"),
-		errors.Meta(workflowServicePropsMetaKey{}, p),
+		errors.Meta(workflowLogMetaKey{}, "used duplicate handle ({workflow}) for workflow"),
+		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -709,7 +709,7 @@ func WorkflowServiceErrHandleNotUnique(mm ...*workflowServiceActionProps) *error
 //
 // This function is auto-generated.
 //
-func (svc workflowService) recordAction(ctx context.Context, props *workflowServiceActionProps, actionFn func(...*workflowServiceActionProps) *workflowServiceAction, err error) error {
+func (svc workflow) recordAction(ctx context.Context, props *workflowActionProps, actionFn func(...*workflowActionProps) *workflowAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err
@@ -730,10 +730,10 @@ func (svc workflowService) recordAction(ctx context.Context, props *workflowServ
 
 		a.Error = err.Error()
 		a.Severity = actionlog.Severity(m.AsInt("severity"))
-		a.Description = props.Format(m.AsString(workflowServiceLogMetaKey{}), err)
+		a.Description = props.Format(m.AsString(workflowLogMetaKey{}), err)
 
-		if p, has := m[workflowServicePropsMetaKey{}]; has {
-			a.Meta = p.(*workflowServiceActionProps).Serialize()
+		if p, has := m[workflowPropsMetaKey{}]; has {
+			a.Meta = p.(*workflowActionProps).Serialize()
 		}
 
 		svc.actionlog.Record(ctx, a)

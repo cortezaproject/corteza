@@ -1,4 +1,4 @@
-package workflow
+package wfexec
 
 import (
 	"context"
@@ -62,7 +62,7 @@ func TestSession_TwoStepWorkflow(t *testing.T) {
 		ctx = context.Background()
 		req = require.New(t)
 		wf  = NewGraph()
-		ses = Session(ctx, wf)
+		ses = NewSession(ctx, wf)
 
 		s1 = &sesTestStep{name: "s1"}
 		s2 = &sesTestStep{name: "s2"}
@@ -81,7 +81,7 @@ func TestSession_SplitAndMerge(t *testing.T) {
 		ctx = context.Background()
 		req = require.New(t)
 		wf  = NewGraph()
-		ses = Session(ctx, wf)
+		ses = NewSession(ctx, wf)
 
 		start  = &sesTestStep{name: "start"}
 		split1 = &sesTestStep{name: "split1"}
@@ -116,7 +116,7 @@ func TestSession_Delays(t *testing.T) {
 		ctx = context.Background()
 		req = require.New(t)
 		wf  = NewGraph()
-		ses = Session(ctx, wf,
+		ses = NewSession(ctx, wf,
 			// for testing we need much shorter worker intervals
 			SetWorkerInterval(unit),
 		)

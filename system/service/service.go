@@ -176,7 +176,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
 
-	wf := WorkflowService(DefaultLogger, DefaultStore, DefaultActionlog, eventbus.Service())
+	wf := Workflow(DefaultLogger, DefaultStore, DefaultActionlog, eventbus.Service())
 	wf.TEMP()
 	return
 }

@@ -1,7 +1,7 @@
 # List of loggable service actions
 
 resource: system:workflow
-service: workflowService
+service: workflow
 
 import:
   - github.com/cortezaproject/corteza-server/system/types

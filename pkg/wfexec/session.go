@@ -1,4 +1,4 @@
-package workflow
+package wfexec
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 )
 
 type (
-	session struct {
-		// session identifier
+	Session struct {
+		// Session identifier
 		id uint64
 
 		// workflow ref, will help us with traversing through Graph
@@ -56,16 +56,16 @@ type (
 		state *state
 	}
 
-	sessionOpt func(*session)
+	sessionOpt func(*Session)
 
-	// state holds information about session ID
+	// state holds information about Session ID
 	state struct {
 		created time.Time
 
 		// state identifier
 		stateId uint64
 
-		// session identifier
+		// Session identifier
 		sessionId uint64
 
 		// caller, parent step
@@ -79,7 +79,7 @@ type (
 	}
 
 	// ExecRequest is passed to Exec() functions and contains all information to
-	// resume suspended states in a Graph session
+	// resume suspended states in a Graph Session
 	ExecRequest struct {
 		SessionID uint64
 		StateID   uint64
@@ -105,8 +105,8 @@ var (
 	}
 )
 
-func Session(ctx context.Context, wf *Graph, oo ...sessionOpt) *session {
-	s := &session{
+func NewSession(ctx context.Context, wf *Graph, oo ...sessionOpt) *Session {
+	s := &Session{
 		workflow:  wf,
 		id:        nextID(),
 		started:   time.Now(),
@@ -131,30 +131,32 @@ func Session(ctx context.Context, wf *Graph, oo ...sessionOpt) *session {
 	return s
 }
 
-func (s session) Idle() bool {
+func (s Session) ID() uint64 { return s.id }
+
+func (s Session) Idle() bool {
 	if len(s.execLock) > 0 || len(s.qState) > 0 || len(s.qErr) > 0 {
-		s.log.Debugf("session(%d).Idle() => pending work: execLock: %d / qState: %d / qErr: %d\n", s.id, len(s.execLock), len(s.qState), len(s.qErr))
+		s.log.Debugf("Session(%d).Idle() => pending work: execLock: %d / qState: %d / qErr: %d\n", s.id, len(s.execLock), len(s.qState), len(s.qErr))
 		return false
 	}
 
 	return true
 }
 
-func (s *session) FinalError() error {
+func (s *Session) FinalError() error {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 
 	return s.err
 }
 
-func (s *session) Result() Variables {
+func (s *Session) Result() Variables {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 
 	return s.result
 }
 
-func (s *session) Exec(ctx context.Context, step Step, scope Variables) error {
+func (s *Session) Exec(ctx context.Context, step Step, scope Variables) error {
 	if len(s.workflow.Parents(step)) > 0 {
 		return fmt.Errorf("can not execute step with parents")
 	}
@@ -162,7 +164,7 @@ func (s *session) Exec(ctx context.Context, step Step, scope Variables) error {
 	return s.enqueue(ctx, State(s, nil, step, scope))
 }
 
-func (s *session) Resume(ctx context.Context, stateId uint64, scope Variables) error {
+func (s *Session) Resume(ctx context.Context, stateId uint64, scope Variables) error {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
@@ -182,7 +184,7 @@ func (s *session) Resume(ctx context.Context, stateId uint64, scope Variables) e
 	return s.enqueue(ctx, suspended.state)
 }
 
-func (s *session) enqueue(ctx context.Context, st *state) error {
+func (s *Session) enqueue(ctx context.Context, st *state) error {
 	if st == nil {
 		return fmt.Errorf("state is nil")
 	}
@@ -200,7 +202,7 @@ func (s *session) enqueue(ctx context.Context, st *state) error {
 		return ctx.Err()
 
 	case s.qState <- st:
-		s.log.Debugf("session(%d).Run() => added step to qState\n", s.id)
+		s.log.Debugf("Session(%d).Run() => added step to qState\n", s.id)
 		return nil
 	}
 }
@@ -209,7 +211,7 @@ func (s *session) enqueue(ctx context.Context, st *state) error {
 //  - context timeout
 //  - idle state
 //  - error in error queue
-func (s *session) Wait(ctx context.Context) {
+func (s *Session) Wait(ctx context.Context) {
 	waitCheck := time.NewTicker(s.workerInterval)
 	defer waitCheck.Stop()
 
@@ -217,19 +219,19 @@ func (s *session) Wait(ctx context.Context) {
 		select {
 		case <-waitCheck.C:
 			if s.Idle() {
-				s.log.Debugf("session(%d).Wait() => complete\n", s.id)
+				s.log.Debugf("Session(%d).Wait() => complete\n", s.id)
 				// nothing in the pipeline
 				return
 			}
 
 		case <-ctx.Done():
-			s.log.Debugf("session(%d).Wait() => ctx.Done() (err: %s)\n", s.id, ctx.Err())
+			s.log.Debugf("Session(%d).Wait() => ctx.Done() (err: %s)\n", s.id, ctx.Err())
 			return
 
 		case err := <-s.qErr:
 			if err == nil {
 				// execution complete
-				s.log.Debugf("session(%d).Wait() => done\n", s.id)
+				s.log.Debugf("Session(%d).Wait() => done\n", s.id)
 				return
 			}
 
@@ -239,12 +241,12 @@ func (s *session) Wait(ctx context.Context) {
 				s.err = err
 			}
 
-			s.log.Debugf("session(%d).Wait() => got error (by execution) (err: %s)\n", s.id, s.err)
+			s.log.Debugf("Session(%d).Wait() => got error (by execution) (err: %s)\n", s.id, s.err)
 		}
 	}
 }
 
-func (s *session) worker(ctx context.Context) {
+func (s *Session) worker(ctx context.Context) {
 	defer s.Close()
 
 	suspCheck := time.NewTicker(s.workerInterval)
@@ -253,16 +255,16 @@ func (s *session) worker(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			s.log.Debugf("session(%d).worker() => ctx.Done(): %v\n", s.id, ctx.Err())
+			s.log.Debugf("Session(%d).worker() => ctx.Done(): %v\n", s.id, ctx.Err())
 			return
 
 		case <-suspCheck.C:
-			s.log.Debugf("session(%d).worker() => checking for scheduled suspended\n", s.id)
+			s.log.Debugf("Session(%d).worker() => checking for scheduled suspended\n", s.id)
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
 			if st.step == nil {
-				s.log.Debugf("session(%d).worker() => got step==nil state; stopping & setting result!\n", s.id)
+				s.log.Debugf("Session(%d).worker() => got step==nil state; stopping & setting result!\n", s.id)
 				defer s.mux.Unlock()
 				s.mux.Lock()
 
@@ -271,7 +273,7 @@ func (s *session) worker(ctx context.Context) {
 			}
 
 			s.execLock <- struct{}{}
-			s.log.Debugf("session(%d).worker() => got state [stateId:%d]; execute!\n", s.id, st.stateId)
+			s.log.Debugf("Session(%d).worker() => got state [stateId:%d]; execute!\n", s.id, st.stateId)
 			go func() {
 				s.exec(ctx, st)
 				<-s.execLock
@@ -281,21 +283,21 @@ func (s *session) worker(ctx context.Context) {
 	}
 }
 
-func (s *session) Close() {
-	s.log.Debugf("session(%d).Close()\n", s.id)
+func (s *Session) Close() {
+	s.log.Debugf("Session(%d).Close()\n", s.id)
 	close(s.qErr)
 	close(s.qState)
 	close(s.execLock)
 }
 
-func (s session) Suspended() bool {
+func (s Session) Suspended() bool {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 	//return false
 	return len(s.suspended) > 0
 }
 
-func (s *session) queueScheduledSuspended() {
+func (s *Session) queueScheduledSuspended() {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
@@ -308,13 +310,13 @@ func (s *session) queueScheduledSuspended() {
 			continue
 		}
 
-		s.log.Debugf("session(%d).queueScheduledSuspended() => found suspended state [stateId=%d]\n", s.id, id)
+		s.log.Debugf("Session(%d).queueScheduledSuspended() => found suspended state [stateId=%d]\n", s.id, id)
 		delete(s.suspended, id)
 		s.qState <- sus.state
 	}
 }
 
-func (s *session) exec(ctx context.Context, st *state) {
+func (s *Session) exec(ctx context.Context, st *state) {
 	var (
 		scope = st.scope
 		next  Steps
@@ -329,16 +331,16 @@ func (s *session) exec(ctx context.Context, st *state) {
 
 		switch result := result.(type) {
 		case *Joined:
-			s.log.Debugf("session(%d).exec(%d) => joined\n", s.id, st.stateId)
+			s.log.Debugf("Session(%d).exec(%d) => joined\n", s.id, st.stateId)
 			return
 
 		case *suspended:
 			if result == nil {
-				s.log.Debugf("session(%d).exec(%d) => suspended with nil\n", s.id, st.stateId)
+				s.log.Debugf("Session(%d).exec(%d) => suspended with nil\n", s.id, st.stateId)
 				return
 			}
 
-			s.log.Debugf("session(%d).exec(%d) => suspending step: %v\n", s.id, st.stateId, result)
+			s.log.Debugf("Session(%d).exec(%d) => suspending step: %v\n", s.id, st.stateId, result)
 			result.state = st
 			defer s.mux.Unlock()
 			s.mux.Lock()
@@ -355,7 +357,7 @@ func (s *session) exec(ctx context.Context, st *state) {
 			next = result
 
 		default:
-			s.log.Debugf("session(%d).exec(%d) => unknown exec response type: %T\n", s.id, st.stateId, result)
+			s.log.Debugf("Session(%d).exec(%d) => unknown exec response type: %T\n", s.id, st.stateId, result)
 
 		}
 	}
@@ -368,27 +370,27 @@ func (s *session) exec(ctx context.Context, st *state) {
 	}
 
 	if len(next) == 0 {
-		s.log.Debugf("session(%d).exec(%d) => zero paths, completing\n", s.id, st.stateId)
+		s.log.Debugf("Session(%d).exec(%d) => zero paths, completing\n", s.id, st.stateId)
 		// using state to transport results and complete the worker loop
 		s.qState <- FinalState(s, scope)
 		return
 	}
 
-	s.log.Debugf("session(%d).exec(%d) => %d paths\n", s.id, st.stateId, len(next))
+	s.log.Debugf("Session(%d).exec(%d) => %d paths\n", s.id, st.stateId, len(next))
 	for _, p := range next {
-		s.log.Debugf("session(%d).exec(%d) => queuing step\n", s.id, st.stateId)
+		s.log.Debugf("Session(%d).exec(%d) => queuing step\n", s.id, st.stateId)
 		_ = s.enqueue(ctx, State(s, st.step, p, scope))
 	}
 
 }
 
 func SetWorkerInterval(i time.Duration) sessionOpt {
-	return func(s *session) {
+	return func(s *Session) {
 		s.workerInterval = i
 	}
 }
 
-func State(ses *session, caller, current Step, scope Variables) *state {
+func State(ses *Session, caller, current Step, scope Variables) *state {
 	return &state{
 		created:   time.Now(),
 		stateId:   ses.id,
@@ -399,7 +401,7 @@ func State(ses *session, caller, current Step, scope Variables) *state {
 	}
 }
 
-func FinalState(ses *session, scope Variables) *state {
+func FinalState(ses *Session, scope Variables) *state {
 	return &state{
 		created:   time.Now(),
 		stateId:   ses.id,

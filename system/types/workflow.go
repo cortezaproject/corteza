@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/workflow"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"time"
 )
 
@@ -18,7 +18,7 @@ type (
 		KeepSessions time.Duration `json:"keepSessions"`
 
 		// Initial input scope
-		Scope workflow.Variables `json:"scope"`
+		Scope wfexec.Variables `json:"scope"`
 
 		Steps    WorkflowStepSet
 		Paths    WorkflowPathSet
@@ -64,7 +64,7 @@ type (
 
 		// Initial input scope,
 		// will be merged merged with workflow variables
-		Input workflow.Variables
+		Input wfexec.Variables
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -139,8 +139,8 @@ type (
 		WallTime    time.Duration `json:"wallTime"`           // how long did it take to run it (inc all suspension)
 		UserTime    time.Duration `json:"userTime"`           // how long did it take to run it (sum of all time spent in each step)
 
-		Input  workflow.Variables `json:"input"`
-		Output workflow.Variables `json:"output"`
+		Input  wfexec.Variables `json:"input"`
+		Output wfexec.Variables `json:"output"`
 
 		Trace []WorkflowSessionTraceStep `json:"trace"`
 
@@ -155,16 +155,16 @@ type (
 
 	// WorkflowSessionTraceStep stores info and instrumentation on visited workflow steps
 	WorkflowSessionTraceStep struct {
-		ID         uint64             `json:"traceStepID,string"`
-		CallerStep uint64             `json:"traceCallerStepID,string"`
-		WorkflowID uint64             `json:"workflowID,string"`
-		StateID    uint64             `json:"stateID,string"`
-		SessionID  uint64             `json:"sessionID,string"`
-		CallerID   uint64             `json:"callerID,string"`
-		StepID     uint64             `json:"stepID,string"`
-		Depth      uint64             `json:"depth,string"`
-		Scope      workflow.Variables `json:"scope"`
-		Duration   time.Duration      `json:"duration"`
+		ID         uint64           `json:"traceStepID,string"`
+		CallerStep uint64           `json:"traceCallerStepID,string"`
+		WorkflowID uint64           `json:"workflowID,string"`
+		StateID    uint64           `json:"stateID,string"`
+		SessionID  uint64           `json:"sessionID,string"`
+		CallerID   uint64           `json:"callerID,string"`
+		StepID     uint64           `json:"stepID,string"`
+		Depth      uint64           `json:"depth,string"`
+		Scope      wfexec.Variables `json:"scope"`
+		Duration   time.Duration    `json:"duration"`
 	}
 
 	// WorkflowState tracks suspended sessions
@@ -179,18 +179,18 @@ type (
 		CreatedAt time.Time `json:"createdAt,omitempty"`
 		CreatedBy uint64    `json:"createdBy,string"`
 
-		CallerID uint64             `json:"callerID,string"`
-		StepID   uint64             `json:"stepID,string"`
-		Scope    workflow.Variables `json:"scope"`
+		CallerID uint64           `json:"callerID,string"`
+		StepID   uint64           `json:"stepID,string"`
+		Scope    wfexec.Variables `json:"scope"`
 	}
 
 	// workflow functions are defined in the core code and through plugins
 	WorkflowFunction struct {
-		Ref        string                   `json:"ref"`
-		Meta       WorkflowFunctionMeta     `json:"meta"`
-		Handler    workflow.ActivityHandler `json:"-"`
-		Parameters []*WorkflowParameter     `json:"parameters"`
-		Results    []*WorkflowParameter     `json:"results"`
+		Ref        string                 `json:"ref"`
+		Meta       WorkflowFunctionMeta   `json:"meta"`
+		Handler    wfexec.ActivityHandler `json:"-"`
+		Parameters []*WorkflowParameter   `json:"parameters"`
+		Results    []*WorkflowParameter   `json:"results"`
 	}
 
 	WorkflowFunctionMeta struct {

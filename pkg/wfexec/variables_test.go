@@ -1,4 +1,4 @@
-package workflow
+package wfexec
 
 import (
 	"github.com/stretchr/testify/require"

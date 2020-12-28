@@ -11,7 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/pkg/workflow"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
@@ -20,7 +20,7 @@ import (
 )
 
 type (
-	workflowService struct {
+	workflow struct {
 		eventbus  workflowEventTriggerHandler
 		store     store.Storer
 		actionlog actionlog.Recorder
@@ -33,10 +33,10 @@ type (
 		// trigger update.
 		triggers map[uint64]uintptr
 
-		sessions map[uint64]*workflow.Session
+		sessions map[uint64]*wfexec.Session
 
 		// maps resolved workflow graphs to workflow ID (key, uint64)
-		wfgs map[uint64]*workflow.Graph
+		wfgs map[uint64]*wfexec.Graph
 
 		mux *sync.RWMutex
 	}
@@ -73,37 +73,37 @@ func init() {
 	workflowFuncRegistry = make(map[string]*types.WorkflowFunction)
 	workflowFuncRegistry["HelloWorld"] = &types.WorkflowFunction{
 		Ref: "HelloWorld",
-		Handler: func(ctx context.Context, variables workflow.Variables) (workflow.Variables, error) {
+		Handler: func(ctx context.Context, variables wfexec.Variables) (wfexec.Variables, error) {
 			println("hello from workflow function;")
 			return nil, nil
 		},
 	}
 }
 
-func WorkflowService(log *zap.Logger, _ store.Storer, _ actionlog.Recorder, eb workflowEventTriggerHandler) *workflowService {
-	return &workflowService{
+func Workflow(log *zap.Logger, _ store.Storer, _ actionlog.Recorder, eb workflowEventTriggerHandler) *workflow {
+	return &workflow{
 		eventbus:  eb,
 		actionlog: DefaultActionlog,
-		wfgs:      make(map[uint64]*workflow.Graph),
+		wfgs:      make(map[uint64]*wfexec.Graph),
 		triggers:  make(map[uint64]uintptr),
 		log:       log.Named("WORKFLOW"),
 		mux:       &sync.RWMutex{},
 	}
 }
 
-func (svc *workflowService) Find(ctx context.Context, filter types.WorkflowFilter) (types.WorkflowSet, types.WorkflowFilter, error) {
+func (svc *workflow) Find(ctx context.Context, filter types.WorkflowFilter) (types.WorkflowSet, types.WorkflowFilter, error) {
 	var (
-		wap = &workflowServiceActionProps{filter: &filter}
+		wap = &workflowActionProps{filter: &filter}
 	)
 
 	err := errors.Internal("pending implementation")
 
-	return nil, filter, svc.recordAction(ctx, wap, WorkflowServiceActionLookup, err)
+	return nil, filter, svc.recordAction(ctx, wap, WorkflowActionLookup, err)
 }
 
-func (svc *workflowService) FindByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
+func (svc *workflow) FindByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
 	var (
-		wap = &workflowServiceActionProps{workflow: &types.Workflow{ID: workflowID}}
+		wap = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
@@ -118,14 +118,14 @@ func (svc *workflowService) FindByID(ctx context.Context, workflowID uint64) (wf
 		return nil
 	})
 
-	return wf, svc.recordAction(ctx, wap, WorkflowServiceActionLookup, err)
+	return wf, svc.recordAction(ctx, wap, WorkflowActionLookup, err)
 }
 
 // Create adds new workflow resource and saves it into store
 // It updates service's cache
-func (svc *workflowService) Create(ctx context.Context, new *types.Workflow) (wf *types.Workflow, err error) {
+func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types.Workflow, err error) {
 	var (
-		wap   = &workflowServiceActionProps{new: new}
+		wap   = &workflowActionProps{new: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
 	)
 
@@ -154,26 +154,26 @@ func (svc *workflowService) Create(ctx context.Context, new *types.Workflow) (wf
 		return store.CreateWorkflow(ctx, svc.store, wf)
 	})
 
-	return wf, svc.recordAction(ctx, wap, WorkflowServiceActionCreate, err)
+	return wf, svc.recordAction(ctx, wap, WorkflowActionCreate, err)
 }
 
 // Update modifies existing workflow resource in the store
-func (svc *workflowService) Update(ctx context.Context, upd *types.Workflow) (wf *types.Workflow, err error) {
-	return svc.updater(ctx, upd.ID, WorkflowServiceActionUpdate, svc.handleUpdate(upd))
+func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (wf *types.Workflow, err error) {
+	return svc.updater(ctx, upd.ID, WorkflowActionUpdate, svc.handleUpdate(upd))
 }
 
-func (svc *workflowService) DeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
-	return svc.updater(ctx, workflowID, WorkflowServiceActionDelete, svc.handleDelete)
+func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
+	return svc.updater(ctx, workflowID, WorkflowActionDelete, svc.handleDelete)
 }
 
-func (svc *workflowService) UndeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
-	return svc.updater(ctx, workflowID, WorkflowServiceActionUndelete, svc.handleUndelete)
+func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
+	return svc.updater(ctx, workflowID, WorkflowActionUndelete, svc.handleUndelete)
 }
 
 // Start runs a new workflow
 //
 // Workflow execution is asynchronous operation.
-func (svc *workflowService) Start(ctx context.Context, workflowID uint64, scope workflow.Variables) error {
+func (svc *workflow) Start(ctx context.Context, workflowID uint64, scope wfexec.Variables) error {
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
 	return errors.Internal("pending implementation")
@@ -182,13 +182,13 @@ func (svc *workflowService) Start(ctx context.Context, workflowID uint64, scope 
 // Resume resumes suspended session/state
 //
 // Session can only be resumed by knowing session and state ID. Resume is an asynchronous operation
-func (svc *workflowService) Resume(ctx context.Context, sessionID, stateID uint64, scope workflow.Variables) error {
+func (svc *workflow) Resume(ctx context.Context, sessionID, stateID uint64, scope wfexec.Variables) error {
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
 	return errors.Internal("pending implementation")
 }
 
-func (svc *workflowService) TEMP() {
+func (svc *workflow) TEMP() {
 	wfID := nextID()
 	stepID := nextID()
 	wfTmp := &types.Workflow{
@@ -218,21 +218,21 @@ func (svc *workflowService) TEMP() {
 	svc.registerTriggers(context.TODO(), wfTmp)
 }
 
-func (svc workflowService) uniqueCheck(ctx context.Context, wf *types.Workflow) (err error) {
+func (svc workflow) uniqueCheck(ctx context.Context, wf *types.Workflow) (err error) {
 	if wf.Handle != "" {
 		if e, _ := store.LookupWorkflowByHandle(ctx, svc.store, wf.Handle); e != nil && e.ID != wf.ID {
-			return WorkflowServiceErrHandleNotUnique()
+			return WorkflowErrHandleNotUnique()
 		}
 	}
 
 	return nil
 }
 
-func (svc workflowService) updater(ctx context.Context, workflowID uint64, action func(...*workflowServiceActionProps) *workflowServiceAction, fn workflowUpdateHandler) (*types.Workflow, error) {
+func (svc workflow) updater(ctx context.Context, workflowID uint64, action func(...*workflowActionProps) *workflowAction, fn workflowUpdateHandler) (*types.Workflow, error) {
 	var (
 		changes workflowChanges
 		wf      *types.Workflow
-		aProps  = &workflowServiceActionProps{workflow: &types.Workflow{ID: workflowID}}
+		aProps  = &workflowActionProps{workflow: &types.Workflow{ID: workflowID}}
 		err     error
 	)
 
@@ -271,14 +271,14 @@ func (svc workflowService) updater(ctx context.Context, workflowID uint64, actio
 	return wf, svc.recordAction(ctx, aProps, action, err)
 }
 
-func (svc workflowService) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
+func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 	return func(ctx context.Context, res *types.Workflow) (changes workflowChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
-			return workflowUnchanged, WorkflowServiceErrStaleData()
+			return workflowUnchanged, WorkflowErrStaleData()
 		}
 
 		if upd.Handle != res.Handle && !handle.IsValid(upd.Handle) {
-			return workflowUnchanged, WorkflowServiceErrInvalidHandle()
+			return workflowUnchanged, WorkflowErrInvalidHandle()
 		}
 
 		if err := svc.uniqueCheck(ctx, upd); err != nil {
@@ -286,7 +286,7 @@ func (svc workflowService) handleUpdate(upd *types.Workflow) workflowUpdateHandl
 		}
 
 		if !svc.ac.CanUpdateWorkflow(ctx, res) {
-			return workflowUnchanged, WorkflowServiceErrNotAllowedToUpdate()
+			return workflowUnchanged, WorkflowErrNotAllowedToUpdate()
 		}
 
 		if res.Handle != upd.Handle {
@@ -366,9 +366,9 @@ func (svc workflowService) handleUpdate(upd *types.Workflow) workflowUpdateHandl
 	}
 }
 
-func (svc workflowService) handleDelete(ctx context.Context, wf *types.Workflow) (workflowChanges, error) {
+func (svc workflow) handleDelete(ctx context.Context, wf *types.Workflow) (workflowChanges, error) {
 	if !svc.ac.CanDeleteWorkflow(ctx, wf) {
-		return workflowUnchanged, WorkflowServiceErrNotAllowedToDelete()
+		return workflowUnchanged, WorkflowErrNotAllowedToDelete()
 	}
 
 	if wf.DeletedAt != nil {
@@ -380,9 +380,9 @@ func (svc workflowService) handleDelete(ctx context.Context, wf *types.Workflow)
 	return workflowChanged, nil
 }
 
-func (svc workflowService) handleUndelete(ctx context.Context, wf *types.Workflow) (workflowChanges, error) {
+func (svc workflow) handleUndelete(ctx context.Context, wf *types.Workflow) (workflowChanges, error) {
 	if !svc.ac.CanDeleteWorkflow(ctx, wf) {
-		return workflowUnchanged, WorkflowServiceErrNotAllowedToUndelete()
+		return workflowUnchanged, WorkflowErrNotAllowedToUndelete()
 	}
 
 	if wf.DeletedAt == nil {
@@ -397,7 +397,7 @@ func (svc workflowService) handleUndelete(ctx context.Context, wf *types.Workflo
 // registerTriggers registeres workflows triggers to eventbus
 //
 // It preloads run-as identity and finds a starting step for each trigger
-func (svc *workflowService) registerTriggers(ctx context.Context, wf *types.Workflow) {
+func (svc *workflow) registerTriggers(ctx context.Context, wf *types.Workflow) {
 	svc.unregisterTriggers(wf.Triggers...)
 
 	defer svc.mux.Unlock()
@@ -445,7 +445,7 @@ func (svc *workflowService) registerTriggers(ctx context.Context, wf *types.Work
 		}
 
 		var (
-			start workflow.Step
+			start wfexec.Step
 		)
 
 		if t.StepID == 0 {
@@ -484,7 +484,7 @@ func (svc *workflowService) registerTriggers(ctx context.Context, wf *types.Work
 					handleCtx = intAuth.SetIdentityToContext(handleCtx, runAs)
 				}
 
-				session := workflow.NewSession(ctx, g)
+				session := wfexec.NewSession(ctx, g)
 				svc.mux.Unlock()
 				svc.sessions[session.ID()] = session
 				svc.mux.Lock()
@@ -525,7 +525,7 @@ func (svc *workflowService) registerTriggers(ctx context.Context, wf *types.Work
 	}
 }
 
-func (svc *workflowService) unregisterTriggers(tt ...*types.WorkflowTrigger) {
+func (svc *workflow) unregisterTriggers(tt ...*types.WorkflowTrigger) {
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
 
@@ -539,19 +539,19 @@ func (svc *workflowService) unregisterTriggers(tt ...*types.WorkflowTrigger) {
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (wf *types.Workflow, err error) {
 	if workflowID == 0 {
-		return nil, WorkflowServiceErrInvalidID()
+		return nil, WorkflowErrInvalidID()
 	}
 
 	if wf, err = store.LookupWorkflowByID(ctx, s, workflowID); errors.IsNotFound(err) {
-		return nil, WorkflowServiceErrNotFound()
+		return nil, WorkflowErrNotFound()
 	}
 
 	return
 }
 
-func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*workflow.Graph, error) {
+func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*wfexec.Graph, error) {
 	var (
-		g = workflow.NewGraph()
+		g = wfexec.NewGraph()
 	)
 
 	for g.Len() < len(def.Steps) {
@@ -606,18 +606,18 @@ func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*workflow.Grap
 // converts all step definitions into workflow.Step instances
 //
 // if this func returns nil for step and error, assume unresolved dependencies
-func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
-	conv, err := func() (workflow.Step, error) {
+func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
+	conv, err := func() (wfexec.Step, error) {
 		switch s.Kind {
 		case types.WorkflowStepKindExpressions:
 			return workflowExprDefConv(lang, s.Arguments...)
 
 		case types.WorkflowStepKindGatewayFork:
-			return workflow.ForkGateway(), nil
+			return wfexec.ForkGateway(), nil
 
 		case types.WorkflowStepKindGatewayJoin:
 			var (
-				ss []workflow.Step
+				ss []wfexec.Step
 			)
 			for _, p := range in {
 				if parent := g.GetStepByIdentifier(p.ParentID); parent != nil {
@@ -628,11 +628,11 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 				}
 			}
 
-			return workflow.JoinGateway(ss...), nil
+			return wfexec.JoinGateway(ss...), nil
 
 		case types.WorkflowStepKindGatewayIncl, types.WorkflowStepKindGatewayExcl:
 			var (
-				pp []*workflow.GatewayPath
+				pp []*wfexec.GatewayPath
 			)
 
 			for _, p := range in {
@@ -641,7 +641,7 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 					return nil, nil
 				}
 
-				p, err := workflow.NewGatewayPath(child, p.Test)
+				p, err := wfexec.NewGatewayPath(child, p.Test)
 				if err != nil {
 					return nil, err
 				} else {
@@ -650,9 +650,9 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 			}
 
 			if s.Kind == types.WorkflowStepKindGatewayExcl {
-				return workflow.ExclGateway(pp...)
+				return wfexec.ExclGateway(pp...)
 			} else {
-				return workflow.InclGateway(pp...)
+				return wfexec.InclGateway(pp...)
 			}
 
 		case types.WorkflowStepKindFunction:
@@ -665,7 +665,7 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 			} else {
 				var (
 					err    error
-					aa, rr *workflow.Expressions
+					aa, rr *wfexec.Expressions
 				)
 
 				if aa, err = workflowExprDefConv(lang, s.Arguments...); err != nil {
@@ -676,7 +676,7 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 					return nil, errors.Internal("failed to convert function arguments: %w", err)
 				}
 
-				return workflow.Activity(fn.Handler, aa, rr), nil
+				return wfexec.Activity(fn.Handler, aa, rr), nil
 			}
 
 		case types.WorkflowStepKindSubprocess:
@@ -699,9 +699,9 @@ func workflowStepDefConv(g *workflow.Graph, lang gval.Language, s *types.Workflo
 	}
 }
 
-func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*workflow.Expressions, error) {
+func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*wfexec.Expressions, error) {
 	var (
-		set = workflow.NewExpressions(lang)
+		set = wfexec.NewExpressions(lang)
 	)
 
 	for _, e := range ee {

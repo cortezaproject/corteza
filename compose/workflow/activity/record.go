@@ -3,7 +3,7 @@ package activity
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/service"
-	wf "github.com/cortezaproject/corteza-server/pkg/workflow"
+	wf "github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
 
 type (
