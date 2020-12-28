@@ -160,12 +160,12 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 func (h Workflow) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/workflow/", h.List)
-		r.Post("/workflow/", h.Create)
-		r.Put("/workflow/{workflowID}", h.Update)
-		r.Get("/workflow/{workflowID}", h.Read)
-		r.Delete("/workflow/{workflowID}", h.Delete)
-		r.Post("/workflow/{workflowID}/undelete", h.Undelete)
-		r.Post("/workflow/{workflowID}/test", h.Test)
+		r.Get("/workflows/", h.List)
+		r.Post("/workflows/", h.Create)
+		r.Put("/workflows/{workflowID}", h.Update)
+		r.Get("/workflows/{workflowID}", h.Read)
+		r.Delete("/workflows/{workflowID}", h.Delete)
+		r.Post("/workflows/{workflowID}/undelete", h.Undelete)
+		r.Post("/workflows/{workflowID}/test", h.Test)
 	})
 }

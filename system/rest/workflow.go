@@ -60,16 +60,17 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 
 func (ctrl Workflow) Create(ctx context.Context, r *request.WorkflowCreate) (interface{}, error) {
 	workflow := &types.Workflow{
-		Handle:   r.Handle,
-		Labels:   r.Labels,
-		Meta:     r.Meta,
-		Enabled:  r.Enabled,
-		Scope:    r.Scope,
-		Steps:    r.Steps,
-		Paths:    r.Paths,
-		Triggers: r.Triggers,
-		RunAs:    r.RunAs,
-		OwnedBy:  r.OwnedBy,
+		Handle:       r.Handle,
+		Labels:       r.Labels,
+		Meta:         r.Meta,
+		Enabled:      r.Enabled,
+		Trace:        r.Trace,
+		KeepSessions: r.KeepSessions,
+		Scope:        r.Scope,
+		Steps:        r.Steps,
+		Paths:        r.Paths,
+		RunAs:        r.RunAs,
+		OwnedBy:      r.OwnedBy,
 	}
 
 	return ctrl.svc.Create(ctx, workflow)
@@ -77,17 +78,18 @@ func (ctrl Workflow) Create(ctx context.Context, r *request.WorkflowCreate) (int
 
 func (ctrl Workflow) Update(ctx context.Context, r *request.WorkflowUpdate) (interface{}, error) {
 	workflow := &types.Workflow{
-		ID:       r.WorkflowID,
-		Handle:   r.Handle,
-		Labels:   r.Labels,
-		Meta:     r.Meta,
-		Enabled:  r.Enabled,
-		Scope:    r.Scope,
-		Steps:    r.Steps,
-		Paths:    r.Paths,
-		Triggers: r.Triggers,
-		RunAs:    r.RunAs,
-		OwnedBy:  r.OwnedBy,
+		ID:           r.WorkflowID,
+		Handle:       r.Handle,
+		Labels:       r.Labels,
+		Meta:         r.Meta,
+		Enabled:      r.Enabled,
+		Trace:        r.Trace,
+		KeepSessions: r.KeepSessions,
+		Scope:        r.Scope,
+		Steps:        r.Steps,
+		Paths:        r.Paths,
+		RunAs:        r.RunAs,
+		OwnedBy:      r.OwnedBy,
 	}
 
 	return ctrl.svc.Update(ctx, workflow)

@@ -87,5 +87,5 @@ errors:
     log: "failed to undelete {workflow}; insufficient permissions"
 
   - error: handleNotUnique
-    message: "handle not unique"
-    log: "used duplicate handle ({workflow}) for workflow"
+    message: "workflow handle not unique"
+    log: "duplicate handle used for workflow ({workflow})"

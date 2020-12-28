@@ -27,9 +27,8 @@ type (
 		// Initial input scope
 		Scope wfexec.Variables `json:"scope"`
 
-		Steps    WorkflowStepSet
-		Paths    WorkflowPathSet
-		Triggers WorkflowTriggerSet
+		Steps WorkflowStepSet `json:"steps"`
+		Paths WorkflowPathSet `json:"paths"`
 
 		RunAs uint64 `json:"runAs,string"`
 
@@ -319,5 +318,45 @@ func (vv *WorkflowMeta) Value() (driver.Value, error) {
 		return []byte("null"), nil
 	}
 
+	return json.Marshal(vv)
+}
+
+func (vv *WorkflowStepSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*vv = WorkflowStepSet{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, vv); err != nil {
+			return fmt.Errorf("can not scan '%v' into WorkflowStepSet: %w", string(b), err)
+		}
+	}
+
+	return nil
+}
+
+// Scan on WorkflowStepSet gracefully handles conversion from NULL
+func (vv WorkflowStepSet) Value() (driver.Value, error) {
+	return json.Marshal(vv)
+}
+
+func (vv *WorkflowPathSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*vv = WorkflowPathSet{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, vv); err != nil {
+			return fmt.Errorf("can not scan '%v' into WorkflowPathSet: %w", string(b), err)
+		}
+	}
+
+	return nil
+}
+
+// Scan on WorkflowPathSet gracefully handles conversion from NULL
+func (vv WorkflowPathSet) Value() (driver.Value, error) {
 	return json.Marshal(vv)
 }

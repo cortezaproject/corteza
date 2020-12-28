@@ -80,6 +80,10 @@ func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "reminder.assign")
 }
 
+func (svc accessControl) CanCreateWorkflow(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "workflow.create")
+}
+
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
 	return svc.can(ctx, rl.RBACResource(), "read", rbac.Allowed)
 }
@@ -161,6 +165,18 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u.RBACResource(), "unmask.name")
 }
 
+func (svc accessControl) CanReadWorkflow(ctx context.Context, u *types.Workflow) bool {
+	return svc.can(ctx, u.RBACResource(), "read")
+}
+
+func (svc accessControl) CanUpdateWorkflow(ctx context.Context, u *types.Workflow) bool {
+	return svc.can(ctx, u.RBACResource(), "update")
+}
+
+func (svc accessControl) CanDeleteWorkflow(ctx context.Context, u *types.Workflow) bool {
+	return svc.can(ctx, u.RBACResource(), "delete")
+}
+
 func (svc accessControl) can(ctx context.Context, res rbac.Resource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
 	var (
 		u     = internalAuth.GetIdentityFromContext(ctx)
@@ -226,6 +242,7 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"user.create",
 		"application.create",
 		"reminder.assign",
+		"workflow.create",
 	)
 
 	wl.Set(
@@ -253,6 +270,13 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"update",
 		"delete",
 		"members.manage",
+	)
+
+	wl.Set(
+		types.WorkflowRBACResource,
+		"read",
+		"update",
+		"delete",
 	)
 
 	return wl

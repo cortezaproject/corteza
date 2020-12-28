@@ -7,7 +7,6 @@ import (
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -87,6 +86,7 @@ func Workflow(log *zap.Logger, s store.Storer, ar actionlog.Recorder, eb workflo
 		eventbus:  eb,
 		actionlog: ar,
 		store:     s,
+		ac:        DefaultAccessControl,
 		log:       log.Named("workflow"),
 		wfgs:      make(map[uint64]*wfexec.Graph),
 		triggers:  make(map[uint64]uintptr),
@@ -149,7 +149,7 @@ func (svc *workflow) Find(ctx context.Context, filter types.WorkflowFilter) (rr 
 		return nil
 	}()
 
-	return nil, filter, svc.recordAction(ctx, wap, WorkflowActionLookup, err)
+	return rr, filter, svc.recordAction(ctx, wap, WorkflowActionSearch, err)
 }
 
 func (svc *workflow) FindByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
@@ -160,6 +160,10 @@ func (svc *workflow) FindByID(ctx context.Context, workflowID uint64) (wf *types
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if wf, err = loadWorkflow(ctx, s, workflowID); err != nil {
 			return err
+		}
+
+		if !svc.ac.CanReadWorkflow(ctx, wf) {
+			return WorkflowErrNotAllowedToRead()
 		}
 
 		if err = label.Load(ctx, svc.store, wf); err != nil {
@@ -181,6 +185,14 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if !svc.ac.CanCreateWorkflow(ctx) {
+			return WorkflowErrNotAllowedToCreate()
+		}
+
+		if err = svc.uniqueCheck(ctx, new); err != nil {
+			return err
+		}
+
 		wf = &types.Workflow{
 			ID:           nextID(),
 			Handle:       new.Handle,
@@ -190,10 +202,9 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			Trace:        new.Trace,
 			KeepSessions: new.KeepSessions,
 
-			Scope:    new.Scope,
-			Steps:    new.Steps,
-			Paths:    new.Paths,
-			Triggers: new.Triggers,
+			Scope: new.Scope,
+			Steps: new.Steps,
+			Paths: new.Paths,
 
 			// @todo need to check against access control if current user can modify security descriptor
 			RunAs:     new.RunAs,
@@ -202,7 +213,15 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			CreatedBy: cUser,
 		}
 
-		return store.CreateWorkflow(ctx, svc.store, wf)
+		if err = store.CreateWorkflow(ctx, s, wf); err != nil {
+			return
+		}
+
+		if err = label.Create(ctx, s, wf); err != nil {
+			return
+		}
+
+		return
 	})
 
 	return wf, svc.recordAction(ctx, wap, WorkflowActionCreate, err)
@@ -239,35 +258,35 @@ func (svc *workflow) Resume(ctx context.Context, sessionID, stateID uint64, scop
 	return errors.Internal("pending implementation")
 }
 
-func (svc *workflow) TEMP() {
-	wfID := nextID()
-	stepID := nextID()
-	wfTmp := &types.Workflow{
-		ID:      wfID,
-		Enabled: true,
-		Steps: types.WorkflowStepSet{
-			{ID: stepID, Kind: types.WorkflowStepKindFunction, Ref: "HelloWorld"},
-		},
-		Triggers: types.WorkflowTriggerSet{
-			{
-				ID:           nextID(),
-				WorkflowID:   wfID,
-				StepID:       stepID,
-				Enabled:      true,
-				ResourceType: "system:sink",
-				EventType:    "onRequest",
-			},
-		},
-	}
-
-	if g, err := workflowDefToGraph(expr.Parser(), wfTmp); err != nil {
-		panic(err)
-	} else {
-		svc.wfgs[wfTmp.ID] = g
-	}
-
-	svc.registerTriggers(context.TODO(), wfTmp)
-}
+//func (svc *workflow) TEMP() {
+//	wfID := nextID()
+//	stepID := nextID()
+//	wfTmp := &types.Workflow{
+//		ID:      wfID,
+//		Enabled: true,
+//		Steps: types.WorkflowStepSet{
+//			{ID: stepID, Kind: types.WorkflowStepKindFunction, Ref: "HelloWorld"},
+//		},
+//		Triggers: types.WorkflowTriggerSet{
+//			{
+//				ID:           nextID(),
+//				WorkflowID:   wfID,
+//				StepID:       stepID,
+//				Enabled:      true,
+//				ResourceType: "system:sink",
+//				EventType:    "onRequest",
+//			},
+//		},
+//	}
+//
+//	if g, err := workflowDefToGraph(expr.Parser(), wfTmp); err != nil {
+//		panic(err)
+//	} else {
+//		svc.wfgs[wfTmp.ID] = g
+//	}
+//
+//	svc.registerTriggers(context.TODO(), wfTmp)
+//}
 
 func (svc workflow) uniqueCheck(ctx context.Context, wf *types.Workflow) (err error) {
 	if wf.Handle != "" {
@@ -324,6 +343,10 @@ func (svc workflow) updater(ctx context.Context, workflowID uint64, action func(
 
 func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 	return func(ctx context.Context, res *types.Workflow) (changes workflowChanges, err error) {
+		if !svc.ac.CanUpdateWorkflow(ctx, res) {
+			return workflowUnchanged, WorkflowErrNotAllowedToUpdate()
+		}
+
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return workflowUnchanged, WorkflowErrStaleData()
 		}
@@ -395,13 +418,6 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 			}
 		}
 
-		if upd.Triggers != nil {
-			if !reflect.DeepEqual(upd.Triggers, res.Triggers) {
-				changes |= workflowChanged
-				res.Triggers = upd.Triggers
-			}
-		}
-
 		if res.RunAs != upd.RunAs {
 			// @todo need to check against access control if current user can modify security descriptor
 			changes |= workflowChanged
@@ -453,8 +469,8 @@ func (svc workflow) handleUndelete(ctx context.Context, wf *types.Workflow) (wor
 // registerTriggers registeres workflows triggers to eventbus
 //
 // It preloads run-as identity and finds a starting step for each trigger
-func (svc *workflow) registerTriggers(ctx context.Context, wf *types.Workflow) {
-	svc.unregisterTriggers(wf.Triggers...)
+func (svc *workflow) registerTriggers(ctx context.Context, wf *types.Workflow, tt ...*types.WorkflowTrigger) {
+	svc.unregisterTriggers(tt...)
 
 	defer svc.mux.Unlock()
 	svc.mux.Lock()
@@ -489,7 +505,7 @@ func (svc *workflow) registerTriggers(ctx context.Context, wf *types.Workflow) {
 		}
 	}
 
-	for _, t := range wf.Triggers {
+	for _, t := range tt {
 		log := wfLog.With(
 			zap.Uint64("triggerID", t.ID),
 			zap.Uint64("workflowID", wf.ID),

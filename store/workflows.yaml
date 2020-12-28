@@ -9,6 +9,9 @@ fields:
   - { field: Trace,        type: bool }
   - { field: KeepSessions, type: "time.Duration" }
   - { field: Scope,        type: "types.Variables" }
+  - { field: Steps,        type: "types.Variables" }
+  - { field: Paths,        type: "types.Variables" }
+  - { field: RunAs,        type: "uint64" }
   - { field: OwnedBy }
   - { field: CreatedBy }
   - { field: UpdatedBy }

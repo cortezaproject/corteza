@@ -90,6 +90,16 @@ type (
 		// Is workflow enabled
 		Enabled bool
 
+		// Trace POST parameter
+		//
+		// Trace workflow execution
+		Trace bool
+
+		// KeepSessions POST parameter
+		//
+		// Keep old workflow sessions
+		KeepSessions int
+
 		// Scope POST parameter
 		//
 		// Workflow meta data
@@ -104,11 +114,6 @@ type (
 		//
 		// Workflow step paths definition
 		Paths types.WorkflowPathSet
-
-		// Triggers POST parameter
-		//
-		// Workflow triggers definition
-		Triggers types.WorkflowTriggerSet
 
 		// RunAs POST parameter
 		//
@@ -147,6 +152,16 @@ type (
 		// Is workflow enabled
 		Enabled bool
 
+		// Trace POST parameter
+		//
+		// Trace workflow execution
+		Trace bool
+
+		// KeepSessions POST parameter
+		//
+		// Keep old workflow sessions
+		KeepSessions int
+
 		// Scope POST parameter
 		//
 		// Workflow meta data
@@ -161,11 +176,6 @@ type (
 		//
 		// Workflow step paths definition
 		Paths types.WorkflowPathSet
-
-		// Triggers POST parameter
-		//
-		// Workflow triggers definition
-		Triggers types.WorkflowTriggerSet
 
 		// RunAs POST parameter
 		//
@@ -352,16 +362,17 @@ func NewWorkflowCreate() *WorkflowCreate {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"handle":   r.Handle,
-		"labels":   r.Labels,
-		"meta":     r.Meta,
-		"enabled":  r.Enabled,
-		"scope":    r.Scope,
-		"steps":    r.Steps,
-		"paths":    r.Paths,
-		"triggers": r.Triggers,
-		"runAs":    r.RunAs,
-		"ownedBy":  r.OwnedBy,
+		"handle":       r.Handle,
+		"labels":       r.Labels,
+		"meta":         r.Meta,
+		"enabled":      r.Enabled,
+		"trace":        r.Trace,
+		"keepSessions": r.KeepSessions,
+		"scope":        r.Scope,
+		"steps":        r.Steps,
+		"paths":        r.Paths,
+		"runAs":        r.RunAs,
+		"ownedBy":      r.OwnedBy,
 	}
 }
 
@@ -386,6 +397,16 @@ func (r WorkflowCreate) GetEnabled() bool {
 }
 
 // Auditable returns all auditable/loggable parameters
+func (r WorkflowCreate) GetTrace() bool {
+	return r.Trace
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowCreate) GetKeepSessions() int {
+	return r.KeepSessions
+}
+
+// Auditable returns all auditable/loggable parameters
 func (r WorkflowCreate) GetScope() wfexec.Variables {
 	return r.Scope
 }
@@ -398,11 +419,6 @@ func (r WorkflowCreate) GetSteps() types.WorkflowStepSet {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowCreate) GetPaths() types.WorkflowPathSet {
 	return r.Paths
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetTriggers() types.WorkflowTriggerSet {
-	return r.Triggers
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -473,6 +489,20 @@ func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["trace"]; ok && len(val) > 0 {
+			r.Trace, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["keepSessions"]; ok && len(val) > 0 {
+			r.KeepSessions, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["scope[]"]; ok {
 			r.Scope, err = types.ParseWorkflowVariables(val)
 			if err != nil {
@@ -509,18 +539,6 @@ func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["triggers[]"]; ok {
-			r.Triggers, err = types.ParseWorkflowTriggerSet(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["triggers"]; ok {
-			r.Triggers, err = types.ParseWorkflowTriggerSet(val)
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["runAs"]; ok && len(val) > 0 {
 			r.RunAs, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
@@ -547,17 +565,18 @@ func NewWorkflowUpdate() *WorkflowUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"workflowID": r.WorkflowID,
-		"handle":     r.Handle,
-		"labels":     r.Labels,
-		"meta":       r.Meta,
-		"enabled":    r.Enabled,
-		"scope":      r.Scope,
-		"steps":      r.Steps,
-		"paths":      r.Paths,
-		"triggers":   r.Triggers,
-		"runAs":      r.RunAs,
-		"ownedBy":    r.OwnedBy,
+		"workflowID":   r.WorkflowID,
+		"handle":       r.Handle,
+		"labels":       r.Labels,
+		"meta":         r.Meta,
+		"enabled":      r.Enabled,
+		"trace":        r.Trace,
+		"keepSessions": r.KeepSessions,
+		"scope":        r.Scope,
+		"steps":        r.Steps,
+		"paths":        r.Paths,
+		"runAs":        r.RunAs,
+		"ownedBy":      r.OwnedBy,
 	}
 }
 
@@ -587,6 +606,16 @@ func (r WorkflowUpdate) GetEnabled() bool {
 }
 
 // Auditable returns all auditable/loggable parameters
+func (r WorkflowUpdate) GetTrace() bool {
+	return r.Trace
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowUpdate) GetKeepSessions() int {
+	return r.KeepSessions
+}
+
+// Auditable returns all auditable/loggable parameters
 func (r WorkflowUpdate) GetScope() wfexec.Variables {
 	return r.Scope
 }
@@ -599,11 +628,6 @@ func (r WorkflowUpdate) GetSteps() types.WorkflowStepSet {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowUpdate) GetPaths() types.WorkflowPathSet {
 	return r.Paths
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetTriggers() types.WorkflowTriggerSet {
-	return r.Triggers
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -674,6 +698,20 @@ func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["trace"]; ok && len(val) > 0 {
+			r.Trace, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["keepSessions"]; ok && len(val) > 0 {
+			r.KeepSessions, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["scope[]"]; ok {
 			r.Scope, err = types.ParseWorkflowVariables(val)
 			if err != nil {
@@ -705,18 +743,6 @@ func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["paths"]; ok {
 			r.Paths, err = types.ParseWorkflowPathSet(val)
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["triggers[]"]; ok {
-			r.Triggers, err = types.ParseWorkflowTriggerSet(val)
-			if err != nil {
-				return err
-			}
-		} else if val, ok := req.Form["triggers"]; ok {
-			r.Triggers, err = types.ParseWorkflowTriggerSet(val)
 			if err != nil {
 				return err
 			}

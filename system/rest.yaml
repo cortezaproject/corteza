@@ -1190,7 +1190,7 @@ endpoints:
 
 
 - title: Workflows
-  path: "/workflow"
+  path: "/workflows"
   entrypoint: workflow
   authentication: []
   imports:
@@ -1235,16 +1235,17 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { name: handle,   type: string, required: true,     title: "Workflow name" }
-      - { name: labels,   type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
-      - { name: meta,     type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
-      - { name: enabled,  type: bool,   required: true,     title: "Is workflow enabled" }
-      - { name: scope,    type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
-      - { name: steps,    type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
-      - { name: paths,    type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
-      - { name: triggers, type: "types.WorkflowTriggerSet", title: "Workflow triggers definition",   parser: "types.ParseWorkflowTriggerSet" }
-      - { name: runAs,    type: uint64, required: true,     title: "Is workflow enabled" }
-      - { name: ownedBy,  type: uint64, required: true,     title: "Owner of the workflow" }
+      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
+      - { name: trace,        type: bool,                       title: "Trace workflow execution" }
+      - { name: keepSessions, type: int,                        title: "Keep old workflow sessions" }
+      - { name: scope,        type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: steps,        type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,        type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the workflow" }
   - name: update
     method: PUT
     title: Update user details
@@ -1252,16 +1253,17 @@ endpoints:
     parameters:
       path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
       post:
-      - { name: handle,   type: string, required: true,     title: "Workflow name" }
-      - { name: labels,   type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
-      - { name: meta,     type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
-      - { name: enabled,  type: bool,   required: true,     title: "Is workflow enabled" }
-      - { name: scope,    type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
-      - { name: steps,    type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
-      - { name: paths,    type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
-      - { name: triggers, type: "types.WorkflowTriggerSet", title: "Workflow triggers definition",   parser: "types.ParseWorkflowTriggerSet" }
-      - { name: runAs,    type: uint64, required: true,     title: "Is workflow enabled" }
-      - { name: ownedBy,  type: uint64, required: true,     title: "Owner of the workflow" }
+      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,      type: bool,   required: true,     title: "Is workflow enabled" }
+      - { name: trace,        type: bool,                       title: "Trace workflow execution" }
+      - { name: keepSessions, type: int,                        title: "Keep old workflow sessions" }
+      - { name: scope,        type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: steps,        type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,        type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the workflow" }
   - name: read
     method: GET
     title: Read workflow details

@@ -714,13 +714,13 @@ func WorkflowErrHandleNotUnique(mm ...*workflowActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("handle not unique", nil),
+		p.Format("workflow handle not unique", nil),
 
 		errors.Meta("type", "handleNotUnique"),
 		errors.Meta("resource", "system:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "used duplicate handle ({workflow}) for workflow"),
+		errors.Meta(workflowLogMetaKey{}, "duplicate handle used for workflow ({workflow})"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
