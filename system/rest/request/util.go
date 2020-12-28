@@ -11,3 +11,7 @@ func is(s string, matches ...string) bool {
 	}
 	return false
 }
+
+func void(...interface{}) (interface{}, error) {
+	return nil, nil
+}

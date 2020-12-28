@@ -1187,6 +1187,106 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+
+
+- title: Workflows
+  path: "/workflow"
+  entrypoint: workflow
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza-server/pkg/wfexec
+  apis:
+  - name: list
+    method: GET
+    title: List workflows
+    path: "/"
+    parameters:
+      get:
+      - name: workflowID
+        type: "[]string"
+        required: false
+        title: Filter by workflow ID
+      - name: query
+        required: false
+        title: Filter workflows
+        type: string
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted workflows
+        type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+      - type: uint
+        name: limit
+        title: Limit
+      - type: string
+        name: pageCursor
+        title: Page cursor
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create workflow
+    path: "/"
+    parameters:
+      post:
+      - { name: handle,   type: string, required: true,     title: "Workflow name" }
+      - { name: labels,   type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,     type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,  type: bool,   required: true,     title: "Is workflow enabled" }
+      - { name: scope,    type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: steps,    type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,    type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: triggers, type: "types.WorkflowTriggerSet", title: "Workflow triggers definition",   parser: "types.ParseWorkflowTriggerSet" }
+      - { name: runAs,    type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,  type: uint64, required: true,     title: "Owner of the workflow" }
+  - name: update
+    method: PUT
+    title: Update user details
+    path: "/{workflowID}"
+    parameters:
+      path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
+      post:
+      - { name: handle,   type: string, required: true,     title: "Workflow name" }
+      - { name: labels,   type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,     type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,  type: bool,   required: true,     title: "Is workflow enabled" }
+      - { name: scope,    type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: steps,    type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,    type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: triggers, type: "types.WorkflowTriggerSet", title: "Workflow triggers definition",   parser: "types.ParseWorkflowTriggerSet" }
+      - { name: runAs,    type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,  type: uint64, required: true,     title: "Owner of the workflow" }
+  - name: read
+    method: GET
+    title: Read workflow details
+    path: "/{workflowID}"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove workflow
+    path: "/{workflowID}"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete workflow
+    path: "/{workflowID}/undelete"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: test
+    method: POST
+    title: Test workflow details
+    path: "/{workflowID}/test"
+    parameters:
+      path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
+      post:
+      - { name: scope,    type: "wfexec.Variables",         title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: runAs,    type: bool,   required: true,     title: "Is workflow enabled" }
+
 - title: Action log
   entrypoint: actionlog
   path: "/actionlog"

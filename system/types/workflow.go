@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/json"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"time"
 )
@@ -11,7 +13,7 @@ type (
 		ID      uint64            `json:"workflowID,string"`
 		Handle  string            `json:"handle"`
 		Labels  map[string]string `json:"labels,omitempty"`
-		Meta    WorkflowMeta      `json:"meta"`
+		Meta    *WorkflowMeta     `json:"meta"`
 		Enabled bool              `json:"enabled"`
 
 		Trace        bool          `json:"trace"`
@@ -35,7 +37,27 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
-	WorkflowFilter struct{}
+	WorkflowFilter struct {
+		WorkflowID []uint64 `json:"workflowID"`
+
+		Query string `json:"query"`
+
+		Deleted  filter.State `json:"deleted"`
+		Archived filter.State `json:"archived"`
+
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
+
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(*Workflow) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
+	}
 
 	WorkflowMeta struct {
 		Name        string                 `json:"label"`
@@ -133,11 +155,11 @@ type (
 		ID         uint64 `json:"sessionID,string"`
 		WorkflowID uint64 `json:"workflowID,string"`
 
-		Triggered   string        `json:"triggered,string"`   // event name
-		TriggeredBy string        `json:"triggeredBy,string"` // resource ID
-		ExecutedAs  uint64        `json:"executedBy,string"`  // runner (might be different then creator)
-		WallTime    time.Duration `json:"wallTime"`           // how long did it take to run it (inc all suspension)
-		UserTime    time.Duration `json:"userTime"`           // how long did it take to run it (sum of all time spent in each step)
+		EventType       string        `json:"eventType,string"`       // event name
+		EventResourceID string        `json:"eventResourceID,string"` // resource ID
+		ExecutedAs      uint64        `json:"executedBy,string"`      // runner (might be different then creator)
+		WallTime        time.Duration `json:"wallTime"`               // how long did it take to run it (inc all suspension)
+		UserTime        time.Duration `json:"userTime"`               // how long did it take to run it (sum of all time spent in each step)
 
 		Input  wfexec.Variables `json:"input"`
 		Output wfexec.Variables `json:"output"`
@@ -228,4 +250,40 @@ const (
 	WorkflowStepKindGatewayJoin WorkflowStepKind = "gateway:join"
 	WorkflowStepKindFunction    WorkflowStepKind = "function"
 	WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
+	//WorkflowStepKindInput       WorkflowStepKind = "input" // ref = frontend function
+	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
+	//WorkflowStepKindAlert       WorkflowStepKind = "alert" // ref = error, warning, info
 )
+
+func ParseWorkflowMeta(ss []string) (p *WorkflowMeta, err error) {
+	p = &WorkflowMeta{}
+	return p, parseStringsInput(ss, p)
+}
+
+func ParseWorkflowStepSet(ss []string) (p WorkflowStepSet, err error) {
+	p = WorkflowStepSet{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseWorkflowPathSet(ss []string) (p WorkflowPathSet, err error) {
+	p = WorkflowPathSet{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseWorkflowTriggerSet(ss []string) (p WorkflowTriggerSet, err error) {
+	p = WorkflowTriggerSet{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseWorkflowVariables(ss []string) (p wfexec.Variables, err error) {
+	p = wfexec.Variables{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func parseStringsInput(ss []string, p interface{}) (err error) {
+	if len(ss) == 0 {
+		return
+	}
+
+	return json.Unmarshal([]byte(ss[0]), &p)
+}

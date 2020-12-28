@@ -66,6 +66,10 @@ errors:
     message: "not allowed to read this workflow"
     log: "failed to read {workflow.handle}; insufficient permissions"
 
+  - error: notAllowedToList
+    message: "not allowed to list workflows"
+    log: "failed to list workflow; insufficient permissions"
+
   - error: notAllowedToCreate
     message: "not allowed to create workflows"
     log: "failed to create workflow; insufficient permissions"

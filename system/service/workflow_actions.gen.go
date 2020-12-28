@@ -540,6 +540,38 @@ func WorkflowErrNotAllowedToRead(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrNotAllowedToList returns "system:workflow.notAllowedToList" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrNotAllowedToList(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list workflows", nil),
+
+		errors.Meta("type", "notAllowedToList"),
+		errors.Meta("resource", "system:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to list workflow; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrNotAllowedToCreate returns "system:workflow.notAllowedToCreate" as *errors.Error
 //
 //

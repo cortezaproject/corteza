@@ -42,6 +42,8 @@ type (
 	}
 
 	workflowAccessController interface {
+		CanAccess(context.Context) bool
+
 		CanCreateWorkflow(context.Context) bool
 		CanReadWorkflow(context.Context, *types.Workflow) bool
 		CanUpdateWorkflow(context.Context, *types.Workflow) bool
@@ -80,23 +82,72 @@ func init() {
 	}
 }
 
-func Workflow(log *zap.Logger, _ store.Storer, _ actionlog.Recorder, eb workflowEventTriggerHandler) *workflow {
+func Workflow(log *zap.Logger, s store.Storer, ar actionlog.Recorder, eb workflowEventTriggerHandler) *workflow {
 	return &workflow{
 		eventbus:  eb,
-		actionlog: DefaultActionlog,
+		actionlog: ar,
+		store:     s,
+		log:       log.Named("workflow"),
 		wfgs:      make(map[uint64]*wfexec.Graph),
 		triggers:  make(map[uint64]uintptr),
-		log:       log.Named("WORKFLOW"),
 		mux:       &sync.RWMutex{},
 	}
 }
 
-func (svc *workflow) Find(ctx context.Context, filter types.WorkflowFilter) (types.WorkflowSet, types.WorkflowFilter, error) {
+func (svc *workflow) Find(ctx context.Context, filter types.WorkflowFilter) (rr types.WorkflowSet, f types.WorkflowFilter, err error) {
 	var (
 		wap = &workflowActionProps{filter: &filter}
 	)
 
-	err := errors.Internal("pending implementation")
+	// For each fetched item, store backend will check if it is valid or not
+	filter.Check = func(res *types.Workflow) (bool, error) {
+		if !svc.ac.CanReadWorkflow(ctx, res) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
+	err = func() (err error) {
+		if filter.Deleted > 0 {
+			// If list with deleted or suspended users is requested
+			// user must have access permissions to system (ie: is admin)
+			//
+			// not the best solution but ATM it allows us to have at least
+			// some kind of control over who can see deleted or archived workflows
+			if !svc.ac.CanAccess(ctx) {
+				return WorkflowErrNotAllowedToList()
+			}
+		}
+
+		if len(filter.Labels) > 0 {
+			filter.LabeledIDs, err = label.Search(
+				ctx,
+				svc.store,
+				types.Workflow{}.LabelResourceKind(),
+				filter.Labels,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
+		}
+
+		if rr, f, err = store.SearchWorkflows(ctx, svc.store, filter); err != nil {
+			return err
+		}
+
+		if err = label.Load(ctx, svc.store, toLabeledWorkflows(rr)...); err != nil {
+			return err
+		}
+
+		return nil
+	}()
 
 	return nil, filter, svc.recordAction(ctx, wap, WorkflowActionLookup, err)
 }
@@ -162,12 +213,12 @@ func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (wf *types
 	return svc.updater(ctx, upd.ID, WorkflowActionUpdate, svc.handleUpdate(upd))
 }
 
-func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
-	return svc.updater(ctx, workflowID, WorkflowActionDelete, svc.handleDelete)
+func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) error {
+	return trim1st(svc.updater(ctx, workflowID, WorkflowActionDelete, svc.handleDelete))
 }
 
-func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) (wf *types.Workflow, err error) {
-	return svc.updater(ctx, workflowID, WorkflowActionUndelete, svc.handleUndelete)
+func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error {
+	return trim1st(svc.updater(ctx, workflowID, WorkflowActionUndelete, svc.handleUndelete))
 }
 
 // Start runs a new workflow
@@ -299,11 +350,6 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 			res.Enabled = upd.Enabled
 		}
 
-		if !reflect.DeepEqual(upd.Meta, res.Meta) {
-			changes |= workflowChanged
-			res.Meta = upd.Meta
-		}
-
 		if upd.Labels != nil {
 			if label.Changed(res.Labels, upd.Labels) {
 				changes |= workflowLabelsChanged
@@ -321,29 +367,39 @@ func (svc workflow) handleUpdate(upd *types.Workflow) workflowUpdateHandler {
 			res.KeepSessions = upd.KeepSessions
 		}
 
-		if !reflect.DeepEqual(upd.Meta, res.Meta) {
-			changes |= workflowChanged
-			res.Meta = upd.Meta
+		if upd.Meta != nil {
+			if !reflect.DeepEqual(upd.Meta, res.Meta) {
+				changes |= workflowChanged
+				res.Meta = upd.Meta
+			}
 		}
 
-		if !reflect.DeepEqual(upd.Scope, res.Scope) {
-			changes |= workflowChanged
-			res.Scope = upd.Scope
+		if upd.Scope != nil {
+			if !reflect.DeepEqual(upd.Scope, res.Scope) {
+				changes |= workflowChanged
+				res.Scope = upd.Scope
+			}
 		}
 
-		if !reflect.DeepEqual(upd.Steps, res.Steps) {
-			changes |= workflowChanged
-			res.Steps = upd.Steps
+		if upd.Steps != nil {
+			if !reflect.DeepEqual(upd.Steps, res.Steps) {
+				changes |= workflowChanged
+				res.Steps = upd.Steps
+			}
 		}
 
-		if !reflect.DeepEqual(upd.Paths, res.Paths) {
-			changes |= workflowChanged
-			res.Paths = upd.Paths
+		if upd.Paths != nil {
+			if !reflect.DeepEqual(upd.Paths, res.Paths) {
+				changes |= workflowChanged
+				res.Paths = upd.Paths
+			}
 		}
 
-		if !reflect.DeepEqual(upd.Triggers, res.Triggers) {
-			changes |= workflowChanged
-			res.Triggers = upd.Triggers
+		if upd.Triggers != nil {
+			if !reflect.DeepEqual(upd.Triggers, res.Triggers) {
+				changes |= workflowChanged
+				res.Triggers = upd.Triggers
+			}
 		}
 
 		if res.RunAs != upd.RunAs {
@@ -711,4 +767,20 @@ func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*
 	}
 
 	return set, nil
+}
+
+// toLabeledWorkflows converts to []label.LabeledResource
+//
+// This function is auto-generated.
+func toLabeledWorkflows(set []*types.Workflow) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }
