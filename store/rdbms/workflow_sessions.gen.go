@@ -225,8 +225,8 @@ func (s Store) internalWorkflowSessionRowScanner(row rowScanner) (res *types.Wor
 		err = row.Scan(
 			&res.ID,
 			&res.WorkflowID,
-			&res.Triggered,
-			&res.TriggeredBy,
+			&res.EventType,
+			&res.EventResourceID,
 			&res.ExecutedAs,
 			&res.WallTime,
 			&res.UserTime,
@@ -279,8 +279,8 @@ func (Store) workflowSessionColumns(aa ...string) []string {
 	return []string{
 		alias + "id",
 		alias + "rel_workflow",
-		alias + "triggered",
-		alias + "triggered_by",
+		alias + "event_type",
+		alias + "rel_event_resource",
 		alias + "executed_as",
 		alias + "wall_time",
 		alias + "user_time",
@@ -303,21 +303,21 @@ func (Store) workflowSessionColumns(aa ...string) []string {
 // func when rdbms.customEncoder=true
 func (s Store) internalWorkflowSessionEncoder(res *types.WorkflowSession) store.Payload {
 	return store.Payload{
-		"id":           res.ID,
-		"rel_workflow": res.WorkflowID,
-		"triggered":    res.Triggered,
-		"triggered_by": res.TriggeredBy,
-		"executed_as":  res.ExecutedAs,
-		"wall_time":    res.WallTime,
-		"user_time":    res.UserTime,
-		"input":        res.Input,
-		"output":       res.Output,
-		"trace":        res.Trace,
-		"created_by":   res.CreatedBy,
-		"deleted_by":   res.DeletedBy,
-		"created_at":   res.CreatedAt,
-		"deleted_at":   res.DeletedAt,
-		"purge_at":     res.PurgeAt,
+		"id":                 res.ID,
+		"rel_workflow":       res.WorkflowID,
+		"event_type":         res.EventType,
+		"rel_event_resource": res.EventResourceID,
+		"executed_as":        res.ExecutedAs,
+		"wall_time":          res.WallTime,
+		"user_time":          res.UserTime,
+		"input":              res.Input,
+		"output":             res.Output,
+		"trace":              res.Trace,
+		"created_by":         res.CreatedBy,
+		"deleted_by":         res.DeletedBy,
+		"created_at":         res.CreatedAt,
+		"deleted_at":         res.DeletedAt,
+		"purge_at":           res.PurgeAt,
 	}
 }
 

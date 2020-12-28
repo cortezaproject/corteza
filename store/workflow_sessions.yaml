@@ -4,8 +4,8 @@ import:
 fields:
   - { field: ID }
   - { field: WorkflowID }
-  - { field: Triggered }
-  - { field: TriggeredBy }
+  - { field: EventType }
+  - { field: EventResourceID }
   - { field: ExecutedAs, type: uint64 }
   - { field: WallTime,   type: "time.Duration" }
   - { field: UserTime,   type: "time.Duration" }

@@ -79,6 +79,9 @@ func (s Schema) Tables() []*Table {
 		s.FederationModuleMapping(),
 		s.FederationNodes(),
 		s.FederationNodesSync(),
+		s.Workflows(),
+		s.WorkflowTriggers(),
+		s.WorkflowSessions(),
 	}
 }
 
@@ -557,5 +560,63 @@ func (Schema) FederationNodesSync() *Table {
 		ColumnDef("sync_type", ColumnTypeText),
 		ColumnDef("sync_status", ColumnTypeText),
 		ColumnDef("time_action", ColumnTypeTimestamp),
+	)
+}
+
+func (Schema) Workflows() *Table {
+	return TableDef("workflows",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("trace", ColumnTypeBoolean),
+		ColumnDef("keep_sessions", ColumnTypeInteger),
+		ColumnDef("scope", ColumnTypeJson),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func (Schema) WorkflowTriggers() *Table {
+	return TableDef("workflows",
+		ID,
+		ColumnDef("rel_workflow", ColumnTypeIdentifier),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("constraints", ColumnTypeJson),
+		ColumnDef("input", ColumnTypeJson),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("workflow", IColumn("rel_workflow")),
+	)
+}
+
+func (Schema) WorkflowSessions() *Table {
+	return TableDef("workflows",
+		ID,
+		ColumnDef("rel_workflow", ColumnTypeIdentifier),
+		ColumnDef("triggered", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("triggered_by", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("executed_as", ColumnTypeIdentifier),
+		ColumnDef("wall_time", ColumnTypeInteger),
+		ColumnDef("user_time", ColumnTypeInteger),
+		ColumnDef("input", ColumnTypeJson),
+		ColumnDef("output", ColumnTypeJson),
+		ColumnDef("trace", ColumnTypeJson),
+
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		ColumnDef("created_by", ColumnTypeIdentifier),
+		ColumnDef("created_at", ColumnTypeTimestamp),
+		ColumnDef("deleted_by", ColumnTypeIdentifier, DefaultValue("0")),
+		ColumnDef("deleted_at", ColumnTypeTimestamp, Null),
+
+		AddIndex("workflow", IColumn("rel_workflow")),
 	)
 }

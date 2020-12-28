@@ -1,8 +1,11 @@
 package types
 
 import (
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"time"
 )
@@ -16,8 +19,10 @@ type (
 		Meta    *WorkflowMeta     `json:"meta"`
 		Enabled bool              `json:"enabled"`
 
-		Trace        bool          `json:"trace"`
-		KeepSessions time.Duration `json:"keepSessions"`
+		Trace bool `json:"trace"`
+
+		// how much time do we keep completed sessions (in sec)
+		KeepSessions int `json:"keepSessions"`
 
 		// Initial input scope
 		Scope wfexec.Variables `json:"scope"`
@@ -155,11 +160,11 @@ type (
 		ID         uint64 `json:"sessionID,string"`
 		WorkflowID uint64 `json:"workflowID,string"`
 
-		EventType       string        `json:"eventType,string"`       // event name
-		EventResourceID string        `json:"eventResourceID,string"` // resource ID
-		ExecutedAs      uint64        `json:"executedBy,string"`      // runner (might be different then creator)
-		WallTime        time.Duration `json:"wallTime"`               // how long did it take to run it (inc all suspension)
-		UserTime        time.Duration `json:"userTime"`               // how long did it take to run it (sum of all time spent in each step)
+		EventType       string `json:"eventType,string"`       // event name
+		EventResourceID string `json:"eventResourceID,string"` // resource ID
+		ExecutedAs      uint64 `json:"executedBy,string"`      // runner (might be different then creator)
+		WallTime        int    `json:"wallTime"`               // how long did it take (ms) to run it (inc all suspension)
+		UserTime        int    `json:"userTime"`               // how long did it take (ms) to run it (sum of all time spent in each step)
 
 		Input  wfexec.Variables `json:"input"`
 		Output wfexec.Variables `json:"output"`
@@ -186,7 +191,7 @@ type (
 		StepID     uint64           `json:"stepID,string"`
 		Depth      uint64           `json:"depth,string"`
 		Scope      wfexec.Variables `json:"scope"`
-		Duration   time.Duration    `json:"duration"`
+		Duration   int              `json:"duration"` // in ms
 	}
 
 	// WorkflowState tracks suspended sessions
@@ -255,6 +260,11 @@ const (
 	//WorkflowStepKindAlert       WorkflowStepKind = "alert" // ref = error, warning, info
 )
 
+// Resource returns a resource ID for this type
+func (r *Workflow) RBACResource() rbac.Resource {
+	return WorkflowRBACResource.AppendID(r.ID)
+}
+
 func ParseWorkflowMeta(ss []string) (p *WorkflowMeta, err error) {
 	p = &WorkflowMeta{}
 	return p, parseStringsInput(ss, p)
@@ -286,4 +296,28 @@ func parseStringsInput(ss []string, p interface{}) (err error) {
 	}
 
 	return json.Unmarshal([]byte(ss[0]), &p)
+}
+
+func (vv *WorkflowMeta) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*vv = WorkflowMeta{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, vv); err != nil {
+			return fmt.Errorf("can not scan '%v' into WorkflowMeta: %w", string(b), err)
+		}
+	}
+
+	return nil
+}
+
+// Scan on WorkflowMeta gracefully handles conversion from NULL
+func (vv *WorkflowMeta) Value() (driver.Value, error) {
+	if vv == nil {
+		return []byte("null"), nil
+	}
+
+	return json.Marshal(vv)
 }

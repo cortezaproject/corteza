@@ -34,11 +34,3 @@ lookups:
       searches for workflow by their handle
 
       It returns only valid workflows (not deleted, not suspended)
-
-search:
-  # @todo enable !!
-  enablePaging: false
-  # @todo enable !!
-  enableSorting: false
-  # @todo enable !!
-  enableFilterCheckFunction: false
