@@ -64,7 +64,10 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 				continue
 			}
 
-			dp.SyncService.DeleteRecord(ctx, rec)
+			// Handle edge cases where the data doesn't exist anymore
+			if rec != nil {
+				dp.SyncService.DeleteRecord(ctx, rec)
+			}
 			processed++
 
 			continue
