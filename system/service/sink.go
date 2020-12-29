@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -149,7 +148,7 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 	)
 
 	// capture error from request handling and process functions
-	err := func() *errors.Error {
+	err := func() error {
 		defer r.Body.Close()
 		srup, err := svc.handleRequest(r)
 		if err != nil {
@@ -179,7 +178,7 @@ func (svc *sink) ProcessRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 // Verifies and extracts sink request params
-func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, *errors.Error) {
+func (svc sink) handleRequest(r *http.Request) (*SinkRequestUrlParams, error) {
 	var (
 		srup = &SinkRequestUrlParams{}
 		sap  = &sinkActionProps{}
