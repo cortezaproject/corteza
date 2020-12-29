@@ -45,6 +45,16 @@ type (
 	// This type is auto-generated.
 	SettingValueSet []*SettingValue
 
+	// TriggerSet slice of Trigger
+	//
+	// This type is auto-generated.
+	TriggerSet []*Trigger
+
+	// TriggerConstraintSet slice of TriggerConstraint
+	//
+	// This type is auto-generated.
+	TriggerConstraintSet []*TriggerConstraint
+
 	// UserSet slice of User
 	//
 	// This type is auto-generated.
@@ -84,11 +94,6 @@ type (
 	//
 	// This type is auto-generated.
 	WorkflowStepSet []*WorkflowStep
-
-	// WorkflowTriggerSet slice of WorkflowTrigger
-	//
-	// This type is auto-generated.
-	WorkflowTriggerSet []*WorkflowTrigger
 )
 
 // Walk iterates through every slice item and calls w(Application) err
@@ -420,6 +425,92 @@ func (set SettingValueSet) Walk(w func(*SettingValue) error) (err error) {
 func (set SettingValueSet) Filter(f func(*SettingValue) (bool, error)) (out SettingValueSet, err error) {
 	var ok bool
 	out = SettingValueSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Trigger) err
+//
+// This function is auto-generated.
+func (set TriggerSet) Walk(w func(*Trigger) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Trigger) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set TriggerSet) Filter(f func(*Trigger) (bool, error)) (out TriggerSet, err error) {
+	var ok bool
+	out = TriggerSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set TriggerSet) FindByID(ID uint64) *Trigger {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set TriggerSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(TriggerConstraint) err
+//
+// This function is auto-generated.
+func (set TriggerConstraintSet) Walk(w func(*TriggerConstraint) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(TriggerConstraint) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set TriggerConstraintSet) Filter(f func(*TriggerConstraint) (bool, error)) (out TriggerConstraintSet, err error) {
+	var ok bool
+	out = TriggerConstraintSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -792,62 +883,6 @@ func (set WorkflowStepSet) FindByID(ID uint64) *WorkflowStep {
 //
 // This function is auto-generated.
 func (set WorkflowStepSet) IDs() (IDs []uint64) {
-	IDs = make([]uint64, len(set))
-
-	for i := range set {
-		IDs[i] = set[i].ID
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(WorkflowTrigger) err
-//
-// This function is auto-generated.
-func (set WorkflowTriggerSet) Walk(w func(*WorkflowTrigger) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(WorkflowTrigger) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set WorkflowTriggerSet) Filter(f func(*WorkflowTrigger) (bool, error)) (out WorkflowTriggerSet, err error) {
-	var ok bool
-	out = WorkflowTriggerSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
-	}
-
-	return
-}
-
-// FindByID finds items from slice by its ID property
-//
-// This function is auto-generated.
-func (set WorkflowTriggerSet) FindByID(ID uint64) *WorkflowTrigger {
-	for i := range set {
-		if set[i].ID == ID {
-			return set[i]
-		}
-	}
-
-	return nil
-}
-
-// IDs returns a slice of uint64s from all items in the set
-//
-// This function is auto-generated.
-func (set WorkflowTriggerSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

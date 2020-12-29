@@ -32,7 +32,7 @@ var (
 
 type (
 	// Internal API interface
-	WorkflowList struct {
+	AutomationWorkflowList struct {
 		// WorkflowID GET parameter
 		//
 		// Filter by workflow ID
@@ -69,7 +69,7 @@ type (
 		Sort string
 	}
 
-	WorkflowCreate struct {
+	AutomationWorkflowCreate struct {
 		// Handle POST parameter
 		//
 		// Workflow name
@@ -126,7 +126,7 @@ type (
 		OwnedBy uint64 `json:",string"`
 	}
 
-	WorkflowUpdate struct {
+	AutomationWorkflowUpdate struct {
 		// WorkflowID PATH parameter
 		//
 		// Workflow ID
@@ -188,28 +188,28 @@ type (
 		OwnedBy uint64 `json:",string"`
 	}
 
-	WorkflowRead struct {
+	AutomationWorkflowRead struct {
 		// WorkflowID PATH parameter
 		//
 		// Workflow ID
 		WorkflowID uint64 `json:",string"`
 	}
 
-	WorkflowDelete struct {
+	AutomationWorkflowDelete struct {
 		// WorkflowID PATH parameter
 		//
 		// Workflow ID
 		WorkflowID uint64 `json:",string"`
 	}
 
-	WorkflowUndelete struct {
+	AutomationWorkflowUndelete struct {
 		// WorkflowID PATH parameter
 		//
 		// Workflow ID
 		WorkflowID uint64 `json:",string"`
 	}
 
-	WorkflowTest struct {
+	AutomationWorkflowTest struct {
 		// WorkflowID PATH parameter
 		//
 		// Workflow ID
@@ -227,13 +227,13 @@ type (
 	}
 )
 
-// NewWorkflowList request
-func NewWorkflowList() *WorkflowList {
-	return &WorkflowList{}
+// NewAutomationWorkflowList request
+func NewAutomationWorkflowList() *AutomationWorkflowList {
+	return &AutomationWorkflowList{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) Auditable() map[string]interface{} {
+func (r AutomationWorkflowList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID": r.WorkflowID,
 		"query":      r.Query,
@@ -246,42 +246,42 @@ func (r WorkflowList) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetWorkflowID() []string {
+func (r AutomationWorkflowList) GetWorkflowID() []string {
 	return r.WorkflowID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetQuery() string {
+func (r AutomationWorkflowList) GetQuery() string {
 	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetDeleted() uint {
+func (r AutomationWorkflowList) GetDeleted() uint {
 	return r.Deleted
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetLabels() map[string]string {
+func (r AutomationWorkflowList) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetLimit() uint {
+func (r AutomationWorkflowList) GetLimit() uint {
 	return r.Limit
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetPageCursor() string {
+func (r AutomationWorkflowList) GetPageCursor() string {
 	return r.PageCursor
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetSort() string {
+func (r AutomationWorkflowList) GetSort() string {
 	return r.Sort
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowList) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowList) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -354,13 +354,13 @@ func (r *WorkflowList) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowCreate request
-func NewWorkflowCreate() *WorkflowCreate {
-	return &WorkflowCreate{}
+// NewAutomationWorkflowCreate request
+func NewAutomationWorkflowCreate() *AutomationWorkflowCreate {
+	return &AutomationWorkflowCreate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) Auditable() map[string]interface{} {
+func (r AutomationWorkflowCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"handle":       r.Handle,
 		"labels":       r.Labels,
@@ -377,62 +377,62 @@ func (r WorkflowCreate) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetHandle() string {
+func (r AutomationWorkflowCreate) GetHandle() string {
 	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetLabels() map[string]string {
+func (r AutomationWorkflowCreate) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetMeta() *types.WorkflowMeta {
+func (r AutomationWorkflowCreate) GetMeta() *types.WorkflowMeta {
 	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetEnabled() bool {
+func (r AutomationWorkflowCreate) GetEnabled() bool {
 	return r.Enabled
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetTrace() bool {
+func (r AutomationWorkflowCreate) GetTrace() bool {
 	return r.Trace
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetKeepSessions() int {
+func (r AutomationWorkflowCreate) GetKeepSessions() int {
 	return r.KeepSessions
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetScope() wfexec.Variables {
+func (r AutomationWorkflowCreate) GetScope() wfexec.Variables {
 	return r.Scope
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetSteps() types.WorkflowStepSet {
+func (r AutomationWorkflowCreate) GetSteps() types.WorkflowStepSet {
 	return r.Steps
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetPaths() types.WorkflowPathSet {
+func (r AutomationWorkflowCreate) GetPaths() types.WorkflowPathSet {
 	return r.Paths
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetRunAs() uint64 {
+func (r AutomationWorkflowCreate) GetRunAs() uint64 {
 	return r.RunAs
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetOwnedBy() uint64 {
+func (r AutomationWorkflowCreate) GetOwnedBy() uint64 {
 	return r.OwnedBy
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowCreate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -557,13 +557,13 @@ func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowUpdate request
-func NewWorkflowUpdate() *WorkflowUpdate {
-	return &WorkflowUpdate{}
+// NewAutomationWorkflowUpdate request
+func NewAutomationWorkflowUpdate() *AutomationWorkflowUpdate {
+	return &AutomationWorkflowUpdate{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) Auditable() map[string]interface{} {
+func (r AutomationWorkflowUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID":   r.WorkflowID,
 		"handle":       r.Handle,
@@ -581,67 +581,67 @@ func (r WorkflowUpdate) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetWorkflowID() uint64 {
+func (r AutomationWorkflowUpdate) GetWorkflowID() uint64 {
 	return r.WorkflowID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetHandle() string {
+func (r AutomationWorkflowUpdate) GetHandle() string {
 	return r.Handle
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetLabels() map[string]string {
+func (r AutomationWorkflowUpdate) GetLabels() map[string]string {
 	return r.Labels
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetMeta() *types.WorkflowMeta {
+func (r AutomationWorkflowUpdate) GetMeta() *types.WorkflowMeta {
 	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetEnabled() bool {
+func (r AutomationWorkflowUpdate) GetEnabled() bool {
 	return r.Enabled
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetTrace() bool {
+func (r AutomationWorkflowUpdate) GetTrace() bool {
 	return r.Trace
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetKeepSessions() int {
+func (r AutomationWorkflowUpdate) GetKeepSessions() int {
 	return r.KeepSessions
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetScope() wfexec.Variables {
+func (r AutomationWorkflowUpdate) GetScope() wfexec.Variables {
 	return r.Scope
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetSteps() types.WorkflowStepSet {
+func (r AutomationWorkflowUpdate) GetSteps() types.WorkflowStepSet {
 	return r.Steps
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetPaths() types.WorkflowPathSet {
+func (r AutomationWorkflowUpdate) GetPaths() types.WorkflowPathSet {
 	return r.Paths
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetRunAs() uint64 {
+func (r AutomationWorkflowUpdate) GetRunAs() uint64 {
 	return r.RunAs
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetOwnedBy() uint64 {
+func (r AutomationWorkflowUpdate) GetOwnedBy() uint64 {
 	return r.OwnedBy
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowUpdate) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -778,25 +778,25 @@ func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowRead request
-func NewWorkflowRead() *WorkflowRead {
-	return &WorkflowRead{}
+// NewAutomationWorkflowRead request
+func NewAutomationWorkflowRead() *AutomationWorkflowRead {
+	return &AutomationWorkflowRead{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowRead) Auditable() map[string]interface{} {
+func (r AutomationWorkflowRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID": r.WorkflowID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowRead) GetWorkflowID() uint64 {
+func (r AutomationWorkflowRead) GetWorkflowID() uint64 {
 	return r.WorkflowID
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowRead) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowRead) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -823,25 +823,25 @@ func (r *WorkflowRead) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowDelete request
-func NewWorkflowDelete() *WorkflowDelete {
-	return &WorkflowDelete{}
+// NewAutomationWorkflowDelete request
+func NewAutomationWorkflowDelete() *AutomationWorkflowDelete {
+	return &AutomationWorkflowDelete{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowDelete) Auditable() map[string]interface{} {
+func (r AutomationWorkflowDelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID": r.WorkflowID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowDelete) GetWorkflowID() uint64 {
+func (r AutomationWorkflowDelete) GetWorkflowID() uint64 {
 	return r.WorkflowID
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowDelete) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowDelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -868,25 +868,25 @@ func (r *WorkflowDelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowUndelete request
-func NewWorkflowUndelete() *WorkflowUndelete {
-	return &WorkflowUndelete{}
+// NewAutomationWorkflowUndelete request
+func NewAutomationWorkflowUndelete() *AutomationWorkflowUndelete {
+	return &AutomationWorkflowUndelete{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUndelete) Auditable() map[string]interface{} {
+func (r AutomationWorkflowUndelete) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID": r.WorkflowID,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUndelete) GetWorkflowID() uint64 {
+func (r AutomationWorkflowUndelete) GetWorkflowID() uint64 {
 	return r.WorkflowID
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowUndelete) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowUndelete) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -913,13 +913,13 @@ func (r *WorkflowUndelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewWorkflowTest request
-func NewWorkflowTest() *WorkflowTest {
-	return &WorkflowTest{}
+// NewAutomationWorkflowTest request
+func NewAutomationWorkflowTest() *AutomationWorkflowTest {
+	return &AutomationWorkflowTest{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowTest) Auditable() map[string]interface{} {
+func (r AutomationWorkflowTest) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"workflowID": r.WorkflowID,
 		"scope":      r.Scope,
@@ -928,22 +928,22 @@ func (r WorkflowTest) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowTest) GetWorkflowID() uint64 {
+func (r AutomationWorkflowTest) GetWorkflowID() uint64 {
 	return r.WorkflowID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowTest) GetScope() wfexec.Variables {
+func (r AutomationWorkflowTest) GetScope() wfexec.Variables {
 	return r.Scope
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowTest) GetRunAs() bool {
+func (r AutomationWorkflowTest) GetRunAs() bool {
 	return r.RunAs
 }
 
 // Fill processes request and fills internal variables
-func (r *WorkflowTest) Fill(req *http.Request) (err error) {
+func (r *AutomationWorkflowTest) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

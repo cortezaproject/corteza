@@ -33,9 +33,9 @@ package tests
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
+//  - store/triggers.yaml
 //  - store/users.yaml
 //  - store/workflow_sessions.yaml
-//  - store/workflow_triggers.yaml
 //  - store/workflows.yaml
 
 //
@@ -204,6 +204,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 		testSettings(t, s)
 	})
 
+	// Run generated tests for Triggers
+	t.Run("Triggers", func(t *testing.T) {
+		testTriggers(t, s)
+	})
+
 	// Run generated tests for Users
 	t.Run("Users", func(t *testing.T) {
 		testUsers(t, s)
@@ -212,11 +217,6 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for WorkflowSessions
 	t.Run("WorkflowSessions", func(t *testing.T) {
 		testWorkflowSessions(t, s)
-	})
-
-	// Run generated tests for WorkflowTriggers
-	t.Run("WorkflowTriggers", func(t *testing.T) {
-		testWorkflowTriggers(t, s)
 	})
 
 	// Run generated tests for Workflows

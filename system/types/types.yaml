@@ -12,9 +12,12 @@ types:
   Attachment: {}
   SettingValue:
     noIdField: true
+  Trigger:
+    labelResourceType: trigger
+  TriggerConstraint:
+    noIdField: true
   Workflow:
     labelResourceType: workflow
-  WorkflowTrigger: {}
   WorkflowPath:
     noIdField: true
   WorkflowStep: {}

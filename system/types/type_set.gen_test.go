@@ -576,6 +576,152 @@ func TestSettingValueSetFilter(t *testing.T) {
 	}
 }
 
+func TestTriggerSetWalk(t *testing.T) {
+	var (
+		value = make(TriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Trigger) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Trigger) error { return fmt.Errorf("walk error") }))
+}
+
+func TestTriggerSetFilter(t *testing.T) {
+	var (
+		value = make(TriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Trigger) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Trigger) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Trigger) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestTriggerSetIDs(t *testing.T) {
+	var (
+		value = make(TriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(Trigger)
+	value[1] = new(Trigger)
+	value[2] = new(Trigger)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestTriggerConstraintSetWalk(t *testing.T) {
+	var (
+		value = make(TriggerConstraintSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*TriggerConstraint) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*TriggerConstraint) error { return fmt.Errorf("walk error") }))
+}
+
+func TestTriggerConstraintSetFilter(t *testing.T) {
+	var (
+		value = make(TriggerConstraintSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*TriggerConstraint) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*TriggerConstraint) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*TriggerConstraint) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
 func TestUserSetWalk(t *testing.T) {
 	var (
 		value = make(UserSet, 3)
@@ -1170,96 +1316,6 @@ func TestWorkflowStepSetIDs(t *testing.T) {
 	value[0] = new(WorkflowStep)
 	value[1] = new(WorkflowStep)
 	value[2] = new(WorkflowStep)
-	// set ids
-	value[0].ID = 1
-	value[1].ID = 2
-	value[2].ID = 3
-
-	// Find existing
-	{
-		val := value.FindByID(2)
-		req.Equal(uint64(2), val.ID)
-	}
-
-	// Find non-existing
-	{
-		val := value.FindByID(4)
-		req.Nil(val)
-	}
-
-	// List IDs from set
-	{
-		val := value.IDs()
-		req.Equal(len(val), len(value))
-	}
-}
-
-func TestWorkflowTriggerSetWalk(t *testing.T) {
-	var (
-		value = make(WorkflowTriggerSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*WorkflowTrigger) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*WorkflowTrigger) error { return fmt.Errorf("walk error") }))
-}
-
-func TestWorkflowTriggerSetFilter(t *testing.T) {
-	var (
-		value = make(WorkflowTriggerSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*WorkflowTrigger) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*WorkflowTrigger) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*WorkflowTrigger) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
-func TestWorkflowTriggerSetIDs(t *testing.T) {
-	var (
-		value = make(WorkflowTriggerSet, 3)
-		req   = require.New(t)
-	)
-
-	// construct objects
-	value[0] = new(WorkflowTrigger)
-	value[1] = new(WorkflowTrigger)
-	value[2] = new(WorkflowTrigger)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2

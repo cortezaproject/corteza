@@ -46,8 +46,7 @@ type (
 
 		Query string `json:"query"`
 
-		Deleted  filter.State `json:"deleted"`
-		Archived filter.State `json:"archived"`
+		Deleted filter.State `json:"deleted"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
@@ -65,51 +64,6 @@ type (
 
 	WorkflowMeta struct {
 		Name        string                 `json:"label"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
-	WorkflowTrigger struct {
-		ID         uint64 `json:"triggerID,string"`
-		WorkflowID uint64 `json:"workflowID,string"`
-		Enabled    bool   `json:"enabled"`
-
-		// Start workflow on this step. If 0, find first (only) orphan
-		StepID uint64
-
-		// Resource type that can trigger the workflow
-		ResourceType string
-
-		// Event type that can trigger the workflow
-		EventType string
-
-		// Trigger constraints
-		Constraints []WorkflowTriggerConstraint
-
-		Meta WorkflowTriggerMeta `json:"meta"`
-
-		// Initial input scope,
-		// will be merged merged with workflow variables
-		Input wfexec.Variables
-
-		OwnedBy   uint64     `json:"ownedBy,string"`
-		CreatedAt time.Time  `json:"createdAt,omitempty"`
-		CreatedBy uint64     `json:"createdBy,string" `
-		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-		DeletedAt *time.Time `json:"deletedAt,omitempty"`
-		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-	}
-
-	WorkflowTriggerConstraint struct {
-		Name   string   `json:"name"`
-		Op     string   `json:"op,omitempty"`
-		Values []string `json:"values,omitempty"`
-	}
-
-	WorkflowTriggerFilter struct{}
-
-	WorkflowTriggerMeta struct {
 		Description string                 `json:"description"`
 		Visual      map[string]interface{} `json:"visual"`
 	}
@@ -248,15 +202,17 @@ type (
 
 const (
 	WorkflowStepKindExpressions WorkflowStepKind = "expressions"
-	WorkflowStepKindGatewayIncl WorkflowStepKind = "gateway:incl"
-	WorkflowStepKindGatewayExcl WorkflowStepKind = "gateway:excl"
-	WorkflowStepKindGatewayFork WorkflowStepKind = "gateway:fork"
-	WorkflowStepKindGatewayJoin WorkflowStepKind = "gateway:join"
+	WorkflowStepKindGatewayIncl WorkflowStepKind = "gateway:incl" // kind=gateway + ref=incl
+	WorkflowStepKindGatewayExcl WorkflowStepKind = "gateway:excl" // kind=gateway + ref=excl
+	WorkflowStepKindGatewayFork WorkflowStepKind = "gateway:fork" // kind=gateway + ref=fork
+	WorkflowStepKindGatewayJoin WorkflowStepKind = "gateway:join" // kind=gateway + ref=join
 	WorkflowStepKindFunction    WorkflowStepKind = "function"
-	WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
-	//WorkflowStepKindInput       WorkflowStepKind = "input" // ref = frontend function
+	//WorkflowStepKindGateway WorkflowStepKind = "gateway" // ref=join|fork|excl|incl
+	//WorkflowStepKindLoop        WorkflowStepKind = "loop"
+	//WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
+	//WorkflowStepKindPrompt      WorkflowStepKind = "prompt" // ref = client function
+	//WorkflowStepKindNotify      WorkflowStepKind = "notify" // ref = error, warning, info
 	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
-	//WorkflowStepKindAlert       WorkflowStepKind = "alert" // ref = error, warning, info
 )
 
 // Resource returns a resource ID for this type
@@ -276,11 +232,6 @@ func ParseWorkflowStepSet(ss []string) (p WorkflowStepSet, err error) {
 
 func ParseWorkflowPathSet(ss []string) (p WorkflowPathSet, err error) {
 	p = WorkflowPathSet{}
-	return p, parseStringsInput(ss, &p)
-}
-
-func ParseWorkflowTriggerSet(ss []string) (p WorkflowTriggerSet, err error) {
-	p = WorkflowTriggerSet{}
 	return p, parseStringsInput(ss, &p)
 }
 

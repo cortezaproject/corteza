@@ -66,7 +66,7 @@ func TestWorkflowRead(t *testing.T) {
 	h.allow(types.WorkflowRBACResource.AppendID(wf.ID), "read")
 
 	h.apiInit().
-		Get(fmt.Sprintf("/workflows/%d", wf.ID)).
+		Get(fmt.Sprintf("/automation/workflows/%d", wf.ID)).
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -86,7 +86,7 @@ func TestWorkflowList(t *testing.T) {
 	h.repoMakeWorkflow()
 
 	h.apiInit().
-		Get("/workflows/").
+		Get("/automation/workflows/").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -108,7 +108,7 @@ func TestWorkflowList_filterForbidden(t *testing.T) {
 	h.deny(types.WorkflowRBACResource.AppendID(f.ID), "read")
 
 	h.apiInit().
-		Get("/workflows/").
+		Get("/automation/workflows/").
 		Query("handle", f.Handle).
 		Header("Accept", "application/json").
 		Expect(t).
@@ -122,7 +122,7 @@ func TestWorkflowCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 
 	h.apiInit().
-		Post("/workflows/").
+		Post("/automation/workflows/").
 		Header("Accept", "application/json").
 		FormData("name", rs()).
 		Expect(t).
@@ -137,7 +137,7 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 
 	workflow := h.repoMakeWorkflow()
 	h.apiInit().
-		Post("/workflows/").
+		Post("/automation/workflows/").
 		Header("Accept", "application/json").
 		FormData("name", rs()).
 		FormData("handle", workflow.Handle).
@@ -152,7 +152,7 @@ func TestWorkflowCreate(t *testing.T) {
 	h.allow(types.SystemRBACResource, "workflow.create")
 
 	h.apiInit().
-		Post("/workflows/").
+		Post("/automation/workflows/").
 		FormData("name", rs()).
 		FormData("handle", "handle_"+rs()).
 		Header("Accept", "application/json").
@@ -195,7 +195,7 @@ func TestWorkflowCreateFull(t *testing.T) {
 	)
 
 	h.apiInit().
-		Post("/workflows/").
+		Post("/automation/workflows/").
 		Header("Accept", "application/json").
 		JSON(helpers.JSON(input)).
 		Expect(t).
@@ -219,7 +219,7 @@ func TestWorkflowCreateFull(t *testing.T) {
 	h.allow(types.WorkflowRBACResource.AppendID(output.ID), "read")
 
 	h.apiInit().
-		Get(fmt.Sprintf("/workflows/%d", output.ID)).
+		Get(fmt.Sprintf("/automation/workflows/%d", output.ID)).
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -236,7 +236,7 @@ func TestWorkflowUpdateForbidden(t *testing.T) {
 	u := h.repoMakeWorkflow()
 
 	h.apiInit().
-		Put(fmt.Sprintf("/workflows/%d", u.ID)).
+		Put(fmt.Sprintf("/automation/workflows/%d", u.ID)).
 		Header("Accept", "application/json").
 		FormData("email", h.randEmail()).
 		Expect(t).
@@ -254,7 +254,7 @@ func TestWorkflowUpdate(t *testing.T) {
 	newHandle := "updated-" + rs()
 
 	h.apiInit().
-		Put(fmt.Sprintf("/workflows/%d", res.ID)).
+		Put(fmt.Sprintf("/automation/workflows/%d", res.ID)).
 		FormData("name", newName).
 		FormData("handle", newHandle).
 		Header("Accept", "application/json").
@@ -273,7 +273,7 @@ func TestWorkflowDeleteForbidden(t *testing.T) {
 	u := h.repoMakeWorkflow()
 
 	h.apiInit().
-		Delete(fmt.Sprintf("/workflows/%d", u.ID)).
+		Delete(fmt.Sprintf("/automation/workflows/%d", u.ID)).
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -288,7 +288,7 @@ func TestWorkflowDelete(t *testing.T) {
 	res := h.repoMakeWorkflow()
 
 	h.apiInit().
-		Delete(fmt.Sprintf("/workflows/%d", res.ID)).
+		Delete(fmt.Sprintf("/automation/workflows/%d", res.ID)).
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
@@ -320,7 +320,7 @@ func TestWorkflowLabels(t *testing.T) {
 		)
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
-			"/workflows/",
+			"/automation/workflows/",
 			types.Workflow{Labels: map[string]string{"foo": "bar", "bar": "42"}},
 			payload,
 		)
@@ -347,7 +347,7 @@ func TestWorkflowLabels(t *testing.T) {
 		)
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
-			fmt.Sprintf("PUT /workflows/%d", ID),
+			fmt.Sprintf("PUT /automation/workflows/%d", ID),
 			&types.Workflow{Labels: map[string]string{"foo": "baz", "baz": "123"}},
 			payload,
 		)
@@ -374,7 +374,7 @@ func TestWorkflowLabels(t *testing.T) {
 			set = types.WorkflowSet{}
 		)
 
-		helpers.SearchWithLabelsViaAPI(h.apiInit(), t, "/workflows/", &set, url.Values{"labels": []string{"baz=123"}})
+		helpers.SearchWithLabelsViaAPI(h.apiInit(), t, "/automation/workflows/", &set, url.Values{"labels": []string{"baz=123"}})
 		req.NotEmpty(set)
 		req.NotNil(set.FindByID(ID))
 		req.NotNil(set.FindByID(ID).Labels)

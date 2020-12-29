@@ -583,26 +583,8 @@ func (Schema) Workflows() *Table {
 	)
 }
 
-func (Schema) WorkflowTriggers() *Table {
-	return TableDef("workflows",
-		ID,
-		ColumnDef("rel_workflow", ColumnTypeIdentifier),
-		ColumnDef("meta", ColumnTypeJson),
-		ColumnDef("enabled", ColumnTypeBoolean),
-		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
-		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
-		ColumnDef("constraints", ColumnTypeJson),
-		ColumnDef("input", ColumnTypeJson),
-		ColumnDef("owned_by", ColumnTypeIdentifier),
-		CUDTimestamps,
-		CUDUsers,
-
-		AddIndex("workflow", IColumn("rel_workflow")),
-	)
-}
-
 func (Schema) WorkflowSessions() *Table {
-	return TableDef("workflows",
+	return TableDef("workflow_sessions",
 		ID,
 		ColumnDef("rel_workflow", ColumnTypeIdentifier),
 		ColumnDef("triggered", ColumnTypeText, ColumnTypeLength(handleLength)),
@@ -619,6 +601,24 @@ func (Schema) WorkflowSessions() *Table {
 		ColumnDef("created_at", ColumnTypeTimestamp),
 		ColumnDef("deleted_by", ColumnTypeIdentifier, DefaultValue("0")),
 		ColumnDef("deleted_at", ColumnTypeTimestamp, Null),
+
+		AddIndex("workflow", IColumn("rel_workflow")),
+	)
+}
+
+func (Schema) WorkflowTriggers() *Table {
+	return TableDef("triggers",
+		ID,
+		ColumnDef("rel_workflow", ColumnTypeIdentifier),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("constraints", ColumnTypeJson),
+		ColumnDef("input", ColumnTypeJson),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
 
 		AddIndex("workflow", IColumn("rel_workflow")),
 	)

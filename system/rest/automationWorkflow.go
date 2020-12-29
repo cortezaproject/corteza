@@ -12,7 +12,7 @@ import (
 )
 
 type (
-	Workflow struct {
+	AutomationWorkflow struct {
 		svc interface {
 			Find(ctx context.Context, filter types.WorkflowFilter) (types.WorkflowSet, types.WorkflowFilter, error)
 			FindByID(ctx context.Context, workflowID uint64) (*types.Workflow, error)
@@ -29,13 +29,13 @@ type (
 	}
 )
 
-func (Workflow) New() *Workflow {
-	ctrl := &Workflow{}
+func (AutomationWorkflow) New() *AutomationWorkflow {
+	ctrl := &AutomationWorkflow{}
 	ctrl.svc = service.DefaultWorkflow
 	return ctrl
 }
 
-func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interface{}, error) {
+func (ctrl AutomationWorkflow) List(ctx context.Context, r *request.AutomationWorkflowList) (interface{}, error) {
 	var (
 		err error
 		f   = types.WorkflowFilter{
@@ -58,7 +58,7 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
-func (ctrl Workflow) Create(ctx context.Context, r *request.WorkflowCreate) (interface{}, error) {
+func (ctrl AutomationWorkflow) Create(ctx context.Context, r *request.AutomationWorkflowCreate) (interface{}, error) {
 	workflow := &types.Workflow{
 		Handle:       r.Handle,
 		Labels:       r.Labels,
@@ -76,7 +76,7 @@ func (ctrl Workflow) Create(ctx context.Context, r *request.WorkflowCreate) (int
 	return ctrl.svc.Create(ctx, workflow)
 }
 
-func (ctrl Workflow) Update(ctx context.Context, r *request.WorkflowUpdate) (interface{}, error) {
+func (ctrl AutomationWorkflow) Update(ctx context.Context, r *request.AutomationWorkflowUpdate) (interface{}, error) {
 	workflow := &types.Workflow{
 		ID:           r.WorkflowID,
 		Handle:       r.Handle,
@@ -95,23 +95,23 @@ func (ctrl Workflow) Update(ctx context.Context, r *request.WorkflowUpdate) (int
 	return ctrl.svc.Update(ctx, workflow)
 }
 
-func (ctrl Workflow) Read(ctx context.Context, r *request.WorkflowRead) (interface{}, error) {
+func (ctrl AutomationWorkflow) Read(ctx context.Context, r *request.AutomationWorkflowRead) (interface{}, error) {
 	return ctrl.svc.FindByID(ctx, r.WorkflowID)
 }
 
-func (ctrl Workflow) Test(ctx context.Context, r *request.WorkflowTest) (interface{}, error) {
+func (ctrl AutomationWorkflow) Test(ctx context.Context, r *request.AutomationWorkflowTest) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (ctrl Workflow) Delete(ctx context.Context, r *request.WorkflowDelete) (interface{}, error) {
+func (ctrl AutomationWorkflow) Delete(ctx context.Context, r *request.AutomationWorkflowDelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.DeleteByID(ctx, r.WorkflowID)
 }
 
-func (ctrl Workflow) Undelete(ctx context.Context, r *request.WorkflowUndelete) (interface{}, error) {
+func (ctrl AutomationWorkflow) Undelete(ctx context.Context, r *request.AutomationWorkflowUndelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.WorkflowID)
 }
 
-func (ctrl Workflow) makeFilterPayload(ctx context.Context, uu types.WorkflowSet, f types.WorkflowFilter, err error) (*workflowSetPayload, error) {
+func (ctrl AutomationWorkflow) makeFilterPayload(ctx context.Context, uu types.WorkflowSet, f types.WorkflowFilter, err error) (*workflowSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}

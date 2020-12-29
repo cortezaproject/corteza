@@ -18,18 +18,18 @@ import (
 
 type (
 	// Internal API interface
-	WorkflowAPI interface {
-		List(context.Context, *request.WorkflowList) (interface{}, error)
-		Create(context.Context, *request.WorkflowCreate) (interface{}, error)
-		Update(context.Context, *request.WorkflowUpdate) (interface{}, error)
-		Read(context.Context, *request.WorkflowRead) (interface{}, error)
-		Delete(context.Context, *request.WorkflowDelete) (interface{}, error)
-		Undelete(context.Context, *request.WorkflowUndelete) (interface{}, error)
-		Test(context.Context, *request.WorkflowTest) (interface{}, error)
+	AutomationWorkflowAPI interface {
+		List(context.Context, *request.AutomationWorkflowList) (interface{}, error)
+		Create(context.Context, *request.AutomationWorkflowCreate) (interface{}, error)
+		Update(context.Context, *request.AutomationWorkflowUpdate) (interface{}, error)
+		Read(context.Context, *request.AutomationWorkflowRead) (interface{}, error)
+		Delete(context.Context, *request.AutomationWorkflowDelete) (interface{}, error)
+		Undelete(context.Context, *request.AutomationWorkflowUndelete) (interface{}, error)
+		Test(context.Context, *request.AutomationWorkflowTest) (interface{}, error)
 	}
 
 	// HTTP API interface
-	Workflow struct {
+	AutomationWorkflow struct {
 		List     func(http.ResponseWriter, *http.Request)
 		Create   func(http.ResponseWriter, *http.Request)
 		Update   func(http.ResponseWriter, *http.Request)
@@ -40,11 +40,11 @@ type (
 	}
 )
 
-func NewWorkflow(h WorkflowAPI) *Workflow {
-	return &Workflow{
+func NewAutomationWorkflow(h AutomationWorkflowAPI) *AutomationWorkflow {
+	return &AutomationWorkflow{
 		List: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowList()
+			params := request.NewAutomationWorkflowList()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -60,7 +60,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Create: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowCreate()
+			params := request.NewAutomationWorkflowCreate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -76,7 +76,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Update: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowUpdate()
+			params := request.NewAutomationWorkflowUpdate()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -92,7 +92,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Read: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowRead()
+			params := request.NewAutomationWorkflowRead()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -108,7 +108,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowDelete()
+			params := request.NewAutomationWorkflowDelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -124,7 +124,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Undelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowUndelete()
+			params := request.NewAutomationWorkflowUndelete()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -140,7 +140,7 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 		},
 		Test: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewWorkflowTest()
+			params := request.NewAutomationWorkflowTest()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
@@ -157,15 +157,15 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 	}
 }
 
-func (h Workflow) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
+func (h AutomationWorkflow) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/workflows/", h.List)
-		r.Post("/workflows/", h.Create)
-		r.Put("/workflows/{workflowID}", h.Update)
-		r.Get("/workflows/{workflowID}", h.Read)
-		r.Delete("/workflows/{workflowID}", h.Delete)
-		r.Post("/workflows/{workflowID}/undelete", h.Undelete)
-		r.Post("/workflows/{workflowID}/test", h.Test)
+		r.Get("/automation/workflows/", h.List)
+		r.Post("/automation/workflows/", h.Create)
+		r.Put("/automation/workflows/{workflowID}", h.Update)
+		r.Get("/automation/workflows/{workflowID}", h.Read)
+		r.Delete("/automation/workflows/{workflowID}", h.Delete)
+		r.Post("/automation/workflows/{workflowID}/undelete", h.Undelete)
+		r.Post("/automation/workflows/{workflowID}/test", h.Test)
 	})
 }

@@ -86,6 +86,7 @@ var (
 	DefaultReminder    ReminderService
 	DefaultAttachment  AttachmentService
 	DefaultWorkflow    *workflow
+	DefaultTrigger     *trigger
 
 	DefaultStatistics *statistics
 
