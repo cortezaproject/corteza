@@ -157,6 +157,10 @@ func (s *Session) Result() Variables {
 }
 
 func (s *Session) Exec(ctx context.Context, step Step, scope Variables) error {
+	if s.workflow.Len() == 0 {
+		return fmt.Errorf("refusing to execute workflow without steps")
+	}
+
 	if len(s.workflow.Parents(step)) > 0 {
 		return fmt.Errorf("can not execute step with parents")
 	}

@@ -44,8 +44,6 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
-	ee.Push(types.SystemRBACResource, "workflow.create", svc.CanCreateWorkflow(ctx))
-	ee.Push(types.SystemRBACResource, "trigger.create", svc.CanCreateTrigger(ctx))
 
 	return
 }
@@ -80,14 +78,6 @@ func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "reminder.assign")
-}
-
-func (svc accessControl) CanCreateWorkflow(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemRBACResource, "workflow.create")
-}
-
-func (svc accessControl) CanCreateTrigger(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemRBACResource, "trigger.create")
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
@@ -169,30 +159,6 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 	}
 
 	return svc.can(ctx, u.RBACResource(), "unmask.name")
-}
-
-func (svc accessControl) CanReadWorkflow(ctx context.Context, u *types.Workflow) bool {
-	return svc.can(ctx, u.RBACResource(), "read")
-}
-
-func (svc accessControl) CanUpdateWorkflow(ctx context.Context, u *types.Workflow) bool {
-	return svc.can(ctx, u.RBACResource(), "update")
-}
-
-func (svc accessControl) CanDeleteWorkflow(ctx context.Context, u *types.Workflow) bool {
-	return svc.can(ctx, u.RBACResource(), "delete")
-}
-
-func (svc accessControl) CanReadTrigger(ctx context.Context, u *types.Trigger) bool {
-	return svc.can(ctx, u.RBACResource(), "read")
-}
-
-func (svc accessControl) CanUpdateTrigger(ctx context.Context, u *types.Trigger) bool {
-	return svc.can(ctx, u.RBACResource(), "update")
-}
-
-func (svc accessControl) CanDeleteTrigger(ctx context.Context, u *types.Trigger) bool {
-	return svc.can(ctx, u.RBACResource(), "delete")
 }
 
 func (svc accessControl) can(ctx context.Context, res rbac.Resource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
@@ -288,13 +254,6 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"update",
 		"delete",
 		"members.manage",
-	)
-
-	wl.Set(
-		types.WorkflowRBACResource,
-		"read",
-		"update",
-		"delete",
 	)
 
 	return wl

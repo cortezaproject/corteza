@@ -7,6 +7,9 @@ package store
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/automation_sessions.yaml
+//  - store/automation_triggers.yaml
+//  - store/automation_workflows.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -35,10 +38,7 @@ package store
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
-//  - store/triggers.yaml
 //  - store/users.yaml
-//  - store/workflow_sessions.yaml
-//  - store/workflows.yaml
 //
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
@@ -50,6 +50,9 @@ type (
 		Actionlogs
 		Applications
 		Attachments
+		AutomationSessions
+		AutomationTriggers
+		AutomationWorkflows
 		ComposeAttachments
 		ComposeCharts
 		ComposeModuleFields
@@ -78,9 +81,6 @@ type (
 		RoleMembers
 		Roles
 		Settings
-		Triggers
 		Users
-		WorkflowSessions
-		Workflows
 	}
 )

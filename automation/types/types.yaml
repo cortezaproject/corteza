@@ -1,0 +1,18 @@
+types:
+  Trigger:
+    labelResourceType: trigger
+  TriggerConstraint:
+    noIdField: true
+
+  Workflow:
+    labelResourceType: workflow
+  WorkflowPath:
+    noIdField: true
+  WorkflowStep: {}
+  WorkflowFunction:
+    noIdField: true
+  WorkflowExpression:
+    noIdField: true
+
+  Session: {}
+  State: {}

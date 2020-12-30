@@ -30,11 +30,27 @@ func StateCondition(q squirrel.SelectBuilder, field string, fs State) squirrel.S
 		return q.Where(squirrel.NotEq{field: nil})
 
 	case StateInclusive:
-		// mo filter
+		// no filter
 		return q
 
 	default:
 		// exclude all non-null values
 		return q.Where(squirrel.Eq{field: nil})
+	}
+}
+
+// squirrel.SelectBuilder
+func StateConditionNegBool(q squirrel.SelectBuilder, field string, fs State) squirrel.SelectBuilder {
+	switch fs {
+	case StateExcluded:
+		// only true
+		return q.Where(squirrel.Eq{field: true})
+
+	case StateExclusive:
+		// only false
+		return q.Where(squirrel.Eq{field: false})
+
+	default:
+		return q
 	}
 }

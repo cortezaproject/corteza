@@ -7,6 +7,9 @@ package tests
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/automation_sessions.yaml
+//  - store/automation_triggers.yaml
+//  - store/automation_workflows.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -33,10 +36,7 @@ package tests
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
-//  - store/triggers.yaml
 //  - store/users.yaml
-//  - store/workflow_sessions.yaml
-//  - store/workflows.yaml
 
 //
 // Changes to this file may cause incorrect behavior and will be lost if
@@ -62,6 +62,21 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Attachment
 	t.Run("Attachment", func(t *testing.T) {
 		testAttachment(t, s)
+	})
+
+	// Run generated tests for AutomationSessions
+	t.Run("AutomationSessions", func(t *testing.T) {
+		testAutomationSessions(t, s)
+	})
+
+	// Run generated tests for AutomationTriggers
+	t.Run("AutomationTriggers", func(t *testing.T) {
+		testAutomationTriggers(t, s)
+	})
+
+	// Run generated tests for AutomationWorkflows
+	t.Run("AutomationWorkflows", func(t *testing.T) {
+		testAutomationWorkflows(t, s)
 	})
 
 	// Run generated tests for ComposeAttachments
@@ -204,23 +219,8 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 		testSettings(t, s)
 	})
 
-	// Run generated tests for Triggers
-	t.Run("Triggers", func(t *testing.T) {
-		testTriggers(t, s)
-	})
-
 	// Run generated tests for Users
 	t.Run("Users", func(t *testing.T) {
 		testUsers(t, s)
-	})
-
-	// Run generated tests for WorkflowSessions
-	t.Run("WorkflowSessions", func(t *testing.T) {
-		testWorkflowSessions(t, s)
-	})
-
-	// Run generated tests for Workflows
-	t.Run("Workflows", func(t *testing.T) {
-		testWorkflows(t, s)
 	})
 }

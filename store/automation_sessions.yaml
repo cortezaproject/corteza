@@ -1,0 +1,36 @@
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+types:
+  type: types.Session
+
+fields:
+  - { field: ID }
+  - { field: WorkflowID }
+  - { field: EventType }
+  - { field: ResourceType }
+  - { field: ExecutedAs, type: uint64 }
+  - { field: WallTime,   type: "time.Duration" }
+  - { field: UserTime,   type: "time.Duration" }
+  - { field: Input,      type: "types.Variables" }
+  - { field: Output,     type: "types.Variables" }
+  - { field: Trace,      type: "types.WorkflowSessionTraceStep" }
+  - { field: CreatedBy }
+  - { field: CreatedAt }
+  - { field: PurgeAt   }
+
+rdbms:
+  alias: atms
+  table: automation_sessions
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for session by ID
+
+      It returns session even if deleted

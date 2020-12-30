@@ -1,0 +1,42 @@
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+types:
+  type: types.Workflow
+
+fields:
+  - { field: ID }
+  - { field: Handle,       unique: true, lookupFilterPreprocessor: lower }
+  - { field: Meta,         type: "types.WorkflowMeta" }
+  - { field: Enabled,      type: bool }
+  - { field: Trace,        type: bool }
+  - { field: KeepSessions, type: "time.Duration" }
+  - { field: Scope,        type: "types.Variables" }
+  - { field: Steps,        type: "types.Variables" }
+  - { field: Paths,        type: "types.Variables" }
+  - { field: RunAs,        type: "uint64" }
+  - { field: OwnedBy }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+rdbms:
+  alias: atmwf
+  table: automation_workflows
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for workflow by ID
+
+      It returns workflow even if deleted
+  - fields: [ Handle ]
+    filter: { DeletedAt: nil }
+    uniqueConstraintCheck: true
+    description: |-
+      searches for workflow by their handle
+
+      It returns only valid workflows

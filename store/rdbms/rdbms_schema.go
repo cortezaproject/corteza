@@ -79,9 +79,10 @@ func (s Schema) Tables() []*Table {
 		s.FederationModuleMapping(),
 		s.FederationNodes(),
 		s.FederationNodesSync(),
-		s.Workflows(),
-		s.WorkflowTriggers(),
-		s.WorkflowSessions(),
+		s.AutomationWorkflows(),
+		s.AutomationTriggers(),
+		s.AutomationSessions(),
+		//s.AutomationState(),
 	}
 }
 
@@ -563,8 +564,8 @@ func (Schema) FederationNodesSync() *Table {
 	)
 }
 
-func (Schema) Workflows() *Table {
-	return TableDef("workflows",
+func (Schema) AutomationWorkflows() *Table {
+	return TableDef("automation_workflows",
 		ID,
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
 		ColumnDef("meta", ColumnTypeJson),
@@ -583,8 +584,8 @@ func (Schema) Workflows() *Table {
 	)
 }
 
-func (Schema) WorkflowSessions() *Table {
-	return TableDef("workflow_sessions",
+func (Schema) AutomationSessions() *Table {
+	return TableDef("automation_sessions",
 		ID,
 		ColumnDef("rel_workflow", ColumnTypeIdentifier),
 		ColumnDef("triggered", ColumnTypeText, ColumnTypeLength(handleLength)),
@@ -606,11 +607,11 @@ func (Schema) WorkflowSessions() *Table {
 	)
 }
 
-func (Schema) WorkflowTriggers() *Table {
-	return TableDef("triggers",
+func (Schema) AutomationTriggers() *Table {
+	return TableDef("automation_triggers",
 		ID,
 		ColumnDef("rel_workflow", ColumnTypeIdentifier),
-		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("rel_step", ColumnTypeIdentifier),
 		ColumnDef("enabled", ColumnTypeBoolean),
 		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	autService "github.com/cortezaproject/corteza-server/automation/service"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
@@ -224,6 +225,18 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
+	// Initializes automation services
+	//
+	// Note: this is a legacy approach, all services from all 3 apps
+	// will most likely be merged in the future
+	err = autService.Initialize(ctx, app.Log, app.Store, autService.Config{
+		ActionLog: app.Opt.ActionLog,
+	})
+
+	if err != nil {
+		return
+	}
+
 	// Initializes compose services
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
@@ -333,6 +346,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	corredor.Service().Watch(ctx)
 
 	sysService.Watchers(ctx)
+	autService.Watchers(ctx)
 	cmpService.Watchers(ctx)
 	msgService.Watchers(ctx)
 
@@ -343,6 +357,10 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	rbac.Global().Watch(ctx)
 
 	if err = sysService.Activate(ctx); err != nil {
+		return err
+	}
+
+	if err = autService.Activate(ctx); err != nil {
 		return err
 	}
 

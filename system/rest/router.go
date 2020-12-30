@@ -38,7 +38,5 @@ func MountRoutes(r chi.Router) {
 		handlers.NewStats(Stats{}.New()).MountRoutes(r)
 		handlers.NewReminder(Reminder{}.New()).MountRoutes(r)
 		handlers.NewActionlog(Actionlog{}.New()).MountRoutes(r)
-		handlers.NewAutomationWorkflow(AutomationWorkflow{}.New()).MountRoutes(r)
-		handlers.NewAutomationTrigger(AutomationTrigger{}.New()).MountRoutes(r)
 	})
 }

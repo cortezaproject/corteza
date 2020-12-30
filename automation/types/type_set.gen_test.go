@@ -6,7 +6,7 @@ package types
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// system/types/types.yaml
+// automation/types/types.yaml
 
 import (
 	"fmt"
@@ -14,33 +14,33 @@ import (
 	"testing"
 )
 
-func TestApplicationSetWalk(t *testing.T) {
+func TestSessionSetWalk(t *testing.T) {
 	var (
-		value = make(ApplicationSet, 3)
+		value = make(SessionSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Application) error {
+		err := value.Walk(func(*Session) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Application) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*Session) error { return fmt.Errorf("walk error") }))
 }
 
-func TestApplicationSetFilter(t *testing.T) {
+func TestSessionSetFilter(t *testing.T) {
 	var (
-		value = make(ApplicationSet, 3)
+		value = make(SessionSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Application) (bool, error) {
+		set, err := value.Filter(func(*Session) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -50,7 +50,7 @@ func TestApplicationSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Application) (bool, error) {
+		set, err := value.Filter(func(*Session) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -63,23 +63,23 @@ func TestApplicationSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Application) (bool, error) {
+		_, err := value.Filter(func(*Session) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestApplicationSetIDs(t *testing.T) {
+func TestSessionSetIDs(t *testing.T) {
 	var (
-		value = make(ApplicationSet, 3)
+		value = make(SessionSet, 3)
 		req   = require.New(t)
 	)
 
 	// construct objects
-	value[0] = new(Application)
-	value[1] = new(Application)
-	value[2] = new(Application)
+	value[0] = new(Session)
+	value[1] = new(Session)
+	value[2] = new(Session)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2
@@ -104,33 +104,33 @@ func TestApplicationSetIDs(t *testing.T) {
 	}
 }
 
-func TestAttachmentSetWalk(t *testing.T) {
+func TestStateSetWalk(t *testing.T) {
 	var (
-		value = make(AttachmentSet, 3)
+		value = make(StateSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Attachment) error {
+		err := value.Walk(func(*State) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Attachment) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*State) error { return fmt.Errorf("walk error") }))
 }
 
-func TestAttachmentSetFilter(t *testing.T) {
+func TestStateSetFilter(t *testing.T) {
 	var (
-		value = make(AttachmentSet, 3)
+		value = make(StateSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Attachment) (bool, error) {
+		set, err := value.Filter(func(*State) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -140,7 +140,7 @@ func TestAttachmentSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Attachment) (bool, error) {
+		set, err := value.Filter(func(*State) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -153,23 +153,23 @@ func TestAttachmentSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Attachment) (bool, error) {
+		_, err := value.Filter(func(*State) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestAttachmentSetIDs(t *testing.T) {
+func TestStateSetIDs(t *testing.T) {
 	var (
-		value = make(AttachmentSet, 3)
+		value = make(StateSet, 3)
 		req   = require.New(t)
 	)
 
 	// construct objects
-	value[0] = new(Attachment)
-	value[1] = new(Attachment)
-	value[2] = new(Attachment)
+	value[0] = new(State)
+	value[1] = new(State)
+	value[2] = new(State)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2
@@ -194,33 +194,33 @@ func TestAttachmentSetIDs(t *testing.T) {
 	}
 }
 
-func TestCredentialsSetWalk(t *testing.T) {
+func TestTriggerSetWalk(t *testing.T) {
 	var (
-		value = make(CredentialsSet, 3)
+		value = make(TriggerSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Credentials) error {
+		err := value.Walk(func(*Trigger) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Credentials) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*Trigger) error { return fmt.Errorf("walk error") }))
 }
 
-func TestCredentialsSetFilter(t *testing.T) {
+func TestTriggerSetFilter(t *testing.T) {
 	var (
-		value = make(CredentialsSet, 3)
+		value = make(TriggerSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Credentials) (bool, error) {
+		set, err := value.Filter(func(*Trigger) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -230,7 +230,7 @@ func TestCredentialsSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Credentials) (bool, error) {
+		set, err := value.Filter(func(*Trigger) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -243,23 +243,23 @@ func TestCredentialsSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Credentials) (bool, error) {
+		_, err := value.Filter(func(*Trigger) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestCredentialsSetIDs(t *testing.T) {
+func TestTriggerSetIDs(t *testing.T) {
 	var (
-		value = make(CredentialsSet, 3)
+		value = make(TriggerSet, 3)
 		req   = require.New(t)
 	)
 
 	// construct objects
-	value[0] = new(Credentials)
-	value[1] = new(Credentials)
-	value[2] = new(Credentials)
+	value[0] = new(Trigger)
+	value[1] = new(Trigger)
+	value[2] = new(Trigger)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2
@@ -284,33 +284,33 @@ func TestCredentialsSetIDs(t *testing.T) {
 	}
 }
 
-func TestReminderSetWalk(t *testing.T) {
+func TestTriggerConstraintSetWalk(t *testing.T) {
 	var (
-		value = make(ReminderSet, 3)
+		value = make(TriggerConstraintSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Reminder) error {
+		err := value.Walk(func(*TriggerConstraint) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Reminder) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*TriggerConstraint) error { return fmt.Errorf("walk error") }))
 }
 
-func TestReminderSetFilter(t *testing.T) {
+func TestTriggerConstraintSetFilter(t *testing.T) {
 	var (
-		value = make(ReminderSet, 3)
+		value = make(TriggerConstraintSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Reminder) (bool, error) {
+		set, err := value.Filter(func(*TriggerConstraint) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -320,7 +320,7 @@ func TestReminderSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Reminder) (bool, error) {
+		set, err := value.Filter(func(*TriggerConstraint) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -333,23 +333,79 @@ func TestReminderSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Reminder) (bool, error) {
+		_, err := value.Filter(func(*TriggerConstraint) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestReminderSetIDs(t *testing.T) {
+func TestWorkflowSetWalk(t *testing.T) {
 	var (
-		value = make(ReminderSet, 3)
+		value = make(WorkflowSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*Workflow) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*Workflow) error { return fmt.Errorf("walk error") }))
+}
+
+func TestWorkflowSetFilter(t *testing.T) {
+	var (
+		value = make(WorkflowSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*Workflow) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*Workflow) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*Workflow) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestWorkflowSetIDs(t *testing.T) {
+	var (
+		value = make(WorkflowSet, 3)
 		req   = require.New(t)
 	)
 
 	// construct objects
-	value[0] = new(Reminder)
-	value[1] = new(Reminder)
-	value[2] = new(Reminder)
+	value[0] = new(Workflow)
+	value[1] = new(Workflow)
+	value[2] = new(Workflow)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2
@@ -374,33 +430,33 @@ func TestReminderSetIDs(t *testing.T) {
 	}
 }
 
-func TestRoleSetWalk(t *testing.T) {
+func TestWorkflowExpressionSetWalk(t *testing.T) {
 	var (
-		value = make(RoleSet, 3)
+		value = make(WorkflowExpressionSet, 3)
 		req   = require.New(t)
 	)
 
 	// check walk with no errors
 	{
-		err := value.Walk(func(*Role) error {
+		err := value.Walk(func(*WorkflowExpression) error {
 			return nil
 		})
 		req.NoError(err)
 	}
 
 	// check walk with error
-	req.Error(value.Walk(func(*Role) error { return fmt.Errorf("walk error") }))
+	req.Error(value.Walk(func(*WorkflowExpression) error { return fmt.Errorf("walk error") }))
 }
 
-func TestRoleSetFilter(t *testing.T) {
+func TestWorkflowExpressionSetFilter(t *testing.T) {
 	var (
-		value = make(RoleSet, 3)
+		value = make(WorkflowExpressionSet, 3)
 		req   = require.New(t)
 	)
 
 	// filter nothing
 	{
-		set, err := value.Filter(func(*Role) (bool, error) {
+		set, err := value.Filter(func(*WorkflowExpression) (bool, error) {
 			return true, nil
 		})
 		req.NoError(err)
@@ -410,7 +466,7 @@ func TestRoleSetFilter(t *testing.T) {
 	// filter one item
 	{
 		found := false
-		set, err := value.Filter(func(*Role) (bool, error) {
+		set, err := value.Filter(func(*WorkflowExpression) (bool, error) {
 			if !found {
 				found = true
 				return found, nil
@@ -423,225 +479,191 @@ func TestRoleSetFilter(t *testing.T) {
 
 	// filter error
 	{
-		_, err := value.Filter(func(*Role) (bool, error) {
+		_, err := value.Filter(func(*WorkflowExpression) (bool, error) {
 			return false, fmt.Errorf("filter error")
 		})
 		req.Error(err)
 	}
 }
 
-func TestRoleSetIDs(t *testing.T) {
+func TestWorkflowFunctionSetWalk(t *testing.T) {
 	var (
-		value = make(RoleSet, 3)
+		value = make(WorkflowFunctionSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*WorkflowFunction) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*WorkflowFunction) error { return fmt.Errorf("walk error") }))
+}
+
+func TestWorkflowFunctionSetFilter(t *testing.T) {
+	var (
+		value = make(WorkflowFunctionSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*WorkflowFunction) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*WorkflowFunction) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*WorkflowFunction) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestWorkflowPathSetWalk(t *testing.T) {
+	var (
+		value = make(WorkflowPathSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*WorkflowPath) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*WorkflowPath) error { return fmt.Errorf("walk error") }))
+}
+
+func TestWorkflowPathSetFilter(t *testing.T) {
+	var (
+		value = make(WorkflowPathSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*WorkflowPath) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*WorkflowPath) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*WorkflowPath) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestWorkflowStepSetWalk(t *testing.T) {
+	var (
+		value = make(WorkflowStepSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*WorkflowStep) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*WorkflowStep) error { return fmt.Errorf("walk error") }))
+}
+
+func TestWorkflowStepSetFilter(t *testing.T) {
+	var (
+		value = make(WorkflowStepSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*WorkflowStep) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*WorkflowStep) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*WorkflowStep) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestWorkflowStepSetIDs(t *testing.T) {
+	var (
+		value = make(WorkflowStepSet, 3)
 		req   = require.New(t)
 	)
 
 	// construct objects
-	value[0] = new(Role)
-	value[1] = new(Role)
-	value[2] = new(Role)
-	// set ids
-	value[0].ID = 1
-	value[1].ID = 2
-	value[2].ID = 3
-
-	// Find existing
-	{
-		val := value.FindByID(2)
-		req.Equal(uint64(2), val.ID)
-	}
-
-	// Find non-existing
-	{
-		val := value.FindByID(4)
-		req.Nil(val)
-	}
-
-	// List IDs from set
-	{
-		val := value.IDs()
-		req.Equal(len(val), len(value))
-	}
-}
-
-func TestRoleMemberSetWalk(t *testing.T) {
-	var (
-		value = make(RoleMemberSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*RoleMember) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*RoleMember) error { return fmt.Errorf("walk error") }))
-}
-
-func TestRoleMemberSetFilter(t *testing.T) {
-	var (
-		value = make(RoleMemberSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*RoleMember) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*RoleMember) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*RoleMember) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
-func TestSettingValueSetWalk(t *testing.T) {
-	var (
-		value = make(SettingValueSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*SettingValue) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*SettingValue) error { return fmt.Errorf("walk error") }))
-}
-
-func TestSettingValueSetFilter(t *testing.T) {
-	var (
-		value = make(SettingValueSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*SettingValue) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*SettingValue) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*SettingValue) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
-func TestUserSetWalk(t *testing.T) {
-	var (
-		value = make(UserSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*User) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*User) error { return fmt.Errorf("walk error") }))
-}
-
-func TestUserSetFilter(t *testing.T) {
-	var (
-		value = make(UserSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*User) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*User) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*User) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
-func TestUserSetIDs(t *testing.T) {
-	var (
-		value = make(UserSet, 3)
-		req   = require.New(t)
-	)
-
-	// construct objects
-	value[0] = new(User)
-	value[1] = new(User)
-	value[2] = new(User)
+	value[0] = new(WorkflowStep)
+	value[1] = new(WorkflowStep)
+	value[2] = new(WorkflowStep)
 	// set ids
 	value[0].ID = 1
 	value[1].ID = 2
