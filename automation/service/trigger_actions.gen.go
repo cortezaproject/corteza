@@ -489,7 +489,7 @@ func TriggerErrNotAllowedToRead(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "system:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to read {trigger}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to read {trigger.ID}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
@@ -585,7 +585,7 @@ func TriggerErrNotAllowedToUpdate(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "system:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to update {trigger}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to update {trigger.ID}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
@@ -617,7 +617,7 @@ func TriggerErrNotAllowedToDelete(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "system:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to delete {trigger}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to delete {trigger.ID}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
@@ -649,7 +649,7 @@ func TriggerErrNotAllowedToUndelete(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "system:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to undelete {trigger}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to undelete {trigger.ID}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

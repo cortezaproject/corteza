@@ -40,11 +40,6 @@ type (
 	// This type is auto-generated.
 	WorkflowExpressionSet []*WorkflowExpression
 
-	// WorkflowFunctionSet slice of WorkflowFunction
-	//
-	// This type is auto-generated.
-	WorkflowFunctionSet []*WorkflowFunction
-
 	// WorkflowPathSet slice of WorkflowPath
 	//
 	// This type is auto-generated.
@@ -329,36 +324,6 @@ func (set WorkflowExpressionSet) Walk(w func(*WorkflowExpression) error) (err er
 func (set WorkflowExpressionSet) Filter(f func(*WorkflowExpression) (bool, error)) (out WorkflowExpressionSet, err error) {
 	var ok bool
 	out = WorkflowExpressionSet{}
-	for i := range set {
-		if ok, err = f(set[i]); err != nil {
-			return
-		} else if ok {
-			out = append(out, set[i])
-		}
-	}
-
-	return
-}
-
-// Walk iterates through every slice item and calls w(WorkflowFunction) err
-//
-// This function is auto-generated.
-func (set WorkflowFunctionSet) Walk(w func(*WorkflowFunction) error) (err error) {
-	for i := range set {
-		if err = w(set[i]); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// Filter iterates through every slice item, calls f(WorkflowFunction) (bool, err) and return filtered slice
-//
-// This function is auto-generated.
-func (set WorkflowFunctionSet) Filter(f func(*WorkflowFunction) (bool, error)) (out WorkflowFunctionSet, err error) {
-	var ok bool
-	out = WorkflowFunctionSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return

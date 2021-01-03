@@ -9,8 +9,6 @@ types:
   WorkflowPath:
     noIdField: true
   WorkflowStep: {}
-  WorkflowFunction:
-    noIdField: true
   WorkflowExpression:
     noIdField: true
 

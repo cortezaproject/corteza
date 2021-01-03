@@ -4,37 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
 
 type (
-	// workflow functions are defined in the core code and through plugins
-	WorkflowFunction struct {
-		Ref        string                 `json:"ref"`
-		Meta       WorkflowFunctionMeta   `json:"meta"`
-		Handler    wfexec.ActivityHandler `json:"-"`
-		Parameters []*WorkflowParameter   `json:"parameters"`
-		Results    []*WorkflowParameter   `json:"results"`
-	}
-
-	WorkflowFunctionMeta struct {
-		Label       string                 `json:"label"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
-	WorkflowParameter struct {
-		Name string                `json:"name"`
-		Type string                `json:"type"`
-		Meta WorkflowParameterMeta `json:"meta"`
-	}
-
-	WorkflowParameterMeta struct {
-		Label       string                 `json:"label"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
-	}
-
 	// Used for expression steps, arguments and results mapping
 	WorkflowExpression struct {
 		Name string `json:"name"`

@@ -486,62 +486,6 @@ func TestWorkflowExpressionSetFilter(t *testing.T) {
 	}
 }
 
-func TestWorkflowFunctionSetWalk(t *testing.T) {
-	var (
-		value = make(WorkflowFunctionSet, 3)
-		req   = require.New(t)
-	)
-
-	// check walk with no errors
-	{
-		err := value.Walk(func(*WorkflowFunction) error {
-			return nil
-		})
-		req.NoError(err)
-	}
-
-	// check walk with error
-	req.Error(value.Walk(func(*WorkflowFunction) error { return fmt.Errorf("walk error") }))
-}
-
-func TestWorkflowFunctionSetFilter(t *testing.T) {
-	var (
-		value = make(WorkflowFunctionSet, 3)
-		req   = require.New(t)
-	)
-
-	// filter nothing
-	{
-		set, err := value.Filter(func(*WorkflowFunction) (bool, error) {
-			return true, nil
-		})
-		req.NoError(err)
-		req.Equal(len(set), len(value))
-	}
-
-	// filter one item
-	{
-		found := false
-		set, err := value.Filter(func(*WorkflowFunction) (bool, error) {
-			if !found {
-				found = true
-				return found, nil
-			}
-			return false, nil
-		})
-		req.NoError(err)
-		req.Len(set, 1)
-	}
-
-	// filter error
-	{
-		_, err := value.Filter(func(*WorkflowFunction) (bool, error) {
-			return false, fmt.Errorf("filter error")
-		})
-		req.Error(err)
-	}
-}
-
 func TestWorkflowPathSetWalk(t *testing.T) {
 	var (
 		value = make(WorkflowPathSet, 3)

@@ -94,14 +94,12 @@ func (svc *session) suspendAll(ctx context.Context) error {
 
 // Start new workflow session on a specific step with a given identity and scope
 func (svc *session) Start(g *wfexec.Graph, stepID uint64, i auth.Identifiable, input types.Variables) error {
-	svc.log.Debug("spawning")
 	var (
 		ctx   = auth.SetIdentityToContext(context.Background(), i)
 		ses   = svc.spawn(g)
 		start wfexec.Step
 	)
 
-	svc.log.Debug("spawned")
 	if stepID == 0 {
 		// starting step is not explicitly workflows on trigger, find orphan step
 		switch oo := g.Orphans(); len(oo) {
@@ -115,8 +113,6 @@ func (svc *session) Start(g *wfexec.Graph, stepID uint64, i auth.Identifiable, i
 	} else if start = g.GetStepByIdentifier(stepID); start == nil {
 		return fmt.Errorf("trigger staring step references nonexisting step")
 	}
-
-	svc.log.Debug("starting new workflow session", zap.Any("input", input))
 
 	return ses.Exec(ctx, start, wfexec.Variables(input))
 }

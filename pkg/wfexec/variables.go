@@ -47,82 +47,114 @@ func (vv Variables) Any(key string, kk ...string) bool {
 	return false
 }
 
-func (vv Variables) String(key string, def string) string {
+func (vv Variables) String(key string, def ...string) string {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToStringE(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return ""
 }
 
-func (vv Variables) Bool(key string, def bool) bool {
+func (vv Variables) Bool(key string, def ...bool) bool {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToBoolE(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return false
 }
 
-func (vv Variables) Int(key string, def int) int {
+func (vv Variables) Int(key string, def ...int) int {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToIntE(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return 0
 }
 
-func (vv Variables) Int64(key string, def int64) int64 {
+func (vv Variables) Int64(key string, def ...int64) int64 {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToInt64E(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return 0
 }
 
-func (vv Variables) Uint64(key string, def uint64) uint64 {
+func (vv Variables) Uint64(key string, def ...uint64) uint64 {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToUint64E(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return 0
 }
 
-func (vv Variables) Float64(key string, def float64) float64 {
+func (vv Variables) Float64(key string, def ...float64) float64 {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToFloat64E(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return 0
 }
 
-func (vv Variables) Duration(key string, def time.Duration) time.Duration {
+func (vv Variables) Duration(key string, def ...time.Duration) time.Duration {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToDurationE(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return 0
 }
 
-func (vv Variables) Time(key string, def time.Time) time.Time {
+func (vv Variables) Time(key string, def ...time.Time) time.Time {
 	if v, has := vv[key]; has {
 		if o, err := cast.ToTimeE(v); err == nil {
 			return o
 		}
 	}
 
-	return def
+	if len(def) > 0 {
+		return def[0]
+	}
+
+	return time.Time{}
 }

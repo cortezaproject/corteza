@@ -483,8 +483,6 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 					return err
 				}
 
-				log.Debug("event handled")
-
 				return nil
 			}
 

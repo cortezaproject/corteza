@@ -11,7 +11,7 @@ type (
 		fn         ActivityHandler
 	}
 
-	ActivityHandler func(context.Context, Variables) (Variables, error)
+	ActivityHandler func(ctx context.Context, in Variables) (Variables, error)
 )
 
 // Create new activity

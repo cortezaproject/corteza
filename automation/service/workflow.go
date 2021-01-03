@@ -64,21 +64,6 @@ const (
 	workflowLabelsChanged workflowChanges = 2
 )
 
-var (
-	workflowFuncRegistry map[string]*types.WorkflowFunction
-)
-
-func init() {
-	workflowFuncRegistry = make(map[string]*types.WorkflowFunction)
-	workflowFuncRegistry["HelloWorld"] = &types.WorkflowFunction{
-		Ref: "HelloWorld",
-		Handler: func(ctx context.Context, variables wfexec.Variables) (wfexec.Variables, error) {
-			println("hello from workflow function;")
-			return nil, nil
-		},
-	}
-}
-
 func Workflow(log *zap.Logger) *workflow {
 	return &workflow{
 		log:       log,
@@ -247,36 +232,6 @@ func (svc *workflow) Start(ctx context.Context, workflowID uint64, scope wfexec.
 	svc.mux.Lock()
 	return errors.Internal("pending implementation")
 }
-
-//func (svc *workflow) TEMP() {
-//	wfID := nextID()
-//	stepID := nextID()
-//	wfTmp := &types.Workflow{
-//		ID:      wfID,
-//		Enabled: true,
-//		Steps: types.WorkflowStepSet{
-//			{ID: stepID, Kind: types.WorkflowStepKindFunction, Ref: "HelloWorld"},
-//		},
-//		Triggers: types.WorkflowTriggerSet{
-//			{
-//				ID:           nextID(),
-//				WorkflowID:   wfID,
-//				StepID:       stepID,
-//				Enabled:      true,
-//				ResourceType: "system:sink",
-//				EventType:    "onRequest",
-//			},
-//		},
-//	}
-//
-//	if g, err := workflowDefToGraph(expr.Parser(), wfTmp); err != nil {
-//		panic(err)
-//	} else {
-//		svc.wfgs[wfTmp.ID] = g
-//	}
-//
-//	svc.registerTriggers(context.TODO(), wfTmp)
-//}
 
 func (svc workflow) uniqueCheck(ctx context.Context, res *types.Workflow) (err error) {
 	if res.Handle != "" {
@@ -601,13 +556,15 @@ func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowS
 				return nil, errors.Internal("function reference missing")
 			}
 
-			if fn, has := workflowFuncRegistry[s.Ref]; !has {
-				return nil, errors.Internal("function reference missing")
+			if fn := RegisteredFn(s.Ref); fn == nil {
+				return nil, errors.Internal("unknown function %q", s.Ref)
 			} else {
 				var (
 					err    error
 					aa, rr *wfexec.Expressions
 				)
+
+				// @todo make sure s.Arguments fit into fn.Parameters
 
 				if aa, err = workflowExprDefConv(lang, s.Arguments...); err != nil {
 					return nil, errors.Internal("failed to convert function arguments: %w", err)
