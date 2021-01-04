@@ -20,31 +20,13 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - name: workflowID
-        type: "[]string"
-        required: false
-        title: Filter by workflow ID
-      - name: query
-        required: false
-        title: Filter workflows
-        type: string
-      - name: deleted
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) deleted workflows
-        type: uint
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-      - type: uint
-        name: limit
-        title: Limit
-      - type: string
-        name: pageCursor
-        title: Page cursor
-      - type: string
-        name: sort
-        title: Sort items
+      - { name: workflowID, type: "[]string",          title: "Filter by workflow ID" }
+      - { name: query,      type: "string",            title: "Filter workflows" }
+      - { name: deleted,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
+      - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,      type: "uint",              title: "Limit" }
+      - { name: pageCursor, type: "string",            title: "Page cursor" }
+      - { name: sort,       type: "string",            title: "Sort items" }
   - name: create
     method: POST
     title: Create workflow
@@ -115,43 +97,20 @@ endpoints:
   apis:
   - name: list
     method: GET
-    title: List workflows
+    title: List triggers
     path: "/"
     parameters:
       get:
-      - name: workflowID
-        type: "[]string"
-        required: false
-        title: Filter by workflow ID
-      - name: triggerID
-        type: "[]string"
-        required: false
-        title: Filter by trigger ID
-      - name: deleted
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) deleted triggers
-        type: uint
-      - name: eventType
-        required: false
-        title: Filter triggers by event type
-        type: string
-      - name: resourceType
-        required: false
-        title: Filter triggers by resoure type
-        type: string
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-      - type: uint
-        name: limit
-        title: Limit
-      - type: string
-        name: pageCursor
-        title: Page cursor
-      - type: string
-        name: sort
-        title: Sort items
+      - { name: triggerID,    type: "[]string",          title: "Filter by trigger ID" }
+      - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
+      - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted triggers" }
+      - { name: eventType,    type: "string",            title: "Filter triggers by event type" }
+      - { name: resourceType, type: "string",            title: "Filter triggers by resoure type" }
+      - { name: query,        type: "string",            title: "Filter workflows," }
+      - { name: labels,       type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,        type: "uint",              title: "Limit" }
+      - { name: pageCursor,   type: "string",            title: "Page cursor" }
+      - { name: sort,         type: "string",            title: "Sort items" }
   - name: create
     method: POST
     title: Create trigger
@@ -199,3 +158,13 @@ endpoints:
     path: "/{triggerID}/undelete"
     parameters: { path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ] }
 
+
+- title: Functions
+  path: "/functions"
+  entrypoint: function
+  authentication: []
+  apis:
+  - name: list
+    method: GET
+    title: Available workflow functions
+    path: "/"

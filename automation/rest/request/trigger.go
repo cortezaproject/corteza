@@ -32,15 +32,15 @@ var (
 type (
 	// Internal API interface
 	TriggerList struct {
-		// WorkflowID GET parameter
-		//
-		// Filter by workflow ID
-		WorkflowID []string
-
 		// TriggerID GET parameter
 		//
 		// Filter by trigger ID
 		TriggerID []string
+
+		// WorkflowID GET parameter
+		//
+		// Filter by workflow ID
+		WorkflowID []string
 
 		// Deleted GET parameter
 		//
@@ -56,6 +56,11 @@ type (
 		//
 		// Filter triggers by resoure type
 		ResourceType string
+
+		// Query GET parameter
+		//
+		// Filter workflows,
+		Query string
 
 		// Labels GET parameter
 		//
@@ -207,11 +212,12 @@ func NewTriggerList() *TriggerList {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"workflowID":   r.WorkflowID,
 		"triggerID":    r.TriggerID,
+		"workflowID":   r.WorkflowID,
 		"deleted":      r.Deleted,
 		"eventType":    r.EventType,
 		"resourceType": r.ResourceType,
+		"query":        r.Query,
 		"labels":       r.Labels,
 		"limit":        r.Limit,
 		"pageCursor":   r.PageCursor,
@@ -220,13 +226,13 @@ func (r TriggerList) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TriggerList) GetWorkflowID() []string {
-	return r.WorkflowID
+func (r TriggerList) GetTriggerID() []string {
+	return r.TriggerID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TriggerList) GetTriggerID() []string {
-	return r.TriggerID
+func (r TriggerList) GetWorkflowID() []string {
+	return r.WorkflowID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -242,6 +248,11 @@ func (r TriggerList) GetEventType() string {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerList) GetResourceType() string {
 	return r.ResourceType
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TriggerList) GetQuery() string {
+	return r.Query
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -281,17 +292,6 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 		// GET params
 		tmp := req.URL.Query()
 
-		if val, ok := tmp["workflowID[]"]; ok {
-			r.WorkflowID, err = val, nil
-			if err != nil {
-				return err
-			}
-		} else if val, ok := tmp["workflowID"]; ok {
-			r.WorkflowID, err = val, nil
-			if err != nil {
-				return err
-			}
-		}
 		if val, ok := tmp["triggerID[]"]; ok {
 			r.TriggerID, err = val, nil
 			if err != nil {
@@ -299,6 +299,17 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["triggerID"]; ok {
 			r.TriggerID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["workflowID[]"]; ok {
+			r.WorkflowID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["workflowID"]; ok {
+			r.WorkflowID, err = val, nil
 			if err != nil {
 				return err
 			}
@@ -317,6 +328,12 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["resourceType"]; ok && len(val) > 0 {
 			r.ResourceType, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
 			if err != nil {
 				return err
 			}
