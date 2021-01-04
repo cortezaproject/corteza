@@ -23,6 +23,9 @@ test.cover.store:
 	@ $(GOTOOL) cover
 	@ rm $(COVER_PROFILE)
 
+watch.test.%: $(FSWATCH)
+	( make test.$* || exit 0 ) && ( $(FSWATCH) -o . | xargs -n1 -I{} make test.$* )
+
 watch.codegen:
 	@ make -C ../ $@
 
