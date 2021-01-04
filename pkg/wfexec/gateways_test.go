@@ -2,6 +2,7 @@ package wfexec
 
 import (
 	"context"
+	"github.com/PaesslerAG/gval"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -19,17 +20,19 @@ func TestGatewayPath(t *testing.T) {
 		req = require.New(t)
 		gwp *GatewayPath
 		err error
+
+		lang = gval.Full()
 	)
 
-	gwp, err = NewGatewayPath(nil, "")
+	gwp, err = NewGatewayPath(lang, nil, "")
 	req.NoError(err)
 	req.NotNil(gwp)
 
-	gwp, err = NewGatewayPath(nil, "a > 1")
+	gwp, err = NewGatewayPath(lang, nil, "a > 1")
 	req.NoError(err)
 	req.NotNil(gwp)
 
-	gwp, err = NewGatewayPath(nil, "<>")
+	gwp, err = NewGatewayPath(lang, nil, "<>")
 	req.Error(err)
 }
 
@@ -70,12 +73,13 @@ func TestForkGateway(t *testing.T) {
 
 func TestInclGateway(t *testing.T) {
 	var (
-		req = require.New(t)
+		req  = require.New(t)
+		lang = gval.Full()
 
 		s1, s2, s3 = &wfTestStep{name: "s1"}, &wfTestStep{name: "s2"}, &wfTestStep{name: "s3"}
-		gwp1, _    = NewGatewayPath(s1, "a > 10")
-		gwp2, _    = NewGatewayPath(s2, "a > 5")
-		gwp3, _    = NewGatewayPath(s3, "a > 0")
+		gwp1, _    = NewGatewayPath(lang, s1, "a > 10")
+		gwp2, _    = NewGatewayPath(lang, s2, "a > 5")
+		gwp3, _    = NewGatewayPath(lang, s3, "a > 0")
 
 		gw, err = InclGateway(gwp1, gwp2, gwp3)
 	)
@@ -99,12 +103,13 @@ func TestInclGateway(t *testing.T) {
 
 func TestExclGateway(t *testing.T) {
 	var (
-		req = require.New(t)
+		req  = require.New(t)
+		lang = gval.Full()
 
 		s1, s2, s3 = &wfTestStep{name: "s1"}, &wfTestStep{name: "s2"}, &wfTestStep{name: "s3"}
-		gwp1, _    = NewGatewayPath(s1, "a > 10")
-		gwp2, _    = NewGatewayPath(s2, "a > 5")
-		gwp3, _    = NewGatewayPath(s3, "")
+		gwp1, _    = NewGatewayPath(lang, s1, "a > 10")
+		gwp2, _    = NewGatewayPath(lang, s2, "a > 5")
+		gwp3, _    = NewGatewayPath(lang, s3, "")
 
 		gw, err = ExclGateway(gwp1, gwp2, gwp3)
 	)

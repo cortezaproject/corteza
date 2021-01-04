@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -508,48 +509,8 @@ func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowS
 		case types.WorkflowStepKindExpressions:
 			return workflowExprDefConv(lang, s.Arguments...)
 
-		case types.WorkflowStepKindGatewayFork:
-			return wfexec.ForkGateway(), nil
-
-		case types.WorkflowStepKindGatewayJoin:
-			var (
-				ss []wfexec.Step
-			)
-			for _, p := range in {
-				if parent := g.GetStepByIdentifier(p.ParentID); parent != nil {
-					ss = append(ss, parent)
-				} else {
-					// unresolved parent, come back later.
-					return nil, nil
-				}
-			}
-
-			return wfexec.JoinGateway(ss...), nil
-
-		case types.WorkflowStepKindGatewayIncl, types.WorkflowStepKindGatewayExcl:
-			var (
-				pp []*wfexec.GatewayPath
-			)
-
-			for _, p := range in {
-				child := g.GetStepByIdentifier(p.ChildID)
-				if child == nil {
-					return nil, nil
-				}
-
-				p, err := wfexec.NewGatewayPath(child, p.Test)
-				if err != nil {
-					return nil, err
-				} else {
-					pp = append(pp, p)
-				}
-			}
-
-			if s.Kind == types.WorkflowStepKindGatewayExcl {
-				return wfexec.ExclGateway(pp...)
-			} else {
-				return wfexec.InclGateway(pp...)
-			}
+		case types.WorkflowStepKindGateway:
+			return workflowGatewayDefConv(g, lang, s, in)
 
 		case types.WorkflowStepKindFunction:
 			if s.Ref == "" {
@@ -592,6 +553,55 @@ func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowS
 		// unresolved
 		return false, nil
 	}
+}
+
+func workflowGatewayDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowStep, in []*types.WorkflowPath) (wfexec.Step, error) {
+	switch s.Ref {
+	case "fork":
+		return wfexec.ForkGateway(), nil
+
+	case "join":
+		var (
+			ss []wfexec.Step
+		)
+		for _, p := range in {
+			if parent := g.GetStepByIdentifier(p.ParentID); parent != nil {
+				ss = append(ss, parent)
+			} else {
+				// unresolved parent, come back later.
+				return nil, nil
+			}
+		}
+
+		return wfexec.JoinGateway(ss...), nil
+
+	case "incl", "excl":
+		var (
+			pp []*wfexec.GatewayPath
+		)
+
+		for _, p := range in {
+			child := g.GetStepByIdentifier(p.ChildID)
+			if child == nil {
+				return nil, nil
+			}
+
+			p, err := wfexec.NewGatewayPath(lang, child, p.Test)
+			if err != nil {
+				return nil, err
+			} else {
+				pp = append(pp, p)
+			}
+		}
+
+		if s.Ref == "excl" {
+			return wfexec.ExclGateway(pp...)
+		} else {
+			return wfexec.InclGateway(pp...)
+		}
+	}
+
+	return nil, fmt.Errorf("unknown workflow type")
 }
 
 func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*wfexec.Expressions, error) {

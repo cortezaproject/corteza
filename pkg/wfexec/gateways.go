@@ -20,11 +20,11 @@ type (
 )
 
 // NewGatewayPath validates Expression and returns initialized GatewayPath
-func NewGatewayPath(s Step, expr string) (gwp *GatewayPath, err error) {
+func NewGatewayPath(lang gval.Language, s Step, expr string) (gwp *GatewayPath, err error) {
 	gwp = &GatewayPath{to: s}
 
 	if len(expr) > 0 {
-		if gwp.eval, err = gval.Full().NewEvaluable(expr); err != nil {
+		if gwp.eval, err = lang.NewEvaluable(expr); err != nil {
 			return nil, fmt.Errorf("can not parse gateway test Expression %s: %w", expr, err)
 		}
 	}
