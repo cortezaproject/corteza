@@ -2,17 +2,17 @@ package fn
 
 type (
 	Param struct {
-		Name     string      `json:"name"`
-		Types    []paramType `json:"type"`
-		Required bool        `json:"required"`
-		Array    bool        `json:"array"`
-		Meta     ParamMeta   `json:"meta"`
+		Name     string      `json:"name,omitempty"`
+		Types    []paramType `json:"type,omitempty"`
+		Required bool        `json:"required,omitempty"`
+		Array    bool        `json:"array,omitempty"`
+		Meta     *ParamMeta  `json:"meta,omitempty"`
 	}
 
 	ParamMeta struct {
-		Label       string                 `json:"label"`
-		Description string                 `json:"description"`
-		Visual      map[string]interface{} `json:"visual"`
+		Label       string                 `json:"label,omitempty"`
+		Description string                 `json:"description,omitempty"`
+		Visual      map[string]interface{} `json:"visual,omitempty"`
 	}
 
 	paramType string

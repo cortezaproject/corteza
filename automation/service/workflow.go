@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/automation/types/fn"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -18,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"reflect"
+	"sort"
 	"sync"
 )
 
@@ -33,6 +35,9 @@ type (
 
 		// maps resolved workflow graphs to workflow ID (key, uint64)
 		wfgs map[uint64]*wfexec.Graph
+
+		// workflow function registry
+		fnreg map[string]*fn.Function
 
 		mux *sync.RWMutex
 
@@ -74,9 +79,53 @@ func Workflow(log *zap.Logger) *workflow {
 		triggers:  DefaultTrigger,
 		eventbus:  eventbus.Service(),
 		wfgs:      make(map[uint64]*wfexec.Graph),
+		fnreg:     make(map[string]*fn.Function),
 		mux:       &sync.RWMutex{},
 		lang:      expr.Parser(),
 	}
+}
+
+func (svc *workflow) RegisterFn(ff ...*fn.Function) {
+	defer svc.mux.Unlock()
+	svc.mux.Lock()
+	for _, fn := range ff {
+		svc.fnreg[fn.Ref] = fn
+	}
+}
+
+func (svc *workflow) UnregisterFn(rr ...string) {
+	defer svc.mux.Unlock()
+	svc.mux.Lock()
+	for _, ref := range rr {
+		delete(svc.fnreg, ref)
+	}
+}
+
+func (svc *workflow) getRegisteredFn(name string) *fn.Function {
+	defer svc.mux.RUnlock()
+	svc.mux.RLock()
+	return svc.fnreg[name]
+}
+
+func (svc *workflow) RegisteredFn() []*fn.Function {
+	defer svc.mux.RUnlock()
+	svc.mux.RLock()
+	var (
+		rr = make([]string, 0, len(svc.fnreg))
+		ff = make([]*fn.Function, 0, len(svc.fnreg))
+	)
+
+	for ref := range svc.fnreg {
+		rr = append(rr, ref)
+	}
+
+	sort.Strings(rr)
+
+	for _, ref := range rr {
+		ff = append(ff, svc.fnreg[ref])
+	}
+
+	return ff
 }
 
 func (svc *workflow) Find(ctx context.Context, filter types.WorkflowFilter) (rr types.WorkflowSet, f types.WorkflowFilter, err error) {
@@ -416,12 +465,7 @@ func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (wo
 	return workflowChanged, nil
 }
 
-// Converts workflow definition to wf execution graph
-func (svc *workflow) toGraph(wf *types.Workflow) (g *wfexec.Graph, err error) {
-	return workflowDefToGraph(svc.lang, wf)
-}
-
-func (svc *workflow) Register(ctx context.Context) error {
+func (svc *workflow) Load(ctx context.Context) error {
 	wwf, _, err := store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
 		Deleted:  filter.StateInclusive,
 		Disabled: filter.StateExcluded,
@@ -434,19 +478,8 @@ func (svc *workflow) Register(ctx context.Context) error {
 	return svc.triggers.registerWorkflows(ctx, wwf...)
 }
 
-func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {
-	if workflowID == 0 {
-		return nil, WorkflowErrInvalidID()
-	}
-
-	if res, err = store.LookupAutomationWorkflowByID(ctx, s, workflowID); errors.IsNotFound(err) {
-		return nil, WorkflowErrNotFound()
-	}
-
-	return
-}
-
-func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*wfexec.Graph, error) {
+// Converts workflow definition to wf execution graph
+func (svc *workflow) toGraph(def *types.Workflow) (*wfexec.Graph, error) {
 	var (
 		g = wfexec.NewGraph()
 	)
@@ -469,7 +502,7 @@ func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*wfexec.Graph,
 				}
 			}
 
-			if resolved, err := workflowStepDefConv(g, lang, step, inPaths, outPaths); err != nil {
+			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
 				return nil, err
 			} else if resolved {
 				progress = true
@@ -503,21 +536,21 @@ func workflowDefToGraph(lang gval.Language, def *types.Workflow) (*wfexec.Graph,
 // converts all step definitions into workflow.Step instances
 //
 // if this func returns nil for step and error, assume unresolved dependencies
-func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
+func (svc *workflow) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep, in, out []*types.WorkflowPath) (bool, error) {
 	conv, err := func() (wfexec.Step, error) {
 		switch s.Kind {
 		case types.WorkflowStepKindExpressions:
-			return workflowExprDefConv(lang, s.Arguments...)
+			return svc.workflowExprDefConv(s.Arguments...)
 
 		case types.WorkflowStepKindGateway:
-			return workflowGatewayDefConv(g, lang, s, in)
+			return svc.workflowGatewayDefConv(g, s, in)
 
 		case types.WorkflowStepKindFunction:
 			if s.Ref == "" {
 				return nil, errors.Internal("function reference missing")
 			}
 
-			if fn := RegisteredFn(s.Ref); fn == nil {
+			if fn := svc.getRegisteredFn(s.Ref); fn == nil {
 				return nil, errors.Internal("unknown function %q", s.Ref)
 			} else {
 				var (
@@ -527,11 +560,11 @@ func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowS
 
 				// @todo make sure s.Arguments fit into fn.Parameters
 
-				if aa, err = workflowExprDefConv(lang, s.Arguments...); err != nil {
+				if aa, err = svc.workflowExprDefConv(s.Arguments...); err != nil {
 					return nil, errors.Internal("failed to convert function arguments: %w", err)
 				}
 
-				if rr, err = workflowExprDefConv(lang, s.Results...); err != nil {
+				if rr, err = svc.workflowExprDefConv(s.Results...); err != nil {
 					return nil, errors.Internal("failed to convert function arguments: %w", err)
 				}
 
@@ -555,7 +588,7 @@ func workflowStepDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowS
 	}
 }
 
-func workflowGatewayDefConv(g *wfexec.Graph, lang gval.Language, s *types.WorkflowStep, in []*types.WorkflowPath) (wfexec.Step, error) {
+func (svc *workflow) workflowGatewayDefConv(g *wfexec.Graph, s *types.WorkflowStep, in []*types.WorkflowPath) (wfexec.Step, error) {
 	switch s.Ref {
 	case "fork":
 		return wfexec.ForkGateway(), nil
@@ -586,7 +619,7 @@ func workflowGatewayDefConv(g *wfexec.Graph, lang gval.Language, s *types.Workfl
 				return nil, nil
 			}
 
-			p, err := wfexec.NewGatewayPath(lang, child, p.Test)
+			p, err := wfexec.NewGatewayPath(svc.lang, child, p.Test)
 			if err != nil {
 				return nil, err
 			} else {
@@ -604,9 +637,9 @@ func workflowGatewayDefConv(g *wfexec.Graph, lang gval.Language, s *types.Workfl
 	return nil, fmt.Errorf("unknown workflow type")
 }
 
-func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*wfexec.Expressions, error) {
+func (svc *workflow) workflowExprDefConv(ee ...*types.WorkflowExpression) (*wfexec.Expressions, error) {
 	var (
-		set = wfexec.NewExpressions(lang)
+		set = wfexec.NewExpressions(svc.lang)
 	)
 
 	for _, e := range ee {
@@ -616,6 +649,18 @@ func workflowExprDefConv(lang gval.Language, ee ...*types.WorkflowExpression) (*
 	}
 
 	return set, nil
+}
+
+func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {
+	if workflowID == 0 {
+		return nil, WorkflowErrInvalidID()
+	}
+
+	if res, err = store.LookupAutomationWorkflowByID(ctx, s, workflowID); errors.IsNotFound(err) {
+		return nil, WorkflowErrNotFound()
+	}
+
+	return
 }
 
 // toLabeledWorkflows converts to []label.LabeledResource

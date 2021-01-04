@@ -2,16 +2,16 @@ package service
 
 import (
 	"context"
-	systemService "github.com/cortezaproject/corteza-server/system/service"
-	"time"
-
+	"github.com/cortezaproject/corteza-server/automation/functions"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -95,7 +95,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 }
 
 func Activate(ctx context.Context) (err error) {
-	if err = DefaultWorkflow.Register(ctx); err != nil {
+	DefaultWorkflow.RegisterFn(functions.List()...)
+	if err = DefaultWorkflow.Load(ctx); err != nil {
 		return
 	}
 

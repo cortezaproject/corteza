@@ -37,8 +37,11 @@ var (
 		NewParam("header", KV),
 		NewParam("contentLength", Int),
 		NewParam("body", String),
-		NewParam("parsedJson", Any),
 	}
+)
+
+const (
+	httpSendRef = baseRef + ".http.send"
 )
 
 func makeHttpRequest(ctx context.Context, in wfexec.Variables) (req *http.Request, err error) {
@@ -50,12 +53,12 @@ func makeHttpRequest(ctx context.Context, in wfexec.Variables) (req *http.Reques
 
 	if method == "" && in.Any("form", "body") {
 		// when no method is set and form or body are passed
-		method = "POST"
+		method = http.MethodPost
 	}
 
 	err = func() error {
 		switch method {
-		case "POST", "PUT", "PATCH":
+		case http.MethodPost, http.MethodPut, http.MethodPatch:
 		default:
 			return nil
 		}
@@ -171,10 +174,21 @@ func httpSend(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, e
 	return
 }
 
+func httpSenders() []*Function {
+	return []*Function{
+		httpSendRequest(),
+		httpSendGetRequest(),
+		httpSendPostRequest(),
+		httpSendPutRequest(),
+		httpSendPatchRequest(),
+		httpSendDeleteRequest(),
+	}
+}
+
 func httpSendRequest() *Function {
 	return &Function{
-		Ref:  "core.http.send", // @todo figure out naming convention
-		Meta: FunctionMeta{},
+		Ref: httpSendRef,
+		//Meta: &FunctionMeta{},
 		Parameters: append(append(
 			[]*Param{NewParam("method", String, Required)},
 			stdHttpSendParameters...),
@@ -187,48 +201,60 @@ func httpSendRequest() *Function {
 
 func httpSendGetRequest() *Function {
 	return &Function{
-		Ref:        "core.http.send.get", // @todo figure out naming convention
-		Meta:       FunctionMeta{},
+		Ref: httpSendRef + ".get",
+		//Meta:       &FunctionMeta{},
 		Parameters: stdHttpSendParameters,
 		Results:    stdHttpSendResults,
 		Handler: func(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, err error) {
-			return httpSend(ctx, in.Merge(wfexec.Variables{"method": "get"}))
+			return httpSend(ctx, in.Merge(wfexec.Variables{"method": http.MethodGet}))
 		},
 	}
 }
 
 func httpSendPostRequest() *Function {
 	return &Function{
-		Ref:        "core.http.send.post", // @todo figure out naming convention
-		Meta:       FunctionMeta{},
+		Ref: httpSendRef + ".post",
+		//Meta:       &FunctionMeta{},
 		Parameters: append(stdHttpSendParameters, stdHttpPayloadParameters...),
 		Results:    stdHttpSendResults,
 		Handler: func(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, err error) {
-			return httpSend(ctx, in.Merge(wfexec.Variables{"method": "post"}))
+			return httpSend(ctx, in.Merge(wfexec.Variables{"method": http.MethodPost}))
 		},
 	}
 }
 
 func httpSendPutRequest() *Function {
 	return &Function{
-		Ref:        "core.http.send.put", // @todo figure out naming convention
-		Meta:       FunctionMeta{},
+		Ref: httpSendRef + ".put",
+		//Meta:       &FunctionMeta{},
 		Parameters: append(stdHttpSendParameters, stdHttpPayloadParameters...),
 		Results:    stdHttpSendResults,
 		Handler: func(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, err error) {
-			return httpSend(ctx, in.Merge(wfexec.Variables{"method": "put"}))
+			return httpSend(ctx, in.Merge(wfexec.Variables{"method": http.MethodPut}))
 		},
 	}
 }
 
 func httpSendPatchRequest() *Function {
 	return &Function{
-		Ref:        "core.http.send.patch", // @todo figure out naming convention
-		Meta:       FunctionMeta{},
+		Ref: httpSendRef + ".patch",
+		//Meta:       &FunctionMeta{},
 		Parameters: append(stdHttpSendParameters, stdHttpPayloadParameters...),
 		Results:    stdHttpSendResults,
 		Handler: func(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, err error) {
-			return httpSend(ctx, in.Merge(wfexec.Variables{"method": "patch"}))
+			return httpSend(ctx, in.Merge(wfexec.Variables{"method": http.MethodPatch}))
+		},
+	}
+}
+
+func httpSendDeleteRequest() *Function {
+	return &Function{
+		Ref: httpSendRef + ".delete",
+		//Meta:       &FunctionMeta{},
+		Parameters: append(stdHttpSendParameters, stdHttpPayloadParameters...),
+		Results:    stdHttpSendResults,
+		Handler: func(ctx context.Context, in wfexec.Variables) (out wfexec.Variables, err error) {
+			return httpSend(ctx, in.Merge(wfexec.Variables{"method": http.MethodDelete}))
 		},
 	}
 }
