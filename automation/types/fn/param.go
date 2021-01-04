@@ -42,7 +42,7 @@ func NewParam(name string, opts ...paramOpt) *Param {
 }
 
 func Required(p *Param) { p.Required = !p.Required }
-func Array(p *Param)    { p.Required = !p.Required }
+func Array(p *Param)    { p.Array = !p.Array }
 
 func Any(p *Param)      { p.Types = append(p.Types, TypeAny) }
 func String(p *Param)   { p.Types = append(p.Types, TypeString) }
