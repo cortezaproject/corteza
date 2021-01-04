@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -112,11 +113,16 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 			if f.Limit > 0 && uint(len(set)) == f.Limit {
 				// Build page navigation ONLY when limit is set and
 				// there are less items fetched then requested limit
-				if nav, err := s.composeRecordsPageNavigation(ctx, m, q, f); err != nil {
+				if nav, err := s.composeRecordsPageNavigation(ctx, m, q, f, f.Sort, buildComposeRecordsCursor(s.config, m)); err != nil {
 					return err
 				} else {
 					f.Total = nav.Total
 					f.PageNavigation = nav.PageNavigation
+				}
+
+				if !f.IncPageNavigation {
+					// remove page navigation if not requested
+					f.PageNavigation = nil
 				}
 
 			}
@@ -127,54 +133,115 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 	}()
 }
 
-func (s Store) composeRecordsPageNavigation(ctx context.Context, m *types.Module, q squirrel.SelectBuilder, f types.RecordFilter) (types.RecordFilter, error) {
+// fetches a large number of records and generates page navigation and/or counts all records
+//
+// Func tries to minimize amount of data fetched & processed by loading 1000x set of records per page
+// We're storing only records (and fetch their values) used for generating values
+//
+// Caveats:
+//  - this will only work if Check function DOES NOT RELY on record values
+func (s Store) composeRecordsPageNavigation(
+	ctx context.Context,
+	m *types.Module,
+	q squirrel.SelectBuilder,
+	f types.RecordFilter,
+	sort filter.SortExprSet,
+	cursorCond func(*filter.PagingCursor) squirrel.Sqlizer,
+) (types.RecordFilter, error) {
 	return f, func() (err error) {
-		// reset output on filter
-		f.Total = 0
-		f.PageNavigation = make([]*filter.Page, 0, 100)
-		f.NextPage = nil
-		f.PrevPage = nil
-
 		var (
-			page *filter.Page
-			set  []*types.Record
-			next *filter.PagingCursor
+			// holds set of last records from each page
+			set []*types.Record
+
+			supPageLimitFactor = 1000
+			supPageLimit       = f.Limit * uint(supPageLimitFactor)
+			// super-page query; fetches large number of records to optimize page navigation and counting
+			supPageQuery = q.Limit(uint64(supPageLimit))
+
+			rows *sql.Rows
+			res  *types.Record
+
+			cursor *filter.PagingCursor
 		)
 
-		for {
-			set, _, next, err = s.fetchFullPageOfComposeRecords(
-				ctx, m, q,
-				f.Sort, next, f.Limit,
-				f.Check,
-				buildComposeRecordsCursor(s.config, m),
-			)
+		// reset output on filter
+		f.Total = 0
+		f.PageNavigation = make([]*filter.Page, 0, supPageLimitFactor)
 
+		for {
+			rowsValid, rowsProcessed := 0, 0
+
+			// reuse q for query with/without cursor
+			if cursor == nil {
+				// first page
+				q = supPageQuery
+			} else {
+				q = supPageQuery.Where(cursorCond(cursor))
+			}
+
+			rows, err = s.Query(ctx, q)
 			if err != nil {
 				return err
 			}
 
-			page = &filter.Page{
-				Page:  uint(len(f.PageNavigation) + 1),
-				Count: uint(len(set)),
+			defer rows.Close()
+			for rows.Next() {
+				rowsProcessed++
+				if err = rows.Err(); err == nil {
+					res, err = s.internalComposeRecordRowScanner(m, rows)
+				}
 
-				// this is not correct cursor for next page (next) should actually go
-				// to the next entry under page navigation
-				Cursor: next,
+				if err != nil {
+					return err
+				}
+
+				// check fn set, call it and see if it passed the test
+				// if not, skip the item
+				if f.Check != nil {
+					if chk, err := f.Check(res); err != nil {
+						return err
+					} else if !chk {
+						continue
+					}
+				}
+
+				rowsValid++
+				f.Total++
+
+				if f.Total%f.Limit == 0 {
+					set = append(set, res)
+				}
 			}
 
-			if f.IncTotal {
-				f.Total += page.Count
+			if f.Total%f.Limit != 0 {
+				// append the rest
+				set = append(set, res)
 			}
 
-			if f.IncPageNavigation {
-				f.PageNavigation = append(f.PageNavigation, page)
+			// fetch values for all last-records fetched in this iteration
+			if err = s.composeRecordPostLoadProcessor(ctx, m, set[len(f.PageNavigation):]...); err != nil {
+				return err
 			}
 
-			if next == nil {
+			// generate cursor values for all records fetched in this iteration
+			for _, r := range set[len(f.PageNavigation):] {
+				f.PageNavigation = append(f.PageNavigation, &filter.Page{
+					Page:   uint(len(f.PageNavigation) + 1),
+					Count:  uint(rowsValid),
+					Cursor: s.collectComposeRecordCursorValues(m, r, sort...),
+				})
+			}
+
+			if uint(rowsProcessed) < supPageLimit {
+				// fetched less than planned, assume entire matching record set is processed
 				break
 			}
+
+			// get ready for next iteration and generate cursor
+			cursor = f.PageNavigation[len(f.PageNavigation)-1].Cursor
 		}
 
+		// And prefix on at the beginning to point to 1st page (for consistency)
 		if len(f.PageNavigation) > 0 {
 			// reorder cursors and move them forward for 1 page,
 			// going from last to 1st
