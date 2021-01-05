@@ -54,7 +54,7 @@ endpoints:
       - { name: handle,       type: string, required: true,     title: "Workflow name" }
       - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
-      - { name: enabled,      type: bool,   required: true,     title: "Is workflow enabled" }
+      - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
       - { name: trace,        type: bool,                       title: "Trace workflow execution" }
       - { name: keepSessions, type: int,                        title: "Keep old workflow sessions" }
       - { name: scope,        type: "types.Variables",          title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
@@ -87,7 +87,7 @@ endpoints:
       - { name: scope,    type: "types.Variables",          title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
       - { name: runAs,    type: bool,   required: true,     title: "Is workflow enabled" }
 
-- title: Workflows
+- title: Triggers
   path: "/triggers"
   entrypoint: trigger
   authentication: []
@@ -105,7 +105,7 @@ endpoints:
       - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
       - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted triggers" }
       - { name: eventType,    type: "string",            title: "Filter triggers by event type" }
-      - { name: resourceType, type: "string",            title: "Filter triggers by resoure type" }
+      - { name: resourceType, type: "string",            title: "Filter triggers by resource type" }
       - { name: query,        type: "string",            title: "Filter workflows," }
       - { name: labels,       type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,        type: "uint",              title: "Limit" }

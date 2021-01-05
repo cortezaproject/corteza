@@ -54,7 +54,7 @@ type (
 
 		// ResourceType GET parameter
 		//
-		// Filter triggers by resoure type
+		// Filter triggers by resource type
 		ResourceType string
 
 		// Query GET parameter
