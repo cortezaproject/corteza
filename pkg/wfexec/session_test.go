@@ -2,6 +2,7 @@ package wfexec
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"testing"
@@ -165,4 +166,23 @@ func TestSession_Delays(t *testing.T) {
 	req.Contains(ses.Result(), "waitForMoment")
 	req.Contains(ses.Result(), "waitForInput")
 	req.Equal("foo", ses.Result().String("input", ""))
+}
+
+func TestSession_Messages(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+		wf  = NewGraph()
+		ses = NewSession(ctx, wf)
+
+		bodyExpr, _ = NewExpression(expr.Parser(), "", "message")
+		msg1        = NewMessage("alert", bodyExpr)
+	)
+
+	//ses.log = logger.MakeDebugLogger().Sugar()
+
+	wf.AddStep(msg1)
+	req.NoError(ses.Exec(ctx, msg1, Variables{"message": "foo"}))
+	ses.Wait(ctx)
+	req.Len(ses.messages, 1)
 }

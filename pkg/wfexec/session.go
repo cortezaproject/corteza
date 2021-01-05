@@ -14,8 +14,8 @@ type (
 		// Session identifier
 		id uint64
 
-		// workflow ref, will help us with traversing through Graph
-		workflow *Graph
+		// steps graph
+		g *Graph
 
 		started time.Time
 
@@ -31,6 +31,8 @@ type (
 		// collection of all suspended states
 		// map key represents state identifier
 		suspended map[uint64]*suspended
+
+		messages []*message
 
 		// how often we check for suspended states and how often idle stat is checked in Wait()
 		workerInterval time.Duration
@@ -107,14 +109,14 @@ var (
 
 func NewSession(ctx context.Context, wf *Graph, oo ...sessionOpt) *Session {
 	s := &Session{
-		workflow:  wf,
-		id:        nextID(),
-		started:   time.Now(),
-		qState:    make(chan *state, sessionStateChanBuf),
-		qErr:      make(chan error, 1),
-		execLock:  make(chan struct{}, sessionMaxExec),
-		suspended: make(map[uint64]*suspended),
-
+		g:              wf,
+		id:             nextID(),
+		started:        time.Now(),
+		qState:         make(chan *state, sessionStateChanBuf),
+		qErr:           make(chan error, 1),
+		execLock:       make(chan struct{}, sessionMaxExec),
+		suspended:      make(map[uint64]*suspended),
+		messages:       make([]*message, 0),
 		workerInterval: time.Second,
 
 		mux: &sync.RWMutex{},
@@ -157,11 +159,11 @@ func (s *Session) Result() Variables {
 }
 
 func (s *Session) Exec(ctx context.Context, step Step, scope Variables) error {
-	if s.workflow.Len() == 0 {
-		return fmt.Errorf("refusing to execute workflow without steps")
+	if s.g.Len() == 0 {
+		return fmt.Errorf("refusing to execute without steps")
 	}
 
-	if len(s.workflow.Parents(step)) > 0 {
+	if len(s.g.Parents(step)) > 0 {
 		return fmt.Errorf("can not execute step with parents")
 	}
 
@@ -301,6 +303,21 @@ func (s Session) Suspended() bool {
 	return len(s.suspended) > 0
 }
 
+func (s Session) Messages() []*message {
+	return s.messages
+}
+
+func (s Session) MessagesAfter(messageId uint64) []*message {
+	var mm = make([]*message, 0, len(s.messages))
+	for _, m := range mm {
+		if m.ID > messageId {
+			mm = append(mm, m)
+		}
+	}
+
+	return mm
+}
+
 func (s *Session) queueScheduledSuspended() {
 	defer s.mux.Unlock()
 	s.mux.Lock()
@@ -320,6 +337,7 @@ func (s *Session) queueScheduledSuspended() {
 	}
 }
 
+// executes single step, resolves response and schedule following steps for execution
 func (s *Session) exec(ctx context.Context, st *state) {
 	var (
 		scope = st.scope
@@ -334,11 +352,21 @@ func (s *Session) exec(ctx context.Context, st *state) {
 		}
 
 		switch result := result.(type) {
-		case *Joined:
-			s.log.Debugf("Session(%d).exec(%d) => joined\n", s.id, st.stateId)
+		case Variables:
+			// most common (successful) result
+			// session will continue with configured child steps
+			s.log.Debugf("Session(%d).exec(%d) => variables: %v\n", s.id, st.stateId, result)
+			scope = scope.Merge(result)
+
+		case *partial:
+			// *partial is returned when step needs to be executed again
+			// it's used mainly for join gateway step that should be called multiple times (one for each parent path)
+			s.log.Debugf("Session(%d).exec(%d) => partial\n", s.id, st.stateId)
 			return
 
 		case *suspended:
+			// suspend execution because of delay or pending user input
+			// either way, it break execution loop for the current path
 			if result == nil {
 				s.log.Debugf("Session(%d).exec(%d) => suspended with nil\n", s.id, st.stateId)
 				return
@@ -346,31 +374,44 @@ func (s *Session) exec(ctx context.Context, st *state) {
 
 			s.log.Debugf("Session(%d).exec(%d) => suspending step: %v\n", s.id, st.stateId, result)
 			result.state = st
-			defer s.mux.Unlock()
 			s.mux.Lock()
 			s.suspended[st.stateId] = result
+			s.mux.Unlock()
 			return
 
-		case Variables:
-			scope = scope.Merge(result)
-
-		case Step:
-			next = Steps{result}
+		case *message:
+			// step emitted a message, store it and continue as planned
+			s.log.Debugf("Session(%d).exec(%d) => message received: %v\n", s.id, st.stateId, result)
+			s.mux.Lock()
+			s.messages = append(s.messages, result)
+			s.mux.Unlock()
 
 		case Steps:
+			// session continues with set of specified steps
+			// steps MUST be configured in a graph as step's children
+			s.log.Debugf("Session(%d).exec(%d) => multiple steps: %v\n", s.id, st.stateId, result)
 			next = result
+
+		case Step:
+			// session continues with a specified step
+			// step MUST be configured in a graph as step's child
+			s.log.Debugf("Session(%d).exec(%d) => single step: %v\n", s.id, st.stateId, result)
+			next = Steps{result}
 
 		default:
 			s.log.Debugf("Session(%d).exec(%d) => unknown exec response type: %T\n", s.id, st.stateId, result)
-
+			return
 		}
 	}
 
 	if len(next) == 0 {
-		next = s.workflow.Children(st.step)
-	} else if !s.workflow.Children(st.step).Contains(next...) {
-		s.qErr <- fmt.Errorf("inconsistent relationship")
-		return
+		next = s.g.Children(st.step)
+	} else {
+		cc := s.g.Children(st.step)
+		if len(cc) > 0 && !cc.Contains(next...) {
+			s.qErr <- fmt.Errorf("inconsistent relationship")
+			return
+		}
 	}
 
 	if len(next) == 0 {

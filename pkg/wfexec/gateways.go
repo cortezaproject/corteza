@@ -40,7 +40,7 @@ type joinGateway struct {
 	l      sync.Mutex
 }
 
-// JoinGateway fn initializes join gateway with all paths that are expected to be joined
+// JoinGateway fn initializes join gateway with all paths that are expected to be partial
 func JoinGateway(ss ...Step) *joinGateway {
 	return &joinGateway{
 		paths:  ss,
@@ -52,7 +52,7 @@ func JoinGateway(ss ...Step) *joinGateway {
 //
 // Func will override the collected caller's Variables.
 //
-// Join gateways is ready to continue with the Graph when all configured paths are ready to be joined
+// Join gateways is ready to continue with the Graph when all configured paths are ready to be partial
 // When all paths are merged (ie Exec was called at least once per caller)
 func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, error) {
 	gw.l.Lock()
@@ -64,7 +64,7 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 
 	gw.scopes[r.Caller] = r.Scope
 	if len(gw.scopes) < len(gw.paths) {
-		return &Joined{}, nil
+		return NewPartial(), nil
 	}
 
 	// All collected, merge scope caller all paths in the defined order

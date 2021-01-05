@@ -48,11 +48,11 @@ func TestJoinGateway(t *testing.T) {
 
 	r, err = gw.Exec(nil, &ExecRequest{Caller: p1})
 	req.NoError(err)
-	req.Equal(&Joined{}, r)
+	req.Equal(&partial{}, r)
 
 	r, err = gw.Exec(nil, &ExecRequest{Caller: p2})
 	req.NoError(err)
-	req.Equal(&Joined{}, r)
+	req.Equal(&partial{}, r)
 
 	r, err = gw.Exec(nil, &ExecRequest{Caller: p3})
 	req.NoError(err)

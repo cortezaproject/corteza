@@ -32,9 +32,12 @@ func NewGraph() *Graph {
 
 func (g *Graph) AddStep(s Step, cc ...Step) {
 	g.steps = append(g.steps, s)
-	g.children[s] = cc
-	for _, c := range cc {
-		g.AddParent(c, s)
+
+	if len(cc) > 0 {
+		g.children[s] = cc
+		for _, c := range cc {
+			g.AddParent(c, s)
+		}
 	}
 }
 
