@@ -118,7 +118,7 @@ const (
 	WorkflowStepKindMessage     WorkflowStepKind = "message"     // ref = error, warning, info
 	//WorkflowStepKindLoop        WorkflowStepKind = "loop"
 	//WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
-	//WorkflowStepKindPrompt      WorkflowStepKind = "prompt" // ref = client function
+	WorkflowStepKindPrompt WorkflowStepKind = "prompt" // ref = client function
 	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
 )
 

@@ -15,6 +15,11 @@ type (
 		Body string
 		msg  *Expression
 	}
+
+	prompt struct {
+		ID   uint64
+		Type string
+	}
 )
 
 func NewPartial() *partial {
@@ -44,4 +49,15 @@ func (m *message) Exec(ctx context.Context, r *ExecRequest) (ExecResponse, error
 	}
 
 	return m, nil
+}
+
+func NewPrompt(typ string) *prompt {
+	return &prompt{
+		ID:   nextID(),
+		Type: typ,
+	}
+}
+
+func (n *prompt) Exec(ctx context.Context, r *ExecRequest) (ExecResponse, error) {
+	return WaitForInput(), nil
 }

@@ -551,6 +551,9 @@ func (svc *workflow) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep,
 		case types.WorkflowStepKindMessage:
 			return svc.workflowMessageDefConv(s)
 
+		case types.WorkflowStepKindPrompt:
+			return svc.workflowPromptDefConv(s)
+
 		default:
 			return nil, errors.Internal("unsupported step kind %q", s.Kind)
 		}
@@ -678,6 +681,10 @@ func (svc *workflow) workflowMessageDefConv(s *types.WorkflowStep) (wfexec.Step,
 	}
 
 	return wfexec.NewMessage(s.Ref, expr), nil
+}
+
+func (svc *workflow) workflowPromptDefConv(s *types.WorkflowStep) (wfexec.Step, error) {
+	return wfexec.NewPrompt(s.Ref), nil
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {
