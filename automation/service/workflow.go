@@ -546,30 +546,10 @@ func (svc *workflow) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep,
 			return svc.workflowGatewayDefConv(g, s, in)
 
 		case types.WorkflowStepKindFunction:
-			if s.Ref == "" {
-				return nil, errors.Internal("function reference missing")
-			}
+			return svc.workflowActivityDefConv(s)
 
-			if fn := svc.getRegisteredFn(s.Ref); fn == nil {
-				return nil, errors.Internal("unknown function %q", s.Ref)
-			} else {
-				var (
-					err    error
-					aa, rr *wfexec.Expressions
-				)
-
-				// @todo make sure s.Arguments fit into fn.Parameters
-
-				if aa, err = svc.workflowExprDefConv(s.Arguments...); err != nil {
-					return nil, errors.Internal("failed to convert function arguments: %w", err)
-				}
-
-				if rr, err = svc.workflowExprDefConv(s.Results...); err != nil {
-					return nil, errors.Internal("failed to convert function arguments: %w", err)
-				}
-
-				return wfexec.Activity(fn.Handler, aa, rr), nil
-			}
+		case types.WorkflowStepKindMessage:
+			return svc.workflowMessageDefConv(s)
 
 		default:
 			return nil, errors.Internal("unsupported step kind %q", s.Kind)
@@ -649,6 +629,55 @@ func (svc *workflow) workflowExprDefConv(ee ...*types.WorkflowExpression) (*wfex
 	}
 
 	return set, nil
+}
+
+func (svc *workflow) workflowActivityDefConv(s *types.WorkflowStep) (wfexec.Step, error) {
+	if s.Ref == "" {
+		return nil, errors.Internal("function reference missing")
+	}
+
+	if fn := svc.getRegisteredFn(s.Ref); fn == nil {
+		return nil, errors.Internal("unknown function %q", s.Ref)
+	} else {
+		var (
+			err    error
+			aa, rr *wfexec.Expressions
+		)
+
+		// @todo make sure s.Arguments fit into fn.Parameters
+
+		if aa, err = svc.workflowExprDefConv(s.Arguments...); err != nil {
+			return nil, errors.Internal("failed to convert function arguments: %w", err)
+		}
+
+		if rr, err = svc.workflowExprDefConv(s.Results...); err != nil {
+			return nil, errors.Internal("failed to convert function arguments: %w", err)
+		}
+
+		return wfexec.Activity(fn.Handler, aa, rr), nil
+	}
+}
+
+func (svc *workflow) workflowMessageDefConv(s *types.WorkflowStep) (wfexec.Step, error) {
+	var (
+		err  error
+		expr *wfexec.Expression
+	)
+
+	for _, arg := range s.Arguments {
+		if arg.Name == "message" {
+			expr, err = wfexec.NewExpression(svc.lang, "", arg.Expr)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if expr == nil {
+		return nil, errors.Internal("message step with undefined message expression", s.Kind)
+	}
+
+	return wfexec.NewMessage(s.Ref, expr), nil
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {
