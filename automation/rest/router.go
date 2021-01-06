@@ -15,5 +15,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewWorkflow(Workflow{}.New()).MountRoutes(r)
 		handlers.NewTrigger(Trigger{}.New()).MountRoutes(r)
 		handlers.NewFunction(Function{}.New()).MountRoutes(r)
+		handlers.NewSession(Session{}.New()).MountRoutes(r)
 	})
 }

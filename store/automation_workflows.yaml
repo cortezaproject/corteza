@@ -26,6 +26,7 @@ fields:
 rdbms:
   alias: atmwf
   table: automation_workflows
+  customFilterConverter: true
 
 lookups:
   - fields: [ ID ]

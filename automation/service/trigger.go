@@ -384,7 +384,7 @@ func (svc *trigger) registerWorkflows(ctx context.Context, workflows ...*types.W
 
 // updates trigger handler registration
 //
-// Loads associated workflow and registeres one specific trigger
+// Loads associated workflow and registers specific trigger
 func (svc *trigger) updateTriggerRegistration(ctx context.Context, t *types.Trigger) error {
 	wf, err := loadWorkflow(ctx, svc.store, t.WorkflowID)
 	if err != nil {
@@ -477,7 +477,15 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 					runAs = auth.GetIdentityFromContext(ctx)
 				}
 
-				err = svc.session.Start(g, t.StepID, runAs, scope)
+				err = svc.session.Start(g, runAs, types.SessionStartParams{
+					WorkflowID:   wf.ID,
+					KeepFor:      wf.KeepSessions,
+					Trace:        wf.Trace,
+					Input:        scope,
+					StepID:       t.StepID,
+					EventType:    t.EventType,
+					ResourceType: t.ResourceType,
+				})
 				if err != nil {
 					log.Error("workflow error", zap.Error(err))
 					return err

@@ -33,7 +33,10 @@ func (s Store) SearchAutomationWorkflows(ctx context.Context, f types.WorkflowFi
 	)
 
 	return set, f, func() error {
-		q = s.automationWorkflowsSelectBuilder()
+		q, err = s.convertAutomationWorkflowFilter(f)
+		if err != nil {
+			return err
+		}
 
 		// Paging enabled
 		// {search: {enablePaging:true}}

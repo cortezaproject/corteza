@@ -24,6 +24,7 @@ fields:
 rdbms:
   alias: atmt
   table: automation_triggers
+  customFilterConverter: true
 
 lookups:
   - fields: [ ID ]

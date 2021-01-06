@@ -15,6 +15,11 @@ type (
 	// This type is auto-generated.
 	SessionSet []*Session
 
+	// SessionTraceStepSet slice of SessionTraceStep
+	//
+	// This type is auto-generated.
+	SessionTraceStepSet []*SessionTraceStep
+
 	// StateSet slice of State
 	//
 	// This type is auto-generated.
@@ -98,6 +103,62 @@ func (set SessionSet) FindByID(ID uint64) *Session {
 //
 // This function is auto-generated.
 func (set SessionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(SessionTraceStep) err
+//
+// This function is auto-generated.
+func (set SessionTraceStepSet) Walk(w func(*SessionTraceStep) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(SessionTraceStep) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set SessionTraceStepSet) Filter(f func(*SessionTraceStep) (bool, error)) (out SessionTraceStepSet, err error) {
+	var ok bool
+	out = SessionTraceStepSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set SessionTraceStepSet) FindByID(ID uint64) *SessionTraceStep {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set SessionTraceStepSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

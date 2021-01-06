@@ -7,12 +7,15 @@ import (
 )
 
 type (
-	// Used for expression steps, arguments and results mapping
+	// Used for expression steps, arguments/results mapping and for input validation
 	WorkflowExpression struct {
-		Name string `json:"name"`
-		Expr string `json:"expr"`
+		Name  string `json:"name,omitempty"`
+		Expr  string `json:"expr"`
+		Error string `json:"error,omitempty"`
 	}
 
+	// Variables uses same structure as wfexec.Variables
+	// but implements scan/value to support serialization into store
 	Variables map[string]interface{}
 )
 

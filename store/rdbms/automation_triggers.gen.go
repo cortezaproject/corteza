@@ -33,7 +33,10 @@ func (s Store) SearchAutomationTriggers(ctx context.Context, f types.TriggerFilt
 	)
 
 	return set, f, func() error {
-		q = s.automationTriggersSelectBuilder()
+		q, err = s.convertAutomationTriggerFilter(f)
+		if err != nil {
+			return err
+		}
 
 		// Paging enabled
 		// {search: {enablePaging:true}}

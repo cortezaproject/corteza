@@ -113,12 +113,12 @@ type (
 
 const (
 	WorkflowStepKindExpressions WorkflowStepKind = "expressions" // ref
-	WorkflowStepKindGateway     WorkflowStepKind = "gateway"     // ref=join|fork|excl|incl
-	WorkflowStepKindFunction    WorkflowStepKind = "function"    // ref=<function ref>
-	WorkflowStepKindMessage     WorkflowStepKind = "message"     // ref = error, warning, info
+	WorkflowStepKindGateway     WorkflowStepKind = "gateway"     // ref = join|fork|excl|incl
+	WorkflowStepKindFunction    WorkflowStepKind = "function"    // ref = <function ref>
+	WorkflowStepKindMessage     WorkflowStepKind = "message"     // ref = error|warning|info, ...
+	WorkflowStepKindPrompt      WorkflowStepKind = "prompt"      // ref = <client function>
 	//WorkflowStepKindLoop        WorkflowStepKind = "loop"
 	//WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
-	WorkflowStepKindPrompt WorkflowStepKind = "prompt" // ref = client function
 	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
 )
 

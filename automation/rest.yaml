@@ -158,6 +158,52 @@ endpoints:
     path: "/{triggerID}/undelete"
     parameters: { path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ] }
 
+- title: Sessions
+  path: "/sessions"
+  entrypoint: session
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/automation/types
+  apis:
+  - name: list
+    method: GET
+    title: List sessions
+    path: "/"
+    parameters:
+      get:
+      - { name: sessionID,    type: "[]string",          title: "Filter by session ID" }
+      - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
+      - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted sessions" }
+      - { name: eventType,    type: "string",            title: "Filter sessions by event type" }
+      - { name: resourceType, type: "string",            title: "Filter sessions by resource type" }
+      - { name: limit,        type: "uint",              title: "Limit" }
+      - { name: pageCursor,   type: "string",            title: "Page cursor" }
+      - { name: sort,         type: "string",            title: "Sort items" }
+  - name: read
+    method: GET
+    title: Read session details
+    path: "/{sessionID}"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: trace
+    method: GET
+    title: Read session trace info
+    path: "/{sessionID}/trace"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove session
+    path: "/{sessionID}"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: resume
+    method: POST
+    title: Resume session
+    path: "/{sessionID}/resume"
+    parameters:
+      path:
+      - { name: sessionID, type: uint64, required: true, title: "Session ID" }
+      post:
+      - { name: stateID,   type: uint64, required: true, title: "State ID" }
+      - { name: input,     type: "types.Variables",            title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
 
 - title: Functions
   path: "/functions"

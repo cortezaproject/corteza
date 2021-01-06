@@ -9,15 +9,18 @@ fields:
   - { field: WorkflowID }
   - { field: EventType }
   - { field: ResourceType }
-  - { field: ExecutedAs, type: uint64 }
+  - { field: Status,     type: int }
   - { field: WallTime,   type: "time.Duration" }
   - { field: UserTime,   type: "time.Duration" }
   - { field: Input,      type: "types.Variables" }
   - { field: Output,     type: "types.Variables" }
-  - { field: Trace,      type: "types.WorkflowSessionTraceStep" }
+  - { field: Trace,      type: "types.SessionTraceStepSet" }
   - { field: CreatedBy }
   - { field: CreatedAt }
-  - { field: PurgeAt   }
+  - { field: PurgeAt }
+  - { field: CompletedAt }
+  - { field: SuspendedAt }
+  - { field: Error }
 
 rdbms:
   alias: atms

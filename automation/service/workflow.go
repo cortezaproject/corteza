@@ -661,6 +661,10 @@ func (svc *workflow) workflowActivityDefConv(s *types.WorkflowStep) (wfexec.Step
 	}
 }
 
+// converts message definition to wfexec.Step
+//
+// Reference is used to determinate message type and argument for
+// with name "message" is expected that holds expression that will yield message string
 func (svc *workflow) workflowMessageDefConv(s *types.WorkflowStep) (wfexec.Step, error) {
 	var (
 		err  error
@@ -677,14 +681,17 @@ func (svc *workflow) workflowMessageDefConv(s *types.WorkflowStep) (wfexec.Step,
 	}
 
 	if expr == nil {
-		return nil, errors.Internal("message step with undefined message expression", s.Kind)
+		return nil, errors.Internal("message step with undefined message expression")
 	}
 
 	return wfexec.NewMessage(s.Ref, expr), nil
 }
 
+// converts prompt definition to wfexec.Step
+//
+//
 func (svc *workflow) workflowPromptDefConv(s *types.WorkflowStep) (wfexec.Step, error) {
-	return wfexec.NewPrompt(s.Ref), nil
+	return wfexec.NewPrompt(s.Ref, "foo"), nil
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {

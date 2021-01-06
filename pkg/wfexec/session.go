@@ -20,7 +20,7 @@ type (
 		started time.Time
 
 		// state channel (ie work queue)
-		qState chan *state
+		qState chan *State
 
 		// error channel
 		qErr chan error
@@ -45,7 +45,11 @@ type (
 
 		// debug logger
 		log *zap.SugaredLogger
+
+		eventHandler StateChangeHandler
 	}
+
+	StateChangeHandler func(int, *State, *Session)
 
 	suspended struct {
 		// when not nil, assuming delayed
@@ -55,14 +59,15 @@ type (
 		input bool
 
 		// state to be resumed
-		state *state
+		state *State
 	}
 
 	sessionOpt func(*Session)
 
 	// state holds information about Session ID
-	state struct {
-		created time.Time
+	State struct {
+		created   time.Time
+		completed *time.Time
 
 		// state identifier
 		stateId uint64
@@ -76,6 +81,13 @@ type (
 		// current step
 		step Step
 
+		// step error (if any)
+		err error
+
+		// input variables that were sent to resume the session
+		// (prompt step)
+		input Variables
+
 		// scope
 		scope Variables
 	}
@@ -86,7 +98,10 @@ type (
 		SessionID uint64
 		StateID   uint64
 
-		// Current scope (group of variables)
+		// Current input received when prompting for input
+		Input Variables
+
+		// Current scope
 		Scope Variables
 
 		// Helps with gateway join/merge steps
@@ -96,8 +111,17 @@ type (
 )
 
 const (
-	sessionStateChanBuf = 512
-	sessionMaxExec      = 32
+	sessionStateChanBuf   = 512
+	sessionConcurrentExec = 32
+)
+
+const (
+	SessionActive int = iota
+	SessionSuspended
+	SessionStepSuspended
+	SessionCompleted
+	SessionFailed
+	SessionNewMessage
 )
 
 var (
@@ -105,16 +129,22 @@ var (
 	nextID = func() uint64 {
 		return id.Next()
 	}
+
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now().Round(time.Second)
+		return &c
+	}
 )
 
 func NewSession(ctx context.Context, wf *Graph, oo ...sessionOpt) *Session {
 	s := &Session{
 		g:              wf,
 		id:             nextID(),
-		started:        time.Now(),
-		qState:         make(chan *state, sessionStateChanBuf),
+		started:        *now(),
+		qState:         make(chan *State, sessionStateChanBuf),
 		qErr:           make(chan error, 1),
-		execLock:       make(chan struct{}, sessionMaxExec),
+		execLock:       make(chan struct{}, sessionConcurrentExec),
 		suspended:      make(map[uint64]*suspended),
 		messages:       make([]*message, 0),
 		workerInterval: time.Second,
@@ -122,6 +152,9 @@ func NewSession(ctx context.Context, wf *Graph, oo ...sessionOpt) *Session {
 		mux: &sync.RWMutex{},
 
 		log: zap.NewNop().Sugar(),
+		eventHandler: func(int, *State, *Session) {
+			// noop
+		},
 	}
 
 	for _, o := range oo {
@@ -133,18 +166,30 @@ func NewSession(ctx context.Context, wf *Graph, oo ...sessionOpt) *Session {
 	return s
 }
 
+func (s Session) Status() int {
+	switch {
+	case s.err != nil:
+		return SessionFailed
+
+	case len(s.execLock) > 0 || len(s.qState) > 0 || len(s.qErr) > 0:
+		// active
+		return SessionActive
+
+	case len(s.suspended) > 0:
+		return SessionSuspended
+
+	default:
+		return SessionCompleted
+	}
+}
+
 func (s Session) ID() uint64 { return s.id }
 
 func (s Session) Idle() bool {
-	if len(s.execLock) > 0 || len(s.qState) > 0 || len(s.qErr) > 0 {
-		s.log.Debugf("Session(%d).Idle() => pending work: execLock: %d / qState: %d / qErr: %d\n", s.id, len(s.execLock), len(s.qState), len(s.qErr))
-		return false
-	}
-
-	return true
+	return s.Status() != SessionActive
 }
 
-func (s *Session) FinalError() error {
+func (s *Session) Error() error {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 
@@ -167,30 +212,31 @@ func (s *Session) Exec(ctx context.Context, step Step, scope Variables) error {
 		return fmt.Errorf("can not execute step with parents")
 	}
 
-	return s.enqueue(ctx, State(s, nil, step, scope))
+	return s.enqueue(ctx, NewState(s, nil, step, scope))
 }
 
-func (s *Session) Resume(ctx context.Context, stateId uint64, scope Variables) error {
+func (s *Session) Resume(ctx context.Context, stateId uint64, input Variables) error {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
-	suspended, has := s.suspended[stateId]
+	resumed, has := s.suspended[stateId]
 	if !has {
 		return fmt.Errorf("unexisting state")
 	}
 
-	if !suspended.input {
+	if !resumed.input {
 		return fmt.Errorf("not input state")
 	}
 
 	delete(s.suspended, stateId)
 
-	suspended.state.scope = suspended.state.scope.Merge(scope)
+	// setting received input to state
+	resumed.state.input = input
 
-	return s.enqueue(ctx, suspended.state)
+	return s.enqueue(ctx, resumed.state)
 }
 
-func (s *Session) enqueue(ctx context.Context, st *state) error {
+func (s *Session) enqueue(ctx context.Context, st *State) error {
 	if st == nil {
 		return fmt.Errorf("state is nil")
 	}
@@ -225,7 +271,7 @@ func (s *Session) Wait(ctx context.Context) {
 		select {
 		case <-waitCheck.C:
 			if s.Idle() {
-				s.log.Debugf("Session(%d).Wait() => complete\n", s.id)
+				s.log.Debugf("Session(%d).Wait() => idle\n", s.id)
 				// nothing in the pipeline
 				return
 			}
@@ -278,11 +324,19 @@ func (s *Session) worker(ctx context.Context) {
 				return
 			}
 
+			// add empty struct to chan to lock and to have control over numver of concurrent go processes
+			// this will block if number of items in execLock chan reached value of sessionConcurrentExec
 			s.execLock <- struct{}{}
 			s.log.Debugf("Session(%d).worker() => got state [stateId:%d]; execute!\n", s.id, st.stateId)
 			go func() {
 				s.exec(ctx, st)
+				st.completed = now()
+
+				// remove single
 				<-s.execLock
+
+				// after exec lock is released call event handler with (new) session status
+				s.eventHandler(s.Status(), st, s)
 			}()
 
 		}
@@ -299,7 +353,6 @@ func (s *Session) Close() {
 func (s Session) Suspended() bool {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
-	//return false
 	return len(s.suspended) > 0
 }
 
@@ -327,7 +380,7 @@ func (s *Session) queueScheduledSuspended() {
 			continue
 		}
 
-		if sus.resumeAt.After(time.Now()) {
+		if sus.resumeAt.After(*now()) {
 			continue
 		}
 
@@ -338,16 +391,19 @@ func (s *Session) queueScheduledSuspended() {
 }
 
 // executes single step, resolves response and schedule following steps for execution
-func (s *Session) exec(ctx context.Context, st *state) {
+func (s *Session) exec(ctx context.Context, st *State) {
 	var (
-		scope = st.scope
-		next  Steps
+		result ExecResponse
+		scope  = st.scope
+		next   Steps
 	)
 
+	s.eventHandler(SessionActive, st, s)
+
 	{
-		result, err := st.step.Exec(ctx, st.MakeRequest())
-		if err != nil {
-			s.qErr <- err
+		result, st.err = st.step.Exec(ctx, st.MakeRequest())
+		if st.err != nil {
+			s.qErr <- st.err
 			return
 		}
 
@@ -366,9 +422,11 @@ func (s *Session) exec(ctx context.Context, st *state) {
 
 		case *suspended:
 			// suspend execution because of delay or pending user input
-			// either way, it break execution loop for the current path
+			// either way, it breaks execution loop for the current path
+
 			if result == nil {
-				s.log.Debugf("Session(%d).exec(%d) => suspended with nil\n", s.id, st.stateId)
+				// @todo why do we allow this again?
+				s.log.Warnf("Session(%d).exec(%d) => suspended with nil\n", s.id, st.stateId)
 				return
 			}
 
@@ -377,6 +435,7 @@ func (s *Session) exec(ctx context.Context, st *state) {
 			s.mux.Lock()
 			s.suspended[st.stateId] = result
 			s.mux.Unlock()
+			s.eventHandler(SessionStepSuspended, st, s)
 			return
 
 		case *message:
@@ -385,6 +444,7 @@ func (s *Session) exec(ctx context.Context, st *state) {
 			s.mux.Lock()
 			s.messages = append(s.messages, result)
 			s.mux.Unlock()
+			s.eventHandler(SessionNewMessage, st, s)
 
 		case Steps:
 			// session continues with set of specified steps
@@ -424,7 +484,7 @@ func (s *Session) exec(ctx context.Context, st *state) {
 	s.log.Debugf("Session(%d).exec(%d) => %d paths\n", s.id, st.stateId, len(next))
 	for _, p := range next {
 		s.log.Debugf("Session(%d).exec(%d) => queuing step\n", s.id, st.stateId)
-		_ = s.enqueue(ctx, State(s, st.step, p, scope))
+		_ = s.enqueue(ctx, NewState(s, st.step, p, scope))
 	}
 
 }
@@ -435,9 +495,15 @@ func SetWorkerInterval(i time.Duration) sessionOpt {
 	}
 }
 
-func State(ses *Session, caller, current Step, scope Variables) *state {
-	return &state{
-		created:   time.Now(),
+func SetHandler(fn StateChangeHandler) sessionOpt {
+	return func(s *Session) {
+		s.eventHandler = fn
+	}
+}
+
+func NewState(ses *Session, caller, current Step, scope Variables) *State {
+	return &State{
+		created:   *now(),
 		stateId:   ses.id,
 		sessionId: nextID(),
 		caller:    caller,
@@ -446,22 +512,32 @@ func State(ses *Session, caller, current Step, scope Variables) *state {
 	}
 }
 
-func FinalState(ses *Session, scope Variables) *state {
-	return &state{
-		created:   time.Now(),
+func FinalState(ses *Session, scope Variables) *State {
+	return &State{
+		created:   *now(),
+		completed: now(),
 		stateId:   ses.id,
 		sessionId: nextID(),
 		scope:     scope,
 	}
 }
 
-func (s *state) MakeRequest() *ExecRequest {
+func (s State) MakeRequest() *ExecRequest {
 	return &ExecRequest{
 		SessionID: s.sessionId,
 		StateID:   s.stateId,
 		Scope:     s.scope,
+		Input:     s.input,
 		Caller:    s.caller,
 	}
+}
+
+func (s *State) Error() string {
+	if s.err == nil {
+		return ""
+	}
+
+	return s.err.Error()
 }
 
 func (ss Steps) hash() map[Step]bool {

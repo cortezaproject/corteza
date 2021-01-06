@@ -236,7 +236,7 @@ func (s Store) internalAutomationSessionRowScanner(row rowScanner) (res *types.S
 			&res.WorkflowID,
 			&res.EventType,
 			&res.ResourceType,
-			&res.ExecutedAs,
+			&res.Status,
 			&res.WallTime,
 			&res.UserTime,
 			&res.Input,
@@ -245,6 +245,9 @@ func (s Store) internalAutomationSessionRowScanner(row rowScanner) (res *types.S
 			&res.CreatedBy,
 			&res.CreatedAt,
 			&res.PurgeAt,
+			&res.CompletedAt,
+			&res.SuspendedAt,
+			&res.Error,
 		)
 	}
 
@@ -288,7 +291,7 @@ func (Store) automationSessionColumns(aa ...string) []string {
 		alias + "rel_workflow",
 		alias + "event_type",
 		alias + "resource_type",
-		alias + "executed_as",
+		alias + "status",
 		alias + "wall_time",
 		alias + "user_time",
 		alias + "input",
@@ -297,6 +300,9 @@ func (Store) automationSessionColumns(aa ...string) []string {
 		alias + "created_by",
 		alias + "created_at",
 		alias + "purge_at",
+		alias + "completed_at",
+		alias + "suspended_at",
+		alias + "error",
 	}
 }
 
@@ -312,7 +318,7 @@ func (s Store) internalAutomationSessionEncoder(res *types.Session) store.Payloa
 		"rel_workflow":  res.WorkflowID,
 		"event_type":    res.EventType,
 		"resource_type": res.ResourceType,
-		"executed_as":   res.ExecutedAs,
+		"status":        res.Status,
 		"wall_time":     res.WallTime,
 		"user_time":     res.UserTime,
 		"input":         res.Input,
@@ -321,6 +327,9 @@ func (s Store) internalAutomationSessionEncoder(res *types.Session) store.Payloa
 		"created_by":    res.CreatedBy,
 		"created_at":    res.CreatedAt,
 		"purge_at":      res.PurgeAt,
+		"completed_at":  res.CompletedAt,
+		"suspended_at":  res.SuspendedAt,
+		"error":         res.Error,
 	}
 }
 

@@ -72,7 +72,7 @@ func TestSession_TwoStepWorkflow(t *testing.T) {
 	wf.AddStep(s1, s2) // 1st execute s1 then s2
 	ses.Exec(ctx, s1, Variables{"two": 1, "three": 1})
 	ses.Wait(ctx)
-	req.NoError(ses.FinalError())
+	req.NoError(ses.Error())
 	req.NotNil(ses.Result())
 	req.Equal("/s1/s2", ses.Result().String("path", ""))
 }
@@ -99,7 +99,7 @@ func TestSession_SplitAndMerge(t *testing.T) {
 	ses.Exec(ctx, start, nil)
 	ses.Wait(ctx)
 	req.True(ses.Idle())
-	req.NoError(ses.FinalError())
+	req.NoError(ses.Error())
 	req.NotNil(ses.Result())
 	// split3 only!
 	req.Equal("/start/split3", ses.Result().String("path", ""))
@@ -161,7 +161,7 @@ func TestSession_Delays(t *testing.T) {
 
 	// should not be completed yet...
 	req.True(ses.Idle())
-	req.NoError(ses.FinalError())
+	req.NoError(ses.Error())
 	req.NotNil(ses.Result())
 	req.Contains(ses.Result(), "waitForMoment")
 	req.Contains(ses.Result(), "waitForInput")
