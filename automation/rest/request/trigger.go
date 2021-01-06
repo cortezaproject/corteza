@@ -124,6 +124,11 @@ type (
 		// Labels
 		Labels map[string]string
 
+		// Meta POST parameter
+		//
+		// Trigger meta data
+		Meta *types.TriggerMeta
+
 		// Constraints POST parameter
 		//
 		// Workflow steps definition
@@ -175,6 +180,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// Meta POST parameter
+		//
+		// Trigger meta data
+		Meta *types.TriggerMeta
 
 		// Constraints POST parameter
 		//
@@ -404,6 +414,7 @@ func (r TriggerCreate) Auditable() map[string]interface{} {
 		"workflowStepID": r.WorkflowStepID,
 		"input":          r.Input,
 		"labels":         r.Labels,
+		"meta":           r.Meta,
 		"constraints":    r.Constraints,
 		"ownedBy":        r.OwnedBy,
 	}
@@ -442,6 +453,11 @@ func (r TriggerCreate) GetInput() types.Variables {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerCreate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TriggerCreate) GetMeta() *types.TriggerMeta {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -533,6 +549,18 @@ func (r *TriggerCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseTriggerMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseTriggerMeta(val)
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["constraints[]"]; ok {
 			r.Constraints, err = types.ParseTriggerConstraintSet(val)
 			if err != nil {
@@ -572,6 +600,7 @@ func (r TriggerUpdate) Auditable() map[string]interface{} {
 		"workflowStepID": r.WorkflowStepID,
 		"input":          r.Input,
 		"labels":         r.Labels,
+		"meta":           r.Meta,
 		"constraints":    r.Constraints,
 		"ownedBy":        r.OwnedBy,
 	}
@@ -615,6 +644,11 @@ func (r TriggerUpdate) GetInput() types.Variables {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TriggerUpdate) GetMeta() *types.TriggerMeta {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -701,6 +735,18 @@ func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseTriggerMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseTriggerMeta(val)
 			if err != nil {
 				return err
 			}

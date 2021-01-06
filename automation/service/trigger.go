@@ -171,6 +171,7 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 			Constraints:  new.Constraints,
 			Input:        new.Input,
 			Labels:       new.Labels,
+			Meta:         new.Meta,
 			OwnedBy:      cUser,
 			CreatedAt:    *now(),
 			CreatedBy:    cUser,
@@ -289,6 +290,13 @@ func (svc trigger) handleUpdate(upd *types.Trigger) triggerUpdateHandler {
 		if res.ResourceType != upd.ResourceType {
 			changes |= triggerChanged
 			res.ResourceType = upd.ResourceType
+		}
+
+		if upd.Meta != nil {
+			if !reflect.DeepEqual(upd.Meta, res.Meta) {
+				changes |= triggerChanged
+				res.Meta = upd.Meta
+			}
 		}
 
 		if upd.Input != nil {

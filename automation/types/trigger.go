@@ -8,66 +8,79 @@ import (
 	"time"
 )
 
-type Trigger struct {
-	ID      uint64 `json:"triggerID,string"`
-	Enabled bool   `json:"enabled"`
+type (
+	Trigger struct {
+		ID      uint64 `json:"triggerID,string"`
+		Enabled bool   `json:"enabled"`
 
-	WorkflowID uint64 `json:"workflowID,string"`
-	// Start workflow on this step. If 0, find first (only) orphan
-	StepID uint64 `json:"stepID,string"`
+		WorkflowID uint64 `json:"workflowID,string"`
+		// Start workflow on this step. If 0, find first (only) orphan
+		StepID uint64 `json:"stepID,string"`
 
-	// Resource type that can trigger the workflow
-	ResourceType string `json:"resourceType"`
+		// Resource type that can trigger the workflow
+		ResourceType string `json:"resourceType"`
 
-	// Event type that can trigger the workflow
-	EventType string `json:"eventType"`
+		// Event type that can trigger the workflow
+		EventType string `json:"eventType"`
 
-	// Trigger constraints
-	Constraints TriggerConstraintSet
+		// Trigger constraints
+		Constraints TriggerConstraintSet `json:"constraints"`
 
-	// Initial input scope,
-	// will be merged merged with workflow variables
-	Input Variables
+		// Initial input scope,
+		// will be merged merged with workflow variables
+		Input Variables `json:"input"`
 
-	Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]string `json:"labels,omitempty"`
+		Meta   *WorkflowMeta     `json:"meta"`
 
-	OwnedBy   uint64     `json:"ownedBy,string"`
-	CreatedAt time.Time  `json:"createdAt,omitempty"`
-	CreatedBy uint64     `json:"createdBy,string" `
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
-	DeletedAt *time.Time `json:"deletedAt,omitempty"`
-	DeletedBy uint64     `json:"deletedBy,string,omitempty"`
-}
+		OwnedBy   uint64     `json:"ownedBy,string"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string" `
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		UpdatedBy uint64     `json:"updatedBy,string,omitempty"`
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
+	}
 
-type TriggerConstraint struct {
-	Name   string   `json:"name"`
-	Op     string   `json:"op,omitempty"`
-	Values []string `json:"values,omitempty"`
-}
+	TriggerConstraint struct {
+		Name   string   `json:"name"`
+		Op     string   `json:"op,omitempty"`
+		Values []string `json:"values,omitempty"`
+	}
 
-type TriggerFilter struct {
-	TriggerID  []uint64 `json:"triggerID"`
-	WorkflowID []uint64 `json:"workflowID"`
+	TriggerMeta struct {
+		Description string                 `json:"description"`
+		Visual      map[string]interface{} `json:"visual"`
+	}
 
-	EventType    string `json:"eventType"`
-	ResourceType string `json:"resourceType"`
+	TriggerFilter struct {
+		TriggerID  []uint64 `json:"triggerID"`
+		WorkflowID []uint64 `json:"workflowID"`
 
-	Deleted  filter.State `json:"deleted"`
-	Disabled filter.State `json:"disabled"`
+		EventType    string `json:"eventType"`
+		ResourceType string `json:"resourceType"`
 
-	LabeledIDs []uint64          `json:"-"`
-	Labels     map[string]string `json:"labels,omitempty"`
+		Deleted  filter.State `json:"deleted"`
+		Disabled filter.State `json:"disabled"`
 
-	// Check fn is called by store backend for each resource found function can
-	// modify the resource and return false if store should not return it
-	//
-	// Store then loads additional resources to satisfy the paging parameters
-	Check func(*Trigger) (bool, error) `json:"-"`
+		LabeledIDs []uint64          `json:"-"`
+		Labels     map[string]string `json:"labels,omitempty"`
 
-	// Standard helpers for paging and sorting
-	filter.Sorting
-	filter.Paging
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(*Trigger) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
+	}
+)
+
+func ParseTriggerMeta(ss []string) (p *TriggerMeta, err error) {
+	p = &TriggerMeta{}
+	return p, parseStringsInput(ss, p)
 }
 
 func ParseTriggerConstraintSet(ss []string) (p TriggerConstraintSet, err error) {

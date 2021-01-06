@@ -126,6 +126,7 @@ endpoints:
       - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
       - { name: input,          type: "types.Variables",            title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
       - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",               parser: "types.ParseTriggerMeta" }
       - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
       - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
   - name: update
@@ -142,6 +143,7 @@ endpoints:
       - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
       - { name: input,          type: "types.Variables",            title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
       - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",               parser: "types.ParseTriggerMeta" }
       - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
       - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
   - name: read
