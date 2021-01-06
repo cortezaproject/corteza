@@ -14,7 +14,9 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 )
 
 var _ = errors.Is
@@ -31,11 +33,198 @@ func (s Store) SearchAutomationSessions(ctx context.Context, f types.SessionFilt
 	)
 
 	return set, f, func() error {
-		q = s.automationSessionsSelectBuilder()
+		q, err = s.convertAutomationSessionFilter(f)
+		if err != nil {
+			return err
+		}
 
-		set, err = s.QueryAutomationSessions(ctx, q, nil)
-		return err
+		// Paging enabled
+		// {search: {enablePaging:true}}
+		// Cleanup unwanted cursor values (only relevant is f.PageCursor, next&prev are reset and returned)
+		f.PrevPage, f.NextPage = nil, nil
+
+		if f.PageCursor != nil {
+			// Page cursor exists so we need to validate it against used sort
+			// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+			// from the cursor.
+			// This (extracted sorting info) is then returned as part of response
+			if f.Sort, err = f.PageCursor.Sort(f.Sort); err != nil {
+				return err
+			}
+		}
+
+		// Make sure results are always sorted at least by primary keys
+		if f.Sort.Get("id") == nil {
+			f.Sort = append(f.Sort, &filter.SortExpr{
+				Column:     "id",
+				Descending: f.Sort.LastDescending(),
+			})
+		}
+
+		// Cloned sorting instructions for the actual sorting
+		// Original are passed to the fetchFullPageOfUsers fn used for cursor creation so it MUST keep the initial
+		// direction information
+		sort := f.Sort.Clone()
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		if f.PageCursor != nil && f.PageCursor.ROrder {
+			sort.Reverse()
+		}
+
+		// Apply sorting expr from filter to query
+		if q, err = setOrderBy(q, sort, s.sortableAutomationSessionColumns()); err != nil {
+			return err
+		}
+
+		set, f.PrevPage, f.NextPage, err = s.fetchFullPageOfAutomationSessions(
+			ctx,
+			q, f.Sort, f.PageCursor,
+			f.Limit,
+			f.Check,
+			func(cur *filter.PagingCursor) squirrel.Sqlizer {
+				return builders.CursorCondition(cur, nil)
+			},
+		)
+
+		if err != nil {
+			return err
+		}
+
+		f.PageCursor = nil
+		return nil
 	}()
+}
+
+// fetchFullPageOfAutomationSessions collects all requested results.
+//
+// Function applies:
+//  - cursor conditions (where ...)
+//  - limit
+//
+// Main responsibility of this function is to perform additional sequential queries in case when not enough results
+// are collected due to failed check on a specific row (by check fn).
+//
+// Function then moves cursor to the last item fetched
+func (s Store) fetchFullPageOfAutomationSessions(
+	ctx context.Context,
+	q squirrel.SelectBuilder,
+	sort filter.SortExprSet,
+	cursor *filter.PagingCursor,
+	reqItems uint,
+	check func(*types.Session) (bool, error),
+	cursorCond func(*filter.PagingCursor) squirrel.Sqlizer,
+) (set []*types.Session, prev, next *filter.PagingCursor, err error) {
+	var (
+		aux []*types.Session
+
+		// When cursor for a previous page is used it's marked as reversed
+		// This tells us to flip the descending flag on all used sort keys
+		reversedOrder = cursor != nil && cursor.ROrder
+
+		// copy of the select builder
+		tryQuery squirrel.SelectBuilder
+
+		// Copy no. of required items to limit
+		// Limit will change when doing subsequent queries to fill
+		// the set with all required items
+		limit = reqItems
+
+		// cursor to prev. page is only calculated when cursor is used
+		hasPrev = cursor != nil
+
+		// next cursor is calculated when there are more pages to come
+		hasNext bool
+	)
+
+	set = make([]*types.Session, 0, DefaultSliceCapacity)
+
+	for try := 0; try < MaxRefetches; try++ {
+		if cursor != nil {
+			tryQuery = q.Where(cursorCond(cursor))
+		} else {
+			tryQuery = q
+		}
+
+		if limit > 0 {
+			// fetching + 1 so we know if there are more items
+			// we can fetch (next-page cursor)
+			tryQuery = tryQuery.Limit(uint64(limit + 1))
+		}
+
+		if aux, err = s.QueryAutomationSessions(ctx, tryQuery, check); err != nil {
+			return nil, nil, nil, err
+		}
+
+		if len(aux) == 0 {
+			// nothing fetched
+			break
+		}
+
+		// append fetched items
+		set = append(set, aux...)
+
+		if reqItems == 0 {
+			// no max requested items specified, break out
+			break
+		}
+
+		collected := uint(len(set))
+
+		if reqItems > collected {
+			// not enough items fetched, try again with adjusted limit
+			limit = reqItems - collected
+
+			if limit < MinEnsureFetchLimit {
+				// In case limit is set very low and we've missed records in the first fetch,
+				// make sure next fetch limit is a bit higher
+				limit = MinEnsureFetchLimit
+			}
+
+			// Update cursor so that it points to the last item fetched
+			cursor = s.collectAutomationSessionCursorValues(set[collected-1], sort...)
+
+			// Copy reverse flag from sorting
+			cursor.LThen = sort.Reversed()
+			continue
+		}
+
+		if reqItems < collected {
+			set = set[:reqItems]
+			hasNext = true
+		}
+
+		break
+	}
+
+	collected := len(set)
+
+	if collected == 0 {
+		return nil, nil, nil, nil
+	}
+
+	if reversedOrder {
+		// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+		for i, j := 0, collected-1; i < j; i, j = i+1, j-1 {
+			set[i], set[j] = set[j], set[i]
+		}
+
+		// when in reverse-order rules on what cursor to return change
+		hasPrev, hasNext = hasNext, hasPrev
+	}
+
+	if hasPrev {
+		prev = s.collectAutomationSessionCursorValues(set[0], sort...)
+		prev.ROrder = true
+		prev.LThen = !sort.Reversed()
+	}
+
+	if hasNext {
+		next = s.collectAutomationSessionCursorValues(set[collected-1], sort...)
+		next.LThen = sort.Reversed()
+	}
+
+	return set, prev, next, nil
 }
 
 // QueryAutomationSessions queries the database, converts and checks each row and
@@ -68,6 +257,16 @@ func (s Store) QueryAutomationSessions(
 
 		if err != nil {
 			return nil, err
+		}
+
+		// check fn set, call it and see if it passed the test
+		// if not, skip the item
+		if check != nil {
+			if chk, err := check(res); err != nil {
+				return nil, err
+			} else if !chk {
+				continue
+			}
 		}
 
 		set = append(set, res)
@@ -306,7 +505,16 @@ func (Store) automationSessionColumns(aa ...string) []string {
 	}
 }
 
-// {true true false false false false}
+// {true true false true true true}
+
+// sortableAutomationSessionColumns returns all AutomationSession columns flagged as sortable
+//
+// With optional string arg, all columns are returned aliased
+func (Store) sortableAutomationSessionColumns() map[string]string {
+	return map[string]string{
+		"id": "id",
+	}
+}
 
 // internalAutomationSessionEncoder encodes fields from types.Session to store.Payload (map)
 //
@@ -331,6 +539,46 @@ func (s Store) internalAutomationSessionEncoder(res *types.Session) store.Payloa
 		"suspended_at":  res.SuspendedAt,
 		"error":         res.Error,
 	}
+}
+
+// collectAutomationSessionCursorValues collects values from the given resource that and sets them to the cursor
+// to be used for pagination
+//
+// Values that are collected must come from sortable, unique or primary columns/fields
+// At least one of the collected columns must be flagged as unique, otherwise fn appends primary keys at the end
+//
+// Known issue:
+//   when collecting cursor values for query that sorts by unique column with partial index (ie: unique handle on
+//   undeleted items)
+func (s Store) collectAutomationSessionCursorValues(res *types.Session, cc ...*filter.SortExpr) *filter.PagingCursor {
+	var (
+		cursor = &filter.PagingCursor{}
+
+		hasUnique bool
+
+		// All known primary key columns
+
+		pkId bool
+
+		collect = func(cc ...*filter.SortExpr) {
+			for _, c := range cc {
+				switch c.Column {
+				case "id":
+					cursor.Set(c.Column, res.ID, c.Descending)
+
+					pkId = true
+
+				}
+			}
+		}
+	)
+
+	collect(cc...)
+	if !hasUnique || !(pkId && true) {
+		collect(&filter.SortExpr{Column: "id", Descending: false})
+	}
+
+	return cursor
 }
 
 // checkAutomationSessionConstraints performs lookups (on valid) resource to check if any of the values on unique fields

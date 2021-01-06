@@ -43,6 +43,7 @@ func (ctrl Workflow) List(ctx context.Context, r *request.WorkflowList) (interfa
 			Query:      r.Query,
 			Labels:     r.Labels,
 			Deleted:    filter.State(r.Deleted),
+			Disabled:   filter.State(r.Disabled),
 		}
 	)
 

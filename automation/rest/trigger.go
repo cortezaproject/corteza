@@ -44,6 +44,7 @@ func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface
 			ResourceType: r.ResourceType,
 			Labels:       r.Labels,
 			Deleted:      filter.State(r.Deleted),
+			Disabled:     filter.State(r.Disabled),
 		}
 	)
 

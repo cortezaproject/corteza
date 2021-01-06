@@ -25,11 +25,7 @@ fields:
 rdbms:
   alias: atms
   table: automation_sessions
-
-search:
-  enablePaging: false
-  enableSorting: false
-  enableFilterCheckFunction: false
+  customFilterConverter: true
 
 lookups:
   - fields: [ ID ]

@@ -47,6 +47,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) deleted triggers
 		Deleted uint
 
+		// Disabled GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) disabled triggers
+		Disabled uint
+
 		// EventType GET parameter
 		//
 		// Filter triggers by event type
@@ -215,6 +220,7 @@ func (r TriggerList) Auditable() map[string]interface{} {
 		"triggerID":    r.TriggerID,
 		"workflowID":   r.WorkflowID,
 		"deleted":      r.Deleted,
+		"disabled":     r.Disabled,
 		"eventType":    r.EventType,
 		"resourceType": r.ResourceType,
 		"query":        r.Query,
@@ -238,6 +244,11 @@ func (r TriggerList) GetWorkflowID() []string {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TriggerList) GetDisabled() uint {
+	return r.Disabled
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -316,6 +327,12 @@ func (r *TriggerList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["disabled"]; ok && len(val) > 0 {
+			r.Disabled, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -41,10 +41,15 @@ type (
 		// Filter by workflow ID
 		WorkflowID []string
 
-		// Deleted GET parameter
+		// Completed GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) deleted sessions
-		Deleted uint
+		// Exclude (0, default), include (1) or return only (2) completed sessions
+		Completed uint
+
+		// Suspended GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) suspended sessions
+		Suspended uint
 
 		// EventType GET parameter
 		//
@@ -121,7 +126,8 @@ func (r SessionList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sessionID":    r.SessionID,
 		"workflowID":   r.WorkflowID,
-		"deleted":      r.Deleted,
+		"completed":    r.Completed,
+		"suspended":    r.Suspended,
 		"eventType":    r.EventType,
 		"resourceType": r.ResourceType,
 		"limit":        r.Limit,
@@ -141,8 +147,13 @@ func (r SessionList) GetWorkflowID() []string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionList) GetDeleted() uint {
-	return r.Deleted
+func (r SessionList) GetCompleted() uint {
+	return r.Completed
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionList) GetSuspended() uint {
+	return r.Suspended
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -209,8 +220,14 @@ func (r *SessionList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
-			r.Deleted, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["completed"]; ok && len(val) > 0 {
+			r.Completed, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["suspended"]; ok && len(val) > 0 {
+			r.Suspended, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}

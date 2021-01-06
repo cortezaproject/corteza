@@ -47,6 +47,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) deleted workflows
 		Deleted uint
 
+		// Disabled GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) disabled workflows
+		Disabled uint
+
 		// Labels GET parameter
 		//
 		// Labels
@@ -237,6 +242,7 @@ func (r WorkflowList) Auditable() map[string]interface{} {
 		"workflowID": r.WorkflowID,
 		"query":      r.Query,
 		"deleted":    r.Deleted,
+		"disabled":   r.Disabled,
 		"labels":     r.Labels,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
@@ -257,6 +263,11 @@ func (r WorkflowList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowList) GetDeleted() uint {
 	return r.Deleted
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowList) GetDisabled() uint {
+	return r.Disabled
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -315,6 +326,12 @@ func (r *WorkflowList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["deleted"]; ok && len(val) > 0 {
 			r.Deleted, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["disabled"]; ok && len(val) > 0 {
+			r.Disabled, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}

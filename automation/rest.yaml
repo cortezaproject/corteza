@@ -23,6 +23,7 @@ endpoints:
       - { name: workflowID, type: "[]string",          title: "Filter by workflow ID" }
       - { name: query,      type: "string",            title: "Filter workflows" }
       - { name: deleted,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
+      - { name: disabled,   type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
       - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,      type: "uint",              title: "Limit" }
       - { name: pageCursor, type: "string",            title: "Page cursor" }
@@ -104,6 +105,7 @@ endpoints:
       - { name: triggerID,    type: "[]string",          title: "Filter by trigger ID" }
       - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
       - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted triggers" }
+      - { name: disabled,     type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled triggers" }
       - { name: eventType,    type: "string",            title: "Filter triggers by event type" }
       - { name: resourceType, type: "string",            title: "Filter triggers by resource type" }
       - { name: query,        type: "string",            title: "Filter workflows," }
@@ -173,7 +175,8 @@ endpoints:
       get:
       - { name: sessionID,    type: "[]string",          title: "Filter by session ID" }
       - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
-      - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted sessions" }
+      - { name: completed,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) completed sessions" }
+      - { name: suspended,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) suspended sessions" }
       - { name: eventType,    type: "string",            title: "Filter sessions by event type" }
       - { name: resourceType, type: "string",            title: "Filter sessions by resource type" }
       - { name: limit,        type: "uint",              title: "Limit" }

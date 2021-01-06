@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"time"
 )
@@ -53,6 +54,19 @@ type (
 		WorkflowID   []uint64 `json:"workflowID"`
 		EventType    string   `json:"eventType"`
 		ResourceType string   `json:"resourceType"`
+
+		Completed filter.State `json:"deleted"`
+		Suspended filter.State `json:"disabled"`
+
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(*Session) (bool, error) `json:"-"`
+
+		// Standard helpers for paging and sorting
+		filter.Sorting
+		filter.Paging
 	}
 
 	// WorkflowSessionTraceStep stores info and instrumentation on visited workflow steps

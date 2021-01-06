@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
 
@@ -41,16 +42,18 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 			SessionID:    payload.ParseUint64s(r.SessionID),
 			EventType:    r.EventType,
 			ResourceType: r.ResourceType,
+			Completed:    filter.State(r.Completed),
+			Suspended:    filter.State(r.Suspended),
 		}
 	)
 
-	//if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
-	//	return nil, err
-	//}
-	//
-	//if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
-	//	return nil, err
-	//}
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
 
 	set, filter, err := ctrl.svc.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
