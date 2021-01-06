@@ -33,11 +33,6 @@ type (
 // uses the decode package to decode the whole set, depending on
 // the filtering that was used (limit)
 func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (ProcesserResponse, error) {
-	var (
-		rec *ct.Record
-		err error
-	)
-
 	processed := 0
 	o, err := decoder.DecodeFederationRecordSync([]byte(payload))
 
@@ -56,6 +51,11 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 	ctx = auth.SetSuperUserContext(ctx)
 
 	for _, er := range o {
+		var (
+			rec *ct.Record
+			err error
+		)
+
 		dp.SyncService.mapper.Merge(&er.Values, dp.ModuleMappingValues, dp.ModuleMappings)
 
 		if er.DeletedAt != nil {
