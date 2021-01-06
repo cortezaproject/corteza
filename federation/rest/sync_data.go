@@ -130,10 +130,24 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return strings.Contains(u.Handle, "federation_"), nil
 	})
 
+	// TODO - remove once the federation users are doing the persist
+	//        on the data sync, for now, it's superuser
+	users = append(users, &st.User{ID: 10000000000000000})
+
+	query := buildLastSyncQuery(r.LastSync)
+	ignoredUsersQuery := buildIgnoredUsersQuery(users)
+
+	if ignoredUsersQuery != "" {
+		if query != "" {
+			query += fmt.Sprintf(" AND %s", ignoredUsersQuery)
+		} else {
+			query = ignoredUsersQuery
+		}
+	}
+
 	f := ct.RecordFilter{
 		ModuleID: em.ComposeModuleID,
-		Query:    buildLastSyncQuery(r.LastSync),
-		Check:    ignoreFederated(users),
+		Query:    query,
 		Deleted:  filter.StateInclusive,
 	}
 
@@ -182,21 +196,22 @@ func buildLastSyncQuery(ts uint64) string {
 		t.UTC().Format(time.RFC3339))
 }
 
-// ignoreFederated matches the created user id with any
-// of the generated federated users and omits it
-func ignoreFederated(users st.UserSet) func(r *ct.Record) (bool, error) {
-	return func(r *ct.Record) (bool, error) {
-		var keep = true
-		users.Walk(func(u *st.User) error {
-			if u.ID == r.CreatedBy {
-				keep = false
-				return nil
-			}
-			return nil
-		})
+func buildIgnoredUsersQuery(users st.UserSet) string {
+	query := ""
 
-		return keep, nil
+	if len(users) == 0 {
+		return query
 	}
+
+	for i, u := range users {
+		query += fmt.Sprintf("createdBy != %d", u.ID)
+
+		if i < len(users)-1 {
+			query += " AND "
+		}
+	}
+
+	return fmt.Sprintf("(%s)", query)
 }
 
 // filterExposedFields omits the fields that are not exposed as defined
