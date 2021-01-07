@@ -51,7 +51,7 @@ func (Auth) New() *Auth {
 func (ctrl *Auth) Check(ctx context.Context, r *request.AuthCheck) (interface{}, error) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if identity := auth.GetIdentityFromContext(ctx); identity != nil && identity.Valid() {
-			if user, err := service.DefaultUser.FindByID(identity.Identity()); err == nil {
+			if user, err := service.DefaultUser.With(ctx).FindByID(identity.Identity()); err == nil {
 				var p *authUserResponse
 
 				if p, err = ctrl.makePayload(ctx, user); err != nil {
