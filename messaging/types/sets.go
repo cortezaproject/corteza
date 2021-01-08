@@ -174,3 +174,13 @@ func (set UnreadSet) FindByThreadId(threadID uint64) *Unread {
 
 	return nil
 }
+
+func (set MessageAttachmentSet) AttachmentIDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].AttachmentID
+	}
+
+	return
+}

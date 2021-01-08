@@ -19,6 +19,25 @@ import (
 
 var _ = errors.Is
 
+// SearchMessagingMessageAttachments returns all matching rows
+//
+// This function calls convertMessagingMessageAttachmentFilter with the given
+// types.MessageAttachmentFilter and expects to receive a working squirrel.SelectBuilder
+func (s Store) SearchMessagingMessageAttachments(ctx context.Context, f types.MessageAttachmentFilter) (types.MessageAttachmentSet, types.MessageAttachmentFilter, error) {
+	var (
+		err error
+		set []*types.MessageAttachment
+		q   squirrel.SelectBuilder
+	)
+
+	return set, f, func() error {
+		q = s.messagingMessageAttachmentsSelectBuilder()
+
+		set, err = s.QueryMessagingMessageAttachments(ctx, q, nil)
+		return err
+	}()
+}
+
 // QueryMessagingMessageAttachments queries the database, converts and checks each row and
 // returns collected set
 //
@@ -257,7 +276,7 @@ func (Store) messagingMessageAttachmentColumns(aa ...string) []string {
 	}
 }
 
-// {false true false false false false}
+// {true true false false false false}
 
 // internalMessagingMessageAttachmentEncoder encodes fields from types.MessageAttachment to store.Payload (map)
 //

@@ -14,7 +14,10 @@ lookups:
       searches for message attachment by message ID
 
 search:
-  enable: false
+  enableSorting: false
+  enablePaging: false
+  enableFilterCheckFunction: false
+  customFilterConverter: true
 
 rdbms:
   alias: mma

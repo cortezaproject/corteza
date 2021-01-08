@@ -3,6 +3,8 @@ types:
   Mention: {}
   MessageFlag: {}
   Message: {}
+  MessageAttachment:
+    noIdField: true
   Channel: {}
   ChannelMember:
     noIdField: true

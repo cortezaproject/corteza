@@ -28,13 +28,12 @@ type (
 
 	// AttachmentFilter is used for filtering and as a return value from Find
 	AttachmentFilter struct {
-		MessageID []uint64
+		AttachmentID []uint64
+	}
 
-		// Check fn is called by store backend for each resource found function can
-		// modify the resource and return false if store should not return it
-		//
-		// Store then loads additional resources to satisfy the paging parameters
-		Check func(*Attachment) (bool, error)
+	// MessageAttachmentFilter is used for filtering and as a return value from Find
+	MessageAttachmentFilter struct {
+		MessageID []uint64
 	}
 
 	attachmentImageMeta struct {

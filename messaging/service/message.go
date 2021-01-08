@@ -681,27 +681,33 @@ func (message) preloadMentions(ctx context.Context, s store.Storer, mm types.Mes
 
 func (message) preloadAttachments(ctx context.Context, s store.Storer, mm types.MessageSet) (err error) {
 	var (
-		aa types.AttachmentSet
+		aa  types.AttachmentSet
+		mma types.MessageAttachmentSet
 	)
 
 	if err != nil || len(mm) == 0 {
 		return
 	}
 
-	if aa, _, err = store.SearchMessagingAttachments(ctx, s, types.AttachmentFilter{MessageID: mm.IDs()}); err != nil {
+	// clumsy way to make a many-to-many join
+	// @todo make a specialized function in store
+	if mma, _, err = store.SearchMessagingMessageAttachments(ctx, s, types.MessageAttachmentFilter{MessageID: mm.IDs()}); err != nil {
+		return
+	} else if aa, _, err = store.SearchMessagingAttachments(ctx, s, types.AttachmentFilter{AttachmentID: mma.AttachmentIDs()}); err != nil {
 		return
 	} else {
-		_ = aa
-		//return aa.Walk(func(a *types.Attachment) error {
-		//	if a.MessageID > 0 {
-		//		if m := mm.FindByID(a.MessageID); m != nil {
-		//			m.Attachment = &a.Attachment
-		//		}
-		//	}
-		//
-		//	return nil
-		//})
-		return
+		return mma.Walk(func(mma *types.MessageAttachment) error {
+			var (
+				msg = mm.FindByID(mma.MessageID)
+				att = aa.FindByID(mma.AttachmentID)
+			)
+
+			if msg != nil && att != nil {
+				msg.Attachment = att
+
+			}
+			return nil
+		})
 	}
 }
 

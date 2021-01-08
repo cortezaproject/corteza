@@ -15,6 +15,7 @@ import (
 
 type (
 	MessagingMessageAttachments interface {
+		SearchMessagingMessageAttachments(ctx context.Context, f types.MessageAttachmentFilter) (types.MessageAttachmentSet, types.MessageAttachmentFilter, error)
 		LookupMessagingMessageAttachmentByMessageID(ctx context.Context, message_id uint64) (*types.MessageAttachment, error)
 
 		CreateMessagingMessageAttachment(ctx context.Context, rr ...*types.MessageAttachment) error
@@ -32,6 +33,11 @@ type (
 
 var _ *types.MessageAttachment
 var _ context.Context
+
+// SearchMessagingMessageAttachments returns all matching MessagingMessageAttachments from store
+func SearchMessagingMessageAttachments(ctx context.Context, s MessagingMessageAttachments, f types.MessageAttachmentFilter) (types.MessageAttachmentSet, types.MessageAttachmentFilter, error) {
+	return s.SearchMessagingMessageAttachments(ctx, f)
+}
 
 // LookupMessagingMessageAttachmentByMessageID searches for message attachment by message ID
 func LookupMessagingMessageAttachmentByMessageID(ctx context.Context, s MessagingMessageAttachments, message_id uint64) (*types.MessageAttachment, error) {
