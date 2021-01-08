@@ -14,7 +14,7 @@ type (
 
 	// Standardized data structure for audit log events
 	Action struct {
-		ID uint64
+		ID uint64 `json:"actionID,string"`
 
 		// Timestamp of the raised event
 		Timestamp time.Time `json:"timestamp"`
