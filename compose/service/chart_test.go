@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -9,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestCharts(t *testing.T) {
@@ -46,39 +47,38 @@ func TestCharts(t *testing.T) {
 		req := require.New(t)
 		svc := chart{
 			store: s,
-			ctx:   context.Background(),
 			ac:    AccessControl(&rbac.ServiceAllowAll{}),
 		}
-		res, err := svc.Create(&types.Chart{Name: "My first chart", NamespaceID: namespaceID})
+		res, err := svc.Create(ctx, &types.Chart{Name: "My first chart", NamespaceID: namespaceID})
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
-		res, err = svc.FindByHandle(namespaceID, res.Handle)
+		res, err = svc.FindByHandle(ctx, namespaceID, res.Handle)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		res.Name = "Changed"
-		res, err = svc.Update(res)
+		res, err = svc.Update(ctx, res)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.NotNil(res.UpdatedAt)
 		req.Equal(res.Name, "Changed")
 
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.Equal(res.Name, "Changed")
 
-		err = svc.DeleteByID(namespaceID, res.ID)
+		err = svc.DeleteByID(ctx, namespaceID, res.ID)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 
 		// this works because we're allowed to do everything
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(unwrapChartInternal(err))
 		req.NotNil(res)
 		req.NotNil(res.DeletedAt)

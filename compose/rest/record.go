@@ -68,7 +68,7 @@ func (Record) New() *Record {
 }
 
 func (ctrl *Record) Report(ctx context.Context, r *request.RecordReport) (interface{}, error) {
-	return ctrl.record.With(ctx).Report(r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
+	return ctrl.record.Report(ctx, r.NamespaceID, r.ModuleID, r.Metrics, r.Dimensions, r.Filter)
 }
 
 func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{}, error) {
@@ -88,7 +88,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		return nil, err
 	}
 
-	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 		return nil, err
 	}
 
-	rr, filter, err := ctrl.record.With(ctx).Find(f)
+	rr, filter, err := ctrl.record.Find(ctx, f)
 
 	return ctrl.makeFilterPayload(ctx, m, rr, &filter, err)
 }
@@ -123,11 +123,11 @@ func (ctrl *Record) Read(ctx context.Context, r *request.RecordRead) (interface{
 		err error
 	)
 
-	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
-	record, err := ctrl.record.With(ctx).FindByID(r.NamespaceID, r.ModuleID, r.RecordID)
+	record, err := ctrl.record.FindByID(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
 
 	// Temp workaround until we do proper by-module filtering for record findByID
 	if record != nil && record.ModuleID != r.ModuleID {
@@ -143,7 +143,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 		err error
 	)
 
-	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -178,7 +178,7 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 	}
 	oo = append(oo, oob...)
 
-	rr, err := ctrl.record.With(ctx).Bulk(oo...)
+	rr, err := ctrl.record.Bulk(ctx, oo...)
 	if rve := types.IsRecordValueErrorSet(err); rve != nil {
 		return ctrl.handleValidationError(rve), nil
 	}
@@ -192,7 +192,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 		err error
 	)
 
-	if m, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if m, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -228,7 +228,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 	}
 	oo = append(oo, oob...)
 
-	rr, err := ctrl.record.With(ctx).Bulk(oo...)
+	rr, err := ctrl.record.Bulk(ctx, oo...)
 
 	if rve := types.IsRecordValueErrorSet(err); rve != nil {
 		return ctrl.handleValidationError(rve), nil
@@ -238,7 +238,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 }
 
 func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interface{}, error) {
-	return api.OK(), ctrl.record.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID, r.RecordID)
+	return api.OK(), ctrl.record.DeleteByID(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
 }
 
 func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
@@ -246,7 +246,7 @@ func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete)
 		return nil, fmt.Errorf("pending implementation")
 	}
 
-	return api.OK(), ctrl.record.With(ctx).DeleteByID(
+	return api.OK(), ctrl.record.DeleteByID(ctx,
 		r.NamespaceID,
 		r.ModuleID,
 		payload.ParseUint64s(r.RecordIDs)...,
@@ -275,7 +275,7 @@ func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interf
 }
 
 func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit) (interface{}, error) {
-	if _, err := ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if _, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -297,7 +297,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 	)
 
 	// Access control.
-	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if _, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -316,7 +316,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 	ses.OnError = r.OnError
 
 	// Errors are presented in the session
-	ctrl.record.With(ctx).Import(ses)
+	ctrl.record.Import(ctx, ses)
 	return ses, nil
 }
 
@@ -356,7 +356,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		contentType string
 	)
 	// Access control.
-	if _, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if _, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
 
@@ -387,7 +387,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 			// @todo this "communication" between system and compose
 			//       services is ad-hoc solution
-			users[ID], err = ctrl.userFinder.With(ctx).FindByID(ID)
+			users[ID], err = ctrl.userFinder.FindByID(ctx, ID)
 			if err != nil {
 				return nil, err
 			}
@@ -415,7 +415,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		w.Header().Add("Content-Type", contentType)
 		w.Header().Add("Content-Disposition", "attachment"+filename)
 
-		if err = ctrl.record.With(ctx).Export(f, recordEncoder); err != nil {
+		if err = ctrl.record.Export(ctx, f, recordEncoder); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -429,7 +429,7 @@ func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}
 
 	switch r.Procedure {
 	case "organize":
-		return api.OK(), ctrl.record.With(ctx).Organize(
+		return api.OK(), ctrl.record.Organize(ctx,
 			r.NamespaceID,
 			r.ModuleID,
 			aa.GetUint64("recordID"),
@@ -457,7 +457,7 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 	//	namespace *types.Namespace
 	//)
 	//
-	//if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	//if module, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 	//	return
 	//}
 	//

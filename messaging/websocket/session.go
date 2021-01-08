@@ -84,7 +84,7 @@ func (sess *Session) connected() (err error) {
 
 	// Push user info about all channels he has access to...
 	// @todo filter out all muted/non-joined channels
-	if cc, _, err = sess.svc.ch.With(sess.ctx).Find(types.ChannelFilter{}); err != nil {
+	if cc, _, err = sess.svc.ch.Find(sess.ctx, types.ChannelFilter{}); err != nil {
 		sess.log(zap.Error(err)).Error("Could not load subscribed channels")
 	} else {
 		sess.log().Debug(

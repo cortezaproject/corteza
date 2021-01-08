@@ -3,15 +3,16 @@ package rest
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/pkg/errors"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 var _ = errors.Wrap
@@ -42,7 +43,7 @@ func (ctrl Attachment) Read(ctx context.Context, r *request.AttachmentRead) (int
 		return nil, errors.New("Unauthorized")
 	}
 
-	a, err := ctrl.attachment.With(ctx).FindByID(r.AttachmentID)
+	a, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
 	return makeAttachmentPayload(ctx, a, err)
 }
 
@@ -51,12 +52,12 @@ func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) 
 		return nil, errors.New("Unauthorized")
 	}
 
-	_, err := ctrl.attachment.With(ctx).FindByID(r.AttachmentID)
+	_, err := ctrl.attachment.FindByID(ctx, r.AttachmentID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.OK(), ctrl.attachment.With(ctx).DeleteByID(r.AttachmentID)
+	return api.OK(), ctrl.attachment.DeleteByID(ctx, r.AttachmentID)
 }
 
 func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
@@ -102,7 +103,7 @@ func (ctrl Attachment) isAccessible(kind string, attachmentID, userID uint64, si
 
 func (ctrl Attachment) serve(ctx context.Context, attachmentID uint64, preview, download bool) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		att, err := ctrl.attachment.With(ctx).FindByID(attachmentID)
+		att, err := ctrl.attachment.FindByID(ctx, attachmentID)
 		if err != nil {
 			// Simplify error handling for now
 			w.WriteHeader(http.StatusNotFound)

@@ -3,13 +3,14 @@ package scim
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
-	"net/http"
-	"regexp"
-	"strconv"
 )
 
 type (
@@ -44,7 +45,7 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx      = h.sec(r)
-		svc      = h.svc.With(ctx)
+		svc      = h.svc
 		payload  = &userResourceRequest{}
 		err      error
 		existing *types.User
@@ -65,7 +66,7 @@ func (h usersHandler) create(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if email := payload.Emails.getFirst(); email != "" {
-			existing, err = svc.FindByEmail(email)
+			existing, err = svc.FindByEmail(ctx, email)
 			if err != nil && !errors.Is(err, service.UserErrNotFound()) {
 				sendError(w, newErrorResponse(http.StatusInternalServerError, err))
 				return
@@ -117,7 +118,7 @@ func (h usersHandler) replace(w http.ResponseWriter, r *http.Request) {
 
 func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existing *types.User) (res *types.User, err error) {
 	var (
-		svc = h.svc.With(ctx)
+		svc = h.svc
 	)
 
 	if existing == nil || !existing.Valid() {
@@ -130,9 +131,9 @@ func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existi
 	req.applyTo(res)
 
 	if res.ID > 0 {
-		res, err = svc.Update(res)
+		res, err = svc.Update(ctx, res)
 	} else {
-		res, err = svc.Create(res)
+		res, err = svc.Create(ctx, res)
 	}
 
 	if err != nil {
@@ -152,7 +153,7 @@ func (h usersHandler) save(ctx context.Context, req *userResourceRequest, existi
 func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx = h.sec(r)
-		svc = h.svc.With(ctx)
+		svc = h.svc
 		res = h.lookup(ctx, chi.URLParam(r, "id"), w)
 	)
 
@@ -160,7 +161,7 @@ func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := svc.Delete(res.ID); err != nil {
+	if err := svc.Delete(ctx, res.ID); err != nil {
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)
@@ -172,7 +173,7 @@ func (h usersHandler) delete(w http.ResponseWriter, r *http.Request) {
 // handles errors by writing them to response
 func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWriter) *types.User {
 	var (
-		svc = h.svc.With(ctx)
+		svc = h.svc
 	)
 
 	if h.externalIdAsPrimary {
@@ -194,7 +195,7 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 			return nil
 		}
 
-		role, err := svc.FindByID(groupId)
+		role, err := svc.FindByID(ctx, groupId)
 		if err != nil {
 			sendError(w, newErrorResponse(http.StatusBadRequest, err))
 			return nil
@@ -213,7 +214,7 @@ func lookupUserByExternalId(ctx context.Context, svc service.UserService, v *reg
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := svc.With(ctx).Find(types.UserFilter{Labels: map[string]string{userLabel_SCIM_externalId: id}})
+	rr, _, err := svc.Find(ctx, types.UserFilter{Labels: map[string]string{userLabel_SCIM_externalId: id}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}

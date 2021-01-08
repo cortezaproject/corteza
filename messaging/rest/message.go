@@ -31,14 +31,14 @@ func (Message) New() *Message {
 }
 
 func (ctrl *Message) Create(ctx context.Context, r *request.MessageCreate) (interface{}, error) {
-	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Create(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.Create(ctx, &types.Message{
 		ChannelID: r.ChannelID,
 		Message:   r.Message,
 	}))
 }
 
 func (ctrl *Message) ReplyCreate(ctx context.Context, r *request.MessageReplyCreate) (interface{}, error) {
-	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Create(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.Create(ctx, &types.Message{
 		ChannelID: r.ChannelID,
 		ReplyTo:   r.MessageID,
 		Message:   r.Message,
@@ -46,7 +46,7 @@ func (ctrl *Message) ReplyCreate(ctx context.Context, r *request.MessageReplyCre
 }
 
 func (ctrl *Message) Edit(ctx context.Context, r *request.MessageEdit) (interface{}, error) {
-	return ctrl.wrap(ctx)(ctrl.svc.msg.With(ctx).Update(&types.Message{
+	return ctrl.wrap(ctx)(ctrl.svc.msg.Update(ctx, &types.Message{
 		ID:        r.MessageID,
 		ChannelID: r.ChannelID,
 		Message:   r.Message,
@@ -54,15 +54,15 @@ func (ctrl *Message) Edit(ctx context.Context, r *request.MessageEdit) (interfac
 }
 
 func (ctrl Message) ExecuteCommand(ctx context.Context, r *request.MessageExecuteCommand) (interface{}, error) {
-	return ctrl.svc.command.With(ctx).Do(r.ChannelID, r.Command, r.Input)
+	return ctrl.svc.command.Do(ctx, r.ChannelID, r.Command, r.Input)
 }
 
 func (ctrl *Message) Delete(ctx context.Context, r *request.MessageDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).Delete(r.MessageID)
+	return api.OK(), ctrl.svc.msg.Delete(ctx, r.MessageID)
 }
 
 func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRead) (interface{}, error) {
-	var messageID, count, tcount, err = ctrl.svc.msg.With(ctx).MarkAsRead(r.ChannelID, r.ThreadID, r.LastReadMessageID)
+	var messageID, count, tcount, err = ctrl.svc.msg.MarkAsRead(ctx, r.ChannelID, r.ThreadID, r.LastReadMessageID)
 
 	return outgoing.Unread{
 		LastMessageID: messageID,
@@ -72,27 +72,27 @@ func (ctrl *Message) MarkAsRead(ctx context.Context, r *request.MessageMarkAsRea
 }
 
 func (ctrl *Message) PinCreate(ctx context.Context, r *request.MessagePinCreate) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).Pin(r.MessageID)
+	return api.OK(), ctrl.svc.msg.Pin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) PinRemove(ctx context.Context, r *request.MessagePinRemove) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).RemovePin(r.MessageID)
+	return api.OK(), ctrl.svc.msg.RemovePin(ctx, r.MessageID)
 }
 
 func (ctrl *Message) BookmarkCreate(ctx context.Context, r *request.MessageBookmarkCreate) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).Bookmark(r.MessageID)
+	return api.OK(), ctrl.svc.msg.Bookmark(ctx, r.MessageID)
 }
 
 func (ctrl *Message) BookmarkRemove(ctx context.Context, r *request.MessageBookmarkRemove) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).RemoveBookmark(r.MessageID)
+	return api.OK(), ctrl.svc.msg.RemoveBookmark(ctx, r.MessageID)
 }
 
 func (ctrl *Message) ReactionCreate(ctx context.Context, r *request.MessageReactionCreate) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).React(r.MessageID, r.Reaction)
+	return api.OK(), ctrl.svc.msg.React(ctx, r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) ReactionRemove(ctx context.Context, r *request.MessageReactionRemove) (interface{}, error) {
-	return api.OK(), ctrl.svc.msg.With(ctx).RemoveReaction(r.MessageID, r.Reaction)
+	return api.OK(), ctrl.svc.msg.RemoveReaction(ctx, r.MessageID, r.Reaction)
 }
 
 func (ctrl *Message) wrap(ctx context.Context) func(m *types.Message, err error) (*outgoing.Message, error) {

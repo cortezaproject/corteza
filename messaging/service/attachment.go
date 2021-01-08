@@ -4,6 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"image"
+	"image/gif"
+	"io"
+	"net/http"
+	"path"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -12,12 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
-	"image"
-	"image/gif"
-	"io"
-	"net/http"
-	"path"
-	"strings"
 )
 
 const (
@@ -27,8 +28,6 @@ const (
 
 type (
 	attachment struct {
-		ctx context.Context
-
 		actionlog actionlog.Recorder
 
 		ac attachmentAccessController
@@ -43,41 +42,29 @@ type (
 	}
 
 	AttachmentService interface {
-		With(ctx context.Context) AttachmentService
-
-		FindByID(id uint64) (*types.Attachment, error)
-		CreateMessageAttachment(name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error)
-		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
-		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
+		FindByID(ctx context.Context, id uint64) (*types.Attachment, error)
+		CreateMessageAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, channelId, replyTo uint64) (*types.Attachment, error)
+		OpenOriginal(ctx context.Context, att *types.Attachment) (io.ReadSeeker, error)
+		OpenPreview(ctx context.Context, att *types.Attachment) (io.ReadSeeker, error)
 	}
 )
 
-func Attachment(ctx context.Context, store files.Store) AttachmentService {
-	return (&attachment{
+func Attachment(store files.Store) AttachmentService {
+	return &attachment{
 		ac:    DefaultAccessControl,
 		files: store,
 		store: DefaultStore,
-	}).With(ctx)
-}
-
-func (svc attachment) With(ctx context.Context) AttachmentService {
-	return &attachment{
-		ctx: ctx,
-		ac:  svc.ac,
 
 		actionlog: DefaultActionlog,
-
-		files: svc.files,
-		store: svc.store,
-		event: Event(ctx),
+		event:     DefaultEvent,
 	}
 }
 
-func (svc attachment) FindByID(id uint64) (*types.Attachment, error) {
-	return store.LookupMessagingAttachmentByID(svc.ctx, svc.store, id)
+func (svc attachment) FindByID(ctx context.Context, id uint64) (*types.Attachment, error) {
+	return store.LookupMessagingAttachmentByID(ctx, svc.store, id)
 }
 
-func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenOriginal(_ context.Context, att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.Url) == 0 {
 		return nil, nil
 	}
@@ -85,7 +72,7 @@ func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 	return svc.files.Open(att.Url)
 }
 
-func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) {
+func (svc attachment) OpenPreview(_ context.Context, att *types.Attachment) (io.ReadSeeker, error) {
 	if len(att.PreviewUrl) == 0 {
 		return nil, nil
 	}
@@ -93,15 +80,15 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 	return svc.files.Open(att.PreviewUrl)
 }
 
-func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.ReadSeeker, channelID, replyTo uint64) (att *types.Attachment, err error) {
+func (svc attachment) CreateMessageAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, channelID, replyTo uint64) (att *types.Attachment, err error) {
 	var (
 		aProps = &attachmentActionProps{channel: &types.Channel{ID: channelID}, replyTo: replyTo}
 
-		currentUserID = intAuth.GetIdentityFromContext(svc.ctx).Identity()
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
 		ch            *types.Channel
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 
 		if ch, err = store.LookupMessagingChannelByID(ctx, s, channelID); err != nil {
 			if errors.IsNotFound(err) {
@@ -111,7 +98,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanAttachMessage(svc.ctx, ch) {
+		if !svc.ac.CanAttachMessage(ctx, ch) {
 			return AttachmentErrNotAllowedToAttachToChannel()
 		}
 
@@ -120,7 +107,7 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 			Name:    strings.TrimSpace(name),
 		}
 
-		err = svc.create(name, size, fh, att)
+		err = svc.create(ctx, name, size, fh, att)
 		if err != nil {
 			return err
 		}
@@ -157,13 +144,13 @@ func (svc attachment) CreateMessageAttachment(name string, size int64, fh io.Rea
 			return
 		}
 
-		return svc.sendEvent(msg)
+		return svc.sendEvent(ctx, msg)
 	})
 
-	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionCreate, err)
+	return att, svc.recordAction(ctx, aProps, AttachmentActionCreate, err)
 }
 
-func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) create(ctx context.Context, name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
 	var (
 		aProps = &attachmentActionProps{}
 	)
@@ -320,6 +307,6 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 // Sends message to event loop
 //
 // It also preloads user
-func (svc attachment) sendEvent(msg *types.Message) (err error) {
-	return svc.event.Message(msg)
+func (svc attachment) sendEvent(ctx context.Context, msg *types.Message) (err error) {
+	return svc.event.Message(ctx, msg)
 }

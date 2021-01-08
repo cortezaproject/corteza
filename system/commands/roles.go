@@ -31,13 +31,13 @@ func Roles(app serviceInitializer) *cobra.Command {
 				err error
 			)
 
-			role, err = service.DefaultRole.With(ctx).FindByAny(ctx, roleStr)
+			role, err = service.DefaultRole.FindByAny(ctx, roleStr)
 			cli.HandleError(err)
 
-			user, err = service.DefaultUser.With(ctx).FindByAny(ctx, userStr)
+			user, err = service.DefaultUser.FindByAny(ctx, userStr)
 			cli.HandleError(err)
 
-			err = service.DefaultRole.With(ctx).MemberAdd(role.ID, user.ID)
+			err = service.DefaultRole.MemberAdd(ctx, role.ID, user.ID)
 			cli.HandleError(err)
 
 			cmd.Printf("Added user [%d] %q to [%d] %q role\n", user.ID, user.Email, role.ID, role.Name)

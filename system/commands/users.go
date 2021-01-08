@@ -2,6 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"strconv"
+	"syscall"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -9,8 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
-	"strconv"
-	"syscall"
 )
 
 func Users(app serviceInitializer) *cobra.Command {
@@ -101,7 +102,7 @@ func Users(app serviceInitializer) *cobra.Command {
 			// Update current settings to be sure that we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
-			if user, err = service.DefaultUser.With(ctx).Create(user); err != nil {
+			if user, err = service.DefaultUser.Create(ctx, user); err != nil {
 				cli.HandleError(err)
 			}
 
@@ -148,7 +149,7 @@ func Users(app serviceInitializer) *cobra.Command {
 			// Update current settings to be sure that we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
-			if user, err = service.DefaultUser.With(ctx).FindByEmail(args[0]); err != nil {
+			if user, err = service.DefaultUser.FindByEmail(ctx, args[0]); err != nil {
 				cli.HandleError(err)
 			}
 

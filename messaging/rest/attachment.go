@@ -3,13 +3,14 @@ package rest
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
 	"github.com/cortezaproject/corteza-server/messaging/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 type (
@@ -62,7 +63,7 @@ func (ctrl Attachment) isAccessible(attachmentID, userID uint64, signature strin
 
 func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download bool) (interface{}, error) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		att, err := ctrl.att.With(ctx).FindByID(ID)
+		att, err := ctrl.att.FindByID(ctx, ID)
 		if err != nil {
 			if errors.IsNotFound(err) {
 				w.WriteHeader(http.StatusNotFound)
@@ -76,9 +77,9 @@ func (ctrl Attachment) serve(ctx context.Context, ID uint64, preview, download b
 		var fh io.ReadSeeker
 
 		if preview {
-			fh, err = ctrl.att.OpenPreview(att)
+			fh, err = ctrl.att.OpenPreview(ctx, att)
 		} else {
-			fh, err = ctrl.att.OpenOriginal(att)
+			fh, err = ctrl.att.OpenOriginal(ctx, att)
 		}
 
 		if err != nil {

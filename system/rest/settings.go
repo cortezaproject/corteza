@@ -3,10 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"strconv"
 )
 
 type (
@@ -70,7 +71,8 @@ func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interfac
 		// @todo this whole attachment + settings logic must be moved to settings service
 		//       this can be done when we generalize attachment handling
 		//       and move that our of sys/msg/cmp to pkg
-		att, err := ctrl.svc.att.With(ctx).CreateSettingsAttachment(
+		att, err := ctrl.svc.att.CreateSettingsAttachment(
+			ctx,
 			r.Upload.Filename,
 			r.Upload.Size,
 			file,

@@ -3,6 +3,13 @@ package service
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/gif"
+	"io"
+	"net/http"
+	"path"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	files "github.com/cortezaproject/corteza-server/pkg/objstore"
@@ -11,12 +18,6 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
-	"image"
-	"image/gif"
-	"io"
-	"net/http"
-	"path"
-	"strings"
 )
 
 const (
@@ -26,7 +27,6 @@ const (
 
 type (
 	attachment struct {
-		ctx       context.Context
 		actionlog actionlog.Recorder
 		files     files.Store
 		ac        attachmentAccessController
@@ -38,14 +38,12 @@ type (
 	}
 
 	AttachmentService interface {
-		With(ctx context.Context) AttachmentService
-
-		FindByID(ID uint64) (*types.Attachment, error)
-		Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
-		CreateSettingsAttachment(name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
+		FindByID(ctx context.Context, ID uint64) (*types.Attachment, error)
+		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
+		CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
-		DeleteByID(ID uint64) error
+		DeleteByID(ctx context.Context, ID uint64) error
 	}
 )
 
@@ -55,23 +53,10 @@ func Attachment(store files.Store) AttachmentService {
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
 		store:     DefaultStore,
-	}).With(context.Background())
+	})
 }
 
-func (svc attachment) With(ctx context.Context) AttachmentService {
-	return &attachment{
-		ctx: ctx,
-
-		actionlog: svc.actionlog,
-		ac:        svc.ac,
-
-		files: svc.files,
-
-		store: DefaultStore,
-	}
-}
-
-func (svc attachment) FindByID(ID uint64) (att *types.Attachment, err error) {
+func (svc attachment) FindByID(ctx context.Context, ID uint64) (att *types.Attachment, err error) {
 	var (
 		aaProps = &attachmentActionProps{}
 	)
@@ -81,7 +66,7 @@ func (svc attachment) FindByID(ID uint64) (att *types.Attachment, err error) {
 			return AttachmentErrInvalidID()
 		}
 
-		if att, err = store.LookupAttachmentByID(svc.ctx, svc.store, ID); err != nil {
+		if att, err = store.LookupAttachmentByID(ctx, svc.store, ID); err != nil {
 			return err
 		}
 
@@ -89,10 +74,10 @@ func (svc attachment) FindByID(ID uint64) (att *types.Attachment, err error) {
 		return nil
 	}()
 
-	return att, svc.recordAction(svc.ctx, aaProps, AttachmentActionLookup, err)
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionLookup, err)
 }
 
-func (svc attachment) DeleteByID(ID uint64) (err error) {
+func (svc attachment) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		att     *types.Attachment
 		aaProps = &attachmentActionProps{attachment: &types.Attachment{ID: ID}}
@@ -103,30 +88,30 @@ func (svc attachment) DeleteByID(ID uint64) (err error) {
 			return AttachmentErrInvalidID()
 		}
 
-		if att, err = store.LookupAttachmentByID(svc.ctx, svc.store, ID); err != nil {
+		if att, err = store.LookupAttachmentByID(ctx, svc.store, ID); err != nil {
 			return err
 		}
 
 		att.DeletedAt = now()
 		aaProps.setAttachment(att)
 
-		return store.UpdateAttachment(svc.ctx, svc.store, att)
+		return store.UpdateAttachment(ctx, svc.store, att)
 	}()
 
-	return svc.recordAction(svc.ctx, aaProps, AttachmentActionDelete, err)
+	return svc.recordAction(ctx, aaProps, AttachmentActionDelete, err)
 }
 
-func (svc attachment) Find(filter types.AttachmentFilter) (aa types.AttachmentSet, f types.AttachmentFilter, err error) {
+func (svc attachment) Find(ctx context.Context, filter types.AttachmentFilter) (aa types.AttachmentSet, f types.AttachmentFilter, err error) {
 	var (
 		aaProps = &attachmentActionProps{filter: &filter}
 	)
 
 	err = func() (err error) {
-		aa, f, err = store.SearchAttachments(svc.ctx, svc.store, filter)
+		aa, f, err = store.SearchAttachments(ctx, svc.store, filter)
 		return err
 	}()
 
-	return aa, f, svc.recordAction(svc.ctx, aaProps, AttachmentActionSearch, err)
+	return aa, f, svc.recordAction(ctx, aaProps, AttachmentActionSearch, err)
 }
 
 func (svc attachment) OpenOriginal(att *types.Attachment) (io.ReadSeeker, error) {
@@ -145,14 +130,14 @@ func (svc attachment) OpenPreview(att *types.Attachment) (io.ReadSeeker, error) 
 	return svc.files.Open(att.PreviewUrl)
 }
 
-func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
+func (svc attachment) CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
 	var (
 		aaProps       = &attachmentActionProps{}
-		currentUserID = intAuth.GetIdentityFromContext(svc.ctx).Identity()
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanManageSettings(svc.ctx) {
+		if !svc.ac.CanManageSettings(ctx) {
 			return AttachmentErrNotAllowedToCreate()
 		}
 
@@ -168,17 +153,17 @@ func (svc attachment) CreateSettingsAttachment(name string, size int64, fh io.Re
 			att.Meta.Labels = labels
 		}
 
-		if err = svc.create(name, size, fh, att); err != nil {
+		if err = svc.create(ctx, name, size, fh, att); err != nil {
 			return err
 		}
 
 		return err
 	}()
 
-	return att, svc.recordAction(svc.ctx, aaProps, AttachmentActionCreate, err)
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
 }
 
-func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
+func (svc attachment) create(ctx context.Context, name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {
 	var (
 		aaProps = &attachmentActionProps{}
 	)
@@ -214,7 +199,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 		return AttachmentErrFailedToProcessImage(aaProps).Wrap(err)
 	}
 
-	if err = store.CreateAttachment(svc.ctx, svc.store, att); err != nil {
+	if err = store.CreateAttachment(ctx, svc.store, att); err != nil {
 		return
 	}
 

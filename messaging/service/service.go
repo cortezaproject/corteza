@@ -130,11 +130,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/Messaging")
 
-	DefaultEvent = Event(ctx)
-	DefaultChannel = Channel(ctx)
-	DefaultAttachment = Attachment(ctx, DefaultObjectStore)
-	DefaultMessage = Message(ctx)
-	DefaultCommand = Command(ctx)
+	DefaultEvent = Event()
+	DefaultChannel = Channel()
+	DefaultAttachment = Attachment(DefaultObjectStore)
+	DefaultMessage = Message()
+	DefaultCommand = Command()
 
 	return nil
 }

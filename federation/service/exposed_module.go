@@ -106,11 +106,11 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 			return ExposedModuleErrNotAllowedToManage()
 		}
 
-		if _, err := svc.namespace.With(ctx).FindByID(updated.ComposeNamespaceID); err != nil {
+		if _, err := svc.namespace.FindByID(ctx, updated.ComposeNamespaceID); err != nil {
 			return ExposedModuleErrComposeNamespaceNotFound()
 		}
 
-		if m, err = svc.module.With(ctx).FindByID(updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
+		if m, err = svc.module.FindByID(ctx, updated.ComposeNamespaceID, updated.ComposeModuleID); err != nil {
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
@@ -125,7 +125,7 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 		// set labels
 		AddFederationLabel(m, "federation", node.BaseURL)
 
-		if _, err := svc.module.With(ctx).Update(m); err != nil {
+		if _, err := svc.module.Update(ctx, m); err != nil {
 			return err
 		}
 
@@ -246,11 +246,11 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return ExposedModuleErrNotAllowedToCreate()
 		}
 
-		if _, err := svc.namespace.With(ctx).FindByID(new.ComposeNamespaceID); err != nil {
+		if _, err := svc.namespace.FindByID(ctx, new.ComposeNamespaceID); err != nil {
 			return ExposedModuleErrComposeNamespaceNotFound()
 		}
 
-		if m, err = svc.module.With(ctx).FindByID(new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
+		if m, err = svc.module.FindByID(ctx, new.ComposeNamespaceID, new.ComposeModuleID); err != nil {
 			return ExposedModuleErrComposeModuleNotFound()
 		}
 
@@ -269,7 +269,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		// set labels
 		AddFederationLabel(m, "federation", node.BaseURL)
 
-		if _, err := svc.module.With(ctx).Update(m); err != nil {
+		if _, err := svc.module.Update(ctx, m); err != nil {
 			return err
 		}
 

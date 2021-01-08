@@ -13,7 +13,6 @@ import (
 
 type (
 	channel struct {
-		ctx   context.Context
 		event EventService
 		ac    applicationAccessController
 
@@ -45,26 +44,24 @@ type (
 	}
 
 	ChannelService interface {
-		With(ctx context.Context) ChannelService
+		FindByID(ctx context.Context, channelID uint64) (*types.Channel, error)
+		Find(ctx context.Context, f types.ChannelFilter) (types.ChannelSet, types.ChannelFilter, error)
 
-		FindByID(channelID uint64) (*types.Channel, error)
-		Find(types.ChannelFilter) (types.ChannelSet, types.ChannelFilter, error)
+		Create(ctx context.Context, channel *types.Channel) (*types.Channel, error)
+		Update(ctx context.Context, channel *types.Channel) (*types.Channel, error)
 
-		Create(channel *types.Channel) (*types.Channel, error)
-		Update(channel *types.Channel) (*types.Channel, error)
+		FindMembers(ctx context.Context, channelID uint64) (types.ChannelMemberSet, error)
 
-		FindMembers(channelID uint64) (types.ChannelMemberSet, error)
+		InviteUser(ctx context.Context, channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
+		AddMember(ctx context.Context, channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
+		DeleteMember(ctx context.Context, channelID uint64, memberIDs ...uint64) (err error)
 
-		InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
-		AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error)
-		DeleteMember(channelID uint64, memberIDs ...uint64) (err error)
+		SetFlag(ctx context.Context, ID uint64, flag types.ChannelMembershipFlag) (*types.Channel, error)
 
-		SetFlag(ID uint64, flag types.ChannelMembershipFlag) (*types.Channel, error)
-
-		Archive(ID uint64) (*types.Channel, error)
-		Unarchive(ID uint64) (*types.Channel, error)
-		Delete(ID uint64) (*types.Channel, error)
-		Undelete(ID uint64) (*types.Channel, error)
+		Archive(ctx context.Context, ID uint64) (*types.Channel, error)
+		Unarchive(ctx context.Context, ID uint64) (*types.Channel, error)
+		Delete(ctx context.Context, ID uint64) (*types.Channel, error)
+		Undelete(ctx context.Context, ID uint64) (*types.Channel, error)
 	}
 )
 
@@ -73,44 +70,33 @@ const (
 	settingsChannelTopicLength = 200
 )
 
-func Channel(ctx context.Context) ChannelService {
-	return (&channel{
+func Channel() ChannelService {
+	return &channel{
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
-	}).With(ctx)
-}
-
-func (svc *channel) With(ctx context.Context) ChannelService {
-	return &channel{
-		ctx: ctx,
-
-		event: Event(ctx),
-		ac:    DefaultAccessControl,
-
-		actionlog: DefaultActionlog,
-		store:     svc.store,
+		event:     DefaultEvent,
 
 		// System messages should be flushed at the end of each session
 		sysmsgs: types.MessageSet{},
 	}
 }
 
-func (svc *channel) FindByID(ID uint64) (ch *types.Channel, err error) {
-	if ch, err = svc.findByID(ID); err != nil {
+func (svc *channel) FindByID(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
+	if ch, err = svc.findByID(ctx, ID); err != nil {
 		return
 	}
 
-	if !svc.ac.CanReadChannel(svc.ctx, ch) {
+	if !svc.ac.CanReadChannel(ctx, ch) {
 		return nil, ErrNoPermissions.withStack()
 	}
 
 	return
 }
 
-func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
+func (svc *channel) findByID(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
 
-	if ch, err = store.LookupMessagingChannelByID(svc.ctx, svc.store, ID); err != nil {
+	if ch, err = store.LookupMessagingChannelByID(ctx, svc.store, ID); err != nil {
 		if errors.IsNotFound(err) {
 			return nil, ChannelErrNotFound()
 		}
@@ -118,25 +104,25 @@ func (svc *channel) findByID(ID uint64) (ch *types.Channel, err error) {
 		return nil, err
 	}
 
-	if err = svc.preloadExtras(svc.ctx, svc.store, ch); err != nil {
+	if err = svc.preloadExtras(ctx, svc.store, ch); err != nil {
 		return nil, err
 	}
 
 	return
 }
 
-func (svc *channel) Find(filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
-	filter.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+func (svc *channel) Find(ctx context.Context, filter types.ChannelFilter) (set types.ChannelSet, f types.ChannelFilter, err error) {
+	filter.CurrentUserID = auth.GetIdentityFromContext(ctx).Identity()
 	filter.Check = func(c *types.Channel) (b bool, e error) {
-		return svc.ac.CanReadChannel(svc.ctx, c), nil
+		return svc.ac.CanReadChannel(ctx, c), nil
 	}
 
-	set, f, err = store.SearchMessagingChannels(svc.ctx, svc.store, filter)
+	set, f, err = store.SearchMessagingChannels(ctx, svc.store, filter)
 	if err != nil {
 		return
 	}
 
-	err = svc.preloadExtras(svc.ctx, svc.store, set...)
+	err = svc.preloadExtras(ctx, svc.store, set...)
 	if err != nil {
 		return
 	}
@@ -150,15 +136,18 @@ func (svc *channel) preloadExtras(ctx context.Context, s store.Storer, cc ...*ty
 		return nil
 	}
 
-	if err = svc.preloadMembers(svc.ctx, svc.store, cc...); err != nil {
+	if err = svc.preloadMembers(ctx, svc.store, cc...); err != nil {
 		return
 	}
 
-	if err = types.ChannelSet(cc).Walk(svc.setPermissionFlags); err != nil {
+	err = types.ChannelSet(cc).Walk(func(c *types.Channel) error {
+		return svc.setPermissionFlags(ctx, c)
+	})
+	if err != nil {
 		return err
 	}
 
-	if err = svc.preloadUnreads(svc.ctx, svc.store, cc...); err != nil {
+	if err = svc.preloadUnreads(ctx, svc.store, cc...); err != nil {
 		return
 	}
 
@@ -236,12 +225,12 @@ func (channel) preloadUnreads(ctx context.Context, s store.Storer, cc ...*types.
 }
 
 // FindMembers loads all members (and full users) for a specific channel
-func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, err error) {
-	if _, err = svc.FindByID(channelID); err != nil {
+func (svc *channel) FindMembers(ctx context.Context, channelID uint64) (out types.ChannelMemberSet, err error) {
+	if _, err = svc.FindByID(ctx, channelID); err != nil {
 		return
 	}
 
-	out, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(channelID))
+	out, _, err = store.SearchMessagingChannelMembers(ctx, svc.store, types.ChannelMemberFilterChannels(channelID))
 	if err != nil {
 		return
 	}
@@ -249,12 +238,12 @@ func (svc *channel) FindMembers(channelID uint64) (out types.ChannelMemberSet, e
 	return
 }
 
-func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
+func (svc *channel) Create(ctx context.Context, new *types.Channel) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{changed: new}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !new.Type.IsValid() {
 			return ChannelErrInvalidType()
 		}
@@ -271,9 +260,9 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			return ChannelErrTopicLength()
 		}
 
-		var chCreatorID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var chCreatorID = auth.GetIdentityFromContext(ctx).Identity()
 
-		mm := svc.buildMemberSet(chCreatorID, new.Members...)
+		mm := svc.buildMemberSet(ctx, chCreatorID, new.Members...)
 
 		if new.Type == types.ChannelTypeGroup {
 			ch, err = store.LookupMessagingChannelByMemberSet(ctx, s, mm.AllMemberIDs()...)
@@ -293,15 +282,15 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			}
 		}
 
-		if new.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
+		if new.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(ctx) {
 			return ChannelErrNotAllowedToCreate()
 		}
 
-		if new.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
+		if new.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(ctx) {
 			return ChannelErrNotAllowedToCreate()
 		}
 
-		if new.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
+		if new.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(ctx) {
 			return ChannelErrNotAllowedToCreate()
 		}
 
@@ -310,7 +299,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			new.MembershipPolicy = types.ChannelMembershipPolicyDefault
 		}
 
-		if new.MembershipPolicy != types.ChannelMembershipPolicyDefault && !svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, new) {
+		if new.MembershipPolicy != types.ChannelMembershipPolicyDefault && !svc.ac.CanChangeChannelMembershipPolicy(ctx, new) {
 			return ChannelErrNotAllowedToCreate()
 		}
 
@@ -340,7 +329,7 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 			}
 
 			// Subscribe all members
-			return svc.event.Join(m.UserID, ch.ID)
+			return svc.event.Join(ctx, m.UserID, ch.ID)
 		})
 
 		if err != nil {
@@ -355,24 +344,24 @@ func (svc *channel) Create(new *types.Channel) (ch *types.Channel, err error) {
 		// Create the first message, doing this directly with repository to circumvent
 		// message service constraints
 		if len(ch.Name) == 0 {
-			svc.scheduleSystemMessage(ch, `<@%d> created %s channel`, chCreatorID, ch.Type)
+			svc.scheduleSystemMessage(ctx, ch, `<@%d> created %s channel`, chCreatorID, ch.Type)
 		} else if len(ch.Topic) == 0 {
-			svc.scheduleSystemMessage(ch, `<@%d> created %s channel **%s**`, chCreatorID, ch.Type, ch.Name)
+			svc.scheduleSystemMessage(ctx, ch, `<@%d> created %s channel **%s**`, chCreatorID, ch.Type, ch.Name)
 		} else {
-			svc.scheduleSystemMessage(ch, `<@%d> created %s channel **%s**, topic: %s`, chCreatorID, ch.Type, ch.Name, ch.Topic)
+			svc.scheduleSystemMessage(ctx, ch, `<@%d> created %s channel **%s**, topic: %s`, chCreatorID, ch.Type, ch.Name, ch.Topic)
 		}
 
-		_ = svc.flushSystemMessages()
+		_ = svc.flushSystemMessages(ctx)
 
 		// sending copy of channel to event so that members are not accidentally overwritten
 		var evCh = *ch
-		return svc.sendChannelEvent(&evCh)
+		return svc.sendChannelEvent(ctx, &evCh)
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionCreate, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionCreate, err)
 }
 
-func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.ChannelMemberSet) {
+func (svc *channel) buildMemberSet(ctx context.Context, owner uint64, members ...uint64) (mm types.ChannelMemberSet) {
 	// Join current user as an member & owner
 	mm = types.ChannelMemberSet{&types.ChannelMember{
 		UserID: owner,
@@ -392,12 +381,12 @@ func (svc *channel) buildMemberSet(owner uint64, members ...uint64) (mm types.Ch
 	return mm
 }
 
-func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
+func (svc *channel) Update(ctx context.Context, upd *types.Channel) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{changed: upd}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if upd.ID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -419,41 +408,41 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 		}
 		var changed bool
 
-		if ch, err = svc.FindByID(upd.ID); err != nil {
+		if ch, err = svc.FindByID(ctx, upd.ID); err != nil {
 			return
 		}
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanUpdateChannel(svc.ctx, ch) {
+		if !svc.ac.CanUpdateChannel(ctx, ch) {
 			return ChannelErrNotAllowedToUpdate()
 		}
 
 		if upd.Type.IsValid() && ch.Type != upd.Type {
-			if upd.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(svc.ctx) {
+			if upd.Type == types.ChannelTypePublic && !svc.ac.CanCreatePublicChannel(ctx) {
 				return ChannelErrNotAllowedToUpdate()
 			}
 
-			if upd.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(svc.ctx) {
+			if upd.Type == types.ChannelTypePrivate && !svc.ac.CanCreatePrivateChannel(ctx) {
 				return ChannelErrNotAllowedToUpdate()
 			}
 
-			if upd.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(svc.ctx) {
+			if upd.Type == types.ChannelTypeGroup && !svc.ac.CanCreateGroupChannel(ctx) {
 				return ChannelErrNotAllowedToUpdate()
 			}
 
 			changed = true
 		}
 
-		var chUpdatorId = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var chUpdatorId = auth.GetIdentityFromContext(ctx).Identity()
 
 		if len(upd.Name) > 0 && ch.Name != upd.Name {
 			if settingsChannelNameLength > 0 && len(upd.Name) > settingsChannelNameLength {
 				return fmt.Errorf("channel name (%d characters) too long (max: %d)", len(upd.Name), settingsChannelNameLength)
 			} else if ch.Name != "" {
-				svc.scheduleSystemMessage(upd, "<@%d> renamed channel **%s** (was: %s)", chUpdatorId, upd.Name, ch.Name)
+				svc.scheduleSystemMessage(ctx, upd, "<@%d> renamed channel **%s** (was: %s)", chUpdatorId, upd.Name, ch.Name)
 			} else {
-				svc.scheduleSystemMessage(upd, "<@%d> set channel name to **%s**", chUpdatorId, upd.Name)
+				svc.scheduleSystemMessage(ctx, upd, "<@%d> set channel name to **%s**", chUpdatorId, upd.Name)
 			}
 
 			ch.Name = upd.Name
@@ -464,16 +453,16 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 			if settingsChannelTopicLength > 0 && len(upd.Topic) > settingsChannelTopicLength {
 				return fmt.Errorf("channel topic (%d characters) too long (max: %d)", len(upd.Topic), settingsChannelTopicLength)
 			} else if ch.Topic != "" {
-				svc.scheduleSystemMessage(upd, "<@%d> changed channel topic: %s (was: %s)", chUpdatorId, upd.Topic, ch.Topic)
+				svc.scheduleSystemMessage(ctx, upd, "<@%d> changed channel topic: %s (was: %s)", chUpdatorId, upd.Topic, ch.Topic)
 			} else {
-				svc.scheduleSystemMessage(upd, "<@%d> set channel topic to %s", chUpdatorId, upd.Topic)
+				svc.scheduleSystemMessage(ctx, upd, "<@%d> set channel topic to %s", chUpdatorId, upd.Topic)
 			}
 
 			ch.Topic = upd.Topic
 			changed = true
 		}
 
-		if ch.MembershipPolicy != upd.MembershipPolicy && !svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, ch) {
+		if ch.MembershipPolicy != upd.MembershipPolicy && !svc.ac.CanChangeChannelMembershipPolicy(ctx, ch) {
 			return ChannelErrNotAllowedToUpdate()
 		} else {
 			ch.MembershipPolicy = upd.MembershipPolicy
@@ -491,34 +480,34 @@ func (svc *channel) Update(upd *types.Channel) (ch *types.Channel, err error) {
 			return
 		}
 
-		_ = svc.flushSystemMessages()
+		_ = svc.flushSystemMessages(ctx)
 
-		return svc.sendChannelEvent(ch)
+		return svc.sendChannelEvent(ctx, ch)
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionUpdate, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionUpdate, err)
 
 }
 
-func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
+func (svc *channel) Delete(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
 
-		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 
-		if ch, err = svc.findByID(ID); err != nil {
+		if ch, err = svc.findByID(ctx, ID); err != nil {
 			return
 		}
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanDeleteChannel(svc.ctx, ch) {
+		if !svc.ac.CanDeleteChannel(ctx, ch) {
 			return ChannelErrNotAllowedToDelete()
 		}
 
@@ -529,39 +518,39 @@ func (svc *channel) Delete(ID uint64) (ch *types.Channel, err error) {
 		// Set deletedAt timestamp so that our clients can react properly...
 		ch.DeletedAt = now()
 
-		svc.scheduleSystemMessage(ch, "<@%d> deleted this channel", userID)
+		svc.scheduleSystemMessage(ctx, ch, "<@%d> deleted this channel", userID)
 
 		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
 		}
 
-		_ = svc.sendChannelEvent(ch)
-		_ = svc.flushSystemMessages()
+		_ = svc.sendChannelEvent(ctx, ch)
+		_ = svc.flushSystemMessages(ctx)
 		return nil
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionDelete, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionDelete, err)
 }
 
-func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
+func (svc *channel) Undelete(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
 
-		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 
-		if ch, err = svc.findByID(ID); err != nil {
+		if ch, err = svc.findByID(ctx, ID); err != nil {
 			return
 		}
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanUndeleteChannel(svc.ctx, ch) {
+		if !svc.ac.CanUndeleteChannel(ctx, ch) {
 			return ChannelErrNotAllowedToUndelete()
 		}
 
@@ -571,32 +560,32 @@ func (svc *channel) Undelete(ID uint64) (ch *types.Channel, err error) {
 
 		ch.DeletedAt = nil
 
-		svc.scheduleSystemMessage(ch, "<@%d> undeleted this channel", userID)
+		svc.scheduleSystemMessage(ctx, ch, "<@%d> undeleted this channel", userID)
 
 		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
 		}
 
-		_ = svc.flushSystemMessages()
-		return svc.sendChannelEvent(ch)
+		_ = svc.flushSystemMessages(ctx)
+		return svc.sendChannelEvent(ctx, ch)
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionUndelete, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionUndelete, err)
 }
 
-func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *types.Channel, err error) {
+func (svc *channel) SetFlag(ctx context.Context, ID uint64, flag types.ChannelMembershipFlag) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{flag: string(flag)}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
 		var membership *types.ChannelMember
-		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 
-		if ch, err = svc.FindByID(ID); err != nil {
+		if ch, err = svc.FindByID(ctx, ID); err != nil {
 			return
 		}
 
@@ -620,34 +609,34 @@ func (svc *channel) SetFlag(ID uint64, flag types.ChannelMembershipFlag) (ch *ty
 			return
 		}
 
-		return svc.flushSystemMessages()
+		return svc.flushSystemMessages(ctx)
 
 		// Setting a flag on a channel is a private thing,
 		// no need to send channel event back to everyone
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionSetFlag, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionSetFlag, err)
 
 }
 
-func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
+func (svc *channel) Archive(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
-		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 
-		if ch, err = svc.findByID(ID); err != nil {
+		if ch, err = svc.findByID(ctx, ID); err != nil {
 			return
 		}
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanArchiveChannel(svc.ctx, ch) {
+		if !svc.ac.CanArchiveChannel(ctx, ch) {
 			return ChannelErrNotAllowedToUndelete()
 		}
 
@@ -657,37 +646,37 @@ func (svc *channel) Archive(ID uint64) (ch *types.Channel, err error) {
 
 		ch.ArchivedAt = now()
 
-		svc.scheduleSystemMessage(ch, "<@%d> archived this channel", userID)
+		svc.scheduleSystemMessage(ctx, ch, "<@%d> archived this channel", userID)
 
 		if err = store.UpdateMessagingChannel(ctx, s, ch); err != nil {
 			return
 		}
 
-		_ = svc.flushSystemMessages()
-		return svc.sendChannelEvent(ch)
+		_ = svc.flushSystemMessages(ctx)
+		return svc.sendChannelEvent(ctx, ch)
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionArchive, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionArchive, err)
 }
 
-func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
+func (svc *channel) Unarchive(ctx context.Context, ID uint64) (ch *types.Channel, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if ID == 0 {
 			return ChannelErrInvalidID()
 		}
-		var userID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		var userID = auth.GetIdentityFromContext(ctx).Identity()
 
-		if ch, err = svc.findByID(ID); err != nil {
+		if ch, err = svc.findByID(ctx, ID); err != nil {
 			return
 		}
 
 		aProps.setChannel(ch)
 
-		if !svc.ac.CanUnarchiveChannel(svc.ctx, ch) {
+		if !svc.ac.CanUnarchiveChannel(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
@@ -701,21 +690,21 @@ func (svc *channel) Unarchive(ID uint64) (ch *types.Channel, err error) {
 			return
 		}
 
-		svc.scheduleSystemMessage(ch, "<@%d> unarchived this channel", userID)
+		svc.scheduleSystemMessage(ctx, ch, "<@%d> unarchived this channel", userID)
 
-		_ = svc.flushSystemMessages()
-		return svc.sendChannelEvent(ch)
+		_ = svc.flushSystemMessages(ctx)
+		return svc.sendChannelEvent(ctx, ch)
 	})
 
-	return ch, svc.recordAction(svc.ctx, aProps, ChannelActionUnarchive, err)
+	return ch, svc.recordAction(ctx, aProps, ChannelActionUnarchive, err)
 }
 
-func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+func (svc *channel) InviteUser(ctx context.Context, channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -727,14 +716,14 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 		}
 
 		var (
-			userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
+			userID   = auth.GetIdentityFromContext(ctx).Identity()
 			ch       *types.Channel
 			existing types.ChannelMemberSet
 		)
 
 		out = types.ChannelMemberSet{}
 
-		if ch, err = svc.FindByID(channelID); err != nil {
+		if ch, err = svc.FindByID(ctx, channelID); err != nil {
 			return
 		}
 
@@ -744,7 +733,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 			return ChannelErrUnableToManageGroupMembers()
 		}
 
-		if !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
+		if !svc.ac.CanManageChannelMembers(ctx, ch) {
 			return ChannelErrNotAllowedToManageMembers()
 		}
 
@@ -760,7 +749,7 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 				continue
 			}
 
-			svc.scheduleSystemMessage(ch, "<@%d> invited <@%d> to the channel", userID, memberID)
+			svc.scheduleSystemMessage(ctx, ch, "<@%d> invited <@%d> to the channel", userID, memberID)
 
 			member := &types.ChannelMember{
 				CreatedAt: *now(),
@@ -776,18 +765,18 @@ func (svc *channel) InviteUser(channelID uint64, memberIDs ...uint64) (out types
 			out = append(out, member)
 		}
 
-		return svc.flushSystemMessages()
+		return svc.flushSystemMessages(ctx)
 	})
 
-	return out, svc.recordAction(svc.ctx, aProps, ChannelActionInviteMember, err)
+	return out, svc.recordAction(ctx, aProps, ChannelActionInviteMember, err)
 }
 
-func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
+func (svc *channel) AddMember(ctx context.Context, channelID uint64, memberIDs ...uint64) (out types.ChannelMemberSet, err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if channelID == 0 {
 			return ChannelErrInvalidID()
 		}
@@ -799,14 +788,14 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		}
 
 		var (
-			userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
+			userID   = auth.GetIdentityFromContext(ctx).Identity()
 			ch       *types.Channel
 			existing types.ChannelMemberSet
 		)
 
 		out = types.ChannelMemberSet{}
 
-		if ch, err = svc.FindByID(channelID); err != nil {
+		if ch, err = svc.FindByID(ctx, channelID); err != nil {
 			return
 		}
 
@@ -833,17 +822,17 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				}
 			}
 
-			if memberID == userID && !svc.ac.CanJoinChannel(svc.ctx, ch) {
+			if memberID == userID && !svc.ac.CanJoinChannel(ctx, ch) {
 				return ChannelErrNotAllowedToJoin()
-			} else if memberID != userID && !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
+			} else if memberID != userID && !svc.ac.CanManageChannelMembers(ctx, ch) {
 				return ChannelErrNotAllowedToManageMembers()
 			}
 
 			if !exists {
 				if userID == memberID {
-					svc.scheduleSystemMessage(ch, "<@%d> joined", memberID)
+					svc.scheduleSystemMessage(ctx, ch, "<@%d> joined", memberID)
 				} else {
-					svc.scheduleSystemMessage(ch, "<@%d> added <@%d> to the channel", userID, memberID)
+					svc.scheduleSystemMessage(ctx, ch, "<@%d> added <@%d> to the channel", userID, memberID)
 				}
 			}
 
@@ -864,7 +853,7 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 				return err
 			}
 
-			svc.event.Join(memberID, channelID)
+			svc.event.Join(ctx, memberID, channelID)
 
 			out = append(out, member)
 
@@ -873,14 +862,14 @@ func (svc *channel) AddMember(channelID uint64, memberIDs ...uint64) (out types.
 		}
 
 		// Push channel to all members
-		if err = svc.sendChannelEvent(ch); err != nil {
+		if err = svc.sendChannelEvent(ctx, ch); err != nil {
 			return
 		}
 
-		return svc.flushSystemMessages()
+		return svc.flushSystemMessages(ctx)
 	})
 
-	return out, svc.recordAction(svc.ctx, aProps, ChannelActionAddMember, err)
+	return out, svc.recordAction(ctx, aProps, ChannelActionAddMember, err)
 }
 
 // createMember orchestrates member creation
@@ -899,19 +888,19 @@ func (svc channel) createMember(ctx context.Context, s store.Storer, m *types.Ch
 	return
 }
 
-func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err error) {
+func (svc *channel) DeleteMember(ctx context.Context, channelID uint64, memberIDs ...uint64) (err error) {
 	var (
 		aProps = &channelActionProps{}
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
-			userID   = auth.GetIdentityFromContext(svc.ctx).Identity()
+			userID   = auth.GetIdentityFromContext(ctx).Identity()
 			ch       *types.Channel
 			existing types.ChannelMemberSet
 		)
 
-		if ch, err = svc.FindByID(channelID); err != nil {
+		if ch, err = svc.FindByID(ctx, channelID); err != nil {
 			return
 		}
 
@@ -932,33 +921,33 @@ func (svc *channel) DeleteMember(channelID uint64, memberIDs ...uint64) (err err
 				continue
 			}
 
-			if memberID == userID && !svc.ac.CanLeaveChannel(svc.ctx, ch) {
+			if memberID == userID && !svc.ac.CanLeaveChannel(ctx, ch) {
 				return ChannelErrNotAllowedToPart()
-			} else if memberID != userID && !svc.ac.CanManageChannelMembers(svc.ctx, ch) {
+			} else if memberID != userID && !svc.ac.CanManageChannelMembers(ctx, ch) {
 				return ChannelErrNotAllowedToManageMembers()
 			}
 
 			if userID == memberID {
-				svc.scheduleSystemMessage(ch, "<@%d> left the channel", memberID)
+				svc.scheduleSystemMessage(ctx, ch, "<@%d> left the channel", memberID)
 			} else {
-				svc.scheduleSystemMessage(ch, "<@%d> removed from the channel", memberID)
+				svc.scheduleSystemMessage(ctx, ch, "<@%d> removed from the channel", memberID)
 			}
 
 			if err = store.DeleteMessagingChannelMemberByChannelIDUserID(ctx, s, channelID, memberID); err != nil {
 				return err
 			}
 
-			_ = svc.event.Part(memberID, channelID)
+			_ = svc.event.Part(ctx, memberID, channelID)
 		}
 
-		return svc.flushSystemMessages()
+		return svc.flushSystemMessages(ctx)
 	})
 
-	return svc.recordAction(svc.ctx, aProps, ChannelActionRemoveMember, err)
+	return svc.recordAction(ctx, aProps, ChannelActionRemoveMember, err)
 
 }
 
-func (svc *channel) scheduleSystemMessage(ch *types.Channel, format string, a ...interface{}) {
+func (svc *channel) scheduleSystemMessage(ctx context.Context, ch *types.Channel, format string, a ...interface{}) {
 	svc.sysmsgs = append(svc.sysmsgs, &types.Message{
 		ChannelID: ch.ID,
 		Message:   fmt.Sprintf(format, a...),
@@ -967,7 +956,7 @@ func (svc *channel) scheduleSystemMessage(ch *types.Channel, format string, a ..
 }
 
 // Flushes sys message stack, stores them into repo & pushes them into event loop
-func (svc *channel) flushSystemMessages() (err error) {
+func (svc *channel) flushSystemMessages(ctx context.Context) (err error) {
 	defer func() {
 		svc.sysmsgs = types.MessageSet{}
 	}()
@@ -976,61 +965,61 @@ func (svc *channel) flushSystemMessages() (err error) {
 		msg.ID = nextID()
 		msg.CreatedAt = *now()
 
-		if err = store.CreateMessagingMessage(svc.ctx, svc.store, msg); err != nil {
+		if err = store.CreateMessagingMessage(ctx, svc.store, msg); err != nil {
 			return err
 		} else {
-			return svc.event.Message(msg)
+			return svc.event.Message(ctx, msg)
 		}
 	})
 }
 
 // Sends channel event
-func (svc *channel) sendChannelEvent(ch *types.Channel) (err error) {
+func (svc *channel) sendChannelEvent(ctx context.Context, ch *types.Channel) (err error) {
 	if ch.DeletedAt == nil && ch.ArchivedAt == nil {
 		// Looks like a valid channel
 
 		// Preload members, if needed
 		if len(ch.Members) == 0 || ch.Member == nil {
 			f := types.ChannelMemberFilterChannels(ch.ID)
-			if mm, _, err := store.SearchMessagingChannelMembers(svc.ctx, svc.store, f); err != nil {
+			if mm, _, err := store.SearchMessagingChannelMembers(ctx, svc.store, f); err != nil {
 				return err
 			} else {
 				ch.Members = mm.AllMemberIDs()
-				ch.Member = mm.FindByUserID(auth.GetIdentityFromContext(svc.ctx).Identity())
+				ch.Member = mm.FindByUserID(auth.GetIdentityFromContext(ctx).Identity())
 			}
 		}
 	}
 
-	if err = svc.setPermissionFlags(ch); err != nil {
+	if err = svc.setPermissionFlags(ctx, ch); err != nil {
 		return
 	}
 
-	if err = svc.event.Channel(ch); err != nil {
+	if err = svc.event.Channel(ctx, ch); err != nil {
 		return
 	}
 
 	return nil
 }
 
-func (svc *channel) setPermissionFlags(ch *types.Channel) (err error) {
-	ch.CanJoin = svc.ac.CanJoinChannel(svc.ctx, ch)
-	ch.CanPart = svc.ac.CanLeaveChannel(svc.ctx, ch)
-	ch.CanObserve = svc.ac.CanReadChannel(svc.ctx, ch)
-	ch.CanSendMessages = svc.ac.CanSendMessage(svc.ctx, ch)
+func (svc *channel) setPermissionFlags(ctx context.Context, ch *types.Channel) (err error) {
+	ch.CanJoin = svc.ac.CanJoinChannel(ctx, ch)
+	ch.CanPart = svc.ac.CanLeaveChannel(ctx, ch)
+	ch.CanObserve = svc.ac.CanReadChannel(ctx, ch)
+	ch.CanSendMessages = svc.ac.CanSendMessage(ctx, ch)
 
-	ch.CanDeleteMessages = svc.ac.CanDeleteMessages(svc.ctx, ch)
-	ch.CanDeleteOwnMessages = svc.ac.CanDeleteOwnMessages(svc.ctx, ch)
-	ch.CanUpdateMessages = svc.ac.CanUpdateMessages(svc.ctx, ch)
-	ch.CanUpdateOwnMessages = svc.ac.CanUpdateOwnMessages(svc.ctx, ch)
-	ch.CanChangeMembers = svc.ac.CanManageChannelMembers(svc.ctx, ch)
+	ch.CanDeleteMessages = svc.ac.CanDeleteMessages(ctx, ch)
+	ch.CanDeleteOwnMessages = svc.ac.CanDeleteOwnMessages(ctx, ch)
+	ch.CanUpdateMessages = svc.ac.CanUpdateMessages(ctx, ch)
+	ch.CanUpdateOwnMessages = svc.ac.CanUpdateOwnMessages(ctx, ch)
+	ch.CanChangeMembers = svc.ac.CanManageChannelMembers(ctx, ch)
 	// @todo migrate to proper change-membership-policy action check
-	ch.CanChangeMembershipPolicy = svc.ac.CanChangeChannelMembershipPolicy(svc.ctx, ch)
+	ch.CanChangeMembershipPolicy = svc.ac.CanChangeChannelMembershipPolicy(ctx, ch)
 
-	ch.CanUpdate = svc.ac.CanUpdateChannel(svc.ctx, ch)
-	ch.CanArchive = svc.ac.CanArchiveChannel(svc.ctx, ch)
-	ch.CanUnarchive = svc.ac.CanUnarchiveChannel(svc.ctx, ch)
-	ch.CanDelete = svc.ac.CanDeleteChannel(svc.ctx, ch)
-	ch.CanUndelete = svc.ac.CanUndeleteChannel(svc.ctx, ch)
+	ch.CanUpdate = svc.ac.CanUpdateChannel(ctx, ch)
+	ch.CanArchive = svc.ac.CanArchiveChannel(ctx, ch)
+	ch.CanUnarchive = svc.ac.CanUnarchiveChannel(ctx, ch)
+	ch.CanDelete = svc.ac.CanDeleteChannel(ctx, ch)
+	ch.CanUndelete = svc.ac.CanUndeleteChannel(ctx, ch)
 
 	return nil
 }

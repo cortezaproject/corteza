@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/messaging/rest/request"
@@ -45,7 +46,7 @@ func (ctrl *Channel) Create(ctx context.Context, r *request.ChannelCreate) (inte
 		MembershipPolicy: r.MembershipPolicy,
 	}
 
-	return ctrl.wrap(ctrl.svc.ch.With(ctx).Create(channel))
+	return ctrl.wrap(ctrl.svc.ch.Create(ctx, channel))
 }
 
 func (ctrl *Channel) Update(ctx context.Context, r *request.ChannelUpdate) (interface{}, error) {
@@ -58,19 +59,19 @@ func (ctrl *Channel) Update(ctx context.Context, r *request.ChannelUpdate) (inte
 		MembershipPolicy: r.MembershipPolicy,
 	}
 
-	return ctrl.wrap(ctrl.svc.ch.With(ctx).Update(channel))
+	return ctrl.wrap(ctrl.svc.ch.Update(ctx, channel))
 }
 
 func (ctrl *Channel) State(ctx context.Context, r *request.ChannelState) (interface{}, error) {
 	switch r.State {
 	case "delete":
-		return ctrl.wrap(ctrl.svc.ch.With(ctx).Delete(r.ChannelID))
+		return ctrl.wrap(ctrl.svc.ch.Delete(ctx, r.ChannelID))
 	case "undelete":
-		return ctrl.wrap(ctrl.svc.ch.With(ctx).Undelete(r.ChannelID))
+		return ctrl.wrap(ctrl.svc.ch.Undelete(ctx, r.ChannelID))
 	case "archive":
-		return ctrl.wrap(ctrl.svc.ch.With(ctx).Archive(r.ChannelID))
+		return ctrl.wrap(ctrl.svc.ch.Archive(ctx, r.ChannelID))
 	case "unarchive":
-		return ctrl.wrap(ctrl.svc.ch.With(ctx).Unarchive(r.ChannelID))
+		return ctrl.wrap(ctrl.svc.ch.Unarchive(ctx, r.ChannelID))
 	}
 
 	return nil, nil
@@ -79,41 +80,41 @@ func (ctrl *Channel) State(ctx context.Context, r *request.ChannelState) (interf
 func (ctrl *Channel) SetFlag(ctx context.Context, r *request.ChannelSetFlag) (interface{}, error) {
 	switch r.Flag {
 	case "pinned", "hidden", "ignored":
-		return ctrl.wrap(ctrl.svc.ch.With(ctx).SetFlag(r.ChannelID, types.ChannelMembershipFlag(r.Flag)))
+		return ctrl.wrap(ctrl.svc.ch.SetFlag(ctx, r.ChannelID, types.ChannelMembershipFlag(r.Flag)))
 	}
 
 	return nil, nil
 }
 
 func (ctrl *Channel) RemoveFlag(ctx context.Context, r *request.ChannelRemoveFlag) (interface{}, error) {
-	return ctrl.wrap(ctrl.svc.ch.With(ctx).SetFlag(r.ChannelID, types.ChannelMembershipFlagNone))
+	return ctrl.wrap(ctrl.svc.ch.SetFlag(ctx, r.ChannelID, types.ChannelMembershipFlagNone))
 }
 
 func (ctrl *Channel) Read(ctx context.Context, r *request.ChannelRead) (interface{}, error) {
-	return ctrl.wrap(ctrl.svc.ch.With(ctx).FindByID(r.ChannelID))
+	return ctrl.wrap(ctrl.svc.ch.FindByID(ctx, r.ChannelID))
 }
 
 func (ctrl *Channel) List(ctx context.Context, r *request.ChannelList) (interface{}, error) {
-	return ctrl.wrapSet(ctrl.svc.ch.With(ctx).Find(types.ChannelFilter{Query: r.Query}))
+	return ctrl.wrapSet(ctrl.svc.ch.Find(ctx, types.ChannelFilter{Query: r.Query}))
 }
 
 func (ctrl *Channel) Members(ctx context.Context, r *request.ChannelMembers) (interface{}, error) {
-	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).FindMembers(r.ChannelID))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.FindMembers(ctx, r.ChannelID))
 }
 
 func (ctrl *Channel) Invite(ctx context.Context, r *request.ChannelInvite) (interface{}, error) {
 	// Due to golang's inability do decode uint64 slice from string slice, we're expecting
 	// string input for members (for now)
 	// https://github.com/golang/go/issues/15624
-	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).InviteUser(r.ChannelID, payload.ParseUint64s(r.UserID)...))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.InviteUser(ctx, r.ChannelID, payload.ParseUint64s(r.UserID)...))
 }
 
 func (ctrl *Channel) Join(ctx context.Context, r *request.ChannelJoin) (interface{}, error) {
-	return ctrl.wrapMemberSet(ctrl.svc.ch.With(ctx).AddMember(r.ChannelID, r.UserID))
+	return ctrl.wrapMemberSet(ctrl.svc.ch.AddMember(ctx, r.ChannelID, r.UserID))
 }
 
 func (ctrl *Channel) Part(ctx context.Context, r *request.ChannelPart) (interface{}, error) {
-	return api.OK(), ctrl.svc.ch.With(ctx).DeleteMember(r.ChannelID, r.UserID)
+	return api.OK(), ctrl.svc.ch.DeleteMember(ctx, r.ChannelID, r.UserID)
 }
 
 func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (interface{}, error) {
@@ -124,7 +125,8 @@ func (ctrl *Channel) Attach(ctx context.Context, r *request.ChannelAttach) (inte
 
 	defer file.Close()
 
-	att, err := ctrl.svc.att.With(ctx).CreateMessageAttachment(
+	att, err := ctrl.svc.att.CreateMessageAttachment(
+		ctx,
 		r.Upload.Filename,
 		r.Upload.Size,
 		file,

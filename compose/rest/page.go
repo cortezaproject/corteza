@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -73,12 +74,12 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 		return nil, err
 	}
 
-	set, filter, err := ctrl.page.With(ctx).Find(f)
+	set, filter, err := ctrl.page.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
 func (ctrl *Page) Tree(ctx context.Context, r *request.PageTree) (interface{}, error) {
-	tree, err := ctrl.page.With(ctx).Tree(r.NamespaceID)
+	tree, err := ctrl.page.Tree(ctx, r.NamespaceID)
 	return ctrl.makeTreePayload(ctx, tree, err)
 }
 
@@ -103,18 +104,18 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			return nil, err
 		}
 	}
-	mod, err = ctrl.page.With(ctx).Create(mod)
+	mod, err = ctrl.page.Create(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Page) Read(ctx context.Context, r *request.PageRead) (interface{}, error) {
-	mod, err := ctrl.page.With(ctx).FindByID(r.NamespaceID, r.PageID)
+	mod, err := ctrl.page.FindByID(ctx, r.NamespaceID, r.PageID)
 	return ctrl.makePayload(ctx, mod, err)
 
 }
 
 func (ctrl *Page) Reorder(ctx context.Context, r *request.PageReorder) (interface{}, error) {
-	return api.OK(), ctrl.page.With(ctx).Reorder(r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
+	return api.OK(), ctrl.page.Reorder(ctx, r.NamespaceID, r.SelfID, payload.ParseUint64s(r.PageIDs))
 }
 
 func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{}, error) {
@@ -140,12 +141,12 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 		}
 	}
 
-	mod, err = ctrl.page.With(ctx).Update(mod)
+	mod, err = ctrl.page.Update(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Page) Delete(ctx context.Context, r *request.PageDelete) (interface{}, error) {
-	return api.OK(), ctrl.page.With(ctx).DeleteByID(r.NamespaceID, r.PageID)
+	return api.OK(), ctrl.page.DeleteByID(ctx, r.NamespaceID, r.PageID)
 }
 
 func (ctrl *Page) Upload(ctx context.Context, r *request.PageUpload) (interface{}, error) {
@@ -173,10 +174,10 @@ func (ctrl *Page) TriggerScript(ctx context.Context, r *request.PageTriggerScrip
 		namespace *types.Namespace
 	)
 
-	if page, err = ctrl.page.FindByID(r.NamespaceID, r.PageID); err != nil {
+	if page, err = ctrl.page.FindByID(ctx, r.NamespaceID, r.PageID); err != nil {
 		return
 	}
-	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+	if namespace, err = ctrl.namespace.FindByID(ctx, r.NamespaceID); err != nil {
 		return
 	}
 

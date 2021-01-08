@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -19,9 +23,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 func Exporter() *cobra.Command {
@@ -79,11 +80,11 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 	)
 
 	if namespaceID, _ := strconv.ParseUint(nsFlag, 10, 64); namespaceID > 0 {
-		ns, err = service.DefaultNamespace.FindByID(namespaceID)
+		ns, err = service.DefaultNamespace.FindByID(ctx, namespaceID)
 		if errors.IsNotFound(err) {
 			cli.HandleError(err)
 		}
-	} else if ns, err = service.DefaultNamespace.FindByHandle(nsFlag); err != nil {
+	} else if ns, err = service.DefaultNamespace.FindByHandle(ctx, nsFlag); err != nil {
 		if errors.IsNotFound(err) {
 			cli.HandleError(err)
 		}
@@ -100,13 +101,13 @@ func nsExporter(ctx context.Context, out *Compose, nsFlag string, args []string)
 		&sysTypes.Role{ID: rbac.AdminsRoleID, Handle: "admins"},
 	}
 
-	modules, _, err := service.DefaultModule.Find(types.ModuleFilter{NamespaceID: ns.ID})
+	modules, _, err := service.DefaultModule.Find(ctx, types.ModuleFilter{NamespaceID: ns.ID})
 	cli.HandleError(err)
 
-	pages, _, err := service.DefaultPage.Find(types.PageFilter{NamespaceID: ns.ID})
+	pages, _, err := service.DefaultPage.Find(ctx, types.PageFilter{NamespaceID: ns.ID})
 	cli.HandleError(err)
 
-	charts, _, err := service.DefaultChart.Find(types.ChartFilter{NamespaceID: ns.ID})
+	charts, _, err := service.DefaultChart.Find(ctx, types.ChartFilter{NamespaceID: ns.ID})
 	cli.HandleError(err)
 
 	// nsOut.Name = ns.Name

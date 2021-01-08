@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -67,7 +68,7 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		f.Deleted = filter.StateInclusive
 	}
 
-	set, filter, err := ctrl.user.With(ctx).Find(f)
+	set, filter, err := ctrl.user.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -80,7 +81,7 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Labels: r.Labels,
 	}
 
-	return ctrl.user.With(ctx).Create(user)
+	return ctrl.user.Create(ctx, user)
 }
 
 func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}, error) {
@@ -93,35 +94,35 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 		Labels: r.Labels,
 	}
 
-	return ctrl.user.With(ctx).Update(user)
+	return ctrl.user.Update(ctx, user)
 }
 
 func (ctrl User) Read(ctx context.Context, r *request.UserRead) (interface{}, error) {
-	return ctrl.user.With(ctx).FindByID(r.UserID)
+	return ctrl.user.FindByID(ctx, r.UserID)
 }
 
 func (ctrl User) Delete(ctx context.Context, r *request.UserDelete) (interface{}, error) {
-	return api.OK(), ctrl.user.With(ctx).Delete(r.UserID)
+	return api.OK(), ctrl.user.Delete(ctx, r.UserID)
 }
 
 func (ctrl User) Suspend(ctx context.Context, r *request.UserSuspend) (interface{}, error) {
-	return api.OK(), ctrl.user.With(ctx).Suspend(r.UserID)
+	return api.OK(), ctrl.user.Suspend(ctx, r.UserID)
 }
 
 func (ctrl User) Unsuspend(ctx context.Context, r *request.UserUnsuspend) (interface{}, error) {
-	return api.OK(), ctrl.user.With(ctx).Unsuspend(r.UserID)
+	return api.OK(), ctrl.user.Unsuspend(ctx, r.UserID)
 }
 
 func (ctrl User) Undelete(ctx context.Context, r *request.UserUndelete) (interface{}, error) {
-	return api.OK(), ctrl.user.With(ctx).Undelete(r.UserID)
+	return api.OK(), ctrl.user.Undelete(ctx, r.UserID)
 }
 
 func (ctrl User) SetPassword(ctx context.Context, r *request.UserSetPassword) (interface{}, error) {
-	return api.OK(), ctrl.user.With(ctx).SetPassword(r.UserID, r.Password)
+	return api.OK(), ctrl.user.SetPassword(ctx, r.UserID, r.Password)
 }
 
 func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipList) (interface{}, error) {
-	if mm, err := ctrl.role.With(ctx).Membership(r.UserID); err != nil {
+	if mm, err := ctrl.role.Membership(ctx, r.UserID); err != nil {
 		return nil, err
 	} else {
 		rval := make([]string, len(mm))
@@ -133,11 +134,11 @@ func (ctrl User) MembershipList(ctx context.Context, r *request.UserMembershipLi
 }
 
 func (ctrl User) MembershipAdd(ctx context.Context, r *request.UserMembershipAdd) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.MemberAdd(ctx, r.RoleID, r.UserID)
 }
 
 func (ctrl User) MembershipRemove(ctx context.Context, r *request.UserMembershipRemove) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.MemberRemove(ctx, r.RoleID, r.UserID)
 }
 
 func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScript) (rsp interface{}, err error) {
@@ -145,7 +146,7 @@ func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScrip
 		user *types.User
 	)
 
-	if user, err = ctrl.user.With(ctx).FindByID(r.UserID); err != nil {
+	if user, err = ctrl.user.FindByID(ctx, r.UserID); err != nil {
 		return
 	}
 

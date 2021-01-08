@@ -15,7 +15,6 @@ import (
 
 type (
 	page struct {
-		ctx       context.Context
 		actionlog actionlog.Recorder
 		ac        pageAccessController
 		eventbus  eventDispatcher
@@ -31,20 +30,18 @@ type (
 	}
 
 	PageService interface {
-		With(ctx context.Context) PageService
+		FindByID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
+		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Page, error)
+		FindByPageID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
+		FindBySelfID(ctx context.Context, namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
+		Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+		Tree(ctx context.Context, namespaceID uint64) (pages types.PageSet, err error)
 
-		FindByID(namespaceID, pageID uint64) (*types.Page, error)
-		FindByHandle(namespaceID uint64, handle string) (*types.Page, error)
-		FindByPageID(namespaceID, pageID uint64) (*types.Page, error)
-		FindBySelfID(namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
-		Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
-		Tree(namespaceID uint64) (pages types.PageSet, err error)
+		Create(ctx context.Context, page *types.Page) (*types.Page, error)
+		Update(ctx context.Context, page *types.Page) (*types.Page, error)
+		DeleteByID(ctx context.Context, namespaceID, pageID uint64) error
 
-		Create(page *types.Page) (*types.Page, error)
-		Update(page *types.Page) (*types.Page, error)
-		DeleteByID(namespaceID, pageID uint64) error
-
-		Reorder(namespaceID, selfID uint64, pageIDs []uint64) error
+		Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
 	}
 
 	pageUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Page) (pageChanges, error)
@@ -58,53 +55,44 @@ const (
 )
 
 func Page() PageService {
-	return (&page{
-		ac:       DefaultAccessControl,
-		eventbus: eventbus.Service(),
-		store:    DefaultStore,
-	}).With(context.Background())
-}
-
-func (svc page) With(ctx context.Context) PageService {
 	return &page{
-		ctx:       ctx,
 		actionlog: DefaultActionlog,
-		ac:        svc.ac,
-		eventbus:  svc.eventbus,
-		store:     svc.store,
+		ac:        DefaultAccessControl,
+		eventbus:  eventbus.Service(),
+		store:     DefaultStore,
 	}
 }
 
-func (svc page) FindByID(namespaceID, pageID uint64) (p *types.Page, err error) {
-	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+func (svc page) FindByID(ctx context.Context, namespaceID, pageID uint64) (p *types.Page, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
 		if pageID == 0 {
 			return nil, PageErrInvalidID()
 		}
 
 		aProps.page.ID = pageID
-		return store.LookupComposePageByID(svc.ctx, svc.store, pageID)
+		return store.LookupComposePageByID(ctx, svc.store, pageID)
 	})
 }
 
-func (svc page) FindByHandle(namespaceID uint64, h string) (c *types.Page, err error) {
-	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+func (svc page) FindByHandle(ctx context.Context, namespaceID uint64, h string) (c *types.Page, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
 		if !handle.IsValid(h) {
 			return nil, PageErrInvalidHandle()
 		}
 
 		aProps.page.Handle = h
-		return store.LookupComposePageByNamespaceIDHandle(svc.ctx, svc.store, namespaceID, h)
+		return store.LookupComposePageByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
 }
 
-func (svc page) FindByPageID(namespaceID, pageID uint64) (p *types.Page, err error) {
-	return svc.lookup(namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
+func (svc page) FindByPageID(ctx context.Context, namespaceID, pageID uint64) (p *types.Page, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *pageActionProps) (*types.Page, error) {
 		if pageID == 0 {
 			return nil, PageErrInvalidID()
 		}
 
 		aProps.page.ID = pageID
-		return store.LookupComposePageByID(svc.ctx, svc.store, pageID)
+		return store.LookupComposePageByID(ctx, svc.store, pageID)
 	})
 }
 
@@ -119,16 +107,16 @@ func checkPage(ctx context.Context, ac pageAccessController) func(res *types.Pag
 }
 
 // search fn() orchestrates pages search, namespace preload and check
-func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	var (
 		aProps = &pageActionProps{filter: &filter}
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = checkPage(svc.ctx, svc.ac)
+	filter.Check = checkPage(ctx, svc.ac)
 
 	err = func() error {
-		if ns, err := loadNamespace(svc.ctx, svc.store, filter.NamespaceID); err != nil {
+		if ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -136,7 +124,7 @@ func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.Page
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
-				svc.ctx,
+				ctx,
 				svc.store,
 				types.Page{}.LabelResourceKind(),
 				filter.Labels,
@@ -152,42 +140,42 @@ func (svc page) search(filter types.PageFilter) (set types.PageSet, f types.Page
 			}
 		}
 
-		if set, f, err = store.SearchComposePages(svc.ctx, svc.store, filter); err != nil {
+		if set, f, err = store.SearchComposePages(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
-		if err = label.Load(svc.ctx, svc.store, toLabeledPages(set)...); err != nil {
+		if err = label.Load(ctx, svc.store, toLabeledPages(set)...); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return set, f, svc.recordAction(svc.ctx, aProps, PageActionSearch, err)
+	return set, f, svc.recordAction(ctx, aProps, PageActionSearch, err)
 }
 
-func (svc page) FindBySelfID(namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
-	return svc.search(types.PageFilter{
+func (svc page) FindBySelfID(ctx context.Context, namespaceID, parentID uint64) (pp types.PageSet, f types.PageFilter, err error) {
+	return svc.search(ctx, types.PageFilter{
 		NamespaceID: namespaceID,
 		ParentID:    parentID,
 
 		// This will enable parentID=0 query
 		Root: true,
 
-		Check: checkPage(svc.ctx, svc.ac),
+		Check: checkPage(ctx, svc.ac),
 	})
 }
 
-func (svc page) Find(filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
-	return svc.search(filter)
+func (svc page) Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
+	return svc.search(ctx, filter)
 }
 
-func (svc page) Tree(namespaceID uint64) (tree types.PageSet, err error) {
+func (svc page) Tree(ctx context.Context, namespaceID uint64) (tree types.PageSet, err error) {
 	var (
 		pages  types.PageSet
 		filter = types.PageFilter{
 			NamespaceID: namespaceID,
-			Check:       checkPage(svc.ctx, svc.ac),
+			Check:       checkPage(ctx, svc.ac),
 		}
 	)
 
@@ -195,7 +183,7 @@ func (svc page) Tree(namespaceID uint64) (tree types.PageSet, err error) {
 		return
 	}
 
-	if pages, _, err = svc.search(filter); err != nil {
+	if pages, _, err = svc.search(ctx, filter); err != nil {
 		return
 	}
 
@@ -223,21 +211,21 @@ func (svc page) Tree(namespaceID uint64) (tree types.PageSet, err error) {
 
 // Reorder pages
 //
-func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err error) {
+func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageIDs []uint64) (err error) {
 	var (
 		aProps = &pageActionProps{page: &types.Page{ID: parentID}}
 		ns     *types.Namespace
 		p      *types.Page
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if ns, err = loadNamespace(ctx, s, namespaceID); err != nil {
 			return err
 		}
 
 		if parentID == 0 {
 			// Reordering on root mode -- check if user can create pages.
-			if !svc.ac.CanCreatePage(svc.ctx, ns) {
+			if !svc.ac.CanCreatePage(ctx, ns) {
 				return PageErrNotAllowedToUpdate()
 			}
 		} else {
@@ -250,7 +238,7 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 
 			aProps.setPage(p)
 
-			if !svc.ac.CanUpdatePage(svc.ctx, p) {
+			if !svc.ac.CanUpdatePage(ctx, p) {
 				return PageErrNotAllowedToUpdate()
 			}
 		}
@@ -258,11 +246,11 @@ func (svc page) Reorder(namespaceID, parentID uint64, pageIDs []uint64) (err err
 		return store.ReorderComposePages(ctx, s, namespaceID, parentID, pageIDs)
 	})
 
-	return svc.recordAction(svc.ctx, aProps, PageActionReorder, err)
+	return svc.recordAction(ctx, aProps, PageActionReorder, err)
 
 }
 
-func (svc page) Create(new *types.Page) (*types.Page, error) {
+func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error) {
 	var (
 		ns     *types.Namespace
 		aProps = &pageActionProps{changed: new}
@@ -270,7 +258,7 @@ func (svc page) Create(new *types.Page) (*types.Page, error) {
 
 	new.ID = 0
 
-	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return PageErrInvalidID()
 		}
@@ -279,17 +267,17 @@ func (svc page) Create(new *types.Page) (*types.Page, error) {
 			return err
 		}
 
-		if !svc.ac.CanCreatePage(svc.ctx, ns) {
+		if !svc.ac.CanCreatePage(ctx, ns) {
 			return PageErrNotAllowedToCreate()
 		}
 
 		aProps.setNamespace(ns)
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.PageBeforeCreate(new, nil, ns)); err != nil {
 			return err
 		}
 
-		if err = svc.uniqueCheck(new); err != nil {
+		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
 		}
 
@@ -306,26 +294,26 @@ func (svc page) Create(new *types.Page) (*types.Page, error) {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.PageAfterCreate(new, nil, ns))
+		_ = svc.eventbus.WaitFor(ctx, event.PageAfterCreate(new, nil, ns))
 		return err
 	})
 
-	return new, svc.recordAction(svc.ctx, aProps, PageActionCreate, err)
+	return new, svc.recordAction(ctx, aProps, PageActionCreate, err)
 }
 
-func (svc page) Update(upd *types.Page) (c *types.Page, err error) {
-	return svc.updater(upd.NamespaceID, upd.ID, PageActionUpdate, svc.handleUpdate(upd))
+func (svc page) Update(ctx context.Context, upd *types.Page) (c *types.Page, err error) {
+	return svc.updater(ctx, upd.NamespaceID, upd.ID, PageActionUpdate, svc.handleUpdate(ctx, upd))
 }
 
-func (svc page) DeleteByID(namespaceID, pageID uint64) error {
-	return trim1st(svc.updater(namespaceID, pageID, PageActionDelete, svc.handleDelete))
+func (svc page) DeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
+	return trim1st(svc.updater(ctx, namespaceID, pageID, PageActionDelete, svc.handleDelete))
 }
 
-func (svc page) UndeleteByID(namespaceID, pageID uint64) error {
-	return trim1st(svc.updater(namespaceID, pageID, PageActionUndelete, svc.handleUndelete))
+func (svc page) UndeleteByID(ctx context.Context, namespaceID, pageID uint64) error {
+	return trim1st(svc.updater(ctx, namespaceID, pageID, PageActionUndelete, svc.handleUndelete))
 }
 
-func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
+func (svc page) updater(ctx context.Context, namespaceID, pageID uint64, action func(...*pageActionProps) *pageAction, fn pageUpdateHandler) (*types.Page, error) {
 	var (
 		changes pageChanges
 
@@ -335,13 +323,13 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		err    error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, p, err = loadPage(svc.ctx, s, namespaceID, pageID)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		ns, p, err = loadPage(ctx, s, namespaceID, pageID)
 		if err != nil {
 			return
 		}
 
-		if err = label.Load(svc.ctx, svc.store, p); err != nil {
+		if err = label.Load(ctx, svc.store, p); err != nil {
 			return err
 		}
 
@@ -351,21 +339,21 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		aProps.setChanged(p)
 
 		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeUpdate(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeUpdate(p, old, ns))
 		} else {
-			err = svc.eventbus.WaitFor(svc.ctx, event.PageBeforeDelete(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageBeforeDelete(p, old, ns))
 		}
 
 		if err != nil {
 			return
 		}
 
-		if changes, err = fn(svc.ctx, ns, p); err != nil {
+		if changes, err = fn(ctx, ns, p); err != nil {
 			return err
 		}
 
 		if changes&pageChanged > 0 {
-			if err = store.UpdateComposePage(svc.ctx, svc.store, p); err != nil {
+			if err = store.UpdateComposePage(ctx, svc.store, p); err != nil {
 				return err
 			}
 		}
@@ -377,23 +365,23 @@ func (svc page) updater(namespaceID, pageID uint64, action func(...*pageActionPr
 		}
 
 		if p.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(svc.ctx, event.PageAfterUpdate(p, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterUpdate(p, old, ns))
 		} else {
-			err = svc.eventbus.WaitFor(svc.ctx, event.PageAfterDelete(nil, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.PageAfterDelete(nil, old, ns))
 		}
 
 		return err
 	})
 
-	return p, svc.recordAction(svc.ctx, aProps, action, err)
+	return p, svc.recordAction(ctx, aProps, action, err)
 }
 
 // lookup fn() orchestrates page lookup, namespace preload and check
-func (svc page) lookup(namespaceID uint64, lookup func(*pageActionProps) (*types.Page, error)) (p *types.Page, err error) {
+func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pageActionProps) (*types.Page, error)) (p *types.Page, err error) {
 	var aProps = &pageActionProps{page: &types.Page{NamespaceID: namespaceID}}
 
 	err = func() error {
-		if ns, err := loadNamespace(svc.ctx, svc.store, namespaceID); err != nil {
+		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -407,29 +395,29 @@ func (svc page) lookup(namespaceID uint64, lookup func(*pageActionProps) (*types
 
 		aProps.setPage(p)
 
-		if !svc.ac.CanReadPage(svc.ctx, p) {
+		if !svc.ac.CanReadPage(ctx, p) {
 			return PageErrNotAllowedToRead()
 		}
 
-		if err = label.Load(svc.ctx, svc.store, p); err != nil {
+		if err = label.Load(ctx, svc.store, p); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return p, svc.recordAction(svc.ctx, aProps, PageActionLookup, err)
+	return p, svc.recordAction(ctx, aProps, PageActionLookup, err)
 }
 
-func (svc page) uniqueCheck(p *types.Page) (err error) {
+func (svc page) uniqueCheck(ctx context.Context, p *types.Page) (err error) {
 	if p.Handle != "" {
-		if e, _ := store.LookupComposePageByNamespaceIDHandle(svc.ctx, svc.store, p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
+		if e, _ := store.LookupComposePageByNamespaceIDHandle(ctx, svc.store, p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
 			return PageErrHandleNotUnique()
 		}
 	}
 
 	if p.ModuleID > 0 {
-		if e, _ := store.LookupComposePageByNamespaceIDModuleID(svc.ctx, svc.store, p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
+		if e, _ := store.LookupComposePageByNamespaceIDModuleID(ctx, svc.store, p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
 			return PageErrModuleNotFound()
 		}
 	}
@@ -437,7 +425,7 @@ func (svc page) uniqueCheck(p *types.Page) (err error) {
 	return nil
 }
 
-func (svc page) handleUpdate(upd *types.Page) pageUpdateHandler {
+func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, res *types.Page) (changes pageChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return pageUnchanged, PageErrStaleData()
@@ -447,11 +435,11 @@ func (svc page) handleUpdate(upd *types.Page) pageUpdateHandler {
 			return pageUnchanged, PageErrInvalidHandle()
 		}
 
-		if err := svc.uniqueCheck(upd); err != nil {
+		if err := svc.uniqueCheck(ctx, upd); err != nil {
 			return pageUnchanged, err
 		}
 
-		if !svc.ac.CanUpdatePage(svc.ctx, res) {
+		if !svc.ac.CanUpdatePage(ctx, res) {
 			return pageUnchanged, PageErrNotAllowedToUpdate()
 		}
 

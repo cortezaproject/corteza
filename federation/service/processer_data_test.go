@@ -198,49 +198,33 @@ func TestProcesserData_persist(t *testing.T) {
 }
 
 // create success
-func (s testRecordServicePersistSuccess) Create(record *ct.Record) (*ct.Record, error) {
+func (s testRecordServicePersistSuccess) Create(_ context.Context, record *ct.Record) (*ct.Record, error) {
 	return nil, nil
 }
 
-func (s testRecordServicePersistSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+func (s testRecordServicePersistSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{}, ct.RecordFilter{}, nil
 }
 
-func (s testRecordServicePersistSuccess) With(_ context.Context) cs.RecordService {
-	return &testRecordServicePersistSuccess{}
-}
-
 // update success
-func (s testRecordServiceUpdateSuccess) Update(record *ct.Record) (*ct.Record, error) {
+func (s testRecordServiceUpdateSuccess) Update(_ context.Context, record *ct.Record) (*ct.Record, error) {
 	return nil, nil
 }
 
-func (s testRecordServiceUpdateSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+func (s testRecordServiceUpdateSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{&ct.Record{ID: 2}}, ct.RecordFilter{}, nil
 }
 
-func (s testRecordServiceUpdateSuccess) With(_ context.Context) cs.RecordService {
-	return &testRecordServiceUpdateSuccess{}
-}
-
 // delete success
-func (s testRecordServiceDeleteSuccess) DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error {
+func (s testRecordServiceDeleteSuccess) DeleteByID(_ context.Context, namespaceID, moduleID uint64, recordID ...uint64) error {
 	return nil
 }
 
-func (s testRecordServiceDeleteSuccess) Find(filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
+func (s testRecordServiceDeleteSuccess) Find(_ context.Context, filter ct.RecordFilter) (ct.RecordSet, ct.RecordFilter, error) {
 	return ct.RecordSet{&ct.Record{ID: 2, ModuleID: 2, NamespaceID: 2}}, ct.RecordFilter{}, nil
 }
 
-func (s testRecordServiceDeleteSuccess) With(_ context.Context) cs.RecordService {
-	return &testRecordServiceDeleteSuccess{}
-}
-
 // create error
-func (s testRecordServicePersistError) Create(record *ct.Record) (*ct.Record, error) {
+func (s testRecordServicePersistError) Create(_ context.Context, record *ct.Record) (*ct.Record, error) {
 	return nil, errors.New("mocked error")
-}
-
-func (s testRecordServicePersistError) With(_ context.Context) cs.RecordService {
-	return &testRecordServicePersistError{}
 }
