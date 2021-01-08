@@ -45,6 +45,11 @@ type (
 	// This type is auto-generated.
 	MessageSet []*Message
 
+	// MessageAttachmentSet slice of MessageAttachment
+	//
+	// This type is auto-generated.
+	MessageAttachmentSet []*MessageAttachment
+
 	// MessageFlagSet slice of MessageFlag
 	//
 	// This type is auto-generated.
@@ -365,6 +370,36 @@ func (set MessageSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(MessageAttachment) err
+//
+// This function is auto-generated.
+func (set MessageAttachmentSet) Walk(w func(*MessageAttachment) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(MessageAttachment) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set MessageAttachmentSet) Filter(f func(*MessageAttachment) (bool, error)) (out MessageAttachmentSet, err error) {
+	var ok bool
+	out = MessageAttachmentSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

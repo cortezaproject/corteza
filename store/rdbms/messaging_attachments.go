@@ -8,12 +8,9 @@ import (
 func (s Store) convertMessagingAttachmentFilter(f types.AttachmentFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.messagingAttachmentsSelectBuilder()
 
-	if len(f.MessageID) > 0 {
-		//query = query.Where(squirrel.Eq{"att.id": f.MessageID})
-
+	if len(f.AttachmentID) > 0 {
+		query = query.Where(squirrel.Eq{"att.id": f.AttachmentID})
 	}
-
-	// @todo join & filter by message
 
 	return
 }

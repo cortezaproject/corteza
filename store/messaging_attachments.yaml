@@ -25,8 +25,9 @@ lookups:
 search:
   enableSorting: false
   enablePaging: false
+  enableFilterCheckFunction: false
+  customFilterConverter: true
 
 rdbms:
   alias: att
   table: messaging_attachment
-  customFilterConverter: true
