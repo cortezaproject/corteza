@@ -119,7 +119,7 @@ func (svc notification) procEmailRecipients(ctx context.Context, m *gomail.Messa
 
 		if userID, err := strconv.ParseUint(rcpt, 10, 64); err == nil && userID > 0 {
 			// proc <user ID>
-			if user, err := svc.users.FindByID(userID); err != nil {
+			if user, err := svc.users.FindByID(ctx, userID); err != nil {
 				return NotificationErrFailedToLoadUser(aProps).Wrap(err)
 			} else {
 				email = user.Email

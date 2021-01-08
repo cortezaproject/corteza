@@ -3,6 +3,11 @@ package compose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -11,10 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearNamespaces() {
@@ -60,7 +61,7 @@ func TestNamespaceReadByHandle(t *testing.T) {
 	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
 	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
-	nsbh, err := service.DefaultNamespace.With(h.secCtx()).FindByHandle(ns.Slug)
+	nsbh, err := service.DefaultNamespace.FindByHandle(h.secCtx(), ns.Slug)
 
 	h.noError(err)
 	h.a.NotNil(nsbh)

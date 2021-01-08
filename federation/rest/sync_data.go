@@ -90,7 +90,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 		}
 
 		// todo - handle error properly
-		if list, _, err := (cs.Record()).Find(rf); err != nil || len(list) == 0 {
+		if list, _, err := (cs.Record()).Find(ctx, rf); err != nil || len(list) == 0 {
 			continue
 		}
 
@@ -122,7 +122,7 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
-	if users, _, err = ss.DefaultUser.With(ctx).Find(st.UserFilter{}); err != nil {
+	if users, _, err = ss.DefaultUser.Find(ctx, st.UserFilter{}); err != nil {
 		return nil, err
 	}
 
@@ -159,7 +159,7 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
-	list, f, err := (cs.Record()).Find(f)
+	list, f, err := (cs.Record()).Find(ctx, f)
 
 	if err != nil {
 		return nil, err

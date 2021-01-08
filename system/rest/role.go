@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -50,7 +51,7 @@ func (Role) New() *Role {
 }
 
 func (ctrl Role) Read(ctx context.Context, r *request.RoleRead) (interface{}, error) {
-	role, err := ctrl.role.With(ctx).FindByID(r.RoleID)
+	role, err := ctrl.role.FindByID(ctx, r.RoleID)
 	return ctrl.makePayload(ctx, role, err)
 }
 
@@ -74,7 +75,7 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 		return nil, err
 	}
 
-	set, filter, err := ctrl.role.With(ctx).Find(f)
+	set, filter, err := ctrl.role.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -88,13 +89,13 @@ func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}
 		}
 	)
 
-	role, err = ctrl.role.With(ctx).Create(role)
+	role, err = ctrl.role.Create(ctx, role)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, userID := range payload.ParseUint64s(r.Members) {
-		err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
+		err := ctrl.role.MemberAdd(ctx, role.ID, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -113,25 +114,25 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 		}
 	)
 
-	role, err = ctrl.role.With(ctx).Update(role)
+	role, err = ctrl.role.Update(ctx, role)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(r.Members) > 0 {
-		members, err := ctrl.role.With(ctx).MemberList(r.RoleID)
+		members, err := ctrl.role.MemberList(ctx, r.RoleID)
 		if err != nil {
 			return nil, err
 		}
 		for _, member := range members {
-			err := ctrl.role.With(ctx).MemberRemove(role.ID, member.UserID)
+			err := ctrl.role.MemberRemove(ctx, role.ID, member.UserID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		for _, userID := range payload.ParseUint64s(r.Members) {
-			err := ctrl.role.With(ctx).MemberAdd(role.ID, userID)
+			err := ctrl.role.MemberAdd(ctx, role.ID, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -142,19 +143,19 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 }
 
 func (ctrl Role) Delete(ctx context.Context, r *request.RoleDelete) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).Delete(r.RoleID)
+	return api.OK(), ctrl.role.Delete(ctx, r.RoleID)
 }
 
 func (ctrl Role) Undelete(ctx context.Context, r *request.RoleUndelete) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).Undelete(r.RoleID)
+	return api.OK(), ctrl.role.Undelete(ctx, r.RoleID)
 }
 
 func (ctrl Role) Archive(ctx context.Context, r *request.RoleArchive) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).Archive(r.RoleID)
+	return api.OK(), ctrl.role.Archive(ctx, r.RoleID)
 }
 
 func (ctrl Role) Unarchive(ctx context.Context, r *request.RoleUnarchive) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).Unarchive(r.RoleID)
+	return api.OK(), ctrl.role.Unarchive(ctx, r.RoleID)
 }
 
 // deprecated
@@ -168,7 +169,7 @@ func (ctrl Role) Move(ctx context.Context, r *request.RoleMove) (interface{}, er
 }
 
 func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (interface{}, error) {
-	if mm, err := ctrl.role.With(ctx).MemberList(r.RoleID); err != nil {
+	if mm, err := ctrl.role.MemberList(ctx, r.RoleID); err != nil {
 		return nil, err
 	} else {
 		rval := make([]string, len(mm))
@@ -180,11 +181,11 @@ func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (int
 }
 
 func (ctrl Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).MemberAdd(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.MemberAdd(ctx, r.RoleID, r.UserID)
 }
 
 func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {
-	return api.OK(), ctrl.role.With(ctx).MemberRemove(r.RoleID, r.UserID)
+	return api.OK(), ctrl.role.MemberRemove(ctx, r.RoleID, r.UserID)
 }
 
 func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScript) (rsp interface{}, err error) {
@@ -192,7 +193,7 @@ func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScrip
 		role *types.Role
 	)
 
-	if role, err = ctrl.role.With(ctx).FindByID(r.RoleID); err != nil {
+	if role, err = ctrl.role.FindByID(ctx, r.RoleID); err != nil {
 		return
 	}
 

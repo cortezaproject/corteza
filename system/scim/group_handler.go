@@ -3,14 +3,15 @@ package scim
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
-	"net/http"
-	"regexp"
-	"strconv"
 )
 
 type (
@@ -41,7 +42,7 @@ func (h groupsHandler) create(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx      = h.sec(r)
-		svc      = h.svc.With(ctx)
+		svc      = h.svc
 		payload  = &groupResourceRequest{}
 		err      error
 		existing *types.Role
@@ -61,7 +62,7 @@ func (h groupsHandler) create(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if *payload.Name != "" {
-			existing, err = svc.FindByName(*payload.Name)
+			existing, err = svc.FindByName(ctx, *payload.Name)
 			if err != nil && !errors.Is(err, service.RoleErrNotFound()) {
 				sendError(w, err)
 				return
@@ -119,7 +120,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		ctx     = h.sec(r)
-		svc     = h.svc.With(ctx)
+		svc     = h.svc
 		res     = h.lookup(ctx, chi.URLParam(r, "id"), w)
 		payload = &operationsRequest{}
 	)
@@ -192,7 +193,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					memberships[memberId] = true
-					return svc.MemberAdd(res.ID, memberId)
+					return svc.MemberAdd(ctx, res.ID, memberId)
 				})
 
 			case patchOpRemove:
@@ -205,7 +206,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					delete(memberships, memberId)
-					return svc.MemberRemove(res.ID, memberId)
+					return svc.MemberRemove(ctx, res.ID, memberId)
 				})
 
 			default:
@@ -228,7 +229,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 
 func (h groupsHandler) save(ctx context.Context, req *groupResourceRequest, existing *types.Role) (res *types.Role, err error) {
 	var (
-		svc = h.svc.With(ctx)
+		svc = h.svc
 	)
 
 	if existing == nil {
@@ -241,9 +242,9 @@ func (h groupsHandler) save(ctx context.Context, req *groupResourceRequest, exis
 	req.applyTo(res)
 
 	if res.ID > 0 {
-		res, err = svc.Update(res)
+		res, err = svc.Update(ctx, res)
 	} else {
-		res, err = svc.Create(res)
+		res, err = svc.Create(ctx, res)
 	}
 
 	if err != nil {
@@ -256,7 +257,7 @@ func (h groupsHandler) save(ctx context.Context, req *groupResourceRequest, exis
 func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
 	var (
 		ctx = h.sec(r)
-		svc = h.svc.With(ctx)
+		svc = h.svc
 		res = h.lookup(ctx, chi.URLParam(r, "id"), w)
 	)
 
@@ -264,7 +265,7 @@ func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := svc.Delete(res.ID); err != nil {
+	if err := svc.Delete(ctx, res.ID); err != nil {
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 	} else {
 		w.WriteHeader(http.StatusNoContent)
@@ -276,7 +277,7 @@ func (h groupsHandler) delete(w http.ResponseWriter, r *http.Request) {
 // handles errors by writing them to response
 func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWriter) *types.Role {
 	var (
-		svc = h.svc.With(ctx)
+		svc = h.svc
 	)
 
 	if h.externalIdAsPrimary {
@@ -298,7 +299,7 @@ func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWri
 			return nil
 		}
 
-		role, err := svc.FindByID(id)
+		role, err := svc.FindByID(ctx, id)
 		if err != nil {
 			sendError(w, newErrorResponse(http.StatusBadRequest, err))
 			return nil
@@ -313,7 +314,7 @@ func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *ty
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := h.svc.With(ctx).Find(types.RoleFilter{Labels: map[string]string{groupLabel_SCIM_externalId: id}})
+	rr, _, err := h.svc.Find(ctx, types.RoleFilter{Labels: map[string]string{groupLabel_SCIM_externalId: id}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}

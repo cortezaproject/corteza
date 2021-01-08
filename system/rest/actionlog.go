@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -69,7 +70,8 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 		pp[e] = &actionlogActionPayload{Action: ee[e]}
 	}
 
-	err = ctrl.userSvc.With(ctx).Preloader(
+	err = ctrl.userSvc.Preloader(
+		ctx,
 		func(c chan uint64) {
 			for e := range ee {
 				c <- ee[e].ActorID

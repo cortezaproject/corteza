@@ -80,7 +80,7 @@ func TestPageReadByHandle(t *testing.T) {
 	ns := h.makeNamespace("some-namespace")
 	c := h.repoMakePage(ns, "some-page")
 
-	cbh, err := service.DefaultPage.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
+	cbh, err := service.DefaultPage.FindByHandle(h.secCtx(), ns.ID, c.Handle)
 
 	h.noError(err)
 	h.a.NotNil(cbh)

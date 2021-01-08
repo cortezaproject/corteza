@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -9,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestModules(t *testing.T) {
@@ -49,40 +50,39 @@ func TestModules(t *testing.T) {
 		req := require.New(t)
 		svc := module{
 			store:    s,
-			ctx:      context.Background(),
 			ac:       AccessControl(&rbac.ServiceAllowAll{}),
 			eventbus: eventbus.New(),
 		}
-		res, err := svc.Create(&types.Module{Name: "My first module", NamespaceID: namespaceID})
+		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: namespaceID})
 		req.NoError(err)
 		req.NotNil(res)
 
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 
-		res, err = svc.FindByHandle(namespaceID, res.Handle)
+		res, err = svc.FindByHandle(ctx, namespaceID, res.Handle)
 		req.NoError(err)
 		req.NotNil(res)
 
 		res.Name = "Changed"
-		res, err = svc.Update(res)
+		res, err = svc.Update(ctx, res)
 		req.NoError(err)
 		req.NotNil(res)
 		req.NotNil(res.UpdatedAt)
 		req.Equal(res.Name, "Changed")
 
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 		req.Equal(res.Name, "Changed")
 
-		err = svc.DeleteByID(namespaceID, res.ID)
+		err = svc.DeleteByID(ctx, namespaceID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 
 		// this works because we're allowed to do everything
-		res, err = svc.FindByID(namespaceID, res.ID)
+		res, err = svc.FindByID(ctx, namespaceID, res.ID)
 		req.NoError(err)
 		req.NotNil(res)
 		req.NotNil(res.DeletedAt)
@@ -93,7 +93,6 @@ func TestModules(t *testing.T) {
 			req := require.New(t)
 			svc := module{
 				store:    s,
-				ctx:      ctx,
 				ac:       AccessControl(&rbac.ServiceAllowAll{}),
 				eventbus: eventbus.New(),
 			}
@@ -109,7 +108,7 @@ func TestModules(t *testing.T) {
 					mod.Labels[n[i]] = n[i+1]
 				}
 
-				out, err := svc.Create(mod)
+				out, err := svc.Create(ctx, mod)
 
 				req.NoError(err)
 				return out
@@ -117,7 +116,7 @@ func TestModules(t *testing.T) {
 
 			findModules := func(labels map[string]string, IDs []uint64) types.ModuleSet {
 				f := types.ModuleFilter{NamespaceID: namespaceID, Labels: labels, ModuleID: IDs}
-				set, _, err := svc.Find(f)
+				set, _, err := svc.Find(ctx, f)
 				req.NoError(err)
 
 				return set
@@ -156,20 +155,19 @@ func TestModules(t *testing.T) {
 			req := require.New(t)
 			svc := module{
 				store:    s,
-				ctx:      ctx,
 				ac:       AccessControl(&rbac.ServiceAllowAll{}),
 				eventbus: eventbus.New(),
 			}
 
 			findAndReturnLabel := func(id uint64) map[string]string {
-				res, err := svc.FindByID(namespaceID, id)
+				res, err := svc.FindByID(ctx, namespaceID, id)
 				req.NoError(err)
 				req.NotNil(res)
 				return res.Labels
 			}
 
 			// create unlabeled module
-			res, err := svc.Create(&types.Module{Name: "unLabeledIDs", NamespaceID: namespaceID})
+			res, err := svc.Create(ctx, &types.Module{Name: "unLabeledIDs", NamespaceID: namespaceID})
 			req.NoError(err)
 			req.NotNil(res)
 			req.Nil(res.Labels)
@@ -179,7 +177,7 @@ func TestModules(t *testing.T) {
 
 			// update the module with labels
 			res.Labels = map[string]string{"label1": "1st"}
-			res, err = svc.Update(res)
+			res, err = svc.Update(ctx, res)
 			req.NoError(err)
 			req.NotNil(res)
 			req.Contains(res.Labels, "label1")
@@ -187,7 +185,7 @@ func TestModules(t *testing.T) {
 			// must contain the added label
 			req.Contains(findAndReturnLabel(res.ID), "label1")
 
-			res, err = svc.Create(&types.Module{Name: "LabeledIDs", NamespaceID: namespaceID, Labels: map[string]string{"label2": "2nd"}})
+			res, err = svc.Create(ctx, &types.Module{Name: "LabeledIDs", NamespaceID: namespaceID, Labels: map[string]string{"label2": "2nd"}})
 			req.NoError(err)
 			req.NotNil(res)
 			req.Contains(res.Labels, "label2")
@@ -197,14 +195,14 @@ func TestModules(t *testing.T) {
 
 			// update with Labels:nil (should keep labels intact)
 			res.Labels = nil
-			res, err = svc.Update(res)
+			res, err = svc.Update(ctx, res)
 			req.NoError(err)
 
 			req.Contains(findAndReturnLabel(res.ID), "label2")
 
 			// update with Labels:empty-map (should remove all labels)
 			res.Labels = map[string]string{}
-			res, err = svc.Update(res)
+			res, err = svc.Update(ctx, res)
 			req.NoError(err)
 
 			req.Empty(findAndReturnLabel(res.ID))

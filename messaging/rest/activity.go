@@ -36,7 +36,7 @@ func (ctrl *Activity) Send(ctx context.Context, r *request.ActivitySend) (interf
 		return nil, errors.New("can not use reserved values for activity kind")
 	}
 
-	return true, ctrl.event.With(ctx).Activity(&types.Activity{
+	return true, ctrl.event.Activity(ctx, &types.Activity{
 		UserID:    auth.GetIdentityFromContext(ctx).Identity(),
 		ChannelID: r.ChannelID,
 		MessageID: r.MessageID,

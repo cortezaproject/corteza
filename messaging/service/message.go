@@ -14,7 +14,6 @@ import (
 
 type (
 	message struct {
-		ctx     context.Context
 		ac      messageAccessController
 		channel ChannelService
 		store   store.Storer
@@ -31,28 +30,26 @@ type (
 	}
 
 	MessageService interface {
-		With(ctx context.Context) MessageService
+		Find(context.Context, types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
+		FindThreads(context.Context, types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
 
-		Find(types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
-		FindThreads(types.MessageFilter) (types.MessageSet, types.MessageFilter, error)
+		Create(ctx context.Context, messages *types.Message) (*types.Message, error)
+		Update(ctx context.Context, messages *types.Message) (*types.Message, error)
 
-		Create(messages *types.Message) (*types.Message, error)
-		Update(messages *types.Message) (*types.Message, error)
+		CreateWithAvatar(ctx context.Context, message *types.Message, avatar io.Reader) (*types.Message, error)
 
-		CreateWithAvatar(message *types.Message, avatar io.Reader) (*types.Message, error)
+		React(ctx context.Context, messageID uint64, reaction string) error
+		RemoveReaction(ctx context.Context, messageID uint64, reaction string) error
 
-		React(messageID uint64, reaction string) error
-		RemoveReaction(messageID uint64, reaction string) error
+		MarkAsRead(ctx context.Context, channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error)
 
-		MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error)
+		Pin(ctx context.Context, messageID uint64) error
+		RemovePin(ctx context.Context, messageID uint64) error
 
-		Pin(messageID uint64) error
-		RemovePin(messageID uint64) error
+		Bookmark(ctx context.Context, messageID uint64) error
+		RemoveBookmark(ctx context.Context, messageID uint64) error
 
-		Bookmark(messageID uint64) error
-		RemoveBookmark(messageID uint64) error
-
-		Delete(messageID uint64) error
+		Delete(ctx context.Context, messageID uint64) error
 	}
 )
 
@@ -65,64 +62,55 @@ var (
 	mentionsFinder = regexp.MustCompile(mentionRE)
 )
 
-func Message(ctx context.Context) MessageService {
-	return (&message{
+func Message() MessageService {
+	return &message{
 		ac:      DefaultAccessControl,
 		channel: DefaultChannel,
 		store:   DefaultStore,
-	}).With(ctx)
-}
-
-func (svc message) With(ctx context.Context) MessageService {
-	return &message{
-		ctx:     ctx,
-		ac:      svc.ac,
-		channel: svc.channel,
-		store:   svc.store,
-		event:   Event(ctx),
+		event:   DefaultEvent,
 	}
 }
 
-func (svc message) Find(filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
+func (svc message) Find(ctx context.Context, filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
 	f = filter
-	f.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-	if f.ChannelID, err = svc.readableChannels(f); err != nil {
+	f.CurrentUserID = auth.GetIdentityFromContext(ctx).Identity()
+	if f.ChannelID, err = svc.readableChannels(ctx, f); err != nil {
 		return
 	}
 
-	mm, f, err = store.SearchMessagingMessages(svc.ctx, svc.store, f)
+	mm, f, err = store.SearchMessagingMessages(ctx, svc.store, f)
 	if err != nil {
 		return
 	}
 
-	return mm, f, svc.preload(svc.ctx, svc.store, mm)
+	return mm, f, svc.preload(ctx, svc.store, mm)
 }
 
-func (svc message) FindThreads(filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
+func (svc message) FindThreads(ctx context.Context, filter types.MessageFilter) (mm types.MessageSet, f types.MessageFilter, err error) {
 	f = filter
-	f.CurrentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
-	if f.ChannelID, err = svc.readableChannels(f); err != nil {
+	f.CurrentUserID = auth.GetIdentityFromContext(ctx).Identity()
+	if f.ChannelID, err = svc.readableChannels(ctx, f); err != nil {
 		return
 	}
 
-	mm, f, err = store.SearchMessagingThreads(svc.ctx, svc.store, f)
+	mm, f, err = store.SearchMessagingThreads(ctx, svc.store, f)
 	if err != nil {
 		return
 	}
 
-	return mm, f, svc.preload(svc.ctx, svc.store, mm)
+	return mm, f, svc.preload(ctx, svc.store, mm)
 }
 
-func (svc message) CreateWithAvatar(in *types.Message, avatar io.Reader) (*types.Message, error) {
+func (svc message) CreateWithAvatar(ctx context.Context, in *types.Message, avatar io.Reader) (*types.Message, error) {
 	// @todo: avatar
-	return svc.Create(in)
+	return svc.Create(ctx, in)
 }
 
 // Returns list of readable channels
 //
 // Either all (when len(f.ChannelID) == 0) or subset of channel IDs (from f.ChannelID)
-func (svc message) readableChannels(f types.MessageFilter) ([]uint64, error) {
-	cc, _, err := svc.channel.With(svc.ctx).Find(types.ChannelFilter{
+func (svc message) readableChannels(ctx context.Context, f types.MessageFilter) ([]uint64, error) {
+	cc, _, err := svc.channel.Find(ctx, types.ChannelFilter{
 		CurrentUserID:  f.CurrentUserID,
 		ChannelID:      f.ChannelID,
 		IncludeDeleted: true,
@@ -140,7 +128,7 @@ func (svc message) readableChannels(f types.MessageFilter) ([]uint64, error) {
 	return cc.IDs(), nil
 }
 
-func (svc message) Create(msg *types.Message) (*types.Message, error) {
+func (svc message) Create(ctx context.Context, msg *types.Message) (*types.Message, error) {
 	msg.ID = nextID()
 	msg.CreatedAt = *now()
 	msg.Message = strings.TrimSpace(msg.Message)
@@ -153,10 +141,10 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 
 	// keep pre-existing user id set
 	if msg.UserID == 0 {
-		msg.UserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		msg.UserID = auth.GetIdentityFromContext(ctx).Identity()
 	}
 
-	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// Broadcast queue
 		var bq = types.MessageSet{}
 		var ch *types.Channel
@@ -212,14 +200,14 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 
 		if msg.ChannelID == 0 {
 			return fmt.Errorf("channelID missing")
-		} else if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
+		} else if ch, err = svc.findChannelByID(ctx, msg.ChannelID); err != nil {
 			return
 		}
 
 		if msg.ReplyTo > 0 && !svc.ac.CanReplyMessage(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
-		if !svc.ac.CanSendMessage(svc.ctx, ch) {
+		if !svc.ac.CanSendMessage(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
@@ -232,14 +220,14 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 			return
 		}
 
-		svc.sendNotifications(msg, mentions)
+		svc.sendNotifications(ctx, msg, mentions)
 
 		// Count unreads in the background and send updates to all users
 		if err = svc.countUnreads(ctx, s, ch, msg, 0); err != nil {
 			return
 		}
 
-		return svc.sendEvent(append(bq, msg)...)
+		return svc.sendEvent(ctx, append(bq, msg)...)
 	})
 
 	if err != nil {
@@ -249,7 +237,7 @@ func (svc message) Create(msg *types.Message) (*types.Message, error) {
 	return msg, err
 }
 
-func (svc message) Update(upd *types.Message) (msg *types.Message, err error) {
+func (svc message) Update(ctx context.Context, upd *types.Message) (msg *types.Message, err error) {
 	if upd.ID == 0 {
 		return nil, ErrInvalidID.withStack()
 	}
@@ -262,12 +250,12 @@ func (svc message) Update(upd *types.Message) (msg *types.Message, err error) {
 		return nil, fmt.Errorf("message length (%d characters) too long (max: %d)", l, settingsMessageBodyLength)
 	}
 
-	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var ch *types.Channel
 
-		if ch, err = svc.findChannelByID(upd.ChannelID); err != nil {
+		if ch, err = svc.findChannelByID(ctx, upd.ChannelID); err != nil {
 			return err
 		} else if !svc.ac.CanReadChannel(ctx, ch) {
 			return ErrNoPermissions.withStack()
@@ -302,7 +290,7 @@ func (svc message) Update(upd *types.Message) (msg *types.Message, err error) {
 			return
 		}
 
-		return svc.sendEvent(msg)
+		return svc.sendEvent(ctx, msg)
 	})
 
 	if err != nil {
@@ -312,12 +300,12 @@ func (svc message) Update(upd *types.Message) (msg *types.Message, err error) {
 	return msg, err
 }
 
-func (svc message) Delete(messageID uint64) (err error) {
-	var currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+func (svc message) Delete(ctx context.Context, messageID uint64) (err error) {
+	var currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 
 	_ = currentUserID
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// Broadcast queue
 		var bq = types.MessageSet{}
 		var deletedMsg, original *types.Message
@@ -330,15 +318,15 @@ func (svc message) Delete(messageID uint64) (err error) {
 
 		deletedMsg.DeletedAt = now()
 
-		if ch, err = svc.findChannelByID(deletedMsg.ChannelID); err != nil {
+		if ch, err = svc.findChannelByID(ctx, deletedMsg.ChannelID); err != nil {
 			return err
-		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
+		} else if !svc.ac.CanReadChannel(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
-		if deletedMsg.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(svc.ctx, ch) {
+		if deletedMsg.UserID == currentUserID && !svc.ac.CanUpdateOwnMessages(ctx, ch) {
 			return ErrNoPermissions.withStack()
-		} else if deletedMsg.UserID != currentUserID && !svc.ac.CanUpdateMessages(svc.ctx, ch) {
+		} else if deletedMsg.UserID != currentUserID && !svc.ac.CanUpdateMessages(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
@@ -378,7 +366,7 @@ func (svc message) Delete(messageID uint64) (err error) {
 			return
 		}
 
-		return svc.sendEvent(append(bq, deletedMsg)...)
+		return svc.sendEvent(ctx, append(bq, deletedMsg)...)
 	})
 
 	return
@@ -387,23 +375,23 @@ func (svc message) Delete(messageID uint64) (err error) {
 // MarkAsRead marks channel/thread as read
 //
 // If lastReadMessageID is set, it uses that message as last read message
-func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error) {
+func (svc message) MarkAsRead(ctx context.Context, channelID, threadID, lastReadMessageID uint64) (uint64, uint32, uint32, error) {
 	var (
-		currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 
 		count       uint32
 		threadCount uint32
 		err         error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var ch *types.Channel
 		var thread *types.Message
 		var lastMessage *types.Message
 
-		if ch, err = svc.findChannelByID(channelID); err != nil {
+		if ch, err = svc.findChannelByID(ctx, channelID); err != nil {
 			return err
-		} else if !svc.ac.CanReadChannel(svc.ctx, ch) {
+		} else if !svc.ac.CanReadChannel(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		} else if !ch.IsValid() {
 			return fmt.Errorf("invalid channel")
@@ -488,39 +476,39 @@ func (svc message) MarkAsRead(channelID, threadID, lastReadMessageID uint64) (ui
 }
 
 // React on a message with an emoji
-func (svc message) React(messageID uint64, reaction string) error {
-	return svc.flag(messageID, reaction, false)
+func (svc message) React(ctx context.Context, messageID uint64, reaction string) error {
+	return svc.flag(ctx, messageID, reaction, false)
 }
 
 // Remove reaction on a message
-func (svc message) RemoveReaction(messageID uint64, reaction string) error {
-	return svc.flag(messageID, reaction, true)
+func (svc message) RemoveReaction(ctx context.Context, messageID uint64, reaction string) error {
+	return svc.flag(ctx, messageID, reaction, true)
 }
 
 // Pin message to the channel
-func (svc message) Pin(messageID uint64) error {
-	return svc.flag(messageID, types.MessageFlagPinnedToChannel, false)
+func (svc message) Pin(ctx context.Context, messageID uint64) error {
+	return svc.flag(ctx, messageID, types.MessageFlagPinnedToChannel, false)
 }
 
 // Remove pin from message
-func (svc message) RemovePin(messageID uint64) error {
-	return svc.flag(messageID, types.MessageFlagPinnedToChannel, true)
+func (svc message) RemovePin(ctx context.Context, messageID uint64) error {
+	return svc.flag(ctx, messageID, types.MessageFlagPinnedToChannel, true)
 }
 
 // Bookmark message (private)
-func (svc message) Bookmark(messageID uint64) error {
-	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, false)
+func (svc message) Bookmark(ctx context.Context, messageID uint64) error {
+	return svc.flag(ctx, messageID, types.MessageFlagBookmarkedMessage, false)
 }
 
 // Remove bookmark message (private)
-func (svc message) RemoveBookmark(messageID uint64) error {
-	return svc.flag(messageID, types.MessageFlagBookmarkedMessage, true)
+func (svc message) RemoveBookmark(ctx context.Context, messageID uint64) error {
+	return svc.flag(ctx, messageID, types.MessageFlagBookmarkedMessage, true)
 }
 
 // React on a message with an emoji
-func (svc message) flag(messageID uint64, flag string, remove bool) (err error) {
+func (svc message) flag(ctx context.Context, messageID uint64, flag string, remove bool) (err error) {
 	var (
-		currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 		flagOwnerID   = currentUserID
 	)
 
@@ -539,7 +527,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 		flagOwnerID = 0
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
 			ff  types.MessageFlagSet
 			f   *types.MessageFlag
@@ -571,15 +559,15 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 			return
 		}
 
-		if ch, err = svc.findChannelByID(msg.ChannelID); err != nil {
+		if ch, err = svc.findChannelByID(ctx, msg.ChannelID); err != nil {
 			return
 		}
 
-		if !svc.ac.CanReadChannel(svc.ctx, ch) {
+		if !svc.ac.CanReadChannel(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
-		if f != nil && f.IsReaction() && !svc.ac.CanReactMessage(svc.ctx, ch) {
+		if f != nil && f.IsReaction() && !svc.ac.CanReactMessage(ctx, ch) {
 			return ErrNoPermissions.withStack()
 		}
 
@@ -608,7 +596,7 @@ func (svc message) flag(messageID uint64, flag string, remove bool) (err error) 
 			return
 		}
 
-		_ = svc.sendFlagEvent(ff...)
+		_ = svc.sendFlagEvent(ctx, ff...)
 		return
 	})
 
@@ -764,13 +752,13 @@ func (message) preloadThreadParticipants(ctx context.Context, s store.Storer, mm
 }
 
 // Sends message to event loop
-func (svc message) sendEvent(mm ...*types.Message) (err error) {
-	if err = svc.preload(svc.ctx, svc.store, mm); err != nil {
+func (svc message) sendEvent(ctx context.Context, mm ...*types.Message) (err error) {
+	if err = svc.preload(ctx, svc.store, mm); err != nil {
 		return
 	}
 
 	for _, msg := range mm {
-		if err = svc.event.Message(msg); err != nil {
+		if err = svc.event.Message(ctx, msg); err != nil {
 			return
 		}
 	}
@@ -781,7 +769,7 @@ func (svc message) sendEvent(mm ...*types.Message) (err error) {
 // Generates and sends notifications from the new message
 //
 //
-func (svc message) sendNotifications(message *types.Message, mentions types.MentionSet) {
+func (svc message) sendNotifications(ctx context.Context, message *types.Message, mentions types.MentionSet) {
 	// @todo implementation
 }
 
@@ -853,13 +841,13 @@ func (svc message) countUnreads(ctx context.Context, s store.Storer, ch *types.C
 	}
 
 	// This is a reply, make sure we fetch the new stats about unread replies and push them to users
-	return svc.event.UnreadCounters(uuBase)
+	return svc.event.UnreadCounters(ctx, uuBase)
 }
 
 // Sends message to event loop
-func (svc message) sendFlagEvent(ff ...*types.MessageFlag) (err error) {
+func (svc message) sendFlagEvent(ctx context.Context, ff ...*types.MessageFlag) (err error) {
 	for _, f := range ff {
-		if err = svc.event.MessageFlag(f); err != nil {
+		if err = svc.event.MessageFlag(ctx, f); err != nil {
 			return
 		}
 	}
@@ -916,15 +904,15 @@ func (svc message) updateMentions(ctx context.Context, s store.Storer, messageID
 }
 
 // findChannelByID loads channel and it's members
-func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err error) {
+func (svc message) findChannelByID(ctx context.Context, channelID uint64) (ch *types.Channel, err error) {
 	var (
-		currentUserID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		currentUserID = auth.GetIdentityFromContext(ctx).Identity()
 		mm            types.ChannelMemberSet
 	)
 
-	if ch, err = svc.channel.With(svc.ctx).FindByID(channelID); err != nil {
+	if ch, err = svc.channel.FindByID(ctx, channelID); err != nil {
 		return nil, err
-	} else if mm, _, err = store.SearchMessagingChannelMembers(svc.ctx, svc.store, types.ChannelMemberFilterChannels(ch.ID)); err != nil {
+	} else if mm, _, err = store.SearchMessagingChannelMembers(ctx, svc.store, types.ChannelMemberFilterChannels(ch.ID)); err != nil {
 		return nil, err
 	} else {
 		ch.Members = mm.AllMemberIDs()
@@ -933,5 +921,3 @@ func (svc message) findChannelByID(channelID uint64) (ch *types.Channel, err err
 
 	return
 }
-
-var _ MessageService = &message{}

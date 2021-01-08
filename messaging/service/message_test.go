@@ -1,22 +1,25 @@
 package service
 
 import (
-	"strings"
-	"testing"
-
+	"context"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/stretchr/testify/require"
+	"strings"
+	"testing"
 )
 
 func TestMessageLength(t *testing.T) {
-	svc := message{}
-	e := func(out *types.Message, err error) error { return err }
+	var (
+		ctx = context.Background()
+		svc = message{}
+		e   = func(out *types.Message, err error) error { return err }
+	)
 
-	require.True(t, e(svc.Create(&types.Message{})) != nil, "Should not allow to create empty message")
+	require.True(t, e(svc.Create(ctx, &types.Message{})) != nil, "Should not allow to create empty message")
 
 	if settingsMessageBodyLength > 0 {
 		longText := strings.Repeat("X", settingsMessageBodyLength+1)
-		require.True(t, e(svc.Create(&types.Message{Message: longText})) != nil, "Should not allow to create message with really long text")
+		require.True(t, e(svc.Create(ctx, &types.Message{Message: longText})) != nil, "Should not allow to create message with really long text")
 	}
 }
 

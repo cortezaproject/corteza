@@ -463,7 +463,7 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 	// elevate permissions for user lookup & creation!
 	ctx = auth.SetSuperUserContext(ctx)
 
-	u, err := svc.sysUser.With(ctx).FindByHandle(uHandle)
+	u, err := svc.sysUser.FindByHandle(ctx, uHandle)
 	if err == nil {
 		// Reuse existing user
 		return u, nil
@@ -478,19 +478,19 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 		AddFederationLabel(user, "federation", n.BaseURL)
 
 		// Create a user to service this node
-		r, err := service.DefaultRole.With(ctx).FindByHandle("federation")
+		r, err := service.DefaultRole.FindByHandle(ctx, "federation")
 
 		if err != nil {
 			return nil, err
 		}
 
-		u, err = svc.sysUser.With(ctx).Create(user)
+		u, err = svc.sysUser.Create(ctx, user)
 
 		if err != nil {
 			return nil, err
 		}
 
-		if err = service.DefaultRole.With(ctx).MemberAdd(r.ID, u.ID); err != nil {
+		if err = service.DefaultRole.MemberAdd(ctx, r.ID, u.ID); err != nil {
 			return nil, err
 		}
 

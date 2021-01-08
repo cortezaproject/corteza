@@ -28,7 +28,7 @@ func (Search) New() *Search {
 }
 
 func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (interface{}, error) {
-	mm, _, err := ctrl.svc.msg.With(ctx).Find(types.MessageFilter{
+	mm, _, err := ctrl.svc.msg.Find(ctx, types.MessageFilter{
 		ChannelID:      payload.ParseUint64s(r.ChannelID),
 		AfterID:        r.AfterMessageID,
 		BeforeID:       r.BeforeMessageID,
@@ -48,7 +48,7 @@ func (ctrl *Search) Messages(ctx context.Context, r *request.SearchMessages) (in
 }
 
 func (ctrl *Search) Threads(ctx context.Context, r *request.SearchThreads) (interface{}, error) {
-	mm, _, err := ctrl.svc.msg.With(ctx).FindThreads(types.MessageFilter{
+	mm, _, err := ctrl.svc.msg.FindThreads(ctx, types.MessageFilter{
 		ChannelID: payload.ParseUint64s(r.ChannelID),
 		Limit:     r.Limit,
 

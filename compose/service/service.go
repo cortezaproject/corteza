@@ -189,7 +189,7 @@ func RegisterIteratorProviders() {
 
 			if nsLookup, has := f["namespace"]; !has {
 				return fmt.Errorf("namespace for record iteration filter not defined")
-			} else if ns, err := DefaultNamespace.With(ctx).FindByAny(nsLookup); err != nil {
+			} else if ns, err := DefaultNamespace.FindByAny(ctx, nsLookup); err != nil {
 				return err
 			} else {
 				rf.NamespaceID = ns.ID
@@ -197,13 +197,13 @@ func RegisterIteratorProviders() {
 
 			if mLookup, has := f["module"]; !has {
 				return fmt.Errorf("module for record iteration filter not defined")
-			} else if m, err := DefaultModule.With(ctx).FindByAny(rf.NamespaceID, mLookup); err != nil {
+			} else if m, err := DefaultModule.FindByAny(ctx, rf.NamespaceID, mLookup); err != nil {
 				return err
 			} else {
 				rf.ModuleID = m.ID
 			}
 
-			return DefaultRecord.With(ctx).Iterator(rf, h, action)
+			return DefaultRecord.Iterator(ctx, rf, h, action)
 		},
 	)
 }

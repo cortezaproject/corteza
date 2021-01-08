@@ -77,22 +77,22 @@ func (s *Sync) FetchUrl(ctx context.Context, url string) (io.Reader, error) {
 
 // CreateRecord wraps the compose Record service Create
 func (s *Sync) CreateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
-	return s.composeRecordService.With(ctx).Create(rec)
+	return s.composeRecordService.Create(ctx, rec)
 }
 
 // UpdateRecord wraps the compose Record service Update
 func (s *Sync) UpdateRecord(ctx context.Context, rec *ct.Record) (*ct.Record, error) {
-	return s.composeRecordService.With(ctx).Update(rec)
+	return s.composeRecordService.Update(ctx, rec)
 }
 
 // DeleteRecord wraps the compose Record service Update
 func (s *Sync) DeleteRecord(ctx context.Context, rec *ct.Record) error {
-	return s.composeRecordService.With(ctx).DeleteByID(rec.NamespaceID, rec.ModuleID, rec.ID)
+	return s.composeRecordService.DeleteByID(ctx, rec.NamespaceID, rec.ModuleID, rec.ID)
 }
 
 // FindRecord find the record via federation label
 func (s *Sync) FindRecords(ctx context.Context, filter ct.RecordFilter) (set ct.RecordSet, err error) {
-	set, _, err = s.composeRecordService.With(ctx).Find(filter)
+	set, _, err = s.composeRecordService.Find(ctx, filter)
 	return
 }
 
@@ -210,12 +210,12 @@ func (s *Sync) LoadUserWithRoles(ctx context.Context, nodeID uint64) (*st.User, 
 	)
 
 	// get the federated user, associated for this node
-	if u, err = s.systemUserService.With(ctx).FindByHandle(fmt.Sprintf("federation_%d", nodeID)); err != nil {
+	if u, err = s.systemUserService.FindByHandle(ctx, fmt.Sprintf("federation_%d", nodeID)); err != nil {
 		return nil, err
 	}
 
 	// attach the roles
-	rr, _, err := s.systemRoleService.With(ctx).Find(st.RoleFilter{MemberID: u.ID})
+	rr, _, err := s.systemRoleService.Find(ctx, st.RoleFilter{MemberID: u.ID})
 
 	if err != nil {
 		return nil, err

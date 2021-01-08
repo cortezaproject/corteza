@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -72,7 +73,7 @@ func (ctrl Namespace) List(ctx context.Context, r *request.NamespaceList) (inter
 		return nil, err
 	}
 
-	set, filter, err := ctrl.namespace.With(ctx).Find(f)
+	set, filter, err := ctrl.namespace.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -91,12 +92,12 @@ func (ctrl Namespace) Create(ctx context.Context, r *request.NamespaceCreate) (i
 		return nil, err
 	}
 
-	ns, err = ctrl.namespace.With(ctx).Create(ns)
+	ns, err = ctrl.namespace.Create(ctx, ns)
 	return ctrl.makePayload(ctx, ns, err)
 }
 
 func (ctrl Namespace) Read(ctx context.Context, r *request.NamespaceRead) (interface{}, error) {
-	ns, err := ctrl.namespace.With(ctx).FindByID(r.NamespaceID)
+	ns, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
 	return ctrl.makePayload(ctx, ns, err)
 }
 
@@ -117,17 +118,17 @@ func (ctrl Namespace) Update(ctx context.Context, r *request.NamespaceUpdate) (i
 		return nil, err
 	}
 
-	ns, err = ctrl.namespace.With(ctx).Update(ns)
+	ns, err = ctrl.namespace.Update(ctx, ns)
 	return ctrl.makePayload(ctx, ns, err)
 }
 
 func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (interface{}, error) {
-	_, err := ctrl.namespace.With(ctx).FindByID(r.NamespaceID)
+	_, err := ctrl.namespace.FindByID(ctx, r.NamespaceID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.OK(), ctrl.namespace.With(ctx).DeleteByID(r.NamespaceID)
+	return api.OK(), ctrl.namespace.DeleteByID(ctx, r.NamespaceID)
 }
 
 func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTriggerScript) (rsp interface{}, err error) {
@@ -135,7 +136,7 @@ func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTr
 		namespace *types.Namespace
 	)
 
-	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+	if namespace, err = ctrl.namespace.FindByID(ctx, r.NamespaceID); err != nil {
 		return
 	}
 

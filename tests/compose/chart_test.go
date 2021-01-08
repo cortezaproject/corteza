@@ -3,6 +3,11 @@ package compose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -10,10 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearCharts() {
@@ -68,7 +69,7 @@ func TestChartReadByHandle(t *testing.T) {
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeChart(ns, "some-chart")
 
-	cbh, err := service.DefaultChart.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
+	cbh, err := service.DefaultChart.FindByHandle(h.secCtx(), ns.ID, c.Handle)
 
 	h.noError(err)
 	h.a.NotNil(cbh)

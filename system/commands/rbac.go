@@ -2,6 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"sort"
+
 	cmpsvc "github.com/cortezaproject/corteza-server/compose/service"
 	cmptyp "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -11,8 +14,6 @@ import (
 	systyp "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
-	"sort"
 )
 
 // Temporary solution, highly unstable, will change in the future!
@@ -92,11 +93,11 @@ func rbacCheck(app serviceInitializer) *cobra.Command {
 
 			cli.HandleError(yaml.NewDecoder(fh).Decode(r))
 
-			p.roles, _, err = syssvc.DefaultRole.With(ctx).Find(systyp.RoleFilter{})
+			p.roles, _, err = syssvc.DefaultRole.Find(ctx, systyp.RoleFilter{})
 			cli.HandleError(err)
-			p.namespaces, _, err = cmpsvc.DefaultNamespace.With(ctx).Find(cmptyp.NamespaceFilter{})
+			p.namespaces, _, err = cmpsvc.DefaultNamespace.Find(ctx, cmptyp.NamespaceFilter{})
 			cli.HandleError(err)
-			p.modules, _, err = cmpsvc.DefaultModule.With(ctx).Find(cmptyp.ModuleFilter{})
+			p.modules, _, err = cmpsvc.DefaultModule.Find(ctx, cmptyp.ModuleFilter{})
 			cli.HandleError(err)
 
 			fmt.Printf("Preloaded %d roles(s)\n", len(p.roles))

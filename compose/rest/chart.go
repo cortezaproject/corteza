@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -66,7 +67,7 @@ func (ctrl Chart) List(ctx context.Context, r *request.ChartList) (interface{}, 
 		return nil, err
 	}
 
-	set, filter, err := ctrl.chart.With(ctx).Find(f)
+	set, filter, err := ctrl.chart.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -84,12 +85,12 @@ func (ctrl Chart) Create(ctx context.Context, r *request.ChartCreate) (interface
 			return nil, err
 		}
 	}
-	mod, err = ctrl.chart.With(ctx).Create(mod)
+	mod, err = ctrl.chart.Create(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl Chart) Read(ctx context.Context, r *request.ChartRead) (interface{}, error) {
-	mod, err := ctrl.chart.With(ctx).FindByID(r.NamespaceID, r.ChartID)
+	mod, err := ctrl.chart.FindByID(ctx, r.NamespaceID, r.ChartID)
 	return ctrl.makePayload(ctx, mod, err)
 
 }
@@ -112,17 +113,17 @@ func (ctrl Chart) Update(ctx context.Context, r *request.ChartUpdate) (interface
 			return nil, err
 		}
 	}
-	mod, err = ctrl.chart.With(ctx).Update(mod)
+	mod, err = ctrl.chart.Update(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl Chart) Delete(ctx context.Context, r *request.ChartDelete) (interface{}, error) {
-	_, err := ctrl.chart.With(ctx).FindByID(r.NamespaceID, r.ChartID)
+	_, err := ctrl.chart.FindByID(ctx, r.NamespaceID, r.ChartID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.OK(), ctrl.chart.With(ctx).DeleteByID(r.NamespaceID, r.ChartID)
+	return api.OK(), ctrl.chart.DeleteByID(ctx, r.NamespaceID, r.ChartID)
 }
 
 func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*chartPayload, error) {

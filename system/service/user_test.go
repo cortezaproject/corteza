@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"testing"
+
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -10,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 // Mock auth service with nil for current time, dummy provider validator and mock db
@@ -74,7 +75,7 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		// Masking disabled, expecting to fetch both users
 		svc.settings.Privacy.Mask.Email = false
 		svc.settings.Privacy.Mask.Name = false
-		set, _, err = svc.With(ctx).Find(types.UserFilter{Query: "email"})
+		set, _, err = svc.Find(ctx, types.UserFilter{Query: "email"})
 		req.NoError(err)
 		req.Len(set, 2)
 		req.NotEqual(set[0].Email, maskPrivateDataEmail)
@@ -86,7 +87,7 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		svc.settings.Privacy.Mask.Email = true
 		svc.settings.Privacy.Mask.Name = true
 
-		set, _, err = svc.With(ctx).Find(types.UserFilter{Query: "email"})
+		set, _, err = svc.Find(ctx, types.UserFilter{Query: "email"})
 		req.NoError(err)
 		req.Len(set, 1)
 	})
@@ -96,7 +97,7 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		svc.settings.Privacy.Mask.Email = true
 		svc.settings.Privacy.Mask.Name = true
 
-		set, _, err = svc.With(ctx).Find(types.UserFilter{Email: "email.masked@us.er"})
+		set, _, err = svc.Find(ctx, types.UserFilter{Email: "email.masked@us.er"})
 		req.NoError(err)
 		req.Len(set, 0)
 	})

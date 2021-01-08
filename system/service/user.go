@@ -2,6 +2,12 @@ package service
 
 import (
 	"context"
+	"io"
+	"net/mail"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -12,11 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"io"
-	"net/mail"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -26,8 +27,6 @@ const (
 
 type (
 	user struct {
-		ctx context.Context
-
 		actionlog actionlog.Recorder
 
 		settings *types.AppSettings
@@ -67,29 +66,27 @@ type (
 	userSetter   func(*types.User) error
 
 	UserService interface {
-		With(ctx context.Context) UserService
-
-		FindByUsername(username string) (*types.User, error)
-		FindByEmail(email string) (*types.User, error)
-		FindByHandle(handle string) (*types.User, error)
-		FindByID(id uint64) (*types.User, error)
+		FindByUsername(ctx context.Context, username string) (*types.User, error)
+		FindByEmail(ctx context.Context, email string) (*types.User, error)
+		FindByHandle(ctx context.Context, handle string) (*types.User, error)
+		FindByID(ctx context.Context, id uint64) (*types.User, error)
 		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
-		Find(types.UserFilter) (types.UserSet, types.UserFilter, error)
+		Find(context.Context, types.UserFilter) (types.UserSet, types.UserFilter, error)
 
-		Create(input *types.User) (*types.User, error)
-		Update(mod *types.User) (*types.User, error)
+		Create(ctx context.Context, input *types.User) (*types.User, error)
+		Update(ctx context.Context, mod *types.User) (*types.User, error)
 
-		CreateWithAvatar(input *types.User, avatar io.Reader) (*types.User, error)
-		UpdateWithAvatar(mod *types.User, avatar io.Reader) (*types.User, error)
+		CreateWithAvatar(ctx context.Context, input *types.User, avatar io.Reader) (*types.User, error)
+		UpdateWithAvatar(ctx context.Context, mod *types.User, avatar io.Reader) (*types.User, error)
 
-		Delete(id uint64) error
-		Suspend(id uint64) error
-		Unsuspend(id uint64) error
-		Undelete(id uint64) error
+		Delete(ctx context.Context, id uint64) error
+		Suspend(ctx context.Context, id uint64) error
+		Unsuspend(ctx context.Context, id uint64) error
+		Undelete(ctx context.Context, id uint64) error
 
-		SetPassword(userID uint64, password string) error
+		SetPassword(ctx context.Context, userID uint64, password string) error
 
-		Preloader(userIdGetter, types.UserFilter, userSetter) error
+		Preloader(context.Context, userIdGetter, types.UserFilter, userSetter) error
 	}
 )
 
@@ -105,25 +102,10 @@ func User(ctx context.Context) UserService {
 		actionlog: DefaultActionlog,
 
 		subscription: CurrentSubscription,
-	}).With(ctx)
+	})
 }
 
-func (svc user) With(ctx context.Context) UserService {
-	return &user{
-		ctx: ctx,
-
-		actionlog: svc.actionlog,
-
-		ac:           svc.ac,
-		eventbus:     svc.eventbus,
-		settings:     svc.settings,
-		auth:         svc.auth,
-		subscription: svc.subscription,
-		store:        svc.store,
-	}
-}
-
-func (svc user) FindByID(userID uint64) (u *types.User, err error) {
+func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
@@ -143,86 +125,90 @@ func (svc user) FindByID(userID uint64) (u *types.User, err error) {
 			return nil
 		}
 
-		if u, err = svc.proc(store.LookupUserByID(svc.ctx, svc.store, userID)); err != nil {
+		u, err = store.LookupUserByID(ctx, svc.store, userID)
+		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}
 
 		uaProps.setUser(u)
 
-		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
+	return u, svc.recordAction(ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByEmail(email string) (u *types.User, err error) {
+func (svc user) FindByEmail(ctx context.Context, email string) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{user: &types.User{Email: email}}
 	)
 
 	err = func() error {
-		if u, err = svc.proc(store.LookupUserByEmail(svc.ctx, svc.store, email)); err != nil {
+		u, err = store.LookupUserByEmail(ctx, svc.store, email)
+		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}
 
 		uaProps.setUser(u)
 
-		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
+	return u, svc.recordAction(ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByUsername(username string) (u *types.User, err error) {
+func (svc user) FindByUsername(ctx context.Context, username string) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{user: &types.User{Username: username}}
 	)
 
 	err = func() error {
-		if u, err = svc.proc(store.LookupUserByUsername(svc.ctx, svc.store, username)); err != nil {
+		u, err = store.LookupUserByUsername(ctx, svc.store, username)
+		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}
 
 		uaProps.setUser(u)
 
-		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
+	return u, svc.recordAction(ctx, uaProps, UserActionLookup, err)
 }
 
-func (svc user) FindByHandle(handle string) (u *types.User, err error) {
+func (svc user) FindByHandle(ctx context.Context, handle string) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{user: &types.User{Handle: handle}}
 	)
 
 	err = func() error {
-		if u, err = svc.proc(store.LookupUserByHandle(svc.ctx, svc.store, handle)); err != nil {
+		u, err = store.LookupUserByHandle(ctx, svc.store, handle)
+		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
 		}
 
 		uaProps.setUser(u)
 
-		if err = label.Load(svc.ctx, svc.store, u); err != nil {
+		if err = label.Load(ctx, svc.store, u); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionLookup, err)
+	return u, svc.recordAction(ctx, uaProps, UserActionLookup, err)
 }
 
 // FindByAny finds user by given identifier (context, id, handle, email)
@@ -238,16 +224,16 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 	}
 
 	if ID, ok := identifier.(uint64); ok {
-		u, err = svc.With(ctx).FindByID(ID)
+		u, err = svc.FindByID(ctx, ID)
 	} else if identity, ok := identifier.(internalAuth.Identifiable); ok {
-		u, err = svc.With(ctx).FindByID(identity.Identity())
+		u, err = svc.FindByID(ctx, identity.Identity())
 	} else if strIdentifier, ok := identifier.(string); ok {
 		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
-			u, err = svc.With(ctx).FindByID(ID)
+			u, err = svc.FindByID(ctx, ID)
 		} else if strings.Contains(strIdentifier, "@") {
-			u, err = svc.With(ctx).FindByEmail(strIdentifier)
+			u, err = svc.FindByEmail(ctx, strIdentifier)
 		} else {
-			u, err = svc.With(ctx).FindByHandle(strIdentifier)
+			u, err = svc.FindByHandle(ctx, strIdentifier)
 		}
 	} else {
 		err = UserErrInvalidID()
@@ -257,7 +243,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return
 	}
 
-	rr, _, err := store.SearchRoles(svc.ctx, svc.store, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{MemberID: u.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +252,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 	return
 }
 
-func (svc user) proc(u *types.User, err error) (*types.User, error) {
+func (svc user) proc(ctx context.Context, u *types.User, err error) (*types.User, error) {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil, UserErrNotFound()
@@ -275,7 +261,7 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 		return nil, err
 	}
 
-	svc.handlePrivateData(svc.ctx, u)
+	svc.handlePrivateData(ctx, u)
 
 	return u, nil
 }
@@ -283,7 +269,7 @@ func (svc user) proc(u *types.User, err error) (*types.User, error) {
 // Find interacts with backend storage and
 //
 // @todo rename to Search() for consistency
-func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFilter, err error) {
+func (svc user) Find(ctx context.Context, filter types.UserFilter) (uu types.UserSet, f types.UserFilter, err error) {
 	var (
 		uaProps = &userActionProps{filter: &filter}
 	)
@@ -292,16 +278,16 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 	filter.MaskedEmailsEnabled = svc.settings.Privacy.Mask.Email
 	filter.MaskedNamesEnabled = svc.settings.Privacy.Mask.Name
 	filter.Check = func(res *types.User) (bool, error) {
-		if !svc.ac.CanReadUser(svc.ctx, res) {
+		if !svc.ac.CanReadUser(ctx, res) {
 			return false, nil
 		}
 
-		if svc.maskEmail(svc.ctx, res) && ((len(filter.Query) > 0 && strings.HasPrefix(res.Email, filter.Query)) || res.Email == filter.Email) {
+		if svc.maskEmail(ctx, res) && ((len(filter.Query) > 0 && strings.HasPrefix(res.Email, filter.Query)) || res.Email == filter.Email) {
 			// user email matched but it will be masked later on, so exclude it to prevent data probing
 			return false, nil
 		}
 
-		if svc.maskName(svc.ctx, res) && (len(filter.Query) > 0 && strings.HasPrefix(res.Name, filter.Query)) {
+		if svc.maskName(ctx, res) && (len(filter.Query) > 0 && strings.HasPrefix(res.Name, filter.Query)) {
 			// user mail matched but it will be masked later on, so exclude it to prevent data probing
 			return false, nil
 		}
@@ -316,14 +302,14 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			//
 			// not the best solution but ATM it allows us to have at least
 			// some kind of control over who can see deleted users
-			if !svc.ac.CanAccess(svc.ctx) {
+			if !svc.ac.CanAccess(ctx) {
 				return UserErrNotAllowedToListUsers()
 			}
 		}
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
-				svc.ctx,
+				ctx,
 				svc.store,
 				types.User{}.LabelResourceKind(),
 				filter.Labels,
@@ -339,31 +325,31 @@ func (svc user) Find(filter types.UserFilter) (uu types.UserSet, f types.UserFil
 			}
 		}
 
-		uu, f, err = store.SearchUsers(svc.ctx, svc.store, filter)
+		uu, f, err = store.SearchUsers(ctx, svc.store, filter)
 		if err != nil {
 			return err
 		}
 
-		if err = label.Load(svc.ctx, svc.store, toLabeledUsers(uu)...); err != nil {
+		if err = label.Load(ctx, svc.store, toLabeledUsers(uu)...); err != nil {
 			return err
 		}
 
 		return uu.Walk(func(u *types.User) error {
-			svc.handlePrivateData(svc.ctx, u)
+			svc.handlePrivateData(ctx, u)
 			return nil
 		})
 	}()
 
-	return uu, f, svc.recordAction(svc.ctx, uaProps, UserActionSearch, err)
+	return uu, f, svc.recordAction(ctx, uaProps, UserActionSearch, err)
 }
 
-func (svc user) Create(new *types.User) (u *types.User, err error) {
+func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{new: new}
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanCreateUser(svc.ctx) {
+		if !svc.ac.CanCreateUser(ctx) {
 			return UserErrNotAllowedToCreate()
 		}
 
@@ -377,7 +363,7 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 
 		if svc.subscription != nil {
 			var c uint
-			if c, err = store.CountUsers(svc.ctx, svc.store, types.UserFilter{}); err != nil {
+			if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{}); err != nil {
 				return err
 			}
 
@@ -390,15 +376,15 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 			}
 		}
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeCreate(new, u)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeCreate(new, u)); err != nil {
 			return
 		}
 
 		if new.Handle == "" {
-			createUserHandle(svc.ctx, DefaultStore, new)
+			createUserHandle(ctx, DefaultStore, new)
 		}
 
-		if err = uniqueUserCheck(svc.ctx, svc.store, new); err != nil {
+		if err = uniqueUserCheck(ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -409,27 +395,27 @@ func (svc user) Create(new *types.User) (u *types.User, err error) {
 		// when creating user like this
 		new.EmailConfirmed = true
 
-		if err = store.CreateUser(svc.ctx, svc.store, new); err != nil {
+		if err = store.CreateUser(ctx, svc.store, new); err != nil {
 			return
 		}
 
-		if err = label.Create(svc.ctx, svc.store, new); err != nil {
+		if err = label.Create(ctx, svc.store, new); err != nil {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterCreate(new, u))
+		_ = svc.eventbus.WaitFor(ctx, event.UserAfterCreate(new, u))
 		return
 	}()
 
-	return new, svc.recordAction(svc.ctx, uaProps, UserActionCreate, err)
+	return new, svc.recordAction(ctx, uaProps, UserActionCreate, err)
 }
 
-func (svc user) CreateWithAvatar(input *types.User, avatar io.Reader) (out *types.User, err error) {
+func (svc user) CreateWithAvatar(ctx context.Context, input *types.User, avatar io.Reader) (out *types.User, err error) {
 	// @todo: avatar
-	return svc.Create(input)
+	return svc.Create(ctx, input)
 }
 
-func (svc user) Update(upd *types.User) (u *types.User, err error) {
+func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{update: upd}
 	)
@@ -447,14 +433,14 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 			return UserErrInvalidEmail()
 		}
 
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, upd.ID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
 		uaProps.setUser(u)
 
-		if upd.ID != internalAuth.GetIdentityFromContext(svc.ctx).Identity() {
-			if !svc.ac.CanUpdateUser(svc.ctx, u) {
+		if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+			if !svc.ac.CanUpdateUser(ctx, u) {
 				return UserErrNotAllowedToUpdate()
 			}
 		}
@@ -467,39 +453,39 @@ func (svc user) Update(upd *types.User) (u *types.User, err error) {
 		u.Kind = upd.Kind
 		u.UpdatedAt = now()
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(upd, u)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
 			return
 		}
 
-		if err = uniqueUserCheck(svc.ctx, svc.store, u); err != nil {
+		if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
 			return
 		}
 
-		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 
 		if label.Changed(u.Labels, upd.Labels) {
-			if err = label.Update(svc.ctx, svc.store, upd); err != nil {
+			if err = label.Update(ctx, svc.store, upd); err != nil {
 				return
 			}
 
 			u.Labels = upd.Labels
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterUpdate(upd, u))
+		_ = svc.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, u))
 		return
 	}()
 
-	return u, svc.recordAction(svc.ctx, uaProps, UserActionUpdate, err)
+	return u, svc.recordAction(ctx, uaProps, UserActionUpdate, err)
 }
 
-func (svc user) UpdateWithAvatar(mod *types.User, avatar io.Reader) (out *types.User, err error) {
+func (svc user) UpdateWithAvatar(ctx context.Context, mod *types.User, avatar io.Reader) (out *types.User, err error) {
 	// @todo: avatar
-	return svc.Create(mod)
+	return svc.Create(ctx, mod)
 }
 
-func (svc user) Delete(userID uint64) (err error) {
+func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
@@ -510,31 +496,31 @@ func (svc user) Delete(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return
 		}
 
-		if !svc.ac.CanDeleteUser(svc.ctx, u) {
+		if !svc.ac.CanDeleteUser(ctx, u) {
 			return UserErrNotAllowedToDelete()
 		}
 
-		if err = svc.eventbus.WaitFor(svc.ctx, event.UserBeforeUpdate(nil, u)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(nil, u)); err != nil {
 			return
 		}
 
 		u.DeletedAt = now()
-		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(svc.ctx, event.UserAfterDelete(nil, u))
+		_ = svc.eventbus.WaitFor(ctx, event.UserAfterDelete(nil, u))
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, uaProps, UserActionDelete, err)
+	return svc.recordAction(ctx, uaProps, UserActionDelete, err)
 }
 
-func (svc user) Undelete(userID uint64) (err error) {
+func (svc user) Undelete(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
@@ -545,33 +531,33 @@ func (svc user) Undelete(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return
 		}
 
 		uaProps.setUser(u)
 
-		if err = uniqueUserCheck(svc.ctx, svc.store, u); err != nil {
+		if err = uniqueUserCheck(ctx, svc.store, u); err != nil {
 			return err
 		}
 
-		if !svc.ac.CanDeleteUser(svc.ctx, u) {
+		if !svc.ac.CanDeleteUser(ctx, u) {
 			return UserErrNotAllowedToDelete()
 		}
 
 		u.DeletedAt = nil
-		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, uaProps, UserActionUndelete, err)
+	return svc.recordAction(ctx, uaProps, UserActionUndelete, err)
 
 }
 
-func (svc user) Suspend(userID uint64) (err error) {
+func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
@@ -582,29 +568,29 @@ func (svc user) Suspend(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return
 		}
 
 		uaProps.setUser(u)
 
-		if !svc.ac.CanSuspendUser(svc.ctx, u) {
+		if !svc.ac.CanSuspendUser(ctx, u) {
 			return UserErrNotAllowedToSuspend()
 		}
 
 		u.SuspendedAt = now()
-		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, uaProps, UserActionSuspend, err)
+	return svc.recordAction(ctx, uaProps, UserActionSuspend, err)
 
 }
 
-func (svc user) Unsuspend(userID uint64) (err error) {
+func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
@@ -615,44 +601,44 @@ func (svc user) Unsuspend(userID uint64) (err error) {
 			return UserErrInvalidID()
 		}
 
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return
 		}
 
 		uaProps.setUser(u)
 
-		if !svc.ac.CanUnsuspendUser(svc.ctx, u) {
+		if !svc.ac.CanUnsuspendUser(ctx, u) {
 			return UserErrNotAllowedToUnsuspend()
 		}
 
 		u.SuspendedAt = nil
-		if err = store.UpdateUser(svc.ctx, svc.store, u); err != nil {
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, uaProps, UserActionUnsuspend, err)
+	return svc.recordAction(ctx, uaProps, UserActionUnsuspend, err)
 
 }
 
 // SetPassword sets new password for a user
 //
 // Expecting setter to have permissions to update modify users and internal authentication enabled
-func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
+func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword string) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
 	)
 
 	err = func() error {
-		if u, err = store.LookupUserByID(svc.ctx, svc.store, userID); err != nil {
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
 			return err
 		}
 
 		uaProps.setUser(u)
 
-		if !svc.ac.CanUpdateUser(svc.ctx, u) {
+		if !svc.ac.CanUpdateUser(ctx, u) {
 			return UserErrNotAllowedToUpdate()
 		}
 
@@ -660,14 +646,14 @@ func (svc user) SetPassword(userID uint64, newPassword string) (err error) {
 			return UserErrPasswordNotSecure()
 		}
 
-		if err := svc.auth.SetPasswordCredentials(svc.ctx, userID, newPassword); err != nil {
+		if err := svc.auth.SetPasswordCredentials(ctx, userID, newPassword); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, uaProps, UserActionSetPassword, err)
+	return svc.recordAction(ctx, uaProps, UserActionSetPassword, err)
 
 }
 
@@ -695,7 +681,7 @@ func (svc user) maskName(ctx context.Context, u *types.User) bool {
 //
 // @todo this kind of preloader is useful and can be implemented in bunch
 //       of places and replace old code
-func (svc user) Preloader(g userIdGetter, f types.UserFilter, s userSetter) error {
+func (svc user) Preloader(ctx context.Context, g userIdGetter, f types.UserFilter, s userSetter) error {
 	var (
 		// channel that will collect the IDs in the getter
 		ch = make(chan uint64, 0)
@@ -713,7 +699,7 @@ func (svc user) Preloader(g userIdGetter, f types.UserFilter, s userSetter) erro
 rangeLoop:
 	for {
 		select {
-		case <-svc.ctx.Done():
+		case <-ctx.Done():
 			close(ch)
 			break rangeLoop
 		case id, ok := <-ch:
@@ -731,7 +717,7 @@ rangeLoop:
 	}
 
 	// Load all users (even if deleted, suspended) from the given list of IDs
-	uu, _, err := svc.Find(f)
+	uu, _, err := svc.Find(ctx, f)
 
 	if err != nil {
 		return err

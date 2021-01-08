@@ -8,30 +8,22 @@ import (
 
 type (
 	command struct {
-		ctx context.Context
 	}
 
 	CommandService interface {
-		With(context.Context) CommandService
-		Do(channelID uint64, command, input string) (*types.Message, error)
+		Do(ctx context.Context, channelID uint64, command, input string) (*types.Message, error)
 	}
 )
 
-func Command(ctx context.Context) CommandService {
-	return (&command{}).With(ctx)
+func Command() CommandService {
+	return &command{}
 }
 
-func (svc command) With(ctx context.Context) CommandService {
-	return &command{
-		ctx: ctx,
-	}
-}
-
-func (svc command) Do(channelID uint64, command, input string) (*types.Message, error) {
+func (svc command) Do(ctx context.Context, channelID uint64, command, input string) (*types.Message, error) {
 	switch command {
 	case "me":
 		if input != "" {
-			return DefaultMessage.With(svc.ctx).Create(&types.Message{
+			return DefaultMessage.Create(ctx, &types.Message{
 				Type:      types.MessageTypeIlleism,
 				ChannelID: channelID,
 				Message:   input,
@@ -56,7 +48,7 @@ func (svc command) Do(channelID uint64, command, input string) (*types.Message, 
 		if input != "" {
 			msg.Message = input + " " + msg.Message
 		}
-		return DefaultMessage.With(svc.ctx).Create(msg)
+		return DefaultMessage.Create(ctx, msg)
 	}
 
 	return nil, nil

@@ -29,8 +29,6 @@ const (
 
 type (
 	record struct {
-		ctx context.Context
-
 		actionlog actionlog.Recorder
 
 		ac       recordAccessController
@@ -77,24 +75,22 @@ type (
 	}
 
 	RecordService interface {
-		With(ctx context.Context) RecordService
+		FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (*types.Record, error)
 
-		FindByID(namespaceID, moduleID, recordID uint64) (*types.Record, error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
+		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
+		Export(context.Context, types.RecordFilter, Encoder) error
+		Import(context.Context, *recordImportSession) error
 
-		Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
-		Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
-		Export(types.RecordFilter, Encoder) error
-		Import(*recordImportSession) error
+		Create(ctx context.Context, record *types.Record) (*types.Record, error)
+		Update(ctx context.Context, record *types.Record) (*types.Record, error)
+		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
 
-		Create(record *types.Record) (*types.Record, error)
-		Update(record *types.Record) (*types.Record, error)
-		Bulk(oo ...*types.RecordBulkOperation) (types.RecordSet, error)
+		DeleteByID(ctx context.Context, namespaceID, moduleID uint64, recordID ...uint64) error
 
-		DeleteByID(namespaceID, moduleID uint64, recordID ...uint64) error
+		Organize(ctx context.Context, namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
 
-		Organize(namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
-
-		Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
+		Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
 
 		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
 
@@ -133,15 +129,6 @@ type (
 )
 
 func Record() RecordService {
-	return (&record{
-		ac:            DefaultAccessControl,
-		eventbus:      eventbus.Service(),
-		optEmitEvents: true,
-		store:         DefaultStore,
-	}).With(context.Background())
-}
-
-func (svc record) With(ctx context.Context) RecordService {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
@@ -177,20 +164,15 @@ func (svc record) With(ctx context.Context) RecordService {
 	})
 
 	return &record{
-		ctx: ctx,
-
-		actionlog: DefaultActionlog,
-
-		ac:       svc.ac,
-		eventbus: svc.eventbus,
-
-		store: svc.store,
+		actionlog:     DefaultActionlog,
+		ac:            DefaultAccessControl,
+		eventbus:      eventbus.Service(),
+		optEmitEvents: true,
+		store:         DefaultStore,
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
 		validator: validator,
-
-		optEmitEvents: svc.optEmitEvents,
 	}
 }
 
@@ -199,7 +181,7 @@ func (svc *record) EventEmitting(enable bool) {
 }
 
 // lookup fn() orchestrates record lookup, namespace preload and check
-func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module, *recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
+func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, lookup func(*types.Module, *recordActionProps) (*types.Record, error)) (r *types.Record, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
@@ -207,7 +189,7 @@ func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module
 	)
 
 	err = func() error {
-		if ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID); err != nil {
+		if ns, m, err = loadModuleWithNamespace(ctx, svc.store, namespaceID, moduleID); err != nil {
 			return err
 		}
 
@@ -222,31 +204,31 @@ func (svc record) lookup(namespaceID, moduleID uint64, lookup func(*types.Module
 
 		aProps.setRecord(r)
 
-		if !svc.ac.CanReadRecord(svc.ctx, m) {
+		if !svc.ac.CanReadRecord(ctx, m) {
 			return RecordErrNotAllowedToRead()
 		}
 
-		trimUnreadableRecordFields(svc.ctx, svc.ac, m, r)
+		trimUnreadableRecordFields(ctx, svc.ac, m, r)
 
-		if err = label.Load(svc.ctx, svc.store, r); err != nil {
+		if err = label.Load(ctx, svc.store, r); err != nil {
 			return err
 		}
 
 		return nil
 	}()
 
-	return r, svc.recordAction(svc.ctx, aProps, RecordActionLookup, err)
+	return r, svc.recordAction(ctx, aProps, RecordActionLookup, err)
 }
 
-func (svc record) FindByID(namespaceID, moduleID, recordID uint64) (r *types.Record, err error) {
-	return svc.lookup(namespaceID, moduleID, func(m *types.Module, props *recordActionProps) (*types.Record, error) {
+func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID uint64) (r *types.Record, err error) {
+	return svc.lookup(ctx, namespaceID, moduleID, func(m *types.Module, props *recordActionProps) (*types.Record, error) {
 		props.record.ID = recordID
-		return store.LookupComposeRecordByID(svc.ctx, svc.store, m, recordID)
+		return store.LookupComposeRecordByID(ctx, svc.store, m, recordID)
 	})
 }
 
 // Report generates report for a given module using metrics, dimensions and filter
-func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
+func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
@@ -254,33 +236,33 @@ func (svc record) Report(namespaceID, moduleID uint64, metrics, dimensions, filt
 	)
 
 	err = func() error {
-		if ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID); err != nil {
+		if ns, m, err = loadModuleWithNamespace(ctx, svc.store, namespaceID, moduleID); err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
-		out, err = store.ComposeRecordReport(svc.ctx, svc.store, m, metrics, dimensions, filter)
+		out, err = store.ComposeRecordReport(ctx, svc.store, m, metrics, dimensions, filter)
 		return err
 	}()
 
-	return out, svc.recordAction(svc.ctx, aProps, RecordActionReport, err)
+	return out, svc.recordAction(ctx, aProps, RecordActionReport, err)
 }
 
-func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
+func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
 	var (
 		m      *types.Module
 		aProps = &recordActionProps{filter: &filter}
 	)
 
 	err = func() error {
-		if m, err = loadModule(svc.ctx, svc.store, filter.ModuleID); err != nil {
+		if m, err = loadModule(ctx, svc.store, filter.ModuleID); err != nil {
 			return err
 		}
 
 		filter.Check = func(res *types.Record) (bool, error) {
-			if !svc.ac.CanReadRecord(svc.ctx, m) {
+			if !svc.ac.CanReadRecord(ctx, m) {
 				return false, nil
 			}
 
@@ -289,7 +271,7 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
-				svc.ctx,
+				ctx,
 				svc.store,
 				types.Record{}.LabelResourceKind(),
 				filter.Labels,
@@ -305,24 +287,24 @@ func (svc record) Find(filter types.RecordFilter) (set types.RecordSet, f types.
 			}
 		}
 
-		set, f, err = store.SearchComposeRecords(svc.ctx, svc.store, m, filter)
+		set, f, err = store.SearchComposeRecords(ctx, svc.store, m, filter)
 		if err != nil {
 			return err
 		}
 
-		if err = label.Load(svc.ctx, svc.store, toLabeledRecords(set)...); err != nil {
+		if err = label.Load(ctx, svc.store, toLabeledRecords(set)...); err != nil {
 			return err
 		}
 
-		trimUnreadableRecordFields(svc.ctx, svc.ac, m, set...)
+		trimUnreadableRecordFields(ctx, svc.ac, m, set...)
 
 		return nil
 	}()
 
-	return set, f, svc.recordAction(svc.ctx, aProps, RecordActionSearch, err)
+	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
-func (svc record) Import(ses *recordImportSession) (err error) {
+func (svc record) Import(ctx context.Context, ses *recordImportSession) (err error) {
 	var (
 		aProps = &recordActionProps{}
 	)
@@ -366,13 +348,13 @@ func (svc record) Import(ses *recordImportSession) (err error) {
 		}
 		se := estore.NewStoreEncoder(svc.store, cfg)
 		bld := envoy.NewBuilder(se)
-		g, err := bld.Build(svc.ctx, ses.Resources...)
+		g, err := bld.Build(ctx, ses.Resources...)
 		if err != nil {
 			return err
 		}
 
 		// Encode
-		err = envoy.Encode(svc.ctx, g, se)
+		err = envoy.Encode(ctx, g, se)
 		ses.Progress.FinishedAt = now()
 		if err != nil {
 			ses.Progress.FailReason = err.Error()
@@ -382,13 +364,13 @@ func (svc record) Import(ses *recordImportSession) (err error) {
 		return
 	}()
 
-	return svc.recordAction(svc.ctx, aProps, RecordActionImport, err)
+	return svc.recordAction(ctx, aProps, RecordActionImport, err)
 }
 
 // Export returns all records
 //
 // @todo better value handling
-func (svc record) Export(f types.RecordFilter, enc Encoder) (err error) {
+func (svc record) Export(ctx context.Context, f types.RecordFilter, enc Encoder) (err error) {
 	var (
 		aProps = &recordActionProps{filter: &f}
 
@@ -397,12 +379,12 @@ func (svc record) Export(f types.RecordFilter, enc Encoder) (err error) {
 	)
 
 	err = func() (err error) {
-		m, err = loadModule(svc.ctx, svc.store, f.ModuleID)
+		m, err = loadModule(ctx, svc.store, f.ModuleID)
 		if err != nil {
 			return err
 		}
 
-		set, _, err = store.SearchComposeRecords(svc.ctx, svc.store, m, f)
+		set, _, err = store.SearchComposeRecords(ctx, svc.store, m, f)
 		if err != nil {
 			return err
 		}
@@ -410,12 +392,12 @@ func (svc record) Export(f types.RecordFilter, enc Encoder) (err error) {
 		return set.Walk(enc.Record)
 	}()
 
-	return svc.recordAction(svc.ctx, aProps, RecordActionExport, err)
+	return svc.recordAction(ctx, aProps, RecordActionExport, err)
 }
 
 // Bulk handles provided set of bulk record operations.
 // It's able to create, update or delete records in a single transaction.
-func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, err error) {
+func (svc record) Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (rr types.RecordSet, err error) {
 	var pr *types.Record
 
 	err = func() error {
@@ -469,15 +451,15 @@ func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, er
 			switch p.Operation {
 			case types.OperationTypeCreate:
 				action = RecordActionCreate
-				r, err = svc.create(r)
+				r, err = svc.create(ctx, r)
 
 			case types.OperationTypeUpdate:
 				action = RecordActionUpdate
-				r, err = svc.update(r)
+				r, err = svc.update(ctx, r)
 
 			case types.OperationTypeDelete:
 				action = RecordActionDelete
-				r, err = svc.delete(r.NamespaceID, r.ModuleID, r.ID)
+				r, err = svc.delete(ctx, r.NamespaceID, r.ModuleID, r.ID)
 			}
 
 			if rve := types.IsRecordValueErrorSet(err); rve != nil {
@@ -489,7 +471,7 @@ func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, er
 				}
 
 				// log record value error for this record
-				_ = svc.recordAction(svc.ctx, aProp, action, err)
+				_ = svc.recordAction(ctx, aProp, action, err)
 
 				// do not return errors just yet, values on other records from the payload (if any)
 				// might have errors too
@@ -497,7 +479,7 @@ func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, er
 			}
 
 			if err != nil {
-				return svc.recordAction(svc.ctx, aProp, action, err)
+				return svc.recordAction(ctx, aProp, action, err)
 			}
 
 			rr = append(rr, r)
@@ -524,22 +506,22 @@ func (svc record) Bulk(oo ...*types.RecordBulkOperation) (rr types.RecordSet, er
 		//
 		// to log the fact that the bulk op was done, we do one additional recording
 		// without any props
-		return rr, svc.recordAction(svc.ctx, &recordActionProps{}, RecordActionBulk, err)
+		return rr, svc.recordAction(ctx, &recordActionProps{}, RecordActionBulk, err)
 	}
 }
 
 // Raw create function that is responsible for value validation, event dispatching
 // and creation.
-func (svc record) create(new *types.Record) (rec *types.Record, err error) {
+func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
 	var (
 		aProps    = &recordActionProps{changed: new}
-		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
 		ns *types.Namespace
 		m  *types.Module
 	)
 
-	ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, new.NamespaceID, new.ModuleID)
+	ns, m, err = loadModuleWithNamespace(ctx, svc.store, new.NamespaceID, new.ModuleID)
 	if err != nil {
 		return
 	}
@@ -547,7 +529,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	aProps.setNamespace(ns)
 	aProps.setModule(m)
 
-	if !svc.ac.CanCreateRecord(svc.ctx, m) {
+	if !svc.ac.CanCreateRecord(ctx, m) {
 		return nil, RecordErrNotAllowedToCreate()
 	}
 
@@ -561,12 +543,12 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 
 	if svc.optEmitEvents {
 		// Handle input payload
-		if rve = svc.procCreate(svc.ctx, svc.store, invokerID, m, new); !rve.IsValid() {
+		if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
 		new.Values = svc.formatter.Run(m, new.Values)
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -577,11 +559,11 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 	new.Values = svc.setDefaultValues(m, new.Values)
 
 	// Handle payload from automation scripts
-	if rve = svc.procCreate(svc.ctx, svc.store, invokerID, m, new); !rve.IsValid() {
+	if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		return store.CreateComposeRecord(ctx, s, m, new)
 	})
 
@@ -589,7 +571,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 		return nil, err
 	}
 
-	if err = label.Create(svc.ctx, svc.store, new); err != nil {
+	if err = label.Create(ctx, svc.store, new); err != nil {
 		return
 	}
 
@@ -598,7 +580,7 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 
 	if svc.optEmitEvents {
 		new.Values = svc.formatter.Run(m, new.Values)
-		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
 	}
 
 	return
@@ -606,10 +588,10 @@ func (svc record) create(new *types.Record) (rec *types.Record, err error) {
 
 // Raw update function that is responsible for value validation, event dispatching
 // and update.
-func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
+func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
 	var (
 		aProps    = &recordActionProps{changed: upd}
-		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
 		ns  *types.Namespace
 		m   *types.Module
@@ -620,7 +602,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, old, err = loadRecordCombo(svc.ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
+	ns, m, old, err = loadRecordCombo(ctx, svc.store, upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
@@ -629,7 +611,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	aProps.setModule(m)
 	aProps.setRecord(old)
 
-	if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+	if !svc.ac.CanUpdateRecord(ctx, m) {
 		return nil, RecordErrNotAllowedToUpdate()
 	}
 
@@ -648,7 +630,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 
 	if svc.optEmitEvents {
 		// Handle input payload
-		if rve = svc.procUpdate(svc.ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -668,7 +650,7 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 		//
 		// rve (record-validation-errorset) struct is passed so it can be
 		// used & filled by automation scripts
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUpdate(upd, old, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -676,11 +658,11 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	}
 
 	// Handle payload from automation scripts
-	if rve = svc.procUpdate(svc.ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
+	if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		if label.Changed(old.Labels, upd.Labels) {
 			if err = label.Update(ctx, s, upd); err != nil {
 				return err
@@ -704,23 +686,23 @@ func (svc record) update(upd *types.Record) (rec *types.Record, err error) {
 	if svc.optEmitEvents {
 		// Before we pass values to automation scripts, they should be formatted
 		upd.Values = svc.formatter.Run(m, upd.Values)
-		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUpdateImmutable(upd, old, m, ns, nil))
 	}
 	return
 }
 
-func (svc record) Create(new *types.Record) (rec *types.Record, err error) {
+func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Record, err error) {
 	var (
 		aProps = &recordActionProps{changed: new}
 	)
 
 	err = func() error {
-		rec, err = svc.create(new)
+		rec, err = svc.create(ctx, new)
 		aProps.setRecord(rec)
 		return err
 	}()
 
-	return rec, svc.recordAction(svc.ctx, aProps, RecordActionCreate, err)
+	return rec, svc.recordAction(ctx, aProps, RecordActionCreate, err)
 }
 
 // Runs value sanitization, sets values that should be used
@@ -757,7 +739,7 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 
 	rve := &types.RecordValueErrorSet{}
 	_ = new.Values.Walk(func(v *types.RecordValue) error {
-		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(v.Name)) {
+		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
 			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
 		}
 
@@ -778,18 +760,18 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 	return svc.validator.Run(ctx, s, m, new)
 }
 
-func (svc record) Update(upd *types.Record) (rec *types.Record, err error) {
+func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
 	var (
 		aProps = &recordActionProps{changed: upd}
 	)
 
 	err = func() error {
-		rec, err = svc.update(upd)
+		rec, err = svc.update(ctx, upd)
 		aProps.setRecord(rec)
 		return err
 	}()
 
-	return rec, svc.recordAction(svc.ctx, aProps, RecordActionUpdate, err)
+	return rec, svc.recordAction(ctx, aProps, RecordActionUpdate, err)
 }
 
 // Runs value sanitization, copies values that should updated
@@ -836,7 +818,7 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	// in case when new values are missing but do exist in the old set and their update/read is denied
 	// we need to copy them to ensure value merge process them correctly
 	for _, f := range m.Fields {
-		if len(upd.Values.FilterByName(f.Name)) == 0 && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(f.Name)) {
+		if len(upd.Values.FilterByName(f.Name)) == 0 && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name)) {
 			// copy all fields from old to new
 			upd.Values = append(upd.Values, old.Values.FilterByName(f.Name).GetClean()...)
 		}
@@ -849,7 +831,7 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 
 	rve := &types.RecordValueErrorSet{}
 	_ = upd.Values.Walk(func(v *types.RecordValue) error {
-		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(svc.ctx, m.Fields.FindByName(v.Name)) {
+		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
 			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
 		}
 
@@ -870,17 +852,17 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	return svc.validator.Run(ctx, s, m, upd)
 }
 
-func (svc record) recordInfoUpdate(r *types.Record) {
+func (svc record) recordInfoUpdate(ctx context.Context, r *types.Record) {
 	r.UpdatedAt = now()
-	r.UpdatedBy = auth.GetIdentityFromContext(svc.ctx).Identity()
+	r.UpdatedBy = auth.GetIdentityFromContext(ctx).Identity()
 }
 
-func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Record, err error) {
+func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID uint64) (del *types.Record, err error) {
 	var (
 		ns *types.Namespace
 		m  *types.Module
 
-		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 	)
 
 	if namespaceID == 0 {
@@ -893,18 +875,18 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 		return nil, RecordErrInvalidID()
 	}
 
-	ns, m, del, err = loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
+	ns, m, del, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+	if !svc.ac.CanDeleteRecord(ctx, m) {
 		return nil, RecordErrNotAllowedToDelete()
 	}
 
 	if svc.optEmitEvents {
 		// Calling before-record-delete scripts
-		if err = svc.eventbus.WaitFor(svc.ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
 			return nil, err
 		}
 	}
@@ -912,7 +894,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	del.DeletedAt = now()
 	del.DeletedBy = invokerID
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 		return store.UpdateComposeRecord(ctx, s, m, del)
 	})
 
@@ -921,7 +903,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 	}
 
 	if svc.optEmitEvents {
-		_ = svc.eventbus.WaitFor(svc.ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
 	}
 
 	return del, nil
@@ -931,7 +913,7 @@ func (svc record) delete(namespaceID, moduleID, recordID uint64) (del *types.Rec
 //
 // Before and after each record is deleted beforeDelete and afterDelete events are emitted
 // If beforeRecord aborts the action it does so for that specific record only
-func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) (err error) {
+func (svc record) DeleteByID(ctx context.Context, namespaceID, moduleID uint64, recordIDs ...uint64) (err error) {
 	var (
 		aProps = &recordActionProps{
 			namespace: &types.Namespace{ID: namespaceID},
@@ -953,7 +935,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 			return RecordErrInvalidModuleID()
 		}
 
-		ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, namespaceID, moduleID)
+		ns, m, err = loadModuleWithNamespace(ctx, svc.store, namespaceID, moduleID)
 		if err != nil {
 			return err
 		}
@@ -961,7 +943,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
-		if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+		if !svc.ac.CanDeleteRecord(ctx, m) {
 			return RecordErrNotAllowedToDelete()
 		}
 
@@ -969,16 +951,16 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 	}()
 
 	if err != nil {
-		return svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
+		return svc.recordAction(ctx, aProps, RecordActionDelete, err)
 	}
 
 	for _, recordID := range recordIDs {
 		err := func() (err error) {
-			r, err = svc.delete(namespaceID, moduleID, recordID)
+			r, err = svc.delete(ctx, namespaceID, moduleID, recordID)
 			aProps.setRecord(r)
 
 			// Record each record deletion action
-			return svc.recordAction(svc.ctx, aProps, RecordActionDelete, err)
+			return svc.recordAction(ctx, aProps, RecordActionDelete, err)
 		}()
 
 		// We'll not break for failed delete,
@@ -995,7 +977,7 @@ func (svc record) DeleteByID(namespaceID, moduleID uint64, recordIDs ...uint64) 
 	return nil
 }
 
-func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, position, filter, grpField, group string) (err error) {
+func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID uint64, posField, position, filter, grpField, group string) (err error) {
 	var (
 		ns *types.Namespace
 		m  *types.Module
@@ -1009,7 +991,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 	)
 
 	err = func() error {
-		ns, m, r, err = loadRecordCombo(svc.ctx, svc.store, namespaceID, moduleID, recordID)
+		ns, m, r, err = loadRecordCombo(ctx, svc.store, namespaceID, moduleID, recordID)
 		if err != nil {
 			return err
 		}
@@ -1018,7 +1000,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 		aProps.setModule(m)
 		aProps.setRecord(r)
 
-		if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+		if !svc.ac.CanUpdateRecord(ctx, m) {
 			return RecordErrNotAllowedToUpdate()
 		}
 
@@ -1045,7 +1027,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 				return fmt.Errorf("can not reorder on multi-value field %q", posField)
 			}
 
-			if !svc.ac.CanUpdateRecordValue(svc.ctx, sf) {
+			if !svc.ac.CanUpdateRecordValue(ctx, sf) {
 				return RecordErrNotAllowedToUpdate()
 			}
 
@@ -1069,7 +1051,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 				return fmt.Errorf("can not update multi-value field %q", posField)
 			}
 
-			if !svc.ac.CanUpdateRecordValue(svc.ctx, vf) {
+			if !svc.ac.CanUpdateRecordValue(ctx, vf) {
 				return RecordErrNotAllowedToUpdate()
 			}
 
@@ -1081,7 +1063,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 			})
 		}
 
-		return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 			if len(recordValues) > 0 {
 				//svc.recordInfoUpdate(r)
 				//if err = store.UpdateComposeRecord(ctx, s, m, r); err != nil {
@@ -1145,7 +1127,7 @@ func (svc record) Organize(namespaceID, moduleID, recordID uint64, posField, pos
 		})
 	}()
 
-	return svc.recordAction(svc.ctx, aProps, RecordActionOrganize, err)
+	return svc.recordAction(ctx, aProps, RecordActionOrganize, err)
 }
 
 // TriggerScript loads requested record sanitizes and validates values and passes all to the automation script
@@ -1210,9 +1192,9 @@ func (svc record) TriggerScript(ctx context.Context, namespaceID, moduleID, reco
 //   // exec gets called for every record found by iterator
 //   exec () { ... }
 // }
-func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error) {
+func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error) {
 	var (
-		invokerID = auth.GetIdentityFromContext(svc.ctx).Identity()
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 
 		ns  *types.Namespace
 		m   *types.Module
@@ -1222,34 +1204,34 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 	)
 
 	err = func() error {
-		ns, m, err = loadModuleWithNamespace(svc.ctx, svc.store, f.NamespaceID, f.ModuleID)
+		ns, m, err = loadModuleWithNamespace(ctx, svc.store, f.NamespaceID, f.ModuleID)
 		if err != nil {
 			return err
 		}
 
-		if !svc.ac.CanReadRecord(svc.ctx, m) {
+		if !svc.ac.CanReadRecord(ctx, m) {
 			return RecordErrNotAllowedToRead()
 		}
 
 		switch action {
 		case "clone":
-			if !svc.ac.CanCreateRecord(svc.ctx, m) {
+			if !svc.ac.CanCreateRecord(ctx, m) {
 				return RecordErrNotAllowedToCreate()
 			}
 
 		case "update":
-			if !svc.ac.CanUpdateRecord(svc.ctx, m) {
+			if !svc.ac.CanUpdateRecord(ctx, m) {
 				return RecordErrNotAllowedToUpdate()
 			}
 
 		case "delete":
-			if !svc.ac.CanDeleteRecord(svc.ctx, m) {
+			if !svc.ac.CanDeleteRecord(ctx, m) {
 				return RecordErrNotAllowedToDelete()
 			}
 		}
 
 		// @todo might be good to split set into smaller chunks
-		set, f, err = store.SearchComposeRecords(svc.ctx, svc.store, m, f)
+		set, f, err = store.SearchComposeRecords(ctx, svc.store, m, f)
 		if err != nil {
 			return err
 		}
@@ -1258,7 +1240,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 			recordableAction := RecordActionIteratorIteration
 
 			err = func() error {
-				if err = fn(svc.ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
+				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
 					if errors.Is(err, corredor.ScriptExecAborted) {
 						// When script was softly aborted (return false),
 						// proceed with iteration but do not clone, update or delete
@@ -1275,28 +1257,28 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 					rec.Values = svc.setDefaultValues(m, rec.Values)
 
 					// Handle payload from automation scripts
-					if rve := svc.procCreate(svc.ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
+					if rve := svc.procCreate(ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						return store.CreateComposeRecord(ctx, s, m, rec)
 					})
 				case "update":
 					recordableAction = RecordActionIteratorUpdate
 
 					// Handle input payload
-					if rve := svc.procUpdate(svc.ctx, svc.store, invokerID, m, rec, rec); !rve.IsValid() {
+					if rve := svc.procUpdate(ctx, svc.store, invokerID, m, rec, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						return store.UpdateComposeRecord(ctx, s, m, rec)
 					})
 				case "delete":
 					recordableAction = RecordActionIteratorDelete
 
-					return store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+					return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 						rec.DeletedAt = now()
 						rec.DeletedBy = invokerID
 						return store.UpdateComposeRecord(ctx, s, m, rec)
@@ -1308,7 +1290,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 
 			// record iteration action and
 			// break the loop in case of an error
-			_ = svc.recordAction(svc.ctx, aProps, recordableAction, err)
+			_ = svc.recordAction(ctx, aProps, recordableAction, err)
 			if err != nil {
 				return err
 			}
@@ -1317,7 +1299,7 @@ func (svc record) Iterator(f types.RecordFilter, fn eventbus.HandlerFn, action s
 		return nil
 	}()
 
-	return svc.recordAction(svc.ctx, aProps, RecordActionIteratorInvoked, err)
+	return svc.recordAction(ctx, aProps, RecordActionIteratorInvoked, err)
 
 }
 

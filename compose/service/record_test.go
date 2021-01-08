@@ -20,8 +20,7 @@ func TestGeneralValueSetValidation(t *testing.T) {
 		req = require.New(t)
 
 		svc = record{
-			ctx: context.Background(),
-			ac:  AccessControl(&rbac.ServiceAllowAll{}),
+			ac: AccessControl(&rbac.ServiceAllowAll{}),
 		}
 		module = &types.Module{
 			Fields: types.ModuleFieldSet{
@@ -231,15 +230,13 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		// security context w/ writer role
 		ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(userID, writerRole.ID))
 
-		svc := svc.With(ctx)
-
-		recChecked, err = svc.Create(&types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
+		recChecked, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valChecked})
 		req.NoError(err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0))
 		req.Equal("1", recChecked.Values.Get("bool", 0).Value)
 
-		recUnchecked, err = svc.Create(&types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valUnchecked})
+		recUnchecked, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: valUnchecked})
 		req.NoError(err)
 
 		req.Nil(recUnchecked.Values.Get("bool", 0))
@@ -248,13 +245,12 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 		// security context w/ writer role
 		ctx = auth.SetIdentityToContext(ctx, auth.NewIdentity(userID, readerRole.ID))
-		svc = svc.With(ctx)
 
 		recChecked.Values = types.RecordValueSet{
 			&types.RecordValue{Name: "string", Value: "abc"},
 		}
 
-		recChecked, err = svc.Update(recChecked)
+		recChecked, err = svc.Update(ctx, recChecked)
 		req.NoError(err)
 
 		req.NotNil(recChecked.Values.Get("bool", 0))
@@ -264,7 +260,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 			&types.RecordValue{Name: "string", Value: "abc"},
 		}
 
-		recUnchecked, err = svc.Update(recUnchecked)
+		recUnchecked, err = svc.Update(ctx, recUnchecked)
 		req.NoError(err)
 		req.Nil(recUnchecked.Values.Get("bool", 0))
 	}

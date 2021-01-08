@@ -45,7 +45,7 @@ func (s *Session) channelPart(ctx context.Context, p *incoming.ChannelPart) erro
 }
 
 func (s *Session) channelList(ctx context.Context, p *incoming.Channels) error {
-	channels, _, err := s.svc.ch.With(ctx).Find(types.ChannelFilter{})
+	channels, _, err := s.svc.ch.Find(ctx, types.ChannelFilter{})
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	_, err = s.svc.ch.With(ctx).Create(ch)
+	_, err = s.svc.ch.Create(ctx, ch)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (s *Session) channelCreate(ctx context.Context, p *incoming.ChannelCreate) 
 }
 
 func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) error {
-	ch, err := s.svc.ch.With(ctx).FindByID(payload.ParseUint64(p.ID))
+	ch, err := s.svc.ch.FindByID(ctx, payload.ParseUint64(p.ID))
 	if err != nil {
 		return err
 	}
@@ -98,6 +98,6 @@ func (s *Session) channelUpdate(ctx context.Context, p *incoming.ChannelUpdate) 
 		ch.Type = types.ChannelType(*p.Type)
 	}
 
-	_, err = s.svc.ch.With(ctx).Update(ch)
+	_, err = s.svc.ch.Update(ctx, ch)
 	return err
 }

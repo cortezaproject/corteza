@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"sort"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -12,14 +16,10 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
-	"reflect"
-	"sort"
-	"strconv"
 )
 
 type (
 	module struct {
-		ctx       context.Context
 		actionlog actionlog.Recorder
 		ac        moduleAccessController
 		eventbus  eventDispatcher
@@ -35,17 +35,15 @@ type (
 	}
 
 	ModuleService interface {
-		With(ctx context.Context) ModuleService
+		FindByID(ctx context.Context, namespaceID, moduleID uint64) (*types.Module, error)
+		FindByName(ctx context.Context, namespaceID uint64, name string) (*types.Module, error)
+		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Module, error)
+		FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (*types.Module, error)
+		Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
 
-		FindByID(namespaceID, moduleID uint64) (*types.Module, error)
-		FindByName(namespaceID uint64, name string) (*types.Module, error)
-		FindByHandle(namespaceID uint64, handle string) (*types.Module, error)
-		FindByAny(namespaceID uint64, identifier interface{}) (*types.Module, error)
-		Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error)
-
-		Create(module *types.Module) (*types.Module, error)
-		Update(module *types.Module) (*types.Module, error)
-		DeleteByID(namespaceID, moduleID uint64) error
+		Create(ctx context.Context, module *types.Module) (*types.Module, error)
+		Update(ctx context.Context, module *types.Module) (*types.Module, error)
+		DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error
 	}
 
 	moduleUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Module) (moduleChanges, error)
@@ -62,30 +60,21 @@ const (
 
 func Module() ModuleService {
 	return (&module{
-		ctx:      context.Background(),
-		ac:       DefaultAccessControl,
-		eventbus: eventbus.Service(),
-	}).With(context.Background())
-}
-
-func (svc module) With(ctx context.Context) ModuleService {
-	return &module{
-		ctx:       ctx,
+		ac:        DefaultAccessControl,
+		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
-		ac:        svc.ac,
-		eventbus:  svc.eventbus,
 		store:     DefaultStore,
-	}
+	})
 }
 
-func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
+func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
 	var (
 		aProps = &moduleActionProps{filter: &filter}
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Module) (bool, error) {
-		if !svc.ac.CanReadModule(svc.ctx, res) {
+		if !svc.ac.CanReadModule(ctx, res) {
 			return false, nil
 		}
 
@@ -94,7 +83,7 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 
 	err = func() error {
 
-		if ns, err := loadNamespace(svc.ctx, svc.store, filter.NamespaceID); err != nil {
+		if ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -102,7 +91,7 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
-				svc.ctx,
+				ctx,
 				svc.store,
 				types.Module{}.LabelResourceKind(),
 				filter.Labels,
@@ -119,69 +108,69 @@ func (svc module) Find(filter types.ModuleFilter) (set types.ModuleSet, f types.
 			}
 		}
 
-		if set, f, err = store.SearchComposeModules(svc.ctx, svc.store, filter); err != nil {
+		if set, f, err = store.SearchComposeModules(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
-		if err = loadModuleLabels(svc.ctx, svc.store, set...); err != nil {
+		if err = loadModuleLabels(ctx, svc.store, set...); err != nil {
 			return err
 		}
 
-		return loadModuleFields(svc.ctx, svc.store, set...)
+		return loadModuleFields(ctx, svc.store, set...)
 	}()
 
-	return set, f, svc.recordAction(svc.ctx, aProps, ModuleActionSearch, err)
+	return set, f, svc.recordAction(ctx, aProps, ModuleActionSearch, err)
 }
 
 // FindByID tries to find module by ID
-func (svc module) FindByID(namespaceID, moduleID uint64) (m *types.Module, err error) {
-	return svc.lookup(namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+func (svc module) FindByID(ctx context.Context, namespaceID, moduleID uint64) (m *types.Module, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		if moduleID == 0 {
 			return nil, ModuleErrInvalidID()
 		}
 
 		aProps.module.ID = moduleID
-		return store.LookupComposeModuleByID(svc.ctx, svc.store, moduleID)
+		return store.LookupComposeModuleByID(ctx, svc.store, moduleID)
 	})
 }
 
 // FindByName tries to find module by name
-func (svc module) FindByName(namespaceID uint64, name string) (m *types.Module, err error) {
-	return svc.lookup(namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+func (svc module) FindByName(ctx context.Context, namespaceID uint64, name string) (m *types.Module, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		aProps.module.Name = name
-		return store.LookupComposeModuleByNamespaceIDName(svc.ctx, svc.store, namespaceID, name)
+		return store.LookupComposeModuleByNamespaceIDName(ctx, svc.store, namespaceID, name)
 	})
 }
 
 // FindByHandle tries to find module by handle
-func (svc module) FindByHandle(namespaceID uint64, h string) (m *types.Module, err error) {
-	return svc.lookup(namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
+func (svc module) FindByHandle(ctx context.Context, namespaceID uint64, h string) (m *types.Module, err error) {
+	return svc.lookup(ctx, namespaceID, func(aProps *moduleActionProps) (*types.Module, error) {
 		if !handle.IsValid(h) {
 			return nil, ModuleErrInvalidHandle()
 		}
 
 		aProps.module.Handle = h
-		return store.LookupComposeModuleByNamespaceIDHandle(svc.ctx, svc.store, namespaceID, h)
+		return store.LookupComposeModuleByNamespaceIDHandle(ctx, svc.store, namespaceID, h)
 	})
 }
 
 // FindByAny tries to find module in a particular namespace by id, handle or name
-func (svc module) FindByAny(namespaceID uint64, identifier interface{}) (m *types.Module, err error) {
+func (svc module) FindByAny(ctx context.Context, namespaceID uint64, identifier interface{}) (m *types.Module, err error) {
 	if ID, ok := identifier.(uint64); ok {
-		m, err = svc.FindByID(namespaceID, ID)
+		m, err = svc.FindByID(ctx, namespaceID, ID)
 	} else if strIdentifier, ok := identifier.(string); ok {
 		if ID, _ := strconv.ParseUint(strIdentifier, 10, 64); ID > 0 {
-			m, err = svc.FindByID(namespaceID, ID)
+			m, err = svc.FindByID(ctx, namespaceID, ID)
 		} else {
-			m, err = svc.FindByHandle(namespaceID, strIdentifier)
+			m, err = svc.FindByHandle(ctx, namespaceID, strIdentifier)
 			if err == nil && m.ID == 0 {
-				m, err = svc.FindByName(namespaceID, strIdentifier)
+				m, err = svc.FindByName(ctx, namespaceID, strIdentifier)
 			}
 		}
 	} else {
 		// force invalid ID error
 		// we do that to wrap error with lookup action context
-		_, err = svc.FindByID(namespaceID, 0)
+		_, err = svc.FindByID(ctx, namespaceID, 0)
 	}
 
 	if err != nil {
@@ -191,13 +180,13 @@ func (svc module) FindByAny(namespaceID uint64, identifier interface{}) (m *type
 	return m, nil
 }
 
-func (svc module) Create(new *types.Module) (*types.Module, error) {
+func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module, error) {
 	var (
 		ns     *types.Namespace
 		aProps = &moduleActionProps{changed: new}
 	)
 
-	err := store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		if !handle.IsValid(new.Handle) {
 			return ModuleErrInvalidHandle()
 		}
@@ -217,7 +206,7 @@ func (svc module) Create(new *types.Module) (*types.Module, error) {
 			return err
 		}
 
-		if err = svc.uniqueCheck(new); err != nil {
+		if err = svc.uniqueCheck(ctx, new); err != nil {
 			return err
 		}
 
@@ -255,22 +244,22 @@ func (svc module) Create(new *types.Module) (*types.Module, error) {
 		return nil
 	})
 
-	return new, svc.recordAction(svc.ctx, aProps, ModuleActionCreate, err)
+	return new, svc.recordAction(ctx, aProps, ModuleActionCreate, err)
 }
 
-func (svc module) Update(upd *types.Module) (c *types.Module, err error) {
-	return svc.updater(upd.NamespaceID, upd.ID, ModuleActionUpdate, svc.handleUpdate(upd))
+func (svc module) Update(ctx context.Context, upd *types.Module) (c *types.Module, err error) {
+	return svc.updater(ctx, upd.NamespaceID, upd.ID, ModuleActionUpdate, svc.handleUpdate(ctx, upd))
 }
 
-func (svc module) DeleteByID(namespaceID, moduleID uint64) error {
-	return trim1st(svc.updater(namespaceID, moduleID, ModuleActionDelete, svc.handleDelete))
+func (svc module) DeleteByID(ctx context.Context, namespaceID, moduleID uint64) error {
+	return trim1st(svc.updater(ctx, namespaceID, moduleID, ModuleActionDelete, svc.handleDelete))
 }
 
-func (svc module) UndeleteByID(namespaceID, moduleID uint64) error {
-	return trim1st(svc.updater(namespaceID, moduleID, ModuleActionUndelete, svc.handleUndelete))
+func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64) error {
+	return trim1st(svc.updater(ctx, namespaceID, moduleID, ModuleActionUndelete, svc.handleUndelete))
 }
 
-func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
+func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, action func(...*moduleActionProps) *moduleAction, fn moduleUpdateHandler) (*types.Module, error) {
 	var (
 		changes moduleChanges
 
@@ -280,13 +269,13 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 		err    error
 	)
 
-	err = store.Tx(svc.ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, m, err = loadModuleWithNamespace(svc.ctx, s, namespaceID, moduleID)
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		ns, m, err = loadModuleWithNamespace(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return
 		}
 
-		if err = loadModuleLabels(svc.ctx, svc.store, m); err != nil {
+		if err = loadModuleLabels(ctx, svc.store, m); err != nil {
 			return err
 		}
 
@@ -296,21 +285,21 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 		aProps.setChanged(m)
 
 		if m.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeUpdate(m, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeUpdate(m, old, ns))
 		} else {
-			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleBeforeDelete(m, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.ModuleBeforeDelete(m, old, ns))
 		}
 
 		if err != nil {
 			return
 		}
 
-		if changes, err = fn(svc.ctx, ns, m); err != nil {
+		if changes, err = fn(ctx, ns, m); err != nil {
 			return err
 		}
 
 		if changes&moduleChanged > 0 {
-			if err = store.UpdateComposeModule(svc.ctx, svc.store, m); err != nil {
+			if err = store.UpdateComposeModule(ctx, svc.store, m); err != nil {
 				return err
 			}
 		}
@@ -339,23 +328,23 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 		}
 
 		if m.DeletedAt == nil {
-			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterUpdate(m, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns))
 		} else {
-			err = svc.eventbus.WaitFor(svc.ctx, event.ModuleAfterDelete(nil, old, ns))
+			err = svc.eventbus.WaitFor(ctx, event.ModuleAfterDelete(nil, old, ns))
 		}
 
 		return err
 	})
 
-	return m, svc.recordAction(svc.ctx, aProps, action, err)
+	return m, svc.recordAction(ctx, aProps, action, err)
 }
 
 // lookup fn() orchestrates module lookup, namespace preload and check, module reading...
-func (svc module) lookup(namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
+func (svc module) lookup(ctx context.Context, namespaceID uint64, lookup func(*moduleActionProps) (*types.Module, error)) (m *types.Module, err error) {
 	var aProps = &moduleActionProps{module: &types.Module{NamespaceID: namespaceID}}
 
 	err = func() error {
-		if ns, err := loadNamespace(svc.ctx, svc.store, namespaceID); err != nil {
+		if ns, err := loadNamespace(ctx, svc.store, namespaceID); err != nil {
 			return err
 		} else {
 			aProps.setNamespace(ns)
@@ -369,30 +358,30 @@ func (svc module) lookup(namespaceID uint64, lookup func(*moduleActionProps) (*t
 
 		aProps.setModule(m)
 
-		if !svc.ac.CanReadModule(svc.ctx, m) {
+		if !svc.ac.CanReadModule(ctx, m) {
 			return ModuleErrNotAllowedToRead()
 		}
 
-		if err = loadModuleLabels(svc.ctx, svc.store, m); err != nil {
+		if err = loadModuleLabels(ctx, svc.store, m); err != nil {
 			return err
 		}
 
-		return loadModuleFields(svc.ctx, svc.store, m)
+		return loadModuleFields(ctx, svc.store, m)
 
 	}()
 
-	return m, svc.recordAction(svc.ctx, aProps, ModuleActionLookup, err)
+	return m, svc.recordAction(ctx, aProps, ModuleActionLookup, err)
 }
 
-func (svc module) uniqueCheck(m *types.Module) (err error) {
+func (svc module) uniqueCheck(ctx context.Context, m *types.Module) (err error) {
 	if m.Handle != "" {
-		if e, _ := store.LookupComposeModuleByNamespaceIDHandle(svc.ctx, svc.store, m.NamespaceID, m.Handle); e != nil && e.ID > 0 && e.ID != m.ID {
+		if e, _ := store.LookupComposeModuleByNamespaceIDHandle(ctx, svc.store, m.NamespaceID, m.Handle); e != nil && e.ID > 0 && e.ID != m.ID {
 			return ModuleErrHandleNotUnique()
 		}
 	}
 
 	if m.Name != "" {
-		if e, _ := store.LookupComposeModuleByNamespaceIDName(svc.ctx, svc.store, m.NamespaceID, m.Name); e != nil && e.ID > 0 && e.ID != m.ID {
+		if e, _ := store.LookupComposeModuleByNamespaceIDName(ctx, svc.store, m.NamespaceID, m.Name); e != nil && e.ID > 0 && e.ID != m.ID {
 			return ModuleErrNameNotUnique()
 		}
 	}
@@ -400,7 +389,7 @@ func (svc module) uniqueCheck(m *types.Module) (err error) {
 	return nil
 }
 
-func (svc module) handleUpdate(upd *types.Module) moduleUpdateHandler {
+func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpdateHandler {
 	return func(ctx context.Context, ns *types.Namespace, res *types.Module) (changes moduleChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return moduleUnchanged, ModuleErrStaleData()
@@ -410,11 +399,11 @@ func (svc module) handleUpdate(upd *types.Module) moduleUpdateHandler {
 			return moduleUnchanged, ModuleErrInvalidHandle()
 		}
 
-		if err = svc.uniqueCheck(upd); err != nil {
+		if err = svc.uniqueCheck(ctx, upd); err != nil {
 			return moduleUnchanged, err
 		}
 
-		if !svc.ac.CanUpdateModule(svc.ctx, res) {
+		if !svc.ac.CanUpdateModule(ctx, res) {
 			return moduleUnchanged, ModuleErrNotAllowedToUpdate()
 		}
 

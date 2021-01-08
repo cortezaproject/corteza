@@ -3,17 +3,18 @@ package compose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearModules() {
@@ -86,7 +87,7 @@ func TestModuleReadByHandle(t *testing.T) {
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeModule(ns, "some-module")
 
-	cbh, err := service.DefaultModule.With(h.secCtx()).FindByHandle(ns.ID, c.Handle)
+	cbh, err := service.DefaultModule.FindByHandle(h.secCtx(), ns.ID, c.Handle)
 
 	h.noError(err)
 	h.a.NotNil(cbh)

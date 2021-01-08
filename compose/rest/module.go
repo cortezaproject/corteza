@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/event"
@@ -91,12 +92,12 @@ func (ctrl *Module) List(ctx context.Context, r *request.ModuleList) (interface{
 		return nil, err
 	}
 
-	set, filter, err := ctrl.module.With(ctx).Find(f)
+	set, filter, err := ctrl.module.Find(ctx, f)
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
 func (ctrl *Module) Read(ctx context.Context, r *request.ModuleRead) (interface{}, error) {
-	mod, err := ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID)
+	mod, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
@@ -113,7 +114,7 @@ func (ctrl *Module) Create(ctx context.Context, r *request.ModuleCreate) (interf
 		}
 	)
 
-	mod, err = ctrl.module.With(ctx).Create(mod)
+	mod, err = ctrl.module.Create(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
@@ -132,17 +133,17 @@ func (ctrl *Module) Update(ctx context.Context, r *request.ModuleUpdate) (interf
 		}
 	)
 
-	mod, err = ctrl.module.With(ctx).Update(mod)
+	mod, err = ctrl.module.Update(ctx, mod)
 	return ctrl.makePayload(ctx, mod, err)
 }
 
 func (ctrl *Module) Delete(ctx context.Context, r *request.ModuleDelete) (interface{}, error) {
-	_, err := ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID)
+	_, err := ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID)
 	if err != nil {
 		return nil, err
 	}
 
-	return api.OK(), ctrl.module.With(ctx).DeleteByID(r.NamespaceID, r.ModuleID)
+	return api.OK(), ctrl.module.DeleteByID(ctx, r.NamespaceID, r.ModuleID)
 }
 
 func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerScript) (rsp interface{}, err error) {
@@ -151,11 +152,11 @@ func (ctrl *Module) TriggerScript(ctx context.Context, r *request.ModuleTriggerS
 		namespace *types.Namespace
 	)
 
-	if module, err = ctrl.module.With(ctx).FindByID(r.NamespaceID, r.ModuleID); err != nil {
+	if module, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return
 	}
 
-	if namespace, err = ctrl.namespace.With(ctx).FindByID(r.NamespaceID); err != nil {
+	if namespace, err = ctrl.namespace.FindByID(ctx, r.NamespaceID); err != nil {
 		return
 	}
 
