@@ -45,6 +45,7 @@ func (s Store) getMessagingChannelMembersQuery(cnd squirrel.Sqlizer, memberIDs .
 		}
 
 		return s.SelectBuilder(s.messagingChannelMemberTable("mcm"), "mcm.rel_channel").
+			Where(cnd).
 			GroupBy("mcm.rel_channel").
 			Having(squirrel.Eq{
 				"COUNT(*)": len(memberIDs),
