@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"time"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
@@ -77,7 +78,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 			policy = actionlog.MakeDisabledPolicy()
 		} else if c.ActionLog.Debug {
 			policy = actionlog.MakeDebugPolicy()
-			tee = log
+			tee = logger.MakeDebugLogger()
 		}
 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
