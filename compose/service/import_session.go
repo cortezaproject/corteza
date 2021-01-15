@@ -23,7 +23,7 @@ type (
 	}
 
 	ImportSessionService interface {
-		Create(ctx context.Context, f io.ReadSeeker, name string, namespaceID, moduleID uint64) (*recordImportSession, error)
+		Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (*recordImportSession, error)
 		FindByID(ctx context.Context, sessionID uint64) (*recordImportSession, error)
 		DeleteByID(ctx context.Context, sessionID uint64) error
 	}
@@ -45,7 +45,7 @@ func (svc *importSession) indexOf(userID, sessionID uint64) int {
 	return -1
 }
 
-func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name string, namespaceID, moduleID uint64) (*recordImportSession, error) {
+func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (*recordImportSession, error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
@@ -77,7 +77,7 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name stri
 	}
 
 	sh.Resources, err = func() ([]resource.Interface, error) {
-		if cd.CanDecodeFile(f) {
+		if cd.CanDecodeFile(f) || cd.CanDecodeMime(contentType) {
 			f.Seek(0, 0)
 			return cd.Decode(ctx, f, do)
 		}

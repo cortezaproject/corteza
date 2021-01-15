@@ -285,7 +285,10 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 	}
 	defer f.Close()
 
-	return ctrl.importSession.Create(ctx, f, r.Upload.Filename, r.NamespaceID, r.ModuleID)
+	// Mime type detection library fails for some .csv files, so let's help them out a bit.
+	// The detection can now fallback to the user-provided content-type.
+	ct := r.Upload.Header.Get("Content-Type")
+	return ctrl.importSession.Create(ctx, f, r.Upload.Filename, ct, r.NamespaceID, r.ModuleID)
 }
 
 func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (interface{}, error) {
