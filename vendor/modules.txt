@@ -60,7 +60,7 @@ github.com/edwvee/exiffix
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
-# github.com/gabriel-vasile/mimetype v0.3.17
+# github.com/gabriel-vasile/mimetype v1.1.2
 ## explicit
 github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/json

@@ -28,8 +28,8 @@ func sv(in []byte, comma rune) bool {
 }
 
 // butLastLineReader returns a reader to the provided byte slice.
-// the reader is guaranteed to reach EOF before it reads `cutAt` bytes.
-// bytes after the last newline are dropped from the input.
+// The reader is guaranteed to reach EOF before it reads `cutAt` bytes.
+// Bytes after the last newline are dropped from the input.
 func butLastLineReader(in []byte, cutAt int) io.Reader {
 	if len(in) >= cutAt {
 		for i := cutAt - 1; i > 0; i-- {

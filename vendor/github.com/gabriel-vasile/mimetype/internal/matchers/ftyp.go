@@ -12,11 +12,12 @@ var (
 	}
 	threeGPSigs = []sig{
 		ftypSig("3gp1"), ftypSig("3gp2"), ftypSig("3gp3"), ftypSig("3gp4"),
-		ftypSig("3gp5"), ftypSig("3gp6"), ftypSig("3gs7"), ftypSig("3ge6"),
-		ftypSig("3ge7"), ftypSig("3gg6"),
+		ftypSig("3gp5"), ftypSig("3gp6"), ftypSig("3gp7"), ftypSig("3gs7"),
+		ftypSig("3ge6"), ftypSig("3ge7"), ftypSig("3gg6"),
 	}
 	threeG2Sigs = []sig{
-		ftypSig("3g2a"), ftypSig("3g2b"), ftypSig("3g2c"), ftypSig("KDDI"),
+		ftypSig("3g24"), ftypSig("3g25"), ftypSig("3g26"), ftypSig("3g2a"),
+		ftypSig("3g2b"), ftypSig("3g2c"), ftypSig("KDDI"),
 	}
 	amp4Sigs = []sig{
 		// audio for Adobe Flash Player 9+
@@ -28,9 +29,18 @@ var (
 		// Nero Digital AAC Audio
 		ftypSig("NDAS"),
 	}
-	qtSigs  = []sig{ftypSig("qt  "), ftypSig("moov")}
-	mqvSigs = []sig{ftypSig("mqt ")}
-	m4aSigs = []sig{ftypSig("M4A ")}
+	qtSigs      = []sig{ftypSig("qt  "), ftypSig("moov")}
+	mqvSigs     = []sig{ftypSig("mqt ")}
+	m4aSigs     = []sig{ftypSig("M4A ")}
+	m4vSigs     = []sig{ftypSig("M4V "), ftypSig("M4VH"), ftypSig("M4VP")}
+	heicSigs    = []sig{ftypSig("heic"), ftypSig("heix")}
+	heicSeqSigs = []sig{ftypSig("hevc"), ftypSig("hevx")}
+	heifSigs    = []sig{
+		ftypSig("mif1"), ftypSig("heim"), ftypSig("heis"), ftypSig("avic"),
+	}
+	heifSeqSigs = []sig{
+		ftypSig("msf1"), ftypSig("hevm"), ftypSig("hevs"), ftypSig("avcs"),
+	}
 	// TODO: add support for remaining video formats at ftyps.com.
 )
 
@@ -67,4 +77,29 @@ func Mqv(in []byte) bool {
 // M4a matches an audio M4A file.
 func M4a(in []byte) bool {
 	return detect(in, m4aSigs)
+}
+
+// Heic matches a High Efficiency Image Coding (HEIC) file.
+func Heic(in []byte) bool {
+	return detect(in, heicSigs)
+}
+
+// HeicSequence matches a High Efficiency Image Coding (HEIC) file sequence.
+func HeicSequence(in []byte) bool {
+	return detect(in, heicSeqSigs)
+}
+
+// Heif matches a High Efficiency Image File Format (HEIF) file.
+func Heif(in []byte) bool {
+	return detect(in, heifSigs)
+}
+
+// HeifSequence matches a High Efficiency Image File Format (HEIF) file sequence.
+func HeifSequence(in []byte) bool {
+	return detect(in, heifSeqSigs)
+}
+
+// M4v matches an Appl4 M4V video file.
+func M4v(in []byte) bool {
+	return detect(in, m4vSigs)
 }

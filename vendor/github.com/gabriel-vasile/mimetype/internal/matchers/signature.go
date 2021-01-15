@@ -74,9 +74,14 @@ func (tSig ciSig) detect(in []byte) bool {
 	return true
 }
 
-// a valid shebang starts with the "#!" characters
-// followed by any number of spaces
-// followed by the path to the interpreter and optionally, the args for the interpreter
+// A valid shebang starts with the "#!" characters,
+// followed by any number of spaces,
+// followed by the path to the interpreter,
+// and, optionally, followed by the arguments for the interpreter.
+//
+// Ex:
+//  #! /usr/bin/env php
+// /usr/bin/env is the interpreter, php is the first and only argument.
 func (sSig shebangSig) detect(in []byte) bool {
 	in = firstLine(in)
 
@@ -99,12 +104,9 @@ func (fSig ftypSig) detect(in []byte) bool {
 		bytes.Equal(in[8:12], fSig)
 }
 
+// Implement sig interface.
 func (xSig xmlSig) detect(in []byte) bool {
-	l := 512
-	if len(in) < l {
-		l = len(in)
-	}
-	in = in[:l]
+	in = in[:min(len(in), 512)]
 
 	if len(xSig.localName) == 0 {
 		return bytes.Index(in, xSig.xmlns) > 0
@@ -117,6 +119,7 @@ func (xSig xmlSig) detect(in []byte) bool {
 	return localNameIndex != -1 && localNameIndex < bytes.Index(in, xSig.xmlns)
 }
 
+// detect returns true if any of the provided signatures pass for in input.
 func detect(in []byte, sigs []sig) bool {
 	for _, sig := range sigs {
 		if sig.detect(in) {

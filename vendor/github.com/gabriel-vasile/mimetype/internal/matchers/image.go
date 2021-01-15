@@ -12,6 +12,32 @@ func Jpg(in []byte) bool {
 	return bytes.HasPrefix(in, []byte{0xFF, 0xD8, 0xFF})
 }
 
+// isJpeg2k matches a generic JPEG2000 file.
+func isJpeg2k(in []byte) bool {
+	if len(in) < 24 {
+		return false
+	}
+
+	signature := in[4:8]
+	return bytes.Equal(signature, []byte{0x6A, 0x50, 0x20, 0x20}) ||
+		bytes.Equal(signature, []byte{0x6A, 0x50, 0x32, 0x20})
+}
+
+// Jp2 matches a JPEG 2000 Image file (ISO 15444-1).
+func Jp2(in []byte) bool {
+	return isJpeg2k(in) && bytes.Equal(in[20:24], []byte{0x6a, 0x70, 0x32, 0x20})
+}
+
+// Jpx matches a JPEG 2000 Image file (ISO 15444-2).
+func Jpx(in []byte) bool {
+	return isJpeg2k(in) && bytes.Equal(in[20:24], []byte{0x6a, 0x70, 0x78, 0x20})
+}
+
+// Jpm matches a JPEG 2000 Image file (ISO 15444-6).
+func Jpm(in []byte) bool {
+	return isJpeg2k(in) && bytes.Equal(in[20:24], []byte{0x6a, 0x70, 0x6D, 0x20})
+}
+
 // Gif matches a Graphics Interchange Format file.
 func Gif(in []byte) bool {
 	return bytes.HasPrefix(in, []byte("GIF87a")) ||
@@ -21,7 +47,7 @@ func Gif(in []byte) bool {
 // Webp matches a WebP file.
 func Webp(in []byte) bool {
 	return len(in) > 12 &&
-		bytes.Equal(in[0:4], []byte{0x52, 0x49, 0x46, 0x46}) &&
+		bytes.Equal(in[0:4], []byte("RIFF")) &&
 		bytes.Equal(in[8:12], []byte{0x57, 0x45, 0x42, 0x50})
 }
 
@@ -42,9 +68,13 @@ func Psd(in []byte) bool {
 
 // Ico matches an ICO file.
 func Ico(in []byte) bool {
-	return len(in) > 3 &&
-		in[0] == 0x00 && in[1] == 0x00 &&
-		in[2] == 0x01 && in[3] == 0x00
+	return bytes.HasPrefix(in, []byte{0x00, 0x00, 0x01, 0x00}) ||
+		bytes.HasPrefix(in, []byte{0x00, 0x00, 0x02, 0x00})
+}
+
+// Icns matches an ICNS (Apple Icon Image format) file.
+func Icns(in []byte) bool {
+	return bytes.HasPrefix(in, []byte("icns"))
 }
 
 // Tiff matches a Tagged Image File Format file.
@@ -88,4 +118,19 @@ func Dwg(in []byte) bool {
 	}
 
 	return false
+}
+
+// Xcf matches GIMP image data
+func Xcf(in []byte) bool {
+	return bytes.HasPrefix(in, []byte("gimp xcf"))
+}
+
+// Pat matches GIMP pattern data
+func Pat(in []byte) bool {
+	return len(in) >= 24 && bytes.Equal(in[20:24], []byte("GPAT"))
+}
+
+// Gbr matches GIMP brush data
+func Gbr(in []byte) bool {
+	return len(in) >= 24 && bytes.Equal(in[20:24], []byte("GIMP"))
 }
