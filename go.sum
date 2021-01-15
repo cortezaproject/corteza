@@ -73,6 +73,8 @@ github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWo
 github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
 github.com/gabriel-vasile/mimetype v0.3.17 h1:NGWgggJJqTofUcTV1E7hkk2zVjZ54EfJa1z5O3z6By4=
 github.com/gabriel-vasile/mimetype v0.3.17/go.mod h1:kMJbg3SlWZCsj4R73F1WDzbT9AyGCOVmUtIxxwO5pmI=
+github.com/gabriel-vasile/mimetype v1.1.2 h1:gaPnPcNor5aZSVCJVSGipcpbgMWiAAj9z182ocSGbHU=
+github.com/gabriel-vasile/mimetype v1.1.2/go.mod h1:6CDPel/o/3/s4+bp6kIbsWATq8pmgOisOPG40CJa6To=
 github.com/getsentry/sentry-go v0.1.1 h1:5jcHHCJ+EUK+X8aoDbJUzZU1kG4ZFk2xX15BKv29v10=
 github.com/getsentry/sentry-go v0.1.1/go.mod h1:2QfSdvxz4IZGyB5izm1TtADFhlhfj1Dcesrg8+A/T9Y=
 github.com/go-chi/chi v3.3.4+incompatible h1:X+OApYAmoQS6jr1WoUgW+t5Ry5RYGXq2A//WAL5xdAU=

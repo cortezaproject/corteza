@@ -6,7 +6,7 @@
   A package for detecting MIME types and extensions based on magic numbers
 </h4>
 <h6 align="center">
-  No bindings, all written in pure go
+  No C bindings, zero dependencies and thread safe
 </h6>
 
 <p align="center">
@@ -27,38 +27,57 @@
   </a>
 </p>
 
+## Features
+- fast and precise MIME type and file extension detection
+- long list of [supported MIME types](supported_mimes.md)
+- common file formats are prioritized
+- small and simple API
+- handles MIME type aliases
+- thread safe
+- low memory usage, besides the file header
+
 ## Install
 ```bash
 go get github.com/gabriel-vasile/mimetype
 ```
 
-## Use
-The library exposes three functions you can use in order to detect a file type.
-See [Godoc](https://godoc.org/github.com/gabriel-vasile/mimetype) for full reference.
-```go
-func Detect(in []byte) (mime, extension string) {...}
-func DetectReader(r io.Reader) (mime, extension string, err error) {...}
-func DetectFile(file string) (mime, extension string, err error) {...}
-```
-When detecting from a `ReadSeeker` interface, such as `os.File`, make sure
-to reset the offset of the reader to the beginning if needed:
-```go
-_, err = file.Seek(0, io.SeekStart)
-```
+## Usage
+There are quick [examples](EXAMPLES.md) and
+[GoDoc](https://godoc.org/github.com/gabriel-vasile/mimetype) for full reference.
 
-## Supported MIME types
-See [supported mimes](supported_mimes.md) for the list of detected MIME types.
-If support is needed for a specific file format, please open an [issue](https://github.com/gabriel-vasile/mimetype/issues/new/choose).
 
 ## Structure
-**mimetype** uses an hierarchical structure to keep the matching functions.
+**mimetype** uses an hierarchical structure to keep the MIME type detection logic.
 This reduces the number of calls needed for detecting the file type. The reason
 behind this choice is that there are file formats used as containers for other
-file formats. For example, Microsoft office files are just zip archives,
-containing specific metadata files.
+file formats. For example, Microsoft Office files are just zip archives,
+containing specific metadata files. Once a file a file has been identified as a
+zip, there is no need to check if it is a text file, but it is worth checking if
+it is an Microsoft Office file.
+
+To prevent loading entire files into memory, when detecting from a
+[reader](https://godoc.org/github.com/gabriel-vasile/mimetype#DetectReader)
+or from a [file](https://godoc.org/github.com/gabriel-vasile/mimetype#DetectFile)
+**mimetype** limits itself to reading only the header of the input.
 <div align="center">
-  <img alt="structure" src="mimetype.gif" width="88%">
+  <img alt="structure" src="https://github.com/gabriel-vasile/mimetype/blob/33abbe6cb78fe1a8486c92f95008a9e0fcef10a1/mimetype.gif?raw=true" width="88%">
 </div>
+
+## Performance
+Thanks to the hierarchical structure, searching for common formats first,
+and limiting itself to file headers, **mimetype** matches the performance of
+stdlib `http.DetectContentType` while outperforming the alternative package.
+
+[Benchmarks](https://github.com/gabriel-vasile/mimetype/blob/d8628c314b5e59259afc7b0f4f84e6b31931b316/mimetype_test.go#L267)
+were run on an Intel Xeon Gold 6136 24 core CPU @ 3.00GHz. Lower is better.
+```bash
+                            mimetype  http.DetectContentType      filetype
+BenchmarkMatchTar-24       250 ns/op         400 ns/op           3778 ns/op
+BenchmarkMatchZip-24       524 ns/op         351 ns/op           4884 ns/op
+BenchmarkMatchJpeg-24      103 ns/op         228 ns/op            839 ns/op
+BenchmarkMatchGif-24       139 ns/op         202 ns/op            751 ns/op
+BenchmarkMatchPng-24       165 ns/op         221 ns/op           1176 ns/op
+```
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).

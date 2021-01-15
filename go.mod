@@ -12,7 +12,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
-	github.com/PaesslerAG/gval v1.0.1 // indirect
+	github.com/PaesslerAG/gval v1.0.1
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4 // indirect
@@ -24,7 +24,7 @@ require (
 	github.com/disintegration/imaging v1.6.0
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/gabriel-vasile/mimetype v0.3.17
+	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/getsentry/sentry-go v0.1.1
 	github.com/go-chi/chi v3.3.4+incompatible
 	github.com/go-chi/cors v1.0.0

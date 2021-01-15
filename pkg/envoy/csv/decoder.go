@@ -31,12 +31,16 @@ func Decoder() *decoder {
 
 // CanDecodeFile determines if the file can be determined by this decoder
 func (y *decoder) CanDecodeFile(f io.Reader) bool {
-	_, ext, err := mimetype.DetectReader(f)
+	m, err := mimetype.DetectReader(f)
 	if err != nil {
 		return false
 	}
 
-	return y.CanDecodeExt(ext)
+	return y.CanDecodeExt(m.Extension())
+}
+
+func (y *decoder) CanDecodeMime(m string) bool {
+	return m == "text/csv"
 }
 
 func (y *decoder) CanDecodeMime(m string) bool {

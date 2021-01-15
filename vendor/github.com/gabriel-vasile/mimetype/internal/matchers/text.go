@@ -67,8 +67,16 @@ var (
 	threemfSigs = []sig{
 		newXmlSig("model", `xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"`),
 	}
+	xfdfSigs = []sig{
+		newXmlSig("xfdf", `xmlns="http://ns.adobe.com/xfdf/"`),
+	}
 	vCardSigs = []sig{
 		ciSig("BEGIN:VCARD\n"),
+		ciSig("BEGIN:VCARD\r\n"),
+	}
+	iCalSigs = []sig{
+		ciSig("BEGIN:VCALENDAR\n"),
+		ciSig("BEGIN:VCALENDAR\r\n"),
 	}
 	phpSigs = []sig{
 		ciSig("<?PHP"),
@@ -114,8 +122,32 @@ var (
 	}
 )
 
-// Txt matches a text file.
-func Txt(in []byte) bool {
+// Utf32be matches a text file encoded with UTF-32 and with the characters
+// represented in big endian.
+func Utf32be(in []byte) bool {
+	return bytes.HasPrefix(in, []byte{0x00, 0x00, 0xFE, 0xFF})
+}
+
+// Utf32le matches a text file encoded with UTF-32 and with the characters
+// represented in little endian.
+func Utf32le(in []byte) bool {
+	return bytes.HasPrefix(in, []byte{0xFF, 0xFE, 0x00, 0x00})
+}
+
+// Utf16be matches a text file encoded with UTF-16 and with the characters
+// represented in big endian.
+func Utf16be(in []byte) bool {
+	return bytes.HasPrefix(in, []byte{0xFE, 0xFF})
+}
+
+// Utf16le matches a text file encoded with UTF-16 and with the characters
+// represented in little endian.
+func Utf16le(in []byte) bool {
+	return bytes.HasPrefix(in, []byte{0xFF, 0xFE})
+}
+
+// Utf8 matches an UTF-8 text file.
+func Utf8(in []byte) bool {
 	in = trimLWS(in)
 	for _, b := range in {
 		if b <= 0x08 ||
@@ -131,11 +163,19 @@ func Txt(in []byte) bool {
 
 // Html matches a Hypertext Markup Language file.
 func Html(in []byte) bool {
+	in = trimLWS(in)
+	if len(in) == 0 {
+		return false
+	}
 	return detect(in, htmlSigs)
 }
 
 // Xml matches an Extensible Markup Language file.
 func Xml(in []byte) bool {
+	in = trimLWS(in)
+	if len(in) == 0 {
+		return false
+	}
 	return detect(in, xmlSigs)
 }
 
@@ -156,36 +196,40 @@ func Json(in []byte) bool {
 
 // GeoJson matches a RFC 7946 GeoJSON file.
 //
+// GeoJson detection implies searching for key:value pairs like: `"type": "Feature"`
+// in the input.
 // BUG(gabriel-vasile): The "type" key should be searched for in the root object.
 func GeoJson(in []byte) bool {
+	in = trimLWS(in)
 	if len(in) == 0 {
 		return false
 	}
-	in = trimLWS(in)
-	// geojson is always an object
+	// GeoJSON is always a JSON object.
 	if in[0] != '{' {
 		return false
 	}
 
 	s := []byte(`"type"`)
-	si := bytes.Index(in, s)
-	sl := len(s)
+	si, sl := bytes.Index(in, s), len(s)
 
 	if si == -1 {
 		return false
 	}
 
-	// if the "type" string is the suffix of the input
-	// there is no need to search for the value of the key
+	// If the "type" string is the suffix of the input,
+	// there is no need to search for the value of the key.
 	if si+sl == len(in) {
 		return false
 	}
-	// skip the "type" part
+	// Skip the "type" part.
 	in = in[si+sl:]
-	// skip any whitespace before the colon
+	// Skip any whitespace before the colon.
 	in = trimLWS(in)
-	// skip any whitesapce after the colon
-	// not checking if char is colon because json matcher already did check
+	// Check for colon.
+	if len(in) == 0 || in[0] != ':' {
+		return false
+	}
+	// Skip any whitespace after the colon.
 	in = trimLWS(in[1:])
 
 	geoJsonTypes := [][]byte{
@@ -206,6 +250,47 @@ func GeoJson(in []byte) bool {
 	}
 
 	return false
+}
+
+// NdJson matches a Newline delimited JSON file.
+func NdJson(in []byte) bool {
+	// Separator with carriage return and new line `\r\n`.
+	srn := []byte{0x0D, 0x0A}
+
+	// Separator with only new line `\n`.
+	sn := []byte{0x0A}
+
+	// Total bytes scanned.
+	parsed := 0
+
+	// Split by `srn`.
+	for rni, insrn := range bytes.Split(in, srn) {
+		// Separator byte count should be added only after the first split.
+		if rni != 0 {
+			// Add two as `\r\n` is used for split.
+			parsed += 2
+		}
+		// Split again by `sn`.
+		for ni, insn := range bytes.Split(insrn, sn) {
+			// Separator byte count should be added only after the first split.
+			if ni != 0 {
+				// Add one as `\n` is used for split.
+				parsed++
+			}
+			// Empty line is valid.
+			if len(insn) == 0 {
+				continue
+			}
+			p, err := json.Scan(insn)
+			parsed += p
+			if parsed < ReadLimit && err != nil {
+				return false
+			}
+		}
+	}
+
+	// Empty inputs should not pass as valid NDJSON with 0 lines.
+	return parsed > 0 && parsed == len(in)
 }
 
 // Js matches a Javascript file.
@@ -301,4 +386,14 @@ func X3d(in []byte) bool {
 // VCard matches a Virtual Contact File.
 func VCard(in []byte) bool {
 	return detect(in, vCardSigs)
+}
+
+// ICalendar matches a iCalendar file.
+func ICalendar(in []byte) bool {
+	return detect(in, iCalSigs)
+}
+
+// Xfdf matches a XML Forms Data Format file.
+func Xfdf(in []byte) bool {
+	return detect(in, xfdfSigs)
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/mime"
 	"github.com/gabriel-vasile/mimetype"
 )
 
@@ -39,18 +38,11 @@ func (d *decoder) CanDecodeFile(f io.Reader) bool {
 	var buff bytes.Buffer
 	tr := io.TeeReader(f, &buff)
 
-	_, ext, err := mimetype.DetectReader(tr)
+	m, err := mimetype.DetectReader(tr)
 	if err != nil {
 		return false
 	}
-
-	if ext == "txt" {
-		if is, err := mime.JsonL(&buff); err != nil {
-			return false
-		} else if is {
-			ext = "jsonl"
-		}
-	}
+	ext := m.Extension()
 
 	return d.CanDecodeExt(ext)
 }
@@ -58,7 +50,7 @@ func (d *decoder) CanDecodeFile(f io.Reader) bool {
 func (d *decoder) CanDecodeExt(ext string) bool {
 	pt := strings.Split(ext, ".")
 	ext = strings.TrimSpace(pt[len(pt)-1])
-	return ext == "jsonl" || ext == "json"
+	return ext == "jsonl" || ext == "json" || ext == "ndjson"
 }
 
 // Decode decodes the given io.Reader into a generic resource dataset
