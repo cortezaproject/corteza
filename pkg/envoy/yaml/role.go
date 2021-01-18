@@ -3,6 +3,7 @@ package yaml
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -29,13 +30,13 @@ type (
 // Also supporting { handle: name } definitions
 //
 func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &role{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed role definition")
+			return NodeErr(n, "malformed role definition")
 		}
 
 		wrap.res = &types.Role{
@@ -44,7 +45,7 @@ func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
 
 		switch v.Kind {
 		case yaml.ScalarNode:
-			if err = decodeScalar(v, "role name", &wrap.res.Name); err != nil {
+			if err = DecodeScalar(v, "role name", &wrap.res.Name); err != nil {
 				return
 			}
 
@@ -79,8 +80,8 @@ func (wset roleSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "role definition must be a map")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "role definition must be a map")
 	}
 
 	if wrap.res == nil {

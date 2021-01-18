@@ -3,6 +3,7 @@ package yaml
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -25,13 +26,13 @@ type (
 // When resolving map, key is used as handle
 // Also supporting { handle: name } definitions
 func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
-	return eachSeq(n, func(v *yaml.Node) (err error) {
+	return EachSeq(n, func(v *yaml.Node) (err error) {
 		var (
 			wrap = &application{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed application definition")
+			return NodeErr(n, "malformed application definition")
 		}
 
 		wrap.res = &types.Application{
@@ -40,7 +41,7 @@ func (wset *applicationSet) UnmarshalYAML(n *yaml.Node) error {
 
 		switch v.Kind {
 		case yaml.ScalarNode:
-			if err = decodeScalar(v, "application name", &wrap.res.Name); err != nil {
+			if err = DecodeScalar(v, "application name", &wrap.res.Name); err != nil {
 				return
 			}
 
@@ -72,8 +73,8 @@ func (wset applicationSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *application) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "application definition must be a map")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "application definition must be a map")
 	}
 
 	if wrap.res == nil {

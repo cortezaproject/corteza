@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,8 +17,8 @@ type (
 )
 
 func (wrap *settings) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "role definition must be a map")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "role definition must be a map")
 	}
 
 	if wrap.res == nil {

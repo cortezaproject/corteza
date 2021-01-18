@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,7 +30,7 @@ func decodeRbac(n *yaml.Node) (rbacRuleSet, error) {
 		rr = make(rbacRuleSet, 0, 20)
 	)
 
-	return rr, eachMap(n, func(k, v *yaml.Node) (err error) {
+	return rr, EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "allow":
 			rr, err = rr.decodeRbac(rbac.Allow, v)
@@ -55,7 +56,7 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 	var err error
 
 	parseOps := func(ops *yaml.Node, roleRef, res string) error {
-		return eachSeq(ops, func(op *yaml.Node) error {
+		return EachSeq(ops, func(op *yaml.Node) error {
 			rule := &rbacRule{
 				res: &rbac.Rule{
 					Access:    a,
@@ -69,10 +70,10 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 		})
 	}
 
-	err = eachMap(rules, func(role, ops *yaml.Node) error {
+	err = EachMap(rules, func(role, ops *yaml.Node) error {
 		// If its a mapping node, keys represent resources
 		if ops.Kind == yaml.MappingNode {
-			err = eachMap(ops, func(res, ops *yaml.Node) error {
+			err = EachMap(ops, func(res, ops *yaml.Node) error {
 				return parseOps(ops, role.Value, res.Value)
 			})
 		} else {

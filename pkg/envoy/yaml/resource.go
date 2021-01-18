@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -22,10 +23,10 @@ func decodeEnvoyConfig(n *yaml.Node) (*resource.EnvoyConfig, error) {
 		return nil, nil
 	}
 
-	return ec, eachMap(ecNode, func(k, v *yaml.Node) (err error) {
+	return ec, EachMap(ecNode, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "skipIf", "skip":
-			return decodeScalar(v, "decode skip if", &ec.SkipIf)
+			return DecodeScalar(v, "decode skip if", &ec.SkipIf)
 		case "onExisting", "mergeAlg":
 			return decodeMergeAlg(v, "decode merge alg", &ec.OnExisting)
 		}
@@ -39,8 +40,8 @@ func decodeMergeAlg(n *yaml.Node, refType string, val *resource.MergeAlg) error 
 		return nil
 	}
 
-	if !isKind(n, yaml.ScalarNode) {
-		return nodeErr(n, "%s reference must be scalar", refType)
+	if !IsKind(n, yaml.ScalarNode) {
+		return NodeErr(n, "%s reference must be scalar", refType)
 	}
 
 	switch strings.ToLower(n.Value) {
@@ -59,7 +60,7 @@ func decodeMergeAlg(n *yaml.Node, refType string, val *resource.MergeAlg) error 
 		"mr":
 		*val = resource.MergeRight
 	default:
-		return nodeErr(n, "%s unknown algorithm", refType)
+		return NodeErr(n, "%s unknown algorithm", refType)
 	}
 
 	return nil

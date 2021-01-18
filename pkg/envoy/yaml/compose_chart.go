@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"fmt"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -36,13 +37,13 @@ type (
 )
 
 func (wset *composeChartSet) UnmarshalYAML(n *yaml.Node) error {
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composeChart{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed chart definition")
+			return NodeErr(n, "malformed chart definition")
 		}
 
 		if err = v.Decode(&wrap); err != nil {
@@ -108,13 +109,13 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "handle":
-			return decodeScalar(v, "chart handle", &wrap.res.Handle)
+			return DecodeScalar(v, "chart handle", &wrap.res.Handle)
 
 		case "name":
-			return decodeScalar(v, "chart name", &wrap.res.Name)
+			return DecodeScalar(v, "chart name", &wrap.res.Name)
 
 		case "config":
 			cfg := composeChartConfig{
@@ -149,12 +150,12 @@ func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *composeChartConfig) UnmarshalYAML(n *yaml.Node) error {
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "reports":
 			reports := make([]composeChartConfigReport, 0)
 			if err = v.Decode(&reports); err != nil {
-				return nodeErr(v, "could not decode reports: %w", err)
+				return NodeErr(v, "could not decode reports: %w", err)
 			}
 
 			// collect reports and referenced modules from wrapped type
@@ -169,7 +170,7 @@ func (wrap *composeChartConfig) UnmarshalYAML(n *yaml.Node) error {
 
 		case "colorScheme":
 			if err = v.Decode(&wrap.config.ColorScheme); err != nil {
-				return nodeErr(v, "could not decode color scheme: %w", err)
+				return NodeErr(v, "could not decode color scheme: %w", err)
 			}
 
 		}
@@ -183,7 +184,7 @@ func (wrap *composeChartConfigReport) UnmarshalYAML(n *yaml.Node) error {
 		return err
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "module":
 			// custom decoder for referenced module

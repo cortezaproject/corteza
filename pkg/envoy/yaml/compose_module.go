@@ -2,11 +2,11 @@ package yaml
 
 import (
 	"fmt"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -46,13 +46,13 @@ type (
 )
 
 func (wset *composeModuleSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composeModule{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed module definition")
+			return NodeErr(n, "malformed module definition")
 		}
 
 		if err = v.Decode(&wrap); err != nil {
@@ -60,7 +60,7 @@ func (wset *composeModuleSet) UnmarshalYAML(n *yaml.Node) error {
 		}
 
 		if err = decodeRef(k, "module", &wrap.res.Handle); err != nil {
-			return nodeErr(n, "Chart reference must be a valid handle")
+			return NodeErr(n, "Chart reference must be a valid handle")
 		}
 
 		if wrap.res.Name == "" {
@@ -118,17 +118,17 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
-			return decodeScalar(v, "module name", &wrap.res.Name)
+			return DecodeScalar(v, "module name", &wrap.res.Name)
 
 		case "handle":
-			return decodeScalar(v, "module handle", &wrap.res.Handle)
+			return DecodeScalar(v, "module handle", &wrap.res.Handle)
 
 		case "fields":
-			if !isKind(v, yaml.MappingNode) {
-				return nodeErr(n, "field definition must be a map")
+			if !IsKind(v, yaml.MappingNode) {
+				return NodeErr(n, "field definition must be a map")
 			}
 
 			var (
@@ -143,10 +143,10 @@ func (wrap *composeModule) UnmarshalYAML(n *yaml.Node) (err error) {
 			return nil
 
 		case "records":
-			if isKind(v, yaml.MappingNode) {
+			if IsKind(v, yaml.MappingNode) {
 				return v.Decode(&wrap.recTpl)
 			} else {
-				return nodeErr(n, "records definition must be a map")
+				return NodeErr(n, "records definition must be a map")
 			}
 
 		}
@@ -179,17 +179,17 @@ func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "source", "origin", "from":
 			rt.Source = v.Value
 
 		case "key", "index", "pk":
-			if !isKind(v, yaml.SequenceNode) {
+			if !IsKind(v, yaml.SequenceNode) {
 				rt.Key = []string{v.Value}
 			} else {
 				rt.Key = make([]string, 0, 3)
-				eachSeq(v, func(v *yaml.Node) error {
+				EachSeq(v, func(v *yaml.Node) error {
 					rt.Key = append(rt.Key, v.Value)
 					return nil
 				})
@@ -200,9 +200,9 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 			// When provided as a sequence node, map the fields based on the index.
 			// first cell is mapped to the first sequence value, second cell to the second, and so on.
 			// Omit cells with empty, /, or - value.
-			if isKind(v, yaml.SequenceNode) {
+			if IsKind(v, yaml.SequenceNode) {
 				i := uint(0)
-				eachSeq(v, func(v *yaml.Node) error {
+				EachSeq(v, func(v *yaml.Node) error {
 					defer func() { i++ }()
 
 					if v.Value == "" || v.Value == "/" || v.Value == "-" {
@@ -217,13 +217,13 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 					})
 					return nil
 				})
-			} else if isKind(v, yaml.MappingNode) {
+			} else if IsKind(v, yaml.MappingNode) {
 				// When provided as a mapping node, it can be a simple cell: field map
 				// or a more complex underlying structure.
-				eachMap(v, func(k, v *yaml.Node) error {
+				EachMap(v, func(k, v *yaml.Node) error {
 					m := &mappingTpl{}
 
-					if isKind(v, yaml.MappingNode) {
+					if IsKind(v, yaml.MappingNode) {
 						v.Decode(m)
 					} else {
 						m.Field = v.Value
@@ -241,13 +241,13 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 }
 
 func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composeModuleField{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed module field definition")
+			return NodeErr(n, "malformed module field definition")
 		}
 
 		if err = v.Decode(&wrap); err != nil {
@@ -256,7 +256,7 @@ func (set *composeModuleFieldSet) UnmarshalYAML(n *yaml.Node) error {
 
 		if k != nil {
 			if !handle.IsValid(k.Value) {
-				return nodeErr(n, "field name must be a valid handle")
+				return NodeErr(n, "field name must be a valid handle")
 			}
 
 			wrap.res.Name = k.Value
@@ -288,31 +288,31 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "name":
 			return fmt.Errorf("name should be encoded as field definition key")
 
 		case "place":
-			return decodeScalar(v, "module place", &wrap.res.Place)
+			return DecodeScalar(v, "module place", &wrap.res.Place)
 
 		case "kind":
-			return decodeScalar(v, "module kind", &wrap.res.Kind)
+			return DecodeScalar(v, "module kind", &wrap.res.Kind)
 
 		case "label":
-			return decodeScalar(v, "module label", &wrap.res.Label)
+			return DecodeScalar(v, "module label", &wrap.res.Label)
 
 		case "private":
-			return decodeScalar(v, "module private", &wrap.res.Private)
+			return DecodeScalar(v, "module private", &wrap.res.Private)
 
 		case "required":
-			return decodeScalar(v, "module required", &wrap.res.Required)
+			return DecodeScalar(v, "module required", &wrap.res.Required)
 
 		case "visible":
-			return decodeScalar(v, "module visible", &wrap.res.Visible)
+			return DecodeScalar(v, "module visible", &wrap.res.Visible)
 
 		case "multi":
-			return decodeScalar(v, "module multi", &wrap.res.Multi)
+			return DecodeScalar(v, "module multi", &wrap.res.Multi)
 
 		case "options":
 			if err = v.Decode(&wrap.res.Options); err != nil {
@@ -333,7 +333,7 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 				rvs = rvs.Set(&types.RecordValue{Value: v.Value})
 
 			case yaml.SequenceNode:
-				_ = eachSeq(v, func(v *yaml.Node) error {
+				_ = EachSeq(v, func(v *yaml.Node) error {
 					rvs = rvs.Set(&types.RecordValue{Value: v.Value, Place: uint(len(rvs))})
 					return nil
 				})
@@ -347,7 +347,7 @@ func (wrap *composeModuleField) UnmarshalYAML(n *yaml.Node) (err error) {
 }
 
 func (aux *composeModuleFieldExprAux) UnmarshalYAML(n *yaml.Node) (err error) {
-	return eachMap(n, func(k *yaml.Node, v *yaml.Node) error {
+	return EachMap(n, func(k *yaml.Node, v *yaml.Node) error {
 		switch k.Value {
 		case "valueExpr", "value":
 			aux.ValueExpr = v.Value
@@ -356,14 +356,14 @@ func (aux *composeModuleFieldExprAux) UnmarshalYAML(n *yaml.Node) (err error) {
 			aux.Sanitizers = []string{v.Value}
 			return nil
 		case "sanitizers":
-			return eachSeq(v, func(san *yaml.Node) error {
+			return EachSeq(v, func(san *yaml.Node) error {
 				aux.Sanitizers = append(aux.Sanitizers, san.Value)
 				return nil
 			})
 		case "validator", "validators":
-			return each(v, func(k *yaml.Node, v *yaml.Node) error {
+			return Each(v, func(k *yaml.Node, v *yaml.Node) error {
 				vld := &types.ModuleFieldValidator{}
-				if isKind(v, yaml.MappingNode) {
+				if IsKind(v, yaml.MappingNode) {
 					if err := v.Decode(vld); err != nil {
 						return err
 					}
@@ -381,7 +381,7 @@ func (aux *composeModuleFieldExprAux) UnmarshalYAML(n *yaml.Node) (err error) {
 			aux.Formatters = []string{v.Value}
 			return nil
 		case "formatters":
-			return eachSeq(v, func(fmt *yaml.Node) error {
+			return EachSeq(v, func(fmt *yaml.Node) error {
 				aux.Formatters = append(aux.Formatters, fmt.Value)
 				return nil
 			})

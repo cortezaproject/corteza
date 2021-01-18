@@ -2,6 +2,7 @@ package yaml
 
 import (
 	"fmt"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -32,7 +33,7 @@ type (
 func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 	wx := make(map[uint64]int)
 
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composePage{
 				// Set this to something negative so we have an easier time determining
@@ -42,7 +43,7 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed page definition")
+			return NodeErr(n, "malformed page definition")
 		}
 
 		if err = v.Decode(&wrap); err != nil {
@@ -120,22 +121,22 @@ func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) (err error) {
+	return EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "title":
-			return decodeScalar(v, "page title", &wrap.res.Title)
+			return DecodeScalar(v, "page title", &wrap.res.Title)
 
 		case "handle":
-			return decodeScalar(v, "page handle", &wrap.res.Handle)
+			return DecodeScalar(v, "page handle", &wrap.res.Handle)
 
 		case "module":
 			return decodeRef(v, "page module", &wrap.refModule)
 
 		case "visible":
-			return decodeScalar(v, "page visible", &wrap.res.Visible)
+			return DecodeScalar(v, "page visible", &wrap.res.Visible)
 
 		case "description":
-			return decodeScalar(v, "page description", &wrap.res.Description)
+			return DecodeScalar(v, "page description", &wrap.res.Description)
 
 		case "blocks":
 			var cpb = make([]composePageBlock, 0)

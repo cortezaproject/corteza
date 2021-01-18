@@ -2,6 +2,8 @@ package yaml
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"io"
 	"strings"
 
@@ -49,4 +51,22 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, dctx *envoy.DecoderOp
 	}
 
 	return doc.Decode(ctx)
+}
+
+// Checks validity of ref node and sets the value to given arg ptr
+func decodeRef(n *yaml.Node, refType string, ref *string) error {
+	if n == nil {
+		return nil
+	}
+
+	if !IsKind(n, yaml.ScalarNode) {
+		return NodeErr(n, "%s reference must be scalar", refType)
+	}
+
+	if !handle.IsValid(n.Value) {
+		return NodeErr(n, "%s reference must be a valid handle", refType)
+	}
+
+	*ref = n.Value
+	return nil
 }

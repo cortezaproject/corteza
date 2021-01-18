@@ -3,6 +3,7 @@ package yaml
 import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"gopkg.in/yaml.v3"
 )
@@ -26,13 +27,13 @@ type (
 // Also supporting { handle: name } definitions
 //
 func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &user{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed user definition")
+			return NodeErr(n, "malformed user definition")
 		}
 
 		wrap.res = &types.User{
@@ -41,7 +42,7 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 
 		switch v.Kind {
 		case yaml.ScalarNode:
-			if err = decodeScalar(v, "user email", &wrap.res.Email); err != nil {
+			if err = DecodeScalar(v, "user email", &wrap.res.Email); err != nil {
 				return
 			}
 
@@ -51,7 +52,7 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 			}
 
 		default:
-			return nodeErr(n, "expecting scalar or map with user definitions")
+			return NodeErr(n, "expecting scalar or map with user definitions")
 
 		}
 
@@ -80,8 +81,8 @@ func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "user definition must be a map")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "user definition must be a map")
 	}
 
 	if wrap.res == nil {
