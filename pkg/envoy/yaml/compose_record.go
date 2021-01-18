@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,22 +30,22 @@ type (
 //
 // When resolving map, key is used as module handle
 func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			moduleRef string
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed record definition")
+			return NodeErr(n, "malformed record definition")
 		}
 
 		if err = decodeRef(k, "module", &moduleRef); err != nil {
 			return
 		}
 
-		if isKind(v, yaml.SequenceNode) {
+		if IsKind(v, yaml.SequenceNode) {
 			// multiple records defined
-			return eachSeq(v, func(r *yaml.Node) error {
+			return EachSeq(v, func(r *yaml.Node) error {
 				var wrap = &composeRecord{refModule: moduleRef}
 				if err = r.Decode(&wrap); err != nil {
 					return err
@@ -55,7 +56,7 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 			})
 		}
 
-		if isKind(v, yaml.MappingNode) {
+		if IsKind(v, yaml.MappingNode) {
 			// one record defined
 			var wrap = &composeRecord{refModule: moduleRef}
 			if err = v.Decode(&wrap); err != nil {
@@ -177,7 +178,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) error {
+	return EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "module":
 			return decodeRef(v, "module", &wrap.refModule)

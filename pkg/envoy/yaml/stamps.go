@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -12,18 +13,18 @@ func decodeTimestamps(n *yaml.Node) (*resource.Timestamps, error) {
 		st = &resource.Timestamps{}
 	)
 
-	return st, eachMap(n, func(k, v *yaml.Node) (err error) {
+	return st, EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "createdat":
-			return decodeScalar(v, "created at", &st.CreatedAt)
+			return DecodeScalar(v, "created at", &st.CreatedAt)
 		case "updatedat":
-			return decodeScalar(v, "updated at", &st.UpdatedAt)
+			return DecodeScalar(v, "updated at", &st.UpdatedAt)
 		case "deletedat":
-			return decodeScalar(v, "deleted at", &st.DeletedAt)
+			return DecodeScalar(v, "deleted at", &st.DeletedAt)
 		case "suspendedat":
-			return decodeScalar(v, "suspended at", &st.SuspendedAt)
+			return DecodeScalar(v, "suspended at", &st.SuspendedAt)
 		case "archivedat":
-			return decodeScalar(v, "archived at", &st.ArchivedAt)
+			return DecodeScalar(v, "archived at", &st.ArchivedAt)
 		}
 		return nil
 	})
@@ -34,17 +35,17 @@ func decodeUserstamps(n *yaml.Node) (*resource.Userstamps, error) {
 		us = &resource.Userstamps{}
 	)
 
-	return us, eachMap(n, func(k, v *yaml.Node) (err error) {
+	return us, EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "createdby",
 			"creatorid":
-			return decodeScalar(v, "created by", &us.CreatedBy)
+			return DecodeScalar(v, "created by", &us.CreatedBy)
 		case "updatedby":
-			return decodeScalar(v, "updated by", &us.UpdatedBy)
+			return DecodeScalar(v, "updated by", &us.UpdatedBy)
 		case "deletedby":
-			return decodeScalar(v, "deleted by", &us.DeletedBy)
+			return DecodeScalar(v, "deleted by", &us.DeletedBy)
 		case "ownedby":
-			return decodeScalar(v, "owned by", &us.OwnedBy)
+			return DecodeScalar(v, "owned by", &us.OwnedBy)
 		}
 		return nil
 	})

@@ -4,6 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -28,13 +29,13 @@ type (
 // Also supporting { handle: name } definitions
 //
 func (wset *messagingChannelSet) UnmarshalYAML(n *yaml.Node) error {
-	return eachSeq(n, func(v *yaml.Node) (err error) {
+	return EachSeq(n, func(v *yaml.Node) (err error) {
 		var (
 			wrap = &messagingChannel{}
 		)
 
-		if v == nil || !isKind(v, yaml.MappingNode) {
-			return nodeErr(n, "malformed messagingChannel definition")
+		if v == nil || !IsKind(v, yaml.MappingNode) {
+			return NodeErr(n, "malformed messagingChannel definition")
 		}
 
 		wrap.res = &types.Channel{}
@@ -63,8 +64,8 @@ func (wset messagingChannelSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *messagingChannel) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "messagingChannel definition must be a map")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "messagingChannel definition must be a map")
 	}
 
 	if wrap.res == nil {

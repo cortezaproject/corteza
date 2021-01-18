@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"reflect"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -24,11 +25,11 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	)
 
 	// 1st pass: handle doc-level references
-	err = eachMap(n, func(k, v *yaml.Node) error {
+	err = EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespace":
-			if def := findKeyNode(n, "namespaces"); def != nil {
-				return nodeErr(def, "cannot combine namespace reference and namespaces definition")
+			if def := FindKeyNode(n, "namespaces"); def != nil {
+				return NodeErr(def, "cannot combine namespace reference and namespaces definition")
 			}
 
 			if err := decodeRef(v, "namespace", &nsRef); err != nil {
@@ -44,7 +45,7 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	// 2nd pass: handle definitions
-	return eachMap(n, func(k, v *yaml.Node) error {
+	return EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespaces":
 			err = v.Decode(&c.Namespaces)

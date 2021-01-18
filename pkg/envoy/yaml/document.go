@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,7 +34,7 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return eachMap(n, func(k, v *yaml.Node) error {
+	return EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "roles":
 			return v.Decode(&doc.roles)

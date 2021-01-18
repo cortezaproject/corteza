@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -39,13 +40,13 @@ type (
 //
 //
 func (wset *composeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		var (
 			wrap = &composeNamespace{}
 		)
 
 		if v == nil {
-			return nodeErr(n, "malformed namespace definition")
+			return NodeErr(n, "malformed namespace definition")
 		}
 
 		if err = v.Decode(&wrap); err != nil {
@@ -54,11 +55,11 @@ func (wset *composeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
 
 		if k != nil {
 			if wrap.res.Slug != "" {
-				return nodeErr(k, "cannot define slug in mapped namespace definition")
+				return NodeErr(k, "cannot define slug in mapped namespace definition")
 			}
 
 			if !handle.IsValid(k.Value) {
-				return nodeErr(n, "namespace reference must be a valid handle")
+				return NodeErr(n, "namespace reference must be a valid handle")
 			}
 
 			// set namespace slug from map key value
@@ -86,8 +87,8 @@ func (wset composeNamespaceSet) MarshalEnvoy() ([]resource.Interface, error) {
 }
 
 func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !isKind(n, yaml.MappingNode) {
-		return nodeErr(n, "namespace definition must be a map or scalar")
+	if !IsKind(n, yaml.MappingNode) {
+		return NodeErr(n, "namespace definition must be a map or scalar")
 	}
 
 	if wrap.res == nil {
@@ -113,7 +114,7 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 		return
 	}
 
-	return each(n, func(k, v *yaml.Node) (err error) {
+	return Each(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
 		case "modules":
 			return v.Decode(&wrap.modules)
