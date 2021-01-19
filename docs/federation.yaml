@@ -1,0 +1,704 @@
+openapi: 3.0.0
+info:
+  title: Corteza federation API
+  description: Corteza federation REST API definition
+  version: 1.0.0
+  contact:
+    email: contact@mail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  '/federation/nodes/{nodeID}/handshake':
+    post:
+      tags:
+        - Federation node handshake
+      summary: Initialize the handshake step with node B
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_0
+                pairToken:
+                  type: string
+                  description: >-
+                    Pairing token to authenticate handshake initialization
+                    request
+                sharedNodeID:
+                  type: string
+                  description: Remote (invoker's) node ID
+                authToken:
+                  type: string
+                  description: Authentication token so that remote
+              required:
+                - pairToken
+                - sharedNodeID
+                - authToken
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_0
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: &ref_3
+            type: string
+  /federation/nodes/:
+    get:
+      tags:
+        - Federation nodes
+      summary: Search federated nodes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: query
+          description: Filter nodes by name and host
+          required: false
+          schema: &ref_1
+            type: string
+        - in: query
+          name: status
+          description: Filter by status
+          required: false
+          schema: *ref_1
+    post:
+      tags:
+        - Federation nodes
+      summary: Create a new federation node
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_2
+                baseURL:
+                  type: string
+                  description: Federation API base URL
+                name:
+                  type: string
+                  description: Name for this node
+                contact:
+                  type: string
+                  description: Contact email
+                pairingURI:
+                  type: string
+                  description: Pairing URI
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_2
+  '/federation/nodes/{nodeID}':
+    get:
+      tags:
+        - Federation nodes
+      summary: Read a federation node
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+    post:
+      tags:
+        - Federation nodes
+      summary: Updates existing node
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_4
+                name:
+                  type: string
+                  description: Name for this node
+                contact:
+                  type: string
+                  description: Contact email
+                baseURL:
+                  type: string
+                  description: Federation API base URL
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_4
+    delete:
+      tags:
+        - Federation nodes
+      summary: Deletes node
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/uri':
+    post:
+      tags:
+        - Federation nodes
+      summary: Creates new sharable federation URI
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/undelete':
+    post:
+      tags:
+        - Federation nodes
+      summary: Undeletes a node
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/pair':
+    post:
+      tags:
+        - Federation nodes
+      summary: Initialize the pairing process between the two nodes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/handshake-confirm':
+    post:
+      tags:
+        - Federation nodes
+      summary: Confirm the requested handshake
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/handshake-complete':
+    post:
+      tags:
+        - Federation nodes
+      summary: Complete the handshake
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: NodeID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_5
+                authToken:
+                  type: string
+                  description: Node A token
+              required:
+                - authToken
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_5
+  '/federation/nodes/{nodeID}/modules/{moduleID}/exposed':
+    get:
+      tags:
+        - Manage structure
+      summary: Exposed settings for module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+    post:
+      tags:
+        - Manage structure
+      summary: Update already exposed module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_6
+                composeModuleID:
+                  type: string
+                  description: Compose module id
+                composeNamespaceID:
+                  type: string
+                  description: Compose namespace id
+                name:
+                  type: string
+                  description: Module name
+                handle:
+                  type: string
+                  description: Module handle
+                fields:
+                  type: array
+                  items: &ref_7
+                    type: object
+                    properties:
+                      fieldID:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      kind:
+                        type: string
+                      label:
+                        type: string
+                      defaultValue:
+                        type: array
+                        items:
+                          type: string
+                      maxLength:
+                        type: integer
+                      isRequired:
+                        type: boolean
+                      isPrivate:
+                        type: boolean
+                      isMulti:
+                        type: boolean
+                      isSystem:
+                        type: boolean
+                      options:
+                        type: object
+                  description: Exposed module fields
+              required:
+                - composeModuleID
+                - composeNamespaceID
+                - name
+                - handle
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_6
+    delete:
+      tags:
+        - Manage structure
+      summary: Remove from federation
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/modules/':
+    put:
+      tags:
+        - Manage structure
+      summary: Add module to federation
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_8
+                composeModuleID:
+                  type: string
+                  description: Compose module id
+                composeNamespaceID:
+                  type: string
+                  description: Compose namespace id
+                name:
+                  type: string
+                  description: Module name
+                handle:
+                  type: string
+                  description: Module handle
+                fields:
+                  type: array
+                  items: *ref_7
+                  description: Exposed module fields
+              required:
+                - composeModuleID
+                - composeNamespaceID
+                - name
+                - handle
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_8
+    get:
+      tags:
+        - Manage structure
+      summary: List of shared/exposed modules
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: shared
+          description: List shared modules
+          required: false
+          schema: &ref_9
+            type: boolean
+        - in: query
+          name: exposed
+          description: List exposed modules
+          required: false
+          schema: *ref_9
+  '/federation/nodes/{nodeID}/modules/{moduleID}/shared':
+    get:
+      tags:
+        - Manage structure
+      summary: Shared settings for module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/modules/{moduleID}/mapped':
+    put:
+      tags:
+        - Manage structure
+      summary: Add fields mappings to federated module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_10
+                composeModuleID:
+                  type: string
+                  description: Compose module id
+                composeNamespaceID:
+                  type: string
+                  description: Compose namespace id
+                fields:
+                  type: string
+                  description: Exposed module fields
+              required:
+                - composeModuleID
+                - composeNamespaceID
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_10
+    get:
+      tags:
+        - Manage structure
+      summary: Fields mappings for module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+  '/federation/nodes/{nodeID}/modules/exposed/':
+    get:
+      tags:
+        - Sync structure
+      summary: List all exposed modules changes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: lastSync
+          description: Last sync timestamp
+          required: false
+          schema: *ref_3
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: &ref_11
+            type: string
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  '/federation/nodes/{nodeID}/modules/exposed/records/':
+    get:
+      tags:
+        - Sync data
+      summary: List all record changes
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: lastSync
+          description: Last sync timestamp
+          required: false
+          schema: *ref_3
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_11
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  '/federation/nodes/{nodeID}/modules/{moduleID}/records/':
+    get:
+      tags:
+        - Sync data
+      summary: List all records per module
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: nodeID
+          description: Node ID
+          required: true
+          schema: *ref_3
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_3
+        - in: query
+          name: lastSync
+          description: Last sync timestamp
+          required: false
+          schema: *ref_3
+        - in: query
+          name: query
+          description: Search query
+          required: false
+          schema: *ref_1
+        - in: query
+          name: limit
+          description: Limit
+          required: false
+          schema: *ref_11
+        - in: query
+          name: pageCursor
+          description: Page cursor
+          required: false
+          schema: *ref_1
+        - in: query
+          name: sort
+          description: Sort items
+          required: false
+          schema: *ref_1
+  /federation/permissions/:
+    get:
+      tags:
+        - Permissions
+      summary: Retrieve defined permissions
+      responses:
+        '200':
+          description: OK
+  /federation/permissions/effective:
+    get:
+      tags:
+        - Permissions
+      summary: Effective rules for current user
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: query
+          name: resource
+          description: Show only rules for a specific resource
+          required: false
+          schema: *ref_1
+  '/federation/permissions/{roleID}/rules':
+    get:
+      tags:
+        - Permissions
+      summary: Retrieve role permissions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_3
+    delete:
+      tags:
+        - Permissions
+      summary: Remove all defined role permissions
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_3
+    patch:
+      tags:
+        - Permissions
+      summary: Update permission settings
+      responses:
+        '200':
+          description: OK
+      parameters:
+        - in: path
+          name: roleID
+          description: Role ID
+          required: true
+          schema: *ref_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_12
+                rules:
+                  type: string
+                  description: List of permission rules to set
+              required:
+                - rules
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_12
