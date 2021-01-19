@@ -2,14 +2,14 @@ openapi: 3.0.0
 info:
   title: Corteza messaging API
   description: Corteza messaging REST API definition
-  version: 2020.12
+  version: 1.0.0
   contact:
-    email: info@cortezaproject.org
+    email: contact@mail.com
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 paths:
-  /commands/:
+  /messaging/commands/:
     get:
       tags:
         - Commands
@@ -17,7 +17,7 @@ paths:
       responses:
         '200':
           description: OK
-  /status/:
+  /messaging/status/:
     get:
       tags:
         - Status
@@ -60,7 +60,7 @@ paths:
       responses:
         '200':
           description: OK
-  /activity/:
+  /messaging/activity/:
     post:
       tags:
         - User activity
@@ -93,7 +93,7 @@ paths:
             schema:
               type: object
               properties: *ref_1
-  /channels/:
+  /messaging/channels/:
     get:
       tags:
         - Channels
@@ -141,7 +141,7 @@ paths:
             schema:
               type: object
               properties: *ref_3
-  '/channels/{channelID}':
+  '/messaging/channels/{channelID}':
     put:
       tags:
         - Channels
@@ -194,7 +194,7 @@ paths:
           description: Channel ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/state':
+  '/messaging/channels/{channelID}/state':
     put:
       tags:
         - Channels
@@ -223,7 +223,7 @@ paths:
             schema:
               type: object
               properties: *ref_6
-  '/channels/{channelID}/flag':
+  '/messaging/channels/{channelID}/flag':
     put:
       tags:
         - Channels
@@ -265,7 +265,7 @@ paths:
           description: Channel ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/members':
+  '/messaging/channels/{channelID}/members':
     get:
       tags:
         - Channels
@@ -279,7 +279,7 @@ paths:
           description: Channel ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/members/{userID}':
+  '/messaging/channels/{channelID}/members/{userID}':
     put:
       tags:
         - Channels
@@ -316,7 +316,7 @@ paths:
           description: Member ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/invite':
+  '/messaging/channels/{channelID}/invite':
     post:
       tags:
         - Channels
@@ -344,7 +344,7 @@ paths:
             schema:
               type: object
               properties: *ref_8
-  '/channels/{channelID}/attach':
+  '/messaging/channels/{channelID}/attach':
     post:
       tags:
         - Channels
@@ -377,7 +377,7 @@ paths:
             schema:
               type: object
               properties: *ref_9
-  '/channels/{channelID}/messages/':
+  '/messaging/channels/{channelID}/messages/':
     post:
       tags:
         - Messages
@@ -406,7 +406,7 @@ paths:
           description: Channel ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/messages/command/{command}/exec':
+  '/messaging/channels/{channelID}/messages/command/{command}/exec':
     post:
       tags:
         - Messages
@@ -442,7 +442,7 @@ paths:
             schema:
               type: object
               properties: *ref_11
-  '/channels/{channelID}/messages/mark-as-read':
+  '/messaging/channels/{channelID}/messages/mark-as-read':
     get:
       tags:
         - Messages
@@ -466,7 +466,7 @@ paths:
           description: ID of the last read message
           required: false
           schema: *ref_5
-  '/channels/{channelID}/messages/{messageID}':
+  '/messaging/channels/{channelID}/messages/{messageID}':
     put:
       tags:
         - Messages
@@ -518,7 +518,7 @@ paths:
           description: Message ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/messages/{messageID}/replies':
+  '/messaging/channels/{channelID}/messages/{messageID}/replies':
     post:
       tags:
         - Messages
@@ -552,7 +552,7 @@ paths:
             schema:
               type: object
               properties: *ref_13
-  '/channels/{channelID}/messages/{messageID}/pin':
+  '/messaging/channels/{channelID}/messages/{messageID}/pin':
     post:
       tags:
         - Messages
@@ -589,7 +589,7 @@ paths:
           description: Message ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/messages/{messageID}/bookmark':
+  '/messaging/channels/{channelID}/messages/{messageID}/bookmark':
     post:
       tags:
         - Messages
@@ -626,7 +626,7 @@ paths:
           description: Message ID
           required: true
           schema: *ref_5
-  '/channels/{channelID}/messages/{messageID}/reaction/{reaction}':
+  '/messaging/channels/{channelID}/messages/{messageID}/reaction/{reaction}':
     post:
       tags:
         - Messages
@@ -673,7 +673,7 @@ paths:
           description: Reaction
           required: true
           schema: *ref_2
-  '/attachment/{attachmentID}/original/{name}':
+  '/messaging/attachment/{attachmentID}/original/{name}':
     get:
       tags:
         - Attachments
@@ -708,7 +708,7 @@ paths:
           required: false
           schema: &ref_14
             type: boolean
-  '/attachment/{attachmentID}/preview.{ext}':
+  '/messaging/attachment/{attachmentID}/preview.{ext}':
     get:
       tags:
         - Attachments
@@ -737,7 +737,7 @@ paths:
           description: User ID
           required: true
           schema: *ref_5
-  /search/messages:
+  /messaging/search/messages:
     get:
       tags:
         - Search entry point
@@ -815,7 +815,7 @@ paths:
           required: false
           schema: &ref_15
             type: string
-  /search/threads:
+  /messaging/search/threads:
     get:
       tags:
         - Search entry point
@@ -841,7 +841,7 @@ paths:
           description: Max number of messages
           required: false
           schema: *ref_15
-  /permissions/:
+  /messaging/permissions/:
     get:
       tags:
         - Permissions
@@ -849,7 +849,7 @@ paths:
       responses:
         '200':
           description: OK
-  /permissions/effective:
+  /messaging/permissions/effective:
     get:
       tags:
         - Permissions
@@ -863,7 +863,7 @@ paths:
           description: Show only rules for a specific resource
           required: false
           schema: *ref_2
-  '/permissions/{roleID}/rules':
+  '/messaging/permissions/{roleID}/rules':
     get:
       tags:
         - Permissions
@@ -910,19 +910,7 @@ paths:
               type: object
               properties: &ref_16
                 rules:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      roleID:
-                        type: string
-                        format: uuid
-                      resource:
-                        type: string
-                      operation:
-                        type: string
-                      access:
-                        type: string
+                  type: string
                   description: List of permission rules to set
               required:
                 - rules

@@ -2,14 +2,14 @@ openapi: 3.0.0
 info:
   title: Corteza compose API
   description: Corteza compose REST API definition
-  version: 2020.12
+  version: 1.0.0
   contact:
-    email: info@cortezaproject.org
+    email: contact@mail.com
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 paths:
-  /namespace/:
+  /compose/namespace/:
     get:
       tags:
         - Namespaces
@@ -36,6 +36,11 @@ paths:
           schema: &ref_5
             type: string
         - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_0
+        - in: query
           name: pageCursor
           description: Page cursor
           required: false
@@ -61,6 +66,9 @@ paths:
                 name:
                   type: string
                   description: Name
+                labels:
+                  type: string
+                  description: Labels
                 slug:
                   type: string
                   description: Slug (url path part)
@@ -78,7 +86,7 @@ paths:
             schema:
               type: object
               properties: *ref_1
-  '/namespace/{namespaceID}':
+  '/compose/namespace/{namespaceID}':
     get:
       tags:
         - Namespaces
@@ -125,6 +133,9 @@ paths:
                   type: string
                   format: json
                   description: Meta data
+                labels:
+                  type: string
+                  description: Labels
                 updatedAt:
                   type: string
                   format: date-time
@@ -149,7 +160,7 @@ paths:
           description: ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/trigger':
+  '/compose/namespace/{namespaceID}/trigger':
     post:
       tags:
         - Namespaces
@@ -178,7 +189,7 @@ paths:
             schema:
               type: object
               properties: *ref_4
-  '/namespace/{namespaceID}/page/':
+  '/compose/namespace/{namespaceID}/page/':
     get:
       tags:
         - Pages
@@ -200,6 +211,11 @@ paths:
         - in: query
           name: handle
           description: Search by handle
+          required: false
+          schema: *ref_0
+        - in: query
+          name: labels
+          description: Labels
           required: false
           schema: *ref_0
         - in: query
@@ -253,6 +269,9 @@ paths:
                 weight:
                   type: integer
                   description: Page tree weight
+                labels:
+                  type: string
+                  description: Labels
                 visible:
                   type: boolean
                   description: Visible in navigation
@@ -272,7 +291,7 @@ paths:
           description: Namespace ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/page/{pageID}':
+  '/compose/namespace/{namespaceID}/page/{pageID}':
     get:
       tags:
         - Pages
@@ -333,6 +352,9 @@ paths:
                 weight:
                   type: integer
                   description: Page tree weight
+                labels:
+                  type: string
+                  description: Labels
                 visible:
                   type: boolean
                   description: Visible in navigation
@@ -364,7 +386,7 @@ paths:
           description: Page ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/page/tree':
+  '/compose/namespace/{namespaceID}/page/tree':
     get:
       tags:
         - Pages
@@ -378,7 +400,7 @@ paths:
           description: Namespace ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/page/{selfID}/reorder':
+  '/compose/namespace/{namespaceID}/page/{selfID}/reorder':
     post:
       tags:
         - Pages
@@ -413,7 +435,7 @@ paths:
             schema:
               type: object
               properties: *ref_8
-  '/namespace/{namespaceID}/page/{pageID}/attachment':
+  '/compose/namespace/{namespaceID}/page/{pageID}/attachment':
     post:
       tags:
         - Pages
@@ -448,7 +470,7 @@ paths:
             schema:
               type: object
               properties: *ref_9
-  '/namespace/{namespaceID}/page/{pageID}/trigger':
+  '/compose/namespace/{namespaceID}/page/{pageID}/trigger':
     post:
       tags:
         - Pages
@@ -482,7 +504,7 @@ paths:
             schema:
               type: object
               properties: *ref_10
-  '/namespace/{namespaceID}/module/':
+  '/compose/namespace/{namespaceID}/module/':
     get:
       tags:
         - Modules
@@ -514,6 +536,11 @@ paths:
         - in: query
           name: pageCursor
           description: Page cursor
+          required: false
+          schema: *ref_0
+        - in: query
+          name: labels
+          description: Labels
           required: false
           schema: *ref_0
         - in: query
@@ -580,6 +607,9 @@ paths:
                   type: string
                   format: json
                   description: Module meta data
+                labels:
+                  type: string
+                  description: Module labels
               required:
                 - name
                 - fields
@@ -594,7 +624,7 @@ paths:
           description: Namespace ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}':
+  '/compose/namespace/{namespaceID}/module/{moduleID}':
     get:
       tags:
         - Modules
@@ -655,6 +685,9 @@ paths:
                   type: string
                   format: date-time
                   description: Last update (or creation) date
+                labels:
+                  type: string
+                  description: Module labels
               required:
                 - name
                 - fields
@@ -681,7 +714,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/trigger':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/trigger':
     post:
       tags:
         - Modules
@@ -715,7 +748,7 @@ paths:
             schema:
               type: object
               properties: *ref_14
-  '/namespace/{namespaceID}/module/{moduleID}/record/report':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/report':
     get:
       tags:
         - Records
@@ -749,7 +782,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/':
     get:
       tags:
         - Records
@@ -769,6 +802,11 @@ paths:
           required: false
           schema: *ref_0
         - in: query
+          name: labels
+          description: Labels
+          required: false
+          schema: *ref_0
+        - in: query
           name: deleted
           description: 'Exclude (0, default), include (1) or return only (2) deleted records'
           required: false
@@ -779,20 +817,21 @@ paths:
           required: false
           schema: *ref_5
         - in: query
-          name: offset
-          description: Offset
+          name: incTotal
+          description: Include total records counter
           required: false
-          schema: *ref_5
+          schema: &ref_15
+            type: boolean
         - in: query
-          name: page
-          description: Page number (1-based)
+          name: incPageNavigation
+          description: Include page navigation
           required: false
-          schema: *ref_5
+          schema: *ref_15
         - in: query
-          name: perPage
-          description: Returned items per page (default 50)
+          name: pageCursor
+          description: Page cursor
           required: false
-          schema: *ref_5
+          schema: *ref_0
         - in: query
           name: sort
           description: Sort items
@@ -820,10 +859,10 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_15
+              properties: &ref_16
                 values:
                   type: array
-                  items: &ref_20
+                  items: &ref_21
                     type: object
                     properties:
                       name:
@@ -833,7 +872,7 @@ paths:
                   description: Record values
                 records:
                   type: array
-                  items: &ref_21
+                  items: &ref_22
                     type: object
                     properties:
                       recordID:
@@ -876,10 +915,13 @@ paths:
                         type: string
                         format: uuid
                   description: Records
+                labels:
+                  type: string
+                  description: Labels
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_15
+              properties: *ref_16
       parameters:
         - in: path
           name: namespaceID
@@ -903,7 +945,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_16
+              properties: &ref_17
                 recordIDs:
                   type: array
                   items: *ref_0
@@ -913,41 +955,6 @@ paths:
                   description: >-
                     Remove ALL records of a specified module (pending
                     implementation)
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties: *ref_16
-      parameters:
-        - in: path
-          name: namespaceID
-          description: Namespace ID
-          required: true
-          schema: *ref_2
-        - in: path
-          name: moduleID
-          description: Module ID
-          required: true
-          schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/import':
-    post:
-      tags:
-        - Records
-      summary: Initiate record import session
-      responses:
-        '200':
-          description: OK
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: &ref_17
-                upload:
-                  type: string
-                  format: binary
-                  description: File import
-              required:
-                - upload
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -963,7 +970,42 @@ paths:
           description: Module ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/import':
+    post:
+      tags:
+        - Records
+      summary: Initiate record import session
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: &ref_18
+                upload:
+                  type: string
+                  format: binary
+                  description: File import
+              required:
+                - upload
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties: *ref_18
+      parameters:
+        - in: path
+          name: namespaceID
+          description: Namespace ID
+          required: true
+          schema: *ref_2
+        - in: path
+          name: moduleID
+          description: Module ID
+          required: true
+          schema: *ref_2
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/import/{sessionID}':
     patch:
       tags:
         - Records
@@ -992,7 +1034,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_18
+              properties: &ref_19
                 fields:
                   type: string
                   format: json
@@ -1006,7 +1048,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_18
+              properties: *ref_19
     get:
       tags:
         - Records
@@ -1030,7 +1072,7 @@ paths:
           description: Import session
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/export{filename}.{ext}':
     get:
       tags:
         - Records
@@ -1076,7 +1118,7 @@ paths:
           description: Convert times to this timezone
           required: false
           schema: *ref_0
-  '/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/exec/{procedure}':
     post:
       tags:
         - Records
@@ -1105,7 +1147,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_19
+              properties: &ref_20
                 args:
                   type: array
                   items:
@@ -1119,8 +1161,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_19
-  '/namespace/{namespaceID}/module/{moduleID}/record/{recordID}':
+              properties: *ref_20
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/{recordID}':
     get:
       tags:
         - Records
@@ -1172,19 +1214,22 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_22
+              properties: &ref_23
                 values:
                   type: array
-                  items: *ref_20
+                  items: *ref_21
                   description: Record values
                 records:
                   type: array
-                  items: *ref_21
+                  items: *ref_22
                   description: Records
+                labels:
+                  type: string
+                  description: Labels
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_22
+              properties: *ref_23
     delete:
       tags:
         - Records
@@ -1208,7 +1253,7 @@ paths:
           description: Record ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/attachment':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/attachment':
     post:
       tags:
         - Records
@@ -1221,7 +1266,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_23
+              properties: &ref_24
                 recordID:
                   type: string
                   description: Record ID
@@ -1238,7 +1283,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_23
+              properties: *ref_24
       parameters:
         - in: path
           name: namespaceID
@@ -1250,7 +1295,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger':
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger':
     post:
       tags:
         - Records
@@ -1279,13 +1324,13 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_24
+              properties: &ref_25
                 script:
                   type: string
                   description: Script to execute
                 values:
                   type: array
-                  items: *ref_20
+                  items: *ref_21
                   description: Record values
               required:
                 - script
@@ -1293,8 +1338,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_24
-  '/namespace/{namespaceID}/module/{moduleID}/record/trigger':
+              properties: *ref_25
+  '/compose/namespace/{namespaceID}/module/{moduleID}/record/trigger':
     post:
       tags:
         - Records
@@ -1307,7 +1352,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_25
+              properties: &ref_26
                 script:
                   type: string
                   description: Script to execute
@@ -1316,7 +1361,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_25
+              properties: *ref_26
       parameters:
         - in: path
           name: namespaceID
@@ -1328,7 +1373,7 @@ paths:
           description: Module ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/chart/':
+  '/compose/namespace/{namespaceID}/chart/':
     get:
       tags:
         - Charts
@@ -1345,6 +1390,11 @@ paths:
         - in: query
           name: handle
           description: Search charts by handle
+          required: false
+          schema: *ref_0
+        - in: query
+          name: labels
+          description: Labels
           required: false
           schema: *ref_0
         - in: query
@@ -1379,7 +1429,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_26
+              properties: &ref_27
                 config:
                   type: string
                   format: json
@@ -1390,20 +1440,23 @@ paths:
                 handle:
                   type: string
                   description: Chart handle
+                labels:
+                  type: string
+                  description: Labels
               required:
                 - config
                 - name
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_26
+              properties: *ref_27
       parameters:
         - in: path
           name: namespaceID
           description: Namespace ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/chart/{chartID}':
+  '/compose/namespace/{namespaceID}/chart/{chartID}':
     get:
       tags:
         - Charts
@@ -1445,7 +1498,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_27
+              properties: &ref_28
                 config:
                   type: string
                   format: json
@@ -1456,6 +1509,9 @@ paths:
                 handle:
                   type: string
                   description: Chart handle
+                labels:
+                  type: string
+                  description: Labels
                 updatedAt:
                   type: string
                   format: date-time
@@ -1466,7 +1522,7 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_27
+              properties: *ref_28
     delete:
       tags:
         - Charts
@@ -1485,7 +1541,7 @@ paths:
           description: Chart ID
           required: true
           schema: *ref_2
-  /notification/email:
+  /compose/notification/email:
     post:
       tags:
         - Notifications
@@ -1498,7 +1554,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_28
+              properties: &ref_29
                 to:
                   type: array
                   items: *ref_0
@@ -1527,8 +1583,8 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_28
-  '/namespace/{namespaceID}/attachment/{kind}/':
+              properties: *ref_29
+  '/compose/namespace/{namespaceID}/attachment/{kind}/':
     get:
       tags:
         - Attachments
@@ -1573,20 +1629,10 @@ paths:
           required: false
           schema: *ref_5
         - in: query
-          name: offset
-          description: Offset
+          name: pageCursor
+          description: Page cursor
           required: false
-          schema: *ref_5
-        - in: query
-          name: page
-          description: Page number (1-based)
-          required: false
-          schema: *ref_5
-        - in: query
-          name: perPage
-          description: Returned items per page (default 50)
-          required: false
-          schema: *ref_5
+          schema: *ref_0
         - in: path
           name: kind
           description: Attachment kind
@@ -1597,7 +1643,7 @@ paths:
           description: Namespace ID
           required: true
           schema: *ref_2
-  '/namespace/{namespaceID}/attachment/{kind}/{attachmentID}':
+  '/compose/namespace/{namespaceID}/attachment/{kind}/{attachmentID}':
     get:
       tags:
         - Attachments
@@ -1664,7 +1710,7 @@ paths:
           description: User ID
           required: false
           schema: *ref_2
-  '/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}':
+  '/compose/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/original/{name}':
     get:
       tags:
         - Attachments
@@ -1707,9 +1753,8 @@ paths:
           name: download
           description: Force file download
           required: false
-          schema: &ref_30
-            type: boolean
-  '/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}':
+          schema: *ref_15
+  '/compose/namespace/{namespaceID}/attachment/{kind}/{attachmentID}/preview.{ext}':
     get:
       tags:
         - Attachments
@@ -1748,7 +1793,7 @@ paths:
           description: User ID
           required: false
           schema: *ref_2
-  /permissions/:
+  /compose/permissions/:
     get:
       tags:
         - Permissions
@@ -1756,7 +1801,7 @@ paths:
       responses:
         '200':
           description: OK
-  /permissions/effective:
+  /compose/permissions/effective:
     get:
       tags:
         - Permissions
@@ -1770,7 +1815,7 @@ paths:
           description: Show only rules for a specific resource
           required: false
           schema: *ref_0
-  '/permissions/{roleID}/rules':
+  '/compose/permissions/{roleID}/rules':
     get:
       tags:
         - Permissions
@@ -1815,29 +1860,17 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_29
+              properties: &ref_30
                 rules:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      roleID:
-                        type: string
-                        format: uuid
-                      resource:
-                        type: string
-                      operation:
-                        type: string
-                      access:
-                        type: string
+                  type: string
                   description: List of permission rules to set
               required:
                 - rules
           application/x-www-form-urlencoded:
             schema:
               type: object
-              properties: *ref_29
-  /automation/:
+              properties: *ref_30
+  /compose/automation/:
     get:
       tags:
         - Compose automation scripts
@@ -1871,18 +1904,18 @@ paths:
           name: excludeInvalid
           description: Exclude scripts that can not be used (errors)
           required: false
-          schema: *ref_30
+          schema: *ref_15
         - in: query
           name: excludeClientScripts
           description: Do not include client scripts
           required: false
-          schema: *ref_30
+          schema: *ref_15
         - in: query
           name: excludeServerScripts
           description: Do not include server scripts
           required: false
-          schema: *ref_30
-  '/automation/{bundle}-{type}.{ext}':
+          schema: *ref_15
+  '/compose/automation/{bundle}-{type}.{ext}':
     get:
       tags:
         - Compose automation scripts
@@ -1906,7 +1939,7 @@ paths:
           description: Bundle extension
           required: true
           schema: *ref_0
-  /automation/trigger:
+  /compose/automation/trigger:
     post:
       tags:
         - Compose automation scripts
