@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Corteza system API
   description: Corteza system REST API definition
-  version: 1.0.0
+  version: 2020.12
   contact:
     email: contact@mail.com
   license:
