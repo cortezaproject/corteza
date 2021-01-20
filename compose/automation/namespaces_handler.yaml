@@ -1,0 +1,32 @@
+prefix: compose
+
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+params:
+  module: &module
+    required: true
+    types:
+      - { wf: ID,                 go: uint64,          suffix: ID }
+      - { wf: String,             go: string,          suffix: handle }
+
+  namespace: &namespace
+    required: true
+    types:
+      - { wf: ID,                 go: uint64,             suffix: ID }
+      - { wf: String,             go: string,             suffix: handle }
+      - { wf: ComposeNamespace,   go: "*types.Namespace", suffix: res }
+
+  moduleReturnValue: &moduleReturnValue
+    wf: ComposeModule
+    go: "*types.Module"
+
+functions:
+  lookup:
+    meta:
+      short: Lookup for compose module by ID
+    params:
+      module: *module
+      namespace: *namespace
+    results:
+      module: *moduleReturnValue

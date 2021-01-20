@@ -11,7 +11,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
-	github.com/PaesslerAG/gval v1.1.0
+	github.com/PaesslerAG/gval v1.1.1-0.20201104175134-7847ed0c7671
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
@@ -67,7 +67,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/atomic v1.6.0
-	go.uber.org/zap v1.15.0
+	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 	golang.org/x/sys v0.0.0-20200918174421-af09f7315aff // indirect
 	google.golang.org/grpc v1.32.0

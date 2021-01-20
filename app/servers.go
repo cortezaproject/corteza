@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	automationRest "github.com/cortezaproject/corteza-server/automation/rest"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
@@ -57,6 +58,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	if app.Opt.HTTPServer.ApiEnabled {
 		r.Route("/"+apiBaseUrl, func(r chi.Router) {
 			r.Route("/system", systemRest.MountRoutes)
+			r.Route("/automation", automationRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
 			r.Route("/messaging", func(r chi.Router) {
 				messagingRest.MountRoutes(r)

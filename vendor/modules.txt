@@ -22,7 +22,7 @@ github.com/Masterminds/sprig
 # github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
 ## explicit
 github.com/Masterminds/squirrel
-# github.com/PaesslerAG/gval v1.1.0
+# github.com/PaesslerAG/gval v1.1.1-0.20201104175134-7847ed0c7671
 ## explicit
 github.com/PaesslerAG/gval
 # github.com/PaesslerAG/jsonpath v0.1.1
@@ -245,7 +245,7 @@ github.com/stretchr/testify/require
 go.uber.org/atomic
 # go.uber.org/multierr v1.5.0
 go.uber.org/multierr
-# go.uber.org/zap v1.15.0
+# go.uber.org/zap v1.16.0
 ## explicit
 go.uber.org/zap
 go.uber.org/zap/buffer
@@ -253,6 +253,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
+go.uber.org/zap/zaptest/observer
 # golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
 ## explicit
 golang.org/x/crypto/argon2

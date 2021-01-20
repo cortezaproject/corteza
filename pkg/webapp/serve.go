@@ -71,6 +71,7 @@ func serveConfig(r chi.Router, appUrl, apiBaseUrl string, fedEnabled bool) {
 		_, _ = fmt.Fprintf(w, line, "System", apiBaseUrl, "system")
 		_, _ = fmt.Fprintf(w, line, "Messaging", apiBaseUrl, "messaging")
 		_, _ = fmt.Fprintf(w, line, "Compose", apiBaseUrl, "compose")
+		_, _ = fmt.Fprintf(w, line, "Automation", apiBaseUrl, "automation")
 
 		if fedEnabled {
 			_, _ = fmt.Fprintf(w, line, "Federation", apiBaseUrl, "federation")

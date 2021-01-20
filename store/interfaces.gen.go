@@ -7,6 +7,9 @@ package store
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/automation_sessions.yaml
+//  - store/automation_triggers.yaml
+//  - store/automation_workflows.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -48,6 +51,9 @@ type (
 		Actionlogs
 		Applications
 		Attachments
+		AutomationSessions
+		AutomationTriggers
+		AutomationWorkflows
 		ComposeAttachments
 		ComposeCharts
 		ComposeModuleFields

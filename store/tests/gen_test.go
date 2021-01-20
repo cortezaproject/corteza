@@ -7,6 +7,9 @@ package tests
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/automation_sessions.yaml
+//  - store/automation_triggers.yaml
+//  - store/automation_workflows.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -60,6 +63,21 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Attachment
 	t.Run("Attachment", func(t *testing.T) {
 		testAttachment(t, s)
+	})
+
+	// Run generated tests for AutomationSessions
+	t.Run("AutomationSessions", func(t *testing.T) {
+		testAutomationSessions(t, s)
+	})
+
+	// Run generated tests for AutomationTriggers
+	t.Run("AutomationTriggers", func(t *testing.T) {
+		testAutomationTriggers(t, s)
+	})
+
+	// Run generated tests for AutomationWorkflows
+	t.Run("AutomationWorkflows", func(t *testing.T) {
+		testAutomationWorkflows(t, s)
 	})
 
 	// Run generated tests for ComposeAttachments
