@@ -1,54 +1,95 @@
 package gval
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 )
 
-type function func(arguments ...interface{}) (interface{}, error)
+type function func(ctx context.Context, arguments ...interface{}) (interface{}, error)
 
 func toFunc(f interface{}) function {
 	if f, ok := f.(func(arguments ...interface{}) (interface{}, error)); ok {
+		return function(func(ctx context.Context, arguments ...interface{}) (interface{}, error) {
+			var v interface{}
+			errCh := make(chan error)
+			go func() {
+				result, err := f(arguments...)
+				v = result
+				errCh <- err
+			}()
+
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case err := <-errCh:
+				return v, err
+			}
+		})
+	}
+	if f, ok := f.(func(ctx context.Context, arguments ...interface{}) (interface{}, error)); ok {
 		return function(f)
 	}
-	return func(args ...interface{}) (interface{}, error) {
-		fun := reflect.ValueOf(f)
-		t := fun.Type()
 
-		in, err := createCallArguments(t, args)
-		if err != nil {
-			return nil, err
-		}
-		out := fun.Call(in)
-
-		r := make([]interface{}, len(out))
-		for i, e := range out {
-			r[i] = e.Interface()
-		}
-
-		err = nil
-		errorInterface := reflect.TypeOf((*error)(nil)).Elem()
-		if len(r) > 0 && t.Out(len(r)-1).Implements(errorInterface) {
-			if r[len(r)-1] != nil {
-				err = r[len(r)-1].(error)
+	fun := reflect.ValueOf(f)
+	t := fun.Type()
+	return func(ctx context.Context, args ...interface{}) (interface{}, error) {
+		var v interface{}
+		errCh := make(chan error)
+		go func() {
+			in, err := createCallArguments(ctx, t, args)
+			if err != nil {
+				errCh <- err
+				return
 			}
-			r = r[0 : len(r)-1]
-		}
+			out := fun.Call(in)
 
-		switch len(r) {
-		case 0:
-			return nil, err
-		case 1:
-			return r[0], err
-		default:
-			return r, err
+			r := make([]interface{}, len(out))
+			for i, e := range out {
+				r[i] = e.Interface()
+			}
+
+			err = nil
+			errorInterface := reflect.TypeOf((*error)(nil)).Elem()
+			if len(r) > 0 && t.Out(len(r)-1).Implements(errorInterface) {
+				if r[len(r)-1] != nil {
+					err = r[len(r)-1].(error)
+				}
+				r = r[0 : len(r)-1]
+			}
+
+			switch len(r) {
+			case 0:
+				v = nil
+			case 1:
+				v = r[0]
+			default:
+				v = r
+			}
+			errCh <- err
+		}()
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case err := <-errCh:
+			return v, err
 		}
 	}
 }
 
-func createCallArguments(t reflect.Type, args []interface{}) ([]reflect.Value, error) {
+func createCallArguments(ctx context.Context, t reflect.Type, args []interface{}) ([]reflect.Value, error) {
 	variadic := t.IsVariadic()
 	numIn := t.NumIn()
+
+	// if first argument is a context, use the given execution context
+	if numIn > 0 {
+		thisFun := reflect.ValueOf(createCallArguments)
+		thisT := thisFun.Type()
+		if t.In(0) == thisT.In(0) {
+			args = append([]interface{}{ctx}, args...)
+		}
+	}
 
 	if (!variadic && len(args) != numIn) || (variadic && len(args) < numIn-1) {
 		return nil, fmt.Errorf("invalid number of parameters")

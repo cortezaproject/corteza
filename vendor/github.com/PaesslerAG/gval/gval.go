@@ -77,6 +77,16 @@ func JSON() Language {
 	return ljson
 }
 
+// Parentheses contains support for parentheses.
+func Parentheses() Language {
+	return parentheses
+}
+
+// Ident contains support for variables and functions.
+func Ident() Language {
+	return ident
+}
+
 // Base contains equal (==) and not equal (!=), perentheses and general support for variables, constants and functions
 // It contains true, false, (floating point) number, string  ("" or ``) and char ('') constants
 func Base() Language {
@@ -205,6 +215,14 @@ var propositionalLogic = NewLanguage(
 	base,
 )
 
+var parentheses = NewLanguage(
+	PrefixExtension('(', parseParentheses),
+)
+
+var ident = NewLanguage(
+	PrefixMetaPrefix(scanner.Ident, parseIdent),
+)
+
 var base = NewLanguage(
 	PrefixExtension(scanner.Int, parseNumber),
 	PrefixExtension(scanner.Float, parseNumber),
@@ -225,7 +243,7 @@ var base = NewLanguage(
 
 	InfixOperator("==", func(a, b interface{}) (interface{}, error) { return reflect.DeepEqual(a, b), nil }),
 	InfixOperator("!=", func(a, b interface{}) (interface{}, error) { return !reflect.DeepEqual(a, b), nil }),
-	PrefixExtension('(', parseParentheses),
+	parentheses,
 
 	Precedence("??", 0),
 
@@ -258,5 +276,5 @@ var base = NewLanguage(
 
 	Precedence("**", 200),
 
-	PrefixMetaPrefix(scanner.Ident, parseIdent),
+	ident,
 )
