@@ -9,7 +9,7 @@ require (
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
-	github.com/PaesslerAG/gval v1.0.1
+	github.com/PaesslerAG/gval v1.1.0
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
