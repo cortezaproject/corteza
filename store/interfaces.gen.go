@@ -11,6 +11,9 @@ package store
 //  - store/auth_confirmed_clients.yaml
 //  - store/auth_oa2tokens.yaml
 //  - store/auth_sessions.yaml
+//  - store/automation_sessions.yaml
+//  - store/automation_triggers.yaml
+//  - store/automation_workflows.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -57,6 +60,9 @@ type (
 		AuthConfirmedClients
 		AuthOa2tokens
 		AuthSessions
+		AutomationSessions
+		AutomationTriggers
+		AutomationWorkflows
 		ComposeAttachments
 		ComposeCharts
 		ComposeModuleFields

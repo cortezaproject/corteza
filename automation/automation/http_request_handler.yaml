@@ -1,0 +1,93 @@
+name: httpRequest
+
+imports:
+  - time
+  - net/http
+  - net/url
+  - io
+
+params:
+  url: &url
+    required: true
+    types:
+      - { wf: String }
+  method: &method
+    required: true
+    types:
+      - { wf: String }
+  params: &params
+    types:
+      - { wf: KVV,      go: 'url.Values' }
+  headers: &headers
+    types:
+      - { wf: KVV,      go: 'http.Header' }
+  headerAuthBearer: &headerAuthBearer
+    types:
+      - { wf: String }
+  headerAuthUsername: &headerAuthUsername
+    types:
+      - { wf: String }
+  headerAuthPassword: &headerAuthPassword
+    types:
+      - { wf: String }
+  headerContentType: &headerContentType
+    types:
+      - { wf: String }
+  headerUserAgent: &headerUserAgent
+    types:
+      - { wf: String }
+  timeout: &timeout
+    types:
+      - { wf: Duration }
+  form: &form
+    types:
+      - { wf: KVV,      go: 'url.Values' }
+  body: &body
+    types:
+      - { wf: String,   suffix: String }
+      - { wf: Reader,   suffix: Stream }
+      - { wf: Any,      suffix: Raw }
+
+results:
+  status: &rStatus
+    wf: String
+
+  stautsCode: &rStatusCode
+    wf: Integer
+
+  headers: &rHeaders
+    wf: KVV
+
+  contentLength: &rContentLength
+    wf: Integer
+
+  contentType: &rContentType
+    wf: String
+
+  body: &rBody
+    wf: Reader
+
+functions:
+  send:
+    meta:
+      short: Sends HTTP request
+    params:
+      url:                *url
+      method:             *method
+      params:             *params
+      headers:            *headers
+      headerAuthBearer:   *headerAuthBearer
+      headerAuthUsername: *headerAuthUsername
+      headerAuthPassword: *headerAuthPassword
+      headerUserAgent:    *headerUserAgent
+      headerContentType:  *headerContentType
+      timeout:            *timeout
+      form:               *form
+      body:               *body
+    results:
+      status:             *rStatus
+      statusCode:         *rStatusCode
+      headers:            *rHeaders
+      contentLength:      *rContentLength
+      contentType:        *rContentType
+      body:               *rBody

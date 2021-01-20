@@ -720,6 +720,7 @@ func (Schema) AutomationTriggers() *Table {
 		ColumnDef("rel_workflow", ColumnTypeIdentifier),
 		ColumnDef("rel_step", ColumnTypeIdentifier),
 		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("meta", ColumnTypeJson),
 		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("constraints", ColumnTypeJson),

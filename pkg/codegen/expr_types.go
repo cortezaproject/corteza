@@ -18,8 +18,32 @@ type (
 		outputDir string
 
 		Imports []string
-		Package string            `yaml:"package"`
-		Types   map[string]string `yaml:"types"`
+		Package string                  `yaml:"package"`
+		Prefix  string                  `yaml:"prefix"`
+		Types   map[string]*exprTypeDef `yaml:"types"`
+	}
+
+	exprTypeDef struct {
+		As                 string
+		RawDefault         string `yaml:"default"`
+		AssignerFn         string `yaml:"assignerFn"`
+		BuiltInCastFn      bool
+		BuiltInAssignerFn  bool
+		CustomGValSelector bool `yaml:"customGValSelector"`
+		Struct             []*exprTypeStructDef
+
+		// @todo custom setters
+		// @todo custom getters
+	}
+
+	exprTypeStructDef struct {
+		Name     string
+		Alias    string
+		ExprType string `yaml:"exprType"`
+		GoType   string `yaml:"goType"`
+		Mode     string
+
+		// @todo custom expr-type-constructor NewExprType
 	}
 )
 
@@ -33,7 +57,7 @@ func procExprTypes(mm ...string) (dd []*exprTypesDef, err error) {
 				outputDir: path.Dir(m),
 
 				Package: "types",
-				Types:   make(map[string]string),
+				Types:   make(map[string]*exprTypeDef),
 			}
 		)
 
@@ -46,6 +70,13 @@ func procExprTypes(mm ...string) (dd []*exprTypesDef, err error) {
 
 		if err := yaml.NewDecoder(f).Decode(d); err != nil {
 			return nil, fmt.Errorf("%s decode failed: %w", m, err)
+		}
+
+		for tName, tdef := range d.Types {
+			if tdef.AssignerFn == "" {
+				tdef.BuiltInAssignerFn = true
+				tdef.AssignerFn = unexport("assignTo", tName)
+			}
 		}
 
 		dd = append(dd, d)
@@ -71,4 +102,16 @@ func genExprTypes(tpl *template.Template, dd ...*exprTypesDef) (err error) {
 	}
 
 	return nil
+}
+
+func (s exprTypeDef) Default() string {
+	if s.RawDefault == "" {
+		return "nil"
+	}
+
+	return s.RawDefault
+}
+
+func (s exprTypeStructDef) Readonly() bool {
+	return s.Mode == "ro"
 }

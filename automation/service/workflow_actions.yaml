@@ -1,0 +1,91 @@
+# List of loggable service actions
+
+resource: automation:workflow
+service: workflow
+
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+
+props:
+  - name: workflow
+    type: "*types.Workflow"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Workflow"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Workflow"
+    fields: [ handle, ID ]
+  - name: filter
+    type: "*types.WorkflowFilter"
+
+
+actions:
+  - action: search
+    log: "searched for matching workflows"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {workflow}"
+    severity: info
+
+  - action: create
+    log: "created {workflow}"
+
+  - action: update
+    log: "updated {workflow}"
+
+  - action: delete
+    log: "deleted {workflow}"
+
+  - action: undelete
+    log: "undeleted {workflow}"
+
+errors:
+  - error: notFound
+    message: "workflow not found"
+
+  - error: invalidID
+    message: "invalid ID"
+
+  - error: invalidHandle
+    message: "invalid handle"
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this workflow"
+    log: "failed to read {workflow.handle}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search workflows"
+    log: "failed to list workflow; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create workflows"
+    log: "failed to create workflow; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this workflow"
+    log: "failed to update {workflow}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this workflow"
+    log: "failed to delete {workflow}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this workflow"
+    log: "failed to undelete {workflow}; insufficient permissions"
+
+  - error: handleNotUnique
+    message: "workflow handle not unique"
+    log: "duplicate handle used for workflow ({workflow})"

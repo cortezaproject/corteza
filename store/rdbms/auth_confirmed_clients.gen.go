@@ -247,7 +247,7 @@ func (s Store) internalAuthConfirmedClientRowScanner(row rowScanner) (res *types
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan authConfirmedClient db row").Wrap(err)
+		return nil, errors.Store("could not scan authConfirmedClient db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

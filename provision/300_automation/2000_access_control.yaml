@@ -1,0 +1,34 @@
+allow:
+  admins:
+    automation:
+      - access
+      - grant
+      - workflow.create
+      - triggers.search
+      - sessions.search
+
+    automation:workflow:
+      - read
+      - update
+      - delete
+      - execute
+      - triggers.manage
+      - sessions.manage
+
+  developers:
+    automation:
+      - access
+      - grant
+      - workflow.create
+      - triggers.search
+      - sessions.search
+
+    automation:workflow:
+      - read
+      - update
+      - delete
+      - execute
+      - triggers.manage
+      - sessions.manage
+
+

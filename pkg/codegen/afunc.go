@@ -3,7 +3,6 @@ package codegen
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/automation/types"
 	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -28,11 +27,12 @@ type (
 		Functions aFunctionSet
 	}
 
-	aFunctionSet []aFuncDef
+	aFunctionSet []*aFuncDef
 
 	aFuncDef struct {
 		Name    string
-		Meta    *types.FunctionMeta
+		Kind    string
+		Meta    *aFuncMetaDef
 		Params  aFuncParamSet
 		Results aFuncResultSet
 	}
@@ -43,9 +43,9 @@ type (
 	aFuncParamDef struct {
 		Name     string
 		Required bool
-		SetOf    bool
+		IsArray  bool `yaml:"isArray"`
 		Types    []*aFuncParamTypeVarDef
-		Meta     *types.ParamMeta
+		Meta     *aFuncParamMetaDef
 	}
 
 	aFuncParamTypeVarDef struct {
@@ -56,11 +56,22 @@ type (
 
 	aFuncResultDef struct {
 		Name         string
-		Required     bool
-		SetOf        bool
+		IsArray      bool   `yaml:"isArray"`
 		WorkflowType string `yaml:"wf"`
 		GoType       string `yaml:"go"`
-		Meta         *types.ParamMeta
+		Meta         *aFuncParamMetaDef
+	}
+
+	aFuncMetaDef struct {
+		Short       string
+		Description string
+		Visual      map[string]interface{}
+	}
+
+	aFuncParamMetaDef struct {
+		Label       string
+		Description string
+		Visual      map[string]interface{}
 	}
 )
 
@@ -85,7 +96,7 @@ func procAutomationFunctions(mm ...string) (dd []*aFuncDefs, err error) {
 		d.Name = d.Name[:len(d.Name)-13]
 
 		if err := yaml.NewDecoder(f).Decode(d); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not decode %s: %w", m, err)
 		}
 
 		dd = append(dd, d)
@@ -96,10 +107,14 @@ func procAutomationFunctions(mm ...string) (dd []*aFuncDefs, err error) {
 
 func (set *aFunctionSet) UnmarshalYAML(n *yaml.Node) error {
 	return Each(n, func(k *yaml.Node, v *yaml.Node) (err error) {
-		def := aFuncDef{Name: k.Value}
+		def := &aFuncDef{Name: k.Value}
 
 		if err = v.Decode(&def); err != nil {
 			return err
+		}
+
+		if def.Kind == "" {
+			def.Kind = "function"
 		}
 
 		*set = append(*set, def)
@@ -130,6 +145,47 @@ func (set *aFuncResultSet) UnmarshalYAML(n *yaml.Node) error {
 		*set = append(*set, &def)
 		return v.Decode(&def)
 	})
+}
+
+func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
+	// index of all known types
+	ti := make(map[string]*exprTypeDef)
+
+	for _, t := range tt {
+		for typ, d := range t.Types {
+			ti[t.Prefix+typ] = d
+		}
+	}
+
+	for _, f := range ff {
+		for _, fn := range f.Functions {
+			for _, p := range fn.Params {
+				for _, t := range p.Types {
+					if ti[t.WorkflowType] == nil {
+						fmt.Printf("%s/%s(): unknown type %q used for param %q\n", f.Prefix, fn.Name, t.WorkflowType, p.Name)
+					}
+
+					if t.GoType == "" {
+						t.GoType = ti[t.WorkflowType].As
+					}
+
+					if t.Suffix == "" && len(p.Types) > 1 {
+						t.Suffix = t.WorkflowType
+					}
+				}
+			}
+
+			for _, r := range fn.Results {
+				if ti[r.WorkflowType] == nil {
+					fmt.Printf("%s/%s(): unknown type %q used for result %q\n", f.Prefix, fn.Name, r.WorkflowType, r.Name)
+				}
+
+				if r.GoType == "" {
+					r.GoType = ti[r.WorkflowType].As
+				}
+			}
+		}
+	}
 }
 
 func genAutomationFunctions(tpl *template.Template, dd ...*aFuncDefs) (err error) {
