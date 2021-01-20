@@ -30,8 +30,6 @@ type (
 		CanReadRecord   bool `json:"canReadRecord"`
 		CanUpdateRecord bool `json:"canUpdateRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
-
-		CanManageAutomationTriggers bool `json:"canManageAutomationTriggers"`
 	}
 
 	moduleFieldPayload struct {
@@ -59,8 +57,6 @@ type (
 
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
-
-		CanManageAutomationTriggersOnModule(context.Context, *types.Module) bool
 	}
 )
 
@@ -188,8 +184,6 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, m),
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
-
-		CanManageAutomationTriggers: ctrl.ac.CanManageAutomationTriggersOnModule(ctx, m),
 	}, nil
 }
 
