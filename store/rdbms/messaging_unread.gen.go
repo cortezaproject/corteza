@@ -221,7 +221,7 @@ func (s Store) internalMessagingUnreadRowScanner(row rowScanner) (res *types.Unr
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan messagingUnread db row").Wrap(err)
+		return nil, errors.Store("could not scan messagingUnread db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

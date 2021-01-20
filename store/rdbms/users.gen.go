@@ -484,7 +484,7 @@ func (s Store) internalUserRowScanner(row rowScanner) (res *types.User, err erro
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan user db row").Wrap(err)
+		return nil, errors.Store("could not scan user db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

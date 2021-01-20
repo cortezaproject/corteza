@@ -254,7 +254,7 @@ func (s Store) internalMessagingMessageRowScanner(row rowScanner) (res *types.Me
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan messagingMessage db row").Wrap(err)
+		return nil, errors.Store("could not scan messagingMessage db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

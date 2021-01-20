@@ -566,7 +566,7 @@ func (s Store) internal{{ export $.Types.Singular }}RowScanner({{ template "extr
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan {{ unexport $.Types.Singular }} db row").Wrap(err)
+		return nil, errors.Store("could not scan {{ unexport $.Types.Singular }} db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

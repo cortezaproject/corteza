@@ -456,7 +456,7 @@ func (s Store) internalComposeNamespaceRowScanner(row rowScanner) (res *types.Na
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan composeNamespace db row").Wrap(err)
+		return nil, errors.Store("could not scan composeNamespace db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}
