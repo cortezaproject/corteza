@@ -282,7 +282,7 @@ func (s Store) internalFederationNodeRowScanner(row rowScanner) (res *types.Node
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan federationNode db row").Wrap(err)
+		return nil, errors.Store("could not scan federationNode db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

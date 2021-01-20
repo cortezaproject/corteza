@@ -467,7 +467,7 @@ func (s Store) internalComposeModuleRowScanner(row rowScanner) (res *types.Modul
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan composeModule db row").Wrap(err)
+		return nil, errors.Store("could not scan composeModule db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

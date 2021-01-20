@@ -238,7 +238,7 @@ func (s Store) internalRoleMemberRowScanner(row rowScanner) (res *types.RoleMemb
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan roleMember db row").Wrap(err)
+		return nil, errors.Store("could not scan roleMember db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

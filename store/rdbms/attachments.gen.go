@@ -263,7 +263,7 @@ func (s Store) internalAttachmentRowScanner(row rowScanner) (res *types.Attachme
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan attachment db row").Wrap(err)
+		return nil, errors.Store("could not scan attachment db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -457,7 +457,7 @@ func (s Store) internalComposeChartRowScanner(row rowScanner) (res *types.Chart,
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan composeChart db row").Wrap(err)
+		return nil, errors.Store("could not scan composeChart db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}
