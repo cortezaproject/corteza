@@ -1,0 +1,76 @@
+# List of loggable service actions
+
+resource: automation:session
+service: session
+
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+
+props:
+  - name: session
+    type: "*types.Session"
+    fields: [ ID ]
+  - name: new
+    type: "*types.Session"
+    fields: [ ID ]
+  - name: update
+    type: "*types.Session"
+    fields: [ ID ]
+  - name: filter
+    type: "*types.SessionFilter"
+
+actions:
+  - action: search
+    log: "searched for matching sessions"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {session}"
+    severity: info
+
+  - action: create
+    log: "created {session}"
+
+  - action: update
+    log: "updated {session}"
+
+  - action: delete
+    log: "deleted {session}"
+
+  - action: undelete
+    log: "undeleted {session}"
+
+errors:
+  - error: notFound
+    message: "session not found"
+
+  - error: invalidID
+    message: "invalid ID"
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this session"
+    log: "failed to read {session}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search sessions"
+    log: "failed to list session; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this session"
+    log: "failed to delete {session}; insufficient permissions"
+
+  - error: notAllowedToManage
+    message: "not allowed to manage session's workflow"
+    log: "failed to manage {session}; insufficient permissions"
+

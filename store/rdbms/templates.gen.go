@@ -462,7 +462,7 @@ func (s Store) internalTemplateRowScanner(row rowScanner) (res *types.Template, 
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan template db row").Wrap(err)
+		return nil, errors.Store("could not scan template db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

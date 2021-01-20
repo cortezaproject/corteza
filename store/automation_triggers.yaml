@@ -1,0 +1,35 @@
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+types:
+  type: types.Trigger
+
+fields:
+  - { field: ID }
+  - { field: WorkflowID }
+  - { field: StepID }
+  - { field: Enabled,     type: bool }
+  - { field: ResourceType }
+  - { field: EventType    }
+  - { field: Meta,        type: "types.TriggerMeta" }
+  - { field: Constraints, type: "json.Text" }
+  - { field: Input,       type: "expr.Vars" }
+  - { field: OwnedBy   }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+rdbms:
+  alias: atmt
+  table: automation_triggers
+  customFilterConverter: true
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for trigger by ID
+
+      It returns trigger even if deleted

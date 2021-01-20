@@ -1,0 +1,38 @@
+params:
+  message: &message
+    required: true
+    types:
+      - { wf: String }
+  fields: &fields
+    types:
+      - { wf: KV }
+
+
+functions:
+  debug:
+    meta:
+      short: Writes debug log message
+    params:
+      message: *message
+      fields: *fields
+
+  info:
+    meta:
+      short: Writes info log message
+    params:
+      message: *message
+      fields:  *fields
+
+  warn:
+    meta:
+      short: Writes warn log message
+    params:
+      message: *message
+      fields:  *fields
+
+  error:
+    meta:
+      short: Writes error log message
+    params:
+      message: *message
+      fields:  *fields

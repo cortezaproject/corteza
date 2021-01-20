@@ -75,6 +75,8 @@ func Proc() {
 				"camelCase":       camelCase,
 				"export":          export,
 				"unexport":        unexport,
+				"removePtr":       removePtr,
+				"hasPtr":          hasPtr,
 				"toggleExport":    toggleExport,
 				"toLower":         strings.ToLower,
 				"toUpper":         strings.ToUpper,
@@ -275,11 +277,13 @@ func Proc() {
 
 			if aFuncsDefs, err = procAutomationFunctions(aFuncsSrc...); err == nil {
 				if genCode {
+					expandAutomationFunctionTypes(aFuncsDefs, exprTypeDefs)
+
 					err = genAutomationFunctions(tpls, aFuncsDefs...)
 				}
 			}
 
-			if outputErr(err, "failed to process store:\n") {
+			if outputErr(err, "failed to process automation functions:\n") {
 				return
 			}
 

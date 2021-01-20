@@ -1,0 +1,84 @@
+# List of loggable service actions
+
+resource: automation:trigger
+service: trigger
+
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+# Default sensitivity for actions
+defaultActionSeverity: info
+
+# default severity for errors
+defaultErrorSeverity: error
+
+
+props:
+  - name: trigger
+    type: "*types.Trigger"
+    fields: [ ID ]
+  - name: new
+    type: "*types.Trigger"
+    fields: [ ID ]
+  - name: update
+    type: "*types.Trigger"
+    fields: [ ID ]
+  - name: filter
+    type: "*types.TriggerFilter"
+
+
+actions:
+  - action: search
+    log: "searched for matching triggers"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {trigger}"
+    severity: info
+
+  - action: create
+    log: "created {trigger}"
+
+  - action: update
+    log: "updated {trigger}"
+
+  - action: delete
+    log: "deleted {trigger}"
+
+  - action: undelete
+    log: "undeleted {trigger}"
+
+errors:
+  - error: notFound
+    message: "trigger not found"
+
+  - error: invalidID
+    message: "invalid ID"
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this trigger"
+    log: "failed to read {trigger.ID}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search triggers"
+    log: "failed to list trigger; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create triggers"
+    log: "failed to create trigger; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this trigger"
+    log: "failed to update {trigger.ID}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this trigger"
+    log: "failed to delete {trigger.ID}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this trigger"
+    log: "failed to undelete {trigger.ID}; insufficient permissions"

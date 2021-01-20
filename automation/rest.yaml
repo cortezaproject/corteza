@@ -1,0 +1,293 @@
+---
+
+# This is direct conversion from old api/*/spec.json files
+# using https://www.json2yaml.com/
+#
+# Next step: swagger.
+
+endpoints:
+- title: Workflows
+  path: "/workflows"
+  entrypoint: workflow
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/expr
+    - github.com/cortezaproject/corteza-server/automation/types
+    - github.com/cortezaproject/corteza-server/pkg/label
+  apis:
+  - name: list
+    method: GET
+    title: List workflows
+    path: "/"
+    parameters:
+      get:
+      - { name: workflowID, type: "[]string",          title: "Filter by workflow ID" }
+      - { name: query,      type: "string",            title: "Filter workflows" }
+      - { name: deleted,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
+      - { name: disabled,   type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
+      - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,      type: "uint",              title: "Limit" }
+      - { name: pageCursor, type: "string",            title: "Page cursor" }
+      - { name: sort,       type: "string",            title: "Sort items" }
+  - name: create
+    method: POST
+    title: Create workflow
+    path: "/"
+    parameters:
+      post:
+      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
+      - { name: trace,        type: bool,                       title: "Trace workflow execution" }
+      - { name: keepSessions, type: int,                        title: "Keep old workflow sessions" }
+      - { name: scope,        type: "*expr.Vars",               title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: steps,        type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,        type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the workflow" }
+  - name: update
+    method: PUT
+    title: Update triger details
+    path: "/{workflowID}"
+    parameters:
+      path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
+      post:
+      - { name: handle,       type: string, required: true,     title: "Workflow name" }
+      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
+      - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
+      - { name: trace,        type: bool,                       title: "Trace workflow execution" }
+      - { name: keepSessions, type: int,                        title: "Keep old workflow sessions" }
+      - { name: scope,        type: "*expr.Vars",               title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: steps,        type: "types.WorkflowStepSet",    title: "Workflow steps definition",      parser: "types.ParseWorkflowStepSet" }
+      - { name: paths,        type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is workflow enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the workflow" }
+  - name: read
+    method: GET
+    title: Read workflow details
+    path: "/{workflowID}"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove workflow
+    path: "/{workflowID}"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete workflow
+    path: "/{workflowID}/undelete"
+    parameters: { path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ] }
+  - name: test
+    method: POST
+    title: Test workflow details
+    path: "/{workflowID}/test"
+    parameters:
+      path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
+      post:
+      - { name: scope,    type: "*expr.Vars",           title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: runAs,    type: bool,   required: true, title: "Is workflow enabled" }
+
+- title: Triggers
+  path: "/triggers"
+  entrypoint: trigger
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/automation/types
+    - github.com/cortezaproject/corteza-server/pkg/expr
+    - github.com/cortezaproject/corteza-server/pkg/label
+  apis:
+  - name: list
+    method: GET
+    title: List triggers
+    path: "/"
+    parameters:
+      get:
+      - { name: triggerID,    type: "[]string",          title: "Filter by trigger ID" }
+      - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
+      - { name: deleted,      type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted triggers" }
+      - { name: disabled,     type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled triggers" }
+      - { name: eventType,    type: "string",            title: "Filter triggers by event type" }
+      - { name: resourceType, type: "string",            title: "Filter triggers by resource type" }
+      - { name: query,        type: "string",            title: "Filter workflows," }
+      - { name: labels,       type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,        type: "uint",              title: "Limit" }
+      - { name: pageCursor,   type: "string",            title: "Page cursor" }
+      - { name: sort,         type: "string",            title: "Sort items" }
+  - name: create
+    method: POST
+    title: Create trigger
+    path: "/"
+    parameters:
+      post:
+      - { name: eventType,      type: string, required: true,       title: "Event type" }
+      - { name: resourceType,   type: string, required: true,       title: "Resource type" }
+      - { name: enabled,        type: bool,                         title: "Is trigger enabled" }
+      - { name: workflowID,     type: uint64, required: true,       title: "Workflow to be triggered" }
+      - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
+      - { name: input,          type: "*expr.Vars",                 title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",              parser: "types.ParseTriggerMeta" }
+      - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
+      - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
+  - name: update
+    method: PUT
+    title: Update trigger details
+    path: "/{triggerID}"
+    parameters:
+      path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ]
+      post:
+      - { name: eventType,      type: string, required: true,       title: "Event type" }
+      - { name: resourceType,   type: string, required: true,       title: "Resource type" }
+      - { name: enabled,        type: bool,                         title: "Is trigger enabled" }
+      - { name: workflowID,     type: uint64, required: true,       title: "Workflow to be triggered" }
+      - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
+      - { name: input,          type: "*expr.Vars",                 title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",               parser: "types.ParseTriggerMeta" }
+      - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
+      - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
+  - name: read
+    method: GET
+    title: Read trigger details
+    path: "/{triggerID}"
+    parameters: { path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove trigger
+    path: "/{triggerID}"
+    parameters: { path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete trigger
+    path: "/{triggerID}/undelete"
+    parameters: { path: [ { name: triggerID, type: uint64, required: true, title: "Trigger ID" } ] }
+
+- title: Sessions
+  path: "/sessions"
+  entrypoint: session
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/expr
+    - github.com/cortezaproject/corteza-server/automation/types
+  apis:
+  - name: list
+    method: GET
+    title: List sessions
+    path: "/"
+    parameters:
+      get:
+      - { name: sessionID,    type: "[]string",          title: "Filter by session ID" }
+      - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
+      - { name: completed,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) completed sessions" }
+      - { name: suspended,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) suspended sessions" }
+      - { name: eventType,    type: "string",            title: "Filter sessions by event type" }
+      - { name: resourceType, type: "string",            title: "Filter sessions by resource type" }
+      - { name: limit,        type: "uint",              title: "Limit" }
+      - { name: pageCursor,   type: "string",            title: "Page cursor" }
+      - { name: sort,         type: "string",            title: "Sort items" }
+  - name: read
+    method: GET
+    title: Read session details
+    path: "/{sessionID}"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: trace
+    method: GET
+    title: Read session trace info
+    path: "/{sessionID}/trace"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove session
+    path: "/{sessionID}"
+    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
+  - name: resume
+    method: POST
+    title: Resume session
+    path: "/{sessionID}/resume"
+    parameters:
+      path:
+      - { name: sessionID, type: uint64, required: true, title: "Session ID" }
+      post:
+      - { name: stateID,   type: uint64, required: true, title: "State ID" }
+      - { name: input,     type: "*expr.Vars",           title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+
+- title: Functions
+  path: "/functions"
+  entrypoint: function
+  authentication: []
+  apis:
+  - name: list
+    method: GET
+    title: Available workflow functions
+    path: "/"
+
+
+- title: Types
+  path: "/types"
+  entrypoint: type
+  authentication: []
+  apis:
+  - name: list
+    method: GET
+    title: Available workflow types
+    path: "/"
+- title: Permissions
+  entrypoint: permissions
+  path: "/permissions"
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/rbac
+  apis:
+  - name: list
+    path: "/"
+    method: GET
+    title: Retrieve defined permissions
+  - name: effective
+    path: "/effective"
+    method: GET
+    title: Effective rules for current user
+    parameters:
+      get:
+      - name: resource
+        type: string
+        required: false
+        title: Show only rules for a specific resource
+  - name: read
+    path: "/{roleID}/rules"
+    method: GET
+    title: Retrieve role permissions
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+  - name: delete
+    path: "/{roleID}/rules"
+    method: DELETE
+    title: Remove all defined role permissions
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+  - name: update
+    path: "/{roleID}/rules"
+    method: PATCH
+    title: Update permission settings
+    parameters:
+      path:
+      - name: roleID
+        type: uint64
+        required: true
+        title: Role ID
+      post:
+      - name: rules
+        type: rbac.RuleSet
+        required: true
+        title: List of permission rules to set
