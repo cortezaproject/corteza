@@ -47,6 +47,12 @@ func Proc() {
 		typeSrc     []string
 		typeDefs    []*typesDef
 
+		// workaround because
+		// filepath.Join merges "*","*" into "**" instead of "*/*"
+		exprTypeSrcPath = filepath.Join("*"+string(filepath.Separator)+"*", "expr_types.yaml")
+		exprTypeSrc     []string
+		exprTypeDefs    []*exprTypesDef
+
 		restSrcPath = filepath.Join("*", "rest.yaml")
 		restSrc     []string
 		restDefs    []*restDef
@@ -58,6 +64,10 @@ func Proc() {
 		optionSrcPath = filepath.Join("pkg", "options", "*.yaml")
 		optionSrc     []string
 		optionDefs    []*optionsDef
+
+		aFuncsSrcPath = filepath.Join("*", "automation", "*_handler.yaml")
+		aFuncsSrc     []string
+		aFuncsDefs    []*aFuncDefs
 
 		tpls    *template.Template
 		tplBase = template.New("").
@@ -142,6 +152,9 @@ func Proc() {
 		typeSrc = glob(typeSrcPath)
 		output("loaded %d type definitions from %s\n", len(typeSrc), typeSrcPath)
 
+		exprTypeSrc = glob(exprTypeSrcPath)
+		output("loaded %d exprType definitions from %s\n", len(exprTypeSrc), exprTypeSrcPath)
+
 		restSrc = glob(restSrcPath)
 		output("loaded %d rest definitions from %s\n", len(restSrc), restSrcPath)
 
@@ -150,6 +163,9 @@ func Proc() {
 
 		optionSrc = glob(optionSrcPath)
 		output("loaded %d option definitions from %s\n", len(optionSrc), optionSrcPath)
+
+		aFuncsSrc = glob(aFuncsSrcPath)
+		output("loaded %d function definitions from %s\n", len(aFuncsSrc), aFuncsSrcPath)
 
 		if watchChanges {
 			if watcher != nil {
@@ -163,9 +179,11 @@ func Proc() {
 			fileList = append(fileList, actionSrc...)
 			fileList = append(fileList, eventSrc...)
 			fileList = append(fileList, typeSrc...)
+			fileList = append(fileList, exprTypeSrc...)
 			fileList = append(fileList, restSrc...)
 			fileList = append(fileList, storeSrc...)
 			fileList = append(fileList, optionSrc...)
+			fileList = append(fileList, aFuncsSrc...)
 
 			for _, d := range fileList {
 				handleError(watcher.Add(d))
@@ -211,6 +229,16 @@ func Proc() {
 				return
 			}
 
+			if exprTypeDefs, err = procExprTypes(exprTypeSrc...); err == nil {
+				if genCode {
+					err = genExprTypes(tpls, exprTypeDefs...)
+				}
+			}
+
+			if outputErr(err, "failed to process expr types:\n") {
+				return
+			}
+
 			if restDefs, err = procRest(restSrc...); err == nil {
 				if genCode {
 					err = genRest(tpls, restDefs...)
@@ -242,6 +270,16 @@ func Proc() {
 			}
 
 			if outputErr(err, "fail to process options:\n") {
+				return
+			}
+
+			if aFuncsDefs, err = procAutomationFunctions(aFuncsSrc...); err == nil {
+				if genCode {
+					err = genAutomationFunctions(tpls, aFuncsDefs...)
+				}
+			}
+
+			if outputErr(err, "failed to process store:\n") {
 				return
 			}
 
