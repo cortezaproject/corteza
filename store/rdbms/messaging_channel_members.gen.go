@@ -242,7 +242,7 @@ func (s Store) internalMessagingChannelMemberRowScanner(row rowScanner) (res *ty
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan messagingChannelMember db row").Wrap(err)
+		return nil, errors.Store("could not scan messagingChannelMember db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

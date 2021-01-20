@@ -240,7 +240,7 @@ func (s Store) internalMessagingMessageAttachmentRowScanner(row rowScanner) (res
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan messagingMessageAttachment db row").Wrap(err)
+		return nil, errors.Store("could not scan messagingMessageAttachment db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

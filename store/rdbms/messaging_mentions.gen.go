@@ -249,7 +249,7 @@ func (s Store) internalMessagingMentionRowScanner(row rowScanner) (res *types.Me
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan messagingMention db row").Wrap(err)
+		return nil, errors.Store("could not scan messagingMention db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

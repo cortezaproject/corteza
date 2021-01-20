@@ -244,7 +244,7 @@ func (s Store) internalComposeRecordValueRowScanner(_mod *types.Module, row rowS
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan composeRecordValue db row").Wrap(err)
+		return nil, errors.Store("could not scan composeRecordValue db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

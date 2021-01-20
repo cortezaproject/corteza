@@ -251,7 +251,7 @@ func (s Store) internalLabelRowScanner(row rowScanner) (res *types.Label, err er
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan label db row").Wrap(err)
+		return nil, errors.Store("could not scan label db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -239,7 +239,7 @@ func (s Store) internalRbacRuleRowScanner(row rowScanner) (res *rbac.Rule, err e
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan rbacRule db row").Wrap(err)
+		return nil, errors.Store("could not scan rbacRule db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

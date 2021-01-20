@@ -85,6 +85,10 @@ func (s Schema) Tables() []*Table {
 		s.FederationModuleMapping(),
 		s.FederationNodes(),
 		s.FederationNodesSync(),
+		s.AutomationWorkflows(),
+		s.AutomationTriggers(),
+		s.AutomationSessions(),
+		//s.AutomationState(),
 	}
 }
 
@@ -666,5 +670,64 @@ func (Schema) FederationNodesSync() *Table {
 		ColumnDef("sync_type", ColumnTypeText),
 		ColumnDef("sync_status", ColumnTypeText),
 		ColumnDef("time_action", ColumnTypeTimestamp),
+	)
+}
+
+func (Schema) AutomationWorkflows() *Table {
+	return TableDef("automation_workflows",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("trace", ColumnTypeBoolean),
+		ColumnDef("keep_sessions", ColumnTypeInteger),
+		ColumnDef("scope", ColumnTypeJson),
+		ColumnDef("steps", ColumnTypeJson),
+		ColumnDef("paths", ColumnTypeJson),
+		ColumnDef("run_as", ColumnTypeIdentifier),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func (Schema) AutomationSessions() *Table {
+	return TableDef("automation_sessions",
+		ID,
+		ColumnDef("rel_workflow", ColumnTypeIdentifier),
+		ColumnDef("status", ColumnTypeInteger),
+		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("input", ColumnTypeJson),
+		ColumnDef("output", ColumnTypeJson),
+		ColumnDef("stacktrace", ColumnTypeJson),
+		ColumnDef("created_by", ColumnTypeIdentifier),
+		ColumnDef("created_at", ColumnTypeTimestamp),
+		ColumnDef("purge_at", ColumnTypeTimestamp, Null),
+		ColumnDef("suspended_at", ColumnTypeTimestamp, Null),
+		ColumnDef("completed_at", ColumnTypeTimestamp, Null),
+		ColumnDef("error", ColumnTypeText),
+
+		AddIndex("workflow", IColumn("rel_workflow")),
+	)
+}
+
+func (Schema) AutomationTriggers() *Table {
+	return TableDef("automation_triggers",
+		ID,
+		ColumnDef("rel_workflow", ColumnTypeIdentifier),
+		ColumnDef("rel_step", ColumnTypeIdentifier),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("resource_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("event_type", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("constraints", ColumnTypeJson),
+		ColumnDef("input", ColumnTypeJson),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("workflow", IColumn("rel_workflow")),
 	)
 }
