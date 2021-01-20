@@ -202,7 +202,7 @@ func (*Parser) callFunc(fun function, args ...Evaluable) Evaluable {
 			}
 			a[i] = ai
 		}
-		return fun(a...)
+		return fun(c, a...)
 	}
 }
 
