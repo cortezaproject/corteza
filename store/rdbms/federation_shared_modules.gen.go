@@ -451,7 +451,7 @@ func (s Store) internalFederationSharedModuleRowScanner(row rowScanner) (res *ty
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan federationSharedModule db row").Wrap(err)
+		return nil, errors.Store("could not scan federationSharedModule db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

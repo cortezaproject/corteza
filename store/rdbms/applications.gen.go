@@ -448,7 +448,7 @@ func (s Store) internalApplicationRowScanner(row rowScanner) (res *types.Applica
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan application db row").Wrap(err)
+		return nil, errors.Store("could not scan application db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}
