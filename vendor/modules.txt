@@ -51,6 +51,8 @@ github.com/disintegration/imaging
 # github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 ## explicit
 github.com/edwvee/exiffix
+# github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239
+## explicit
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
@@ -119,6 +121,8 @@ github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 ## explicit
 github.com/inconshreveable/mousetrap
+# github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869
+## explicit
 # github.com/jmoiron/sqlx v1.2.0
 ## explicit
 github.com/jmoiron/sqlx
@@ -234,6 +238,8 @@ github.com/steinfletcher/apitest-jsonpath
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
+# github.com/tebeka/strftime v0.1.5
+## explicit
 # go.uber.org/atomic v1.6.0
 ## explicit
 go.uber.org/atomic
