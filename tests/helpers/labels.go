@@ -30,6 +30,7 @@ func SetLabelsViaAPI(api *apitest.APITest, t *testing.T, endpoint string, in, ou
 	}
 
 	req.JSON(JSON(in)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(AssertNoErrors).

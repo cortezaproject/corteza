@@ -12,19 +12,27 @@ import (
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 {{- range .Imports }}
   {{ normalizeImport . }}
 {{- end }}
 )
 
-var (
-	{{ $.Name }} = &{{ $.Name }}Handler{}
+var _ wfexec.ExecResponse
+
+type (
+	{{ $.Name }}HandlerRegistry interface {
+		AddFunctions(ff ...*atypes.Function)
+		Type(ref string) expr.Type
+	}
 )
 
-func (h {{ $.Name }}Handler) register(reg func(*atypes.Function)) {
-{{- range .Functions }}
-	reg(h.{{ export .Name }}())
-{{- end }}
+func (h {{ $.Name }}Handler) register() {
+	h.reg.AddFunctions(
+	{{- range .Functions }}
+		h.{{ export .Name }}(),
+	{{- end }}
+	)
 }
 
 {{ range .Functions }}
@@ -36,16 +44,17 @@ func (h {{ $.Name }}Handler) register(reg func(*atypes.Function)) {
 type (
 	{{ $ARGS }} struct {
 		{{ range .Params }}
-			{{ $NAME := .Name }}
+			{{ $name    := .Name }}
+			{{ $isArray := .IsArray }}
 			has{{ export .Name }} bool
-			{{ if gt (len .Types) 1 }}
+			{{- if gt (len .Types) 1 }}
 				{{ export .Name }} interface{}
 				{{- range .Types }}
-					{{ $NAME }}{{ export .Suffix }} {{ .GoType }}
+					{{ $name }}{{ export .Suffix }} {{ if $isArray }}[]{{ end }}{{ .GoType }}
 				{{- end }}
 			{{- else -}}
 				{{ range .Types }}
-					{{ export $NAME }}{{ export .Suffix }} {{ .GoType }}
+					{{ export $name }}{{ export .Suffix }} {{ if $isArray }}[]{{ end }}{{ .GoType }}
 				{{- end }}
 			{{- end -}}
 		{{- end }}
@@ -54,21 +63,35 @@ type (
 	{{ if .Results }}
 	{{ unexport $.Name .Name }}Results struct {
 		{{ range .Results }}
-			{{ export .Name }} {{ .GoType }}
+			{{ export .Name }} {{ if .IsArray }}[]{{ end }}{{ .GoType }}
 		{{- end }}
 	}
 	{{- end }}
 )
 
-//
+
+
+
+{{ range .Params }}
+{{- if gt (len .Types) 1 }}
+{{ $name := .Name }}
+func (a {{ $ARGS }}) {{ export "get" $name }}() (bool, {{ range .Types }}{{ .GoType }},{{ end }}) {
+	return a.has{{ export $name }}{{ range .Types }}, a.{{ $name }}{{ export .Suffix }}{{ end }}
+}
+{{- end }}
+{{- end }}
+
+
+// {{ export .Name }} function {{ .Meta.Short }}
 //
 // expects implementation of {{ .Name }} function:
-// func (h {{ $.Name }}) {{ .Name }}(ctx context.Context, args *{{ $ARGS }}) (results *{{ $RESULTS }}, err error) {
+// func (h {{ $.Name }}Handler) {{ .Name }}(ctx context.Context, args *{{ $ARGS }}) ({{ if .Results }}results *{{ $RESULTS }}, {{ end }}err error) {
 //    return
 // }
 func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 	return &atypes.Function{
 		Ref: {{ printf "%q" ( $REF ) }},
+		Kind: {{ printf "%q" .Kind }},
 		{{- if .Meta }}
 		Meta: &atypes.FunctionMeta{
 			{{- if .Meta.Short }}
@@ -87,9 +110,9 @@ func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 		{{- range .Params }}
 			{
 				Name: {{ printf "%q" .Name }},
-				Types: []string{ {{ range .Types }}({{ .WorkflowType }}{}).Type(),{{ end }} },
+				Types: []string{ {{ range .Types }}{{ printf "%q" .WorkflowType }},{{ end }} },
 				{{- if .Required }}Required: true,{{ end }}
-				{{- if .SetOf }}SetOf: true,{{ end }}
+				{{- if .IsArray }}IsArray: true,{{ end }}
 				{{- if .Meta }}
 				Meta: &atypes.ParamMeta{
 					{{- if .Meta.Label }}
@@ -107,65 +130,137 @@ func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 		{{- end }}
 		},
 
+
 		{{ if .Results }}
 		Results: []*atypes.Param{
 		{{ range .Results }}
-			atypes.NewParam({{ printf "%q" .Name }},
-				atypes.Types(&{{ .WorkflowType }}{}),
-			),
+			{
+				Name: {{ printf "%q" .Name }},
+				Types: []string{ {{ printf "%q" .WorkflowType }} },
+				{{ if .IsArray }}IsArray: true,{{ end -}}
+				{{ if .Meta -}}
+				Meta: &atypes.ParamMeta{
+					{{- if .Meta.Label }}
+					Label: {{ printf "%#v" .Meta.Label }},
+					{{- end }}
+					{{- if .Meta.Description }}
+					Description: {{ printf "%#v" .Meta.Description }},
+					{{- end }}
+					{{- if .Meta.Visual }}
+					Visual: {{ printf "%#v" .Meta.Visual }},
+					{{- end }}
+				},
+				{{ end }}
+			},
 		{{ end }}
 		},
 		{{ end }}
 
-		Handler: func(ctx context.Context, in expr.Vars) (out expr.Vars, err error) {
+		{{ if eq .Kind "iterator" }}
+		Iterator: func(ctx context.Context, in *expr.Vars) (out wfexec.IteratorHandler, err error) {
 			var (
 				args = &{{ $ARGS }}{
 				{{- range .Params }}
 					has{{ export .Name }}: in.Has({{ printf "%q" .Name }}),
 				{{- end }}
 				}
-
-				{{ if .Results }}
-				results *{{ $RESULTS }}
-				{{ end }}
 			)
 
-			if err = in.Decode(args); err != nil {
-				return
-			}
+			{{ template "params" .Params }}
 
-			{{ range .Params }}
-				{{ $NAME := .Name }}
-				{{ if gt (len .Types) 1 }}
-				// Converting {{ export .Name }} to go type
-				switch casted := args.{{ export .Name }}.(type) {
-				{{- range .Types }}
-					case {{ .GoType }}:
-						args.{{ $NAME }}{{ export .Suffix }} = casted
-				{{- end -}}
-				}
+			return h.{{ .Name }}(ctx, args)
+		},
+		{{ else }}
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &{{ $ARGS }}{
+				{{- range .Params }}
+					has{{ export .Name }}: in.Has({{ printf "%q" .Name }}),
 				{{- end }}
-			{{ end }}
+				}
+			)
 
+			{{ template "params" .Params }}
 
 			{{ if .Results }}
+			var results *{{ $RESULTS }}
 			if results, err = h.{{ .Name }}(ctx, args); err != nil {
 				return
 			}
 
-			out = expr.Vars{}
+			out = &expr.Vars{}
 
 			{{- range .Results }}
-			if out[{{ printf "%q" .Name }}], err = ({{ .WorkflowType }}{}).Cast(results.{{ export .Name }}); err != nil {
-				return nil, err
-			}
-			{{- end }}
+				{{ if .IsArray }}
+
+				{
+					// converting results.{{ export .Name }} ({{ .GoType }}) to Array (of {{ .WorkflowType }})
+					var (
+						tval expr.TypedValue
+						tarr = make([]expr.TypedValue, len(results.{{ export .Name }}))
+					)
+
+					for i := range results.{{ export .Name }} {
+						if tarr[i], err = h.reg.Type({{ printf "%q" .WorkflowType }}).Cast(results.{{ export .Name }}[i]); err != nil {
+							return
+						}
+					}
+
+					if tval, err = expr.NewArray(tarr); err != nil {
+						return
+					} else if err = expr.Assign(out, {{ printf "%q" .Name }}, tval); err != nil {
+						return
+					}
+				}
+
+
+				{{ else }}
+
+				{
+					// converting results.{{ export .Name }} ({{ .GoType }}) to {{ .WorkflowType }}
+					var (
+						tval expr.TypedValue
+					)
+
+					if tval, err = h.reg.Type({{ printf "%q" .WorkflowType }}).Cast(results.{{ export .Name }}); err != nil {
+						return
+					} else if err = expr.Assign(out, {{ printf "%q" .Name }}, tval); err != nil {
+						return
+					}
+				}
+
+				{{ end }}
+			{{ end }}
 
 			return
 			{{- else }}
 			return out, h.{{ .Name }}(ctx, args)
 			{{- end }}
 		},
+		{{ end }}
 	}
 }
+{{ end }}
+
+{{ define "params" }}
+	if err = in.Decode(args); err != nil {
+		return
+	}
+
+	{{ range . }}
+		{{ $name := .Name }}
+		{{ if gt (len .Types) 1 }}
+		// Converting {{ export .Name }} argument
+		if args.has{{ export .Name }} {
+			aux := expr.Must(expr.Select(in, {{ printf "%q" .Name }}))
+			switch aux.Type() {
+		{{- range .Types }}
+			case h.reg.Type({{ printf "%q" .WorkflowType }}).Type():
+				args.{{ $name }}{{ export .Suffix }} = aux.Get().({{ .GoType }})
+		{{- end -}}
+			}
+		}
+
+		{{- end }}
+	{{ end }}
 {{ end }}

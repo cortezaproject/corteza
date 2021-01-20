@@ -9,6 +9,13 @@ import (
 	"strings"
 )
 
+// Selector allows for custom variable selection from structs
+//
+// Return value is again handled with variable() until end of the given path
+type Selector interface {
+	SelectGVal(c context.Context, key string) (interface{}, error)
+}
+
 // Evaluable evaluates given parameter
 type Evaluable func(c context.Context, parameter interface{}) (interface{}, error)
 
@@ -26,7 +33,7 @@ func (e Evaluable) EvalInt(c context.Context, parameter interface{}) (int, error
 	return int(f), nil
 }
 
-//EvalFloat64 evaluates given parameter to an int
+//EvalFloat64 evaluates given parameter to a float64
 func (e Evaluable) EvalFloat64(c context.Context, parameter interface{}) (float64, error) {
 	v, err := e(c, parameter)
 	if err != nil {
@@ -114,6 +121,12 @@ func variable(path Evaluables) Evaluable {
 		}
 		for i, k := range keys {
 			switch o := v.(type) {
+			case Selector:
+				v, err = o.SelectGVal(c, k)
+				if err != nil {
+					return nil, fmt.Errorf("failed to select '%s' on %T: %w", k, o, err)
+				}
+				continue
 			case map[interface{}]interface{}:
 				v = o[k]
 				continue

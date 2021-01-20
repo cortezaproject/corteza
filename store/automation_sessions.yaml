@@ -1,0 +1,33 @@
+import:
+  - github.com/cortezaproject/corteza-server/automation/types
+
+types:
+  type: types.Session
+
+fields:
+  - { field: ID }
+  - { field: WorkflowID }
+  - { field: EventType }
+  - { field: ResourceType }
+  - { field: Status,     type: int }
+  - { field: Input,      type: "expr.Vars" }
+  - { field: Output,     type: "expr.Vars" }
+  - { field: Stacktrace, type: "types.Stacktrace" }
+  - { field: CreatedBy }
+  - { field: CreatedAt }
+  - { field: PurgeAt }
+  - { field: CompletedAt }
+  - { field: SuspendedAt }
+  - { field: Error }
+
+rdbms:
+  alias: atms
+  table: automation_sessions
+  customFilterConverter: true
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for session by ID
+
+      It returns session even if deleted
