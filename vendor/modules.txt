@@ -18,7 +18,7 @@ github.com/Masterminds/sprig
 # github.com/Masterminds/squirrel v1.1.1-0.20191017225151-12f2162c8d8d
 ## explicit
 github.com/Masterminds/squirrel
-# github.com/PaesslerAG/gval v1.0.1
+# github.com/PaesslerAG/gval v1.1.0
 ## explicit
 github.com/PaesslerAG/gval
 # github.com/PaesslerAG/jsonpath v0.1.1
