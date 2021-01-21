@@ -543,7 +543,7 @@ func (s Store) internalComposeChartEncoder(res *types.Chart) store.Payload {
 //   undeleted items)
 func (s Store) collectComposeChartCursorValues(res *types.Chart, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

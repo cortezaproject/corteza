@@ -533,7 +533,7 @@ func (s Store) internalApplicationEncoder(res *types.Application) store.Payload 
 //   undeleted items)
 func (s Store) collectApplicationCursorValues(res *types.Application, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

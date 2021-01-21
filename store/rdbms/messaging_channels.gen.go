@@ -540,7 +540,7 @@ func (s Store) internalMessagingChannelEncoder(res *types.Channel) store.Payload
 //   undeleted items)
 func (s Store) collectMessagingChannelCursorValues(res *types.Channel, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

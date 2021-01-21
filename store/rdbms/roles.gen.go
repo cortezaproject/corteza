@@ -556,7 +556,7 @@ func (s Store) internalRoleEncoder(res *types.Role) store.Payload {
 //   undeleted items)
 func (s Store) collectRoleCursorValues(res *types.Role, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

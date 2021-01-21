@@ -534,7 +534,7 @@ func (s Store) internalFederationNodesSyncEncoder(res *types.NodeSync) store.Pay
 //   undeleted items)
 func (s Store) collectFederationNodesSyncCursorValues(res *types.NodeSync, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

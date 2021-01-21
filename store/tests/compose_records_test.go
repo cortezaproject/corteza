@@ -663,6 +663,8 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			}
 		)
 
+		// ascending
+
 		req.NoError(f.Sort.Set("str1"))
 		f.Limit = 2
 		f.IncPageNavigation = true
@@ -690,6 +692,37 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		req.NoError(err)
 		req.NotNil(set)
 		req.Equal("v9", stringifyValues(set, "str1"))
+
+		// descending
+
+		req.NoError(f.Sort.Set("str1 DESC"))
+		f.Limit = 2
+		f.PageCursor = nil
+		f.IncPageNavigation = true
+		f.IncTotal = true
+
+		set, f, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.NotNil(f.PageNavigation)
+		req.Equal(uint(9), f.Total)
+		req.Len(f.PageNavigation, 5)
+
+		f.PageCursor = f.PageNavigation[1].Cursor
+		f.IncPageNavigation = false
+		f.IncTotal = false
+		set, _, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.Equal("v7;v6", stringifyValues(set, "str1"))
+
+		f.PageCursor = f.PageNavigation[4].Cursor
+		f.IncPageNavigation = false
+		f.IncTotal = false
+		set, _, err = s.SearchComposeRecords(ctx, mod, f)
+		req.NoError(err)
+		req.NotNil(set)
+		req.Equal("v1", stringifyValues(set, "str1"))
 	})
 
 	t.Run("report", func(t *testing.T) {
