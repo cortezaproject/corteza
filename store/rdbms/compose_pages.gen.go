@@ -568,7 +568,7 @@ func (s Store) internalComposePageEncoder(res *types.Page) store.Payload {
 //   undeleted items)
 func (s Store) collectComposePageCursorValues(res *types.Page, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

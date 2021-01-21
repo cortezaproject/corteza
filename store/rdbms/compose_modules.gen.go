@@ -553,7 +553,7 @@ func (s Store) internalComposeModuleEncoder(res *types.Module) store.Payload {
 //   undeleted items)
 func (s Store) collectComposeModuleCursorValues(res *types.Module, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

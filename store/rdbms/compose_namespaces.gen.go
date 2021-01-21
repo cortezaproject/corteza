@@ -542,7 +542,7 @@ func (s Store) internalComposeNamespaceEncoder(res *types.Namespace) store.Paylo
 //   undeleted items)
 func (s Store) collectComposeNamespaceCursorValues(res *types.Namespace, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

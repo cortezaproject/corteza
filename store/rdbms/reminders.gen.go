@@ -550,7 +550,7 @@ func (s Store) internalReminderEncoder(res *types.Reminder) store.Payload {
 //   undeleted items)
 func (s Store) collectReminderCursorValues(res *types.Reminder, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

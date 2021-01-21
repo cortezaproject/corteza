@@ -540,7 +540,7 @@ func (s Store) internalFederationSharedModuleEncoder(res *types.SharedModule) st
 //   undeleted items)
 func (s Store) collectFederationSharedModuleCursorValues(res *types.SharedModule, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

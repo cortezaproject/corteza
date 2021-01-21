@@ -651,7 +651,7 @@ func (s Store) internal{{ export $.Types.Singular }}Encoder(res *{{ $.Types.GoTy
 //   undeleted items)
 func (s Store) collect{{ export $.Types.Singular }}CursorValues({{ template "extraArgsDef" $ }}res *{{ $.Types.GoType }}, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

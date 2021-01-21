@@ -548,7 +548,7 @@ func (s Store) internalFederationModuleMappingEncoder(res *types.ModuleMapping) 
 //   undeleted items)
 func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMapping, cc ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
 
 		hasUnique bool
 

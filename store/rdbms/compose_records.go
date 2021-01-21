@@ -176,6 +176,7 @@ func (s Store) composeRecordsPageNavigation(
 				// first page
 				q = supPageQuery
 			} else {
+				//cursor.LThen = sort.Reversed()
 				q = supPageQuery.Where(cursorCond(cursor))
 			}
 
@@ -531,26 +532,26 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 	return
 }
 
-func (s Store) convertComposeRecordCursor(m *types.Module, from *filter.PagingCursor) (to *filter.PagingCursor) {
-	if from != nil {
-		to = &filter.PagingCursor{ROrder: from.ROrder, LThen: from.LThen}
-		// convert cursor keys field names (if used)
-		from.Walk(func(key string, val interface{}, desc bool) {
-			if col, has := s.sortableComposeRecordColumns()[strings.ToLower(key)]; has {
-				key = col
-			} else if f := m.Fields.FindByName(key); f != nil {
-				key, _ = s.config.CastModuleFieldToColumnType(f, key)
-			} else {
-				return
-			}
-
-			to.Set(key, val, desc)
-		})
-
-	}
-
-	return to
-}
+//func (s Store) convertComposeRecordCursor(m *types.Module, from *filter.PagingCursor) (to *filter.PagingCursor) {
+//	if from != nil {
+//		to = &filter.PagingCursor{ROrder: from.ROrder, LThen: from.LThen}
+//		// convert cursor keys field names (if used)
+//		from.Walk(func(key string, val interface{}, desc bool) {
+//			if col, has := s.sortableComposeRecordColumns()[strings.ToLower(key)]; has {
+//				key = col
+//			} else if f := m.Fields.FindByName(key); f != nil {
+//				key, _ = s.config.CastModuleFieldToColumnType(f, key)
+//			} else {
+//				return
+//			}
+//
+//			to.Set(key, val, desc)
+//		})
+//
+//	}
+//
+//	return to
+//}
 
 func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Module, set ...*types.Record) (err error) {
 	if len(set) > 0 {
@@ -604,7 +605,7 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 // Custom implementation for collecting cursor values from compose records AND it's values!
 func (s Store) collectComposeRecordCursorValues(m *types.Module, res *types.Record, sort ...*filter.SortExpr) *filter.PagingCursor {
 	var (
-		cursor = &filter.PagingCursor{}
+		cursor = &filter.PagingCursor{LThen: filter.SortExprSet(sort).Reversed()}
 
 		hasUnique bool
 		pkID      bool
