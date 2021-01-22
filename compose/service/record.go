@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -20,8 +22,9 @@ import (
 )
 
 const (
-	IMPORT_ON_ERROR_SKIP = "SKIP"
-	IMPORT_ON_ERROR_FAIL = "FAIL"
+	IMPORT_ON_ERROR_SKIP         = "SKIP"
+	IMPORT_ON_ERROR_FAIL         = "FAIL"
+	IMPORT_ERROR_MAX_INDEX_COUNT = 500000
 )
 
 type (
@@ -124,7 +127,19 @@ type (
 		Completed  uint64     `json:"completed"`
 		Failed     uint64     `json:"failed"`
 		FailReason string     `json:"failReason,omitempty"`
+		FailLog    *FailLog   `json:"failLog,omitempty"`
 	}
+
+	FailLog struct {
+		// Records holds an array of record indexes
+		Records          RecordIndex `json:"records"`
+		RecordsTruncated bool        `json:"recordsTruncated"`
+		// Errors specifies a map of occurred errors & the number of
+		Errors ErrorIndex `json:"errors"`
+	}
+
+	RecordIndex []int
+	ErrorIndex  map[string]int
 )
 
 func Record() RecordService {
@@ -374,15 +389,46 @@ func (svc record) Import(ses *RecordImportSession, ssvc ImportSessionService) (e
 		ses.Progress.StartedAt = &sa
 		ssvc.SetByID(svc.ctx, ses.SessionID, 0, 0, nil, &ses.Progress, nil)
 
-		err = ses.Decoder.Records(ses.Fields, func(mod *types.Record) error {
-			mod.NamespaceID = ses.NamespaceID
-			mod.ModuleID = ses.ModuleID
-			mod.OwnedBy = ses.UserID
+		index := 0
+		err = ses.Decoder.Records(ses.Fields, func(rec *types.Record) error {
+			index++
 
-			_, err := svc.Create(mod)
+			rec.NamespaceID = ses.NamespaceID
+			rec.ModuleID = ses.ModuleID
+			rec.OwnedBy = ses.UserID
+
+			_, err := svc.Create(rec)
 			if err != nil {
+				recErr, isRecErr := err.(*recordError)
+
 				ses.Progress.Failed++
 				ses.Progress.FailReason = err.Error()
+
+				if ses.Progress.FailLog == nil {
+					ses.Progress.FailLog = &FailLog{
+						Errors: make(ErrorIndex),
+					}
+				}
+
+				if isRecErr {
+					if evErr, ok := recErr.wrap.(*types.RecordValueErrorSet); ok {
+						for _, ve := range evErr.Set {
+							for k, v := range ve.Meta {
+								ses.Progress.FailLog.Errors.Add(fmt.Sprintf("%s %s %v", ve.Kind, k, v))
+							}
+						}
+					} else {
+						ses.Progress.FailLog.Errors.Add(err.Error())
+					}
+				} else {
+					ses.Progress.FailLog.Errors.Add(err.Error())
+				}
+
+				if len(ses.Progress.FailLog.Records) < IMPORT_ERROR_MAX_INDEX_COUNT {
+					ses.Progress.FailLog.Records = append(ses.Progress.FailLog.Records, index)
+				} else {
+					ses.Progress.FailLog.RecordsTruncated = true
+				}
 
 				if ses.OnError == IMPORT_ON_ERROR_FAIL {
 					fa := time.Now()
@@ -1465,4 +1511,39 @@ func (svc record) readableFields(m *types.Module) []string {
 	})
 
 	return ff
+}
+
+func (ei ErrorIndex) Add(err string) {
+	if _, has := ei[err]; has {
+		ei[err]++
+	} else {
+		ei[err] = 1
+	}
+}
+
+func (ri RecordIndex) MarshalJSON() ([]byte, error) {
+	sort.Ints(ri)
+
+	rr := make([][]int, 0, len(ri))
+	start := -1
+	crt := -1
+
+	for i := 0; i < len(ri); i++ {
+		if start == -1 {
+			start = ri[i]
+			crt = ri[i]
+			continue
+		}
+
+		// If the index increases for more then 1, the set is complete
+		if ri[i]-crt > 1 {
+			rr = append(rr, []int{start, crt})
+			start = ri[i]
+		}
+
+		crt = ri[i]
+	}
+
+	rr = append(rr, []int{start, crt})
+	return json.Marshal(rr)
 }
