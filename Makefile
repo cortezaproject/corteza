@@ -51,6 +51,10 @@ DEV_MINIO_PORT        ?= 9000
 DEV_MAILHOG_SMTP_ADDR ?= 1025
 DEV_MAILHOG_HTTP_ADDR ?= 8025
 
+GIN_ARG_LADDR ?= localhost
+GIN_ARGS      ?= --laddr $(GIN_ARG_LADDR) --immediate
+
+
 DOCKER                ?= docker
 
 help:
@@ -102,7 +106,7 @@ $(RELEASE_PKEY):
 # Development
 
 watch: $(GIN)
-	$(GIN) --laddr localhost --notifications --immediate --build cmd/corteza run -- serve
+	$(GIN) $(GIN_ARGS) --build cmd/corteza run -- serve
 
 realize: watch # BC
 
