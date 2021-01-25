@@ -48,12 +48,14 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 	scope = r.Values.Dict(m.Fields)
 
 	// new record
-	scope["new"] = r.Dict(m)
+	r.SetModule(m)
+	scope["new"] = r.Dict()
 
 	if old != nil {
 		// old values on record (before update)
 		// this will not be set for new records
-		scope["old"] = old.Dict(m)
+		old.SetModule(m)
+		scope["old"] = old.Dict()
 	}
 
 	for _, f := range m.Fields {
@@ -104,6 +106,7 @@ func Expression(ctx context.Context, m *types.Module, r *types.Record, old *type
 		}
 
 		// Reset $new with updated data
-		scope["new"] = r.Dict(m)
+		r.SetModule(m)
+		scope["new"] = r.Dict()
 	}
 }
