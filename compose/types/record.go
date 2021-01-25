@@ -36,6 +36,8 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
+		module *Module
+
 		Values RecordValueSet `json:"values,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
@@ -97,6 +99,15 @@ loop:
 	return
 }
 
+// Sets/updates module ptr
+//
+// Only if not previously set and if matches record specs
+func (r *Record) SetModule(m *Module) {
+	if (r.module == nil || r.module.ID == m.ID) && r.ModuleID == m.ID {
+		r.module = m
+	}
+}
+
 func (r Record) Clone() *Record {
 	c := &r
 	c.Values = r.Values.Clone()
@@ -118,11 +129,10 @@ func (r Record) DynamicRoles(userID uint64) []uint64 {
 	)
 }
 
-func (r Record) Dict(m *Module) map[string]interface{} {
-	return map[string]interface{}{
+func (r Record) Dict() map[string]interface{} {
+	dict := map[string]interface{}{
 		"ID":          r.ID,
 		"moduleID":    r.ModuleID,
-		"values":      r.Values.Dict(m.Fields),
 		"labels":      r.Labels,
 		"namespaceID": r.NamespaceID,
 		"ownedBy":     r.OwnedBy,
@@ -133,6 +143,12 @@ func (r Record) Dict(m *Module) map[string]interface{} {
 		"deletedAt":   r.DeletedAt,
 		"deletedBy":   r.DeletedBy,
 	}
+
+	if r.module != nil {
+		dict["values"] = r.Values.Dict(r.module.Fields)
+	}
+
+	return dict
 }
 
 // UnmarshalJSON for custom record deserialization

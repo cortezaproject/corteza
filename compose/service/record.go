@@ -214,6 +214,8 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 			return err
 		}
 
+		r.SetModule(m)
+
 		return nil
 	}()
 
@@ -295,6 +297,11 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 		if err = label.Load(ctx, svc.store, toLabeledRecords(set)...); err != nil {
 			return err
 		}
+
+		_ = set.Walk(func(r *types.Record) error {
+			r.SetModule(m)
+			return nil
+		})
 
 		trimUnreadableRecordFields(ctx, svc.ac, m, set...)
 
