@@ -16,10 +16,14 @@ func (s Store) columns() []string {
 }
 
 func (s Store) convertSettingFilter(f types.SettingsFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.settingsSelectBuilder().Where(squirrel.Eq{"rel_owner": f.OwnedBy})
+	query = s.settingsSelectBuilder()
 
 	if len(f.Prefix) > 0 {
 		query = query.Where("name LIKE ?", f.Prefix+"%")
+	}
+
+	if f.OwnedBy > 0 {
+		query = query.Where(squirrel.Eq{"rel_owner": f.OwnedBy})
 	}
 
 	return
