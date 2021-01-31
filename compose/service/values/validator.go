@@ -226,6 +226,9 @@ fields:
 			continue
 		}
 
+		if vldtr.uniqueCheckerFn == nil {
+			return nil
+		}
 		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m)
 		if err != nil {
 			out.Push(makeInternalErr(f, err))
@@ -306,6 +309,9 @@ func (vldtr validator) vEmail(v *types.RecordValue, f *types.ModuleField, r *typ
 }
 
 func (vldtr validator) vFile(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+	if vldtr.fileRefCheckerFn == nil {
+		return nil
+	}
 	if ok, err := vldtr.fileRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
@@ -324,6 +330,9 @@ func (vldtr validator) vNumber(v *types.RecordValue, f *types.ModuleField, r *ty
 }
 
 func (vldtr validator) vRecord(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+	if vldtr.recordRefCheckerFn == nil {
+		return nil
+	}
 	if ok, err := vldtr.recordRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
@@ -394,6 +403,9 @@ func (vldtr validator) vUrl(v *types.RecordValue, f *types.ModuleField, r *types
 }
 
 func (vldtr validator) vUser(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, r *types.Record, m *types.Module) []types.RecordValueError {
+	if vldtr.userRefCheckerFn == nil {
+		return nil
+	}
 	if ok, err := vldtr.userRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
