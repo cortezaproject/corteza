@@ -84,6 +84,8 @@ type (
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)
 		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
 
+		Validate(ctx context.Context, rec *types.Record) error
+
 		DeleteByID(ctx context.Context, namespaceID, moduleID uint64, recordID ...uint64) error
 
 		Organize(ctx context.Context, namespaceID, moduleID, recordID uint64, sortingField, sortingValue, sortingFilter, valueField, value string) error
@@ -1118,6 +1120,15 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 	}()
 
 	return svc.recordAction(ctx, aProps, RecordActionOrganize, err)
+}
+
+func (svc record) Validate(ctx context.Context, rec *types.Record) error {
+	if m, err := loadModule(ctx, svc.store, rec.ModuleID); err != nil {
+		return err
+	} else {
+		rec.Values = values.Sanitizer().Run(m, rec.Values)
+		return values.Validator().Run(ctx, svc.store, m, rec)
+	}
 }
 
 // TriggerScript loads requested record sanitizes and validates values and passes all to the automation script

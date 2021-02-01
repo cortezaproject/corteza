@@ -1,0 +1,56 @@
+package: automation
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+types:
+  ComposeNamespace:
+    as: '*types.Namespace'
+    struct:
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro }
+      - { name: 'name',            exprType: 'String',       goType: 'string' }
+      - { name: 'slug',            exprType: 'Handle',       goType: 'string',                alias: 'handle'}
+      - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
+      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+  ComposeModule:
+    as: '*types.Module'
+    struct:
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro }
+      - { name: 'namespaceID',     exprType: 'ID',           goType: 'uint64',                 mode: ro }
+      - { name: 'name',            exprType: 'String',       goType: 'string' }
+      - { name: 'handle',          exprType: 'Handle',       goType: 'string' }
+      - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
+      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
+
+  ComposeRecord:
+    as: '*types.Record'
+    struct:
+      - { name: 'ID',              exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'moduleID',        exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'namespaceID',     exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'values',          exprType: 'ComposeRecordValues', goType: 'map[string]interface{}' }
+      - { name: 'labels',          exprType: 'KV',                  goType: 'map[string]string' }
+      - { name: 'ownedBy',         exprType: 'ID',                  goType: 'uint64' }
+      - { name: 'createdAt',       exprType: 'DateTime',            goType: 'time.Time',              mode: ro }
+      - { name: 'createdBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',            goType: '*time.Time',             mode: ro }
+      - { name: 'updatedBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',            goType: '*time.Time',             mode: ro }
+      - { name: 'deletedBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+    customGValSelector: true
+
+  ComposeRecordValues:
+    as:     'types.RecordValueSet'
+    castFn: 'castComposeRecordValueSet'
+
+  ComposeRecordValueErrorSet:
+    as:     '*types.RecordValueErrorSet'
+
+#
+#  Page:
+#    as: '*types.Page'
+#  Chart:
+#    as: '*types.Chart'
