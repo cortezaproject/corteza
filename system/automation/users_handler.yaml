@@ -1,0 +1,132 @@
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+
+snippets:
+  lookup: &lookup
+    required: true
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: String, suffix: email }
+      - { wf: User,   suffix: res }
+
+  user: &user
+    types:
+      - { wf: User }
+
+  rvUser: &rvUser
+    wf: User
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    query:
+      types:
+        - { wf: String }
+    email:
+      types:
+        - { wf: String }
+    handle:
+      types:
+        - { wf: String }
+    labels:
+      types:
+        - { wf: KV }
+    deleted:
+      types:
+        - { wf: UnsignedInteger }
+    suspended:
+      types:
+        - { wf: UnsignedInteger }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+functions:
+  lookup:
+    meta:
+      short: Looks-up for user by ID
+    params:
+      lookup: *lookup
+    results:
+      user:  *rvUser
+
+  search:
+    meta:
+      short: Searches for users and returns them
+    params: *filterParams
+    results:
+      users:
+        <<: *rvUser
+        isArray: true
+      total: *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for users and iterates over results
+    params: *filterParams
+    results:
+      user:  *rvUser
+      total: *rvTotal
+
+  create:
+    meta:
+      short: Creates new user
+    params:
+      user:
+        <<: *user
+        required: true
+    results:
+      user: *rvUser
+
+  update:
+    meta:
+      short: Updates exiting user
+    params:
+      user:
+        <<: *user
+        required: true
+    results:
+      user: *rvUser
+
+  delete:
+    meta:
+      short: Deletes user
+    params:
+      lookup: *lookup
+
+  recover:
+    meta:
+      short: Recovers deleted user
+    params:
+      lookup: *lookup
+
+  suspend:
+    meta:
+      short: Suspends user
+    params:
+      lookup: *lookup
+
+  unsuspend:
+    meta:
+      short: Unsuspends user
+    params:
+      lookup: *lookup

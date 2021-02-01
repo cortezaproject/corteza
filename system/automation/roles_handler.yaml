@@ -1,0 +1,135 @@
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+
+params:
+  lookup: &lookup
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: Role,   suffix: res }
+
+  role: &role
+    types:
+      - { wf: Role }
+
+  rvRole: &rvRole
+    wf: Role
+
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    query:
+      types:
+        - { wf: String }
+    memberID:
+      types:
+        - { wf: ID }
+    handle:
+      types:
+        - { wf: String }
+    name:
+      types:
+        - { wf: String }
+    labels:
+      types:
+        - { wf: KV }
+    deleted:
+      types:
+        - { wf: UnsignedInteger }
+    archived:
+      types:
+        - { wf: UnsignedInteger }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+functions:
+  lookup:
+    meta:
+      short: Looks-up for role by ID
+    params:
+      lookup: *lookup
+    results:
+      role: *rvRole
+
+  search:
+    meta:
+      short: Searches for roles and returns them
+    params: *filterParams
+    results:
+      roles:
+        <<: *rvRole
+        isArray: true
+      total: *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for roles and iterates over results
+    params: *filterParams
+    results:
+      role:  *rvRole
+      total: *rvTotal
+
+  create:
+    meta:
+      short: Creates new role
+    params:
+      role:
+        <<: *role
+        required: true
+    results:
+      role: *rvRole
+
+  update:
+    meta:
+      short: Updates exiting role
+    params:
+      role:
+        <<: *role
+        required: true
+    results:
+      role: *rvRole
+
+  delete:
+    meta:
+      short: Deletes the role
+    params:
+      lookup: *lookup
+
+  recover:
+    meta:
+      short: Recovers deleted role
+    params:
+      lookup: *lookup
+
+  archive:
+    meta:
+      short: Archives the role
+    params:
+      lookup: *lookup
+
+  unarchive:
+    meta:
+      short: Unarchives the role
+    params:
+      lookup: *lookup
