@@ -1,0 +1,170 @@
+prefix: compose
+
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+params:
+  moduleLookup: &moduleLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: Handle,           }
+      - { wf: ComposeModule,    suffix: res }
+    meta:
+      label: Module to set record type
+      description: |-
+        Even with unique record ID across all modules, module needs to be known
+        before doing any record operations. Mainly because records of different
+        modules can be located in different stores.
+
+  namespaceLookup: &namespaceLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: Handle,           }
+      - { wf: ComposeNamespace, suffix: res }
+
+  recordLookup: &recordLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: ComposeRecord,    suffix: res }
+
+  record: &record
+    required: true
+    types:
+      - { wf: ComposeRecord,    }
+
+  rvRecord: &rvRecord
+    wf: ComposeRecord
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+    meta:
+      label: Total records found
+      description: |-
+        Total items that satisfy given conditions.
+
+        Needs to be explicitly requested with incTotal argument
+
+  rvIndex: &rvIndex
+    wf: UnsignedInteger
+    meta:
+      label: Iteration counter
+      description: |-
+        Zero-based number iteration counter
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    module: *moduleLookup
+    namespace: *namespaceLookup
+    query:
+      types:
+        - { wf: String }
+    labels:
+      types:
+        - { wf: KV }
+    deleted:
+      types:
+        - { wf: UnsignedInteger }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+functions:
+  lookup:
+    meta:
+      short: Lookup for compose record by ID
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+      record:    *recordLookup
+    results:
+      record: *rvRecord
+
+  search:
+    meta:
+      short: Searches for records and returns them
+    params: *filterParams
+    results:
+      records:
+        <<: *rvRecord
+        isArray: true
+      total:      *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for records and iterates over results
+    params: *filterParams
+    results:
+      record: *rvRecord
+      index:  *rvIndex
+      total:  *rvTotal
+
+  new:
+    meta:
+      short: Make a new record
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+    results:
+      record: *rvRecord
+
+  validate:
+    meta:
+      short: Validate record
+    params:
+      record: *record
+    results:
+      valid:
+        wf: Boolean
+        meta:
+          label: Set to true when record is valid
+
+  create:
+    meta:
+      short: Creates and stores a new record
+    params:
+      record:
+        <<: *record
+        required: true
+    results:
+      record: *rvRecord
+
+  update:
+    meta:
+      short: Updates an existing record
+    params:
+      record:
+        <<: *record
+        required: true
+    results:
+      record: *rvRecord
+
+  delete:
+    meta:
+      short: Soft deletes compose record by ID
+    params:
+      record: *recordLookup
+
+#  undelete:
+#    meta:
+#      short: Recovers deleted record by ID
+#    params:
+#      record: *recordLookup

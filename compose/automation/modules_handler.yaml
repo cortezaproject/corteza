@@ -2,123 +2,31 @@ prefix: compose
 
 imports:
   - github.com/cortezaproject/corteza-server/compose/types
-  - github.com/cortezaproject/corteza-server/pkg/label
-#  - time
 
 params:
-  module: &module
+  moduleLookup: &moduleLookup
     required: true
     types:
-      - { wf: ID,                 go: uint64,          suffix: ID }
-      - { wf: String,             go: string,          suffix: handle }
-      - { wf: ComposeModule,      go: "*types.Module", suffix: res }
-    meta:
-      label: Module to set record type
-      description: |-
-        Even with unique record ID across all modules, module needs to be known
-        before doing any record operations. Mainly because records of different
-        modules can be located in different stores.
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: ComposeModule,     suffix: res }
 
-  namespace: &namespace
+  namespaceLookup: &namespaceLookup
     required: true
     types:
-      - { wf: ID,                 go: uint64,             suffix: ID }
-      - { wf: String,             go: string,             suffix: handle }
-      - { wf: ComposeNamespace,   go: "*types.Namespace", suffix: res }
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: ComposeNamespace,  suffix: res }
 
-  record: &record
-    required: true
-    types:
-      - { wf: ComposeRecord,      go: "*types.Record" }
-
-  recordID: &recordID
-    required: true
-    types:
-      - { wf: ID,          go: uint64 }
-
-  values: &values
-    types: [ { wf: KV,             go: 'types.RecordValueSet' }]
-
-  labels: &labels
-    types: [ { wf: KV,             go: 'label.Labels' }]
-
-  ownedBy: &ownedBy
-    types: [ { wf: ID,             go: uint64 } ]
-    meta:
-      label: Record owner
-      visual:
-        ref: users
-
-  recordReturnValue: &recordReturnValue
-    wf: ComposeRecord
-    go: "*types.Record"
+  rvModule: &rvModule
+    wf: ComposeModule
 
 functions:
-  lookupByID:
+  lookup:
     meta:
-      short: Lookup for compose record by ID
+      short: Lookup for compose Lookup by ID
     params:
-      recordID: *recordID
-      module: *module
-      namespace: *namespace
+      module: *moduleLookup
+      namespace: *namespaceLookup
     results:
-      record: *recordReturnValue
-
-  save:
-    meta:
-      short: Save record
-    params:
-      record: *record
-    results:
-      record: *recordReturnValue
-
-  # @todo validate
-  #       -> record
-  #       <- errors RVSE
-  #       <- valid  (bool)
-
-  # @todo copy
-  #       -> source  Record
-  #       -> target  Record
-  #       -> include []string list of fields from source record to copy
-  #       -> exclude []string list of fields from source record to copy
-
-  create:
-    meta:
-      short: Creates and stores a new record
-    params:
-      module: *module
-      namespace: *namespace
-      values: *values
-      labels: *labels
-      ownedBy: *ownedBy
-    results:
-      record: *recordReturnValue
-
-  update:
-    meta:
-      short: Updates an existing record
-    params:
-      module: *module
-      namespace: *namespace
-      values: *values
-      labels: *labels
-      ownedBy: *ownedBy
-    results:
-      record: *recordReturnValue
-
-  delete:
-    meta:
-      short: Soft deletes compose record by ID
-    params:
-      recordID: *recordID
-      module: *module
-      namespace: *namespace
-
-#  restore:
-#    meta:
-#      short: Soft deletes compose record by ID
-#    params:
-#      recordID: *recordID
-#      module: *module
-#      namespace: *namespace
+      module: *rvModule

@@ -33,11 +33,6 @@ func (h namespacesHandler) register() {
 
 type (
 	namespacesLookupArgs struct {
-		hasModule    bool
-		Module       interface{}
-		moduleID     uint64
-		moduleHandle string
-
 		hasNamespace    bool
 		Namespace       interface{}
 		namespaceID     uint64
@@ -46,19 +41,15 @@ type (
 	}
 
 	namespacesLookupResults struct {
-		Module *types.Module
+		Namespace *types.Namespace
 	}
 )
-
-func (a namespacesLookupArgs) GetModule() (bool, uint64, string) {
-	return a.hasModule, a.moduleID, a.moduleHandle
-}
 
 func (a namespacesLookupArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Lookup function Lookup for compose module by ID
+// Lookup function Lookup for compose namespace by ID
 //
 // expects implementation of lookup function:
 // func (h namespacesHandler) lookup(ctx context.Context, args *namespacesLookupArgs) (results *namespacesLookupResults, err error) {
@@ -69,32 +60,27 @@ func (h namespacesHandler) Lookup() *atypes.Function {
 		Ref:  "composeNamespacesLookup",
 		Kind: "function",
 		Meta: &atypes.FunctionMeta{
-			Short: "Lookup for compose module by ID",
+			Short: "Lookup for compose namespace by ID",
 		},
 
 		Parameters: []*atypes.Param{
 			{
-				Name:  "module",
-				Types: []string{"ID", "String"}, Required: true,
-			},
-			{
 				Name:  "namespace",
-				Types: []string{"ID", "String", "ComposeNamespace"}, Required: true,
+				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
 			},
 		},
 
 		Results: []*atypes.Param{
 
 			{
-				Name:  "module",
-				Types: []string{"ComposeModule"},
+				Name:  "namespace",
+				Types: []string{"ComposeNamespace"},
 			},
 		},
 
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
 				args = &namespacesLookupArgs{
-					hasModule:    in.Has("module"),
 					hasNamespace: in.Has("namespace"),
 				}
 			)
@@ -103,24 +89,13 @@ func (h namespacesHandler) Lookup() *atypes.Function {
 				return
 			}
 
-			// Converting Module argument
-			if args.hasModule {
-				aux := expr.Must(expr.Select(in, "module"))
-				switch aux.Type() {
-				case h.reg.Type("ID").Type():
-					args.moduleID = aux.Get().(uint64)
-				case h.reg.Type("String").Type():
-					args.moduleHandle = aux.Get().(string)
-				}
-			}
-
 			// Converting Namespace argument
 			if args.hasNamespace {
 				aux := expr.Must(expr.Select(in, "namespace"))
 				switch aux.Type() {
 				case h.reg.Type("ID").Type():
 					args.namespaceID = aux.Get().(uint64)
-				case h.reg.Type("String").Type():
+				case h.reg.Type("Handle").Type():
 					args.namespaceHandle = aux.Get().(string)
 				case h.reg.Type("ComposeNamespace").Type():
 					args.namespaceRes = aux.Get().(*types.Namespace)
@@ -135,14 +110,14 @@ func (h namespacesHandler) Lookup() *atypes.Function {
 			out = &expr.Vars{}
 
 			{
-				// converting results.Module (*types.Module) to ComposeModule
+				// converting results.Namespace (*types.Namespace) to ComposeNamespace
 				var (
 					tval expr.TypedValue
 				)
 
-				if tval, err = h.reg.Type("ComposeModule").Cast(results.Module); err != nil {
+				if tval, err = h.reg.Type("ComposeNamespace").Cast(results.Namespace); err != nil {
 					return
-				} else if err = expr.Assign(out, "module", tval); err != nil {
+				} else if err = expr.Assign(out, "namespace", tval); err != nil {
 					return
 				}
 			}
