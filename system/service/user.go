@@ -90,7 +90,7 @@ type (
 )
 
 func User(ctx context.Context) UserService {
-	return (&user{
+	return &user{
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
 		settings: CurrentSettings,
@@ -101,7 +101,7 @@ func User(ctx context.Context) UserService {
 		actionlog: DefaultActionlog,
 
 		subscription: CurrentSubscription,
-	})
+	}
 }
 
 func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err error) {
