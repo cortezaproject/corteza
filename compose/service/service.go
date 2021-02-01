@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	automationService "github.com/cortezaproject/corteza-server/automation/service"
+	"github.com/cortezaproject/corteza-server/compose/automation"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -150,6 +152,31 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultAttachment = Attachment(DefaultObjectStore)
 
 	RegisterIteratorProviders()
+
+	automationService.Registry().AddTypes(
+		automation.ComposeNamespace{},
+		automation.ComposeModule{},
+		automation.ComposeRecord{},
+		automation.ComposeRecordValues{},
+	)
+
+	automation.RecordsHandler(
+		automationService.Registry(),
+		DefaultNamespace,
+		DefaultModule,
+		DefaultRecord,
+	)
+
+	automation.ModulesHandler(
+		automationService.Registry(),
+		DefaultNamespace,
+		DefaultModule,
+	)
+
+	automation.NamespacesHandler(
+		automationService.Registry(),
+		DefaultNamespace,
+	)
 
 	return nil
 }
