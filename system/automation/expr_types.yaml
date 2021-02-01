@@ -1,0 +1,30 @@
+package: automation
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+
+types:
+  User:
+    as: '*types.User'
+    struct:
+      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'username',        exprType: 'String',     goType: 'string' }
+      - { name: 'email',           exprType: 'String',     goType: 'string' }
+      - { name: 'name',            exprType: 'String',     goType: 'string' }
+      - { name: 'handle',          exprType: 'Handle',     goType: 'string' }
+      - { name: 'emailConfirmed',  exprType: 'Boolean',    goType: 'bool' }
+      - { name: 'labels',          exprType: 'KV',         goType: 'map[string]string' }
+      - { name: 'createdAt',       exprType: 'DateTime',   goType: 'time.Time',  mode: ro}
+      - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'suspendedAt',     exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+  Role:
+    as: '*types.Role'
+    struct:
+      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'name',            exprType: 'String',     goType: 'string' }
+      - { name: 'handle',          exprType: 'Handle',     goType: 'string' }
+      - { name: 'labels',          exprType: 'KV',         goType: 'map[string]''string' }
+      - { name: 'createdAt',       exprType: 'DateTime',   goType: 'time.Time',  mode: ro}
+      - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'archivedAt',      exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }

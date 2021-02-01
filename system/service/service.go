@@ -3,23 +3,23 @@ package service
 import (
 	"context"
 	"errors"
-	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-
+	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
+	"time"
 )
 
 type (
@@ -166,6 +166,23 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
+
+	automationService.DefaultUser = DefaultUser
+
+	automationService.Registry().AddTypes(
+		automation.User{},
+		automation.Role{},
+	)
+
+	automation.UsersHandler(
+		automationService.Registry(),
+		DefaultUser,
+	)
+
+	automation.RolesHandler(
+		automationService.Registry(),
+		DefaultRole,
+	)
 
 	return
 }
