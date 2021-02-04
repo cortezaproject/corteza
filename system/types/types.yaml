@@ -12,3 +12,5 @@ types:
   Attachment: {}
   SettingValue:
     noIdField: true
+  Template:
+    labelResourceType: template

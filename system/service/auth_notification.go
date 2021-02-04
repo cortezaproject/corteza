@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	htpl "html/template"
+
 	"github.com/cortezaproject/corteza-server/system/types"
-	"html/template"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -30,11 +31,11 @@ type (
 		EmailAddress   string
 		URL            string
 		BaseURL        string
-		Logo           template.URL
+		Logo           htpl.URL
 		SignatureName  string
 		SignatureEmail string
-		EmailHeaderEn  template.HTML
-		EmailFooterEn  template.HTML
+		EmailHeaderEn  htpl.HTML
+		EmailFooterEn  htpl.HTML
 	}
 )
 
@@ -84,7 +85,7 @@ func (svc authNotification) send(ctx context.Context, name, lang string, payload
 		ntf = svc.newMail()
 	)
 
-	payload.Logo = template.URL(svc.settings.General.Mail.Logo)
+	payload.Logo = htpl.URL(svc.settings.General.Mail.Logo)
 	payload.BaseURL = svc.settings.Auth.Frontend.Url.Base
 	payload.SignatureName = svc.settings.Auth.Mail.FromName
 	payload.SignatureEmail = svc.settings.Auth.Mail.FromAddress
@@ -93,11 +94,11 @@ func (svc authNotification) send(ctx context.Context, name, lang string, payload
 	if tmp, err = svc.render(svc.settings.General.Mail.Header, payload); err != nil {
 		return fmt.Errorf("failed to render svc.settings.General.Mail.Header: %w", err)
 	}
-	payload.EmailHeaderEn = template.HTML(tmp)
+	payload.EmailHeaderEn = htpl.HTML(tmp)
 	if tmp, err = svc.render(svc.settings.General.Mail.Footer, payload); err != nil {
 		return fmt.Errorf("failed to render svc.settings.General.Mail.Footer: %w", err)
 	}
-	payload.EmailFooterEn = template.HTML(tmp)
+	payload.EmailFooterEn = htpl.HTML(tmp)
 
 	ntf.SetAddressHeader("To", payload.EmailAddress, "")
 	// @todo translations
@@ -139,11 +140,11 @@ func (svc authNotification) send(ctx context.Context, name, lang string, payload
 func (svc authNotification) render(source string, payload interface{}) (string, error) {
 	var (
 		err error
-		tpl *template.Template
+		tpl *htpl.Template
 		buf = bytes.Buffer{}
 	)
 
-	tpl, err = template.New("").Parse(source)
+	tpl, err = htpl.New("").Parse(source)
 	if err != nil {
 		return "", fmt.Errorf("could not parse template: %w", err)
 	}

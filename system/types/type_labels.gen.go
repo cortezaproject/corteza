@@ -57,6 +57,30 @@ func (m Role) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *Template) SetLabel(key string, value string) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m Template) GetLabels() map[string]string {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (Template) LabelResourceKind() string {
+	return "template"
+}
+
+// GetLabels adds new label to label map
+func (m Template) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *User) SetLabel(key string, value string) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]string)

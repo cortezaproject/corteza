@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -30,6 +31,7 @@ type (
 	Config struct {
 		ActionLog options.ActionLogOpt
 		Storage   options.ObjectStoreOpt
+		Template  options.TemplateOpt
 	}
 
 	permitChecker interface {
@@ -86,6 +88,7 @@ var (
 	DefaultApplication *application
 	DefaultReminder    ReminderService
 	DefaultAttachment  AttachmentService
+	DefaultRenderer    TemplateService
 
 	DefaultStatistics *statistics
 
@@ -176,6 +179,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
+	DefaultRenderer = Renderer(c.Template)
 
 	return
 }
@@ -210,4 +214,20 @@ func unwrapGeneric(err error) error {
 
 		return err
 	}
+}
+
+// Data is stale when new date does not match updatedAt or createdAt (before first update)
+//
+// @todo This is the same as in compose.service; do we want to make an util thing?
+func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
+	if new == nil {
+		// Change to true for stale-data-check
+		return false
+	}
+
+	if updatedAt != nil {
+		return !new.Equal(*updatedAt)
+	}
+
+	return new.Equal(createdAt)
 }

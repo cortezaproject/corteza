@@ -3,9 +3,10 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -108,13 +109,10 @@ func AssertRecordValueError(exp ...*types.RecordValueError) assertFn {
 
 // Dump can be put into Assert()
 func Dump(rsp *http.Response, _ *http.Request) (err error) {
-	spew.Dump(rsp.Status)
-	spew.Dump(rsp.Header)
 	var payload interface{}
 	if err = DecodeBody(rsp, &payload); err != nil {
 		return err
 	}
-	spew.Dump(payload)
 	return nil
 }
 
@@ -134,6 +132,22 @@ func AssertError(expectedError string) assertFn {
 			return errors.Errorf("Expecting error %v, got: %v", expectedError, tmp.Error.Message)
 		}
 
+		return nil
+	}
+}
+
+// AssertBody compares the raw body to the provided string
+func AssertBody(expected string) assertFn {
+	return func(rsp *http.Response, _ *http.Request) (err error) {
+		bb, err := ioutil.ReadAll(rsp.Body)
+		if err != nil {
+			return err
+		}
+
+		got := strings.Trim(string(bb), " \n")
+		if expected != got {
+			return errors.Errorf("Expecting: %v, got: %v", expected, got)
+		}
 		return nil
 	}
 }

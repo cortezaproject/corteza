@@ -218,6 +218,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	err = sysService.Initialize(ctx, app.Log, app.Store, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Storage:   app.Opt.ObjStore,
+		Template:  app.Opt.Template,
 	})
 
 	if err != nil {
