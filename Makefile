@@ -165,6 +165,14 @@ test.integration: $(GOTEST)
 test.integration.%: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) ./tests/$*/...
 
+# Runs store tests
+test.store: $(GOTEST)
+	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_store)
+
+# Runs one suite from store tests
+test.store.%: $(GOTEST)
+	$(GOTEST) $(TEST_FLAGS) ./store/tests/$*/...
+
 # Runs ALL tests
 test.all: $(GOTEST)
 	$(GOTEST) $(TEST_FLAGS) $(TEST_SUITE_all)
