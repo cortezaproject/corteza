@@ -35,6 +35,7 @@ package store
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
+//  - store/templates.yaml
 //  - store/users.yaml
 //
 // Changes to this file may cause incorrect behavior and will be lost if
@@ -75,6 +76,7 @@ type (
 		RoleMembers
 		Roles
 		Settings
+		Templates
 		Users
 	}
 )

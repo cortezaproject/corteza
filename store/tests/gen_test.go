@@ -33,6 +33,7 @@ package tests
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
+//  - store/templates.yaml
 //  - store/users.yaml
 
 //
@@ -199,6 +200,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Settings
 	t.Run("Settings", func(t *testing.T) {
 		testSettings(t, s)
+	})
+
+	// Run generated tests for Templates
+	t.Run("Templates", func(t *testing.T) {
+		testTemplates(t, s)
 	})
 
 	// Run generated tests for Users

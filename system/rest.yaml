@@ -1122,6 +1122,178 @@ endpoints:
         type: string
         required: true
         title: Preview extension/format
+- title: Template
+  path: "/template"
+  entrypoint: template
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza-server/pkg/label
+  authentication:
+  - Client ID
+  - SessionID
+  apis:
+  - name: list
+    method: GET
+    title: List templates
+    path: "/"
+    parameters:
+      get:
+      - name: handle
+        type: string
+        title: Handle
+      - name: type
+        type: string
+        title: Type
+      - name: ownerID
+        type: uint64
+        title: OwnerID
+      - name: partial
+        required: false
+        title: Show partial templates
+        type: bool
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted templates
+        type: uint
+      - name: labels
+        type: map[string]string
+        title: Labels
+        parser: label.ParseStrings
+      - name: limit
+        type: uint
+        title: Limit
+      - name: pageCursor
+        type: string
+        title: Page cursor
+      - name: sort
+        type: string
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create template
+    path: "/"
+    parameters:
+      post:
+      - name: handle
+        type: string
+        title: Handle
+      - name: language
+        type: string
+        title: Language
+      - name: type
+        type: string
+        title: Type
+      - name: partial
+        type: bool
+        title: Partial
+      - name: meta
+        type: "types.TemplateMeta"
+        parser: "types.ParseTemplateMeta"
+        title: Meta
+      - name: template
+        type: string
+        title: Template
+      - name: ownerID
+        type: uint64
+        title: OwnerID
+      - name: labels
+        type: map[string]string
+        title: Labels
+        parser: label.ParseStrings
+  - name: read
+    method: GET
+    title: Read template
+    path: "/{templateID}"
+    parameters:
+      path:
+      - type: uint64
+        name: templateID
+        required: true
+        title: ID
+  - name: update
+    method: PUT
+    title: Update template
+    path: "/{templateID}"
+    parameters:
+      path:
+      - type: uint64
+        name: templateID
+        required: true
+        title: ID
+      post:
+      - name: handle
+        type: string
+        title: Handle
+      - name: language
+        type: string
+        title: Language
+      - name: type
+        type: string
+        title: Type
+      - name: partial
+        type: bool
+        title: Partial
+      - name: meta
+        type: "types.TemplateMeta"
+        parser: "types.ParseTemplateMeta"
+        title: Meta
+      - name: template
+        type: string
+        title: Template
+      - name: ownerID
+        type: uint64
+        title: OwnerID
+      - name: labels
+        type: map[string]string
+        title: Labels
+        parser: label.ParseStrings
+  - name: delete
+    method: DELETE
+    title: Delete template
+    path: "/{templateID}"
+    parameters:
+      path:
+      - type: uint64
+        name: templateID
+        required: true
+        title: ID
+  - name: undelete
+    path: "/{templateID}/undelete"
+    method: POST
+    title: Undelete template
+    parameters:
+      path:
+      - name: templateID
+        type: uint64
+        required: true
+        title: Template ID
+  - name: render
+    method: POST
+    title: Render template
+    path: "/{templateID}/render/{filename}.{ext}"
+    parameters:
+      path:
+      - type: uint64
+        name: templateID
+        required: true
+        title: Render template to use
+      - type: string
+        name: filename
+        required: true
+        title: Filename to use
+      - type: string
+        name: ext
+        required: true
+        title: Export format
+      post:
+      - name: variables
+        type: json.RawMessage
+        required: true
+        title: Variables defined by import file
+      - name: options
+        type: json.RawMessage
+        required: false
+        title: Rendering options
 - title: Statistics
   entrypoint: stats
   path: "/stats"

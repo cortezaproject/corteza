@@ -58,6 +58,7 @@ func (s Schema) Tables() []*Table {
 		s.RbacRules(),
 		s.Settings(),
 		s.Labels(),
+		s.Templates(),
 		s.ComposeAttachment(),
 		s.ComposeChart(),
 		s.ComposeModule(),
@@ -235,6 +236,23 @@ func (Schema) Labels() *Table {
 		ColumnDef("value", ColumnTypeText),
 
 		AddIndex("unique_kind_res_name", IColumn("kind", "rel_resource"), IExpr("LOWER(name)")),
+	)
+}
+
+func (Schema) Templates() *Table {
+	return TableDef("templates",
+		ID,
+		ColumnDef("rel_owner", ColumnTypeIdentifier),
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("language", ColumnTypeText),
+		ColumnDef("type", ColumnTypeText),
+		ColumnDef("partial", ColumnTypeBoolean),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("template", ColumnTypeText),
+		CUDTimestamps,
+		ColumnDef("last_used_at", ColumnTypeTimestamp, Null),
+
+		AddIndex("unique_language_handle", IColumn("language"), IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
 	)
 }
 

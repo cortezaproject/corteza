@@ -1,0 +1,95 @@
+# List of loggable service actions
+
+resource: system:template
+service: template
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: template
+    type: "*types.Template"
+    fields: [ handle, type, ID ]
+  - name: new
+    type: "*types.Template"
+    fields: [ handle, type, ID ]
+  - name: update
+    type: "*types.Template"
+    fields: [ handle, type, ID ]
+  - name: filter
+    type: "*types.TemplateFilter"
+    fields: [ templateID, handle, type, ownerID, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for templates"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {template}"
+    severity: info
+
+  - action: create
+    log: "created {template}"
+
+  - action: update
+    log: "updated {template}"
+
+  - action: delete
+    log: "deleted {template}"
+
+  - action: undelete
+    log: "undeleted {template}"
+
+  - action: render
+    log: "rendered {template}"
+
+errors:
+  - error: notFound
+    message: "template not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: cannotRenderPartial
+    message: "cannot render partial templates"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this template"
+    log: "failed to read {template.handle}; insufficient permissions"
+
+  - error: notAllowedToListTemplates
+    message: "not allowed to list templates"
+    log: "failed to list template; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create templates"
+    log: "failed to create template; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this template"
+    log: "failed to update {template.handle}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this template"
+    log: "failed to delete {template.handle}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this template"
+    log: "failed to undelete {template.handle}; insufficient permissions"
+
+  - error: notAllowedToRender
+    message: "not allowed to render this template"
+    log: "failed to render {template.handle}; insufficient permissions"
