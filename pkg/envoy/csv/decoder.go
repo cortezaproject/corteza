@@ -43,10 +43,6 @@ func (y *decoder) CanDecodeMime(m string) bool {
 	return m == "text/csv"
 }
 
-func (y *decoder) CanDecodeMime(m string) bool {
-	return m == "text/csv"
-}
-
 func (y *decoder) CanDecodeExt(ext string) bool {
 	pt := strings.Split(ext, ".")
 	return strings.TrimSpace(pt[len(pt)-1]) == "csv"
