@@ -3,6 +3,9 @@ package system
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -27,8 +30,6 @@ import (
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"os"
-	"testing"
 )
 
 type (
@@ -176,4 +177,8 @@ func (h helper) setLabel(res label.LabeledResource, name, value string) {
 		Name:       name,
 		Value:      value,
 	}))
+}
+
+func (h helper) clearTemplates() {
+	h.noError(store.TruncateTemplates(context.Background(), service.DefaultStore))
 }

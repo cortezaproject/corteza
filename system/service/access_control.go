@@ -43,6 +43,7 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
+	ee.Push(types.SystemRBACResource, "template.create", svc.CanCreateTemplate(ctx))
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
 
 	return
@@ -74,6 +75,10 @@ func (svc accessControl) CanCreateRole(ctx context.Context) bool {
 
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "application.create")
+}
+
+func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "template.create")
 }
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
@@ -117,6 +122,22 @@ func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Ap
 
 func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Application) bool {
 	return svc.can(ctx, app.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanReadTemplate(ctx context.Context, tpl *types.Template) bool {
+	return svc.can(ctx, tpl.RBACResource(), "read", rbac.Allowed)
+}
+
+func (svc accessControl) CanUpdateTemplate(ctx context.Context, tpl *types.Template) bool {
+	return svc.can(ctx, tpl.RBACResource(), "update")
+}
+
+func (svc accessControl) CanDeleteTemplate(ctx context.Context, tpl *types.Template) bool {
+	return svc.can(ctx, tpl.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanRenderTemplate(ctx context.Context, tpl *types.Template) bool {
+	return svc.can(ctx, tpl.RBACResource(), "render", rbac.Allowed)
 }
 
 func (svc accessControl) CanReadUser(ctx context.Context, u *types.User) bool {
@@ -225,6 +246,7 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"role.create",
 		"user.create",
 		"application.create",
+		"template.create",
 		"reminder.assign",
 	)
 
@@ -233,6 +255,14 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"read",
 		"update",
 		"delete",
+	)
+
+	wl.Set(
+		types.TemplateRBACResource,
+		"read",
+		"update",
+		"delete",
+		"render",
 	)
 
 	wl.Set(

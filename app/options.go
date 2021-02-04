@@ -12,6 +12,7 @@ type (
 		Auth        options.AuthOpt
 		HTTPClient  options.HTTPClientOpt
 		DB          options.DBOpt
+		Template    options.TemplateOpt
 		Upgrade     options.UpgradeOpt
 		Provision   options.ProvisionOpt
 		Sentry      options.SentryOpt
@@ -35,6 +36,7 @@ func NewOptions() *Options {
 		SMTP:        *options.SMTP(),
 		HTTPClient:  *options.HTTPClient(),
 		DB:          *options.DB(),
+		Template:    *options.Template(),
 		Upgrade:     *options.Upgrade(),
 		Provision:   *options.Provision(),
 		Sentry:      *options.Sentry(),

@@ -34,6 +34,7 @@ func MountRoutes(r chi.Router) {
 		handlers.NewRole(Role{}.New()).MountRoutes(r)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 		handlers.NewApplication(Application{}.New()).MountRoutes(r)
+		handlers.NewTemplate(Template{}.New()).MountRoutes(r)
 		handlers.NewSettings(Settings{}.New()).MountRoutes(r)
 		handlers.NewStats(Stats{}.New()).MountRoutes(r)
 		handlers.NewReminder(Reminder{}.New()).MountRoutes(r)
