@@ -1,4 +1,11 @@
 types:
+  AuthClient:
+    labelResourceType: authClient
+  AuthConfirmedClient:
+    noIdField: true
+  AuthOa2token: {}
+  AuthSession:
+    noIdField: true
   User:
     labelResourceType: user
   Application:

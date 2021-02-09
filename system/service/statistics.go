@@ -11,12 +11,7 @@ import (
 type (
 	statistics struct {
 		actionlog actionlog.Recorder
-		ac        statisticsAccessController
 		store     store.Storer
-	}
-
-	statisticsAccessController interface {
-		CanAccess(context.Context) bool
 	}
 
 	StatisticsMetricsPayload struct {
@@ -29,7 +24,6 @@ type (
 func Statistics() *statistics {
 	return &statistics{
 		actionlog: DefaultActionlog,
-		ac:        DefaultAccessControl,
 		store:     DefaultStore,
 	}
 }
@@ -39,10 +33,6 @@ func Statistics() *statistics {
 // @todo remove this service and move it to rest ctrl layer
 func (svc statistics) Metrics(ctx context.Context) (rval *StatisticsMetricsPayload, err error) {
 	err = func() error {
-		if !svc.ac.CanAccess(ctx) {
-			return StatisticsErrNotAllowedToReadStatistics()
-		}
-
 		rval = &StatisticsMetricsPayload{}
 
 		if rval.Users, err = svc.store.UserMetrics(ctx); err != nil {

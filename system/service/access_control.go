@@ -38,8 +38,8 @@ func AccessControl(perm accessControlRBACServicer) *accessControl {
 func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.SystemRBACResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.SystemRBACResource, "grant", svc.CanGrant(ctx))
+	ee.Push(types.SystemRBACResource, "client.create", svc.CanCreateAuthClient(ctx))
 	ee.Push(types.SystemRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
@@ -47,10 +47,6 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
 
 	return
-}
-
-func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
@@ -75,6 +71,10 @@ func (svc accessControl) CanCreateRole(ctx context.Context) bool {
 
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "application.create")
+}
+
+func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "authClient.create")
 }
 
 func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
@@ -122,6 +122,22 @@ func (svc accessControl) CanUpdateApplication(ctx context.Context, app *types.Ap
 
 func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Application) bool {
 	return svc.can(ctx, app.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanReadAuthClient(ctx context.Context, c *types.AuthClient) bool {
+	return svc.can(ctx, c.RBACResource(), "read", rbac.Allowed)
+}
+
+func (svc accessControl) CanUpdateAuthClient(ctx context.Context, c *types.AuthClient) bool {
+	return svc.can(ctx, c.RBACResource(), "update")
+}
+
+func (svc accessControl) CanDeleteAuthClient(ctx context.Context, c *types.AuthClient) bool {
+	return svc.can(ctx, c.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanAuthorizeAuthClient(ctx context.Context, c *types.AuthClient) bool {
+	return svc.can(ctx, c.RBACResource(), "authorize")
 }
 
 func (svc accessControl) CanReadTemplate(ctx context.Context, tpl *types.Template) bool {
@@ -239,10 +255,10 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 
 	wl.Set(
 		types.SystemRBACResource,
-		"access",
 		"grant",
 		"settings.read",
 		"settings.manage",
+		"authClient.create",
 		"role.create",
 		"user.create",
 		"application.create",
@@ -283,6 +299,14 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"update",
 		"delete",
 		"members.manage",
+	)
+
+	wl.Set(
+		types.AuthClientRBACResource,
+		"read",
+		"update",
+		"delete",
+		"authorize",
 	)
 
 	return wl

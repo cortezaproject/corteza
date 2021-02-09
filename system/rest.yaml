@@ -11,16 +11,6 @@ endpoints:
   entrypoint: auth
   authentication: []
   apis:
-  - name: settings
-    method: GET
-    title: Returns auth settings
-    path: "/"
-    parameters: {}
-  - name: check
-    method: GET
-    title: Check JWT token
-    path: "/check"
-    parameters: {}
   - name: impersonate
     method: POST
     title: Impersonate a user
@@ -31,130 +21,132 @@ endpoints:
         type: uint64
         required: true
         title: ID of the impersonated user
-  - name: exchangeAuthToken
-    method: POST
-    title: Exchange auth token for JWT
-    path: "/exchange"
-    parameters:
-      post:
-      - name: token
-        type: string
-        required: true
-        sensitive: true
-        title: Token to be exchanged for JWT
-  - name: logout
-    method: GET
-    title: Logout
-    path: "/logout"
-    parameters: {}
-- title: Internal authentication
-  path: "/auth/internal"
-  entrypoint: authInternal
+- title: Authentication clients
+  path: "/auth/clients"
+  entrypoint: authClient
   authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/system/types
+    - time
   apis:
-  - name: login
-    method: POST
-    title: Login user
-    path: "/login"
+  - name: list
+    method: GET
+    title: List clients
+    path: "/"
     parameters:
-      post:
-      - name: email
-        type: string
-        required: true
-        title: Email
-      - name: password
-        type: string
-        required: true
-        sensitive: true
-        title: Password
-  - name: signup
-    method: POST
-    title: User signup/registration
-    path: "/signup"
-    parameters:
-      post:
-      - name: email
-        type: string
-        required: true
-        title: Email
-      - name: username
-        type: string
-        required: false
-        title: Username
-      - name: password
-        type: string
-        required: true
-        sensitive: true
-        title: Password
+      get:
       - name: handle
-        type: string
         required: false
-        title: User handle
-      - name: name
+        title: Client handle
         type: string
+      - name: deleted
         required: false
-        title: Display name
-  - name: requestPasswordReset
+        title: Exclude (0, default), include (1) or return only (2) deleted roles
+        type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+      - type: uint
+        name: limit
+        title: Limit
+      - type: string
+        name: pageCursor
+        title: Page cursor
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
     method: POST
-    title: Request password reset token (via email)
-    path: "/request-password-reset"
+    title: Create client
+    path: "/"
     parameters:
       post:
-      - name: email
-        type: string
-        required: true
-        title: Email
-  - name: exchangePasswordResetToken
-    method: POST
-    title: Exchange password reset token for new token and user info
-    path: "/exchange-password-reset-token"
+      - { name: handle,       type: string,                       title: Client handle }
+      - { name: meta,         type: '*types.AuthClientMeta',      title: Additional info, parser: "types.ParseAuthClientMeta" }
+      - { name: validGrant,   type: string,                       title: Valid grants (authorization_code, client_credentials) }
+      - { name: redirectURI,  type: string,                       title: Space delimited list of redirect URIs }
+      - { name: scope,        type: string,                       title: Space delimited list of scopes }
+      - { name: trusted,      type: bool,                         title: Is client trusted (skip authorization) }
+      - { name: enabled,      type: bool,                         title: Is client enabled }
+      - { name: validFrom,    type: '*time.Time',                 title: Date and time from when client becomes valid }
+      - { name: expiresAt,    type: '*time.Time',                 title: Date and time from client is no logner valid }
+      - { name: security,     type: '*types.AuthClientSecurity',  title: Security settings, allowed, denied, forced roles, parser: "types.ParseAuthClientSecurity" }
+      - { name: labels,       type: 'map[string]string',          title: Labels, parser: label.ParseStrings }
+  - name: update
+    method: PUT
+    title: Update user details
+    path: "/{clientID}"
     parameters:
-      post:
-      - name: token
-        type: string
+      path:
+      - type: uint64
+        name: clientID
         required: true
-        title: Token
-  - name: resetPassword
-    method: POST
-    title: Reset password with exchanged password reset token
-    path: "/reset-password"
+        title: Client ID
+      post:
+      - { name: handle,       type: string,                       title: Client handle }
+      - { name: meta,         type: '*types.AuthClientMeta',      title: Additional info , parser: "types.ParseAuthClientMeta"}
+      - { name: validGrant,   type: string,                       title: Valid grants (authorization_code, client_credentials) }
+      - { name: redirectURI,  type: string,                       title: Space delimited list of redirect URIs }
+      - { name: scope,        type: string,                       title: Space delimited list of scopes }
+      - { name: trusted,      type: bool,                         title: Is client trusted (skip authorization) }
+      - { name: enabled,      type: bool,                         title: Is client enabled }
+      - { name: validFrom,    type: '*time.Time',                 title: Date and time from when client becomes valid }
+      - { name: expiresAt,    type: '*time.Time',                 title: Date and time from client is no logner valid }
+      - { name: security,     type: '*types.AuthClientSecurity',  title: Security settings, allowed, denied, forced roles, parser: "types.ParseAuthClientSecurity" }
+      - { name: labels,       type: 'map[string]string',          title: Labels, parser: label.ParseStrings }
+  - name: read
+    method: GET
+    title: Read client details
+    path: "/{clientID}"
     parameters:
-      post:
-      - name: token
-        type: string
+      path:
+      - type: uint64
+        name: clientID
         required: true
-        title: Token
-      - name: password
-        type: string
-        required: true
-        sensitive: true
-        title: Password
-  - name: confirmEmail
-    method: POST
-    title: Confirm email with token
-    path: "/confirm-email"
+        title: Client ID
+  - name: delete
+    method: DELETE
+    title: Remove client
+    path: "/{clientID}"
     parameters:
-      post:
-      - name: token
-        type: string
+      path:
+      - type: uint64
+        name: clientID
         required: true
-        title: Token
-  - name: changePassword
+        title: Client ID
+  - name: undelete
     method: POST
-    title: Changes password for current user, requires current password
-    path: "/change-password"
+    title: Undelete client
+    path: "/{clientID}/undelete"
     parameters:
-      post:
-      - name: oldPassword
-        type: string
+      path:
+      - type: uint64
+        name: clientID
         required: true
-        sensitive: true
-        title: Old password
-      - name: newPassword
-        type: string
+        title: Client ID
+  - name: regenerateSecret
+    method: POST
+    title: Regenerate client's secret
+    path: "/{clientID}/secret"
+    parameters:
+      path:
+      - type: uint64
+        name: clientID
         required: true
-        sensitive: true
-        title: New password
+        title: Client ID
+  - name: exposeSecret
+    method: GET
+    title: Exposes client's secret
+    path: "/{clientID}/secret"
+    parameters:
+      path:
+      - type: uint64
+        name: clientID
+        required: true
+        title: Client ID
+
 - title: Settings
   path: "/settings"
   entrypoint: settings

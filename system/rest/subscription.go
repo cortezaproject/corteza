@@ -4,9 +4,6 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
-	"github.com/cortezaproject/corteza-server/system/service"
-	"net/http"
-	"strings"
 )
 
 type Subscription struct{}
@@ -16,33 +13,33 @@ func (Subscription) New() *Subscription {
 }
 
 func (ctrl *Subscription) Current(ctx context.Context, r *request.SubscriptionCurrent) (interface{}, error) {
-	if service.CurrentSubscription == nil {
-		// Nothing to do here
-		return api.OK(), nil
-	}
-
-	// Returning function that gets called with writter & request
+	return api.OK(), nil
+	//if service.CurrentSubscription == nil {
+	//	// Nothing to do here
+	//}
 	//
-	// This is the only way to get to the request URL we need to do a domain check
-	// for the permit
-	return func(w http.ResponseWriter, r *http.Request) {
-		var (
-			domain = r.Host
-			pos    = strings.IndexByte(domain, ':')
-
-			// Anyone that has access permissions is considered admin
-			isAdmin = service.DefaultAccessControl.CanAccess(ctx)
-		)
-
-		if pos > -1 {
-			// Strip port
-			domain = domain[:pos]
-		}
-
-		if err := service.CurrentSubscription.Validate(domain, isAdmin); err != nil {
-			api.Send(w, r, err)
-		} else {
-			api.Send(w, r, api.OK())
-		}
-	}, nil
+	//// Returning function that gets called with writter & request
+	////
+	//// This is the only way to get to the request URL we need to do a domain check
+	//// for the permit
+	//return func(w http.ResponseWriter, r *http.Request) {
+	//	var (
+	//		domain = r.Host
+	//		pos    = strings.IndexByte(domain, ':')
+	//
+	//		// Anyone that has access permissions is considered admin
+	//		isAdmin = service.DefaultAccessControl.CanAccess(ctx)
+	//	)
+	//
+	//	if pos > -1 {
+	//		// Strip port
+	//		domain = domain[:pos]
+	//	}
+	//
+	//	if err := service.CurrentSubscription.Validate(domain, isAdmin); err != nil {
+	//		api.Send(w, r, err)
+	//	} else {
+	//		api.Send(w, r, api.OK())
+	//	}
+	//}, nil
 }

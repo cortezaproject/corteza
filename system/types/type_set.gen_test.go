@@ -194,6 +194,298 @@ func TestAttachmentSetIDs(t *testing.T) {
 	}
 }
 
+func TestAuthClientSetWalk(t *testing.T) {
+	var (
+		value = make(AuthClientSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*AuthClient) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*AuthClient) error { return fmt.Errorf("walk error") }))
+}
+
+func TestAuthClientSetFilter(t *testing.T) {
+	var (
+		value = make(AuthClientSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*AuthClient) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*AuthClient) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*AuthClient) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestAuthClientSetIDs(t *testing.T) {
+	var (
+		value = make(AuthClientSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(AuthClient)
+	value[1] = new(AuthClient)
+	value[2] = new(AuthClient)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestAuthConfirmedClientSetWalk(t *testing.T) {
+	var (
+		value = make(AuthConfirmedClientSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*AuthConfirmedClient) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*AuthConfirmedClient) error { return fmt.Errorf("walk error") }))
+}
+
+func TestAuthConfirmedClientSetFilter(t *testing.T) {
+	var (
+		value = make(AuthConfirmedClientSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*AuthConfirmedClient) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*AuthConfirmedClient) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*AuthConfirmedClient) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestAuthOa2tokenSetWalk(t *testing.T) {
+	var (
+		value = make(AuthOa2tokenSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*AuthOa2token) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*AuthOa2token) error { return fmt.Errorf("walk error") }))
+}
+
+func TestAuthOa2tokenSetFilter(t *testing.T) {
+	var (
+		value = make(AuthOa2tokenSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*AuthOa2token) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*AuthOa2token) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*AuthOa2token) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestAuthOa2tokenSetIDs(t *testing.T) {
+	var (
+		value = make(AuthOa2tokenSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(AuthOa2token)
+	value[1] = new(AuthOa2token)
+	value[2] = new(AuthOa2token)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestAuthSessionSetWalk(t *testing.T) {
+	var (
+		value = make(AuthSessionSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*AuthSession) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*AuthSession) error { return fmt.Errorf("walk error") }))
+}
+
+func TestAuthSessionSetFilter(t *testing.T) {
+	var (
+		value = make(AuthSessionSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*AuthSession) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*AuthSession) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*AuthSession) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
 func TestCredentialsSetWalk(t *testing.T) {
 	var (
 		value = make(CredentialsSet, 3)

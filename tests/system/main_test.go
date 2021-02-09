@@ -143,11 +143,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 
 // Prepends allow access rule for messaging service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	rules = append(
-		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.SystemRBACResource, "access"),
-	)
-
 	h.mockPermissions(rules...)
 }
 

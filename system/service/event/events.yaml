@@ -24,6 +24,16 @@ system:auth:
     - name: 'provider'
       type: '*types.AuthProvider'
 
+system:authClient:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'authClient'
+      type: '*types.AuthClient'
+    - name: 'oldAuthClient'
+      type: '*types.AuthClient'
+      immutable: true
+
 system:user:
   on: ['manual']
   ba: ['create', 'update', 'delete']

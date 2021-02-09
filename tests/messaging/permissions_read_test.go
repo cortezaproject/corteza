@@ -10,7 +10,6 @@ import (
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingRBACResource, "access")
 	h.allow(types.MessagingRBACResource, "grant")
 	h.deny(types.MessagingRBACResource, "channel.group.create")
 

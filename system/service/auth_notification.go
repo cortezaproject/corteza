@@ -4,22 +4,22 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	htpl "html/template"
-
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/mail"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
-
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/mail"
+	htpl "html/template"
+	"net/url"
 )
 
 type (
 	authNotification struct {
 		logger   *zap.Logger
 		settings *types.AppSettings
+		opt      options.AuthOpt
 	}
 
 	AuthNotificationService interface {
@@ -39,10 +39,11 @@ type (
 	}
 )
 
-func AuthNotification(s *types.AppSettings) AuthNotificationService {
+func AuthNotification(s *types.AppSettings, opt options.AuthOpt) AuthNotificationService {
 	return &authNotification{
 		logger:   DefaultLogger.Named("auth-notification"),
 		settings: s,
+		opt:      opt,
 	}
 }
 
@@ -53,14 +54,14 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 func (svc authNotification) EmailConfirmation(ctx context.Context, lang string, emailAddress string, token string) error {
 	return svc.send(ctx, "email-confirmation", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.settings.Auth.Frontend.Url.EmailConfirmation + token,
+		URL:          fmt.Sprintf("%s/confirm-email?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
 
 func (svc authNotification) PasswordReset(ctx context.Context, lang string, emailAddress string, token string) error {
 	return svc.send(ctx, "password-reset", lang, authNotificationPayload{
 		EmailAddress: emailAddress,
-		URL:          svc.settings.Auth.Frontend.Url.PasswordReset + token,
+		URL:          fmt.Sprintf("%s/reset-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
 
@@ -86,7 +87,7 @@ func (svc authNotification) send(ctx context.Context, name, lang string, payload
 	)
 
 	payload.Logo = htpl.URL(svc.settings.General.Mail.Logo)
-	payload.BaseURL = svc.settings.Auth.Frontend.Url.Base
+	payload.BaseURL = svc.opt.BaseURL
 	payload.SignatureName = svc.settings.Auth.Mail.FromName
 	payload.SignatureEmail = svc.settings.Auth.Mail.FromAddress
 

@@ -9,12 +9,9 @@ import (
 )
 
 func MountRoutes(r chi.Router) {
-	NewExternalAuth().ApiServerRoutes(r)
-
 	r.Group(func(r chi.Router) {
 		handlers.NewAttachment(Attachment{}.New()).MountRoutes(r)
 		handlers.NewAuth((Auth{}).New()).MountRoutes(r)
-		handlers.NewAuthInternal((AuthInternal{}).New()).MountRoutes(r)
 
 		// A special case that, we do not add this through standard request, handlers & controllers
 		// combo but directly -- we need access to r.Body
@@ -28,6 +25,7 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 
+		handlers.NewAuthClient(AuthClient{}.New()).MountRoutes(r)
 		handlers.NewAutomation(Automation{}.New()).MountRoutes(r)
 		handlers.NewSubscription(Subscription{}.New()).MountRoutes(r)
 		handlers.NewUser(User{}.New()).MountRoutes(r)

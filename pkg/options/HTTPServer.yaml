@@ -95,4 +95,4 @@ props:
 
   - name: webappList
     env: HTTP_WEBAPP_LIST
-    default: "admin,auth,messaging,compose"
+    default: "admin,messaging,compose"

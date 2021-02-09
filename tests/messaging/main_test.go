@@ -5,7 +5,6 @@ import (
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/messaging/service"
-	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -121,11 +120,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 
 // Prepends allow access rule for messaging service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	rules = append(
-		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.MessagingRBACResource, "access"),
-	)
-
 	h.mockPermissions(rules...)
 }
 

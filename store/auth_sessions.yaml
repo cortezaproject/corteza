@@ -1,0 +1,33 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+fields:
+  - { field: ID, type: string, isPrimaryKey: true }
+  - { field: Data }
+  - { field: UserID }
+  - { field: RemoteAddr }
+  - { field: UserAgent }
+  - { field: CreatedAt }
+  - { field: ExpiresAt }
+
+rdbms:
+  alias: ses
+  table: auth_sessions
+  customFilterConverter: true
+
+lookups:
+  - fields: [ ID ]
+    uniqueConstraintCheck: true
+
+functions:
+  - name: DeleteExpiredAuthSessions
+    return: [ error ]
+  - name: DeleteAuthSessionsByUserID
+    return: [ error ]
+    arguments:
+      - { name: userID, type: uint64 }
+
+search:
+  enablePaging: false
+  enableSorting: false
+  enableFilterCheckFunction: false
