@@ -31,7 +31,7 @@ Let's start with an example that shows the sessions API in a nutshell:
 	// environmental variable, or flag (or both), and don't accidentally commit it
 	// alongside your code. Ensure your key is sufficiently random - i.e. use Go's
 	// crypto/rand or securecookie.GenerateRandomKey(32) and persist the result.
-	var store = sessions.NewCookieStore(os.Getenv("SESSION_KEY"))
+	var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 	func MyHandler(w http.ResponseWriter, r *http.Request) {
 		// Get a session. We're ignoring the error resulted from decoding an
@@ -41,7 +41,11 @@ Let's start with an example that shows the sessions API in a nutshell:
 		session.Values["foo"] = "bar"
 		session.Values[42] = 43
 		// Save it before we write to the response/return from the handler.
-		session.Save(r, w)
+		err := session.Save(r, w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 ```
 
@@ -51,20 +55,8 @@ secret key used to authenticate the session. Inside the handler, we call
 some session values in session.Values, which is a `map[interface{}]interface{}`.
 And finally we call `session.Save()` to save the session in the response.
 
-Important Note: If you aren't using gorilla/mux, you need to wrap your handlers
-with
-[`context.ClearHandler`](http://www.gorillatoolkit.org/pkg/context#ClearHandler)
-or else you will leak memory! An easy way to do this is to wrap the top-level
-mux when calling http.ListenAndServe:
-
-```go
-	http.ListenAndServe(":8080", context.ClearHandler(http.DefaultServeMux))
-```
-
-The ClearHandler function is provided by the gorilla/context package.
-
 More examples are available [on the Gorilla
-website](http://www.gorillatoolkit.org/pkg/sessions).
+website](https://www.gorillatoolkit.org/pkg/sessions).
 
 ## Store Implementations
 
@@ -82,6 +74,7 @@ Other implementations of the `sessions.Store` interface:
 - [github.com/EnumApps/clustersqlstore](https://github.com/EnumApps/clustersqlstore) - MySQL Cluster
 - [github.com/antonlindstrom/pgstore](https://github.com/antonlindstrom/pgstore) - PostgreSQL
 - [github.com/boj/redistore](https://github.com/boj/redistore) - Redis
+- [github.com/rbcervilla/redisstore](https://github.com/rbcervilla/redisstore) - Redis (Single, Sentinel, Cluster)
 - [github.com/boj/rethinkstore](https://github.com/boj/rethinkstore) - RethinkDB
 - [github.com/boj/riakstore](https://github.com/boj/riakstore) - Riak
 - [github.com/michaeljs1990/sqlitestore](https://github.com/michaeljs1990/sqlitestore) - SQLite
@@ -89,6 +82,8 @@ Other implementations of the `sessions.Store` interface:
 - [github.com/gernest/qlstore](https://github.com/gernest/qlstore) - ql
 - [github.com/quasoft/memstore](https://github.com/quasoft/memstore) - In-memory implementation for use in unit tests
 - [github.com/lafriks/xormstore](https://github.com/lafriks/xormstore) - XORM (MySQL, PostgreSQL, SQLite, Microsoft SQL Server, TiDB)
+- [github.com/GoogleCloudPlatform/firestore-gorilla-sessions](https://github.com/GoogleCloudPlatform/firestore-gorilla-sessions) - Cloud Firestore
+- [github.com/stephenafamo/crdbstore](https://github.com/stephenafamo/crdbstore) - CockroachDB
 
 ## License
 
