@@ -67,6 +67,7 @@ const (
 	ColumnTypeIdentifier columnType = iota
 	ColumnTypeVarchar
 	ColumnTypeText
+	ColumnTypeBinary
 	ColumnTypeTimestamp
 	ColumnTypeInteger
 	ColumnTypeJson

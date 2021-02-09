@@ -6,7 +6,6 @@ import (
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -125,11 +124,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 
 // Prepends allow access rule for compose service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	rules = append(
-		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.ComposeRBACResource, "access"),
-	)
-
 	h.mockPermissions(rules...)
 }
 

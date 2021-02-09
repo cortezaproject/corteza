@@ -7,6 +7,10 @@ package tests
 //  - store/actionlog.yaml
 //  - store/applications.yaml
 //  - store/attachments.yaml
+//  - store/auth_clients.yaml
+//  - store/auth_confirmed_clients.yaml
+//  - store/auth_oa2tokens.yaml
+//  - store/auth_sessions.yaml
 //  - store/compose_attachments.yaml
 //  - store/compose_charts.yaml
 //  - store/compose_module_fields.yaml
@@ -60,6 +64,26 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Attachment
 	t.Run("Attachment", func(t *testing.T) {
 		testAttachment(t, s)
+	})
+
+	// Run generated tests for AuthClients
+	t.Run("AuthClients", func(t *testing.T) {
+		testAuthClients(t, s)
+	})
+
+	// Run generated tests for AuthConfirmedClients
+	t.Run("AuthConfirmedClients", func(t *testing.T) {
+		testAuthConfirmedClients(t, s)
+	})
+
+	// Run generated tests for AuthOa2tokens
+	t.Run("AuthOa2tokens", func(t *testing.T) {
+		testAuthOa2tokens(t, s)
+	})
+
+	// Run generated tests for AuthSessions
+	t.Run("AuthSessions", func(t *testing.T) {
+		testAuthSessions(t, s)
 	})
 
 	// Run generated tests for ComposeAttachments

@@ -49,6 +49,10 @@ func (s Schema) Tables() []*Table {
 	return []*Table{
 		s.Users(),
 		s.Credentials(),
+		s.AuthClients(),
+		s.AuthConfirmedClients(),
+		s.AuthSessions(),
+		s.AuthOA2Tokens(),
 		s.Roles(),
 		s.RoleMembers(),
 		s.Applications(),
@@ -115,6 +119,79 @@ func (Schema) Credentials() *Table {
 		CUDTimestamps,
 
 		AddIndex("owner_kind", IColumn("rel_owner", "kind"), IWhere("deleted_at IS NULL")),
+	)
+}
+
+func (Schema) AuthClients() *Table {
+	return TableDef(`auth_clients`,
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("secret", ColumnTypeVarchar, ColumnTypeLength(64)),
+		ColumnDef("scope", ColumnTypeVarchar, ColumnTypeLength(512)),
+		ColumnDef("valid_grant", ColumnTypeVarchar, ColumnTypeLength(32)),
+		ColumnDef("redirect_uri", ColumnTypeText),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("trusted", ColumnTypeBoolean),
+		ColumnDef("valid_from", ColumnTypeTimestamp, Null),
+		ColumnDef("expires_at", ColumnTypeTimestamp, Null),
+		ColumnDef("security", ColumnTypeJson),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func (Schema) AuthConfirmedClients() *Table {
+	return TableDef(`auth_confirmed_clients`,
+		ColumnDef("rel_user", ColumnTypeIdentifier),
+		ColumnDef("rel_client", ColumnTypeIdentifier),
+		ColumnDef("confirmed_at", ColumnTypeTimestamp),
+
+		PrimaryKey(IColumn("rel_user", "rel_client")),
+	)
+}
+
+func (Schema) AuthSessions() *Table {
+	return TableDef(`auth_sessions`,
+		ColumnDef("id", ColumnTypeVarchar, ColumnTypeLength(64)),
+		ColumnDef("data", ColumnTypeBinary),
+		ColumnDef("rel_user", ColumnTypeIdentifier),
+		ColumnDef("created_at", ColumnTypeTimestamp),
+		ColumnDef("expires_at", ColumnTypeTimestamp),
+		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(15)),
+		ColumnDef("user_agent", ColumnTypeText),
+
+		AddIndex("expires_at", IColumn("expires_at")),
+		AddIndex("user", IColumn("rel_user")),
+		PrimaryKey(IColumn("id")),
+	)
+}
+
+func (Schema) AuthOA2Tokens() *Table {
+	return TableDef(`auth_oa2tokens`,
+		ID,
+
+		ColumnDef("code", ColumnTypeVarchar, ColumnTypeLength(48)),
+		ColumnDef("access", ColumnTypeVarchar, ColumnTypeLength(2048)),
+		ColumnDef("refresh", ColumnTypeVarchar, ColumnTypeLength(48)),
+		ColumnDef("data", ColumnTypeJson),
+		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(15)),
+		ColumnDef("user_agent", ColumnTypeText),
+
+		ColumnDef("rel_client", ColumnTypeIdentifier),
+		ColumnDef("rel_user", ColumnTypeIdentifier),
+		ColumnDef("created_at", ColumnTypeTimestamp),
+		ColumnDef("expires_at", ColumnTypeTimestamp),
+
+		AddIndex("expires_at", IColumn("expires_at")),
+		AddIndex("code", IColumn("code")),
+		AddIndex("access", IColumn("access")),
+		AddIndex("refresh", IColumn("refresh")),
+		AddIndex("client", IColumn("rel_client")),
+		AddIndex("user", IColumn("rel_user")),
 	)
 }
 

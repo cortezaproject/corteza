@@ -11,7 +11,6 @@ import (
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "access")
 	h.allow(types.SystemRBACResource, "grant")
 	h.deny(types.SystemRBACResource, "application.create")
 

@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"strings"
+	"time"
 )
 
 type (
@@ -22,11 +22,22 @@ type (
 		// Holds reference to the "current" settings that
 		// are used by the services
 		current interface{}
+
+		// update channel we'll write set of changed settings when change occurs
+		update chan types.SettingValueSet
+
+		listeners []registeredSettingsListener
 	}
 
 	accessController interface {
 		CanReadSettings(ctx context.Context) bool
 		CanManageSettings(ctx context.Context) bool
+	}
+
+	SettingsChangeListener     func(ctx context.Context, current interface{}, set types.SettingValueSet)
+	registeredSettingsListener struct {
+		prefix string
+		fn     SettingsChangeListener
 	}
 )
 
@@ -35,15 +46,54 @@ var (
 	ErrNoManagePermission = fmt.Errorf("not allowed to manage settings")
 )
 
-func Settings(s store.Settings, log *zap.Logger, ac accessController, current interface{}) *settings {
+func Settings(ctx context.Context, s store.Settings, log *zap.Logger, ac accessController, current interface{}) *settings {
 	svc := &settings{
 		store:         s,
 		accessControl: ac,
 		logger:        log.Named("settings"),
 		current:       current,
+		listeners:     make([]registeredSettingsListener, 0, 2),
+		update:        make(chan types.SettingValueSet, 0),
 	}
 
+	svc.watch(ctx)
+
 	return svc
+}
+
+func (svc *settings) Register(prefix string, listener SettingsChangeListener) {
+	svc.logger.Debug("registering new settings change listener", zap.String("prefix", prefix))
+	svc.listeners = append(svc.listeners, registeredSettingsListener{
+		prefix: prefix,
+		fn:     listener,
+	})
+}
+
+func (svc *settings) watch(ctx context.Context) {
+	go func() {
+		for {
+			select {
+			case vv := <-svc.update:
+				svc.notify(ctx, vv)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+}
+
+func (svc *settings) notify(ctx context.Context, vv types.SettingValueSet) {
+	for _, l := range svc.listeners {
+		go func(l registeredSettingsListener) {
+			if len(l.prefix) > 0 {
+				vv = vv.FilterByPrefix(l.prefix)
+			}
+
+			if len(vv) > 0 {
+				l.fn(ctx, svc.current, vv)
+			}
+		}(l)
+	}
 }
 
 func (svc settings) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
@@ -97,7 +147,16 @@ func (svc settings) updateCurrent(ctx context.Context, vv types.SettingValueSet)
 		return
 	}
 
-	return
+	// push message over update chan so we can notify listeners
+	select {
+	case svc.update <- vv:
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(time.Second):
+		svc.logger.Warn("timed-out while waiting to update current settings")
+	}
+
+	return nil
 }
 
 func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) {

@@ -20,6 +20,26 @@ type (
 	// This type is auto-generated.
 	AttachmentSet []*Attachment
 
+	// AuthClientSet slice of AuthClient
+	//
+	// This type is auto-generated.
+	AuthClientSet []*AuthClient
+
+	// AuthConfirmedClientSet slice of AuthConfirmedClient
+	//
+	// This type is auto-generated.
+	AuthConfirmedClientSet []*AuthConfirmedClient
+
+	// AuthOa2tokenSet slice of AuthOa2token
+	//
+	// This type is auto-generated.
+	AuthOa2tokenSet []*AuthOa2token
+
+	// AuthSessionSet slice of AuthSession
+	//
+	// This type is auto-generated.
+	AuthSessionSet []*AuthSession
+
 	// CredentialsSet slice of Credentials
 	//
 	// This type is auto-generated.
@@ -163,6 +183,178 @@ func (set AttachmentSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(AuthClient) err
+//
+// This function is auto-generated.
+func (set AuthClientSet) Walk(w func(*AuthClient) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(AuthClient) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set AuthClientSet) Filter(f func(*AuthClient) (bool, error)) (out AuthClientSet, err error) {
+	var ok bool
+	out = AuthClientSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set AuthClientSet) FindByID(ID uint64) *AuthClient {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set AuthClientSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(AuthConfirmedClient) err
+//
+// This function is auto-generated.
+func (set AuthConfirmedClientSet) Walk(w func(*AuthConfirmedClient) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(AuthConfirmedClient) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set AuthConfirmedClientSet) Filter(f func(*AuthConfirmedClient) (bool, error)) (out AuthConfirmedClientSet, err error) {
+	var ok bool
+	out = AuthConfirmedClientSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(AuthOa2token) err
+//
+// This function is auto-generated.
+func (set AuthOa2tokenSet) Walk(w func(*AuthOa2token) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(AuthOa2token) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set AuthOa2tokenSet) Filter(f func(*AuthOa2token) (bool, error)) (out AuthOa2tokenSet, err error) {
+	var ok bool
+	out = AuthOa2tokenSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set AuthOa2tokenSet) FindByID(ID uint64) *AuthOa2token {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set AuthOa2tokenSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(AuthSession) err
+//
+// This function is auto-generated.
+func (set AuthSessionSet) Walk(w func(*AuthSession) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(AuthSession) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set AuthSessionSet) Filter(f func(*AuthSession) (bool, error)) (out AuthSessionSet, err error) {
+	var ok bool
+	out = AuthSessionSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

@@ -9,7 +9,6 @@ import (
 
 func TestPermissionsEffective(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.MessagingRBACResource, "access")
 	h.deny(types.MessagingRBACResource, "channel.group.create")
 
 	h.apiInit().

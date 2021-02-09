@@ -3,6 +3,7 @@ package options
 import (
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/spf13/cast"
@@ -57,6 +58,38 @@ func fill(opt interface{}) {
 			panic("unsupported type/kind for field " + t.Name)
 
 		}
+	}
+}
+
+func guestHostname() string {
+	// All env keys we'll check, first that has any value set, will be used as hostname
+	candidates := []string{
+		os.Getenv("DOMAIN"),
+		os.Getenv("LETSENCRYPT_HOST"),
+		os.Getenv("VIRTUAL_HOST"),
+		os.Getenv("HOSTNAME"),
+		os.Getenv("HOST"),
+	}
+
+	for _, host := range candidates {
+		if len(host) > 0 {
+			return host
+		}
+	}
+
+	return "local.cortezaproject.org"
+}
+
+func guestBaseURL() string {
+	var (
+		host        = guestHostname()
+		_, isSecure = os.LookupEnv("LETSENCRYPT_HOST")
+	)
+
+	if strings.Contains(host, "local.") || strings.Contains(host, "localhost") || !isSecure {
+		return "http://" + host
+	} else {
+		return "https://" + host
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ComposeRBACResource, "access")
 	h.allow(types.ComposeRBACResource, "grant")
 	h.deny(types.ComposeRBACResource, "namespace.create")
 

@@ -12,19 +12,19 @@ import (
 	"strings"
 )
 
-func MakeWebappServer(opt options.HTTPServerOpt, fed options.FederationOpt) func(r chi.Router) {
+func MakeWebappServer(httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt, fed options.FederationOpt) func(r chi.Router) {
 	// Serves static files directly from FS
 	return func(r chi.Router) {
-		fileserver := http.FileServer(http.Dir(opt.WebappBaseDir))
+		fileserver := http.FileServer(http.Dir(httpSrvOpt.WebappBaseDir))
 
-		for _, app := range strings.Split(opt.WebappList, ",") {
-			basedir := path.Join(opt.WebappBaseUrl, app)
-			serveConfig(r, basedir, opt.ApiBaseUrl, fed.Enabled)
-			r.Get(basedir+"*", serveIndex(opt.WebappBaseDir, basedir, fileserver))
+		for _, app := range strings.Split(httpSrvOpt.WebappList, ",") {
+			basedir := path.Join(httpSrvOpt.WebappBaseUrl, app)
+			serveConfig(r, basedir, httpSrvOpt.ApiBaseUrl, authOpt.BaseURL, fed.Enabled)
+			r.Get(basedir+"*", serveIndex(httpSrvOpt.WebappBaseDir, basedir, fileserver))
 		}
 
-		serveConfig(r, opt.WebappBaseUrl, opt.ApiBaseUrl, fed.Enabled)
-		r.Get(opt.WebappBaseUrl+"*", serveIndex(opt.WebappBaseDir, opt.WebappBaseUrl, fileserver))
+		serveConfig(r, httpSrvOpt.WebappBaseUrl, httpSrvOpt.ApiBaseUrl, authOpt.BaseURL, fed.Enabled)
+		r.Get(httpSrvOpt.WebappBaseUrl+"*", serveIndex(httpSrvOpt.WebappBaseDir, httpSrvOpt.WebappBaseUrl, fileserver))
 	}
 }
 
@@ -65,15 +65,10 @@ func serveIndex(assetPath string, indexPath string, serve http.Handler) http.Han
 	}
 }
 
-func serveConfig(r chi.Router, appUrl, apiBaseUrl string, fedEnabled bool) {
+func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl string, fedEnabled bool) {
 	r.Get(strings.TrimRight(appUrl, "/")+"/config.js", func(w http.ResponseWriter, r *http.Request) {
-		const line = "window.%sAPI = '%s/%s';\n"
-		_, _ = fmt.Fprintf(w, line, "System", apiBaseUrl, "system")
-		_, _ = fmt.Fprintf(w, line, "Messaging", apiBaseUrl, "messaging")
-		_, _ = fmt.Fprintf(w, line, "Compose", apiBaseUrl, "compose")
-
-		if fedEnabled {
-			_, _ = fmt.Fprintf(w, line, "Federation", apiBaseUrl, "federation")
-		}
+		const line = "window.%s = '%s';\n"
+		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
+		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
 	})
 }

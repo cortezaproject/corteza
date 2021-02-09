@@ -22,8 +22,7 @@ import (
 func (app *CortezaApp) Serve(ctx context.Context) (err error) {
 	wg := &sync.WaitGroup{}
 
-	{
-		// @todo refactor wait-for out of HTTP API server.
+	{ // @todo refactor wait-for out of HTTP API server.
 		app.HttpServer = server.New(app.Log, app.Opt.Environment, app.Opt.HTTPServer, app.Opt.WaitFor)
 		app.HttpServer.MountRoutes(app.mountHttpRoutes)
 
@@ -54,7 +53,10 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		webappBaseUrl = strings.Trim(app.Opt.HTTPServer.WebappBaseUrl, "/")
 	)
 
+	app.AuthService.MountHttpRoutes(r)
+
 	if app.Opt.HTTPServer.ApiEnabled {
+
 		r.Route("/"+apiBaseUrl, func(r chi.Router) {
 			r.Route("/system", systemRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
@@ -132,7 +134,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	}()
 
 	if app.Opt.HTTPServer.WebappEnabled {
-		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer, app.Opt.Federation))
+		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer, app.Opt.Auth, app.Opt.Federation))
 
 		app.Log.Info(
 			"client web applications enabled",

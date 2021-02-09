@@ -1,0 +1,86 @@
+# List of loggable service actions
+
+resource: system:authClient
+service: authClient
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: authClient
+    type: "*types.AuthClient"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.AuthClient"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.AuthClient"
+    fields: [ handle, ID ]
+  - name: filter
+    type: "*types.AuthClientFilter"
+    fields: [ handle, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for auth clients"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {authClient}"
+    severity: info
+
+  - action: create
+    log: "created {authClient}"
+
+  - action: update
+    log: "updated {authClient}"
+
+  - action: delete
+    log: "deleted {authClient}"
+
+  - action: undelete
+    log: "undeleted {authClient}"
+
+  - action: exposeSecret
+    log: "secret exposed"
+
+  - action: regenerateSecret
+    log: "secret regenerated"
+errors:
+  - error: notFound
+    message: "auth client not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this auth client"
+    log: "failed to read {authClient}; insufficient permissions"
+
+  - error: notAllowedToListAuthClients
+    message: "not allowed to list auth clients"
+    log: "failed to list authClient; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create auth clients"
+    log: "failed to create authClient; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this auth client"
+    log: "failed to update {authClient}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this auth client"
+    log: "failed to delete {authClient}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this auth client"
+    log: "failed to undelete {authClient}; insufficient permissions"

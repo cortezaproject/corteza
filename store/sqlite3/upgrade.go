@@ -31,6 +31,8 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 		switch ct.Type {
 		case ddl.ColumnTypeTimestamp:
 			return "TIMESTAMP"
+		case ddl.ColumnTypeBinary:
+			return "BLOB"
 		default:
 			return ddl.GenColumnType(ct)
 		}
