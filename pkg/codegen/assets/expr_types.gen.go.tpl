@@ -43,8 +43,11 @@ func New{{ $exprType }}(val interface{}) (*{{ $exprType }}, error) {
 // Return underlying value on {{ $exprType }}
 func (t {{ $exprType }}) Get() interface{}                         { return t.value }
 
+// Return underlying value on {{ $exprType }}
+func (t {{ $exprType }}) GetValue()  {{ $def.As }}                 { return t.value }
+
 // Return type name
-func ({{ $exprType }}) Type() string                               { return "{{ $.Prefix }}{{ $exprType }}" }
+func ({{ $exprType }}) Type() string                               { return "{{ $exprType }}" }
 
 // Convert value to {{ $def.As }}
 func ({{ $exprType }}) Cast(val interface{}) (TypedValue, error) {

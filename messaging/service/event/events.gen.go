@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 // dummy placing to simplify import generation logic
@@ -376,6 +377,17 @@ func (res messagingBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res messagingBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *messagingBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -389,6 +401,16 @@ func (res *messagingBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *messagingBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -740,6 +762,21 @@ func (res channelBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res channelBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.Channel
+
+	// Could not found expression-type counterpart for *types.Channel
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *channelBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -771,6 +808,18 @@ func (res *channelBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *channelBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.Channel
+	// oldChannel marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1170,6 +1219,21 @@ func (res channelMemberBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res channelMemberBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.ChannelMember
+
+	// Could not found expression-type counterpart for *types.Channel
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *channelMemberBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1207,6 +1271,18 @@ func (res *channelMemberBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *channelMemberBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.ChannelMember
+	// Could not find expression-type counterpart for *types.Channel
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1305,6 +1381,21 @@ func (res commandBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res commandBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.Command
+
+	// Could not found expression-type counterpart for *types.Channel
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *commandBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1330,6 +1421,18 @@ func (res *commandBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *commandBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// command marked as immutable
+	// channel marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1727,6 +1830,23 @@ func (res messageBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res messageBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.Message
+
+	// Could not found expression-type counterpart for *types.Message
+
+	// Could not found expression-type counterpart for *types.Channel
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *messageBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1766,5 +1886,18 @@ func (res *messageBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *messageBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.Message
+	// oldMessage marked as immutable
+	// Could not find expression-type counterpart for *types.Channel
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }

@@ -18,5 +18,6 @@ func MountRoutes(r chi.Router) {
 		handlers.NewFunction(Function{}.New()).MountRoutes(r)
 		handlers.NewType(Type{}.New()).MountRoutes(r)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
+		handlers.NewEventTypes(EventTypes{}.New()).MountRoutes(r)
 	})
 }

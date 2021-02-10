@@ -33,6 +33,9 @@ func NewRole(val interface{}) (*Role, error) {
 // Return underlying value on Role
 func (t Role) Get() interface{} { return t.value }
 
+// Return underlying value on Role
+func (t Role) GetValue() *types.Role { return t.value }
+
 // Return type name
 func (Role) Type() string { return "Role" }
 
@@ -199,6 +202,9 @@ func NewUser(val interface{}) (*User, error) {
 
 // Return underlying value on User
 func (t User) Get() interface{} { return t.value }
+
+// Return underlying value on User
+func (t User) GetValue() *types.User { return t.value }
 
 // Return type name
 func (User) Type() string { return "User" }

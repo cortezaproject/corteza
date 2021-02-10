@@ -11,6 +11,8 @@ package event
 import (
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/system/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -474,6 +476,17 @@ func (res systemBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res systemBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *systemBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -487,6 +500,16 @@ func (res *systemBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *systemBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -838,6 +861,21 @@ func (res applicationBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res applicationBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.Application
+
+	// Could not found expression-type counterpart for *types.Application
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *applicationBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -869,6 +907,18 @@ func (res *applicationBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *applicationBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.Application
+	// oldApplication marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1104,6 +1154,23 @@ func (res authBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res authBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["user"], err = automation.NewUser(res.user); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for *types.AuthProvider
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *authBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1141,6 +1208,26 @@ func (res *authBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *authBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.user != nil && vars.Has("user") {
+		var aux *automation.User
+		aux, err = automation.NewUser(expr.Must(vars.Select("user")))
+		if err != nil {
+			return
+		}
+
+		res.user = aux.GetValue()
+	}
+	// Could not find expression-type counterpart for *types.AuthProvider
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1305,6 +1392,19 @@ func (res mailBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res mailBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.MailMessage
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *mailBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1334,6 +1434,17 @@ func (res *mailBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *mailBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.MailMessage
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1685,6 +1796,25 @@ func (res roleBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res roleBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["role"], err = automation.NewRole(res.role); err != nil {
+		return nil, err
+	}
+
+	if rvars["oldRole"], err = automation.NewRole(res.oldRole); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *roleBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1716,6 +1846,26 @@ func (res *roleBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *roleBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.role != nil && vars.Has("role") {
+		var aux *automation.Role
+		aux, err = automation.NewRole(expr.Must(vars.Select("role")))
+		if err != nil {
+			return
+		}
+
+		res.role = aux.GetValue()
+	}
+	// oldRole marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1951,6 +2101,25 @@ func (res roleMemberBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res roleMemberBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["user"], err = automation.NewUser(res.user); err != nil {
+		return nil, err
+	}
+
+	if rvars["role"], err = automation.NewRole(res.role); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *roleMemberBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1988,6 +2157,34 @@ func (res *roleMemberBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *roleMemberBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.user != nil && vars.Has("user") {
+		var aux *automation.User
+		aux, err = automation.NewUser(expr.Must(vars.Select("user")))
+		if err != nil {
+			return
+		}
+
+		res.user = aux.GetValue()
+	}
+	if res.role != nil && vars.Has("role") {
+		var aux *automation.Role
+		aux, err = automation.NewRole(expr.Must(vars.Select("role")))
+		if err != nil {
+			return
+		}
+
+		res.role = aux.GetValue()
+	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -2093,6 +2290,21 @@ func (res sinkBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res sinkBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.SinkResponse
+
+	// Could not found expression-type counterpart for *types.SinkRequest
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *sinkBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -2124,6 +2336,18 @@ func (res *sinkBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *sinkBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.SinkResponse
+	// request marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -2475,6 +2699,25 @@ func (res userBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res userBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["user"], err = automation.NewUser(res.user); err != nil {
+		return nil, err
+	}
+
+	if rvars["oldUser"], err = automation.NewUser(res.oldUser); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *userBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -2506,5 +2749,25 @@ func (res *userBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *userBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.user != nil && vars.Has("user") {
+		var aux *automation.User
+		aux, err = automation.NewUser(expr.Must(vars.Select("user")))
+		if err != nil {
+			return
+		}
+
+		res.user = aux.GetValue()
+	}
+	// oldUser marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }

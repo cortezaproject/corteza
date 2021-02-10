@@ -33,6 +33,9 @@ func NewAny(val interface{}) (*Any, error) {
 // Return underlying value on Any
 func (t Any) Get() interface{} { return t.value }
 
+// Return underlying value on Any
+func (t Any) GetValue() interface{} { return t.value }
+
 // Return type name
 func (Any) Type() string { return "Any" }
 
@@ -67,6 +70,9 @@ func NewArray(val interface{}) (*Array, error) {
 
 // Return underlying value on Array
 func (t Array) Get() interface{} { return t.value }
+
+// Return underlying value on Array
+func (t Array) GetValue() []TypedValue { return t.value }
 
 // Return type name
 func (Array) Type() string { return "Array" }
@@ -103,6 +109,9 @@ func NewBoolean(val interface{}) (*Boolean, error) {
 // Return underlying value on Boolean
 func (t Boolean) Get() interface{} { return t.value }
 
+// Return underlying value on Boolean
+func (t Boolean) GetValue() bool { return t.value }
+
 // Return type name
 func (Boolean) Type() string { return "Boolean" }
 
@@ -137,6 +146,9 @@ func NewDateTime(val interface{}) (*DateTime, error) {
 
 // Return underlying value on DateTime
 func (t DateTime) Get() interface{} { return t.value }
+
+// Return underlying value on DateTime
+func (t DateTime) GetValue() *time.Time { return t.value }
 
 // Return type name
 func (DateTime) Type() string { return "DateTime" }
@@ -173,6 +185,9 @@ func NewDuration(val interface{}) (*Duration, error) {
 // Return underlying value on Duration
 func (t Duration) Get() interface{} { return t.value }
 
+// Return underlying value on Duration
+func (t Duration) GetValue() time.Duration { return t.value }
+
 // Return type name
 func (Duration) Type() string { return "Duration" }
 
@@ -207,6 +222,9 @@ func NewFloat(val interface{}) (*Float, error) {
 
 // Return underlying value on Float
 func (t Float) Get() interface{} { return t.value }
+
+// Return underlying value on Float
+func (t Float) GetValue() float64 { return t.value }
 
 // Return type name
 func (Float) Type() string { return "Float" }
@@ -243,6 +261,9 @@ func NewHandle(val interface{}) (*Handle, error) {
 // Return underlying value on Handle
 func (t Handle) Get() interface{} { return t.value }
 
+// Return underlying value on Handle
+func (t Handle) GetValue() string { return t.value }
+
 // Return type name
 func (Handle) Type() string { return "Handle" }
 
@@ -277,6 +298,9 @@ func NewID(val interface{}) (*ID, error) {
 
 // Return underlying value on ID
 func (t ID) Get() interface{} { return t.value }
+
+// Return underlying value on ID
+func (t ID) GetValue() uint64 { return t.value }
 
 // Return type name
 func (ID) Type() string { return "ID" }
@@ -313,6 +337,9 @@ func NewInteger(val interface{}) (*Integer, error) {
 // Return underlying value on Integer
 func (t Integer) Get() interface{} { return t.value }
 
+// Return underlying value on Integer
+func (t Integer) GetValue() int64 { return t.value }
+
 // Return type name
 func (Integer) Type() string { return "Integer" }
 
@@ -347,6 +374,9 @@ func NewKV(val interface{}) (*KV, error) {
 
 // Return underlying value on KV
 func (t KV) Get() interface{} { return t.value }
+
+// Return underlying value on KV
+func (t KV) GetValue() map[string]string { return t.value }
 
 // Return type name
 func (KV) Type() string { return "KV" }
@@ -383,6 +413,9 @@ func NewKVV(val interface{}) (*KVV, error) {
 // Return underlying value on KVV
 func (t KVV) Get() interface{} { return t.value }
 
+// Return underlying value on KVV
+func (t KVV) GetValue() map[string][]string { return t.value }
+
 // Return type name
 func (KVV) Type() string { return "KVV" }
 
@@ -417,6 +450,9 @@ func NewReader(val interface{}) (*Reader, error) {
 
 // Return underlying value on Reader
 func (t Reader) Get() interface{} { return t.value }
+
+// Return underlying value on Reader
+func (t Reader) GetValue() io.Reader { return t.value }
 
 // Return type name
 func (Reader) Type() string { return "Reader" }
@@ -453,6 +489,9 @@ func NewString(val interface{}) (*String, error) {
 // Return underlying value on String
 func (t String) Get() interface{} { return t.value }
 
+// Return underlying value on String
+func (t String) GetValue() string { return t.value }
+
 // Return type name
 func (String) Type() string { return "String" }
 
@@ -488,6 +527,9 @@ func NewUnsignedInteger(val interface{}) (*UnsignedInteger, error) {
 // Return underlying value on UnsignedInteger
 func (t UnsignedInteger) Get() interface{} { return t.value }
 
+// Return underlying value on UnsignedInteger
+func (t UnsignedInteger) GetValue() uint64 { return t.value }
+
 // Return type name
 func (UnsignedInteger) Type() string { return "UnsignedInteger" }
 
@@ -522,6 +564,9 @@ func NewVars(val interface{}) (*Vars, error) {
 
 // Return underlying value on Vars
 func (t Vars) Get() interface{} { return t.value }
+
+// Return underlying value on Vars
+func (t Vars) GetValue() RVars { return t.value }
 
 // Return type name
 func (Vars) Type() string { return "Vars" }
