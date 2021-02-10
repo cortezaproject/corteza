@@ -222,11 +222,18 @@ endpoints:
     method: GET
     title: Available workflow functions
     path: "/"
-
-
 - title: Types
   path: "/types"
   entrypoint: type
+  authentication: []
+  apis:
+  - name: list
+    method: GET
+    title: Available workflow types
+    path: "/"
+- title: Event types
+  path: "/event-types"
+  entrypoint: eventTypes
   authentication: []
   apis:
   - name: list

@@ -208,8 +208,19 @@ func Proc() {
 				return
 			}
 
+			if exprTypeDefs, err = procExprTypes(exprTypeSrc...); err == nil {
+				if genCode {
+					err = genExprTypes(tpls, exprTypeDefs...)
+				}
+			}
+
+			if outputErr(err, "failed to process expr types:\n") {
+				return
+			}
+
 			if eventDefs, err = procEvents(eventSrc...); err == nil {
 				if genCode {
+					expandEventTypes(eventDefs, exprTypeDefs)
 					err = genEvents(tpls, eventDefs...)
 				}
 				if genDocs && err == nil {
@@ -228,16 +239,6 @@ func Proc() {
 			}
 
 			if outputErr(err, "failed to process types:\n") {
-				return
-			}
-
-			if exprTypeDefs, err = procExprTypes(exprTypeSrc...); err == nil {
-				if genCode {
-					err = genExprTypes(tpls, exprTypeDefs...)
-				}
-			}
-
-			if outputErr(err, "failed to process expr types:\n") {
 				return
 			}
 

@@ -10,8 +10,10 @@ package event
 
 import (
 	"encoding/json"
+	"github.com/cortezaproject/corteza-server/compose/automation"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 // dummy placing to simplify import generation logic
@@ -422,6 +424,17 @@ func (res composeBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res composeBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *composeBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -435,6 +448,16 @@ func (res *composeBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *composeBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -825,6 +848,29 @@ func (res moduleBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res moduleBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["module"], err = automation.NewComposeModule(res.module); err != nil {
+		return nil, err
+	}
+
+	if rvars["oldModule"], err = automation.NewComposeModule(res.oldModule); err != nil {
+		return nil, err
+	}
+
+	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *moduleBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -858,6 +904,27 @@ func (res *moduleBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *moduleBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.module != nil && vars.Has("module") {
+		var aux *automation.ComposeModule
+		aux, err = automation.NewComposeModule(expr.Must(vars.Select("module")))
+		if err != nil {
+			return
+		}
+
+		res.module = aux.GetValue()
+	}
+	// oldModule marked as immutable
+	// namespace marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1209,6 +1276,25 @@ func (res namespaceBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res namespaceBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
+		return nil, err
+	}
+
+	if rvars["oldNamespace"], err = automation.NewComposeNamespace(res.oldNamespace); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *namespaceBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1240,6 +1326,26 @@ func (res *namespaceBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *namespaceBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.namespace != nil && vars.Has("namespace") {
+		var aux *automation.ComposeNamespace
+		aux, err = automation.NewComposeNamespace(expr.Must(vars.Select("namespace")))
+		if err != nil {
+			return
+		}
+
+		res.namespace = aux.GetValue()
+	}
+	// oldNamespace marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -1630,6 +1736,25 @@ func (res pageBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res pageBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	// Could not found expression-type counterpart for *types.Page
+
+	// Could not found expression-type counterpart for *types.Page
+
+	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *pageBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -1663,6 +1788,19 @@ func (res *pageBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *pageBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.Page
+	// oldPage marked as immutable
+	// namespace marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
 
@@ -2191,6 +2329,37 @@ func (res recordBase) Encode() (args map[string][]byte, err error) {
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res recordBase) EncodeVars() (vars *expr.Vars, err error) {
+	var (
+		rvars = expr.RVars{}
+	)
+
+	if rvars["record"], err = automation.NewComposeRecord(res.record); err != nil {
+		return nil, err
+	}
+
+	if rvars["oldRecord"], err = automation.NewComposeRecord(res.oldRecord); err != nil {
+		return nil, err
+	}
+
+	if rvars["module"], err = automation.NewComposeModule(res.module); err != nil {
+		return nil, err
+	}
+
+	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
+		return nil, err
+	}
+
+	if rvars["recordValueErrors"], err = automation.NewComposeRecordValueErrorSet(res.recordValueErrors); err != nil {
+		return nil, err
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	return rvars.Vars(), err
+}
+
 // Decode return values from Corredor script into struct props
 func (res *recordBase) Decode(results map[string][]byte) (err error) {
 	if res.immutable {
@@ -2234,5 +2403,36 @@ func (res *recordBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+	return
+}
+
+func (res *recordBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.record != nil && vars.Has("record") {
+		var aux *automation.ComposeRecord
+		aux, err = automation.NewComposeRecord(expr.Must(vars.Select("record")))
+		if err != nil {
+			return
+		}
+
+		res.record = aux.GetValue()
+	}
+	// oldRecord marked as immutable
+	// module marked as immutable
+	// namespace marked as immutable
+	if res.recordValueErrors != nil && vars.Has("recordValueErrors") {
+		var aux *automation.ComposeRecordValueErrorSet
+		aux, err = automation.NewComposeRecordValueErrorSet(expr.Must(vars.Select("recordValueErrors")))
+		if err != nil {
+			return
+		}
+
+		res.recordValueErrors = aux.GetValue()
+	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
 	return
 }
