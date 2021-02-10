@@ -340,6 +340,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		fedService.Watchers(ctx)
 	}
 
+	monitor.Watcher(ctx)
+
 	rbac.Global().Watch(ctx)
 
 	if err = sysService.Activate(ctx); err != nil {
