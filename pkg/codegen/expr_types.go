@@ -19,7 +19,6 @@ type (
 
 		Imports []string
 		Package string                  `yaml:"package"`
-		Prefix  string                  `yaml:"prefix"`
 		Types   map[string]*exprTypeDef `yaml:"types"`
 	}
 
