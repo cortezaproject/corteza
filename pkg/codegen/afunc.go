@@ -153,7 +153,7 @@ func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
 
 	for _, t := range tt {
 		for typ, d := range t.Types {
-			ti[t.Prefix+typ] = d
+			ti[typ] = d
 		}
 	}
 

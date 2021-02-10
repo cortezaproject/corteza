@@ -281,7 +281,7 @@ func (s Store) internalFlagRowScanner(row rowScanner) (res *types.Flag, err erro
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan flag db row").Wrap(err)
+		return nil, errors.Store("could not scan flag db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

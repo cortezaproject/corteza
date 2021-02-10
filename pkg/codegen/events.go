@@ -26,7 +26,7 @@ type (
 		Resources evResourceDefMap
 	}
 
-	evResourceDefMap map[string]evResourceDef
+	evResourceDefMap map[string]*evResourceDef
 
 	evResourceDef struct {
 		// used as string
@@ -38,15 +38,16 @@ type (
 		// used for filename
 		ResourceFile string
 
-		On          []string     `yaml:"on"`
-		BeforeAfter []string     `yaml:"ba"`
-		Properties  []eventProps `yaml:"props"`
-		Result      string       `yaml:"result"`
+		On          []string      `yaml:"on"`
+		BeforeAfter []string      `yaml:"ba"`
+		Properties  []*eventProps `yaml:"props"`
+		Result      string        `yaml:"result"`
 	}
 
 	eventProps struct {
-		Name string
-		Type string
+		Name     string
+		Type     string
+		ExprType string
 
 		// Import path for prop type, use package's type by default (see importTypePathTpl)
 		Import string
@@ -63,6 +64,7 @@ func procEvents(mm ...string) (dd []*eventsDef, err error) {
 	// <app>/service/event/events.yaml
 	const (
 		importTypePathTpl = "github.com/cortezaproject/corteza-server/%s/types"
+		importAutoPathTpl = "github.com/cortezaproject/corteza-server/%s/automation"
 		importAuthPath    = "github.com/cortezaproject/corteza-server/pkg/auth"
 	)
 
@@ -82,7 +84,7 @@ func procEvents(mm ...string) (dd []*eventsDef, err error) {
 				Source:    m,
 				App:       m[:strings.Index(m, "/")],
 				outputDir: path.Dir(m),
-				Resources: map[string]evResourceDef{},
+				Resources: map[string]*evResourceDef{},
 			}
 		)
 
@@ -92,7 +94,14 @@ func procEvents(mm ...string) (dd []*eventsDef, err error) {
 
 		for resName, evDef := range e {
 
-			d.Imports = []string{fmt.Sprintf(importTypePathTpl, d.App)}
+			d.Imports = []string{
+				fmt.Sprintf(importTypePathTpl, d.App),
+			}
+
+			if d.App != "messaging" {
+				d.Imports = append(d.Imports, fmt.Sprintf(importAutoPathTpl, d.App))
+			}
+
 			evDef.ResourceString = resName
 
 			if l := strings.Index(resName, ":"); l > 0 {
@@ -116,7 +125,7 @@ func procEvents(mm ...string) (dd []*eventsDef, err error) {
 			}
 
 			// Invoker - user that invoked (triggered) the event
-			evDef.Properties = append(evDef.Properties, eventProps{
+			evDef.Properties = append(evDef.Properties, &eventProps{
 				Name:      "invoker",
 				Type:      "auth.Identifiable",
 				Import:    importAuthPath,
@@ -148,6 +157,33 @@ func procEvents(mm ...string) (dd []*eventsDef, err error) {
 	return dd, nil
 }
 
+func expandEventTypes(ee []*eventsDef, tt []*exprTypesDef) {
+	// index of all known types
+	expTypes := make(map[string]*exprTypeDef)
+	goTypes := make(map[string]string)
+
+	for _, t := range tt {
+		for typ, d := range t.Types {
+			expTypes[typ] = d
+			goTypes[d.As] = typ
+		}
+	}
+
+	for _, e := range ee {
+		for _, r := range e.Resources {
+			for _, p := range r.Properties {
+				if p.ExprType != "" && expTypes[p.ExprType] == nil {
+					fmt.Printf("unknown type %q used for param %q for events on resource %s\n", p.ExprType, p.Name, r.ResourceString)
+				}
+
+				if p.ExprType == "" && goTypes[p.Type] != "" {
+					p.ExprType = goTypes[p.Type]
+				}
+			}
+		}
+	}
+}
+
 func genEvents(tpl *template.Template, dd ...*eventsDef) (err error) {
 	var (
 		// Will only be generated if file does not exist previously
@@ -155,6 +191,9 @@ func genEvents(tpl *template.Template, dd ...*eventsDef) (err error) {
 
 		// Always regenerated
 		tplEventsGen = tpl.Lookup("events.gen.go.tpl")
+
+		// List of event-type definitions for automation REST endpoint
+		tplAutomationRestDefGen = tpl.Lookup("events_rest_def.gen.go.tpl")
 
 		dst string
 	)
@@ -180,6 +219,29 @@ func genEvents(tpl *template.Template, dd ...*eventsDef) (err error) {
 				return
 			}
 		}
+	}
+
+	// Remove messaging
+	var msgIndex = -1
+	for i := range dd {
+		if dd[i].App == "messaging" {
+			msgIndex = i
+		}
+	}
+
+	if msgIndex > -1 {
+		dd = append(dd[:msgIndex], dd[msgIndex+1:]...)
+	}
+
+	err = goTemplate(
+		path.Join("automation", "rest", "eventTypes.gen.go"),
+		tplAutomationRestDefGen,
+		map[string]interface{}{
+			"Definitions": dd,
+			"Imports":     collectEventDefImports("", dd...),
+		})
+	if err != nil {
+		return
 	}
 
 	return nil
@@ -215,4 +277,17 @@ func genEventsDocs(tpl *template.Template, docsPath string, dd ...*eventsDef) (e
 	return plainTemplate(dst, tplEventsAdoc, map[string]interface{}{
 		"Definitions": dd,
 	})
+}
+
+func collectEventDefImports(basePkg string, dd ...*eventsDef) []string {
+	ii := make([]string, 0, len(dd))
+	for _, d := range dd {
+		for _, i := range d.Imports {
+			if !slice.HasString(ii, i) && (basePkg == "" || !strings.HasSuffix(i, basePkg)) {
+				ii = append(ii, i)
+			}
+		}
+	}
+
+	return ii
 }

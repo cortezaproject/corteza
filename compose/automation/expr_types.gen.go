@@ -33,6 +33,9 @@ func NewComposeModule(val interface{}) (*ComposeModule, error) {
 // Return underlying value on ComposeModule
 func (t ComposeModule) Get() interface{} { return t.value }
 
+// Return underlying value on ComposeModule
+func (t ComposeModule) GetValue() *types.Module { return t.value }
+
 // Return type name
 func (ComposeModule) Type() string { return "ComposeModule" }
 
@@ -200,6 +203,9 @@ func NewComposeNamespace(val interface{}) (*ComposeNamespace, error) {
 // Return underlying value on ComposeNamespace
 func (t ComposeNamespace) Get() interface{} { return t.value }
 
+// Return underlying value on ComposeNamespace
+func (t ComposeNamespace) GetValue() *types.Namespace { return t.value }
+
 // Return type name
 func (ComposeNamespace) Type() string { return "ComposeNamespace" }
 
@@ -358,6 +364,9 @@ func NewComposeRecord(val interface{}) (*ComposeRecord, error) {
 
 // Return underlying value on ComposeRecord
 func (t ComposeRecord) Get() interface{} { return t.value }
+
+// Return underlying value on ComposeRecord
+func (t ComposeRecord) GetValue() *types.Record { return t.value }
 
 // Return type name
 func (ComposeRecord) Type() string { return "ComposeRecord" }
@@ -549,6 +558,9 @@ func NewComposeRecordValueErrorSet(val interface{}) (*ComposeRecordValueErrorSet
 // Return underlying value on ComposeRecordValueErrorSet
 func (t ComposeRecordValueErrorSet) Get() interface{} { return t.value }
 
+// Return underlying value on ComposeRecordValueErrorSet
+func (t ComposeRecordValueErrorSet) GetValue() *types.RecordValueErrorSet { return t.value }
+
 // Return type name
 func (ComposeRecordValueErrorSet) Type() string { return "ComposeRecordValueErrorSet" }
 
@@ -583,6 +595,9 @@ func NewComposeRecordValues(val interface{}) (*ComposeRecordValues, error) {
 
 // Return underlying value on ComposeRecordValues
 func (t ComposeRecordValues) Get() interface{} { return t.value }
+
+// Return underlying value on ComposeRecordValues
+func (t ComposeRecordValues) GetValue() types.RecordValueSet { return t.value }
 
 // Return type name
 func (ComposeRecordValues) Type() string { return "ComposeRecordValues" }
