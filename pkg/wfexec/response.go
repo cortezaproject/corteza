@@ -11,6 +11,8 @@ type (
 	errHandler struct {
 		handler Step
 	}
+
+	termination struct{}
 )
 
 func DelayExecution(until time.Time) *suspended {
@@ -23,6 +25,10 @@ func WaitForInput() *suspended {
 
 func ErrorHandler(h Step) *errHandler {
 	return &errHandler{handler: h}
+}
+
+func Termination() *termination {
+	return &termination{}
 }
 
 type (

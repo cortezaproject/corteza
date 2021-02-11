@@ -533,8 +533,11 @@ func (svc *workflow) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep,
 		case types.WorkflowStepKindFunction, types.WorkflowStepKindIterator:
 			return svc.convFunctionStep(g, s, out)
 
-		//case types.WorkflowStepKindMessage:
-		//	return svc.convMessageStep(s)
+		case types.WorkflowStepKindError:
+			return svc.convErrorStep(s, out)
+
+		case types.WorkflowStepKindTermination:
+			return svc.convTerminationStep(out)
 
 		case types.WorkflowStepKindPrompt:
 			return svc.convPromptStep(s)
@@ -734,6 +737,69 @@ func (svc *workflow) convFunctionStep(g *wfexec.Graph, s *types.WorkflowStep, ou
 	}
 }
 
+// creates error step
+//
+// Expects ZERO outgoing paths and
+func (svc *workflow) convErrorStep(s *types.WorkflowStep, out types.WorkflowPathSet) (wfexec.Step, error) {
+	const (
+		argName = "message"
+	)
+
+	if len(out) > 0 {
+		return nil, errors.Internal("error step must be last step in branch")
+	}
+
+	var (
+		args = types.ExprSet(s.Arguments)
+	)
+
+	if msgArg := args.GetByTarget(argName); msgArg == nil {
+		return nil, errors.Internal("error step must have %s argument", argName)
+	} else if msgArg.Type != (expr.String{}).Type() {
+		return nil, errors.Internal("%s argument on error step must be string, got type '%s'", argName, msgArg.Type)
+	} else if len(args) > 1 {
+		return nil, errors.Internal("too many arguments on error step")
+	}
+
+	if err := svc.parseExpressions(args...); err != nil {
+		return nil, err
+	}
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+		var (
+			msg         string
+			result, err = args.Eval(ctx, r.Scope)
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Has(argName) {
+			str, _ := expr.NewString(expr.Must(result.Select(argName)))
+			msg = str.GetValue()
+		} else {
+			if aux, is := args.GetByTarget(argName).Value.(string); is {
+				msg = aux
+			} else {
+				msg = "ERROR"
+			}
+		}
+
+		return nil, errors.Automation(msg)
+	}), nil
+}
+
+// converts prompt definition to wfexec.Step
+func (svc *workflow) convTerminationStep(out types.WorkflowPathSet) (wfexec.Step, error) {
+	if len(out) > 0 {
+		return nil, errors.Internal("termination step must be last step in branch")
+	}
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+		return wfexec.Termination(), nil
+	}), nil
+}
+
 // converts prompt definition to wfexec.Step
 func (svc *workflow) convPromptStep(s *types.WorkflowStep) (wfexec.Step, error) {
 	if err := svc.parseExpressions(s.Arguments...); err != nil {
@@ -819,6 +885,12 @@ func validateSteps(ss ...*types.WorkflowStep) error {
 			checks = append(checks, reqArgs, noResults)
 
 		case types.WorkflowStepKindGateway:
+			checks = append(checks, noArgs, noResults)
+
+		case types.WorkflowStepKindError:
+			checks = append(checks, noResults)
+
+		case types.WorkflowStepKindTermination:
 			checks = append(checks, noArgs, noResults)
 
 		case types.WorkflowStepKindFunction, types.WorkflowStepKindIterator:

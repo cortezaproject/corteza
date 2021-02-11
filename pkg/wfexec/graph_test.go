@@ -8,7 +8,7 @@ import (
 
 type (
 	wfTestStep struct {
-		stepIdentifier
+		StepIdentifier
 		name string
 	}
 )

@@ -33,14 +33,14 @@ type (
 	}
 
 	functionStep struct {
-		identifiableStep
+		wfexec.StepIdentifier
 		def       *Function
 		arguments ExprSet
 		results   ExprSet
 	}
 
 	iteratorStep struct {
-		identifiableStep
+		wfexec.StepIdentifier
 		def       *Function
 		arguments ExprSet
 		results   ExprSet

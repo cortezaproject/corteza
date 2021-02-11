@@ -5,13 +5,6 @@ import (
 )
 
 type (
-	Steps []Step
-	Step  interface {
-		ID() uint64
-		SetID(uint64)
-		Exec(context.Context, *ExecRequest) (ExecResponse, error)
-	}
-
 	// list of Graph steps with relations
 	Graph struct {
 		steps    []Step
@@ -19,8 +12,6 @@ type (
 		parents  map[Step][]Step
 		index    map[uint64]Step
 	}
-
-	stepIdentifier struct{ id uint64 }
 )
 
 func NewGraph() *Graph {
@@ -33,9 +24,6 @@ func NewGraph() *Graph {
 
 	return wf
 }
-
-func (i *stepIdentifier) ID() uint64      { return i.id }
-func (i *stepIdentifier) SetID(id uint64) { i.id = id }
 
 func (g *Graph) AddStep(s Step, cc ...Step) {
 	g.steps = append(g.steps, s)

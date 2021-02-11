@@ -44,7 +44,7 @@ type (
 
 	// WorkflowStepExpression is created from WorkflowStep with kind=expressions
 	expressionsStep struct {
-		identifiableStep
+		wfexec.StepIdentifier
 		Set ExprSet
 	}
 )
