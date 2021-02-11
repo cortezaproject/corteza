@@ -11,13 +11,13 @@ import (
 
 type (
 	sesTestStep struct {
-		stepIdentifier
+		StepIdentifier
 		name string
 		exec func(context.Context, *ExecRequest) (ExecResponse, error)
 	}
 
 	sesTestTemporal struct {
-		stepIdentifier
+		StepIdentifier
 		delay time.Duration
 		until time.Time
 	}

@@ -9,7 +9,7 @@ import (
 
 type (
 	debugStep struct {
-		identifiableStep
+		wfexec.StepIdentifier
 		log *zap.Logger
 	}
 )
