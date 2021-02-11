@@ -43,6 +43,8 @@ type (
 
 		workerTicker *time.Ticker
 
+		statusChange chan int
+
 		// holds final result
 		result *expr.Vars
 		err    error
@@ -268,26 +270,45 @@ func (s *Session) enqueue(ctx context.Context, st *State) error {
 //  - idle state
 //  - error in error queue
 func (s *Session) Wait(ctx context.Context) error {
+	return s.WaitUntil(ctx, SessionFailed, SessionSuspended, SessionCompleted)
+}
+
+// WaitUntil blocks until workflow session gets into expected status
+//
+// @todo refactor from interval to chan pull
+func (s *Session) WaitUntil(ctx context.Context, expected ...int) error {
+	indexed := make(map[int]bool)
+	for _, status := range expected {
+		indexed[status] = true
+	}
+
+	if indexed[s.Status()] {
+		return s.err
+	}
+
+	s.log.Debug(
+		"waiting for status change",
+		zap.Ints("expecting", expected),
+		zap.Duration("interval", s.workerInterval),
+	)
+
 	waitCheck := time.NewTicker(s.workerInterval)
 	defer waitCheck.Stop()
 
-waitLoop:
 	for {
 		select {
 		case <-waitCheck.C:
-			if s.Idle() {
-				s.log.Debug("idle", zap.Int("status", s.Status()))
+			if indexed[s.Status()] {
+				s.log.Debug("waiting complete", zap.Int("status", s.Status()))
 				// nothing in the pipeline
-				break waitLoop
+				return s.err
 			}
 
 		case <-ctx.Done():
 			s.log.Debug("wait context done", zap.Error(ctx.Err()))
-			break waitLoop
+			return s.err
 		}
 	}
-
-	return s.err
 }
 
 func (s *Session) worker(ctx context.Context) {

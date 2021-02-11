@@ -524,7 +524,19 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 					return err
 				}
 
-				return wait(ctx)
+				// wait for the workflow to complete
+				// reuse scope for results
+				// this will be decoded back to event properties
+				scope, err = wait(ctx)
+				if err != nil {
+					return
+				}
+
+				if dec, is := ev.(varsDecoder); is {
+					return dec.DecodeVars(scope)
+				}
+
+				return nil
 			}
 
 			ops   = make([]eventbus.HandlerRegOp, 0, len(t.Constraints)+2)
