@@ -37,7 +37,7 @@ type (
 		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
 	}
 
-	WaitFn func(ctx context.Context) error
+	WaitFn func(ctx context.Context) (*expr.Vars, error)
 )
 
 func Session(log *zap.Logger) *session {
@@ -123,8 +123,8 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		start wfexec.Step
 	)
 
-	wait = func(ctx context.Context) error {
-		return nil // no-op...
+	wait = func(ctx context.Context) (*expr.Vars, error) {
+		return &expr.Vars{}, nil // no-op...
 	}
 
 	if ssp.StepID == 0 {
@@ -153,7 +153,7 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		return
 	}
 
-	return func(ctx context.Context) error { return ses.Wait(ctx) }, nil
+	return func(ctx context.Context) (*expr.Vars, error) { return ses.WaitResults(ctx) }, nil
 }
 
 // Resume resumes suspended session/state

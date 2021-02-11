@@ -94,8 +94,13 @@ func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) e
 	return s.session.Resume(ctx, stateID, input)
 }
 
-func (s Session) Wait(ctx context.Context) error {
-	return s.session.Wait(ctx)
+// Wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
+func (s Session) WaitResults(ctx context.Context) (*expr.Vars, error) {
+	if err := s.session.WaitUntil(ctx, wfexec.SessionFailed, wfexec.SessionCompleted); err != nil {
+		return nil, err
+	}
+
+	return s.session.Result(), nil
 }
 
 func (s *Session) Apply(ssp SessionStartParams) {
