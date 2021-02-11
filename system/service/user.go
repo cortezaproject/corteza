@@ -504,7 +504,7 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 			return UserErrNotAllowedToDelete()
 		}
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(nil, u)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeDelete(nil, u)); err != nil {
 			return
 		}
 
