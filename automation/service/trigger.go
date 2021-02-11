@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -51,6 +52,14 @@ type (
 
 	triggerUpdateHandler func(ctx context.Context, ns *types.Trigger) (triggerChanges, error)
 	triggerChanges       uint8
+
+	varsEncoder interface {
+		EncodeVars() (*expr.Vars, error)
+	}
+
+	varsDecoder interface {
+		DecodeVars(*expr.Vars) error
+	}
 )
 
 const (
@@ -467,15 +476,25 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		}
 
 		var (
-			handler = func(ctx context.Context, ev eventbus.Event) error {
+			handler = func(ctx context.Context, ev eventbus.Event) (err error) {
 
 				var (
 					// create session scope from predefined workflow scope and trigger input
-					scope = wf.Scope.Merge(t.Input)
-					wait  WaitFn
+					scope   = wf.Scope.Merge(t.Input)
+					evScope *expr.Vars
+					wait    WaitFn
 				)
 
-				// scope["event"] = ev
+				if enc, is := ev.(varsEncoder); is {
+					if evScope, err = enc.EncodeVars(); err != nil {
+						return
+					}
+
+					scope = scope.Merge(evScope)
+				}
+
+				_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
+				_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
 
 				if runAs == nil {
 					// @todo can/should we get alternative identity from Event?
