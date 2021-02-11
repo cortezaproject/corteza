@@ -155,7 +155,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
 
 	s.log = s.log.
 		WithOptions(zap.AddStacktrace(zap.ErrorLevel)).
-		With(zap.Uint64("sessionId", s.id))
+		With(zap.Uint64("sessionID", s.id))
 
 	go s.worker(ctx)
 
@@ -317,7 +317,7 @@ func (s *Session) worker(ctx context.Context) {
 				break
 			}
 
-			s.log.Debug("pulled state from queue", zap.Uint64("stateId", st.stateId))
+			s.log.Debug("pulled state from queue", zap.Uint64("stateID", st.stateId))
 			if st.step == nil {
 				s.log.Debug("done, stopping and setting results")
 				defer s.mux.Unlock()
@@ -340,7 +340,7 @@ func (s *Session) worker(ctx context.Context) {
 				<-s.execLock
 
 				status := s.Status()
-				s.log.Debug("executed", zap.Uint64("stateId", st.stateId), zap.Int("status", status))
+				s.log.Debug("executed", zap.Uint64("stateID", st.stateId), zap.Int("status", status))
 				// after exec lock is released call event handler with (new) session status
 				s.eventHandler(status, st, s)
 			}()
@@ -385,7 +385,7 @@ func (s *Session) queueScheduledSuspended() {
 		}
 
 		delete(s.suspended, id)
-		s.log.Debug("resuming suspended state", zap.Uint64("stateId", sus.state.stateId))
+		s.log.Debug("resuming suspended state", zap.Uint64("stateID", sus.state.stateId))
 		s.qState <- sus.state
 	}
 }
@@ -399,11 +399,11 @@ func (s *Session) exec(ctx context.Context, st *State) {
 
 		currLoop = st.loopCurr()
 
-		log = s.log.With(zap.Uint64("stateId", st.stateId))
+		log = s.log.With(zap.Uint64("stateID", st.stateId))
 	)
 
 	if st.step != nil {
-		log = log.With(zap.Uint64("step", st.step.ID()))
+		log = log.With(zap.Uint64("stepID", st.step.ID()))
 	}
 
 	// @todo enable this when not in debug mode
