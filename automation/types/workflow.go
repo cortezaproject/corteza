@@ -120,7 +120,8 @@ const (
 	WorkflowStepKindGateway     WorkflowStepKind = "gateway"       // ref = join|fork|excl|incl
 	WorkflowStepKindFunction    WorkflowStepKind = "function"      // ref = <function ref>
 	WorkflowStepKindIterator    WorkflowStepKind = "iterator"      // ref = <iterator function ref>
-	WorkflowStepKindMessage     WorkflowStepKind = "message"       // ref = error|warning|info, ...
+	WorkflowStepKindError       WorkflowStepKind = "error"         // no ref
+	WorkflowStepKindTermination WorkflowStepKind = "termination"   // no ref
 	WorkflowStepKindPrompt      WorkflowStepKind = "prompt"        // ref = <client function>
 	WorkflowStepKindErrHandler  WorkflowStepKind = "error-handler" // no ref
 	WorkflowStepKindVisual      WorkflowStepKind = "visual"        // ref = <*>

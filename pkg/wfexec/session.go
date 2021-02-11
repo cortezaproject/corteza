@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -335,7 +336,7 @@ func (s *Session) worker(ctx context.Context) {
 			if st == nil {
 				// stop worker
 				s.log.Debug("worker done")
-				break
+				return
 			}
 
 			s.log.Debug("pulled state from queue", zap.Uint64("stateID", st.stateId))
@@ -482,7 +483,7 @@ func (s *Session) exec(ctx context.Context, st *State) {
 					zap.Error(st.err),
 				)
 
-				expr.Assign(scope, "error", expr.Must(expr.NewString(st.err.Error())))
+				_ = expr.Assign(scope, "error", expr.Must(expr.NewString(st.err.Error())))
 
 				// copy error handler & disable it on state to prevent inf. loop
 				// in case of another error in the error-handling branch
@@ -494,8 +495,13 @@ func (s *Session) exec(ctx context.Context, st *State) {
 
 				return
 			} else {
-				log.Error("step execution failed", zap.Error(st.err))
-				s.qErr <- fmt.Errorf("session %d step %d execution failed: %w", s.id, st.step.ID(), st.err)
+				if errors.IsAutomation(st.err) {
+					s.qErr <- st.err
+				} else {
+					log.Error("step execution failed", zap.Error(st.err))
+					s.qErr <- fmt.Errorf("session %d step %d execution failed: %w", s.id, st.step.ID(), st.err)
+				}
+
 				return
 			}
 		}
@@ -572,6 +578,13 @@ func (s *Session) exec(ctx context.Context, st *State) {
 			// it's used mainly for join gateway step that should be called multiple times (one for each parent path)
 			return
 
+		case *termination:
+			// terminate all activities, all suspended tasks and exit right away
+			log.Debug("termination", zap.Int("suspended", len(s.suspended)))
+			s.suspended = nil
+			s.qState <- FinalState(s, scope)
+			return
+
 		case *suspended:
 			// suspend execution because of delay or pending user input
 			// either way, it breaks execution loop for the current path
@@ -586,7 +599,6 @@ func (s *Session) exec(ctx context.Context, st *State) {
 				log.Debug("suspended, temporal", zap.Timep("at", result.resumeAt))
 			} else {
 				log.Debug("suspended, prompt")
-
 			}
 
 			result.state = st

@@ -29,7 +29,7 @@ func NewGatewayPath(s Step, t pathTester) (gwp *GatewayPath, err error) {
 // joinGateway handles merging/joining of multiple paths into
 // a single path forward
 type joinGateway struct {
-	stepIdentifier
+	StepIdentifier
 	paths  Steps
 	scopes map[Step]*expr.Vars
 	l      sync.Mutex
@@ -75,7 +75,7 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 
 // forkGateway handles forking to multiple paths
 type forkGateway struct {
-	stepIdentifier
+	StepIdentifier
 }
 
 // ForkGateway fn initializes fork gateway
@@ -93,7 +93,7 @@ func (gw forkGateway) Exec(context.Context, *ExecRequest) (ExecResponse, error) 
 
 // inclGateway is an inclusive gateway that can return one or more paths
 type inclGateway struct {
-	stepIdentifier
+	StepIdentifier
 	paths []*GatewayPath
 }
 
@@ -134,7 +134,7 @@ func (gw inclGateway) Exec(ctx context.Context, r *ExecRequest) (ExecResponse, e
 
 // exclGateway is an exclusive gateway that can return exactly one path
 type exclGateway struct {
-	stepIdentifier
+	StepIdentifier
 	paths []*GatewayPath
 }
 

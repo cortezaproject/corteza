@@ -7,7 +7,7 @@ import (
 
 type (
 	errorHandlerStep struct {
-		identifiableStep
+		wfexec.StepIdentifier
 		handler wfexec.Step
 	}
 )
