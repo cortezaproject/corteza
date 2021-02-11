@@ -124,6 +124,7 @@ const (
 	WorkflowStepKindPrompt      WorkflowStepKind = "prompt"        // ref = <client function>
 	WorkflowStepKindErrHandler  WorkflowStepKind = "error-handler" // no ref
 	WorkflowStepKindVisual      WorkflowStepKind = "visual"        // ref = <*>
+	WorkflowStepKindDebug       WorkflowStepKind = "debug"         // ref = <*>
 	//WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
 	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
 )

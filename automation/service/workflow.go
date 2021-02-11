@@ -521,6 +521,8 @@ func (svc *workflow) workflowStepDefConv(g *wfexec.Graph, s *types.WorkflowStep,
 		switch s.Kind {
 		case types.WorkflowStepKindVisual:
 			return nil, nil
+		case types.WorkflowStepKindDebug:
+			return svc.convDebugStep(s)
 
 		case types.WorkflowStepKindExpressions:
 			return svc.convExpressionStep(s)
@@ -657,6 +659,15 @@ func (svc *workflow) convExpressionStep(s *types.WorkflowStep) (wfexec.Step, err
 	}
 
 	return types.ExpressionsStep(s.Arguments...), nil
+}
+
+// internal debug step that can log entire
+func (svc *workflow) convDebugStep(s *types.WorkflowStep) (wfexec.Step, error) {
+	if err := svc.parseExpressions(s.Arguments...); err != nil {
+		return nil, err
+	}
+
+	return types.DebugStep(svc.log), nil
 }
 
 func (svc *workflow) convFunctionStep(g *wfexec.Graph, s *types.WorkflowStep, out []*types.WorkflowPath) (wfexec.Step, error) {
@@ -797,6 +808,9 @@ func validateSteps(ss ...*types.WorkflowStep) error {
 
 		switch s.Kind {
 		case types.WorkflowStepKindErrHandler:
+
+		case types.WorkflowStepKindDebug:
+			checks = append(checks, noResults)
 
 		case types.WorkflowStepKindVisual:
 			checks = append(checks, noArgs, noResults)
