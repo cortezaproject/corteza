@@ -30,7 +30,12 @@ func (v *RecordValueErrorSet) IsValid() bool {
 }
 
 func (v *RecordValueErrorSet) Error() string {
-	return fmt.Sprintf("%d issue(s) found", len(v.Set))
+	var no = 0
+	if v != nil {
+		no = len(v.Set)
+	}
+
+	return fmt.Sprintf("%d issue(s) found", no)
 }
 
 func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {
