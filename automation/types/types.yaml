@@ -8,6 +8,8 @@ types:
     labelResourceType: workflow
   WorkflowPath:
     noIdField: true
+  WorkflowIssue:
+    noIdField: true
   WorkflowStep: {}
   Session: {}
   State: {}

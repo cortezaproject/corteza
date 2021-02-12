@@ -31,6 +31,9 @@ type (
 		Steps WorkflowStepSet `json:"steps"`
 		Paths WorkflowPathSet `json:"paths"`
 
+		// Collection of issues from the last parse
+		Issues WorkflowIssueSet `json:"issues,omitempty"`
+
 		RunAs uint64 `json:"runAs,string"`
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
@@ -68,6 +71,12 @@ type (
 		Name        string                 `json:"name"`
 		Description string                 `json:"description"`
 		Visual      map[string]interface{} `json:"visual"`
+	}
+
+	WorkflowIssue struct {
+		// url encoded location of the error:
+		Culprit     map[string]int `json:"culprit"`
+		Description string         `json:"description"`
 	}
 
 	// WorkflowStep describes one workflow step
@@ -126,8 +135,6 @@ const (
 	WorkflowStepKindErrHandler  WorkflowStepKind = "error-handler" // no ref
 	WorkflowStepKindVisual      WorkflowStepKind = "visual"        // ref = <*>
 	WorkflowStepKindDebug       WorkflowStepKind = "debug"         // ref = <*>
-	//WorkflowStepKindSubprocess  WorkflowStepKind = "subprocess"
-	//WorkflowStepKindEvent       WorkflowStepKind = "event" // ref = ??
 )
 
 // Resource returns a resource ID for this type
@@ -157,6 +164,56 @@ func (vv *WorkflowMeta) Value() (driver.Value, error) {
 	}
 
 	return json.Marshal(vv)
+}
+
+// Scan on WorkflowStepSet gracefully handles conversion from NULL
+func (set WorkflowIssueSet) Value() (driver.Value, error) {
+	return json.Marshal(set)
+}
+
+func (set *WorkflowIssueSet) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*set = WorkflowIssueSet{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, set); err != nil {
+			return fmt.Errorf("can not scan '%v' into WorkflowIssueSet: %w", string(b), err)
+		}
+	}
+
+	return nil
+}
+
+func (set WorkflowIssueSet) Error() string {
+	switch len(set) {
+	case 0:
+		return fmt.Sprintf("no workflow issue found")
+	case 1:
+		return fmt.Sprintf("1 workflow issue found")
+	default:
+		return fmt.Sprintf("%d workflow issues found", len(set))
+	}
+}
+
+func (set WorkflowIssueSet) Append(err error, culprit map[string]int) WorkflowIssueSet {
+	if culprit == nil {
+		culprit = make(map[string]int)
+	}
+
+	return append(set, &WorkflowIssue{
+		Culprit:     culprit,
+		Description: err.Error(),
+	})
+}
+
+func (set WorkflowIssueSet) SetCulprit(name string, pos int) WorkflowIssueSet {
+	for i := range set {
+		set[i].Culprit[name] = pos
+	}
+
+	return set
 }
 
 func (t WorkflowPath) GetExpr() string              { return t.Expr }
