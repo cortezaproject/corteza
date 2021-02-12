@@ -95,6 +95,8 @@ type (
 		Results []*Expr `json:"results"`
 
 		Meta WorkflowStepMeta `json:"meta,omitempty"`
+
+		Labels map[string]string `json:"labels,omitempty"`
 	}
 
 	WorkflowStepMeta struct {

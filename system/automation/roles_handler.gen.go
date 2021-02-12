@@ -65,8 +65,9 @@ func (a rolesLookupArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // }
 func (h rolesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesLookup",
-		Kind: "function",
+		Ref:    "rolesLookup",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Looks-up for role by ID",
 		},
@@ -189,8 +190,9 @@ type (
 // }
 func (h rolesHandler) Search() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesSearch",
-		Kind: "function",
+		Ref:    "rolesSearch",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for roles and returns them",
 		},
@@ -398,8 +400,9 @@ type (
 // }
 func (h rolesHandler) Each() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesEach",
-		Kind: "iterator",
+		Ref:    "rolesEach",
+		Kind:   "iterator",
+		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for roles and iterates over results",
 		},
@@ -514,8 +517,9 @@ type (
 // }
 func (h rolesHandler) Create() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesCreate",
-		Kind: "function",
+		Ref:    "rolesCreate",
+		Kind:   "function",
+		Labels: map[string]string{"create": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Creates new role",
 		},
@@ -590,8 +594,9 @@ type (
 // }
 func (h rolesHandler) Update() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesUpdate",
-		Kind: "function",
+		Ref:    "rolesUpdate",
+		Kind:   "function",
+		Labels: map[string]string{"update": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Updates exiting role",
 		},
@@ -669,8 +674,9 @@ func (a rolesDeleteArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // }
 func (h rolesHandler) Delete() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesDelete",
-		Kind: "function",
+		Ref:    "rolesDelete",
+		Kind:   "function",
+		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Deletes the role",
 		},
@@ -733,8 +739,9 @@ func (a rolesRecoverArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // }
 func (h rolesHandler) Recover() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesRecover",
-		Kind: "function",
+		Ref:    "rolesRecover",
+		Kind:   "function",
+		Labels: map[string]string{"recover": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Recovers deleted role",
 		},
@@ -797,8 +804,9 @@ func (a rolesArchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // }
 func (h rolesHandler) Archive() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesArchive",
-		Kind: "function",
+		Ref:    "rolesArchive",
+		Kind:   "function",
+		Labels: map[string]string{"archive": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Archives the role",
 		},
@@ -861,8 +869,9 @@ func (a rolesUnarchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // }
 func (h rolesHandler) Unarchive() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "rolesUnarchive",
-		Kind: "function",
+		Ref:    "rolesUnarchive",
+		Kind:   "function",
+		Labels: map[string]string{"unarchive": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Unarchives the role",
 		},

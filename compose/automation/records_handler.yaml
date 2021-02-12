@@ -85,10 +85,16 @@ params:
       types:
         - { wf: String }
 
+labels: &labels
+  record: "step,workflow"
+  compose: "step,workflow"
+
 functions:
   lookup:
     meta:
       short: Lookup for compose record by ID
+    labels:
+      <<: *labels
     params:
       module:    *moduleLookup
       namespace: *namespaceLookup
@@ -99,6 +105,8 @@ functions:
   search:
     meta:
       short: Searches for records and returns them
+    labels:
+      <<: *labels
     params: *filterParams
     results:
       records:
@@ -111,6 +119,8 @@ functions:
     kind: iterator
     meta:
       short: Searches for records and iterates over results
+    labels:
+      <<: *labels
     params: *filterParams
     results:
       record: *rvRecord
@@ -120,6 +130,8 @@ functions:
   new:
     meta:
       short: Make a new record
+    labels:
+      <<: *labels
     params:
       module:    *moduleLookup
       namespace: *namespaceLookup
@@ -129,6 +141,8 @@ functions:
   validate:
     meta:
       short: Validate record
+    labels:
+      <<: *labels
     params:
       record: *record
     results:
@@ -140,6 +154,9 @@ functions:
   create:
     meta:
       short: Creates and stores a new record
+    labels:
+      <<: *labels
+      create: "step"
     params:
       record:
         <<: *record
@@ -150,6 +167,9 @@ functions:
   update:
     meta:
       short: Updates an existing record
+    labels:
+      <<: *labels
+      update: "step"
     params:
       record:
         <<: *record
@@ -160,6 +180,9 @@ functions:
   delete:
     meta:
       short: Soft deletes compose record by ID
+    labels:
+      <<: *labels
+      delete: "step"
     params:
       record: *recordLookup
 

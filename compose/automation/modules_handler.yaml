@@ -28,5 +28,9 @@ functions:
     params:
       module: *moduleLookup
       namespace: *namespaceLookup
+    labels:
+      lookup: "step"
+      module: "step,workflow"
+      compose: "step,workflow"
     results:
       module: *rvModule

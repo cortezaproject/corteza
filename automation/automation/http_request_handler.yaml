@@ -67,10 +67,13 @@ results:
   body: &rBody
     wf: Reader
 
+
 functions:
   send:
     meta:
       short: Sends HTTP request
+    labels:
+      "http request": "step,workflow"
     params:
       url:                *url
       method:             *method

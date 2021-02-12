@@ -83,8 +83,9 @@ func (a recordsLookupArgs) GetRecord() (bool, uint64, *types.Record) {
 // }
 func (h recordsHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsLookup",
-		Kind: "function",
+		Ref:    "composeRecordsLookup",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Lookup for compose record by ID",
 		},
@@ -253,8 +254,9 @@ func (a recordsSearchArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 // }
 func (h recordsHandler) Search() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsSearch",
-		Kind: "function",
+		Ref:    "composeRecordsSearch",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for records and returns them",
 		},
@@ -495,8 +497,9 @@ func (a recordsEachArgs) GetNamespace() (bool, uint64, string, *types.Namespace)
 // }
 func (h recordsHandler) Each() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsEach",
-		Kind: "iterator",
+		Ref:    "composeRecordsEach",
+		Kind:   "iterator",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for records and iterates over results",
 		},
@@ -661,8 +664,9 @@ func (a recordsNewArgs) GetNamespace() (bool, uint64, string, *types.Namespace) 
 // }
 func (h recordsHandler) New() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsNew",
-		Kind: "function",
+		Ref:    "composeRecordsNew",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Make a new record",
 		},
@@ -772,8 +776,9 @@ type (
 // }
 func (h recordsHandler) Validate() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsValidate",
-		Kind: "function",
+		Ref:    "composeRecordsValidate",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Validate record",
 		},
@@ -851,8 +856,9 @@ type (
 // }
 func (h recordsHandler) Create() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsCreate",
-		Kind: "function",
+		Ref:    "composeRecordsCreate",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Creates and stores a new record",
 		},
@@ -927,8 +933,9 @@ type (
 // }
 func (h recordsHandler) Update() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsUpdate",
-		Kind: "function",
+		Ref:    "composeRecordsUpdate",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow", "update": "step"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Updates an existing record",
 		},
@@ -1005,8 +1012,9 @@ func (a recordsDeleteArgs) GetRecord() (bool, uint64, *types.Record) {
 // }
 func (h recordsHandler) Delete() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeRecordsDelete",
-		Kind: "function",
+		Ref:    "composeRecordsDelete",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "delete": "step", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Soft deletes compose record by ID",
 		},
