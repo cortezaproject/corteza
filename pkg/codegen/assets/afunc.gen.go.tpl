@@ -92,6 +92,7 @@ func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 	return &atypes.Function{
 		Ref: {{ printf "%q" ( $REF ) }},
 		Kind: {{ printf "%q" .Kind }},
+		Labels: {{ printf "%#v" .Labels }},
 		{{- if .Meta }}
 		Meta: &atypes.FunctionMeta{
 			{{- if .Meta.Short }}

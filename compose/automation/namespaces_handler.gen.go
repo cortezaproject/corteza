@@ -57,8 +57,9 @@ func (a namespacesLookupArgs) GetNamespace() (bool, uint64, string, *types.Names
 // }
 func (h namespacesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeNamespacesLookup",
-		Kind: "function",
+		Ref:    "composeNamespacesLookup",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "lookup": "step", "namespace": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Lookup for compose namespace by ID",
 		},

@@ -61,8 +61,9 @@ type (
 // }
 func (h loopHandler) Sequence() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "loopSequence",
-		Kind: "iterator",
+		Ref:    "loopSequence",
+		Kind:   "iterator",
+		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
 			Short: "Iterates over sequence of numbers",
 		},
@@ -133,8 +134,9 @@ type (
 // }
 func (h loopHandler) Do() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "loopDo",
-		Kind: "iterator",
+		Ref:    "loopDo",
+		Kind:   "iterator",
+		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
 			Short: "Iterates while condition is true",
 		},
@@ -185,8 +187,9 @@ type (
 // }
 func (h loopHandler) Each() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "loopEach",
-		Kind: "iterator",
+		Ref:    "loopEach",
+		Kind:   "iterator",
+		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
 			Short: "Iterates over set of items",
 		},
@@ -241,8 +244,9 @@ type (
 // }
 func (h loopHandler) Lines() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "loopLines",
-		Kind: "iterator",
+		Ref:    "loopLines",
+		Kind:   "iterator",
+		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
 			Short: "Iterates over lines from stream",
 		},

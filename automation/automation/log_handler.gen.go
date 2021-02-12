@@ -51,8 +51,9 @@ type (
 // }
 func (h logHandler) Debug() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "logDebug",
-		Kind: "function",
+		Ref:    "logDebug",
+		Kind:   "function",
+		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Writes debug log message",
 		},
@@ -103,8 +104,9 @@ type (
 // }
 func (h logHandler) Info() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "logInfo",
-		Kind: "function",
+		Ref:    "logInfo",
+		Kind:   "function",
+		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Writes info log message",
 		},
@@ -155,8 +157,9 @@ type (
 // }
 func (h logHandler) Warn() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "logWarn",
-		Kind: "function",
+		Ref:    "logWarn",
+		Kind:   "function",
+		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Writes warn log message",
 		},
@@ -207,8 +210,9 @@ type (
 // }
 func (h logHandler) Error() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "logError",
-		Kind: "function",
+		Ref:    "logError",
+		Kind:   "function",
+		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Writes error log message",
 		},

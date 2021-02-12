@@ -3,7 +3,6 @@ name: loop
 imports:
   - io
 
-
 functions:
   sequence:
     kind: iterator

@@ -58,12 +58,17 @@ snippets:
       types:
         - { wf: String }
 
+labels: &labels
+  users:  "step,workflow"
+
 functions:
   lookup:
     meta:
       short: Looks-up for user by ID
     params:
       lookup: *lookup
+    labels:
+      <<: *labels
     results:
       user:  *rvUser
 
@@ -71,6 +76,8 @@ functions:
     meta:
       short: Searches for users and returns them
     params: *filterParams
+    labels:
+      <<: *labels
     results:
       users:
         <<: *rvUser
@@ -83,6 +90,8 @@ functions:
     meta:
       short: Searches for users and iterates over results
     params: *filterParams
+    labels:
+      <<: *labels
     results:
       user:  *rvUser
       total: *rvTotal
@@ -90,6 +99,8 @@ functions:
   create:
     meta:
       short: Creates new user
+    labels:
+      <<: *labels
     params:
       user:
         <<: *user
@@ -100,6 +111,8 @@ functions:
   update:
     meta:
       short: Updates exiting user
+    labels:
+      <<: *labels
     params:
       user:
         <<: *user
@@ -108,24 +121,36 @@ functions:
       user: *rvUser
 
   delete:
+    labels:
+      <<: *labels
+      delete: "step"
     meta:
       short: Deletes user
     params:
       lookup: *lookup
 
   recover:
+    labels:
+      <<: *labels
+      recover: "step"
     meta:
       short: Recovers deleted user
     params:
       lookup: *lookup
 
   suspend:
+    labels:
+      <<: *labels
+      suspend: "step"
     meta:
       short: Suspends user
     params:
       lookup: *lookup
 
   unsuspend:
+    labels:
+      <<: *labels
+      unsuspend: "step"
     meta:
       short: Unsuspends user
     params:
