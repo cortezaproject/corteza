@@ -17,6 +17,7 @@ type (
 		Create(ctx context.Context, record *types.Record) (*types.Record, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)
 		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, error)
+		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out interface{}, err error)
 
 		Validate(ctx context.Context, rec *types.Record) error
 
@@ -197,6 +198,22 @@ func (h recordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) err
 	} else {
 		return h.rec.DeleteByID(ctx, rec.NamespaceID, rec.ModuleID, rec.ID)
 	}
+}
+
+func (h recordsHandler) report(ctx context.Context, args *recordsReportArgs) (*recordsReportResults, error) {
+	r := &recordsReportResults{}
+
+	ns, mod, err := h.loadCombo(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Report, err = h.rec.Report(ctx, ns.ID, mod.ID, args.Metrics, args.Dimensons, args.Filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 func (h recordsHandler) lookupRecord(ctx context.Context, args recordLookup) (record *types.Record, err error) {
