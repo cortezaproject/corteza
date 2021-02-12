@@ -35,6 +35,7 @@ func (h recordsHandler) register() {
 		h.Create(),
 		h.Update(),
 		h.Delete(),
+		h.Report(),
 	)
 }
 
@@ -1049,6 +1050,175 @@ func (h recordsHandler) Delete() *atypes.Function {
 			}
 
 			return out, h.delete(ctx, args)
+		},
+	}
+}
+
+type (
+	recordsReportArgs struct {
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+
+		hasMetrics bool
+		Metrics    string
+
+		hasDimensons bool
+		Dimensons    string
+
+		hasFilter bool
+		Filter    string
+	}
+
+	recordsReportResults struct {
+		Report interface{}
+	}
+)
+
+func (a recordsReportArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (a recordsReportArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+// Report function Searches for records and returns them
+//
+// expects implementation of report function:
+// func (h recordsHandler) report(ctx context.Context, args *recordsReportArgs) (results *recordsReportResults, err error) {
+//    return
+// }
+func (h recordsHandler) Report() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "composeRecordsReport",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Searches for records and returns them",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "module",
+				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
+				Name:  "namespace",
+				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				Name:  "metrics",
+				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Metrics for records report",
+					Description: "List of comma delimited expressions with aggregation functions (count, sum, min, avg)",
+				},
+			},
+			{
+				Name:  "dimensons",
+				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Dimensons for records report",
+					Description: "List of comma delimited dimension (i.e.: group by) expressions or fields",
+				},
+			},
+			{
+				Name:  "filter",
+				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Filter for records report",
+					Description: "Filter in CortezaQL format",
+				},
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "report",
+				Types: []string{"Any"},
+				Meta: &atypes.ParamMeta{
+					Label:       "Complex structure holding complete records report",
+					Description: "Example of a result value\n[]map[string]interface{}{\n\t{\"count\": 3, \"dimension_0\": 1, \"metric_0\": 3},\n\t{\"count\": 2, \"dimension_0\": 2, \"metric_0\": 5},\n\t{\"count\": 1, \"dimension_0\": nil, \"metric_0\": nil},\n}",
+				},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsReportArgs{
+					hasModule:    in.Has("module"),
+					hasNamespace: in.Has("namespace"),
+					hasMetrics:   in.Has("metrics"),
+					hasDimensons: in.Has("dimensons"),
+					hasFilter:    in.Has("filter"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.reg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.reg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			var results *recordsReportResults
+			if results, err = h.report(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Report (interface{}) to Any
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("Any").Cast(results.Report); err != nil {
+					return
+				} else if err = expr.Assign(out, "report", tval); err != nil {
+					return
+				}
+			}
+
+			return
 		},
 	}
 }

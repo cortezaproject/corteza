@@ -191,3 +191,47 @@ functions:
 #      short: Recovers deleted record by ID
 #    params:
 #      record: *recordLookup
+
+
+
+  report:
+    meta:
+      short: Searches for records and returns them
+    labels:
+      <<: *labels
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+      metrics:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Metrics for records report
+          description: |-
+            List of comma delimited expressions with aggregation functions (count, sum, min, avg)
+      dimensons:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Dimensons for records report
+          description: |-
+             List of comma delimited dimension (i.e.: group by) expressions or fields
+      filter:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Filter for records report
+          description: |-
+            Filter in CortezaQL format
+    results:
+      report:
+        wf: Any
+        meta:
+          label: Complex structure holding complete records report
+          description: |-
+            Example of a result value
+            []map[string]interface{}{
+            	{"count": 3, "dimension_0": 1, "metric_0": 3},
+            	{"count": 2, "dimension_0": 2, "metric_0": 5},
+            	{"count": 1, "dimension_0": nil, "metric_0": nil},
+            }
