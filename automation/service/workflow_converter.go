@@ -67,13 +67,6 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 				continue
 			}
 
-			stepIssues := verifyStep(step)
-
-			if step.Kind == types.WorkflowStepKindVisual {
-				// make sure visual steps are skipped
-				continue
-			}
-
 			// Collect all incoming and outgoing paths
 			inPaths := make([]*types.WorkflowPath, 0, 8)
 			outPaths := make([]*types.WorkflowPath, 0, 8)
@@ -83,6 +76,13 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 				} else if path.ParentID == step.ID {
 					outPaths = append(outPaths, path)
 				}
+			}
+
+			stepIssues := verifyStep(step, inPaths, outPaths)
+
+			if step.Kind == types.WorkflowStepKindVisual {
+				// make sure visual steps are skipped
+				continue
 			}
 
 			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
@@ -264,7 +264,7 @@ func (svc workflowConverter) convGateway(g *wfexec.Graph, s *types.WorkflowStep,
 		}
 	}
 
-	return nil, fmt.Errorf("unknown gateway type")
+	return nil, errors.Internal("unexpected workflow configuration")
 }
 
 func (svc workflowConverter) convErrorHandlerStep(g *wfexec.Graph, out []*types.WorkflowPath) (wfexec.Step, error) {
@@ -308,10 +308,6 @@ func (svc workflowConverter) convDebugStep(s *types.WorkflowStep) (wfexec.Step, 
 }
 
 func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.WorkflowStep, out []*types.WorkflowPath) (wfexec.Step, error) {
-	if s.Ref == "" {
-		return nil, errors.Internal("function reference missing")
-	}
-
 	reg := Registry()
 
 	if def := reg.Function(s.Ref); def == nil {
@@ -327,10 +323,6 @@ func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.Workflow
 		)
 
 		if isIterator {
-			if len(out) != 2 {
-				return nil, fmt.Errorf("expecting exactly two paths (next, exit) out of iterator function step")
-			}
-
 			if def.Iterator == nil {
 				return nil, errors.Internal("iterator handler for %q not set", s.Ref)
 			}
@@ -379,21 +371,9 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep, out types.Work
 		argName = "message"
 	)
 
-	if len(out) > 0 {
-		return nil, errors.Internal("error step must be last step in branch")
-	}
-
 	var (
 		args = types.ExprSet(s.Arguments)
 	)
-
-	if msgArg := args.GetByTarget(argName); msgArg == nil {
-		return nil, errors.Internal("error step must have %s argument", argName)
-	} else if msgArg.Type != (expr.String{}).Type() {
-		return nil, errors.Internal("%s argument on error step must be string, got type '%s'", argName, msgArg.Type)
-	} else if len(args) > 1 {
-		return nil, errors.Internal("too many arguments on error step")
-	}
 
 	if err := svc.parseExpressions(args...); err != nil {
 		return nil, err
@@ -425,10 +405,6 @@ func (svc workflowConverter) convErrorStep(s *types.WorkflowStep, out types.Work
 
 // converts prompt definition to wfexec.Step
 func (svc workflowConverter) convTerminationStep(out types.WorkflowPathSet) (wfexec.Step, error) {
-	if len(out) > 0 {
-		return nil, errors.Internal("termination step must be last step in branch")
-	}
-
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 		return wfexec.Termination(), nil
 	}), nil
@@ -445,10 +421,6 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 }
 
 func (svc workflowConverter) convBreakStep(out types.WorkflowPathSet) (wfexec.Step, error) {
-	if len(out) > 0 {
-		return nil, errors.Internal("break step must be last step in branch")
-	}
-
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 		return wfexec.LoopBreak(), nil
 	}), nil
@@ -456,10 +428,6 @@ func (svc workflowConverter) convBreakStep(out types.WorkflowPathSet) (wfexec.St
 }
 
 func (svc workflowConverter) convContinueStep(out types.WorkflowPathSet) (wfexec.Step, error) {
-	if len(out) > 0 {
-		return nil, errors.Internal("continue step must be last step in branch")
-	}
-
 	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 		return wfexec.LoopContinue(), nil
 	}), nil
@@ -489,74 +457,178 @@ func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
 	return nil
 }
 
-func verifyStep(step *types.WorkflowStep) types.WorkflowIssueSet {
+func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.WorkflowIssueSet {
+	const (
+		arguments = "argument"
+		results   = "result"
+		outbound  = "outbound path"
+		inbound   = "inbound path"
+	)
+
 	var (
 		ii = types.WorkflowIssueSet{}
 
-		noArgs = func(s *types.WorkflowStep) error {
-			if len(s.Arguments) > 0 {
-				return errors.Internal("%s step does not accept arguments", s.Kind)
+		count = func(min, max int, typ string) func() error {
+			return func() error {
+				var (
+					l int
+				)
+
+				switch typ {
+				case arguments:
+					l = len(s.Arguments)
+				case results:
+					l = len(s.Results)
+				case outbound:
+					l = len(out)
+				case inbound:
+					l = len(in)
+				}
+
+				switch {
+				case max == 0 && min == max && l != min:
+					return errors.Internal("%s step does not expect any %ss", s.Kind, typ)
+
+				case max > 0 && min == max && l != min:
+					return errors.Internal("%s step expects exactly %d %s(s)", s.Kind, min, typ)
+
+				case l < min:
+					return errors.Internal("%s step expects at least %d %s(s)", s.Kind, min, typ)
+
+				case max > 0 && l > max:
+					return errors.Internal("%s step expects no more than %d %s(s)", s.Kind, max, typ)
+
+				}
+
+				return nil
+			}
+		}
+
+		requiredRef = func() error {
+			if s.Ref == "" {
+				return errors.Internal("%s step expects reference", s.Kind)
 			}
 
 			return nil
 		}
+		requiredArg = func(argName string, typ expr.Type) func() error {
+			return func() error {
+				if msgArg := types.ExprSet(s.Arguments).GetByTarget(argName); msgArg == nil {
+					return errors.Internal("%s step expects to have '%s' argument", argName)
+				} else if msgArg.Type != typ.Type() {
+					return errors.Internal("%s argument on error step must be string, got type '%s'", argName, msgArg.Type)
+				}
 
-		noResults = func(s *types.WorkflowStep) error {
-			if len(s.Results) > 0 {
-				return errors.Internal("%s step does not accept results", s.Kind)
+				return nil
 			}
-
-			return nil
 		}
 
-		checks = make([]func(s *types.WorkflowStep) error, 0)
+		zero = func(typ string) func() error { return count(0, 0, typ) }
+		last = func() error { return count(0, 0, outbound)() }
+
+		gatewayCheck = func(checks ...func() error) []func() error {
+			switch s.Ref {
+			case "join":
+				return append(checks, count(1, -1, inbound))
+
+			case "fork":
+			case "incl", "excl":
+				return append(checks, count(1, -1, outbound))
+			}
+
+			return append(checks, func() error { return fmt.Errorf("unknown gateway type") })
+		}
+
+		checks = make([]func() error, 0)
 	)
 
-	switch step.Kind {
+	switch s.Kind {
 	case types.WorkflowStepKindErrHandler:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks,
+			zero(arguments),
+			zero(results),
+			count(1, 2, outbound),
+		)
 
 	case types.WorkflowStepKindDebug:
-		checks = append(checks, noResults)
+		checks = append(checks,
+			zero(results),
+			count(0, 1, outbound),
+		)
 
 	case types.WorkflowStepKindVisual:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks,
+			zero(results),
+			zero(arguments),
+		)
 
 	case types.WorkflowStepKindExpressions:
-		checks = append(checks, noResults, func(s *types.WorkflowStep) error {
-			if len(s.Arguments) == 0 {
-				return errors.Internal("%s step require at least one argument", s.Kind)
-			}
-
-			return nil
-		})
+		checks = append(checks,
+			zero(results),
+			count(1, -1, arguments),
+		)
 
 	case types.WorkflowStepKindGateway:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks, gatewayCheck(zero(arguments), zero(results))...)
 
 	case types.WorkflowStepKindError:
-		checks = append(checks, noResults)
+		checks = append(checks,
+			requiredArg("message", expr.String{}),
+			count(0, 1, arguments),
+			zero(results),
+			last,
+		)
 
 	case types.WorkflowStepKindTermination:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks,
+			zero(arguments),
+			zero(results),
+			last,
+		)
 
-	case types.WorkflowStepKindFunction, types.WorkflowStepKindIterator:
+	case types.WorkflowStepKindFunction:
+		checks = append(checks,
+			requiredRef,
+		)
+
+		// no special checks
+	case types.WorkflowStepKindIterator:
+		checks = append(checks,
+			requiredRef,
+			count(2, 2, outbound),
+		)
+
+	// no special checks
 
 	case types.WorkflowStepKindPrompt:
-		checks = append(checks, noResults)
+		checks = append(checks,
+			zero(results),
+		)
 
 	case types.WorkflowStepKindBreak:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks,
+			zero(arguments),
+			zero(results),
+			last,
+		)
 
 	case types.WorkflowStepKindContinue:
-		checks = append(checks, noArgs, noResults)
+		checks = append(checks,
+			zero(arguments),
+			zero(results),
+			last,
+		)
+
+	case "":
+		return ii.Append(fmt.Errorf("missing step kind"), nil)
 
 	default:
-		return ii.Append(fmt.Errorf("unknown step kind"), nil)
+		return ii.Append(fmt.Errorf("unknown step kind '%s'", s.Kind), nil)
+
 	}
 
 	for _, check := range checks {
-		if err := check(step); err != nil {
+		if err := check(); err != nil {
 			ii = ii.Append(err, nil)
 		}
 	}
