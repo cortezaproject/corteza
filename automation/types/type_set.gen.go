@@ -35,6 +35,11 @@ type (
 	// This type is auto-generated.
 	WorkflowSet []*Workflow
 
+	// WorkflowIssueSet slice of WorkflowIssue
+	//
+	// This type is auto-generated.
+	WorkflowIssueSet []*WorkflowIssue
+
 	// WorkflowPathSet slice of WorkflowPath
 	//
 	// This type is auto-generated.
@@ -295,6 +300,36 @@ func (set WorkflowSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(WorkflowIssue) err
+//
+// This function is auto-generated.
+func (set WorkflowIssueSet) Walk(w func(*WorkflowIssue) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(WorkflowIssue) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set WorkflowIssueSet) Filter(f func(*WorkflowIssue) (bool, error)) (out WorkflowIssueSet, err error) {
+	var ok bool
+	out = WorkflowIssueSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return
