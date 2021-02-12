@@ -66,8 +66,9 @@ func (a usersLookupArgs) GetLookup() (bool, uint64, string, string, *types.User)
 // }
 func (h usersHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersLookup",
-		Kind: "function",
+		Ref:    "usersLookup",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Looks-up for user by ID",
 		},
@@ -189,8 +190,9 @@ type (
 // }
 func (h usersHandler) Search() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersSearch",
-		Kind: "function",
+		Ref:    "usersSearch",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for users and returns them",
 		},
@@ -390,8 +392,9 @@ type (
 // }
 func (h usersHandler) Each() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersEach",
-		Kind: "iterator",
+		Ref:    "usersEach",
+		Kind:   "iterator",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Searches for users and iterates over results",
 		},
@@ -501,8 +504,9 @@ type (
 // }
 func (h usersHandler) Create() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersCreate",
-		Kind: "function",
+		Ref:    "usersCreate",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Creates new user",
 		},
@@ -577,8 +581,9 @@ type (
 // }
 func (h usersHandler) Update() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersUpdate",
-		Kind: "function",
+		Ref:    "usersUpdate",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Updates exiting user",
 		},
@@ -657,8 +662,9 @@ func (a usersDeleteArgs) GetLookup() (bool, uint64, string, string, *types.User)
 // }
 func (h usersHandler) Delete() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersDelete",
-		Kind: "function",
+		Ref:    "usersDelete",
+		Kind:   "function",
+		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Deletes user",
 		},
@@ -724,8 +730,9 @@ func (a usersRecoverArgs) GetLookup() (bool, uint64, string, string, *types.User
 // }
 func (h usersHandler) Recover() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersRecover",
-		Kind: "function",
+		Ref:    "usersRecover",
+		Kind:   "function",
+		Labels: map[string]string{"recover": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Recovers deleted user",
 		},
@@ -791,8 +798,9 @@ func (a usersSuspendArgs) GetLookup() (bool, uint64, string, string, *types.User
 // }
 func (h usersHandler) Suspend() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersSuspend",
-		Kind: "function",
+		Ref:    "usersSuspend",
+		Kind:   "function",
+		Labels: map[string]string{"suspend": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Suspends user",
 		},
@@ -858,8 +866,9 @@ func (a usersUnsuspendArgs) GetLookup() (bool, uint64, string, string, *types.Us
 // }
 func (h usersHandler) Unsuspend() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "usersUnsuspend",
-		Kind: "function",
+		Ref:    "usersUnsuspend",
+		Kind:   "function",
+		Labels: map[string]string{"unsuspend": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Unsuspends user",
 		},

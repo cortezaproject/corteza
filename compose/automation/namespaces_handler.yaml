@@ -18,6 +18,10 @@ functions:
   lookup:
     meta:
       short: Lookup for compose namespace by ID
+    labels:
+      lookup: "step"
+      namespace: "step,workflow"
+      compose: "step,workflow"
     params:
       namespace: *namespaceLookup
     results:

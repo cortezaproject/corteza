@@ -32,6 +32,7 @@ type (
 	aFuncDef struct {
 		Name    string
 		Kind    string
+		Labels  map[string]string
 		Meta    *aFuncMetaDef
 		Params  aFuncParamSet
 		Results aFuncResultSet

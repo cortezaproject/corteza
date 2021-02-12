@@ -7,11 +7,15 @@ params:
     types:
       - { wf: KV }
 
+labels: &labels
+  debug:  "step"
+  logger: "step,workflow"
 
 functions:
   debug:
     meta:
       short: Writes debug log message
+    labels: *labels
     params:
       message: *message
       fields: *fields
@@ -19,6 +23,7 @@ functions:
   info:
     meta:
       short: Writes info log message
+    labels: *labels
     params:
       message: *message
       fields:  *fields
@@ -26,6 +31,7 @@ functions:
   warn:
     meta:
       short: Writes warn log message
+    labels: *labels
     params:
       message: *message
       fields:  *fields
@@ -33,6 +39,7 @@ functions:
   error:
     meta:
       short: Writes error log message
+    labels: *labels
     params:
       message: *message
       fields:  *fields
