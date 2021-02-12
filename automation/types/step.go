@@ -67,6 +67,8 @@ const (
 	WorkflowStepKindErrHandler  WorkflowStepKind = "error-handler" // no ref
 	WorkflowStepKindVisual      WorkflowStepKind = "visual"        // ref = <*>
 	WorkflowStepKindDebug       WorkflowStepKind = "debug"         // ref = <*>
+	WorkflowStepKindBreak       WorkflowStepKind = "break"         // ref = <*>
+	WorkflowStepKindContinue    WorkflowStepKind = "continue"      // ref = <*>
 )
 
 // Scan on WorkflowStepSet gracefully handles conversion from NULL
