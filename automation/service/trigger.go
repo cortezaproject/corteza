@@ -437,26 +437,25 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 // It preloads run-as identity and finds a starting step for each trigger
 func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable, tt ...*types.Trigger) {
 	var (
-		err   error
-		g     *wfexec.Graph
-		wfLog = svc.log.
-			WithOptions(zap.AddStacktrace(zap.DPanicLevel)).
-			With(zap.Uint64("workflowID", wf.ID))
+		handlerFn eventbus.HandlerFn
+		err       error
+		g         *wfexec.Graph
+		issues    types.WorkflowIssueSet
+		wfLog     = svc.log.
+				WithOptions(zap.AddStacktrace(zap.DPanicLevel)).
+				With(zap.Uint64("workflowID", wf.ID))
+
+			// register only enabled, undeleted workflows
+		registerWorkflow = wf.Enabled || wf.DeletedAt == nil
 	)
 
-	if !wf.Enabled {
-		wfLog.Debug("skipping disabled workflow")
-		return
-	}
-
-	if wf.DeletedAt != nil {
-		wfLog.Debug("skipping deleted workflow")
-		return
-	}
-
-	if g, err = svc.workflow.toGraph(wf); err != nil {
-		wfLog.Error("failed to convert workflow to graph", zap.Error(err))
-		return
+	// convert only registerable and issuless workflwos
+	if registerWorkflow && len(wf.Issues) == 0 {
+		// Convert workflow only when valid (no issues, enable, not delete)
+		if g, issues = Convert(svc.workflow, wf); len(issues) > 0 {
+			wfLog.Error("failed to convert workflow to graph", zap.Error(issues))
+			g = nil
+		}
 	}
 
 	defer svc.mux.Unlock()
@@ -465,84 +464,37 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 	for _, t := range tt {
 		log := wfLog.With(zap.Uint64("triggerID", t.ID))
 
-		if !t.Enabled {
-			log.Debug("skipping disabled trigger")
-			continue
+		// always unregister
+		if svc.reg[wf.ID] == nil {
+			svc.reg[wf.ID] = make(map[uint64]uintptr)
+		} else if ptr := svc.reg[wf.ID][t.ID]; ptr != 0 {
+			// unregister handlers for this trigger if they exist
+			svc.eventbus.Unregister(ptr)
 		}
 
-		if t.DeletedAt != nil {
-			log.Debug("skipping deleted trigger")
+		// do not register disabled or deleted triggers
+		if !registerWorkflow || !t.Enabled || t.DeletedAt != nil {
 			continue
 		}
 
 		var (
-			handler = func(ctx context.Context, ev eventbus.Event) (err error) {
-
-				var (
-					// create session scope from predefined workflow scope and trigger input
-					scope   = wf.Scope.Merge(t.Input)
-					evScope *expr.Vars
-					wait    WaitFn
-				)
-
-				if enc, is := ev.(varsEncoder); is {
-					if evScope, err = enc.EncodeVars(); err != nil {
-						return
-					}
-
-					scope = scope.Merge(evScope)
-				}
-
-				_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
-				_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
-
-				if runAs == nil {
-					// @todo can/should we get alternative identity from Event?
-					//       for example:
-					//         - use http auth header and get username
-					//         - use from/to/replyTo and use that as an identifier
-					runAs = auth.GetIdentityFromContext(ctx)
-				}
-
-				log.Debug("handling triggered workflow",
-					zap.Any("event", ev),
-					zap.Uint64("runAs", runAs.Identity()),
-				)
-
-				wait, err = svc.session.Start(g, runAs, types.SessionStartParams{
-					WorkflowID:   wf.ID,
-					KeepFor:      wf.KeepSessions,
-					Trace:        wf.Trace,
-					Input:        scope,
-					StepID:       t.StepID,
-					EventType:    t.EventType,
-					ResourceType: t.ResourceType,
-				})
-
-				if err != nil {
-					log.Error("workflow error", zap.Error(err))
-					return err
-				}
-
-				// wait for the workflow to complete
-				// reuse scope for results
-				// this will be decoded back to event properties
-				scope, err = wait(ctx)
-				if err != nil {
-					return
-				}
-
-				if dec, is := ev.(varsDecoder); is {
-					return dec.DecodeVars(scope)
-				}
-
-				return nil
-			}
-
-			ops   = make([]eventbus.HandlerRegOp, 0, len(t.Constraints)+2)
 			cnstr eventbus.ConstraintMatcher
-			err   error
+			ops   = make([]eventbus.HandlerRegOp, 0, len(t.Constraints)+2)
 		)
+
+		if g == nil {
+			handlerFn = func(_ context.Context, ev eventbus.Event) error {
+				return errors.Internal(
+					"trigger %s on %s failed due to invalid workflow %d: %w",
+					ev.EventType(),
+					ev.ResourceType(),
+					wf.ID,
+					wf.Issues,
+				)
+			}
+		} else {
+			handlerFn = makeWorkflowHandler(svc.session, t, wf, g, runAs)
+		}
 
 		ops = append(
 			ops,
@@ -562,14 +514,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 			}
 		}
 
-		if svc.reg[wf.ID] == nil {
-			svc.reg[wf.ID] = make(map[uint64]uintptr)
-		} else if ptr := svc.reg[wf.ID][t.ID]; ptr != 0 {
-			// unregister handlers for this trigger if they exist
-			svc.eventbus.Unregister(ptr)
-		}
-
-		svc.reg[wf.ID][t.ID] = svc.eventbus.Register(handler, ops...)
+		svc.reg[wf.ID][t.ID] = svc.eventbus.Register(handlerFn, ops...)
 
 		log.Debug("trigger registered",
 			zap.String("eventType", t.EventType),
@@ -608,6 +553,65 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", t.ID), zap.Uint64("workflowID", t.WorkflowID))
 			delete(svc.triggers, t.ID)
 		}
+	}
+}
+
+func makeWorkflowHandler(s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs auth.Identifiable) eventbus.HandlerFn {
+	return func(ctx context.Context, ev eventbus.Event) (err error) {
+
+		var (
+			// create session scope from predefined workflow scope and trigger input
+			scope   = wf.Scope.Merge(t.Input)
+			evScope *expr.Vars
+			wait    WaitFn
+		)
+
+		if enc, is := ev.(varsEncoder); is {
+			if evScope, err = enc.EncodeVars(); err != nil {
+				return
+			}
+
+			scope = scope.Merge(evScope)
+		}
+
+		_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
+		_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
+
+		if runAs == nil {
+			// @todo can/should we get alternative identity from Event?
+			//       for example:
+			//         - use http auth header and get username
+			//         - use from/to/replyTo and use that as an identifier
+			runAs = auth.GetIdentityFromContext(ctx)
+		}
+
+		wait, err = s.Start(g, runAs, types.SessionStartParams{
+			WorkflowID:   wf.ID,
+			KeepFor:      wf.KeepSessions,
+			Trace:        wf.Trace,
+			Input:        scope,
+			StepID:       t.StepID,
+			EventType:    t.EventType,
+			ResourceType: t.ResourceType,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// wait for the workflow to complete
+		// reuse scope for results
+		// this will be decoded back to event properties
+		scope, err = wait(ctx)
+		if err != nil {
+			return
+		}
+
+		if dec, is := ev.(varsDecoder); is {
+			return dec.DecodeVars(scope)
+		}
+
+		return nil
 	}
 }
 

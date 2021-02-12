@@ -14,6 +14,7 @@ fields:
   - { field: Scope,        type: "expr.Vars" }
   - { field: Steps,        type: "expr.Vars" }
   - { field: Paths,        type: "expr.Vars" }
+  - { field: Issues,       type: "WorkflowIssueSet" }
   - { field: RunAs,        type: "uint64" }
   - { field: OwnedBy }
   - { field: CreatedBy }
