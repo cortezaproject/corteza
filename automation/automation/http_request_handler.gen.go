@@ -98,8 +98,9 @@ func (a httpRequestSendArgs) GetBody() (bool, string, io.Reader, interface{}) {
 // }
 func (h httpRequestHandler) Send() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "httpRequestSend",
-		Kind: "function",
+		Ref:    "httpRequestSend",
+		Kind:   "function",
+		Labels: map[string]string{"http request": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Sends HTTP request",
 		},

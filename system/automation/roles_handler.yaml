@@ -61,10 +61,15 @@ params:
       types:
         - { wf: String }
 
+labels: &labels
+  users:  "step,workflow"
+
 functions:
   lookup:
     meta:
       short: Looks-up for role by ID
+    labels:
+      <<: *labels
     params:
       lookup: *lookup
     results:
@@ -73,6 +78,8 @@ functions:
   search:
     meta:
       short: Searches for roles and returns them
+    labels:
+      <<: *labels
     params: *filterParams
     results:
       roles:
@@ -93,6 +100,9 @@ functions:
   create:
     meta:
       short: Creates new role
+    labels:
+      <<: *labels
+      create: "step"
     params:
       role:
         <<: *role
@@ -103,6 +113,9 @@ functions:
   update:
     meta:
       short: Updates exiting role
+    labels:
+      <<: *labels
+      update: "step"
     params:
       role:
         <<: *role
@@ -113,23 +126,35 @@ functions:
   delete:
     meta:
       short: Deletes the role
+    labels:
+      <<: *labels
+      delete: "step"
     params:
       lookup: *lookup
 
   recover:
     meta:
       short: Recovers deleted role
+    labels:
+      <<: *labels
+      recover: "step"
     params:
       lookup: *lookup
 
   archive:
     meta:
       short: Archives the role
+    labels:
+      <<: *labels
+      archive: "step"
     params:
       lookup: *lookup
 
   unarchive:
     meta:
       short: Unarchives the role
+    labels:
+      <<: *labels
+      unarchive: "step"
     params:
       lookup: *lookup

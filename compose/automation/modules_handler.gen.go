@@ -67,8 +67,9 @@ func (a modulesLookupArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 // }
 func (h modulesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
-		Ref:  "composeModulesLookup",
-		Kind: "function",
+		Ref:    "composeModulesLookup",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "lookup": "step", "module": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
 			Short: "Lookup for compose Lookup by ID",
 		},
