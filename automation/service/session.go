@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -118,14 +117,8 @@ func (svc *session) suspendAll(ctx context.Context) error {
 // It does not check user's permissions to execute workflow(s) so it should be used only when !
 func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.SessionStartParams) (wait WaitFn, err error) {
 	var (
-		ctx   = auth.SetIdentityToContext(context.Background(), i)
-		ses   = svc.spawn(g, ssp.Trace)
 		start wfexec.Step
 	)
-
-	wait = func(ctx context.Context) (*expr.Vars, error) {
-		return &expr.Vars{}, nil // no-op...
-	}
 
 	if ssp.StepID == 0 {
 		// starting step is not explicitly workflows on trigger, find orphan step
@@ -133,13 +126,18 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		case 1:
 			start = oo[0]
 		case 0:
-			return nil, fmt.Errorf("could not find step without parents")
+			return nil, errors.InvalidData("could not find starting step")
 		default:
-			return nil, fmt.Errorf("multiple steps without parents")
+			return nil, errors.InvalidData("can not start workflow session multiple starting steps found")
 		}
 	} else if start = g.StepByID(ssp.StepID); start == nil {
-		return nil, fmt.Errorf("trigger staring step references nonexisting step")
+		return nil, errors.InvalidData("trigger staring step references nonexisting step")
 	}
+
+	var (
+		ctx = auth.SetIdentityToContext(context.Background(), i)
+		ses = svc.spawn(g, ssp.Trace)
+	)
 
 	ses.CreatedAt = *now()
 	ses.CreatedBy = i.Identity()

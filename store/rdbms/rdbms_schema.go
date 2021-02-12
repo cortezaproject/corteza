@@ -684,6 +684,7 @@ func (Schema) AutomationWorkflows() *Table {
 		ColumnDef("scope", ColumnTypeJson),
 		ColumnDef("steps", ColumnTypeJson),
 		ColumnDef("paths", ColumnTypeJson),
+		ColumnDef("issues", ColumnTypeJson),
 		ColumnDef("run_as", ColumnTypeIdentifier),
 		ColumnDef("owned_by", ColumnTypeIdentifier),
 		CUDTimestamps,
