@@ -285,20 +285,18 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return err
 		}
 
-		if changes&workflowChanged > 0 {
-			if err = store.UpdateAutomationWorkflow(ctx, svc.store, res); err != nil {
-				return err
-			}
-
-		}
-
 		if changes&workflowDefChanged > 0 {
 			if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
 				if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
 					return err
 				}
 			}
+		}
 
+		if changes&workflowChanged > 0 {
+			if err = store.UpdateAutomationWorkflow(ctx, svc.store, res); err != nil {
+				return err
+			}
 		}
 
 		if changes&workflowLabelsChanged > 0 {
