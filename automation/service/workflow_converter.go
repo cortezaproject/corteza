@@ -149,6 +149,7 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.Workf
 		switch s.Kind {
 		case types.WorkflowStepKindVisual:
 			return nil, nil
+
 		case types.WorkflowStepKindDebug:
 			return svc.convDebugStep(s)
 
@@ -172,6 +173,11 @@ func (svc workflowConverter) workflowStepDefConv(g *wfexec.Graph, s *types.Workf
 
 		case types.WorkflowStepKindErrHandler:
 			return svc.convErrorHandlerStep(g, out)
+
+		case types.WorkflowStepKindBreak:
+			return svc.convBreakStep(out)
+		case types.WorkflowStepKindContinue:
+			return svc.convContinueStep(out)
 
 		default:
 			return nil, errors.Internal("unsupported step kind %q", s.Kind)
@@ -438,6 +444,28 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 	return types.PromptStep(s.Ref, types.ExpressionsStep(s.Arguments...)), nil
 }
 
+func (svc workflowConverter) convBreakStep(out types.WorkflowPathSet) (wfexec.Step, error) {
+	if len(out) > 0 {
+		return nil, errors.Internal("break step must be last step in branch")
+	}
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+		return wfexec.LoopBreak(), nil
+	}), nil
+
+}
+
+func (svc workflowConverter) convContinueStep(out types.WorkflowPathSet) (wfexec.Step, error) {
+	if len(out) > 0 {
+		return nil, errors.Internal("continue step must be last step in branch")
+	}
+
+	return wfexec.NewGenericStep(func(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+		return wfexec.LoopContinue(), nil
+	}), nil
+
+}
+
 func (svc workflowConverter) parseExpressions(ee ...*types.Expr) (err error) {
 	for _, e := range ee {
 
@@ -516,6 +544,12 @@ func verifyStep(step *types.WorkflowStep) types.WorkflowIssueSet {
 
 	case types.WorkflowStepKindPrompt:
 		checks = append(checks, noResults)
+
+	case types.WorkflowStepKindBreak:
+		checks = append(checks, noArgs, noResults)
+
+	case types.WorkflowStepKindContinue:
+		checks = append(checks, noArgs, noResults)
 
 	default:
 		return ii.Append(fmt.Errorf("unknown step kind"), nil)
