@@ -561,7 +561,7 @@ func (s *Session) exec(ctx context.Context, st *State) {
 
 			// jump out of the loop
 			next = st.loopEnd()
-			s.qErr <- fmt.Errorf("session %d step %d expliciy brake out of the loop", s.id, st.step.ID())
+			log.Debug("breaking from iterator")
 
 		case *loopContinue:
 			if currLoop == nil {
@@ -571,7 +571,7 @@ func (s *Session) exec(ctx context.Context, st *State) {
 
 			// jump back to iterator
 			next = Steps{currLoop.Iterator()}
-			s.qErr <- fmt.Errorf("session %d step %d expliciy continue with next iteration", s.id, st.step.ID())
+			log.Debug("continuing with next iteration")
 
 		case *partial:
 			// *partial is returned when step needs to be executed again
