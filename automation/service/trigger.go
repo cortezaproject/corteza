@@ -485,12 +485,12 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		if g == nil {
 			handlerFn = func(_ context.Context, ev eventbus.Event) error {
 				return errors.Internal(
-					"trigger %s on %s failed due to invalid workflow %d: %w",
+					"trigger %s on %s failed due to invalid workflow %d: %s",
 					ev.EventType(),
 					ev.ResourceType(),
 					wf.ID,
 					wf.Issues,
-				)
+				).Wrap(wf.Issues)
 			}
 		} else {
 			handlerFn = makeWorkflowHandler(svc.session, t, wf, g, runAs)
