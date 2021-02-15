@@ -365,6 +365,7 @@ func (svc record) Import(ctx context.Context, ses *recordImportSession) (err err
 		ses.Progress.FinishedAt = now()
 		if err != nil {
 			ses.Progress.FailReason = err.Error()
+			ses.Progress.Failed++
 			return err
 		}
 
