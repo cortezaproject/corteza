@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/spf13/cast"
@@ -59,6 +60,24 @@ func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
+
+var _ expr.DeepFieldAssigner = &ComposeRecord{}
+
+// AssignFieldValue implements expr.DeepFieldAssigner
+//
+// We need to reroute value assigning for record-value-sets because
+// we loose the reference to record-value slice
+func (t *ComposeRecord) AssignFieldValue(kk []string, val interface{}) error {
+	switch kk[0] {
+	case "values":
+		return assignToComposeRecordValues(&t.value.Values, kk[1:], val)
+		// @todo deep setting labels
+	default:
+		return assignToComposeRecord(t.value, kk[0], val)
+	}
+}
+
+var _ gval.Selector = &ComposeRecord{}
 
 // SelectGVal implements gval.Selector requirements
 //

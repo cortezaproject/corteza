@@ -41,10 +41,10 @@ types:
       - { name: 'deletedAt',       exprType: 'DateTime',            goType: '*time.Time',             mode: ro }
       - { name: 'deletedBy',       exprType: 'ID',                  goType: 'uint64',                 mode: ro }
     customGValSelector: true
+    customFieldAssigner: true
 
   ComposeRecordValues:
     as:     'types.RecordValueSet'
-    castFn: 'castComposeRecordValueSet'
 
   ComposeRecordValueErrorSet:
     as:     '*types.RecordValueErrorSet'
