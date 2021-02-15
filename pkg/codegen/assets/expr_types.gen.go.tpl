@@ -68,9 +68,11 @@ func (t *{{ $exprType }}) Assign(val interface{}) (error) {
 
 
 {{ if $def.Struct }}
+{{ if not $def.CustomFieldAssigner }}
 func (t *{{ $exprType }}) AssignFieldValue(key string, val interface{}) error {
 	return {{ $def.AssignerFn }}(t.value, key, val)
 }
+{{ end }}
 
 {{ if not $def.CustomGValSelector }}
 // SelectGVal implements gval.Selector requirements
