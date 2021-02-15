@@ -345,6 +345,10 @@ func (svc workflowConverter) convFunctionStep(g *wfexec.Graph, s *types.Workflow
 		}
 
 		if isIterator {
+			if len(out) != 2 {
+				return nil, fmt.Errorf("expecting exactly 2 outbound paths for iterator")
+			}
+
 			var (
 				next = g.StepByID(out[0].ChildID)
 				exit = g.StepByID(out[1].ChildID)
