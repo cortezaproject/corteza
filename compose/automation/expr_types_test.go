@@ -13,7 +13,7 @@ func TestSetRecordValuesWithPath(t *testing.T) {
 
 		var (
 			r   = require.New(t)
-			rvs = &RecordValues{types.RecordValueSet{}}
+			rvs = &ComposeRecordValues{types.RecordValueSet{}}
 		)
 
 		r.NoError(expr.Assign(rvs, "field1", "a"))
@@ -26,7 +26,7 @@ func TestSetRecordValuesWithPath(t *testing.T) {
 
 		var (
 			r        = require.New(t)
-			rvs, err = CastToRecordValues(map[string]string{"field2": "b"})
+			rvs, err = CastToComposeRecordValues(map[string]string{"field2": "b"})
 		)
 
 		r.NoError(err)
@@ -37,7 +37,7 @@ func TestSetRecordValuesWithPath(t *testing.T) {
 
 		var (
 			r        = require.New(t)
-			rvs, err = CastToRecordValues(map[string][]string{"field2": []string{"a", "b"}})
+			rvs, err = CastToComposeRecordValues(map[string][]string{"field2": []string{"a", "b"}})
 		)
 
 		r.NoError(err)
@@ -66,7 +66,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "m2", Value: "mVal2.0"},
 		}}
 
-		tval  = &Record{value: raw}
+		tval  = &ComposeRecord{value: raw}
 		scope = expr.RVars{"rec": tval}.Vars()
 	)
 

@@ -23,13 +23,14 @@ type (
 	}
 
 	exprTypeDef struct {
-		As                 string
-		RawDefault         string `yaml:"default"`
-		AssignerFn         string `yaml:"assignerFn"`
-		BuiltInCastFn      bool
-		BuiltInAssignerFn  bool
-		CustomGValSelector bool `yaml:"customGValSelector"`
-		Struct             []*exprTypeStructDef
+		As                  string
+		RawDefault          string `yaml:"default"`
+		AssignerFn          string `yaml:"assignerFn"`
+		BuiltInCastFn       bool
+		BuiltInAssignerFn   bool
+		CustomGValSelector  bool `yaml:"customGValSelector"`
+		CustomFieldAssigner bool `yaml:"customFieldAssigner"`
+		Struct              []*exprTypeStructDef
 
 		// @todo custom setters
 		// @todo custom getters

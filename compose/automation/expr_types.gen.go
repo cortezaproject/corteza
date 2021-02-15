@@ -388,10 +388,6 @@ func (t *ComposeRecord) Assign(val interface{}) error {
 	}
 }
 
-func (t *ComposeRecord) AssignFieldValue(key string, val interface{}) error {
-	return assignToComposeRecord(t.value, key, val)
-}
-
 // Select is field accessor for *types.Record
 //
 // Similar to SelectGVal but returns typed values
