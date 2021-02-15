@@ -511,12 +511,13 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 
 			return nil
 		}
+
 		requiredArg = func(argName string, typ expr.Type) func() error {
 			return func() error {
 				if msgArg := types.ExprSet(s.Arguments).GetByTarget(argName); msgArg == nil {
-					return errors.Internal("%s step expects to have '%s' argument", argName)
+					return errors.Internal("%s step expects to have '%s' argument", s.Kind, argName)
 				} else if msgArg.Type != typ.Type() {
-					return errors.Internal("%s argument on error step must be string, got type '%s'", argName, msgArg.Type)
+					return errors.Internal("%s argument on %s step must be %s, got type '%s'", argName, s.Kind, typ.Type(), msgArg.Type)
 				}
 
 				return nil
