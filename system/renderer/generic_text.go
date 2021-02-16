@@ -10,31 +10,31 @@ import (
 )
 
 type (
-	genericTXT       struct{}
-	genericTXTDriver struct{}
+	genericText       struct{}
+	genericTextDriver struct{}
 )
 
 var (
 	plainTextRegex = regexp.MustCompile("text(/)?.*")
 )
 
-func newGenericTXT() driverFactory {
-	return &genericTXT{}
+func newGenericText() driverFactory {
+	return &genericText{}
 }
 
-func (d *genericTXT) CanRender(t types.DocumentType) bool {
+func (d *genericText) CanRender(t types.DocumentType) bool {
 	return t == types.DocumentTypePlain || t == types.DocumentTypeHTML
 }
 
-func (d *genericTXT) CanProduce(t types.DocumentType) bool {
+func (d *genericText) CanProduce(t types.DocumentType) bool {
 	return t == types.DocumentTypePlain
 }
 
-func (d *genericTXT) Driver() driver {
-	return &genericTXTDriver{}
+func (d *genericText) Driver() driver {
+	return &genericTextDriver{}
 }
 
-func (d *genericTXTDriver) Render(ctx context.Context, pl *driverPayload) (io.ReadSeeker, error) {
+func (d *genericTextDriver) Render(ctx context.Context, pl *driverPayload) (io.ReadSeeker, error) {
 	t, err := preprocPlainTemplate(pl.Template, pl.Partials)
 	if err != nil {
 		return nil, err
