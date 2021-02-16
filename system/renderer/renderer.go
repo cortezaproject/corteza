@@ -16,13 +16,13 @@ type (
 
 func Renderer(cfg options.TemplateOpt) *renderer {
 	ff := make([]driverFactory, 0, 3)
-	ff = append(ff, newGenericTXT(), newGenericHTML())
+	ff = append(ff, newGenericText(), newGenericHTML())
 	if cfg.RendererGotenbergEnabled {
 		ff = append(ff, newGotenbergPDF(cfg.RendererGotenbergAddress))
 	}
 
 	return &renderer{
-		factories: []driverFactory{},
+		factories: ff,
 	}
 }
 
