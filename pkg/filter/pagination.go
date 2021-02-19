@@ -102,6 +102,14 @@ func (p *PagingCursor) IsLThen() bool {
 	return p.LThen
 }
 
+func (p *PagingCursor) Desc() []bool {
+	return p.desc
+}
+
+func (p *PagingCursor) IsROrder() bool {
+	return p.ROrder
+}
+
 // Stirng to implement Stringer and to get human-readable representation of the cursor
 func (p *PagingCursor) String() string {
 

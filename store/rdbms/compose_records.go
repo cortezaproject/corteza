@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
-	"strings"
 )
 
 const (
@@ -18,19 +19,47 @@ const (
 	composeRecordValueJoinTpl  = "compose_record_value AS {alias} ON ({alias}.record_id = crd.id AND {alias}.name = '{field}' AND {alias}.deleted_at IS NULL)"
 )
 
+type (
+	mftd struct {
+		boolean  bool
+		numeric  bool
+		dateTime bool
+		ref      bool
+	}
+)
+
 func buildComposeRecordsCursor(cfg *Config, m *types.Module) func(cur *filter.PagingCursor) squirrel.Sqlizer {
 	return func(cur *filter.PagingCursor) squirrel.Sqlizer {
-		return builders.CursorCondition(cur, func(key string) (string, error) {
-			if col, is := isRealRecordCol(key); is {
-				return col, nil
+		return builders.CursorCondition(cur, func(key string) (builders.KeyMap, error) {
+			if col, fd, is := isRealRecordCol(key); is {
+				_, _, tcp, _ := cfg.CastModuleFieldToColumnType(fd, key)
+				// These values here won't be casted
+				return builders.KeyMap{
+					FieldCast:    col,
+					TypeCast:     col,
+					TypeCastPtrn: tcp,
+				}, nil
 			}
 
 			f := m.Fields.FindByName(key)
 			if f == nil {
-				return "", fmt.Errorf("unknown module field %q used in a cursor", key)
+				return builders.KeyMap{}, fmt.Errorf("unknown module field %q used in a cursor", key)
 			}
 
-			return cfg.CastModuleFieldToColumnType(f, f.Name)
+			_, fcp, tcp, err := cfg.CastModuleFieldToColumnType(f, f.Name)
+			if err != nil {
+				return builders.KeyMap{}, err
+			}
+
+			fc := fmt.Sprintf(fcp, key)
+			tc := fmt.Sprintf(tcp, fc)
+			rr := builders.KeyMap{
+				FieldCast:    fc,
+				TypeCast:     tc,
+				TypeCastPtrn: tcp,
+			}
+
+			return rr, nil
 		})
 	}
 }
@@ -75,6 +104,17 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 				Column:     "id",
 				Descending: f.Sort.LastDescending(),
 			})
+		}
+
+		// Prevent sorting over multi-value fields
+		//
+		// Due to how values are currently storred, this causes duplication.
+		// For now, we'll prevent this and address in future releases.
+		for _, s := range f.Sort {
+			f := m.Fields.FindByName(s.Column)
+			if f != nil && f.Multi {
+				return fmt.Errorf("not allowed to sort by multi-value fields: %s", s.Column)
+			}
 		}
 
 		// Cloned sorting instructions for the actual sorting
@@ -444,7 +484,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 
 		identResolver = func(i ql.Ident) (ql.Ident, error) {
 			var is bool
-			if i.Value, is = isRealRecordCol(i.Value); is {
+			if i.Value, _, is = isRealRecordCol(i.Value); is {
 				i.Value += " "
 				return i, nil
 			}
@@ -586,7 +626,8 @@ func (s Store) composeRecordsSorter(m *types.Module, q squirrel.SelectBuilder, s
 		if col, has := sortable[strings.ToLower(c.Column)]; has {
 			sqlSort[i] = col
 		} else if f := m.Fields.FindByName(c.Column); f != nil {
-			sqlSort[i], err = s.config.CastModuleFieldToColumnType(f, c.Column)
+
+			sqlSort[i], _, _, err = s.config.CastModuleFieldToColumnType(f, c.Column)
 		} else {
 			err = fmt.Errorf("could not sort by unknown column: %s", c.Column)
 		}
@@ -652,36 +693,43 @@ func (s Store) collectComposeRecordCursorValues(m *types.Module, res *types.Reco
 }
 
 //// Checks if field name is "real column", reformats it and returns
-func isRealRecordCol(name string) (string, bool) {
+func isRealRecordCol(name string) (string, mftd, bool) {
 	switch name {
 	case
 		"recordID",
 		"id":
-		return "crd.id", true
+		return "crd.id", mftd{ref: true}, true
+
 	case
 		"module_id",
 		"owned_by",
 		"created_by",
-		"created_at",
 		"updated_by",
+		"deleted_by":
+		return "crd." + name, mftd{ref: true}, true
+
+	case
+		"created_at",
 		"updated_at",
-		"deleted_by",
 		"deleted_at":
-		return "crd." + name, true
+		return "crd." + name, mftd{dateTime: true}, true
 
 	case
 		"moduleID",
 		"ownedBy",
 		"createdBy",
-		"createdAt",
 		"updatedBy",
+		"deletedBy":
+		return "crd." + name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), mftd{ref: true}, true
+
+	case
+		"createdAt",
 		"updatedAt",
-		"deletedBy",
 		"deletedAt":
-		return "crd." + name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), true
+		return "crd." + name[0:len(name)-2] + "_" + strings.ToLower(name[len(name)-2:]), mftd{dateTime: true}, true
 	}
 
-	return name, false
+	return name, mftd{}, false
 }
 
 // Verifies if module and namespace ID on record match IDs on module
@@ -697,4 +745,17 @@ func validateRecordModule(m *types.Module, rr ...*types.Record) error {
 	}
 
 	return nil
+}
+
+func (t mftd) IsBoolean() bool {
+	return t.boolean
+}
+func (t mftd) IsNumeric() bool {
+	return t.numeric
+}
+func (t mftd) IsDateTime() bool {
+	return t.dateTime
+}
+func (t mftd) IsRef() bool {
+	return t.ref
 }

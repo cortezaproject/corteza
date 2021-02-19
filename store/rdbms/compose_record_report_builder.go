@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/jmoiron/sqlx"
-	"strconv"
-	"strings"
 )
 
 type (
@@ -155,7 +156,7 @@ func (b *recordReportBuilder) Build() (sb squirrel.SelectBuilder, err error) {
 
 	b.parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
 		var is bool
-		if i.Value, is = isRealRecordCol(i.Value); is {
+		if i.Value, _, is = isRealRecordCol(i.Value); is {
 			return i, nil
 		}
 

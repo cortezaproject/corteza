@@ -2,14 +2,15 @@ package rdbms
 
 import (
 	"fmt"
-	"github.com/Masterminds/squirrel"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
-	"github.com/cortezaproject/corteza-server/store"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/store"
 )
 
 // persistance layer
@@ -113,7 +114,7 @@ type (
 		// MySQL does not support NULLS FIRST/LAST and without it sorts nulls differently then Postgres/SQLite
 		SqlSortHandler func(exp string, desc bool) string
 
-		CastModuleFieldToColumnType func(ModuleFieldTypeDetector, string) (string, error)
+		CastModuleFieldToColumnType func(ModuleFieldTypeDetector, string) (string, string, string, error)
 	}
 )
 
