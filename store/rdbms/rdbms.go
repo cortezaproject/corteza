@@ -330,7 +330,7 @@ func (s Store) SqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {
 // otherwise returns passed arguments directly
 func (s Store) FieldToColumnTypeCaster(f ModuleFieldTypeDetector, i ql.Ident) (ql.Ident, error) {
 	var err error
-	i.Value, err = s.config.CastModuleFieldToColumnType(f, i.Value)
+	i.Value, _, _, err = s.config.CastModuleFieldToColumnType(f, i.Value)
 	return i, err
 }
 
