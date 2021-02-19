@@ -2,20 +2,41 @@ package postgres
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 )
 
-func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) (string, error) {
+// fieldToColumnTypeCaster handles special ComposeModule field query representations
+// @todo Not as elegant as it should be but it'll do the trick until the #2 store iteration
+//
+// Return parameters:
+//   * full cast: query column + datatype cast
+//   * field cast tpl: fmt template to get query column
+//   * type cast tpl: fmt template to cast the compared to value
+func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) (string, string, string, error) {
+	fcp := "rv_%s.value"
+	fcpRef := "rv_%s.ref"
+
 	switch true {
 	case field.IsBoolean():
-		return fmt.Sprintf("CASE WHEN rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F') THEN 1 ELSE 0 END ", ident), nil
+		tcp := "CASE WHEN %s NOT IN ('', '0', 'false', 'f',  'FALSE', 'F') THEN 1 ELSE 0 END "
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsNumeric():
-		return fmt.Sprintf("CAST('0' || rv_%s.value AS NUMERIC) ", ident), nil
+		tcp := "CAST('0' || %s AS NUMERIC)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsDateTime():
-		return fmt.Sprintf(`to_timestamp(rv_%s.value,'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') `, ident), nil
+		tcp := "to_timestamp(%s,'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') "
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsRef():
-		return fmt.Sprintf("rv_%s.ref ", ident), nil
-	default:
-		return fmt.Sprintf("rv_%s.value ", ident), nil
+		tcp := "%s"
+		fc := fmt.Sprintf(fcpRef, ident)
+		return fmt.Sprintf(tcp, fc), fcpRef, tcp, nil
 	}
+
+	tcp := "%s"
+	fc := fmt.Sprintf(fcp, ident)
+	return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 }

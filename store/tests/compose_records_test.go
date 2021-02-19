@@ -3,14 +3,15 @@ package tests
 import (
 	"context"
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
-	"time"
 )
 
 func testComposeRecords(t *testing.T, s store.ComposeRecords) {
@@ -31,6 +32,48 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				&types.ModuleField{Kind: "Number", Name: "num2"},
 				&types.ModuleField{Kind: "Number", Name: "num3"},
 				&types.ModuleField{Kind: "DateTime", Name: "dt1"},
+				&types.ModuleField{Kind: "String", Name: "strMulti", Multi: true},
+
+				// These are used bellow to test (almost) all permutations
+				&types.ModuleField{Kind: "Bool", Name: "bool1"},
+				&types.ModuleField{Kind: "Bool", Name: "bool2"},
+				&types.ModuleField{Kind: "Bool", Name: "bool3"},
+
+				&types.ModuleField{Kind: "DateTime", Name: "datetime1"},
+				&types.ModuleField{Kind: "DateTime", Name: "datetime2"},
+				&types.ModuleField{Kind: "DateTime", Name: "datetime3"},
+
+				&types.ModuleField{Kind: "Email", Name: "email1"},
+				&types.ModuleField{Kind: "Email", Name: "email2"},
+				&types.ModuleField{Kind: "Email", Name: "email3"},
+
+				// &types.ModuleField{Kind: "File", Name: "file1"},
+				// &types.ModuleField{Kind: "File", Name: "file2"},
+				// &types.ModuleField{Kind: "File", Name: "file3"},
+
+				&types.ModuleField{Kind: "Select", Name: "select1"},
+				&types.ModuleField{Kind: "Select", Name: "select2"},
+				&types.ModuleField{Kind: "Select", Name: "select3"},
+
+				&types.ModuleField{Kind: "Number", Name: "number1"},
+				&types.ModuleField{Kind: "Number", Name: "number2"},
+				&types.ModuleField{Kind: "Number", Name: "number3"},
+
+				// &types.ModuleField{Kind: "Record", Name: "record1"},
+				// &types.ModuleField{Kind: "Record", Name: "record2"},
+				// &types.ModuleField{Kind: "Record", Name: "record3"},
+
+				&types.ModuleField{Kind: "String", Name: "string1"},
+				&types.ModuleField{Kind: "String", Name: "string2"},
+				&types.ModuleField{Kind: "String", Name: "string3"},
+
+				&types.ModuleField{Kind: "Url", Name: "url1"},
+				&types.ModuleField{Kind: "Url", Name: "url2"},
+				&types.ModuleField{Kind: "Url", Name: "url3"},
+
+				// &types.ModuleField{Kind: "User", Name: "user1"},
+				// &types.ModuleField{Kind: "User", Name: "user2"},
+				// &types.ModuleField{Kind: "User", Name: "user3"},
 			},
 		}
 
@@ -49,6 +92,19 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				CreatedAt:   time.Now(),
 				Values:      vv,
 			}
+		}
+
+		makeNewUpd = func(t *testing.T, dt string, vv ...*types.RecordValue) *types.Record {
+			r := makeNew(vv...)
+
+			if dt != "" {
+				n, err := time.Parse(time.RFC3339, dt)
+				if err != nil {
+					t.Error(err)
+				}
+				r.UpdatedAt = &n
+			}
+			return r
 		}
 
 		truncAndCreate = func(t *testing.T, rr ...*types.Record) (*require.Assertions, types.RecordSet) {
@@ -287,6 +343,18 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 	})
 
 	t.Run("paging and sorting", func(t *testing.T) {
+		type (
+			tc struct {
+				// how data is sorted
+				sort string
+
+				// expected data
+				rval []string
+
+				// how cursors should be set when moving forward/backward
+				curr []int
+			}
+		)
 		var (
 			_, _ = truncAndCreate(t,
 				makeNew(&types.RecordValue{Name: "str1", Value: "v1"}, &types.RecordValue{Name: "str3", Value: "a"}),
@@ -301,71 +369,145 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			)
 		)
 
-		{
-			prevCur := 1
-			nextCur := 2
-			bothCur := prevCur | nextCur
+		prevCur := 1
+		nextCur := 2
+		bothCur := prevCur | nextCur
 
-			// tests if cursors are properly set/unset by inspecting req. bits
-			testCursors := func(req *require.Assertions, b int, f types.RecordFilter) {
-				if b&prevCur == 0 {
-					req.Nil(f.PrevPage)
-				} else {
-					req.NotNil(f.PrevPage)
-				}
-
-				if b&nextCur == 0 {
-					req.Nil(f.NextPage)
-				} else {
-					req.NotNil(f.NextPage)
-				}
+		// tests if cursors are properly set/unset by inspecting req. bits
+		testCursors := func(req *require.Assertions, b int, f types.RecordFilter) {
+			if b&prevCur == 0 {
+				req.Nil(f.PrevPage)
+			} else {
+				req.NotNil(f.PrevPage)
 			}
 
-			tcc := []struct {
-				// how data is sorted
-				sort string
+			if b&nextCur == 0 {
+				req.Nil(f.NextPage)
+			} else {
+				req.NotNil(f.NextPage)
+			}
+		}
 
-				// expected data
-				rval []string
+		tcc := []tc{
+			{
+				"id",
+				[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+			{
+				"id DESC",
+				[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+			{
+				"str1",
+				[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+			{
+				"str1 DESC",
+				[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+			{
+				"str3",
+				[]string{"v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v1,a", "v2,b;v3,b;v9,c"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+			{
+				"str3 DESC",
+				[]string{"v9,c;v3,b;v2,b", "v1,a;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>"},
+				[]int{nextCur, bothCur, prevCur},
+			},
+		}
 
-				// how cursors should be set when moving forward/backward
-				curr []int
-			}{
-				{
-					"id",
-					[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
-					[]int{nextCur, bothCur, prevCur},
-				},
-				{
-					"id DESC",
-					[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
-					[]int{nextCur, bothCur, prevCur},
-				},
+		for _, tc := range tcc {
+			t.Run("crawling: "+tc.sort, func(t *testing.T) {
+				var (
+					req = require.New(t)
+
+					f   = types.RecordFilter{}
+					set types.RecordSet
+					err error
+				)
+
+				f.Sort.Set(tc.sort)
+				f.Limit = 3
+
+				for p := 0; p < 3; p++ {
+					set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+					req.NoError(err)
+					req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+					req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+
+					testCursors(req, tc.curr[p], f)
+
+					// advance to next page
+					f.PageCursor = f.NextPage
+				}
+
+				f.PageCursor = f.PrevPage
+				for p := 1; p >= 0; p-- {
+					f.Sort = nil
+					set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+					req.NoError(err)
+					req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+					req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+					testCursors(req, tc.curr[p], f)
+
+					// reverse to previous page
+					f.PageCursor = f.PrevPage
+				}
+
+				f.PageCursor = f.NextPage
+
+				for p := 1; p < 3; p++ {
+					set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+					req.NoError(err)
+					req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+					req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+					testCursors(req, tc.curr[p], f)
+
+					// advance to next page
+					f.PageCursor = f.NextPage
+				}
+			})
+		}
+
+		t.Run("advanced sorting", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0010"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0009"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0008"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0007"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0006"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0005"}),
+				)
+			)
+
+			tcc := []tc{
 				{
 					"str1",
-					[]string{"v1,a;v2,b;v3,b", "v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v9,c"},
-					[]int{nextCur, bothCur, prevCur},
+					[]string{"0001,0010;0001,0009;0001,0008", "0001,0007;0001,0006;0001,0005"},
+					[]int{nextCur, prevCur},
 				},
 				{
-					"str1 DESC",
-					[]string{"v9,c;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>", "v3,b;v2,b;v1,a"},
-					[]int{nextCur, bothCur, prevCur},
+					"str1, str3 DESC",
+					[]string{"0001,0010;0001,0009;0001,0008", "0001,0007;0001,0006;0001,0005"},
+					[]int{nextCur, prevCur},
 				},
 				{
-					"str3",
-					[]string{"v4,<NIL>;v5,<NIL>;v6,<NIL>", "v7,<NIL>;v8,<NIL>;v1,a", "v2,b;v3,b;v9,c"},
-					[]int{nextCur, bothCur, prevCur},
-				},
-				{
-					"str3 DESC",
-					[]string{"v9,c;v3,b;v2,b", "v1,a;v8,<NIL>;v7,<NIL>", "v6,<NIL>;v5,<NIL>;v4,<NIL>"},
-					[]int{nextCur, bothCur, prevCur},
+					"str1 DESC, str3",
+					[]string{"0001,0005;0001,0006;0001,0007", "0001,0008;0001,0009;0001,0010"},
+					[]int{nextCur, prevCur},
 				},
 			}
 
 			for _, tc := range tcc {
 				t.Run("crawling: "+tc.sort, func(t *testing.T) {
-
 					var (
 						req = require.New(t)
 
@@ -377,7 +519,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 					f.Sort.Set(tc.sort)
 					f.Limit = 3
 
-					for p := 0; p < 3; p++ {
+					for p := 0; p < 2; p++ {
 						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
 						req.NoError(err)
 						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
@@ -390,8 +532,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 					}
 
 					f.PageCursor = f.PrevPage
-					for p := 1; p >= 0; p-- {
-						f.Sort = nil
+					for p := 0; p >= 0; p-- {
 						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
 						req.NoError(err)
 						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
@@ -405,7 +546,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 
 					f.PageCursor = f.NextPage
 
-					for p := 1; p < 3; p++ {
+					for p := 1; p < 2; p++ {
 						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
 						req.NoError(err)
 						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
@@ -418,7 +559,666 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 					}
 				})
 			}
-		}
+		})
+
+		t.Run("advanced sorting; NULL; #1", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0010"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0009"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0008"}),
+					makeNew( /* padding                                   */ &types.RecordValue{Name: "str3", Value: "0007"}),
+					makeNew( /* padding                                   */ &types.RecordValue{Name: "str3", Value: "0006"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0005"}),
+				)
+			)
+
+			tcc := []tc{
+				{
+					"str1",
+					[]string{"<NIL>,0007;<NIL>,0006;0001,0010", "0001,0009;0001,0008;0001,0005"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1 DESC",
+					[]string{"0001,0005;0001,0008;0001,0009", "0001,0010;<NIL>,0006;<NIL>,0007"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1, str3 DESC",
+					[]string{"<NIL>,0007;<NIL>,0006;0001,0010", "0001,0009;0001,0008;0001,0005"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1 DESC, str3 DESC",
+					[]string{"0001,0010;0001,0009;0001,0008", "0001,0005;<NIL>,0007;<NIL>,0006"},
+					[]int{nextCur, prevCur},
+				},
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
+
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 3
+
+					for p := 0; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 0; p >= 0; p-- {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		})
+
+		t.Run("advanced sorting; NULL; #2", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"}, &types.RecordValue{Name: "str3", Value: "0010"}),
+					makeNew( /* padding                                   */ &types.RecordValue{Name: "str3", Value: "0009"}),
+					makeNew(&types.RecordValue{Name: "str1", Value: "0001"} /* padding                                    */),
+					makeNew( /* padding                                  */ /* padding                                   */ ),
+				)
+			)
+
+			tcc := []tc{
+				{
+					"str1, str3",
+					[]string{"<NIL>,<NIL>;<NIL>,0009", "0001,<NIL>;0001,0010"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1, str3 DESC",
+					[]string{"<NIL>,0009;<NIL>,<NIL>", "0001,0010;0001,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1 DESC, str3",
+					[]string{"0001,<NIL>;0001,0010", "<NIL>,<NIL>;<NIL>,0009"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"str1 DESC, str3 DESC",
+					[]string{"0001,0010;0001,<NIL>", "<NIL>,0009;<NIL>,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
+
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 2
+
+					for p := 0; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 0; p >= 0; p-- {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "str1", "str3"))
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		})
+
+		t.Run("advanced sorting; NULL; #4", func(t *testing.T) {
+			// Build all record value permutations for the given field based on a pattern in a 3x8 matrix
+			//
+			// The matrix defines all NULL / NOT NULL permutations where NOT NULL values define a mini permutation
+			// of increasing values -- a good enough permutation to prove correctness.
+			//
+			// Boolean and pure Timestamp values are tested elsewhere
+			permute := func(ptrn string, f1, f2, f3 string) {
+				spf := func(ptr, val string) string {
+					return fmt.Sprintf(ptrn, val)
+				}
+
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: f1, Value: spf(ptrn, "1")}, &types.RecordValue{Name: f2, Value: spf(ptrn, "1")}, &types.RecordValue{Name: f3, Value: spf(ptrn, "1")}),
+					makeNew( /* padding                                       */ &types.RecordValue{Name: f2, Value: spf(ptrn, "1")}, &types.RecordValue{Name: f3, Value: spf(ptrn, "2")}),
+					makeNew(&types.RecordValue{Name: f1, Value: spf(ptrn, "1")} /* padding                                        */, &types.RecordValue{Name: f3, Value: spf(ptrn, "3")}),
+					makeNew( /* padding                                       */ /* padding                                        */ &types.RecordValue{Name: f3, Value: spf(ptrn, "4")}),
+					makeNew(&types.RecordValue{Name: f1, Value: spf(ptrn, "2")}, &types.RecordValue{Name: f2, Value: spf(ptrn, "3")} /* padding                                        */),
+					makeNew( /* padding                                       */ &types.RecordValue{Name: f2, Value: spf(ptrn, "3")} /* padding                                        */),
+					makeNew(&types.RecordValue{Name: f1, Value: spf(ptrn, "2")} /* padding                                        */ /* padding                                        */),
+					makeNew( /* padding                                       */ /* padding                                       */ /* padding                                       */ ),
+				)
+			}
+
+			kinds := []struct {
+				kind string
+				ptrn string
+			}{
+				{kind: "DateTime", ptrn: "2021-02-0%sT01:00:00.000Z"},
+				{kind: "Email", ptrn: "test+e%s@test.tld"},
+				{kind: "Select", ptrn: "opt%s"},
+				{kind: "Number", ptrn: "%s"},
+				{kind: "String", ptrn: "string%s"},
+				{kind: "Url", ptrn: "https://www.testko-%s.tld"},
+				// { kind: "Bool", ptrn: ""},
+				// { kind: "File", ptrn: ""},
+				// { kind: "Record", ptrn: ""},
+				// { kind: "User", ptrn: ""},
+			}
+
+			// These test cases check all 3 field sort permutations.
+			// Each field kind must return items in the same order.
+			//
+			// 0 == <NIL>
+			tcc := []struct {
+				sort string
+				curr []int
+				exp  [][]string
+			}{
+				{
+					sort: "%s, %s, %s",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"0", "0", "0"},
+						{"0", "0", "4"},
+						{"0", "1", "2"},
+						{"0", "3", "0"},
+						{"1", "0", "3"},
+						{"1", "1", "1"},
+						{"2", "0", "0"},
+						{"2", "3", "0"},
+					},
+				},
+				{
+					sort: "%s DESC, %s, %s",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"2", "0", "0"},
+						{"2", "3", "0"},
+						{"1", "0", "3"},
+						{"1", "1", "1"},
+						{"0", "0", "0"},
+						{"0", "0", "4"},
+						{"0", "1", "2"},
+						{"0", "3", "0"},
+					},
+				},
+				{
+					sort: "%s, %s DESC, %s",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"0", "3", "0"},
+						{"0", "1", "2"},
+						{"0", "0", "0"},
+						{"0", "0", "4"},
+						{"1", "1", "1"},
+						{"1", "0", "3"},
+						{"2", "3", "0"},
+						{"2", "0", "0"},
+					},
+				},
+				{
+					sort: "%s DESC, %s DESC, %s",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"2", "3", "0"},
+						{"2", "0", "0"},
+						{"1", "1", "1"},
+						{"1", "0", "3"},
+						{"0", "3", "0"},
+						{"0", "1", "2"},
+						{"0", "0", "0"},
+						{"0", "0", "4"},
+					},
+				},
+				{
+					sort: "%s, %s, %s DESC",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"0", "0", "4"},
+						{"0", "0", "0"},
+						{"0", "1", "2"},
+						{"0", "3", "0"},
+						{"1", "0", "3"},
+						{"1", "1", "1"},
+						{"2", "0", "0"},
+						{"2", "3", "0"},
+					},
+				},
+				{
+					sort: "%s DESC, %s, %s DESC",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"2", "0", "0"},
+						{"2", "3", "0"},
+						{"1", "0", "3"},
+						{"1", "1", "1"},
+						{"0", "0", "4"},
+						{"0", "0", "0"},
+						{"0", "1", "2"},
+						{"0", "3", "0"},
+					},
+				},
+				{
+					sort: "%s, %s DESC, %s DESC",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"0", "3", "0"},
+						{"0", "1", "2"},
+						{"0", "0", "4"},
+						{"0", "0", "0"},
+						{"1", "1", "1"},
+						{"1", "0", "3"},
+						{"2", "3", "0"},
+						{"2", "0", "0"},
+					},
+				},
+				{
+					sort: "%s DESC, %s DESC, %s DESC",
+					curr: []int{nextCur, bothCur, bothCur, prevCur},
+					exp: [][]string{
+						{"2", "3", "0"},
+						{"2", "0", "0"},
+						{"1", "1", "1"},
+						{"1", "0", "3"},
+						{"0", "3", "0"},
+						{"0", "1", "2"},
+						{"0", "0", "4"},
+						{"0", "0", "0"},
+					},
+				},
+			}
+
+			// Helper to comvert expected items from above-defined cases into a string.
+			expToString := func(ptrn string, exp [][]string) string {
+				rr := make([]string, 0, len(exp))
+
+				for _, page := range exp {
+					rec := make([]string, 0)
+					for _, val := range page {
+						if val == "0" {
+							rec = append(rec, "<NIL>")
+						} else {
+							rec = append(rec, fmt.Sprintf(ptrn, val))
+						}
+					}
+					rr = append(rr, strings.Join(rec, ","))
+				}
+				return strings.Join(rr, ";")
+			}
+
+			for _, k := range kinds {
+				for _, tc := range tcc {
+
+					f1 := strings.ToLower(k.kind) + "1"
+					f2 := strings.ToLower(k.kind) + "2"
+					f3 := strings.ToLower(k.kind) + "3"
+
+					tc.sort = fmt.Sprintf(tc.sort, f1, f2, f3)
+
+					t.Run("crawling: "+k.kind+"; "+tc.sort, func(t *testing.T) {
+						var (
+							req = require.New(t)
+
+							f   = types.RecordFilter{}
+							set types.RecordSet
+							err error
+						)
+
+						f.Sort.Set(tc.sort)
+						f.Limit = 2
+
+						permute(k.ptrn, f1, f2, f3)
+
+						for p := 0; p < 4; p++ {
+							set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+							req.NoError(err)
+							req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+							ff := p * 2
+							req.Equal(expToString(k.ptrn, tc.exp[ff:ff+int(f.Limit)]), stringifyValues(set, strings.ToLower(k.kind)+"1", strings.ToLower(k.kind)+"2", strings.ToLower(k.kind)+"3"))
+
+							testCursors(req, tc.curr[p], f)
+
+							// advance to next page
+							f.PageCursor = f.NextPage
+						}
+
+						f.PageCursor = f.PrevPage
+						for p := 2; p >= 0; p-- {
+							set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+							req.NoError(err)
+							req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+							ff := p * 2
+							req.Equal(expToString(k.ptrn, tc.exp[ff:ff+int(f.Limit)]), stringifyValues(set, strings.ToLower(k.kind)+"1", strings.ToLower(k.kind)+"2", strings.ToLower(k.kind)+"3"))
+							testCursors(req, tc.curr[p], f)
+
+							// reverse to previous page
+							f.PageCursor = f.PrevPage
+						}
+
+						f.PageCursor = f.NextPage
+
+						for p := 1; p < 4; p++ {
+							set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+							req.NoError(err)
+							req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+							ff := p * 2
+							req.Equal(expToString(k.ptrn, tc.exp[ff:ff+int(f.Limit)]), stringifyValues(set, strings.ToLower(k.kind)+"1", strings.ToLower(k.kind)+"2", strings.ToLower(k.kind)+"3"))
+							testCursors(req, tc.curr[p], f)
+
+							// advance to next page
+							f.PageCursor = f.NextPage
+						}
+					})
+				}
+			}
+		})
+
+		t.Run("advanced sorting; NULL; Booleans", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "bool1", Value: ""}, &types.RecordValue{Name: "bool3", Value: ""}),
+					makeNew( /* padding                                */ &types.RecordValue{Name: "bool3", Value: "1"}),
+					makeNew(&types.RecordValue{Name: "bool1", Value: "1"} /* padding                                 */),
+					makeNew( /* padding                                */ /* padding                                */ ),
+				)
+			)
+
+			tcc := []tc{
+				{
+					"bool1, bool3",
+					[]string{"<NIL>,<NIL>;<NIL>,1", ",;1,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"bool1, bool3 DESC",
+					[]string{"<NIL>,1;<NIL>,<NIL>", ",;1,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"bool1 DESC, bool3",
+					[]string{"1,<NIL>;,", "<NIL>,<NIL>;<NIL>,1"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"bool1 DESC, bool3 DESC",
+					[]string{"1,<NIL>;,", "<NIL>,1;<NIL>,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
+
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 2
+
+					for p := 0; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyValues(set, "bool1", "bool3"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 0; p >= 0; p-- {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "bool1", "bool3"))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyValues(set, "bool1", "bool3"))
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		})
+
+		t.Run("advanced sorting; disable multi-value sorting", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "strMulti", Place: 0, Value: "a"}, &types.RecordValue{Name: "strMulti", Place: 1, Value: "b"}, &types.RecordValue{Name: "strMulti", Place: 2, Value: "c"}),
+				)
+			)
+
+			var (
+				req = require.New(t)
+
+				f   = types.RecordFilter{}
+				err error
+			)
+
+			f.Sort.Set("strMulti DESC")
+			f.Limit = 100
+
+			_, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+			req.Error(err, "not allowed to sort by multi-value fields: strMulti")
+		})
+
+		t.Run("advanced sorting; NULL; record value + sys fields", func(t *testing.T) {
+			var (
+				_, _ = truncAndCreate(t,
+					makeNewUpd(t, "2021-01-01T01:00:00Z", &types.RecordValue{Name: "str1", Value: "a"}),
+					makeNewUpd(t, "" /* padding       */, &types.RecordValue{Name: "str1", Value: "b"}),
+					makeNewUpd(t, "2021-01-01T02:00:00Z"),
+					makeNewUpd(t, "" /* padding       */),
+				)
+			)
+
+			tcc := []tc{
+				{
+					"updatedAt, str1",
+					[]string{"<NIL>,<NIL>;<NIL>,b", "2021-01-01T01:00:00Z,a;2021-01-01T02:00:00Z,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"updatedAt, str1 DESC",
+					[]string{"<NIL>,b;<NIL>,<NIL>", "2021-01-01T01:00:00Z,a;2021-01-01T02:00:00Z,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"updatedAt DESC, str1",
+					[]string{"2021-01-01T02:00:00Z,<NIL>;2021-01-01T01:00:00Z,a", "<NIL>,<NIL>;<NIL>,b"},
+					[]int{nextCur, prevCur},
+				},
+				{
+					"updatedAt DESC, str1 DESC",
+					[]string{"2021-01-01T02:00:00Z,<NIL>;2021-01-01T01:00:00Z,a", "<NIL>,b;<NIL>,<NIL>"},
+					[]int{nextCur, prevCur},
+				},
+			}
+
+			stringifyMix := func(set types.RecordSet, fields ...string) string {
+				var out string
+				for r := range set {
+					if r > 0 {
+						out += ";"
+					}
+
+					for f := range fields {
+						if f > 0 {
+							out += ","
+						}
+
+						if fields[f] == "updatedAt" {
+							v := set[r].UpdatedAt
+							if v != nil && !v.IsZero() {
+								out += v.Format(time.RFC3339)
+							} else {
+								out += "<NIL>"
+							}
+						} else {
+							v := set[r].Values.Get(fields[f], 0)
+							if v != nil {
+								out += v.Value
+							} else {
+								out += "<NIL>"
+							}
+						}
+					}
+				}
+				return out
+			}
+
+			for _, tc := range tcc {
+				t.Run("crawling: "+tc.sort, func(t *testing.T) {
+					var (
+						req = require.New(t)
+
+						f   = types.RecordFilter{}
+						set types.RecordSet
+						err error
+					)
+
+					f.Sort.Set(tc.sort)
+					f.Limit = 2
+
+					for p := 0; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyMix(set, "updatedAt", "str1"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+
+					f.PageCursor = f.PrevPage
+					for p := 0; p >= 0; p-- {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+
+						req.Equal(tc.rval[p], stringifyMix(set, "updatedAt", "str1"))
+						testCursors(req, tc.curr[p], f)
+
+						// reverse to previous page
+						f.PageCursor = f.PrevPage
+					}
+
+					f.PageCursor = f.NextPage
+
+					for p := 1; p < 2; p++ {
+						set, f, err = store.SearchComposeRecords(ctx, s, mod, f)
+						req.NoError(err)
+						req.True(tc.sort == f.Sort.String() || strings.HasPrefix(f.Sort.String(), tc.sort+","))
+						req.Equal(tc.rval[p], stringifyMix(set, "updatedAt", "str1"))
+
+						testCursors(req, tc.curr[p], f)
+
+						// advance to next page
+						f.PageCursor = f.NextPage
+					}
+				})
+			}
+		})
+
 	})
 
 	t.Run("sort by system field, paged", func(t *testing.T) {
@@ -755,7 +1555,6 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 		//	{"count": 1, "dimension_0": nil, "metric_0": nil},
 		//}
 		//
-		////spew.Dump(report, expected)
 		//req.True(
 		//	reflect.DeepEqual(report, expected),
 		//	"report does not match expected results:\n%#v\n%#v", report, expected)

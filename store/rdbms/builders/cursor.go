@@ -2,6 +2,9 @@ package builders
 
 import (
 	"fmt"
+	"reflect"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -14,6 +17,14 @@ type (
 		Keys() []string
 		Values() []interface{}
 		IsLThen() bool
+		Desc() []bool
+		IsROrder() bool
+	}
+
+	KeyMap struct {
+		FieldCast    string
+		TypeCast     string
+		TypeCastPtrn string
 	}
 
 	// translates field to (store) column
@@ -22,15 +33,19 @@ type (
 	//
 	// @todo extend the return args to provide additional info (like is-nullable)
 	//       to avoid IS NULL checks (see sql() fn)
-	cursorKeyMapper func(string) (string, error)
+	cursorKeyMapper func(string) (KeyMap, error)
 )
 
 // Builds a complex condition to filter rows before/after row that
 // the paging cursor points to
 func CursorCondition(pc pagingCursor, keyMapper cursorKeyMapper) *cursorCondition {
 	if keyMapper == nil {
-		keyMapper = func(s string) (string, error) {
-			return s, nil
+		keyMapper = func(s string) (KeyMap, error) {
+			return KeyMap{
+				FieldCast:    s,
+				TypeCast:     s,
+				TypeCastPtrn: "%s",
+			}, nil
 		}
 	}
 
@@ -76,17 +91,15 @@ func (c *cursorCondition) values() []interface{} {
 func (c *cursorCondition) sql() (cnd string, err error) {
 	const (
 		// we start with this
-		baseTpl = "((%s IS %s AND %s) OR (%s %s ?))"
+		baseTpl = "((%s IS %s AND %s) OR (%s %s %s))"
 
 		// and then wrap each iteration with base and this
-		wrapTpl = "(%s OR (((%s IS NULL AND %s) OR %s = ?) AND %s))"
+		wrapTpl = "(%s OR (((%s IS NULL AND %s) OR %s = %s) AND %s))"
 	)
 
 	var (
-		lt  = c.cur.IsLThen()
-		cc  = c.cur.Keys()
-		vv  = c.cur.Values()
-		col string
+		cc = c.cur.Keys()
+		vv = c.cur.Values()
 
 		ltOp = map[bool]string{
 			true:  "<",
@@ -98,8 +111,22 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 			false: "NULL",
 		}
 
+		// Little utility to know for sure if some value is nil or not
+		//
+		// Interface variables can be a bit tricky here, so this is required.
+		nilCheck = func(i interface{}) bool {
+			if i == nil {
+				return true
+			}
+			switch reflect.TypeOf(i).Kind() {
+			case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+				return reflect.ValueOf(i).IsNil()
+			}
+			return false
+		}
+
 		isNull = func(i int, neg bool) string {
-			if (vv[i] == nil && !neg) || (vv[i] != nil && neg) {
+			if (nilCheck(vv[i]) && !neg) || (!nilCheck(vv[i]) && neg) {
 				return "TRUE"
 			}
 
@@ -113,19 +140,34 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 
 	// going from the last key/column to the 1st one
 	for i := len(cc) - 1; i >= 0; i-- {
-		if col, err = c.keyMapper(cc[i]); err != nil {
-			return
+		// Get the key context so we know how to format fields and format typecasts
+		km, err := c.keyMapper(cc[i])
+		if err != nil {
+			return "", err
 		}
 
-		base := fmt.Sprintf(baseTpl, col, notOp[!lt], isNull(i, lt), col, ltOp[lt])
+		// We need to cut off the values that are before the cursor (when ascending)
+		// and vice-versa for descending.
+		lt := c.cur.Desc()[i]
+		if c.cur.IsROrder() {
+			lt = !lt
+		}
+		op := ltOp[lt]
+
+		// Typecast the value so comparasement can work properly
+		vc := fmt.Sprintf(km.TypeCastPtrn, "?")
+
+		spew.Dump("lt", lt)
+		base := fmt.Sprintf(baseTpl, km.FieldCast, notOp[!lt], isNull(i, lt), km.TypeCast, op, vc)
 
 		if cnd == "" {
 			cnd = base
 		} else {
 			// wrap existing conditions (next key) and the generated base for the current key
-			cnd = fmt.Sprintf(wrapTpl, base, col, isNull(i, false), col, cnd)
+			cnd = fmt.Sprintf(wrapTpl, base, km.FieldCast, isNull(i, false), km.TypeCast, vc, cnd)
 		}
 	}
 
+	spew.Dump(cnd)
 	return
 }

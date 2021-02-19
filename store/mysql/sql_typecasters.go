@@ -2,20 +2,40 @@ package mysql
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 )
 
-func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) (string, error) {
+// fieldToColumnTypeCaster handles special ComposeModule field query representations
+// @todo Not as elegant as it should be but it'll do the trick until the #2 store iteration
+//
+// Return parameters:
+//   * full cast: query column + datatype cast
+//   * field cast tpl: fmt template to get query column
+//   * type cast tpl: fmt template to cast the compared to value
+func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) (string, string, string, error) {
+	fcp := "rv_%s.value"
+	fcpRef := "rv_%s.ref"
+
 	switch true {
 	case field.IsBoolean():
-		return fmt.Sprintf("(rv_%s.value NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false))", ident), nil
+		tcp := "(%s NOT IN ('', '0', 'false', 'f',  'FALSE', 'F', false))"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsNumeric():
-		return fmt.Sprintf("CAST(rv_%s.value AS SIGNED)", ident), nil
+		tcp := "CAST(%s AS SIGNED)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsDateTime():
-		return fmt.Sprintf("CAST(rv_%s.value AS DATETIME)", ident), nil
+		tcp := "CAST(%s AS DATETIME)"
+		fc := fmt.Sprintf(fcp, ident)
+		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsRef():
-		return fmt.Sprintf("rv_%s.ref ", ident), nil
-	default:
-		return fmt.Sprintf("rv_%s.value ", ident), nil
+		tcp := "%s"
+		fc := fmt.Sprintf(fcpRef, ident)
+		return fmt.Sprintf(tcp, fc), fcpRef, tcp, nil
 	}
+	tcp := "%s"
+	fc := fmt.Sprintf(fcp, ident)
+	return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 }
