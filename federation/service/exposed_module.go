@@ -9,7 +9,10 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	ss "github.com/cortezaproject/corteza-server/system/service"
+	st "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -18,6 +21,7 @@ type (
 		ac        exposedModuleAccessController
 		module    cs.ModuleService
 		namespace cs.NamespaceService
+		role      ss.RoleService
 		store     store.Storer
 		actionlog actionlog.Recorder
 	}
@@ -43,6 +47,7 @@ func ExposedModule() ExposedModuleService {
 		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
 		module:    cs.DefaultModule,
+		role:      ss.DefaultRole,
 		namespace: cs.DefaultNamespace,
 		store:     DefaultStore,
 		actionlog: DefaultActionlog,
@@ -234,8 +239,9 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 
 	err := store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		var (
-			m    *ct.Module
-			node *types.Node
+			m       *ct.Module
+			node    *types.Node
+			fedRole *st.Role
 		)
 
 		if node, err = svc.node.FindByID(ctx, new.NodeID); err != nil {
@@ -258,12 +264,20 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return err
 		}
 
+		ctxIdentity := auth.GetIdentityFromContext(ctx)
+
 		new.ID = nextID()
 		new.CreatedAt = *now()
-		new.CreatedBy = auth.GetIdentityFromContext(ctx).Identity()
+		new.CreatedBy = ctxIdentity.Identity()
 
-		// check if Fields can be unmarshaled to the fields structure
-		if new.Fields != nil {
+		// find the federation role
+		if fedRole, err = svc.role.FindByHandle(ctx, "federation"); err != nil {
+			return nil
+		}
+
+		if fedRole != nil {
+			// get first id from role and add it as an allow rule
+			err = cs.DefaultAccessControl.Grant(ctx, rbac.AllowRule(fedRole.ID, m.RBACResource(), "record.read"))
 		}
 
 		// set labels
