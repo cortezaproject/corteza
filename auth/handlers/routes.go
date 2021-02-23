@@ -4,6 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"net/http"
@@ -14,6 +15,8 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 	var (
 		l = GetLinks()
 	)
+
+	r.Use(middleware.StripSlashes)
 
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
