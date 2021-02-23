@@ -7,7 +7,7 @@
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
 		<script type="application/javascript">
 			window.addEventListener('load', function() {
-				document.getElementById("preview").src=location.hash.substring(1)
+				document.getElementsByID('preview').src=location.hash.substring(1)
 			})
 		</script>
 	</head>
@@ -39,7 +39,6 @@
 				<div class="col-9 m-0 p-0">
 					<iframe
 						name="preview"
-						id="preview"
 						class="w-100 border-0"
 						style="height: 100vh;"
 						src="about:blank"

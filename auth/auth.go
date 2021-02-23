@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"github.com/Masterminds/sprig"
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
@@ -11,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -18,6 +21,7 @@ import (
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
 	"html/template"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +36,9 @@ type (
 		store    store.Storer
 	}
 )
+
+//go:embed assets/public
+var publicAssets embed.FS
 
 // New initializes Auth service that orchestrates session manager, oauth2 manager and http request handlers
 func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthOpt) (svc *service, err error) {
@@ -150,7 +157,13 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 	}
 
 	var (
-		tplBase   = handlers.TemplateBase()
+		tplBase = template.New("").
+			Funcs(sprig.FuncMap()).
+			Funcs(template.FuncMap{
+				"version":   func() string { return version.Version },
+				"buildtime": func() string { return version.BuildTime },
+				"links":     handlers.GetLinks,
+			})
 		tplLoader templateLoader
 	)
 
@@ -164,7 +177,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		}
 		log.Info("loading assets from filesystem", zap.String("path", opt.AssetsPath))
 	} else {
-		tplLoader = handlers.EmbeddedTemplates
+		tplLoader = EmbeddedTemplates
 		log.Info("using embedded assets")
 	}
 
@@ -275,6 +288,14 @@ func (svc service) gcOAuth2Tokens(ctx context.Context) {
 
 func (svc service) MountHttpRoutes(r chi.Router) {
 	svc.handlers.MountHttpRoutes(r)
+
+	const uriRoot = "/auth/assets/public"
+	if len(svc.opt.AssetsPath) == 0 {
+		r.Handle(uriRoot+"/*", http.StripPrefix("/auth/assets", http.FileServer(http.FS(publicAssets))))
+	} else {
+		var root = strings.TrimRight(svc.opt.AssetsPath, "/") + "/public"
+		r.Handle(uriRoot+"/*", http.StripPrefix(uriRoot, http.FileServer(http.Dir(root))))
+	}
 }
 
 //func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {

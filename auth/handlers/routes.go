@@ -4,19 +4,15 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"net/http"
-	"strings"
 )
 
 func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 	var (
 		l = GetLinks()
 	)
-
-	r.Use(middleware.StripSlashes)
 
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +26,7 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		r.Get("/auth/dev/scenarios", h.devSceneView)
 	}
 
+	r.Handle("/auth/", http.RedirectHandler("/auth", http.StatusSeeOther))
 	r.Group(func(r chi.Router) {
 		if h.Opt.RequestRateLimit > 0 {
 			r.Use(httprate.LimitByIP(h.Opt.RequestRateLimit, h.Opt.RequestRateWindowLength)) // @todo make configurable
@@ -95,10 +92,4 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		r.HandleFunc("/auth/oauth2/info", h.oauth2Info)
 	})
 
-	const uriRoot = "/auth/assets/public"
-	if len(h.Opt.AssetsPath) == 0 {
-		r.Handle(uriRoot+"/*", EmbeddedPublicAssets())
-	} else {
-		r.Handle(uriRoot+"/*", DirectPublicAssets(uriRoot, strings.TrimRight(h.Opt.AssetsPath, "/")+"/public"))
-	}
 }

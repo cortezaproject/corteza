@@ -36,14 +36,14 @@ func (h *AuthHandlers) devView(req *request.AuthReq) (err error) {
 func (h *AuthHandlers) devSceneView(w http.ResponseWriter, r *http.Request) {
 	s, err := findScenario(r.URL.Query().Get("template"), r.URL.Query().Get("scene"))
 
-	if err == nil {
+	if err == nil && s != nil {
 		err = h.Templates.ExecuteTemplate(w, s.Template+".html.tpl", s.Data)
+		return
 	}
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
 func findScenario(template, scene string) (*devScene, error) {

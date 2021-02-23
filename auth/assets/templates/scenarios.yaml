@@ -31,7 +31,7 @@ login:
       - { Label: Facebook, Handle: facebook, Icon: facebook }
       - { Label: Corteza,  Handle: corteza,  Icon: oidc }
 
-  Without signup & pass reset:
+  Without signup and pass reset:
     settings:
       LocalEnabled: true
       SignupEnabled: false
