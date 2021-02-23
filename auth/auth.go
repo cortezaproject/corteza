@@ -168,7 +168,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		log.Info("using embedded assets")
 	}
 
-	if !opt.ReloadTemplates || len(opt.AssetsPath) == 0 {
+	if !opt.DevelopmentMode || len(opt.AssetsPath) == 0 {
 		log.Info("initializing templates without reloading (production mode)")
 		tpls, err = NewStaticTemplates(tplBase, tplLoader)
 		if err != nil {

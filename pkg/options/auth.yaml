@@ -141,10 +141,10 @@ props:
       When corteza starts, if path exists it tries to load template files from it.
       If not it uses statically embedded files.
 
-  - name: reloadTemplates
+  - name: developmentMode
     type: bool
     description: |-
       When enabled, corteza reloads template before every execution.
       Enable this for debugging or when developing auth templates.
 
-      Disable it for environments (production) where templates do not change between server restarts.
+      Should be disabled in production where templates do not change between server restarts.
