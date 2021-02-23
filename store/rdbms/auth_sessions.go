@@ -20,5 +20,5 @@ func (s Store) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) er
 }
 
 func (s Store) DeleteExpiredAuthSessions(ctx context.Context) error {
-	return s.execDeleteAuthSessions(ctx, squirrel.Lt{"ses.expires_at": "NOW()"})
+	return s.execDeleteAuthSessions(ctx, squirrel.Expr("ses.expires_at < NOW()"))
 }
