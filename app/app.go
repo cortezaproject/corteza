@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
@@ -19,6 +20,12 @@ type (
 	grpcServer interface {
 		RegisterServices(func(server *grpc.Server))
 		Serve(ctx context.Context)
+	}
+
+	authServicer interface {
+		MountHttpRoutes(chi.Router)
+		UpdateSettings(*settings.Settings)
+		Watch(ctx context.Context)
 	}
 
 	CortezaApp struct {
@@ -42,6 +49,8 @@ type (
 		HttpServer httpApiServer
 		WsServer   *websocket.Websocket
 		GrpcServer grpcServer
+
+		AuthService authServicer
 	}
 )
 

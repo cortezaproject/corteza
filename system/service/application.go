@@ -19,7 +19,6 @@ type (
 	}
 
 	applicationAccessController interface {
-		CanAccess(context.Context) bool
 		CanCreateApplication(context.Context) bool
 		CanReadApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
@@ -79,9 +78,9 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 			//
 			// not the best solution but ATM it allows us to have at least
 			// some kind of control over who can see deleted applications
-			if !svc.ac.CanAccess(ctx) {
-				return ApplicationErrNotAllowedToListApplications()
-			}
+			//if !svc.ac.CanAccess(ctx) {
+			//	return ApplicationErrNotAllowedToListApplications()
+			//}
 		}
 
 		if len(af.Labels) > 0 {

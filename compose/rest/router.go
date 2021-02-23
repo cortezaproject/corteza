@@ -29,16 +29,12 @@ func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
-
-		r.Group(func(r chi.Router) {
-			r.Use(middlewareAllowedAccess)
-			handlers.NewNamespace(namespace).MountRoutes(r)
-			handlers.NewPage(page).MountRoutes(r)
-			handlers.NewAutomation(automation).MountRoutes(r)
-			handlers.NewModule(module).MountRoutes(r)
-			handlers.NewRecord(record).MountRoutes(r)
-			handlers.NewChart(chart).MountRoutes(r)
-			handlers.NewNotification(notification).MountRoutes(r)
-		})
+		handlers.NewNamespace(namespace).MountRoutes(r)
+		handlers.NewPage(page).MountRoutes(r)
+		handlers.NewAutomation(automation).MountRoutes(r)
+		handlers.NewModule(module).MountRoutes(r)
+		handlers.NewRecord(record).MountRoutes(r)
+		handlers.NewChart(chart).MountRoutes(r)
+		handlers.NewNotification(notification).MountRoutes(r)
 	})
 }

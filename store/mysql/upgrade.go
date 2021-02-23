@@ -49,6 +49,8 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 			}
 
 			return "TEXT"
+		case ddl.ColumnTypeBinary:
+			return "BLOB"
 		case ddl.ColumnTypeTimestamp:
 			return "DATETIME"
 		case ddl.ColumnTypeBoolean:

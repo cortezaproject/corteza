@@ -147,6 +147,8 @@ func GenColumnType(ct *ColumnType) string {
 		return "TEXT"
 	case ColumnTypeJson:
 		return "JSON"
+	case ColumnTypeBinary:
+		return "BYTEA"
 	case ColumnTypeTimestamp:
 		if ct.Length > -1 {
 			// TIMESTAMPTZ(0) strips out milliseconds

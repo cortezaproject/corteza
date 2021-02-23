@@ -1,19 +1,26 @@
 imports:
   - time
+  - strings
 
 docs:
   title: Authentication
 
 props:
+  - name: logEnabled
+    type: bool
+    description: |-
+      Enable extra logging for authentication flows
+
   - name: secret
     env: AUTH_JWT_SECRET
+    default: getSecretFromEnv("jwt secret")
     description: |-
       Secret used for signing JWT tokens.
 
       [IMPORTANT]
       ====
-      If JWT secret is not set, system auto-generates one from DB_DSN and HOSTNAME environment variables.
-      Generated secret will change if you change any of variables.
+      If secret is not set, system auto-generates one from DB_DSN and HOSTNAME environment variables.
+      Generated secret will change if you change any of these variables.
       ====
 
   - name: expiry
@@ -21,3 +28,123 @@ props:
     env: AUTH_JWT_EXPIRY
     default: time.Hour * 24 * 30
     description: Experation time for the auth JWT tokens.
+
+  - name: externalRedirectURL
+    default: guestBaseURL() + "/auth/external/{provider}/callback"
+    description: |-
+      Redirect URL to be sent with OAuth2 authentication request to provider
+
+      `{provider}` placeholder is replaced with the actual value when used.
+
+  - name: externalCookieSecret
+    default: getSecretFromEnv("external cookie secret")
+    description: |-
+      Secret used for securing cookies
+
+      [IMPORTANT]
+      ====
+      If secret is not set, system auto-generates one from DB_DSN and HOSTNAME environment variables.
+      Generated secret will change if you change any of these variables.
+      ====
+
+  - name: baseURL
+    default: guestBaseURL() + "/auth"
+    description: |-
+      Frontend base URL. Must be an absolute URL
+
+  - name: sessionCookieName
+    default: "session"
+    description: |-
+      Session cookie name
+
+  - name: sessionCookiePath
+    default: "/auth"
+    description: |-
+      Session cookie path
+
+  - name: sessionCookieDomain
+    default: guestHostname()
+    description: |-
+      Session cookie domain
+
+  - name: sessionCookieSecure
+    type: bool
+    default: strings.HasPrefix(guestBaseURL(), "https://")
+    description: |-
+      Defaults to true when HTTPS is used.
+
+  - name: sessionLifetime
+    type: time.Duration
+    default: 24 * time.Hour
+    description: |-
+      How long do we keep the temporary session
+
+  - name: sessionPermLifetime
+    type: time.Duration
+    default: 360 * 24 * time.Hour
+    description: |-
+      How long do we keep the permanent session
+
+  - name: garbageCollectorInterval
+    type: time.Duration
+    default: 15 * time.Minute
+    description: |-
+      How often are expired sessions and tokens purged from the database
+
+  - name: requestRateLimit
+    type: int
+    default: 30
+    description: |-
+      How many requests from a cerain IP address are allowed in a time window.
+      Set to zero to disable
+
+  - name: requestRateWindowLength
+    type: time.Duration
+    default: time.Minute
+    description: |-
+      How many requests from a cerain IP address are allowed in a time window
+
+  - name: csrfSecret
+    default: getSecretFromEnv("csrf secret")
+    description: |-
+      Secret used for securing CSRF protection
+
+      [IMPORTANT]
+      ====
+      If secret is not set, system auto-generates one from DB_DSN and HOSTNAME environment variables.
+      Generated secret will change if you change any of these variables.
+      ====
+
+  - name: csrfFieldName
+    default: "same-site-authenticity-token"
+    description: |-
+      Form field name used for CSRF protection
+
+
+  - name: csrfCookieName
+    default: "same-site-authenticity-token"
+    description: |-
+      Cookie name used for CSRF protection
+
+  - name: defaultClient
+    default: "corteza-webapp"
+    description: |
+      Handle for OAuth2 client used for automatic redirect from /auth/oauth2/go endpoint.
+
+      This simplifies configuration for OAuth2 flow for Corteza Web applications as it removes
+      the need to suply redirection URL and client ID (oauth2/go endpoint does that internally)
+
+  - name: assetsPath
+    description: |-
+      Path to js, css, images and template source files
+
+      When corteza starts, if path exists it tries to load template files from it.
+      If not it uses statically embedded files.
+
+  - name: reloadTemplates
+    type: bool
+    description: |-
+      When enabled, corteza reloads template before every execution.
+      Enable this for debugging or when developing auth templates.
+
+      Disable it for environments (production) where templates do not change between server restarts.

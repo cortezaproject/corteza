@@ -14,3 +14,13 @@ func parseStringsInput(ss []string, p interface{}) (err error) {
 
 	return json.Unmarshal([]byte(ss[0]), &p)
 }
+
+func ParseAuthClientMeta(ss []string) (p *AuthClientMeta, err error) {
+	p = &AuthClientMeta{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseAuthClientSecurity(ss []string) (p *AuthClientSecurity, err error) {
+	p = &AuthClientSecurity{}
+	return p, parseStringsInput(ss, &p)
+}

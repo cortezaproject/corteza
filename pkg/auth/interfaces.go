@@ -16,14 +16,8 @@ type (
 		Encode(identity Identifiable) string
 	}
 
-	TokenDecoder interface {
-		Decode(token string) (Identifiable, error)
-	}
-
 	TokenHandler interface {
 		TokenEncoder
-		TokenDecoder
-
 		HttpVerifier() func(http.Handler) http.Handler
 		HttpAuthenticator() func(http.Handler) http.Handler
 	}

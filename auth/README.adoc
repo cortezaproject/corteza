@@ -1,0 +1,10 @@
+# Corteza auth
+
+.Main responsibilities:
+ - Sign-up protocol
+ - Local login via OAuth2 protocol
+ - Password set, reset protocol
+ - Email authentication protocol
+ - Session management
+ - Identity federation (login via external providers)
+ - Support OAuth2 flows

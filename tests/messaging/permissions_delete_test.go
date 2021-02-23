@@ -23,12 +23,11 @@ func TestPermissionsDelete(t *testing.T) {
 
 	// Setup a few fake rules for new roke
 	h.mockPermissions(
-		rbac.AllowRule(permDelRole, types.MessagingRBACResource, "access"),
 		rbac.DenyRule(permDelRole, types.MessagingRBACResource, "channel.group.create"),
 		rbac.DenyRule(permDelRole, types.MessagingRBACResource, "channel.private.create"),
 	)
 
-	h.a.Len(p.FindRulesByRoleID(permDelRole), 3)
+	h.a.Len(p.FindRulesByRoleID(permDelRole), 2)
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/permissions/%d/rules", permDelRole)).

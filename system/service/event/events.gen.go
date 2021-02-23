@@ -145,6 +145,65 @@ type (
 		*authBase
 	}
 
+	// authClientBase
+	//
+	// This type is auto-generated.
+	authClientBase struct {
+		immutable     bool
+		authClient    *types.AuthClient
+		oldAuthClient *types.AuthClient
+		invoker       auth.Identifiable
+	}
+
+	// authClientOnManual
+	//
+	// This type is auto-generated.
+	authClientOnManual struct {
+		*authClientBase
+	}
+
+	// authClientBeforeCreate
+	//
+	// This type is auto-generated.
+	authClientBeforeCreate struct {
+		*authClientBase
+	}
+
+	// authClientBeforeUpdate
+	//
+	// This type is auto-generated.
+	authClientBeforeUpdate struct {
+		*authClientBase
+	}
+
+	// authClientBeforeDelete
+	//
+	// This type is auto-generated.
+	authClientBeforeDelete struct {
+		*authClientBase
+	}
+
+	// authClientAfterCreate
+	//
+	// This type is auto-generated.
+	authClientAfterCreate struct {
+		*authClientBase
+	}
+
+	// authClientAfterUpdate
+	//
+	// This type is auto-generated.
+	authClientAfterUpdate struct {
+		*authClientBase
+	}
+
+	// authClientAfterDelete
+	//
+	// This type is auto-generated.
+	authClientAfterDelete struct {
+		*authClientBase
+	}
+
 	// mailBase
 	//
 	// This type is auto-generated.
@@ -1133,6 +1192,388 @@ func (res *authBase) Decode(results map[string][]byte) (err error) {
 			}
 		}
 	}
+
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+// ResourceType returns "system:authClient"
+//
+// This function is auto-generated.
+func (authClientBase) ResourceType() string {
+	return "system:authClient"
+}
+
+// EventType on authClientOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (authClientOnManual) EventType() string {
+	return "onManual"
+}
+
+// EventType on authClientBeforeCreate returns "beforeCreate"
+//
+// This function is auto-generated.
+func (authClientBeforeCreate) EventType() string {
+	return "beforeCreate"
+}
+
+// EventType on authClientBeforeUpdate returns "beforeUpdate"
+//
+// This function is auto-generated.
+func (authClientBeforeUpdate) EventType() string {
+	return "beforeUpdate"
+}
+
+// EventType on authClientBeforeDelete returns "beforeDelete"
+//
+// This function is auto-generated.
+func (authClientBeforeDelete) EventType() string {
+	return "beforeDelete"
+}
+
+// EventType on authClientAfterCreate returns "afterCreate"
+//
+// This function is auto-generated.
+func (authClientAfterCreate) EventType() string {
+	return "afterCreate"
+}
+
+// EventType on authClientAfterUpdate returns "afterUpdate"
+//
+// This function is auto-generated.
+func (authClientAfterUpdate) EventType() string {
+	return "afterUpdate"
+}
+
+// EventType on authClientAfterDelete returns "afterDelete"
+//
+// This function is auto-generated.
+func (authClientAfterDelete) EventType() string {
+	return "afterDelete"
+}
+
+// AuthClientOnManual creates onManual for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientOnManual(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientOnManual {
+	return &authClientOnManual{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientOnManualImmutable creates onManual for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientOnManualImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientOnManual {
+	return &authClientOnManual{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeCreate creates beforeCreate for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientBeforeCreate(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeCreate {
+	return &authClientBeforeCreate{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeCreateImmutable creates beforeCreate for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientBeforeCreateImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeCreate {
+	return &authClientBeforeCreate{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeUpdate creates beforeUpdate for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientBeforeUpdate(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeUpdate {
+	return &authClientBeforeUpdate{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeUpdateImmutable creates beforeUpdate for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientBeforeUpdateImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeUpdate {
+	return &authClientBeforeUpdate{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeDelete creates beforeDelete for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientBeforeDelete(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeDelete {
+	return &authClientBeforeDelete{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientBeforeDeleteImmutable creates beforeDelete for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientBeforeDeleteImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientBeforeDelete {
+	return &authClientBeforeDelete{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterCreate creates afterCreate for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientAfterCreate(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterCreate {
+	return &authClientAfterCreate{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterCreateImmutable creates afterCreate for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientAfterCreateImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterCreate {
+	return &authClientAfterCreate{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterUpdate creates afterUpdate for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientAfterUpdate(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterUpdate {
+	return &authClientAfterUpdate{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterUpdateImmutable creates afterUpdate for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientAfterUpdateImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterUpdate {
+	return &authClientAfterUpdate{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterDelete creates afterDelete for system:authClient resource
+//
+// This function is auto-generated.
+func AuthClientAfterDelete(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterDelete {
+	return &authClientAfterDelete{
+		authClientBase: &authClientBase{
+			immutable:     false,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// AuthClientAfterDeleteImmutable creates afterDelete for system:authClient resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func AuthClientAfterDeleteImmutable(
+	argAuthClient *types.AuthClient,
+	argOldAuthClient *types.AuthClient,
+) *authClientAfterDelete {
+	return &authClientAfterDelete{
+		authClientBase: &authClientBase{
+			immutable:     true,
+			authClient:    argAuthClient,
+			oldAuthClient: argOldAuthClient,
+		},
+	}
+}
+
+// SetAuthClient sets new authClient value
+//
+// This function is auto-generated.
+func (res *authClientBase) SetAuthClient(argAuthClient *types.AuthClient) {
+	res.authClient = argAuthClient
+}
+
+// AuthClient returns authClient
+//
+// This function is auto-generated.
+func (res authClientBase) AuthClient() *types.AuthClient {
+	return res.authClient
+}
+
+// OldAuthClient returns oldAuthClient
+//
+// This function is auto-generated.
+func (res authClientBase) OldAuthClient() *types.AuthClient {
+	return res.oldAuthClient
+}
+
+// SetInvoker sets new invoker value
+//
+// This function is auto-generated.
+func (res *authClientBase) SetInvoker(argInvoker auth.Identifiable) {
+	res.invoker = argInvoker
+}
+
+// Invoker returns invoker
+//
+// This function is auto-generated.
+func (res authClientBase) Invoker() auth.Identifiable {
+	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res authClientBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["authClient"], err = json.Marshal(res.authClient); err != nil {
+		return nil, err
+	}
+
+	if args["oldAuthClient"], err = json.Marshal(res.oldAuthClient); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *authClientBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.authClient != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.authClient); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.authClient != nil {
+		if r, ok := results["authClient"]; ok {
+			if err = json.Unmarshal(r, res.authClient); err != nil {
+				return
+			}
+		}
+	}
+
+	// Do not decode oldAuthClient; marked as immutable
 
 	if res.invoker != nil {
 		if r, ok := results["invoker"]; ok {

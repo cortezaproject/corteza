@@ -2,16 +2,12 @@ package provision
 
 import (
 	"context"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
-	"net/url"
 	"os"
-	"strings"
 )
 
 type (
@@ -117,123 +113,12 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 			new.Replace(v)
 		}
 
-		// Default value functions
-		//
-		// all are wrapped (stringWrapper, boolWrapper) to delay execution
-		// of the function to the very last point
-
-		frontendUrl = func(path string) stringWrapper {
-			const (
-				feBase   = "auth.frontend.url.base"
-				extRedir = "auth.external.redirect-url"
-			)
-
-			return func() (base string) {
-				base = new.First(feBase).String()
-
-				if len(base) == 0 {
-
-					// Not found, try to get it from the external redirect URL
-					redirURL := new.First(extRedir).String()
-					if len(redirURL) == 0 {
-						return
-					}
-
-					log.Info(
-						"discovering frontend url from '"+extRedir+"'",
-						zap.String(extRedir, redirURL))
-
-					// Removing placeholder
-					redirURL = fmt.Sprintf(redirURL, "")
-
-					p, err := url.Parse(redirURL)
-					if err != nil {
-						log.Error("could not parse '"+extRedir+"'", zap.Error(err))
-						return
-					}
-
-					h := p.Host
-					s := "api."
-					if i := strings.Index(h, s); i > 0 {
-						// If there is a "api." prefix in the hostname of the external redirect-uri value
-						// cut it off and use that as a frontend url base
-						h = h[i+len(s):]
-					}
-
-					base = p.Scheme + "://" + h
-				}
-
-				if len(base) > 0 {
-					return strings.TrimRight(base, "/") + path
-				}
-
-				return ""
-			}
-		}
-
-		// Assuming secure backend when redirect URL starts with https://
-		isSecure = func() boolWrapper {
-			return func() bool {
-				return strings.Index(new.First("auth.external.redirect-url").String(), "https://") == 0
-			}
-		}
-
 		// Assume we have emailing capabilities if SMTP_HOST variable is set
 		emailCapabilities = func() boolWrapper {
 			return func() bool {
 				val, has := os.LookupEnv("SMTP_HOST")
 				return has && len(val) > 0
 			}
-		}
-
-		// Where should external authentication providers redirect to?
-		// we need to set full, absolute URL to the callback endpoint
-		externalAuthRedirectUrl = func() stringWrapper {
-			return func() string {
-				var (
-					path = "/auth/external/%s/callback"
-
-					// All env keys we'll check, first that has any value set, will be used as hostname
-					keysWithHostnames = []string{
-						"DOMAIN",
-						"LETSENCRYPT_HOST",
-						"VIRTUAL_HOST",
-						"HOSTNAME",
-						"HOST",
-					}
-				)
-
-				// Prefix path if we're running wrapped as a monolith:
-				if IsMonolith {
-					path = "/system" + path
-				}
-
-				log.Info("scanning env variables for hostname", zap.Strings("candidates", keysWithHostnames))
-
-				for _, key := range keysWithHostnames {
-					if host, has := os.LookupEnv(key); has {
-						log.Info("hostname env variable found", zap.String("env", key))
-						// Make life easier for development in local environment,
-						// and set HTTP schema. Might cause problems if someone
-						// is using valid external hostname
-						if strings.Contains(host, "local.") {
-							return "http://" + host + path
-						} else {
-							return "https://" + host + path
-						}
-					} else {
-					}
-				}
-
-				// Fallback is empty string
-				// this will cause error when doing OIDC auto-discovery (and we want that)
-				// @todo ^^
-				return ""
-			}
-		}
-
-		rand stringWrapper = func() string {
-			return string(rand.Bytes(64))
 		}
 
 		wrapBool = func(val bool) boolWrapper {
@@ -266,61 +151,14 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 		// External auth
 
-		// Enable external auth
+		// Enable federated auth
 		{
 			"auth.external.enabled",
 			"PROVISION_SETTINGS_AUTH_EXTERNAL_ENABLED",
 			wrapBool(true),
 			false},
 
-		{
-			"auth.external.redirect-url",
-			"PROVISION_SETTINGS_AUTH_EXTERNAL_REDIRECT_URL",
-			externalAuthRedirectUrl(),
-			false},
-
-		{
-			"auth.external.session-store-secret",
-			"PROVISION_SETTINGS_AUTH_EXTERNAL_SESSION_STORE_SECRET",
-			rand,
-			true},
-
-		// Disable external auth
-		{
-			"auth.external.session-store-secure",
-			"PROVISION_SETTINGS_AUTH_EXTERNAL_SESSION_STORE_SECURE",
-			isSecure(),
-			false},
-
 		// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
-		// Auth frontend
-
-		{
-			"auth.frontend.url.base",
-			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_BASE",
-			frontendUrl("/"),
-			false},
-
-		// @todo w/o token=
-		{
-			"auth.frontend.url.password-reset",
-			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_PASSWORD_RESET",
-			frontendUrl("/auth/reset-password?token="),
-			false},
-
-		// @todo w/o token=
-		{
-			"auth.frontend.url.email-confirmation",
-			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_EMAIL_CONFIRMATION",
-			frontendUrl("/auth/confirm-email?token="),
-			false},
-
-		// @todo check if this is correct?!
-		{
-			"auth.frontend.url.redirect",
-			"PROVISION_SETTINGS_AUTH_FRONTEND_URL_REDIRECT",
-			frontendUrl("/auth"),
-			false},
 
 		// Auth email
 		{

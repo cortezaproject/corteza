@@ -17,14 +17,10 @@ func MountRoutes(r chi.Router) {
 		r.Use(auth.MiddlewareValidOnly)
 		handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 
-		r.Group(func(r chi.Router) {
-			r.Use(middlewareAllowedAccess)
+		handlers.NewNode(Node{}.New()).MountRoutes(r)
+		handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
 
-			handlers.NewNode(Node{}.New()).MountRoutes(r)
-			handlers.NewManageStructure((ManageStructure{}.New())).MountRoutes(r)
-
-			handlers.NewSyncData((SyncData{}.New())).MountRoutes(r)
-			handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
-		})
+		handlers.NewSyncData((SyncData{}.New())).MountRoutes(r)
+		handlers.NewSyncStructure((SyncStructure{}.New())).MountRoutes(r)
 	})
 }

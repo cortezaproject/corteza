@@ -32,6 +32,7 @@ type (
 		ActionLog options.ActionLogOpt
 		Storage   options.ObjectStoreOpt
 		Template  options.TemplateOpt
+		Auth      options.AuthOpt
 	}
 
 	permitChecker interface {
@@ -83,6 +84,7 @@ var (
 	DefaultSink *sink
 
 	DefaultAuth        *auth
+	DefaultAuthClient  *authClient
 	DefaultUser        UserService
 	DefaultRole        RoleService
 	DefaultApplication *application
@@ -131,7 +133,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultAccessControl = AccessControl(rbac.Global())
 
-	DefaultSettings = Settings(DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
+	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
 	if DefaultObjectStore == nil {
 		const svcPath = "system"
@@ -170,8 +172,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
 
-	DefaultAuthNotification = AuthNotification(CurrentSettings)
+	DefaultAuthNotification = AuthNotification(CurrentSettings, c.Auth)
 	DefaultAuth = Auth()
+	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())

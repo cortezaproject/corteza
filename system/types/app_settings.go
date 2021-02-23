@@ -31,10 +31,6 @@ type (
 		} `json:"-"`
 
 		Auth struct {
-			// Not a setting, only a holder for potential
-			// warning for from subscription
-			SignupWarning string `json:",omitempty" kv:"-"`
-
 			Internal struct {
 				// Is internal authentication (username + password) enabled
 				Enabled bool
@@ -55,33 +51,8 @@ type (
 				// Is external authentication
 				Enabled bool
 
-				// Where to redirect (url used for registration)
-				RedirectUrl string `json:"-" kv:"redirect-url"`
-
-				// session secret to use
-				SessionStoreSecret string `json:"-" kv:"session-store-secret"`
-
-				// session store should be secure
-				SessionStoreSecure bool `json:"-" kv:"session-store-secure"`
-
 				// all external providers we know
 				Providers ExternalAuthProviderSet
-			}
-
-			Frontend struct {
-				Url struct {
-					// Password reset path (<frontend password reset url> "?token=" + <token>)
-					PasswordReset string `kv:"password-reset"`
-
-					// EmailAddress confirmation path (<frontend  email confirmation url> "?token=" + <token>)
-					EmailConfirmation string `kv:"email-confirmation"`
-
-					// Where to redirect user after external auth flow
-					Redirect string
-
-					// Webapp Base URL
-					Base string
-				}
 			}
 
 			Mail struct {

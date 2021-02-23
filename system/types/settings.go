@@ -94,6 +94,17 @@ func (v *SettingValue) Eq(c *SettingValue) bool {
 		fmt.Sprintf("%v", v.Value) == fmt.Sprintf("%v", c.Value)
 }
 
+func (set SettingValueSet) FilterByPrefix(prefix string) SettingValueSet {
+	pf := SettingValueSet{}
+	for _, v := range set {
+		if strings.HasPrefix(v.Name, prefix) {
+			pf = append(pf, v)
+		}
+	}
+
+	return pf
+}
+
 func (set SettingValueSet) KV() SettingsKV {
 	m := SettingsKV{}
 

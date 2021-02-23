@@ -37,7 +37,6 @@ func (h helper) clearNodes() {
 }
 
 func (h helper) prepareRBAC() {
-	h.allow(types.FederationRBACResource, rbac.Operation("access"))
 	h.allow(types.FederationRBACResource, rbac.Operation("node.create"))
 	h.allow(types.FederationRBACResource, rbac.Operation("pair"))
 	h.allow("federation:node:*", rbac.Operation("manage"))

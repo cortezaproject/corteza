@@ -50,7 +50,6 @@ type (
 	}
 
 	userAccessController interface {
-		CanAccess(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanReadUser(context.Context, *types.User) bool
 		CanUpdateUser(context.Context, *types.User) bool
@@ -302,9 +301,9 @@ func (svc user) Find(ctx context.Context, filter types.UserFilter) (uu types.Use
 			//
 			// not the best solution but ATM it allows us to have at least
 			// some kind of control over who can see deleted users
-			if !svc.ac.CanAccess(ctx) {
-				return UserErrNotAllowedToListUsers()
-			}
+			//if !svc.ac.CanAccess(ctx) {
+			//	return UserErrNotAllowedToListUsers()
+			//}
 		}
 
 		if len(filter.Labels) > 0 {

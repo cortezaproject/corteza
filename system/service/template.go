@@ -25,7 +25,6 @@ type (
 	}
 
 	templateAccessController interface {
-		CanAccess(context.Context) bool
 		CanCreateTemplate(context.Context) bool
 		CanReadTemplate(context.Context, *types.Template) bool
 		CanUpdateTemplate(context.Context, *types.Template) bool
