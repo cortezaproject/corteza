@@ -608,10 +608,6 @@ func (svc auth) CheckPasswordStrength(password string) bool {
 	return true
 }
 
-func (svc auth) EmailConfirmationRequired() bool {
-	return svc.settings.Auth.Internal.Signup.EmailConfirmationRequired
-}
-
 // SetPasswordCredentials (soft) deletes old password entry and creates a new entry with new password on every change
 //
 // This way we can implement more strict password-change policies in the future

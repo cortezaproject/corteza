@@ -27,19 +27,11 @@ type (
 		InternalSignUp(ctx context.Context, input *types.User, password string) (u *types.User, err error)
 		InternalLogin(ctx context.Context, email string, password string) (u *types.User, err error)
 		SetPassword(ctx context.Context, userID uint64, password string) (err error)
-		//Impersonate(ctx context.Context, userID uint64) (u *types.User, err error)
 		ChangePassword(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error)
-		//CheckPasswordStrength(password string) bool
-		EmailConfirmationRequired() bool
-		//SetPasswordCredentials(ctx context.Context, userID uint64, password string) (err error)
-		//IssueAuthRequestToken(ctx context.Context, user *types.User) (token string, err error)
-		//ValidateAuthRequestToken(ctx context.Context, token string) (u *types.User, err error)
 		ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error)
 		ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error)
-		//ExchangePasswordResetToken(ctx context.Context, token string) (u *types.User, t string, err error)
 		SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error)
 		SendPasswordResetToken(ctx context.Context, email string) (err error)
-		//CanRegister(ctx context.Context) error
 		GetProviders() types.ExternalAuthProviderSet
 	}
 
@@ -75,7 +67,7 @@ type (
 		Settings       *settings.Settings
 	}
 
-	handlerFn func(p *request.AuthReq) error
+	handlerFn func(req *request.AuthReq) error
 )
 
 func init() {
@@ -188,7 +180,6 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			err = h.Templates.ExecuteTemplate(w, TmplInternalError, map[string]interface{}{
 				"error": err,
 			})
-			h.Log.Debug("request handled", zap.Error(err))
 
 			if err == nil {
 				return
@@ -196,6 +187,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 		}
 
 		if err != nil {
+			h.Log.Error("unhandled error", zap.Error(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}

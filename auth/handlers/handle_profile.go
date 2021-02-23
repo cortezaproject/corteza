@@ -18,7 +18,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 		}
 	}
 
-	req.Data["emailConfirmationRequired"] = !req.User.EmailConfirmed || !h.AuthService.EmailConfirmationRequired()
+	req.Data["emailConfirmationRequired"] = !req.User.EmailConfirmed && h.Settings.EmailConfirmationRequired
 	return nil
 }
 
