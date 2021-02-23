@@ -1,9 +1,13 @@
 package auth
 
 import (
+	"embed"
 	"html/template"
 	"io"
 )
+
+//go:embed assets/templates/*.tpl
+var embeddedTemplates embed.FS
 
 type (
 	templateLoader func(tpls *template.Template) (tpl *template.Template, err error)
@@ -51,7 +55,12 @@ func NewStaticTemplates(base *template.Template, loader templateLoader) (s *temp
 	return
 }
 
-// Executes preloaded templates
+// ExecuteTemplate executes preloaded templates
 func (t templateStatic) ExecuteTemplate(w io.Writer, name string, data interface{}) error {
 	return t.base.ExecuteTemplate(w, name, data)
+}
+
+// EmbeddedTemplates returns embedded templates.
+func EmbeddedTemplates(t *template.Template) (tpl *template.Template, err error) {
+	return t.ParseFS(embeddedTemplates, "templates/*.html.tpl")
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -52,10 +53,14 @@ type (
 		DeleteByUserID(ctx context.Context, userID uint64) error
 	}
 
+	templateExecutor interface {
+		ExecuteTemplate(io.Writer, string, interface{}) error
+	}
+
 	AuthHandlers struct {
 		Log *zap.Logger
 
-		Templates      TemplateExecutor
+		Templates      templateExecutor
 		OAuth2         *oauth2server.Server
 		SessionManager *session.Manager
 		AuthService    authService
@@ -68,6 +73,22 @@ type (
 	}
 
 	handlerFn func(req *request.AuthReq) error
+)
+
+const (
+	TmplAuthorizedClients        = "authorized-clients.html.tpl"
+	TmplChangePassword           = "change-password.html.tpl"
+	TmplLogin                    = "login.html.tpl"
+	TmplLogout                   = "logout.html.tpl"
+	TmplOAuth2AuthorizeClient    = "oauth2-authorize-client.html.tpl"
+	TmplRequestPasswordReset     = "request-password-reset.html.tpl"
+	TmplPasswordResetRequested   = "password-reset-requested.html.tpl"
+	TmplResetPassword            = "reset-password.html.tpl"
+	TmplProfile                  = "profile.html.tpl"
+	TmplSessions                 = "sessions.html.tpl"
+	TmplSignup                   = "signup.html.tpl"
+	TmplPendingEmailConfirmation = "pending-email-confirmation.html.tpl"
+	TmplInternalError            = "error-internal.html.tpl"
 )
 
 func init() {
