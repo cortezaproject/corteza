@@ -4,13 +4,13 @@ type: docker
 
 steps:
   - name: "Quality Control"
-    image: cortezaproject/corteza-server-builder:1.15
+    image: cortezaproject/corteza-server-builder:1.16
     pull: always
     commands:
       - make test.unit
 
   - name: "Build release (tag)"
-    image: cortezaproject/corteza-server-builder:1.15
+    image: cortezaproject/corteza-server-builder:1.16
     environment:
       RELEASE_SFTP_KEY: { from_secret: RELEASE_SFTP_KEY }
       RELEASE_SFTP_URI: { from_secret: RELEASE_SFTP_URI }
@@ -35,7 +35,7 @@ type: docker
 
 steps:
   - name: test
-    image: cortezaproject/corteza-server-builder:1.15
+    image: cortezaproject/corteza-server-builder:1.16
     pull: always
     environment:
       GOFLAGS: -mod=vendor
