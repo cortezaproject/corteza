@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen provision docs build
+.PHONY: pack build help qa critic vet codegen provision docs build auth
 
 include Makefile.inc
 
@@ -144,6 +144,10 @@ provision:
 
 docs: $(STATIK)
 	$(STATIK) -p docs -m -Z -f -src=./docs
+
+auth: $(STATIK)
+	$(STATIK) -dest auth -p handlers -a embedded_assets -m -Z -f -src=./auth/assets
+
 
 #######################################################################################################################
 # Quality Assurance

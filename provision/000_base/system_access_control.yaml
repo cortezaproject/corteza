@@ -11,6 +11,9 @@ allow:
     system:role:
       - read
 
+    system:auth-client:
+      - authorize
+
   admins:
     system:
       - access
@@ -18,6 +21,7 @@ allow:
       - settings.read
       - settings.manage
       - application.create
+      - authClient.create
       - user.create
       - role.create
       - reminder.assign
@@ -41,3 +45,8 @@ allow:
       - update
       - delete
       - members.manage
+
+    system:auth-client:
+      - read
+      - update
+      - delete

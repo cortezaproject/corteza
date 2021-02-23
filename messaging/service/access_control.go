@@ -33,7 +33,6 @@ func AccessControl(perm accessControlRBACServicer) *accessControl {
 func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.MessagingRBACResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.MessagingRBACResource, "grant", svc.CanGrant(ctx))
 	ee.Push(types.MessagingRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.MessagingRBACResource, "settings.manage", svc.CanManageSettings(ctx))
@@ -42,10 +41,6 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.MessagingRBACResource, "channel.group.create", svc.CanCreateGroupChannel(ctx))
 
 	return
-}
-
-func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.MessagingRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
@@ -260,7 +255,6 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 
 	wl.Set(
 		types.MessagingRBACResource,
-		"access",
 		"grant",
 		"settings.read",
 		"settings.manage",

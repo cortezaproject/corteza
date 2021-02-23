@@ -15,6 +15,7 @@ const (
 	RequestOrigin_APP_Run       = "app/run"
 	RequestOrigin_API_REST      = "api/rest"
 	RequestOrigin_API_GRPC      = "api/grpc"
+	RequestOrigin_Auth          = "auth"
 )
 
 // RequestOriginKey is the key that holds th unique request ID in a request context.

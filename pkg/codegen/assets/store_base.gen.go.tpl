@@ -77,10 +77,12 @@ func Lookup{{ export $Types.Singular }}By{{ export .Suffix }}(ctx context.Contex
 }
 {{- end }}
 
+{{ if .Create.Enable }}
 // Create{{ export $.Types.Singular }} creates one or more {{ $.Types.Plural }} in store
 func Create{{ export $Types.Singular }}(ctx context.Context, s {{ export $Types.Plural }}{{ template "extraArgsDef" . }}, rr ... *{{ $Types.GoType }}) error {
 	return s.Create{{ export $Types.Singular }}(ctx{{ template "extraArgsCall" . }}, rr... )
 }
+{{- end }}
 
 {{ if .Update.Enable }}
 // Update{{ export $.Types.Singular }} updates one or more (existing) {{ $.Types.Plural }} in store

@@ -28,8 +28,6 @@ type (
 	}
 
 	roleAccessController interface {
-		CanAccess(context.Context) bool
-
 		CanCreateRole(context.Context) bool
 		CanReadRole(context.Context, *types.Role) bool
 		CanUpdateRole(context.Context, *types.Role) bool
@@ -92,9 +90,9 @@ func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.Rol
 			//
 			// not the best solution but ATM it allows us to have at least
 			// some kind of control over who can see deleted or archived roles
-			if !svc.ac.CanAccess(ctx) {
-				return RoleErrNotAllowedToListRoles()
-			}
+			//if !svc.ac.CanAccess(ctx) {
+			//	return RoleErrNotAllowedToListRoles()
+			//}
 		}
 
 		if len(filter.Labels) > 0 {

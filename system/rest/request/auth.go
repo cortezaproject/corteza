@@ -29,81 +29,13 @@ var (
 
 type (
 	// Internal API interface
-	AuthSettings struct {
-	}
-
-	AuthCheck struct {
-	}
-
 	AuthImpersonate struct {
 		// UserID POST parameter
 		//
 		// ID of the impersonated user
 		UserID uint64 `json:",string"`
 	}
-
-	AuthExchangeAuthToken struct {
-		// Token POST parameter
-		//
-		// Token to be exchanged for JWT
-		Token string
-	}
-
-	AuthLogout struct {
-	}
 )
-
-// NewAuthSettings request
-func NewAuthSettings() *AuthSettings {
-	return &AuthSettings{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AuthSettings) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *AuthSettings) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	return err
-}
-
-// NewAuthCheck request
-func NewAuthCheck() *AuthCheck {
-	return &AuthCheck{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AuthCheck) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *AuthCheck) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	return err
-}
 
 // NewAuthImpersonate request
 func NewAuthImpersonate() *AuthImpersonate {
@@ -147,78 +79,6 @@ func (r *AuthImpersonate) Fill(req *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
-		}
-	}
-
-	return err
-}
-
-// NewAuthExchangeAuthToken request
-func NewAuthExchangeAuthToken() *AuthExchangeAuthToken {
-	return &AuthExchangeAuthToken{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AuthExchangeAuthToken) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AuthExchangeAuthToken) GetToken() string {
-	return r.Token
-}
-
-// Fill processes request and fills internal variables
-func (r *AuthExchangeAuthToken) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
-
-	{
-		if err = req.ParseForm(); err != nil {
-			return err
-		}
-
-		// POST params
-
-		if val, ok := req.Form["token"]; ok && len(val) > 0 {
-			r.Token, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return err
-}
-
-// NewAuthLogout request
-func NewAuthLogout() *AuthLogout {
-	return &AuthLogout{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r AuthLogout) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *AuthLogout) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 

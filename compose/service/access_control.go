@@ -37,17 +37,12 @@ func AccessControl(perm accessControlRBACServicer) *accessControl {
 func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.ComposeRBACResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.ComposeRBACResource, "grant", svc.CanGrant(ctx))
 	ee.Push(types.ComposeRBACResource, "namespace.create", svc.CanCreateNamespace(ctx))
 	ee.Push(types.ComposeRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.ComposeRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 
 	return
-}
-
-func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.ComposeRBACResource, "access")
 }
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
@@ -213,7 +208,6 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 
 	wl.Set(
 		types.ComposeRBACResource,
-		"access",
 		"grant",
 		"namespace.create",
 		"settings.read",

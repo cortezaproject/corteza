@@ -10,6 +10,11 @@ func MiddlewareValidOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var ctx = r.Context()
 
+		if !CheckScope(ctx.Value(scopeCtxKey{}), "api") {
+			api.Send(w, r, errors.New("Unauthorized scope"))
+			return
+		}
+
 		if !GetIdentityFromContext(ctx).Valid() {
 			api.Send(w, r, errors.New("Unauthorized"))
 			return

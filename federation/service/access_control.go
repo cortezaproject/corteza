@@ -38,7 +38,6 @@ func AccessControl(perm accessControlRBACServicer) *accessControl {
 func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee = rbac.EffectiveSet{}
 
-	ee.Push(types.FederationRBACResource, "access", svc.CanAccess(ctx))
 	ee.Push(types.FederationRBACResource, "grant", svc.CanGrant(ctx))
 	ee.Push(types.FederationRBACResource, "pair", svc.CanPair(ctx))
 	ee.Push(types.FederationRBACResource, "node.create", svc.CanCreateNode(ctx))
@@ -50,10 +49,6 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 
 func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, types.FederationRBACResource, "grant")
-}
-
-func (svc accessControl) CanAccess(ctx context.Context) bool {
-	return svc.can(ctx, types.FederationRBACResource, "access")
 }
 
 func (svc accessControl) CanPair(ctx context.Context) bool {
@@ -150,7 +145,6 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 	wl.Set(
 		types.FederationRBACResource,
 		"grant",
-		"access",
 		"pair",
 		"node.create",
 		"settings.read",

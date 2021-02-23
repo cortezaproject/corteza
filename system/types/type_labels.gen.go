@@ -33,6 +33,30 @@ func (m Application) LabelResourceID() uint64 {
 }
 
 // SetLabel adds new label to label map
+func (m *AuthClient) SetLabel(key string, value string) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m AuthClient) GetLabels() map[string]string {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (AuthClient) LabelResourceKind() string {
+	return "authClient"
+}
+
+// GetLabels adds new label to label map
+func (m AuthClient) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Role) SetLabel(key string, value string) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]string)
