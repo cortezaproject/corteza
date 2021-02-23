@@ -35,7 +35,7 @@ type (
 		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
-		ReloadTemplates          bool          `env:"AUTH_RELOAD_TEMPLATES"`
+		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
 	}
 )
 

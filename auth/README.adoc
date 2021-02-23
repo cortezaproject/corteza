@@ -1,4 +1,4 @@
-# Corteza auth
+= Corteza auth
 
 .Main responsibilities:
  - Sign-up protocol
@@ -8,3 +8,10 @@
  - Session management
  - Identity federation (login via external providers)
  - Support OAuth2 flows
+
+== Development
+
+=== Templates
+
+All (golang) templates can be found under `assets/templates`.
+You can also find `scenarios.yaml` with list of all templates and scenaris with data that renders auth screens in all possible situations.

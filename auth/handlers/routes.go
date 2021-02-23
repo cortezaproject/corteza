@@ -25,6 +25,11 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		})
 	})
 
+	if h.Opt.DevelopmentMode {
+		r.Get("/auth/dev", h.handle(h.devView))
+		r.Get("/auth/dev/scenarios", h.devSceneView)
+	}
+
 	r.Group(func(r chi.Router) {
 		if h.Opt.RequestRateLimit > 0 {
 			r.Use(httprate.LimitByIP(h.Opt.RequestRateLimit, h.Opt.RequestRateWindowLength)) // @todo make configurable

@@ -1,0 +1,111 @@
+# The following list of templates and scenarios describes
+# all possible views (hopefully).
+#
+# Please read auth/README.adoc for details
+
+error-internal:
+  Default:
+    error: |-
+      Lorem ipsum dolor sit...
+
+login:
+  All disabled: {}
+
+  All enabled:
+    settings:
+      LocalEnabled: true
+      SignupEnabled: true
+      PasswordResetEnabled: true
+      ExternalEnabled: true
+    providers:
+      - { Label: Google,   Handle: google,   Icon: google }
+      - { Label: Facebook, Handle: facebook, Icon: facebook }
+      - { Label: Corteza,  Handle: corteza,  Icon: oidc }
+
+  Only external:
+    settings:
+      PasswordResetEnabled: true
+      ExternalEnabled: true
+    providers:
+      - { Label: Google,   Handle: google,   Icon: google }
+      - { Label: Facebook, Handle: facebook, Icon: facebook }
+      - { Label: Corteza,  Handle: corteza,  Icon: oidc }
+
+  Without signup & pass reset:
+    settings:
+      LocalEnabled: true
+      SignupEnabled: false
+      PasswordResetEnabled: false
+
+
+  With errors after submit:
+    settings:
+      LocalEnabled: true
+    form:
+      email: some.email@example.tld
+      error: "There was an error..."
+
+logout:
+  Default: {}
+
+signup:
+  Default: {}
+
+reset-password:
+  Default: {}
+
+request-password-reset:
+  Default: {}
+
+password-reset-requested:
+  Default: {}
+
+pending-email-confirmation:
+  Default: {}
+
+profile:
+  Default: {}
+
+change-password:
+  Default: {}
+
+authorized-clients:
+  Empty: {}
+  Full:
+    authorizedClients:
+      - Name: Corteza Web Applications
+      - Name: Matrix Chat server
+      - Name: Company's Wordpress
+
+oauth2-authorize-client:
+  Default:
+    client:
+      Name: name of the client
+    user:
+      Name: John Doe
+
+  Disabled:
+    invalidUser: Some good reason why this authorization of client is disabled...
+    disabled: true
+    client:
+      Name: name of the client
+    user:
+      Name: John Doe
+
+sessions:
+  Full:
+    sessions:
+      - Current: true
+        ExpiresIn: 3
+        RemoteAddr: 4.224.2.3
+        UserAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36
+      - ExpiresIn: 2
+        RemoteAddr: 4.224.2.3
+        SameRemoteAddr: true
+        UserAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36
+      - ExpiresIn: 1
+        RemoteAddr: 4.224.2.3
+        SameUserAgent: true
+        UserAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36
+      - ExpiresIn: 0
+        UserAgent: Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36
