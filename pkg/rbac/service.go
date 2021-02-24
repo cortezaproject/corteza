@@ -74,8 +74,11 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 		l: &sync.Mutex{},
 		f: make(chan bool),
 
-		logger: logger.Named("rbac"),
-		store:  s,
+		store: s,
+	}
+
+	if logger != nil {
+		svc.logger = logger.Named("rbac")
 	}
 
 	return

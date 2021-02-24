@@ -8,7 +8,9 @@ import (
 
 type (
 	messaging struct {
-		Channels messagingChannelSet `yaml:"channels"`
+		Channels messagingChannelSet
+
+		EncoderConfig *EncoderConfig `yaml:"-"`
 	}
 )
 
@@ -26,4 +28,20 @@ func (c messaging) MarshalEnvoy() ([]resource.Interface, error) {
 	}
 
 	return nn, nil
+}
+
+func (c *messaging) MarshalYAML() (interface{}, error) {
+	cn, _ := makeMap()
+	var err error
+
+	if len(c.Channels) > 0 {
+		c.Channels.ConfigureEncoder(c.EncoderConfig)
+
+		cn, err = encodeResource(cn, "channels", c.Channels, c.EncoderConfig.MappedOutput, "name")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return cn, nil
 }

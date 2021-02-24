@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
@@ -9,7 +11,6 @@ type (
 		*base
 		Res *rbac.Rule
 
-		// Perhaps?
 		RefRole     *Ref
 		RefResource *Ref
 	}
@@ -27,4 +28,8 @@ func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref) *RbacRule {
 	}
 
 	return r
+}
+
+func RbacResourceErrNotFound(ii Identifiers) error {
+	return fmt.Errorf("rbac resource not found %v", ii.StringSlice())
 }

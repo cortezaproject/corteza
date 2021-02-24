@@ -21,6 +21,12 @@ type (
 		SysID() uint64
 	}
 
+	RefableInterface interface {
+		Interface
+
+		Ref() string
+	}
+
 	RefSet []*Ref
 	Ref    struct {
 		// @todo check with Denis regarding strings here (the cdocs comment)
@@ -113,4 +119,9 @@ func (r *Ref) Constraint(c *Ref) *Ref {
 	})
 
 	return r
+}
+
+// IsWildcard checks if this Ref points to all resources of a specific resource type
+func (r *Ref) IsWildcard() bool {
+	return r.Identifiers["*"]
 }

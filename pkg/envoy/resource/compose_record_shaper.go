@@ -1,5 +1,9 @@
 package resource
 
+import (
+	"strings"
+)
+
 type (
 	// A simple wrapper struct for related resources
 	composeRecordShaper struct{}
@@ -51,6 +55,9 @@ func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *Resou
 				Values: crt.mapValues(mr, def.FieldMap),
 			}
 
+			crt.getTimestamps(rRaw)
+			crt.getUserstamps(rRaw)
+
 			// Process it
 			err = f(rRaw)
 			if err != nil {
@@ -75,13 +82,79 @@ func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet
 
 	for k, v := range ov {
 		if m, has := mx[k]; has {
-			nv[m.Field] = v
+			if !m.IsIgnored() {
+				nv[m.Field] = v
+			}
 		} else {
 			nv[k] = v
 		}
 	}
 
 	return nv
+}
+
+func (crt *composeRecordShaper) getTimestamps(r *ComposeRecordRaw) {
+	ts := &Timestamps{}
+	// Provided values are already mapped
+	for k, v := range crt.cloneValues(r) {
+		switch strings.ToLower(k) {
+		case "createdat",
+			"created_at":
+			ts.CreatedAt = MakeTimestamp(v)
+			delete(r.Values, k)
+
+		case "updatedat",
+			"updated_at":
+			ts.UpdatedAt = MakeTimestamp(v)
+			delete(r.Values, k)
+
+		case "deletedat",
+			"deleted_at":
+			ts.DeletedAt = MakeTimestamp(v)
+			delete(r.Values, k)
+		}
+	}
+
+	r.Ts = ts
+}
+
+func (crt *composeRecordShaper) getUserstamps(r *ComposeRecordRaw) {
+	us := &Userstamps{}
+	// Provided values are already mapped
+	for k, v := range crt.cloneValues(r) {
+		switch strings.ToLower(k) {
+		case "createdby",
+			"creatorid",
+			"creator":
+			us.CreatedBy = MakeUserstampFromRef(v)
+			delete(r.Values, k)
+
+		case "updatedby":
+			us.UpdatedBy = MakeUserstampFromRef(v)
+			delete(r.Values, k)
+
+		case "deletedby":
+			us.DeletedBy = MakeUserstampFromRef(v)
+			delete(r.Values, k)
+
+		case "ownedby",
+			"ownerid",
+			"owner":
+			us.OwnedBy = MakeUserstampFromRef(v)
+			delete(r.Values, k)
+
+		}
+	}
+
+	r.Us = us
+}
+
+func (crt *composeRecordShaper) cloneValues(r *ComposeRecordRaw) map[string]string {
+	rr := make(map[string]string)
+	for k, v := range r.Values {
+		rr[k] = v
+	}
+	return rr
 }
 
 func (crt *composeRecordShaper) getKey(vv map[string]string, kk []string) (rtr string) {

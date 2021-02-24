@@ -2,9 +2,7 @@ package store
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
@@ -12,109 +10,13 @@ import (
 )
 
 type (
-	roleState struct {
+	role struct {
 		cfg *EncoderConfig
 
 		res *resource.Role
 		rl  *types.Role
 	}
 )
-
-func NewRole(res *resource.Role, cfg *EncoderConfig) resourceState {
-	return &roleState{
-		cfg: mergeConfig(cfg, res.Config()),
-
-		res: res,
-	}
-}
-
-func (n *roleState) Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
-	// Initial values
-	if n.res.Res.CreatedAt.IsZero() {
-		n.res.Res.CreatedAt = *now()
-	}
-
-	n.rl, err = findRoleS(ctx, s, makeGenericFilter(n.res.Identifiers()))
-	if err != nil {
-		return err
-	}
-
-	if n.rl != nil {
-		n.res.Res.ID = n.rl.ID
-	}
-	return nil
-}
-
-func (n *roleState) Encode(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error) {
-	rl := n.res.Res
-	exists := n.rl != nil && n.rl.ID > 0
-
-	// Determine the ID
-	if rl.ID <= 0 && exists {
-		rl.ID = n.rl.ID
-	}
-	if rl.ID <= 0 {
-		rl.ID = NextID()
-	}
-
-	// This is not possible, but let's do it anyway
-	if state.Conflicting {
-		return nil
-	}
-
-	// Timestamps
-	ts := n.res.Timestamps()
-	if ts != nil {
-		if ts.CreatedAt != "" {
-			t := toTime(ts.CreatedAt)
-			if t != nil {
-				rl.CreatedAt = *t
-			}
-		}
-		if ts.UpdatedAt != "" {
-			rl.UpdatedAt = toTime(ts.UpdatedAt)
-		}
-		if ts.DeletedAt != "" {
-			rl.DeletedAt = toTime(ts.DeletedAt)
-		}
-		if ts.ArchivedAt != "" {
-			rl.ArchivedAt = toTime(ts.ArchivedAt)
-		}
-	}
-
-	// Evaluate the resource skip expression
-	// @todo expand available parameters; similar implementation to compose/types/record@Dict
-	if skip, err := basicSkipEval(ctx, n.cfg, !exists); err != nil {
-		return err
-	} else if skip {
-		return nil
-	}
-
-	// Create a fresh role
-	if !exists {
-		return store.CreateRole(ctx, s, rl)
-	}
-
-	// Update existing roles
-	switch n.cfg.OnExisting {
-	case resource.Skip:
-		return nil
-
-	case resource.MergeLeft:
-		rl = mergeRoles(n.rl, rl)
-
-	case resource.MergeRight:
-		rl = mergeRoles(rl, n.rl)
-	}
-
-	err = store.UpdateRole(ctx, s, rl)
-	if err != nil {
-		return err
-	}
-
-	n.res.Res = rl
-	return nil
-}
 
 // mergeRoles merges b into a, prioritising a
 func mergeRoles(a, b *types.Role) *types.Role {
@@ -147,7 +49,7 @@ func mergeRoles(a, b *types.Role) *types.Role {
 //
 // Provided resources are prioritized.
 func findRoleRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Role, err error) {
-	rl = findRoleR(rr, ii)
+	rl = resource.FindRole(rr, ii)
 	if rl != nil {
 		return rl, nil
 	}
@@ -196,32 +98,4 @@ func findRoleS(ctx context.Context, s store.Storer, gf genericFilter) (rl *types
 	}
 
 	return nil, nil
-}
-
-// findRoleR looks for the role in the resources
-func findRoleR(rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Role) {
-	var rlRes *resource.Role
-
-	rr.Walk(func(r resource.Interface) error {
-		rr, ok := r.(*resource.Role)
-		if !ok {
-			return nil
-		}
-
-		if rr.Identifiers().HasAny(ii) {
-			rlRes = rr
-		}
-		return nil
-	})
-
-	// Found it
-	if rlRes != nil {
-		return rlRes.Res
-	}
-
-	return nil
-}
-
-func roleErrUnresolved(ii resource.Identifiers) error {
-	return fmt.Errorf("role unresolved %v", ii.StringSlice())
 }

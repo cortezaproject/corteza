@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"io"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -11,8 +12,11 @@ type (
 		pp []Preparer
 	}
 
-	// Rc is an alias for the ResourceState channel
-	Rc chan *ResourceState
+	Stream struct {
+		Source     io.Reader
+		Resource   string
+		Identifier string
+	}
 
 	Preparer interface {
 		Prepare(ctx context.Context, ee ...*ResourceState) error
@@ -25,9 +29,19 @@ type (
 		Encode(ctx context.Context, p Provider) error
 	}
 
+	// Streammer provides a set of streams of encoded documents
+	Streammer interface {
+		Stream() []*Stream
+	}
+
 	PrepareEncoder interface {
 		Preparer
 		Encoder
+	}
+	PrepareEncodeStreammer interface {
+		Preparer
+		Encoder
+		Streammer
 	}
 )
 
@@ -98,16 +112,27 @@ func (b *builder) buildGraph(rr []resource.Interface) *graph {
 
 		// Attempt to connect all available nodes
 		for _, ref := range refs {
-			rNode := nIndex.GetRef(ref)
+			// Handle wildcard references
+			if ref.IsWildcard() {
+				nn := nIndex.GetResourceType(ref.ResourceType)
+				// Connect the nodes
+				for _, n := range nn {
+					g.addChild(cNode, n)
+					g.addParent(n, cNode)
+				}
+			} else {
+				// Handle regular references
+				rNode := nIndex.GetRef(ref)
 
-			if rNode == nil {
-				missingRefs = append(missingRefs, ref)
-				continue
+				if rNode == nil {
+					missingRefs = append(missingRefs, ref)
+					continue
+				}
+
+				// The resource is available; we can connect the two
+				g.addChild(cNode, rNode)
+				g.addParent(rNode, cNode)
 			}
-
-			// The resource is available; we can connect the two
-			g.addChild(cNode, rNode)
-			g.addParent(rNode, cNode)
 		}
 
 		g.addNode(cNode)

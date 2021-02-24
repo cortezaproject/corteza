@@ -1,6 +1,9 @@
 package resource
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -10,37 +13,74 @@ type (
 		Res *types.Module
 
 		// Might keep track of related NS
-		NsRef  *Ref
-		ModRef RefSet
+		RefNs   *Ref
+		RefMods RefSet
 	}
 )
 
 func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 	r := &ComposeModule{
-		base:   &base{},
-		ModRef: make(RefSet, 0, len(res.Fields)),
+		base:    &base{},
+		RefMods: make(RefSet, 0, len(res.Fields)),
 	}
 	r.SetResourceType(COMPOSE_MODULE_RESOURCE_TYPE)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 
 	// Field deps
 	for _, f := range res.Fields {
 		switch f.Kind {
 		case "Record":
-			refM := f.Options.String("module")
-			if refM != "" && refM != "0" {
-				r.ModRef = append(r.ModRef, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refM).Constraint(r.NsRef))
+			refMod := f.Options.String("module")
+			if refMod == "" {
+				refMod = f.Options.String("moduleID")
+			}
+			if refMod != "" && refMod != "0" {
+				r.RefMods = append(r.RefMods, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refMod).Constraint(r.RefNs))
 			}
 		}
 	}
+
+	// Initial timestamps
+	r.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
 	return r
 }
 
 func (r *ComposeModule) SysID() uint64 {
 	return r.Res.ID
+}
+
+func (r *ComposeModule) Ref() string {
+	return FirstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+}
+
+// FindComposeModule looks for the module in the resource set
+func FindComposeModule(rr InterfaceSet, ii Identifiers) (ns *types.Module) {
+	var modRes *ComposeModule
+
+	rr.Walk(func(r Interface) error {
+		mr, ok := r.(*ComposeModule)
+		if !ok {
+			return nil
+		}
+
+		if mr.Identifiers().HasAny(ii) {
+			modRes = mr
+		}
+		return nil
+	})
+
+	// Found it
+	if modRes != nil {
+		return modRes.Res
+	}
+	return nil
+}
+
+func ComposeModuleErrUnresolved(ii Identifiers) error {
+	return fmt.Errorf("compose module unresolved %v", ii.StringSlice())
 }

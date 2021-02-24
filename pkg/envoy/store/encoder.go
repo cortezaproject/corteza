@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -38,11 +41,38 @@ type (
 		DeferNok func(error) error
 	}
 
+	accessControlRBACServicer interface {
+		Can([]uint64, rbac.Resource, rbac.Operation, ...rbac.CheckAccessFunc) bool
+	}
+
+	composeAccessController interface {
+		composeRecordValueAccessController
+		composeRecordAccessController
+	}
+	composeRecordValueAccessController interface {
+		CanReadRecordValue(context.Context, *types.ModuleField) bool
+		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
+	}
+
+	composeRecordAccessController interface {
+		CanCreateRecord(context.Context, *types.Module) bool
+		CanUpdateRecord(context.Context, *types.Module) bool
+		CanDeleteRecord(context.Context, *types.Module) bool
+	}
+
+	payload struct {
+		s     store.Storer
+		state *envoy.ResourceState
+
+		composeAccessControl composeAccessController
+		systemAC             accessControlRBACServicer
+	}
+
 	// resourceState allows each conforming struct to be initialized and encoded
 	// by the store encoder
 	resourceState interface {
-		Prepare(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error)
-		Encode(ctx context.Context, s store.Storer, state *envoy.ResourceState) (err error)
+		Prepare(context.Context, *payload) (err error)
+		Encode(context.Context, *payload) (err error)
 	}
 )
 
@@ -61,6 +91,8 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 		}
 	}
 
+	rbac.Initialize(nil, s)
+
 	return &storeEncoder{
 		s:   s,
 		cfg: cfg,
@@ -73,52 +105,52 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 //
 // It initializes and prepares the resource state for each provided resource
 func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) (err error) {
-	f := func(rs resourceState, es *envoy.ResourceState) error {
-		err = rs.Prepare(ctx, se.s, es)
+	f := func(rs resourceState, ers *envoy.ResourceState) error {
+		err = rs.Prepare(ctx, se.makePayload(ers))
 		if err != nil {
 			return err
 		}
 
-		se.state[es.Res] = rs
+		se.state[ers.Res] = rs
 		return nil
 	}
 
-	for _, e := range ee {
-		switch res := e.Res.(type) {
+	for _, ers := range ee {
+		switch res := ers.Res.(type) {
 		// Compose resources
 		case *resource.ComposeNamespace:
-			err = f(NewComposeNamespaceState(res, se.cfg), e)
+			err = f(newComposeNamespaceFromResource(res, se.cfg), ers)
 		case *resource.ComposeModule:
-			err = f(NewComposeModuleState(res, se.cfg), e)
+			err = f(NewComposeModuleFromResource(res, se.cfg), ers)
 		case *resource.ComposeRecord:
-			err = f(NewComposeRecordState(res, se.cfg), e)
+			err = f(NewComposeRecordFromResource(res, se.cfg), ers)
 		case *resource.ComposeChart:
-			err = f(NewComposeChartState(res, se.cfg), e)
+			err = f(newComposeChartFromResource(res, se.cfg), ers)
 		case *resource.ComposePage:
-			err = f(NewComposePageState(res, se.cfg), e)
+			err = f(newComposePageFromResource(res, se.cfg), ers)
 
 		// System resources
 		case *resource.User:
-			err = f(NewUserState(res, se.cfg), e)
+			err = f(NewUserFromResource(res, se.cfg), ers)
 		case *resource.Role:
-			err = f(NewRole(res, se.cfg), e)
+			err = f(NewRoleFromResource(res, se.cfg), ers)
 		case *resource.Application:
-			err = f(NewApplicationState(res, se.cfg), e)
-		case *resource.Settings:
-			err = f(NewSettingsState(res, se.cfg), e)
+			err = f(NewApplicationFromResource(res, se.cfg), ers)
+		case *resource.Setting:
+			err = f(NewSettingFromResource(res, se.cfg), ers)
 		case *resource.RbacRule:
-			err = f(NewRbacRuleState(res, se.cfg), e)
+			err = f(newRbacRuleFromResource(res, se.cfg), ers)
 
 			// Messaging resources
 		case *resource.MessagingChannel:
-			err = f(NewMessagingChannelState(res, se.cfg), e)
+			err = f(newMessagingChannelFromResource(res, se.cfg), ers)
 
 		default:
 			err = ErrUnknownResource
 		}
 
 		if err != nil {
-			return se.WrapError("prepare", e.Res, err)
+			return se.WrapError("prepare", ers.Res, err)
 		}
 	}
 
@@ -127,29 +159,37 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 
 // Encode encodes available resource states using the given store encoder
 func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
-	var e *envoy.ResourceState
+	var ers *envoy.ResourceState
 	return store.Tx(ctx, se.s, func(ctx context.Context, s store.Storer) (err error) {
 		for {
-			e, err = p.NextInverted(ctx)
+			ers, err = p.NextInverted(ctx)
 			if err != nil {
 				return err
 			}
-			if e == nil {
+			if ers == nil {
 				return nil
 			}
 
-			state := se.state[e.Res]
+			state := se.state[ers.Res]
 			if state == nil {
 				err = ErrResourceStateUndefined
 			} else {
-				err = state.Encode(ctx, se.s, e)
+				err = state.Encode(ctx, se.makePayload(ers))
 			}
 
 			if err != nil {
-				return se.WrapError("encode", e.Res, err)
+				return se.WrapError("encode", ers.Res, err)
 			}
 		}
 	})
+}
+
+func (se *storeEncoder) makePayload(ers *envoy.ResourceState) *payload {
+	return &payload{
+		s:                    se.s,
+		state:                ers,
+		composeAccessControl: service.AccessControl(rbac.Global()),
+	}
 }
 
 func (se *storeEncoder) WrapError(act string, res resource.Interface, err error) error {

@@ -1,10 +1,10 @@
 package yaml
 
 import (
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
@@ -13,20 +13,30 @@ func decodeTimestamps(n *yaml.Node) (*resource.Timestamps, error) {
 		st = &resource.Timestamps{}
 	)
 
-	return st, EachMap(n, func(k, v *yaml.Node) (err error) {
+	// Little helper to make timestamps
+	f := func(v *yaml.Node) (*resource.Timestamp, error) {
+		aux := ""
+		err := y7s.DecodeScalar(v, "decode "+v.Value, &aux)
+		if err != nil {
+			return nil, err
+		}
+		return resource.MakeTimestamp(aux), nil
+	}
+
+	return st, y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "createdat":
-			return DecodeScalar(v, "created at", &st.CreatedAt)
+			st.CreatedAt, err = f(v)
 		case "updatedat":
-			return DecodeScalar(v, "updated at", &st.UpdatedAt)
+			st.UpdatedAt, err = f(v)
 		case "deletedat":
-			return DecodeScalar(v, "deleted at", &st.DeletedAt)
+			st.DeletedAt, err = f(v)
 		case "suspendedat":
-			return DecodeScalar(v, "suspended at", &st.SuspendedAt)
+			st.SuspendedAt, err = f(v)
 		case "archivedat":
-			return DecodeScalar(v, "archived at", &st.ArchivedAt)
+			st.ArchivedAt, err = f(v)
 		}
-		return nil
+		return err
 	})
 }
 
@@ -35,18 +45,31 @@ func decodeUserstamps(n *yaml.Node) (*resource.Userstamps, error) {
 		us = &resource.Userstamps{}
 	)
 
-	return us, EachMap(n, func(k, v *yaml.Node) (err error) {
+	// Little helper to make userstamps
+	f := func(v *yaml.Node) (*resource.Userstamp, error) {
+		aux := ""
+		err := y7s.DecodeScalar(v, "decode "+v.Value, &aux)
+		if err != nil {
+			return nil, err
+		}
+		return resource.MakeUserstampFromRef(aux), nil
+	}
+
+	return us, y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "createdby",
-			"creatorid":
-			return DecodeScalar(v, "created by", &us.CreatedBy)
+			"creatorid",
+			"creator":
+			us.CreatedBy, err = f(v)
 		case "updatedby":
-			return DecodeScalar(v, "updated by", &us.UpdatedBy)
+			us.UpdatedBy, err = f(v)
 		case "deletedby":
-			return DecodeScalar(v, "deleted by", &us.DeletedBy)
-		case "ownedby":
-			return DecodeScalar(v, "owned by", &us.OwnedBy)
+			us.DeletedBy, err = f(v)
+		case "ownedby",
+			"ownerid",
+			"owner":
+			us.OwnedBy, err = f(v)
 		}
-		return nil
+		return err
 	})
 }
