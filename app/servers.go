@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
+	"github.com/cortezaproject/corteza-server/docs"
 	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
 	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -69,11 +70,8 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				r.Route("/federation", federationRest.MountRoutes)
 			}
 
-			r.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
-				// redirect to endpoint with slash
-				http.Redirect(w, r, "/"+apiBaseUrl+"/docs/", http.StatusPermanentRedirect)
-			})
-			r.HandleFunc("/docs*", server.ServeDocs("/"+apiBaseUrl+"/docs"))
+			r.Handle("/docs", http.RedirectHandler("/"+apiBaseUrl+"/docs/", http.StatusPermanentRedirect))
+			r.Handle("/docs*", http.StripPrefix("/"+apiBaseUrl+"/docs", http.FileServer(docs.GetFS())))
 		})
 
 		app.Log.Info(
