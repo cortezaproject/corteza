@@ -3,52 +3,53 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"path"
 	"strings"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
-	st "github.com/cortezaproject/corteza-server/system/types"
+	systypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 )
 
-func TestSimpleCases(t *testing.T) {
-	var (
-		ctx    = context.Background()
-		s, err = initStore(ctx)
-	)
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
-	}
+func TestYamlStore_base(t *testing.T) {
+	type (
+		tc struct {
+			name  string
+			file  string
+			asDir bool
 
-	ni := uint64(0)
+			// Before the data gets processed
+			pre func() error
+			// After the data gets processed
+			post func(req *require.Assertions, err error)
+			// Data assertions
+			check func(req *require.Assertions)
+		}
+	)
+
+	var (
+		ctx       = auth.SetSuperUserContext(context.Background())
+		namespace = "base"
+		s         = initStore(ctx, t)
+		err       error
+	)
+
+	ni := uint64(10)
 	su.NextID = func() uint64 {
 		ni++
 		return ni
 	}
 
-	prepare := func(ctx context.Context, s store.Storer, t *testing.T, suite, file string) (*require.Assertions, error) {
-		req := require.New(t)
-
-		nn, err := yd(ctx, suite, file)
-		req.NoError(err)
-
-		return req, encode(ctx, s, nn)
-	}
-
 	cases := []*tc{
 		{
-			name:  "simple namespaces",
-			suite: "simple",
-			file:  "namespaces",
-			pre: func() (err error) {
-				return s.TruncateComposeNamespaces(ctx)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
+			name: "namespaces",
+			file: "namespaces",
 			check: func(req *require.Assertions) {
 				ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "ns1")
 				req.NoError(err)
@@ -59,39 +60,22 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple mods; no namespace",
-			suite: "simple",
-			file:  "modules_no_ns",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-				)
-			},
+			name: "modules; no namespace",
+			file: "modules_no_ns",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 				req.True(strings.Contains(err.Error(), "prepare compose module"))
 				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple mods",
-			suite: "simple",
-			file:  "modules",
+			name: "modules",
+			file: "modules",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, 100, "mod1")
@@ -114,27 +98,18 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple mods; conditional",
-			suite: "simple",
-			file:  "modules_conditional",
+			name: "modules; conditional",
+			file: "modules_conditional",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeRecords(ctx, nil),
-					s.TruncateComposeModuleFields(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeNamespaces(ctx),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 
-					storeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1", "mod1 name"),
+					storeComposeModuleField(ctx, s, 200, 300, "f1"),
 
-					storeModule(ctx, s, 100, 200, "mod1", "mod1 name"),
-					storeModuleField(ctx, s, 200, 300, "f1"),
-
-					storeModule(ctx, s, 100, 201, "mod2", "mod2 name"),
-					storeModuleField(ctx, s, 201, 301, "f1"),
+					storeComposeModule(ctx, s, 100, 201, "mod2", "mod2 name"),
+					storeComposeModuleField(ctx, s, 201, 301, "f1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				mod1, err := store.LookupComposeModuleByID(ctx, s, 200)
@@ -152,36 +127,51 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple charts; no ns",
-			suite: "simple",
-			file:  "charts_no_ns",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-				)
+			name: "modules; expressions",
+			file: "modules_expressions",
+			check: func(req *require.Assertions) {
+				ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "crm")
+				req.NoError(err)
+				req.NotNil(ns)
+
+				mod, err := loadComposeModuleFull(ctx, s, req, ns.ID, "Account")
+				req.NotNil(mod)
+				req.NoError(err)
+				req.Len(mod.Fields, 2)
+
+				// Check the full thing
+				mfF := mod.Fields[0]
+				req.Equal("a > b", mfF.Expressions.ValueExpr)
+				req.Subset(mfF.Expressions.Sanitizers, []string{"trim(value)"})
+				v := mfF.Expressions.Validators[0]
+				req.Equal("a == \"\"", v.Test)
+				req.Equal("Value should not be empty", v.Error)
+
+				// Check the other validator form
+				mfV := mod.Fields[1]
+				v = mfV.Expressions.Validators[0]
+				req.Equal("value == \"\"", v.Test)
+				req.Equal("Value should be filled", v.Error)
 			},
+		},
+
+		{
+			name: "charts; no namespace",
+			file: "charts_no_ns",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
 				req.True(strings.Contains(err.Error(), "prepare compose chart"))
 				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple charts; no mod",
-			suite: "simple",
-			file:  "charts_no_mod",
+			name: "charts; no moduleule",
+			file: "charts_no_mod",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
 			},
 			post: func(req *require.Assertions, err error) {
@@ -190,25 +180,16 @@ func TestSimpleCases(t *testing.T) {
 				req.True(strings.Contains(err.Error(), "prepare compose chart"))
 				req.True(strings.Contains(err.Error(), "compose module unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple charts",
-			suite: "simple",
-			file:  "charts",
+			name: "charts",
+			file: "charts",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
-					storeModule(ctx, s, 100, 200, "mod1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				chr, err := store.LookupComposeChartByNamespaceIDHandle(ctx, s, 100, "c1")
@@ -225,39 +206,22 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple pages; no ns",
-			suite: "simple",
-			file:  "pages_no_ns",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-					s.TruncateComposePages(ctx),
-				)
-			},
-
+			name: "pages; no namespace",
+			file: "pages_no_ns",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
 				req.True(strings.Contains(err.Error(), "prepare compose page"))
 				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "record pages; no mod",
-			suite: "simple",
-			file:  "pages_r_no_mod",
+			name: "record pages; no module",
+			file: "pages_r_no_mod",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-					s.TruncateComposePages(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
 			},
 
@@ -267,26 +231,16 @@ func TestSimpleCases(t *testing.T) {
 				req.True(strings.Contains(err.Error(), "prepare compose page"))
 				req.True(strings.Contains(err.Error(), "compose module unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple pages",
-			suite: "simple",
-			file:  "pages",
+			name: "pages",
+			file: "pages",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
 			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
-
 			check: func(req *require.Assertions) {
 				pg, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, 100, "pg1")
 				req.NoError(err)
@@ -303,24 +257,14 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "record page",
-			suite: "simple",
-			file:  "pages_r",
+			name: "record page",
+			file: "pages_r",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeCharts(ctx),
-					s.TruncateComposePages(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
-					storeModule(ctx, s, 100, 200, "mod1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
 				)
 			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
-
 			check: func(req *require.Assertions) {
 				pg, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, 100, "pg1")
 				req.NoError(err)
@@ -337,20 +281,10 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "applications",
-			suite: "simple",
-			file:  "applications",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateApplications(ctx),
-				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
-
+			name: "applications",
+			file: "applications",
 			check: func(req *require.Assertions) {
-				apps, _, err := store.SearchApplications(ctx, s, st.ApplicationFilter{
+				apps, _, err := store.SearchApplications(ctx, s, systypes.ApplicationFilter{
 					Name: "app1",
 				})
 				req.NoError(err)
@@ -363,17 +297,8 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "users",
-			suite: "simple",
-			file:  "users",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateUsers(ctx),
-				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
+			name: "users",
+			file: "users",
 			check: func(req *require.Assertions) {
 				u, err := store.LookupUserByHandle(ctx, s, "u1")
 				req.NoError(err)
@@ -386,17 +311,8 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "roles",
-			suite: "simple",
-			file:  "roles",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateRoles(ctx),
-				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
+			name: "roles",
+			file: "roles",
 			check: func(req *require.Assertions) {
 				r, err := store.LookupRoleByHandle(ctx, s, "r1")
 				req.NoError(err)
@@ -408,19 +324,10 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "settings",
-			suite: "simple",
-			file:  "settings",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateSettings(ctx),
-				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
+			name: "settings",
+			file: "settings",
 			check: func(req *require.Assertions) {
-				ss, _, err := store.SearchSettings(ctx, s, st.SettingsFilter{})
+				ss, _, err := store.SearchSettings(ctx, s, systypes.SettingsFilter{})
 				req.NoError(err)
 				req.NotNil(ss)
 				req.Len(ss, 3)
@@ -428,44 +335,22 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "rbac rules; no role",
-			suite: "simple",
-			file:  "rbac_rules_no_role",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateRoles(ctx),
-					s.TruncateRbacRules(ctx),
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-				)
-			},
+			name: "rbac rules; no role",
+			file: "rbac_rules_no_role",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 				req.True(strings.Contains(err.Error(), "prepare rbac rule"))
 				req.True(strings.Contains(err.Error(), "role unresolved"))
 			},
-			check: func(req *require.Assertions) {
-			},
 		},
 
 		{
-			name:  "rbac rules",
-			suite: "simple",
-			file:  "rbac_rules",
+			name: "rbac rules",
+			file: "rbac_rules",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateRoles(ctx),
-					s.TruncateRbacRules(ctx),
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-
+				return collect(
 					storeRole(ctx, s, 100, "r1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
@@ -476,34 +361,22 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple records; no ns",
-			suite: "simple",
-			file:  "records_no_ns",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-				)
-			},
+			name: "records; no namespace",
+			file: "records_no_ns",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
 				req.True(strings.Contains(err.Error(), "prepare compose record"))
 				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple records; no mod",
-			suite: "simple",
-			file:  "records_no_mod",
+			name: "records; no module",
+			file: "records_no_mod",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
 			},
 			post: func(req *require.Assertions, err error) {
@@ -512,25 +385,17 @@ func TestSimpleCases(t *testing.T) {
 				req.True(strings.Contains(err.Error(), "prepare compose record"))
 				req.True(strings.Contains(err.Error(), "compose module unresolved"))
 			},
-			check: func(req *require.Assertions) {},
 		},
 
 		{
-			name:  "simple records",
-			suite: "simple",
-			file:  "records",
+			name: "records",
+			file: "records",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
-					storeModule(ctx, s, 100, 200, "mod1"),
-					storeModuleField(ctx, s, 200, 300, "f1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
+					storeComposeModuleField(ctx, s, 200, 300, "f1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				m, err := store.LookupComposeModuleByID(ctx, s, 200)
@@ -553,26 +418,17 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple records; multiple",
-			suite: "simple",
-			file:  "records_multi",
+			name: "records; multiple",
+			file: "records_multi",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-					s.TruncateComposeRecords(ctx, nil),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
+					storeComposeModuleField(ctx, s, 200, 300, "f1"),
 
-					storeNamespace(ctx, s, 100, "ns1"),
-					storeModule(ctx, s, 100, 200, "mod1"),
-					storeModuleField(ctx, s, 200, 300, "f1"),
-
-					storeModule(ctx, s, 100, 201, "mod2"),
-					storeModuleField(ctx, s, 201, 301, "f1"),
+					storeComposeModule(ctx, s, 100, 201, "mod2"),
+					storeComposeModuleField(ctx, s, 201, 301, "f1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				mod1, err := store.LookupComposeModuleByID(ctx, s, 200)
@@ -598,28 +454,19 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "simple records; conditional",
-			suite: "simple",
-			file:  "records_conditional",
+			name: "records; conditional",
+			file: "records_conditional",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeRecords(ctx, nil),
-					s.TruncateComposeModuleFields(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeNamespaces(ctx),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 
-					storeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
+					storeComposeModuleField(ctx, s, 200, 300, "f1"),
+					storeComposeRecord(ctx, s, 100, 200, 400, "existing value"),
 
-					storeModule(ctx, s, 100, 200, "mod1"),
-					storeModuleField(ctx, s, 200, 300, "f1"),
-					storeRecord(ctx, s, 100, 200, 400, "existing value"),
-
-					storeModule(ctx, s, 100, 201, "mod2"),
-					storeModuleField(ctx, s, 201, 301, "f1"),
+					storeComposeModule(ctx, s, 100, 201, "mod2"),
+					storeComposeModuleField(ctx, s, 201, 301, "f1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				mod1, err := store.LookupComposeModuleByID(ctx, s, 200)
@@ -645,28 +492,9 @@ func TestSimpleCases(t *testing.T) {
 		},
 
 		{
-			name:  "base access control",
-			suite: "simple",
-			file:  "access_control_base",
-			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeRecords(ctx, nil),
-					s.TruncateComposeModuleFields(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposePages(ctx),
-					s.TruncateComposeCharts(ctx),
-					s.TruncateUsers(ctx),
-					s.TruncateRoles(ctx),
-					s.TruncateMessagingChannels(ctx),
-					s.TruncateRbacRules(ctx),
-				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
-			},
+			name: "base access control",
+			file: "access_control_base",
 			check: func(req *require.Assertions) {
-
 				role, err := store.LookupRoleByHandle(ctx, s, "everyone")
 				req.NoError(err)
 				req.NotNil(role)
@@ -714,18 +542,55 @@ func TestSimpleCases(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:  "settings",
+			file:  "settings",
+			asDir: true,
+			check: func(req *require.Assertions) {
+				ss, _, err := store.SearchSettings(ctx, s, systypes.SettingsFilter{})
+				req.NoError(err)
+				req.NotNil(ss)
+				req.Len(ss, 4)
+
+				rs := []string{ss[0].Name, ss[1].Name, ss[2].Name, ss[3].Name}
+				req.Subset(rs, []string{"s1.opt.1", "s1.opt.2", "s2.opt.1", "s2.opt.2"})
+			},
+		},
 	}
 
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("%s; %s/%s", c.name, c.suite, c.file), func(t *testing.T) {
-			err = c.pre()
-			if err != nil {
-				t.Fatal(err.Error())
+		f := c.file + ".yaml"
+		t.Run(fmt.Sprintf("%s; testdata/%s/%s", c.name, namespace, f), func(t *testing.T) {
+			truncateStore(ctx, s, t)
+
+			req := require.New(t)
+
+			if c.pre != nil {
+				err = c.pre()
+				req.NoError(err)
 			}
-			req, err := prepare(ctx, s, t, c.suite, c.file+".yaml")
-			c.post(req, err)
-			c.check(req)
+
+			var nn []resource.Interface
+			var err error
+			if c.asDir {
+				nn, err = decodeDirectory(ctx, path.Join(namespace, c.file))
+			} else {
+				nn, err = decodeYaml(ctx, namespace, f)
+			}
+			req.NoError(err)
+
+			err = encode(ctx, s, nn)
+			if c.post != nil {
+				c.post(req, err)
+			} else {
+				req.NoError(err)
+			}
+
+			if c.check != nil {
+				c.check(req)
+			}
+
+			truncateStore(ctx, s, t)
 		})
-		ni = 0
 	}
 }

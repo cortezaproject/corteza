@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	mypes "github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/json"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
@@ -36,21 +40,15 @@ type (
 	}
 )
 
-func initStore(ctx context.Context) (store.Storer, error) {
-	s, err := sqlite3.ConnectInMemoryWithDebug(ctx)
-	if err != nil {
-		return nil, err
-	}
+var (
+	createdAt, _   = time.Parse(time.RFC3339, "2021-01-01T11:10:09Z")
+	updatedAt, _   = time.Parse(time.RFC3339, "2021-01-02T11:10:09Z")
+	suspendedAt, _ = time.Parse(time.RFC3339, "2021-01-03T11:10:09Z")
+)
 
-	err = store.Upgrade(ctx, zap.NewNop(), s)
-	if err != nil {
-		return nil, err
-	}
+// // // // // // Resource helpers
 
-	return s, nil
-}
-
-func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) {
+func decodeYaml(ctx context.Context, suite, fname string) ([]resource.Interface, error) {
 	fp := path.Join("testdata", suite, fname)
 
 	f, err := os.Open(fp)
@@ -63,7 +61,7 @@ func yd(ctx context.Context, suite, fname string) ([]resource.Interface, error) 
 	return d.Decode(ctx, f, nil)
 }
 
-func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
+func decodeDirectory(ctx context.Context, suite string) ([]resource.Interface, error) {
 	fp := path.Join("testdata", suite)
 	yd := yaml.Decoder()
 	cd := csv.Decoder()
@@ -73,11 +71,7 @@ func dd(ctx context.Context, suite string) ([]resource.Interface, error) {
 }
 
 func encode(ctx context.Context, s store.Storer, nn []resource.Interface) error {
-	return encodeC(ctx, s, nn, nil)
-}
-
-func encodeC(ctx context.Context, s store.Storer, nn []resource.Interface, cfg *es.EncoderConfig) error {
-	se := es.NewStoreEncoder(s, cfg)
+	se := es.NewStoreEncoder(s, nil)
 	bld := envoy.NewBuilder(se)
 	g, err := bld.Build(ctx, nn...)
 	if err != nil {
@@ -87,7 +81,45 @@ func encodeC(ctx context.Context, s store.Storer, nn []resource.Interface, cfg *
 	return envoy.Encode(ctx, g, se)
 }
 
-func storeNamespace(ctx context.Context, s store.Storer, nsID uint64, ss ...string) error {
+// // // // // // Store helpers
+
+func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
+	err := collect(
+		s.TruncateComposeNamespaces(ctx),
+		s.TruncateComposeModules(ctx),
+		s.TruncateComposeModuleFields(ctx),
+		s.TruncateComposeRecords(ctx, nil),
+		s.TruncateComposePages(ctx),
+		s.TruncateComposeCharts(ctx),
+
+		s.TruncateMessagingChannels(ctx),
+
+		s.TruncateRoles(ctx),
+		s.TruncateUsers(ctx),
+		s.TruncateApplications(ctx),
+		s.TruncateSettings(ctx),
+		s.TruncateRbacRules(ctx),
+	)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
+func initStore(ctx context.Context, t *testing.T) store.Storer {
+	s, err := sqlite3.ConnectInMemoryWithDebug(ctx)
+	if err != nil {
+		t.Fatalf("failed to init sqlite in-memory db: %v", err)
+	}
+
+	err = store.Upgrade(ctx, zap.NewNop(), s)
+	if err != nil {
+		t.Fatalf("failed to init sqlite in-memory db: %v", err)
+	}
+
+	return s
+}
+
+func storeComposeNamespace(ctx context.Context, s store.Storer, nsID uint64, ss ...string) error {
 	ns := &types.Namespace{
 		ID: nsID,
 	}
@@ -100,7 +132,18 @@ func storeNamespace(ctx context.Context, s store.Storer, nsID uint64, ss ...stri
 	return store.CreateComposeNamespace(ctx, s, ns)
 }
 
-func storeModule(ctx context.Context, s store.Storer, nsID, modID uint64, ss ...string) error {
+func loadComposeModuleFull(ctx context.Context, s store.Storer, req *require.Assertions, nsID uint64, handle string) (*types.Module, error) {
+	mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, handle)
+	req.NoError(err)
+	req.NotNil(mod)
+
+	mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
+	req.NoError(err)
+	req.NotNil(mod.Fields)
+	return mod, err
+}
+
+func storeComposeModule(ctx context.Context, s store.Storer, nsID, modID uint64, ss ...string) error {
 	mod := &types.Module{
 		ID:          modID,
 		NamespaceID: nsID,
@@ -114,7 +157,7 @@ func storeModule(ctx context.Context, s store.Storer, nsID, modID uint64, ss ...
 	return store.CreateComposeModule(ctx, s, mod)
 }
 
-func storeModuleField(ctx context.Context, s store.Storer, modID, fieldID uint64, ss ...string) error {
+func storeComposeModuleField(ctx context.Context, s store.Storer, modID, fieldID uint64, ss ...string) error {
 	f := &types.ModuleField{
 		ID:       fieldID,
 		ModuleID: modID,
@@ -128,7 +171,7 @@ func storeModuleField(ctx context.Context, s store.Storer, modID, fieldID uint64
 	return store.CreateComposeModuleField(ctx, s, f)
 }
 
-func storeRecord(ctx context.Context, s store.Storer, nsID, moduleID, recordID uint64, vv ...string) error {
+func storeComposeRecord(ctx context.Context, s store.Storer, nsID, moduleID, recordID uint64, vv ...string) error {
 	r := &types.Record{
 		ID:          recordID,
 		ModuleID:    moduleID,
@@ -159,6 +202,15 @@ func storeRecord(ctx context.Context, s store.Storer, nsID, moduleID, recordID u
 	return store.CreateComposeRecord(ctx, s, mod, r)
 }
 
+func truncateStoreRecords(ctx context.Context, s store.Storer, t *testing.T) {
+	err := collect(
+		s.TruncateComposeRecords(ctx, nil),
+	)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
 func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) error {
 	r := &stypes.Role{
 		ID: rID,
@@ -172,8 +224,31 @@ func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) er
 	return store.CreateRole(ctx, s, r)
 }
 
-// Helper to collect resulting errors, returning the first one
-func ce(ee ...error) error {
+func storeMessagingChannel(ctx context.Context, t *testing.T, s store.Storer, usrID uint64, pfx string) *mypes.Channel {
+	ch := &mypes.Channel{
+		ID:    su.NextID(),
+		Name:  pfx + "_channel",
+		Topic: "topic",
+		Type:  mypes.ChannelTypeGroup,
+
+		CreatorID: usrID,
+
+		CreatedAt: createdAt,
+		UpdatedAt: &updatedAt,
+	}
+
+	err := store.CreateMessagingChannel(ctx, s, ch)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return ch
+}
+
+// // // // // // Misc. helpers
+
+// collect collects all errors from different call responses
+func collect(ee ...error) error {
 	for _, e := range ee {
 		if e != nil {
 			return e
@@ -182,13 +257,10 @@ func ce(ee ...error) error {
 	return nil
 }
 
-func fullModLoad(ctx context.Context, s store.Storer, req *require.Assertions, nsID uint64, handle string) (*types.Module, error) {
-	mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, nsID, handle)
-	req.NoError(err)
-	req.NotNil(mod)
-
-	mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
-	req.NoError(err)
-	req.NotNil(mod.Fields)
-	return mod, err
+func parseTime(t *testing.T, ts string) *time.Time {
+	tt, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	return &tt
 }
