@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"sync"
+	"time"
 )
 
 type (
@@ -36,7 +37,7 @@ type (
 		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
 	}
 
-	WaitFn func(ctx context.Context) (*expr.Vars, error)
+	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, error)
 )
 
 func Session(log *zap.Logger) *session {
@@ -110,6 +111,36 @@ func (svc *session) suspendAll(ctx context.Context) error {
 	return nil
 }
 
+type (
+	foo struct {
+		SessionID uint64
+		StateID   uint64
+		CreatedAt time.Time
+		Payload   *expr.Vars
+	}
+)
+
+// PendingPrompts returns all prompts on all sessions owned by current user
+func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPrompt) {
+	var (
+		i = auth.GetIdentityFromContext(ctx)
+	)
+
+	if i == nil {
+		return
+	}
+
+	defer svc.mux.RUnlock()
+	svc.mux.RLock()
+
+	pp = make([]*wfexec.PendingPrompt, 0, len(svc.pool))
+	for _, s := range svc.pool {
+		pp = append(pp, s.PendingPrompts(i.Identity())...)
+	}
+
+	return
+}
+
 // Start new workflow session on a specific step with a given identity and scope
 //
 // Start is an asynchronous operation
@@ -151,7 +182,7 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		return
 	}
 
-	return func(ctx context.Context) (*expr.Vars, error) { return ses.WaitResults(ctx) }, nil
+	return func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, error) { return ses.WaitResults(ctx) }, nil
 }
 
 // Resume resumes suspended session/state
@@ -220,7 +251,7 @@ func (svc *session) Watch(ctx context.Context) {
 }
 
 func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHandler {
-	return func(i int, state *wfexec.State, s *wfexec.Session) {
+	return func(i wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
 		log := svc.log.With(zap.Uint64("sessionID", s.ID()))
 
 		defer svc.mux.RUnlock()
@@ -242,9 +273,11 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		}
 
 		switch i {
-		case wfexec.SessionStepSuspended:
-			// @todo handle step suspension!
-		case wfexec.SessionSuspended:
+		case wfexec.SessionPrompted:
+			ses.SuspendedAt = now()
+			ses.Status = types.SessionPrompted
+
+		case wfexec.SessionDelayed:
 			ses.SuspendedAt = now()
 			ses.Status = types.SessionSuspended
 

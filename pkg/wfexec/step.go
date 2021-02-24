@@ -1,6 +1,8 @@
 package wfexec
 
-import "context"
+import (
+	"context"
+)
 
 type (
 	Steps []Step

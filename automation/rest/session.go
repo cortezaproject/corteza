@@ -11,15 +11,19 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 )
 
 type (
 	Session struct {
-		svc interface {
-			Search(ctx context.Context, filter types.SessionFilter) (types.SessionSet, types.SessionFilter, error)
-			LookupByID(ctx context.Context, sessionID uint64) (*types.Session, error)
-			Resume(sessionID, stateID uint64, i auth.Identifiable, input *expr.Vars) error
-		}
+		svc sessionService
+	}
+
+	sessionService interface {
+		Search(ctx context.Context, filter types.SessionFilter) (types.SessionSet, types.SessionFilter, error)
+		LookupByID(ctx context.Context, sessionID uint64) (*types.Session, error)
+		Resume(sessionID, stateID uint64, i auth.Identifiable, input *expr.Vars) error
+		PendingPrompts(context.Context) []*wfexec.PendingPrompt
 	}
 
 	sessionSetPayload struct {
@@ -43,7 +47,7 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 			EventType:    r.EventType,
 			ResourceType: r.ResourceType,
 			Completed:    filter.State(r.Completed),
-			Suspended:    filter.State(r.Suspended),
+			Status:       r.Status,
 		}
 	)
 
@@ -65,14 +69,25 @@ func (ctrl Session) Read(ctx context.Context, r *request.SessionRead) (interface
 
 func (ctrl Session) Delete(ctx context.Context, r *request.SessionDelete) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
-	//return api.OK(), ctrl.svc.DeleteByID(ctx, r.SessionID)
-}
-
-func (ctrl Session) Resume(ctx context.Context, r *request.SessionResume) (interface{}, error) {
-	return api.OK(), ctrl.svc.Resume(r.SessionID, r.StateID, auth.GetIdentityFromContext(ctx), r.Input)
 }
 
 func (ctrl Session) Trace(ctx context.Context, trace *request.SessionTrace) (interface{}, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (ctrl Session) ListPrompts(ctx context.Context, r *request.SessionListPrompts) (interface{}, error) {
+	return struct {
+		Set []*wfexec.PendingPrompt `json:"set"`
+	}{
+		Set: ctrl.svc.PendingPrompts(ctx),
+	}, nil
+}
+
+func (ctrl Session) ResumeState(ctx context.Context, r *request.SessionResumeState) (interface{}, error) {
+	return api.OK(), ctrl.svc.Resume(r.SessionID, r.StateID, auth.GetIdentityFromContext(ctx), r.Input)
+}
+
+func (ctrl Session) DeleteState(ctx context.Context, r *request.SessionDeleteState) (interface{}, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 

@@ -57,19 +57,42 @@ type (
 )
 
 const (
-	WorkflowStepKindExpressions WorkflowStepKind = "expressions"   // ref
+	WorkflowStepKindExpressions WorkflowStepKind = "expressions"   // no ref
 	WorkflowStepKindGateway     WorkflowStepKind = "gateway"       // ref = join|fork|excl|incl
 	WorkflowStepKindFunction    WorkflowStepKind = "function"      // ref = <function ref>
 	WorkflowStepKindIterator    WorkflowStepKind = "iterator"      // ref = <iterator function ref>
 	WorkflowStepKindError       WorkflowStepKind = "error"         // no ref
 	WorkflowStepKindTermination WorkflowStepKind = "termination"   // no ref
 	WorkflowStepKindPrompt      WorkflowStepKind = "prompt"        // ref = <client function>
+	WorkflowStepKindDelay       WorkflowStepKind = "delay"         // no ref
 	WorkflowStepKindErrHandler  WorkflowStepKind = "error-handler" // no ref
 	WorkflowStepKindVisual      WorkflowStepKind = "visual"        // ref = <*>
 	WorkflowStepKindDebug       WorkflowStepKind = "debug"         // ref = <*>
 	WorkflowStepKindBreak       WorkflowStepKind = "break"         // ref = <*>
 	WorkflowStepKindContinue    WorkflowStepKind = "continue"      // ref = <*>
 )
+
+// IsDeferred fn returns true if type of step is delay or prompt
+func (s WorkflowStep) IsDeferred() (is bool) {
+	switch s.Kind {
+	case WorkflowStepKindPrompt:
+		return true
+	case WorkflowStepKindDelay:
+		return true
+	}
+	return false
+}
+
+// HasDeferred fn returns true if type of any of workflow's steps is delay or prompt
+func (vv WorkflowStepSet) HasDeferred() bool {
+	for _, s := range vv {
+		if s.IsDeferred() {
+			return true
+		}
+	}
+
+	return false
+}
 
 // Scan on WorkflowStepSet gracefully handles conversion from NULL
 func (vv WorkflowStepSet) Value() (driver.Value, error) {

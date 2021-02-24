@@ -13,14 +13,26 @@ type (
 	}
 
 	termination struct{}
+
+	delayed struct {
+		// when not nil, assuming delayed
+		resumeAt time.Time
+
+		// state to be resumed
+		state *State
+	}
+
+	// when session is resumed from a delay we'll replace
+	// delay step on state with the a generic step that will return resumed{}
+	resumed struct{}
 )
 
-func DelayExecution(until time.Time) *suspended {
-	return &suspended{resumeAt: &until}
+func Delay(until time.Time) *delayed {
+	return &delayed{resumeAt: until}
 }
 
-func WaitForInput() *suspended {
-	return &suspended{input: true}
+func Resume() *resumed {
+	return &resumed{}
 }
 
 func ErrorHandler(h Step) *errHandler {

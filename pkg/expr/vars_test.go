@@ -80,3 +80,27 @@ func TestVars_Decode(t *testing.T) {
 		req.Equal(int64(42), dst.Int)
 	})
 }
+
+func TestVars_UnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		name string
+		json string
+		vars *Vars
+	}{
+		{"empty", "", &Vars{}},
+		{"empty", "{}", &Vars{}},
+		{"empty", `{"a":{"@value":"b"}}`, RVars{"a": &Unresolved{value: "b"}}.Vars()},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				r = require.New(t)
+				v = &Vars{}
+			)
+
+			r.NoError(v.UnmarshalJSON([]byte(c.json)))
+			r.Equal(c.vars, v)
+		})
+	}
+}

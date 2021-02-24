@@ -178,15 +178,15 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { name: sessionID,    type: "[]string",          title: "Filter by session ID" }
-      - { name: workflowID,   type: "[]string",          title: "Filter by workflow ID" }
-      - { name: completed,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) completed sessions" }
-      - { name: suspended,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) suspended sessions" }
-      - { name: eventType,    type: "string",            title: "Filter sessions by event type" }
-      - { name: resourceType, type: "string",            title: "Filter sessions by resource type" }
-      - { name: limit,        type: "uint",              title: "Limit" }
-      - { name: pageCursor,   type: "string",            title: "Page cursor" }
-      - { name: sort,         type: "string",            title: "Sort items" }
+      - { name: sessionID,    type: "[]string",            title: "Filter by session ID" }
+      - { name: workflowID,   type: "[]string",            title: "Filter by workflow ID" }
+      - { name: completed,    type: "uint",                title: "Exclude (0, default), include (1) or return only (2) completed sessions" }
+      - { name: status,       type: "[]uint",              title: "Filter by status: started (0), prompted (1), suspended (2), failed (3) and completed (4)" }
+      - { name: eventType,    type: "string",              title: "Filter event type" }
+      - { name: resourceType, type: "string",              title: "Filter resource type" }
+      - { name: limit,        type: "uint",                title: "Limit" }
+      - { name: pageCursor,   type: "string",              title: "Page cursor" }
+      - { name: sort,         type: "string",              title: "Sort items" }
   - name: read
     method: GET
     title: Read session details
@@ -202,16 +202,31 @@ endpoints:
     title: Remove session
     path: "/{sessionID}"
     parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
-  - name: resume
+
+  - name: listPrompts
+    method: GET
+    title: Returns pending prompts from all sessions
+    path: "/prompts"
+
+  - name: resumeState
     method: POST
     title: Resume session
-    path: "/{sessionID}/resume"
+    path: "/{sessionID}/state/{stateID}"
     parameters:
       path:
-      - { name: sessionID, type: uint64, required: true, title: "Session ID" }
+      - { name: sessionID,    type: uint64, required: true, title: "Session ID" }
+      - { name: stateID,      type: uint64, required: true, title: "State ID" }
       post:
-      - { name: stateID,   type: uint64, required: true, title: "State ID" }
-      - { name: input,     type: "*expr.Vars",           title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: input,        type: "*expr.Vars",           title: "Prompt variables", parser: "types.ParseWorkflowVariables" }
+
+  - name: deleteState
+    method: DELETE
+    title: Cancel session's state
+    path: "/{sessionID}/state/{stateID}"
+    parameters:
+      path:
+      - { name: sessionID,    type: uint64, required: true, title: "Session ID" }
+      - { name: stateID,      type: uint64, required: true, title: "State ID" }
 
 - title: Functions
   path: "/functions"
