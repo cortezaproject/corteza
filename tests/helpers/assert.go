@@ -151,3 +151,23 @@ func AssertBody(expected string) assertFn {
 		return nil
 	}
 }
+
+// AssertErrorP checks if the expected error is part of the error messsage
+func AssertErrorP(expectedError string) assertFn {
+	return func(rsp *http.Response, _ *http.Request) (err error) {
+		tmp := StdErrorResponse{}
+		if err = DecodeBody(rsp, &tmp); err != nil {
+			return err
+		}
+
+		if tmp.Error.Message == "" {
+			return errors.Errorf("No error, expecting error with: %v", expectedError)
+		}
+
+		if !strings.Contains(tmp.Error.Message, expectedError) {
+			return errors.Errorf("Expecting error with %v, got: %v", expectedError, tmp.Error.Message)
+		}
+
+		return nil
+	}
+}
