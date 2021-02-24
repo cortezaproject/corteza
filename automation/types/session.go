@@ -27,9 +27,12 @@ type (
 
 		Stacktrace Stacktrace `json:"stacktrace"`
 
-		CreatedAt   time.Time  `json:"createdAt,omitempty"`
-		CreatedBy   uint64     `json:"createdBy,string"`
-		PurgeAt     *time.Time `json:"purgeAt,omitempty"`
+		CreatedAt time.Time  `json:"createdAt,omitempty"`
+		CreatedBy uint64     `json:"createdBy,string"`
+		PurgeAt   *time.Time `json:"purgeAt,omitempty"`
+
+		// here we join suspended & prompted state;
+		// we treat both states as suspended
 		SuspendedAt *time.Time `json:"suspendedAt,omitempty"`
 		CompletedAt *time.Time `json:"completedAt,omitempty"`
 		Error       string     `json:"error,omitempty"`
@@ -54,7 +57,7 @@ type (
 		ResourceType string   `json:"resourceType"`
 
 		Completed filter.State `json:"deleted"`
-		Suspended filter.State `json:"disabled"`
+		Status    []uint       `json:"status"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
@@ -69,11 +72,12 @@ type (
 
 	Stacktrace []*wfexec.Frame
 
-	SessionStatus int
+	SessionStatus uint
 )
 
 const (
 	SessionStarted SessionStatus = iota
+	SessionPrompted
 	SessionSuspended
 	SessionFailed
 	SessionCompleted
@@ -94,13 +98,17 @@ func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) e
 	return s.session.Resume(ctx, stateID, input)
 }
 
+func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
+	return s.session.PendingPrompts(ownerId)
+}
+
 // Wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
-func (s Session) WaitResults(ctx context.Context) (*expr.Vars, error) {
+func (s Session) WaitResults(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, error) {
 	if err := s.session.WaitUntil(ctx, wfexec.SessionFailed, wfexec.SessionCompleted); err != nil {
-		return nil, err
+		return nil, -1, err
 	}
 
-	return s.session.Result(), nil
+	return s.session.Result(), s.session.Status(), nil
 }
 
 func (s *Session) Apply(ssp SessionStartParams) {

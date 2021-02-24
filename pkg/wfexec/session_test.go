@@ -55,7 +55,7 @@ func (s *sesTestTemporal) Exec(ctx context.Context, r *ExecRequest) (ExecRespons
 	}
 
 	if now().Before(s.until) {
-		return DelayExecution(s.until), nil
+		return Delay(s.until), nil
 	}
 
 	return expr.RVars{
@@ -137,7 +137,7 @@ func TestSession_Delays(t *testing.T) {
 		waitForInput        = &sesTestStep{name: "waitForInput", exec: func(ctx context.Context, r *ExecRequest) (ExecResponse, error) {
 			if !r.Input.Has("input") {
 				waitForInputStateId.Store(r.StateID)
-				return WaitForInput(), nil
+				return Prompt(0, "", nil), nil
 			}
 
 			out := expr.RVars{

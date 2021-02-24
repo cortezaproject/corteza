@@ -82,6 +82,16 @@ func ParseUint(s string) uint {
 	return uint(i)
 }
 
+// ParseUint64s parses a slice of strings into a slice of uint64s
+func ParseUints(ss []string) []uint {
+	uu := make([]uint, len(ss))
+	for i, s := range ss {
+		uu[i] = ParseUint(s)
+	}
+
+	return uu
+}
+
 // ParseInt64 parses a string to int64
 func ParseInt64(s string) int64 {
 	if s == "" {

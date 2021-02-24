@@ -47,19 +47,19 @@ type (
 		// Exclude (0, default), include (1) or return only (2) completed sessions
 		Completed uint
 
-		// Suspended GET parameter
+		// Status GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) suspended sessions
-		Suspended uint
+		// Filter by status: started (0), prompted (1), suspended (2), failed (3) and completed (4)
+		Status []uint
 
 		// EventType GET parameter
 		//
-		// Filter sessions by event type
+		// Filter event type
 		EventType string
 
 		// ResourceType GET parameter
 		//
-		// Filter sessions by resource type
+		// Filter resource type
 		ResourceType string
 
 		// Limit GET parameter
@@ -99,21 +99,36 @@ type (
 		SessionID uint64 `json:",string"`
 	}
 
-	SessionResume struct {
+	SessionListPrompts struct {
+	}
+
+	SessionResumeState struct {
 		// SessionID PATH parameter
 		//
 		// Session ID
 		SessionID uint64 `json:",string"`
 
-		// StateID POST parameter
+		// StateID PATH parameter
 		//
 		// State ID
 		StateID uint64 `json:",string"`
 
 		// Input POST parameter
 		//
-		// Workflow meta data
+		// Prompt variables
 		Input *expr.Vars
+	}
+
+	SessionDeleteState struct {
+		// SessionID PATH parameter
+		//
+		// Session ID
+		SessionID uint64 `json:",string"`
+
+		// StateID PATH parameter
+		//
+		// State ID
+		StateID uint64 `json:",string"`
 	}
 )
 
@@ -128,7 +143,7 @@ func (r SessionList) Auditable() map[string]interface{} {
 		"sessionID":    r.SessionID,
 		"workflowID":   r.WorkflowID,
 		"completed":    r.Completed,
-		"suspended":    r.Suspended,
+		"status":       r.Status,
 		"eventType":    r.EventType,
 		"resourceType": r.ResourceType,
 		"limit":        r.Limit,
@@ -153,8 +168,8 @@ func (r SessionList) GetCompleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionList) GetSuspended() uint {
-	return r.Suspended
+func (r SessionList) GetStatus() []uint {
+	return r.Status
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -227,8 +242,13 @@ func (r *SessionList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["suspended"]; ok && len(val) > 0 {
-			r.Suspended, err = payload.ParseUint(val[0]), nil
+		if val, ok := tmp["status[]"]; ok {
+			r.Status, err = payload.ParseUints(val), nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["status"]; ok {
+			r.Status, err = payload.ParseUints(val), nil
 			if err != nil {
 				return err
 			}
@@ -403,13 +423,39 @@ func (r *SessionDelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewSessionResume request
-func NewSessionResume() *SessionResume {
-	return &SessionResume{}
+// NewSessionListPrompts request
+func NewSessionListPrompts() *SessionListPrompts {
+	return &SessionListPrompts{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionResume) Auditable() map[string]interface{} {
+func (r SessionListPrompts) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *SessionListPrompts) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	return err
+}
+
+// NewSessionResumeState request
+func NewSessionResumeState() *SessionResumeState {
+	return &SessionResumeState{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionResumeState) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sessionID": r.SessionID,
 		"stateID":   r.StateID,
@@ -418,22 +464,22 @@ func (r SessionResume) Auditable() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionResume) GetSessionID() uint64 {
+func (r SessionResumeState) GetSessionID() uint64 {
 	return r.SessionID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionResume) GetStateID() uint64 {
+func (r SessionResumeState) GetStateID() uint64 {
 	return r.StateID
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r SessionResume) GetInput() *expr.Vars {
+func (r SessionResumeState) GetInput() *expr.Vars {
 	return r.Input
 }
 
 // Fill processes request and fills internal variables
-func (r *SessionResume) Fill(req *http.Request) (err error) {
+func (r *SessionResumeState) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -451,13 +497,6 @@ func (r *SessionResume) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["stateID"]; ok && len(val) > 0 {
-			r.StateID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["input[]"]; ok {
 			r.Input, err = types.ParseWorkflowVariables(val)
@@ -478,6 +517,69 @@ func (r *SessionResume) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "sessionID")
 		r.SessionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "stateID")
+		r.StateID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewSessionDeleteState request
+func NewSessionDeleteState() *SessionDeleteState {
+	return &SessionDeleteState{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionDeleteState) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"sessionID": r.SessionID,
+		"stateID":   r.StateID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionDeleteState) GetSessionID() uint64 {
+	return r.SessionID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionDeleteState) GetStateID() uint64 {
+	return r.StateID
+}
+
+// Fill processes request and fills internal variables
+func (r *SessionDeleteState) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "sessionID")
+		r.SessionID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "stateID")
+		r.StateID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

@@ -599,10 +599,16 @@ func makeWorkflowHandler(s *session, t *types.Trigger, wf *types.Workflow, g *wf
 			return err
 		}
 
+		if wf.CheckDeferred() {
+			// deferred workflow, return right away and keep the workflow session
+			// running without waiting for the execution
+			return nil
+		}
+
 		// wait for the workflow to complete
 		// reuse scope for results
 		// this will be decoded back to event properties
-		scope, err = wait(ctx)
+		scope, _, err = wait(ctx)
 		if err != nil {
 			return
 		}
