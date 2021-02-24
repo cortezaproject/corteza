@@ -2,10 +2,8 @@ package scim
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/system/scim/assets"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/go-chi/chi"
-	"github.com/goware/statik/fs"
 	"go.uber.org/zap"
 	"net/http"
 	"regexp"
@@ -19,17 +17,8 @@ type (
 )
 
 var (
-	embedded http.FileSystem
-	log      = zap.NewNop()
+	log = zap.NewNop()
 )
-
-func init() {
-	var err error
-	embedded, err = fs.New(assets.Asset)
-	if err != nil {
-		panic(err)
-	}
-}
 
 func Guard(opt options.SCIMOpt) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
