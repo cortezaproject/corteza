@@ -32,11 +32,13 @@ type (
 		// locks concurrent executions
 		execLock chan struct{}
 
-		// collection of all suspended states
-		// map key represents state identifier
-		suspended map[uint64]*suspended
+		// delayed states (waiting for the right time)
+		delayed map[uint64]*delayed
 
-		// how often we check for suspended states and how often idle stat is checked in Wait()
+		// prompted
+		prompted map[uint64]*prompted
+
+		// how often we check for delayed states and how often idle stat is checked in Wait()
 		workerInterval time.Duration
 
 		// only one worker routine per session
@@ -58,18 +60,7 @@ type (
 		eventHandler StateChangeHandler
 	}
 
-	StateChangeHandler func(int, *State, *Session)
-
-	suspended struct {
-		// when not nil, assuming delayed
-		resumeAt *time.Time
-
-		// when true, assuming waiting for input (resumable through Resume())
-		input bool
-
-		// state to be resumed
-		state *State
-	}
+	StateChangeHandler func(SessionStatus, *State, *Session)
 
 	sessionOpt func(*Session)
 
@@ -85,7 +76,6 @@ type (
 	}
 
 	// ExecRequest is passed to Exec() functions and contains all information to
-	// resume suspended states in a Graph Session
 	ExecRequest struct {
 		SessionID uint64
 		StateID   uint64
@@ -100,6 +90,8 @@ type (
 		// that needs info about the step it's currently merging
 		Parent Step
 	}
+
+	SessionStatus int
 )
 
 const (
@@ -108,12 +100,10 @@ const (
 )
 
 const (
-	SessionActive int = iota
-	SessionSuspended
-	SessionStepSuspended
-	SessionNewMessage
+	SessionActive SessionStatus = iota
+	SessionPrompted
+	SessionDelayed
 	SessionFailed
-	SessionErrorHandled
 	SessionCompleted
 )
 
@@ -130,15 +120,33 @@ var (
 	}
 )
 
+func (s SessionStatus) String() string {
+	switch s {
+	case SessionActive:
+		return "active"
+	case SessionPrompted:
+		return "prompted"
+	case SessionDelayed:
+		return "delayed"
+	case SessionFailed:
+		return "failed"
+	case SessionCompleted:
+		return "completed"
+	}
+
+	return "UNKNOWN-SESSION-STATUS"
+}
+
 func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
 	s := &Session{
-		g:         g,
-		id:        nextID(),
-		started:   *now(),
-		qState:    make(chan *State, sessionStateChanBuf),
-		qErr:      make(chan error, 1),
-		execLock:  make(chan struct{}, sessionConcurrentExec),
-		suspended: make(map[uint64]*suspended),
+		g:        g,
+		id:       nextID(),
+		started:  *now(),
+		qState:   make(chan *State, sessionStateChanBuf),
+		qErr:     make(chan error, 1),
+		execLock: make(chan struct{}, sessionConcurrentExec),
+		delayed:  make(map[uint64]*delayed),
+		prompted: make(map[uint64]*prompted),
 
 		//workerInterval: time.Millisecond,
 		workerInterval: time.Millisecond * 250, // debug mode rate
@@ -147,7 +155,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
 		mux: &sync.RWMutex{},
 
 		log: zap.NewNop(),
-		eventHandler: func(int, *State, *Session) {
+		eventHandler: func(SessionStatus, *State, *Session) {
 			// noop
 		},
 	}
@@ -165,24 +173,27 @@ func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
 	return s
 }
 
-func (s Session) Status() int {
+func (s Session) Status() SessionStatus {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
-	if s.err != nil {
+	switch {
+	case s.err != nil:
 		return SessionFailed
-	}
 
-	if len(s.suspended) > 0 {
-		return SessionSuspended
-	}
+	case len(s.prompted) > 0:
+		return SessionPrompted
 
-	if s.result == nil {
-		// active
+	case len(s.delayed) > 0:
+		return SessionDelayed
+
+	case s.result == nil:
 		return SessionActive
+
+	default:
+		return SessionCompleted
 	}
 
-	return SessionCompleted
 }
 
 func (s Session) ID() uint64 { return s.id }
@@ -222,25 +233,52 @@ func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
 	return s.enqueue(ctx, NewState(s, auth.GetIdentityFromContext(ctx), nil, step, scope))
 }
 
+// Prompts fn returns all owner's pending prompts on this session
+func (s *Session) PendingPrompts(ownerId uint64) (out []*PendingPrompt) {
+	if ownerId == 0 {
+		return
+	}
+
+	defer s.mux.RUnlock()
+	s.mux.RLock()
+
+	out = make([]*PendingPrompt, 0, len(s.prompted))
+
+	for _, p := range s.prompted {
+		if p.ownerId != ownerId {
+			continue
+		}
+
+		pending := p.toPending()
+		pending.SessionID = s.id
+		out = append(out, pending)
+	}
+
+	return
+}
+
 func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) error {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
-	resumed, has := s.suspended[stateId]
+	var (
+		i      = auth.GetIdentityFromContext(ctx)
+		p, has = s.prompted[stateId]
+	)
 	if !has {
 		return fmt.Errorf("unexisting state")
 	}
 
-	if !resumed.input {
-		return fmt.Errorf("not input state")
+	if i == nil || p.ownerId != i.Identity() {
+		return fmt.Errorf("state access denied")
 	}
 
-	delete(s.suspended, stateId)
+	delete(s.prompted, stateId)
 
 	// setting received input to state
-	resumed.state.input = input
+	p.state.input = input
 
-	return s.enqueue(ctx, resumed.state)
+	return s.enqueue(ctx, p.state)
 }
 
 func (s *Session) enqueue(ctx context.Context, st *State) error {
@@ -271,14 +309,13 @@ func (s *Session) enqueue(ctx context.Context, st *State) error {
 //  - idle state
 //  - error in error queue
 func (s *Session) Wait(ctx context.Context) error {
-	return s.WaitUntil(ctx, SessionFailed, SessionSuspended, SessionCompleted)
+	return s.WaitUntil(ctx, SessionFailed, SessionDelayed, SessionCompleted)
 }
 
 // WaitUntil blocks until workflow session gets into expected status
 //
-// @todo refactor from interval to chan pull
-func (s *Session) WaitUntil(ctx context.Context, expected ...int) error {
-	indexed := make(map[int]bool)
+func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) error {
+	indexed := make(map[SessionStatus]bool)
 	for _, status := range expected {
 		indexed[status] = true
 	}
@@ -289,7 +326,7 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...int) error {
 
 	s.log.Debug(
 		"waiting for status change",
-		zap.Ints("expecting", expected),
+		zap.Any("expecting", expected),
 		zap.Duration("interval", s.workerInterval),
 	)
 
@@ -300,7 +337,7 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...int) error {
 		select {
 		case <-waitCheck.C:
 			if indexed[s.Status()] {
-				s.log.Debug("waiting complete", zap.Int("status", s.Status()))
+				s.log.Debug("waiting complete", zap.Stringer("status", s.Status()))
 				// nothing in the pipeline
 				return s.err
 			}
@@ -329,7 +366,7 @@ func (s *Session) worker(ctx context.Context) {
 			return
 
 		case <-s.workerTicker.C:
-			s.log.Debug("checking for suspended states")
+			s.log.Debug("checking for delayed states")
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
@@ -362,7 +399,7 @@ func (s *Session) worker(ctx context.Context) {
 				<-s.execLock
 
 				status := s.Status()
-				s.log.Debug("executed", zap.Uint64("stateID", st.stateId), zap.Int("status", status))
+				s.log.Debug("executed", zap.Uint64("stateID", st.stateId), zap.Stringer("status", status))
 				// after exec lock is released call event handler with (new) session status
 				s.eventHandler(status, st, s)
 			}()
@@ -390,24 +427,19 @@ func (s *Session) Stop() {
 func (s Session) Suspended() bool {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
-	return len(s.suspended) > 0
+	return len(s.delayed) > 0
 }
 
 func (s *Session) queueScheduledSuspended() {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
-	for id, sus := range s.suspended {
-		if sus.resumeAt == nil {
+	for id, sus := range s.delayed {
+		if !sus.resumeAt.IsZero() && sus.resumeAt.After(*now()) {
 			continue
 		}
 
-		if sus.resumeAt.After(*now()) {
-			continue
-		}
-
-		delete(s.suspended, id)
-		s.log.Debug("resuming suspended state", zap.Uint64("stateID", sus.state.stateId))
+		delete(s.delayed, id)
 		s.qState <- sus.state
 	}
 }
@@ -474,8 +506,6 @@ func (s *Session) exec(ctx context.Context, st *State) {
 
 		if st.err != nil {
 			if st.errHandler != nil {
-				s.eventHandler(SessionErrorHandled, st, s)
-
 				// handling error with error handling
 				// step set in one of the previous steps
 				log.Warn("step execution error handled",
@@ -579,33 +609,34 @@ func (s *Session) exec(ctx context.Context, st *State) {
 			return
 
 		case *termination:
-			// terminate all activities, all suspended tasks and exit right away
-			log.Debug("termination", zap.Int("suspended", len(s.suspended)))
-			s.suspended = nil
+			// terminate all activities, all delayed tasks and exit right away
+			log.Debug("termination", zap.Int("delayed", len(s.delayed)))
+			s.delayed = nil
 			s.qState <- FinalState(s, scope)
 			return
 
-		case *suspended:
-			// suspend execution because of delay or pending user input
-			// either way, it breaks execution loop for the current path
+		case *delayed:
+			log.Debug("session delayed", zap.Time("at", result.resumeAt))
 
-			if result == nil {
-				// @todo properly handle this
-				log.Warn("suspended with nil")
+			result.state = st
+			s.mux.Lock()
+			s.delayed[st.stateId] = result
+			s.mux.Unlock()
+			return
+
+		case *resumed:
+			log.Debug("session resumed")
+
+		case *prompted:
+			if result.ownerId == 0 {
+				s.qErr <- fmt.Errorf("session %d step %d without an owner", s.id, st.step.ID())
 				return
-			}
-
-			if result.resumeAt != nil {
-				log.Debug("suspended, temporal", zap.Timep("at", result.resumeAt))
-			} else {
-				log.Debug("suspended, prompt")
 			}
 
 			result.state = st
 			s.mux.Lock()
-			s.suspended[st.stateId] = result
+			s.prompted[st.stateId] = result
 			s.mux.Unlock()
-			s.eventHandler(SessionStepSuspended, st, s)
 			return
 
 		case Steps:
@@ -625,8 +656,13 @@ func (s *Session) exec(ctx context.Context, st *State) {
 	}
 
 	if len(next) == 0 {
+		// step's exec did not return next steps (only gateway steps, iterators and loops controls usually do that)
+		//
+		// rely on graph and get next (children) steps from there
 		next = s.g.Children(st.step)
 	} else {
+		// children returned from step's exec
+		// do a quick sanity check
 		cc := s.g.Children(st.step)
 		if len(cc) > 0 && !cc.Contains(next...) {
 			s.qErr <- fmt.Errorf("inconsistent relationship")
@@ -635,7 +671,8 @@ func (s *Session) exec(ctx context.Context, st *State) {
 	}
 
 	if currLoop != nil && len(next) == 0 {
-		// gracefully handling last step of iteration branch that does not point back to the iterator step
+		// gracefully handling last step of iteration branch
+		// that does not point back to the iterator step
 		next = Steps{currLoop.Iterator()}
 		log.Debug("last step in iteration branch, going back", zap.Uint64("backStepId", next[0].ID()))
 	}

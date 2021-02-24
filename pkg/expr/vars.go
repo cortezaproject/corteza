@@ -231,16 +231,20 @@ func (t *Vars) Value() (driver.Value, error) {
 
 // UnmarshalJSON
 func (t *Vars) UnmarshalJSON(in []byte) (err error) {
+	if len(in) == 0 {
+		return nil
+	}
+
 	var (
 		aux = make(map[string]*typedValueWrap)
 	)
 
-	if t.value == nil {
-		t.value = make(map[string]TypedValue)
-	}
-
 	if err = json.Unmarshal(in, &aux); err != nil {
 		return
+	}
+
+	if t.value == nil && len(aux) > 0 {
+		t.value = make(map[string]TypedValue)
 	}
 
 	for k, v := range aux {

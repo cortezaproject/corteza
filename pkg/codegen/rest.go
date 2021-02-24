@@ -208,6 +208,8 @@ func (d *restEndpointParamDef) Parser(arg string) string {
 	switch d.Type {
 	case "[]uint64":
 		return fmt.Sprintf("payload.ParseUint64s(%s), nil", arg)
+	case "[]uint":
+		return fmt.Sprintf("payload.ParseUints(%s), nil", arg)
 	case "time.Time":
 		return fmt.Sprintf("payload.ParseISODateWithErr(%s)", arg)
 	case "*time.Time":
