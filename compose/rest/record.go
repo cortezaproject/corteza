@@ -2,24 +2,28 @@ package rest
 
 import (
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/encoder"
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
+	ejson "github.com/cortezaproject/corteza-server/pkg/envoy/json"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	estore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/cortezaproject/corteza-server/store"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
-	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -316,8 +320,63 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 	ses.OnError = r.OnError
 
 	// Errors are presented in the session
-	ctrl.record.Import(ctx, ses)
-	return ses, nil
+	err = func() (err error) {
+		if ses.Progress.StartedAt != nil {
+			return fmt.Errorf("unable to start import: import session already active")
+		}
+
+		sa := time.Now()
+		ses.Progress.StartedAt = &sa
+
+		// Prepare additional metadata
+		tpl := resource.NewComposeRecordTemplate(
+			strconv.FormatUint(ses.ModuleID, 10),
+			strconv.FormatUint(ses.NamespaceID, 10),
+			ses.Name,
+			resource.MapToMappingTplSet(ses.Fields),
+		)
+
+		// Shape the data
+		ses.Resources = append(ses.Resources, tpl)
+		rt := resource.ComposeRecordShaper()
+		ses.Resources, err = resource.Shape(ses.Resources, rt)
+
+		// Build
+		cfg := &estore.EncoderConfig{
+			// For now the identifier is ignored, so this will never occur
+			OnExisting: resource.Skip,
+			Defer: func() {
+				ses.Progress.Completed++
+			},
+		}
+		if ses.OnError == service.IMPORT_ON_ERROR_SKIP {
+			cfg.DeferNok = func(err error) error {
+				ses.Progress.Failed++
+				ses.Progress.FailReason = err.Error()
+
+				return nil
+			}
+		}
+		se := estore.NewStoreEncoder(service.DefaultStore, cfg)
+		bld := envoy.NewBuilder(se)
+		g, err := bld.Build(ctx, ses.Resources...)
+		if err != nil {
+			return err
+		}
+
+		// Encode
+		err = envoy.Encode(ctx, g, se)
+		now := time.Now()
+		ses.Progress.FinishedAt = &now
+		if err != nil {
+			ses.Progress.FailReason = err.Error()
+			return err
+		}
+
+		return
+	}()
+
+	return ses, ctrl.record.RecordImport(ctx, err)
 }
 
 func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportProgress) (interface{}, error) {
@@ -331,31 +390,23 @@ func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportP
 }
 
 func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interface{}, error) {
-	type (
-		// ad-hoc interface for our encoder
-		Encoder interface {
-			service.Encoder
-			Flush()
-		}
-	)
-
 	var (
 		err error
 
-		// Record encoder
-		recordEncoder Encoder
-
 		filename = fmt.Sprintf("; filename=%s.%s", r.Filename, r.Ext)
 
-		f = types.RecordFilter{
+		rf = &types.RecordFilter{
+			Query:       r.Filter,
 			NamespaceID: r.NamespaceID,
 			ModuleID:    r.ModuleID,
-			Query:       r.Filter,
 		}
+		f = estore.NewDecodeFilter().
+			ComposeRecord(rf)
 
 		contentType string
 	)
-	// Access control.
+
+	// Access control
 	if _, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
 		return nil, err
 	}
@@ -365,47 +416,37 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 	}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		ff := encoder.MakeFields(r.Fields...)
-
-		if len(ff) == 0 {
+		if len(r.Fields) == 0 {
 			http.Error(w, "no record value fields provided", http.StatusBadRequest)
 		}
 
-		// Custom user getter function for the underlying encoders.
-		//
-		// not the most optimal solution; we have no other means to do a proper preload of users
-		// @todo preload users
-		users := map[uint64]*systemTypes.User{}
-
-		uf := func(ID uint64) (*systemTypes.User, error) {
-			var err error
-
-			if _, exists := users[ID]; exists {
-				// nonexistent users are also cached!
-				return users[ID], nil
-			}
-
-			// @todo this "communication" between system and compose
-			//       services is ad-hoc solution
-			users[ID], err = ctrl.userFinder.FindByID(ctx, ID)
-			if err != nil {
-				return nil, err
-			}
-			return users[ID], nil
+		fx := make(map[string]bool)
+		for _, f := range r.Fields {
+			fx[f] = true
 		}
+
+		sd := estore.Decoder()
+		nn, err := sd.Decode(ctx, service.DefaultStore, f)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to fetch records: %s", err.Error()), http.StatusBadRequest)
+		}
+
+		var encoder envoy.PrepareEncodeStreammer
 
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
 			contentType = "application/jsonl"
-			recordEncoder = encoder.NewStructuredEncoder(json.NewEncoder(w), uf, r.Timezone, ff...)
+			encoder = ejson.NewBulkRecordEncoder(&ejson.EncoderConfig{
+				Fields:   fx,
+				Timezone: r.Timezone,
+			})
 
 		case "csv":
 			contentType = "text/csv"
-			recordEncoder = encoder.NewFlatWriter(csv.NewWriter(w), true, uf, r.Timezone, ff...)
-
-		case "xlsx":
-			contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-			recordEncoder = encoder.NewExcelizeEncoder(w, true, uf, r.Timezone, ff...)
+			encoder = csv.NewBulkRecordEncoder(&csv.EncoderConfig{
+				Fields:   fx,
+				Timezone: r.Timezone,
+			})
 
 		default:
 			http.Error(w, "unsupported format ("+r.Ext+")", http.StatusBadRequest)
@@ -415,13 +456,28 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		w.Header().Add("Content-Type", contentType)
 		w.Header().Add("Content-Disposition", "attachment"+filename)
 
-		if err = ctrl.record.Export(ctx, f, recordEncoder); err != nil {
+		bld := envoy.NewBuilder(encoder)
+		g, err := bld.Build(ctx, nn...)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
 		}
 
-		recordEncoder.Flush()
-	}, nil
+		err = envoy.Encode(ctx, g, encoder)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		ss := encoder.Stream()
+
+		// Find only the stream we are interested in
+		for _, s := range ss {
+			if s.Resource == resource.COMPOSE_RECORD_RESOURCE_TYPE {
+				io.Copy(w, s.Source)
+			}
+		}
+
+		err = ctrl.record.RecordExport(ctx, *rf)
+
+	}, err
 }
 
 func (ctrl Record) Exec(ctx context.Context, r *request.RecordExec) (interface{}, error) {

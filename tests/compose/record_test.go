@@ -4,20 +4,21 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/service"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest"
-	"github.com/steinfletcher/apitest-jsonpath"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/compose/service"
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/id"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/steinfletcher/apitest"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
+	"github.com/stretchr/testify/require"
 )
 
 func (h helper) clearRecords() {
@@ -315,8 +316,10 @@ func TestRecordExport(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record export module")
+	expected := "id,name\n"
 	for i := 0; i < 10; i++ {
-		h.makeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("d%d", i), Place: uint(i)})
+		r := h.makeRecord(module, &types.RecordValue{Name: "name", Value: fmt.Sprintf("d%d", i), Place: uint(i)})
+		expected += fmt.Sprintf("%d,d%d\n", r.ID, i)
 	}
 
 	// we'll not use standard asserts (AssertNoErrors) here,
@@ -330,7 +333,7 @@ func TestRecordExport(t *testing.T) {
 
 	b, err := ioutil.ReadAll(r.Response.Body)
 	h.noError(err)
-	h.a.Equal("name\nd0\nd1\nd2\nd3\nd4\nd5\nd6\nd7\nd8\nd9\n", string(b))
+	h.a.Equal(expected, string(b))
 }
 
 func (h helper) apiInitRecordImport(api *apitest.APITest, url, f string, file []byte) *apitest.Response {
@@ -408,6 +411,7 @@ func TestRecordImportInit_invalidFileFormat(t *testing.T) {
 func TestRecordImportRun(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 	tests := []struct {
@@ -447,6 +451,74 @@ func TestRecordImportRun_sessionNotFound(t *testing.T) {
 	h.apiRunRecordImport(h.apiInit(), fmt.Sprintf("/namespace/%d/module/%d/record/import/123", module.NamespaceID, module.ID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
 		Assert(helpers.AssertError("compose.service.RecordImportSessionNotFound")).
 		End()
+}
+
+func TestRecordImportRunForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+	h.deny(types.ModuleRBACResource.AppendWildcard(), "record.create")
+
+	module := h.repoMakeRecordModuleWithFields("record import run module")
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "fname,femail\nv1,v2\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			rsp := &rImportSession{}
+			api := h.apiInit()
+
+			r := h.apiInitRecordImport(api, url, test.Name, []byte(test.Content)).End()
+			r.JSON(rsp)
+
+			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
+				Assert(helpers.AssertErrorP("not allowed to create records for module")).
+				End()
+		})
+	}
+}
+
+func TestRecordImportRunForbidden_field(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+
+	module := h.repoMakeRecordModuleWithFields("record import run module")
+
+	f := module.Fields.FindByName("name")
+	h.deny(types.ModuleFieldRBACResource.AppendID(f.ID), "record.value.update")
+
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "fname,femail\nv1,v2\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			rsp := &rImportSession{}
+			api := h.apiInit()
+
+			r := h.apiInitRecordImport(api, url, test.Name, []byte(test.Content)).End()
+			r.JSON(rsp)
+
+			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
+				Assert(helpers.AssertErrorP("1 issue(s) found")).
+				End()
+		})
+	}
 }
 
 func TestRecordImportImportProgress(t *testing.T) {

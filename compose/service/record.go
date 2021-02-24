@@ -13,9 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	estore "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/label"
@@ -79,8 +77,8 @@ type (
 
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (interface{}, error)
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
-		Export(context.Context, types.RecordFilter, Encoder) error
-		Import(context.Context, *recordImportSession) error
+		RecordExport(context.Context, types.RecordFilter) error
+		RecordImport(context.Context, error) error
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)
@@ -95,10 +93,6 @@ type (
 		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
 
 		EventEmitting(enable bool)
-	}
-
-	Encoder interface {
-		Record(*types.Record) error
 	}
 
 	recordImportSession struct {
@@ -311,96 +305,13 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	return set, f, svc.recordAction(ctx, aProps, RecordActionSearch, err)
 }
 
-func (svc record) Import(ctx context.Context, ses *recordImportSession) (err error) {
-	var (
-		aProps = &recordActionProps{}
-	)
-
-	err = func() (err error) {
-		if ses.Progress.StartedAt != nil {
-			return fmt.Errorf("unable to start import: import session already active")
-		}
-
-		sa := time.Now()
-		ses.Progress.StartedAt = &sa
-
-		// Prepare additional metadata
-		tpl := resource.NewComposeRecordTemplate(
-			strconv.FormatUint(ses.ModuleID, 10),
-			strconv.FormatUint(ses.NamespaceID, 10),
-			ses.Name,
-			resource.MapToMappingTplSet(ses.Fields),
-		)
-
-		// Shape the data
-		ses.Resources = append(ses.Resources, tpl)
-		rt := resource.ComposeRecordShaper()
-		ses.Resources, err = resource.Shape(ses.Resources, rt)
-
-		// Build
-		cfg := &estore.EncoderConfig{
-			// For now the identifier is ignored, so this will never occur
-			OnExisting: resource.Skip,
-			Defer: func() {
-				ses.Progress.Completed++
-			},
-		}
-		if ses.OnError == IMPORT_ON_ERROR_SKIP {
-			cfg.DeferNok = func(err error) error {
-				ses.Progress.Failed++
-				ses.Progress.FailReason = err.Error()
-
-				return nil
-			}
-		}
-		se := estore.NewStoreEncoder(svc.store, cfg)
-		bld := envoy.NewBuilder(se)
-		g, err := bld.Build(ctx, ses.Resources...)
-		if err != nil {
-			return err
-		}
-
-		// Encode
-		err = envoy.Encode(ctx, g, se)
-		ses.Progress.FinishedAt = now()
-		if err != nil {
-			ses.Progress.FailReason = err.Error()
-			ses.Progress.Failed++
-			return err
-		}
-
-		return
-	}()
-
-	return svc.recordAction(ctx, aProps, RecordActionImport, err)
+func (svc record) RecordImport(ctx context.Context, err error) error {
+	return svc.recordAction(ctx, &recordActionProps{}, RecordActionImport, err)
 }
 
-// Export returns all records
-//
-// @todo better value handling
-func (svc record) Export(ctx context.Context, f types.RecordFilter, enc Encoder) (err error) {
-	var (
-		aProps = &recordActionProps{filter: &f}
-
-		m   *types.Module
-		set types.RecordSet
-	)
-
-	err = func() (err error) {
-		m, err = loadModule(ctx, svc.store, f.ModuleID)
-		if err != nil {
-			return err
-		}
-
-		set, _, err = store.SearchComposeRecords(ctx, svc.store, m, f)
-		if err != nil {
-			return err
-		}
-
-		return set.Walk(enc.Record)
-	}()
-
-	return svc.recordAction(ctx, aProps, RecordActionExport, err)
+// RecordExport records that the export has occurred
+func (svc record) RecordExport(ctx context.Context, f types.RecordFilter) (err error) {
+	return svc.recordAction(ctx, &recordActionProps{filter: &f}, RecordActionExport, err)
 }
 
 // Bulk handles provided set of bulk record operations.
@@ -541,7 +452,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		return nil, RecordErrNotAllowedToCreate()
 	}
 
-	if err = svc.generalValueSetValidation(m, new.Values); err != nil {
+	if err = RecordValueSanitazion(m, new.Values); err != nil {
 		return
 	}
 
@@ -550,12 +461,10 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	)
 
 	if svc.optEmitEvents {
-		// Handle input payload
 		if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
-		new.Values = svc.formatter.Run(m, new.Values)
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve)); err != nil {
 			return
 		} else if !rve.IsValid() {
@@ -563,8 +472,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		}
 	}
 
-	// Assign defaults (only on missing values)
-	new.Values = svc.setDefaultValues(m, new.Values)
+	new.Values = RecordValueDefaults(m, new.Values)
 
 	// Handle payload from automation scripts
 	if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
@@ -589,6 +497,166 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	if svc.optEmitEvents {
 		new.Values = svc.formatter.Run(m, new.Values)
 		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterCreateImmutable(new, nil, m, ns, nil))
+	}
+
+	return
+}
+
+// RecordValueSanitazion does basic field and format validation
+//
+// Received values must fit the data model: on unknown fields
+// or multi/single value mismatch we return an error
+//
+// Record value errors is intentionally NOT used here; if input fails here
+// we can assume that form builder (or whatever it was that assembled the record values)
+// was misconfigured and will most likely failed to properly parse the
+// record value errors payload too
+func RecordValueSanitazion(m *types.Module, vv types.RecordValueSet) (err error) {
+	var (
+		aProps  = &recordActionProps{}
+		numeric = regexp.MustCompile(`^[1-9](\d+)$`)
+	)
+
+	err = vv.Walk(func(v *types.RecordValue) error {
+		var field = m.Fields.FindByName(v.Name)
+		if field == nil {
+			return RecordErrFieldNotFound(aProps.setField(v.Name))
+		}
+
+		if field.IsRef() {
+			if v.Value == "" {
+				return nil
+			}
+
+			if !numeric.MatchString(v.Value) {
+				return RecordErrInvalidReferenceFormat(aProps.setField(v.Name).setValue(v.Value))
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	// Make sure there are no multi values in a non-multi value fields
+	err = m.Fields.Walk(func(field *types.ModuleField) error {
+		if !field.Multi && len(vv.FilterByName(field.Name)) > 1 {
+			return RecordErrInvalidValueStructure(aProps.setField(field.Name))
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func RecordUpdateOwner(invokerID uint64, r, old *types.Record) *types.Record {
+	if old == nil {
+		if r.OwnedBy == 0 {
+			// If od owner is not set, make current user
+			// the owner of the record
+			r.OwnedBy = invokerID
+		}
+	} else {
+		if r.OwnedBy == 0 {
+			if old.OwnedBy > 0 {
+				// Owner not set/send in the payload
+				//
+				// Fallback to old owner (if set)
+				r.OwnedBy = old.OwnedBy
+			} else {
+				// If od owner is not set, make current user
+				// the owner of the record
+				r.OwnedBy = invokerID
+			}
+		}
+	}
+
+	return r
+}
+
+func RecordValueMerger(ctx context.Context, ac recordValueAccessController, m *types.Module, vv, old types.RecordValueSet) (types.RecordValueSet, *types.RecordValueErrorSet) {
+	if old != nil {
+		// Value merge process does not know anything about permissions so
+		// in case when new values are missing but do exist in the old set and their update/read is denied
+		// we need to copy them to ensure value merge process them correctly
+		for _, f := range m.Fields {
+			if len(vv.FilterByName(f.Name)) == 0 && !ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name)) {
+				// copy all fields from old to new
+				vv = append(vv, old.FilterByName(f.Name).GetClean()...)
+			}
+		}
+
+		// Merge new (updated) values with old ones
+		// This way we get list of updated, stale and deleted values
+		// that we can selectively update in the repository
+		vv = old.Merge(vv)
+	}
+
+	rve := &types.RecordValueErrorSet{}
+	_ = vv.Walk(func(v *types.RecordValue) error {
+		if v.IsUpdated() && !ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
+			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
+		}
+
+		return nil
+	})
+
+	return vv, rve
+}
+
+func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
+	// Before values are processed further and
+	// sent to automation scripts (if any)
+	// we need to make sure it does not get un-sanitized data
+	new.Values = ss.Run(m, new.Values)
+
+	rve := &types.RecordValueErrorSet{}
+	values.Expression(ctx, m, new, nil, rve)
+
+	if !rve.IsValid() {
+		return rve
+	}
+
+	// Run validation of the updated records
+	rve = vv.Run(ctx, s, m, new)
+	if !rve.IsValid() {
+		return rve
+	}
+
+	// Cleanup the values
+	new.Values = new.Values.GetClean()
+
+	// Formatting
+	new.Values = ff.Run(m, new.Values)
+
+	return nil
+}
+
+func RecordValueDefaults(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
+	out = vv
+
+	for _, f := range m.Fields {
+		if f.DefaultValue == nil {
+			continue
+		}
+
+		for i, dv := range f.DefaultValue {
+			// Default values on field are (might be) without field name and place
+			if !out.Has(f.Name, uint(i)) {
+				out = append(out, &types.RecordValue{
+					Name:  f.Name,
+					Value: dv.Value,
+					Place: uint(i),
+				})
+			}
+		}
 	}
 
 	return
@@ -628,7 +696,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		return nil, RecordErrStaleData()
 	}
 
-	if err = svc.generalValueSetValidation(m, upd.Values); err != nil {
+	if err = RecordValueSanitazion(m, upd.Values); err != nil {
 		return
 	}
 
@@ -641,17 +709,6 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
-
-		// Before we pass values to record-before-update handling events
-		// values needs do be cleaned up
-		//
-		// Value merge inside procUpdate sets delete flag we need
-		// when changes are applied but we do not want deleted values
-		// to be sent to handler
-		upd.Values = upd.Values.GetClean()
-
-		// Before we pass values to automation scripts, they should be formatted
-		upd.Values = svc.formatter.Run(m, upd.Values)
 
 		// Scripts can (besides simple error value) return complex record value error set
 		// that is passed back to the UI or any other API consumer
@@ -720,14 +777,8 @@ func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Rec
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
-	// Mark all values as updated (new)
+func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
 	new.Values.SetUpdatedFlag(true)
-
-	// Before values are processed further and
-	// sent to automation scripts (if any)
-	// we need to make sure it does not get un-sanitized data
-	new.Values = svc.sanitizer.Run(m, new.Values)
 
 	// Reset values to new record
 	// to make sure nobody slips in something we do not want
@@ -739,33 +790,13 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 	new.DeletedAt = nil
 	new.DeletedBy = 0
 
-	if new.OwnedBy == 0 {
-		// If od owner is not set, make current user
-		// the owner of the record
-		new.OwnedBy = invokerID
-	}
-
-	rve := &types.RecordValueErrorSet{}
-	_ = new.Values.Walk(func(v *types.RecordValue) error {
-		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
-			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
-		}
-
-		return nil
-	})
-
+	new = RecordUpdateOwner(invokerID, new, nil)
+	new.Values, rve = RecordValueMerger(ctx, svc.ac, m, new.Values, nil)
 	if !rve.IsValid() {
 		return rve
 	}
-
-	values.Expression(ctx, m, new, nil, rve)
-
-	if !rve.IsValid() {
-		return rve
-	}
-
-	// Run validation of the updated records
-	return svc.validator.Run(ctx, s, m, new)
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new)
+	return rve
 }
 
 func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Record, err error) {
@@ -789,16 +820,9 @@ func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Rec
 // of the update procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) *types.RecordValueErrorSet {
+func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) (rve *types.RecordValueErrorSet) {
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
-
-	// First sanitization
-	//
-	// Before values are merged with existing data and
-	// sent to automation scripts (if any)
-	// we need to make sure it does not get sanitized data
-	upd.Values = svc.sanitizer.Run(m, upd.Values)
 
 	// Copy values to updated record
 	// to make sure nobody slips in something we do not want
@@ -809,55 +833,13 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	upd.DeletedAt = old.DeletedAt
 	upd.DeletedBy = old.DeletedBy
 
-	if upd.OwnedBy == 0 {
-		if old.OwnedBy > 0 {
-			// Owner not set/send in the payload
-			//
-			// Fallback to old owner (if set)
-			upd.OwnedBy = old.OwnedBy
-		} else {
-			// If od owner is not set, make current user
-			// the owner of the record
-			upd.OwnedBy = invokerID
-		}
-	}
-
-	// Value merge process does not know anything about permissions so
-	// in case when new values are missing but do exist in the old set and their update/read is denied
-	// we need to copy them to ensure value merge process them correctly
-	for _, f := range m.Fields {
-		if len(upd.Values.FilterByName(f.Name)) == 0 && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name)) {
-			// copy all fields from old to new
-			upd.Values = append(upd.Values, old.Values.FilterByName(f.Name).GetClean()...)
-		}
-	}
-
-	// Merge new (updated) values with old ones
-	// This way we get list of updated, stale and deleted values
-	// that we can selectively update in the repository
-	upd.Values = old.Values.Merge(upd.Values)
-
-	rve := &types.RecordValueErrorSet{}
-	_ = upd.Values.Walk(func(v *types.RecordValue) error {
-		if v.IsUpdated() && !svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
-			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
-		}
-
-		return nil
-	})
-
+	upd = RecordUpdateOwner(invokerID, upd, old)
+	upd.Values, rve = RecordValueMerger(ctx, svc.ac, m, upd.Values, old.Values)
 	if !rve.IsValid() {
 		return rve
 	}
-
-	values.Expression(ctx, m, upd, old, rve)
-
-	if !rve.IsValid() {
-		return rve
-	}
-
-	// Run validation of the updated records
-	return svc.validator.Run(ctx, s, m, upd)
+	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
+	return rve
 }
 
 func (svc record) recordInfoUpdate(ctx context.Context, r *types.Record) {
@@ -1262,7 +1244,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					recordableAction = RecordActionIteratorClone
 
 					// Assign defaults (only on missing values)
-					rec.Values = svc.setDefaultValues(m, rec.Values)
+					rec.Values = RecordValueDefaults(m, rec.Values)
 
 					// Handle payload from automation scripts
 					if rve := svc.procCreate(ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
@@ -1309,83 +1291,6 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 
 	return svc.recordAction(ctx, aProps, RecordActionIteratorInvoked, err)
 
-}
-
-func (svc record) setDefaultValues(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
-	out = vv
-
-	for _, f := range m.Fields {
-		if f.DefaultValue == nil {
-			continue
-		}
-
-		for i, dv := range f.DefaultValue {
-			// Default values on field are (might be) without field name and place
-			if !out.Has(f.Name, uint(i)) {
-				out = append(out, &types.RecordValue{
-					Name:  f.Name,
-					Value: dv.Value,
-					Place: uint(i),
-				})
-			}
-		}
-	}
-
-	return
-}
-
-// Does basic field and format validation
-//
-// Received values must fit the data model: on unknown fields
-// or multi/single value mismatch we return an error
-//
-// Record value errors is intentionally NOT used here; if input fails here
-// we can assume that form builder (or whatever it was that assembled the record values)
-// was misconfigured and will most likely failed to properly parse the
-// record value errors payload too
-func (svc record) generalValueSetValidation(m *types.Module, vv types.RecordValueSet) (err error) {
-	var (
-		aProps  = &recordActionProps{}
-		numeric = regexp.MustCompile(`^[1-9](\d+)$`)
-	)
-
-	err = vv.Walk(func(v *types.RecordValue) error {
-		var field = m.Fields.FindByName(v.Name)
-		if field == nil {
-			return RecordErrFieldNotFound(aProps.setField(v.Name))
-		}
-
-		if field.IsRef() {
-			if v.Value == "" {
-				return nil
-			}
-
-			if !numeric.MatchString(v.Value) {
-				return RecordErrInvalidReferenceFormat(aProps.setField(v.Name).setValue(v.Value))
-			}
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return
-	}
-
-	// Make sure there are no multi values in a non-multi value fields
-	err = m.Fields.Walk(func(field *types.ModuleField) error {
-		if !field.Multi && len(vv.FilterByName(field.Name)) > 1 {
-			return RecordErrInvalidValueStructure(aProps.setField(field.Name))
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return
-	}
-
-	return
 }
 
 // checks record-value-read access permissions for all module fields and removes unreadable fields from all records
