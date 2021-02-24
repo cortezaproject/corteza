@@ -2,13 +2,10 @@
 
 WARNING: Work in progress
 
-WARNING: Any changes to these files here require `make docs`
-
 This is the first step in migration towards full OpenAPI standards support.
 
-
 ## Current state (`2021.3.x` and later)
-In branch `2020.12.x` we're experimenting with first step toward conversion to OpenAPI 3.0 YAML files for API
+We're experimenting with first step toward conversion to OpenAPI 3.0 YAML files for API
 definition. There is a converter available in https://github.com/cortezaproject/openapi3-converter[cortezaproject/openapi3-converter]
 that takes those custom YAML files and converts them to OpenAPI format.
 

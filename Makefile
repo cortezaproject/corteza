@@ -142,9 +142,6 @@ clean.codegen:
 provision:
 	$(MAKE) --directory=provision clean all
 
-docs: $(STATIK)
-	$(STATIK) -p docs -m -Z -f -src=./docs
-
 #######################################################################################################################
 # Quality Assurance
 
