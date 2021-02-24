@@ -135,6 +135,7 @@ props:
       the need to suply redirection URL and client ID (oauth2/go endpoint does that internally)
 
   - name: assetsPath
+    default: "auth/assets"
     description: |-
       Path to js, css, images and template source files
 
