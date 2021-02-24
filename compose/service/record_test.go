@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -12,16 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestGeneralValueSetValidation(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		svc = record{
-			ac: AccessControl(&rbac.ServiceAllowAll{}),
-		}
 		module = &types.Module{
 			Fields: types.ModuleFieldSet{
 				&types.ModuleField{Name: "single1"},
@@ -36,36 +34,36 @@ func TestGeneralValueSetValidation(t *testing.T) {
 	)
 
 	rvs = types.RecordValueSet{{Name: "single1", Value: "single"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "unknown", Value: "single"}}
-	err = svc.generalValueSetValidation(module, rvs)
-	req.True(err != nil, "expecting generalValueSetValidation() to return an error, got nil")
+	err = RecordValueSanitazion(module, rvs)
+	req.True(err != nil, "expecting RecordValueSanitazion() to return an error, got nil")
 
 	rvs = types.RecordValueSet{{Name: "single1", Value: "single"}, {Name: "single1", Value: "single2"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.Error(err)
 
 	rvs = types.RecordValueSet{{Name: "multi1", Value: "multi1"}, {Name: "multi1", Value: "multi1"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "non numeric value"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.Error(err)
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "12345"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "multiRef1", Value: "12345"}, {Name: "multiRef1", Value: "67890"}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.NoError(err)
 	req.Len(rvs, 2, "expecting 2 record values after sanitization, got %d", len(rvs))
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: ""}}
-	err = svc.generalValueSetValidation(module, rvs)
+	err = RecordValueSanitazion(module, rvs)
 	req.NoError(err)
 }
 
@@ -73,9 +71,6 @@ func TestDefaultValueSetting(t *testing.T) {
 	var (
 		a = assert.New(t)
 
-		svc = record{
-			ac: AccessControl(&rbac.ServiceAllowAll{}),
-		}
 		mod = &types.Module{
 			Fields: types.ModuleFieldSet{
 				&types.ModuleField{Name: "single", DefaultValue: []*types.RecordValue{{Value: "s"}}},
@@ -89,7 +84,7 @@ func TestDefaultValueSetting(t *testing.T) {
 		}
 	)
 
-	out := svc.setDefaultValues(mod, nil)
+	out := RecordValueDefaults(mod, nil)
 	chk(out, "single", 0, "s")
 	chk(out, "multi", 0, "m1")
 	chk(out, "multi", 1, "m2")
@@ -105,6 +100,7 @@ func TestProcUpdateOwnerPreservation(t *testing.T) {
 		svc = record{
 			sanitizer: values.Sanitizer(),
 			validator: values.Validator(),
+			formatter: values.Formatter(),
 		}
 
 		mod = &types.Module{
@@ -137,6 +133,7 @@ func TestProcUpdateOwnerChanged(t *testing.T) {
 		svc = record{
 			sanitizer: values.Sanitizer(),
 			validator: values.Validator(),
+			formatter: values.Formatter(),
 		}
 
 		mod = &types.Module{
@@ -183,6 +180,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		svc = record{
 			sanitizer: values.Sanitizer(),
 			validator: values.Validator(),
+			formatter: values.Formatter(),
 			ac:        ac,
 			store:     s,
 		}
