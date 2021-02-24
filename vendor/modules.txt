@@ -123,9 +123,6 @@ github.com/gorilla/sessions
 # github.com/gorilla/websocket v1.4.2
 ## explicit
 github.com/gorilla/websocket
-# github.com/goware/statik v0.2.0
-## explicit
-github.com/goware/statik/fs
 # github.com/huandu/xstrings v1.3.2
 ## explicit
 github.com/huandu/xstrings
