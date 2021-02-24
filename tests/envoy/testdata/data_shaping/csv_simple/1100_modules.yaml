@@ -13,9 +13,10 @@ modules:
         kind: String
 
     records:
-      source: mod1.jsonl
+      source: mod1.csv
       key: id
       mapping:
+        id: /
         c1:
           field: f1
         c2:

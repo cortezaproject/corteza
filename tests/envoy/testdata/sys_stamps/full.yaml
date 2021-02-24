@@ -48,6 +48,7 @@ users:
 
 applications:
   - name: app1
+    owner: test
     createdAt: "2021-12-01T10:00:00Z"
     updatedAt: "2021-12-02T10:00:00Z"
     deletedAt: "2021-12-03T10:00:00Z"

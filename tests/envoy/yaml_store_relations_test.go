@@ -7,50 +7,48 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 )
 
-func TestModuleRels(t *testing.T) {
-	var (
-		ctx    = context.Background()
-		s, err = initStore(ctx)
-	)
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
-	}
+func TestYamlStore_relations(t *testing.T) {
+	type (
+		tc struct {
+			name string
+			file string
 
-	ni := uint64(0)
+			// Before the data gets processed
+			pre func() error
+			// After the data gets processed
+			post func(req *require.Assertions, err error)
+			// Data assertions
+			check func(req *require.Assertions)
+		}
+	)
+
+	var (
+		ctx       = auth.SetSuperUserContext(context.Background())
+		namespace = "relations"
+		s         = initStore(ctx, t)
+		err       error
+	)
+
+	ni := uint64(10)
 	su.NextID = func() uint64 {
 		ni++
 		return ni
 	}
 
-	prepare := func(ctx context.Context, s store.Storer, t *testing.T, suite, file string) (*require.Assertions, error) {
-		req := require.New(t)
-
-		nn, err := yd(ctx, suite, file)
-		req.NoError(err)
-
-		return req, encode(ctx, s, nn)
-	}
-
 	cases := []*tc{
 		{
-			name:  "simple mods; self ref",
-			suite: "mod_rel",
-			file:  "modules_self_ref",
+			name: "module; self ref",
+			file: "modules_self_ref",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-
-					storeNamespace(ctx, s, 10, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 10, "ns1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, 10, "mod1")
@@ -68,20 +66,12 @@ func TestModuleRels(t *testing.T) {
 		},
 
 		{
-			name:  "simple mods; ref to peer",
-			suite: "mod_rel",
-			file:  "modules_peer_ref",
+			name: "mods; ref to peer",
+			file: "modules_peer_ref",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
 				)
-			},
-			post: func(req *require.Assertions, err error) {
-				req.NoError(err)
 			},
 			check: func(req *require.Assertions) {
 				pmod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, 100, "mod2")
@@ -103,17 +93,12 @@ func TestModuleRels(t *testing.T) {
 		},
 
 		{
-			name:  "simple mods; ref to store",
-			suite: "mod_rel",
-			file:  "modules_store_ref",
+			name: "mods; ref to store",
+			file: "modules_store_ref",
 			pre: func() (err error) {
-				return ce(
-					s.TruncateComposeNamespaces(ctx),
-					s.TruncateComposeModules(ctx),
-					s.TruncateComposeModuleFields(ctx),
-
-					storeNamespace(ctx, s, 100, "ns1"),
-					storeModule(ctx, s, 100, 200, "mod2"),
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod2"),
 				)
 			},
 			post: func(req *require.Assertions, err error) {
@@ -140,16 +125,32 @@ func TestModuleRels(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("%s; %s/%s", c.name, c.suite, c.file), func(t *testing.T) {
-			err = c.pre()
-			if err != nil {
-				t.Fatal(err.Error())
-			}
-			req, err := prepare(ctx, s, t, c.suite, c.file+".yaml")
-			c.post(req, err)
-			c.check(req)
-		})
+		f := c.file + ".yaml"
+		t.Run(fmt.Sprintf("%s; testdata/%s/%s", c.name, namespace, f), func(t *testing.T) {
+			truncateStore(ctx, s, t)
 
-		ni = 0
+			req := require.New(t)
+
+			if c.pre != nil {
+				err = c.pre()
+				req.NoError(err)
+			}
+
+			nn, err := decodeYaml(ctx, namespace, f)
+			req.NoError(err)
+
+			err = encode(ctx, s, nn)
+			if c.post != nil {
+				c.post(req, err)
+			} else {
+				req.NoError(err)
+			}
+
+			if c.check != nil {
+				c.check(req)
+			}
+
+			truncateStore(ctx, s, t)
+		})
 	}
 }
