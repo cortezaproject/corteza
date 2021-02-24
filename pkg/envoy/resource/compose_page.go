@@ -1,6 +1,9 @@
 package resource
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -10,12 +13,14 @@ type (
 		*base
 		Res *types.Page
 
-		NsRef     *Ref
-		ModRef    *Ref
-		ParentRef *Ref
+		RefNs     *Ref
+		RefMod    *Ref
+		RefParent *Ref
 
 		ModRefs   RefSet
-		ChartRefs RefSet
+		RefCharts RefSet
+
+		BlockRefs map[int]RefSet
 	}
 )
 
@@ -23,34 +28,66 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	r := &ComposePage{
 		base:      &base{},
 		ModRefs:   make(RefSet, 0, 10),
-		ChartRefs: make(RefSet, 0, 10),
+		RefCharts: make(RefSet, 0, 10),
+		BlockRefs: make(map[int]RefSet),
 	}
 	r.SetResourceType(COMPOSE_PAGE_RESOURCE_TYPE)
 	r.Res = pg
 
 	r.AddIdentifier(identifiers(pg.Handle, pg.Title, pg.ID)...)
 
-	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 	if modRef != "" {
-		r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
+		r.RefMod = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.RefNs)
 	}
 
 	if parentRef != "" {
-		r.ParentRef = r.AddRef(COMPOSE_PAGE_RESOURCE_TYPE, parentRef).Constraint(r.NsRef)
+		r.RefParent = r.AddRef(COMPOSE_PAGE_RESOURCE_TYPE, parentRef).Constraint(r.RefNs)
 	}
 
-	for _, b := range pg.Blocks {
+	// Quick utility to extract references from options
+	ss := func(m map[string]interface{}, kk ...string) string {
+		for _, k := range kk {
+			if vr, has := m[k]; has {
+				v, _ := vr.(string)
+				return v
+			}
+		}
+		return ""
+	}
+
+	add := func(rr RefSet, r *Ref) RefSet {
+		if rr == nil {
+			rr = make(RefSet, 0, 2)
+		}
+
+		return append(rr, r)
+	}
+
+	for i, b := range pg.Blocks {
 		switch b.Kind {
 		case "RecordList":
-			id, _ := b.Options["module"].(string)
+			id := ss(b.Options, "module", "moduleID")
 			if id != "" {
-				r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
+				ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				r.ModRefs = append(r.ModRefs, ref)
+			}
+
+		case "RecordOrganizer":
+			id := ss(b.Options, "module", "moduleID")
+			if id != "" {
+				ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				r.ModRefs = append(r.ModRefs, ref)
 			}
 
 		case "Chart":
-			id, _ := b.Options["chart"].(string)
+			id := ss(b.Options, "chart", "chartID")
 			if id != "" {
-				r.ChartRefs = append(r.ChartRefs, r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id).Constraint(r.NsRef))
+				ref := r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				r.RefCharts = append(r.RefCharts, ref)
 			}
 
 		case "Calendar":
@@ -58,9 +95,11 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			for _, f := range ff {
 				feed, _ := f.(map[string]interface{})
 				fOpts, _ := (feed["options"]).(map[string]interface{})
-				id, _ := fOpts["module"].(string)
+				id := ss(fOpts, "module", "moduleID")
 				if id != "" {
-					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
+					ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+					r.ModRefs = append(r.ModRefs, ref)
 				}
 			}
 
@@ -68,17 +107,53 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			mm, _ := b.Options["metrics"].([]interface{})
 			for _, m := range mm {
 				mops, _ := m.(map[string]interface{})
-				id, _ := mops["module"].(string)
+				id := ss(mops, "module", "moduleID")
 				if id != "" {
-					r.ModRefs = append(r.ModRefs, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.NsRef))
+					ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+					r.ModRefs = append(r.ModRefs, ref)
 				}
 			}
 		}
 	}
+
+	// Initial timestamps
+	r.SetTimestamps(MakeCUDATimestamps(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
 
 	return r
 }
 
 func (r *ComposePage) SysID() uint64 {
 	return r.Res.ID
+}
+
+func (r *ComposePage) Ref() string {
+	return FirstOkString(r.Res.Handle, r.Res.Title, strconv.FormatUint(r.Res.ID, 10))
+}
+
+// FindComposePage looks for the page in the resources
+func FindComposePage(rr InterfaceSet, ii Identifiers) (pg *types.Page) {
+	var pgRes *ComposePage
+
+	rr.Walk(func(r Interface) error {
+		pr, ok := r.(*ComposePage)
+		if !ok {
+			return nil
+		}
+
+		if pr.Identifiers().HasAny(ii) {
+			pgRes = pr
+		}
+		return nil
+	})
+
+	// Found it
+	if pgRes != nil {
+		return pgRes.Res
+	}
+	return nil
+}
+
+func ComposePageErrUnresolved(ii Identifiers) error {
+	return fmt.Errorf("compose page unresolved %v", ii.StringSlice())
 }

@@ -1,8 +1,10 @@
 package yaml
 
 import (
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"reflect"
+
+	"github.com/cortezaproject/corteza-server/pkg/y7s"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
@@ -15,8 +17,99 @@ type (
 		Records    composeRecordSet
 		Pages      composePageSet
 		Charts     composeChartSet
+
+		EncoderConfig *EncoderConfig `yaml:"-"`
 	}
 )
+
+func (c *compose) MarshalYAML() (interface{}, error) {
+	nsDefined := c.Namespaces != nil && len(c.Namespaces) > 0
+	cn, _ := makeMap()
+	var err error
+
+	addNsRef := func(n *yaml.Node, ref string) (*yaml.Node, error) {
+		if !nsDefined {
+			n, err = addMap(n,
+				"namespace", ref,
+			)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return n, nil
+	}
+
+	if nsDefined {
+		c.Namespaces.ConfigureEncoder(c.EncoderConfig)
+
+		cn, err = encodeResource(cn, "namespaces", c.Namespaces, c.EncoderConfig.MappedOutput, "slug")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Modules) > 0 {
+		cn, err = addNsRef(cn, c.Modules[0].refNamespace)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Modules.ConfigureEncoder(c.EncoderConfig)
+
+		cn, err = encodeResource(cn, "modules", c.Modules, c.EncoderConfig.MappedOutput, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Records) > 0 {
+		cn, err = addNsRef(cn, c.Records[0].refNamespace)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Records.ConfigureEncoder(c.EncoderConfig)
+
+		// Records don't have this
+		cn, err = encodeResource(cn, "records", c.Records, false, "")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Pages) > 0 {
+		cn, err = addNsRef(cn, c.Pages[0].refNamespace)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Pages.ConfigureEncoder(c.EncoderConfig)
+
+		// @todo A bit of a complication with pages and handles...
+		//       Will probably just leave it as so, but might change it later.
+		cn, err = encodeResource(cn, "pages", c.Pages, false, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(c.Charts) > 0 {
+		cn, err = addNsRef(cn, c.Charts[0].refNamespace)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Charts.ConfigureEncoder(c.EncoderConfig)
+
+		cn, err = encodeResource(cn, "charts", c.Charts, c.EncoderConfig.MappedOutput, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return cn, nil
+}
 
 func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	var (
@@ -25,11 +118,11 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	)
 
 	// 1st pass: handle doc-level references
-	err = EachMap(n, func(k, v *yaml.Node) error {
+	err = y7s.EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespace":
 			if def := FindKeyNode(n, "namespaces"); def != nil {
-				return NodeErr(def, "cannot combine namespace reference and namespaces definition")
+				return y7s.NodeErr(def, "cannot combine namespace reference and namespaces definition")
 			}
 
 			if err := decodeRef(v, "namespace", &nsRef); err != nil {
@@ -45,7 +138,7 @@ func (c *compose) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	// 2nd pass: handle definitions
-	return EachMap(n, func(k, v *yaml.Node) error {
+	return y7s.EachMap(n, func(k, v *yaml.Node) error {
 		switch k.Value {
 		case "namespaces":
 			err = v.Decode(&c.Namespaces)

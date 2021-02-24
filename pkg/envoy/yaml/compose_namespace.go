@@ -1,20 +1,21 @@
 package yaml
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
-	"gopkg.in/yaml.v3"
 )
 
 type (
 	composeNamespace struct {
-		// when namespace is at least partially defined
-		res    *types.Namespace `yaml:",inline"`
-		ts     *resource.Timestamps
-		config *resource.EnvoyConfig
+		res  *types.Namespace `yaml:",inline"`
+		ts   *resource.Timestamps
+		meta composeNamespaceMeta
+
+		envoyConfig   *resource.EnvoyConfig
+		encoderConfig *EncoderConfig
 
 		// all known modules on a namespace
 		modules composeModuleSet
@@ -32,119 +33,125 @@ type (
 		rbac rbacRuleSet
 	}
 	composeNamespaceSet []*composeNamespace
+
+	composeNamespaceMeta types.NamespaceMeta
 )
 
-// UnmarshalYAML resolves set of namespace definitions, either sequence or map
-//
-// When resolving map, key is used as slug
-//
-//
-func (wset *composeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
-	return Each(n, func(k, v *yaml.Node) (err error) {
-		var (
-			wrap = &composeNamespace{}
-		)
-
-		if v == nil {
-			return NodeErr(n, "malformed namespace definition")
-		}
-
-		if err = v.Decode(&wrap); err != nil {
-			return
-		}
-
-		if k != nil {
-			if wrap.res.Slug != "" {
-				return NodeErr(k, "cannot define slug in mapped namespace definition")
-			}
-
-			if !handle.IsValid(k.Value) {
-				return NodeErr(n, "namespace reference must be a valid handle")
-			}
-
-			// set namespace slug from map key value
-			wrap.res.Slug = k.Value
-		}
-
-		*wset = append(*wset, wrap)
-		return
-	})
+func composeNamespaceFromResource(r *resource.ComposeNamespace, cfg *EncoderConfig) *composeNamespace {
+	return &composeNamespace{
+		res:           r.Res,
+		encoderConfig: cfg,
+	}
 }
 
-func (wset composeNamespaceSet) MarshalEnvoy() ([]resource.Interface, error) {
-	// namespace usually have bunch of sub-resources defined
-	nn := make([]resource.Interface, 0, len(wset)*10)
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
+// ConfigureEncoder configures the composeNamespace encoding
+func (nn composeNamespaceSet) ConfigureEncoder(cfg *EncoderConfig) {
+	for _, n := range nn {
+		n.encoderConfig = cfg
 	}
-
-	return nn, nil
 }
 
-func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
-	if !IsKind(n, yaml.MappingNode) {
-		return NodeErr(n, "namespace definition must be a map or scalar")
-	}
-
-	if wrap.res == nil {
-		wrap.res = &types.Namespace{
-			// namespaces are enabled by default
-			Enabled: true,
+// FindComposeNamespace finds the composeNamespace in the set of
+func (nn composeNamespaceSet) FindComposeNamespace(ns string) *composeNamespace {
+	for _, n := range nn {
+		if resource.Check(ns, n.res.ID, n.res.Slug, n.res.Name) {
+			return n
 		}
 	}
-
-	if err = n.Decode(&wrap.res); err != nil {
-		return
-	}
-
-	if wrap.rbac, err = decodeRbac(n); err != nil {
-		return
-	}
-
-	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
-		return
-	}
-
-	if wrap.ts, err = decodeTimestamps(n); err != nil {
-		return
-	}
-
-	return Each(n, func(k, v *yaml.Node) (err error) {
-		switch k.Value {
-		case "modules":
-			return v.Decode(&wrap.modules)
-
-		case "records":
-			return v.Decode(&wrap.records)
-
-		case "charts":
-			return v.Decode(&wrap.charts)
-
-		case "pages":
-			return v.Decode(&wrap.pages)
-
-		}
-
-		return nil
-	})
+	return nil
 }
 
-func (wrap composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {
-	nsr := resource.NewComposeNamespace(wrap.res)
-	nsr.SetTimestamps(wrap.ts)
-	nsr.SetConfig(wrap.config)
+// AddComposeModule adds the module m into the namespace
+func (nn composeNamespaceSet) AddComposeModule(ref string, m *composeModule) error {
+	ns := nn.FindComposeNamespace(ref)
 
-	return envoy.CollectNodes(
-		nsr,
-		wrap.modules,
-		wrap.pages,
-		wrap.records,
-		wrap.charts,
-		wrap.rbac.bindResource(nsr),
-	)
+	if ns == nil {
+		return composeNamespaceErrNotFound(ref)
+	}
+	if ns.modules == nil {
+		ns.modules = make(composeModuleSet, 0, 1)
+	}
+
+	ns.modules = append(ns.modules, m)
+	return nil
+}
+
+// AddComposePage adds the page p into the namespace
+func (nn composeNamespaceSet) AddComposePage(ref string, p *composePage) error {
+	ns := nn.FindComposeNamespace(ref)
+
+	if ns == nil {
+		return composeNamespaceErrNotFound(ref)
+	}
+	if ns.pages == nil {
+		ns.pages = make(composePageSet, 0, 1)
+	}
+
+	ns.pages = append(ns.pages, p)
+	return nil
+}
+
+// AddComposeChart adds the chart c into the namespace
+func (nn composeNamespaceSet) AddComposeChart(ref string, c *composeChart) error {
+	ns := nn.FindComposeNamespace(ref)
+
+	if ns == nil {
+		return composeNamespaceErrNotFound(ref)
+	}
+	if ns.charts == nil {
+		ns.charts = make(composeChartSet, 0, 1)
+	}
+
+	ns.charts = append(ns.charts, c)
+	return nil
+}
+
+// AddComposeRecord adds the record r into the namespace
+func (nn composeNamespaceSet) AddComposeRecord(ref string, r *composeRecord) error {
+	ns := nn.FindComposeNamespace(ref)
+
+	if ns == nil {
+		return composeNamespaceErrNotFound(ref)
+	}
+	if ns.records == nil {
+		ns.records = make(composeRecordSet, 0, 1)
+	}
+
+	ns.records = append(ns.records, r)
+	return nil
+}
+
+// AddRbacRule adds the record r into the namespace
+func (nn composeNamespaceSet) AddRbacRule(ref string, r *rbacRule) error {
+	ns := nn.FindComposeNamespace(ref)
+
+	if ns == nil {
+		return composeNamespaceErrNotFound(ref)
+	}
+	if ns.rbac == nil {
+		ns.rbac = make(rbacRuleSet, 0, 20)
+	}
+
+	ns.rbac = append(ns.rbac, r)
+	return nil
+}
+
+// Empty checks if the meta struct is empty (default value)
+func (c composeNamespaceMeta) Empty() bool {
+	if c == (composeNamespaceMeta{}) {
+		return true
+	}
+
+	return false
+}
+
+func relNsToRef(ns *types.Namespace) string {
+	return resource.FirstOkString(ns.Slug, ns.Name, strconv.FormatUint(ns.ID, 10))
+}
+func relModToRef(mod *types.Module) string {
+	return resource.FirstOkString(mod.Handle, mod.Name, strconv.FormatUint(mod.ID, 10))
+}
+
+func composeNamespaceErrNotFound(i string) error {
+	return fmt.Errorf("namespace not found: %v", i)
 }

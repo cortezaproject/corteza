@@ -2,10 +2,12 @@ package yaml
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 	"io"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/cortezaproject/corteza-server/pkg/y7s"
+	. "github.com/cortezaproject/corteza-server/pkg/y7s"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -60,11 +62,11 @@ func decodeRef(n *yaml.Node, refType string, ref *string) error {
 	}
 
 	if !IsKind(n, yaml.ScalarNode) {
-		return NodeErr(n, "%s reference must be scalar", refType)
+		return y7s.NodeErr(n, "%s reference must be scalar", refType)
 	}
 
 	if !handle.IsValid(n.Value) {
-		return NodeErr(n, "%s reference must be a valid handle", refType)
+		return y7s.NodeErr(n, "%s reference must be a valid handle", refType)
 	}
 
 	*ref = n.Value

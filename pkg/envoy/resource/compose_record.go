@@ -18,30 +18,34 @@ type (
 		ID     string
 		Values map[string]string
 
-		Ts       *Timestamps
-		Us       *Userstamps
-		RefUsers map[string]string
+		Ts *Timestamps
+		Us *Userstamps
 
 		Config *EnvoyConfig
 	}
 	ComposeRecordRawSet []*ComposeRecordRaw
 
-	crsWalker func(f func(r *ComposeRecordRaw) error) error
+	CrsWalker func(f func(r *ComposeRecordRaw) error) error
 
 	ComposeRecord struct {
 		*base
 
-		Walker crsWalker
+		Walker CrsWalker
 
-		NsRef  *Ref
-		ModRef *Ref
+		RefNs *Ref
+
+		RefMod *Ref
+		RelMod *types.Module
 
 		IDMap  map[string]uint64
 		RecMap map[string]*types.Record
+		// UserFlakes help the system by predefining a set of potential sys user references.
+		// This should make the operation cheaper for larger datasets.
+		UserFlakes UserstampIndex
 	}
 )
 
-func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
+func NewComposeRecordSet(w CrsWalker, nsRef, modRef string) *ComposeRecord {
 	r := &ComposeRecord{
 		base:   &base{},
 		IDMap:  make(map[string]uint64),
@@ -53,8 +57,15 @@ func NewComposeRecordSet(w crsWalker, nsRef, modRef string) *ComposeRecord {
 
 	r.AddIdentifier(identifiers(modRef)...)
 
-	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
+	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefMod = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.RefNs)
 
 	return r
+}
+
+func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
+	r.UserFlakes = uu
+
+	// Set user refs as wildflag, indicating it refers to any user resource
+	r.AddRef(USER_RESOURCE_TYPE, "*")
 }

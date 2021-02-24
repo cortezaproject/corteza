@@ -52,6 +52,18 @@ func (r Resource) TrimID() Resource {
 	return r
 }
 
+// GetID returns the identifier for this resource
+func (r Resource) GetID() (id uint64, err error) {
+	s := r.String()
+	p := strings.LastIndexByte(s, resourceDelimiter)
+	if p > 0 {
+		id, err = strconv.ParseUint(s[p+1:], 10, 64)
+		return id, err
+	}
+
+	return 0, nil
+}
+
 // IsAppendable checks if Resource has trailing resource delimiter
 func (r Resource) IsAppendable() bool {
 	return strings.IndexByte(r.String(), resourceDelimiter) > -1

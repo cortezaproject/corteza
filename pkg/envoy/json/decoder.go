@@ -26,7 +26,6 @@ type (
 
 // Decoder initializes and returns a fresh JSON decoder
 //
-// @todo
 // We'll only do jsonl for now -- for record importing.
 // We'll expand this to work with other resources later on.
 func Decoder() *decoder {

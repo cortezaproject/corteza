@@ -60,3 +60,8 @@ func MapToMappingTplSet(b map[string]string) MappingTplSet {
 	}
 	return mp
 }
+
+func (t *MappingTpl) IsIgnored() bool {
+	// @todo expand this?
+	return t.Field == "/"
+}

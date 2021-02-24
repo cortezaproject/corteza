@@ -107,3 +107,22 @@ func (ri nodeIndex) GetRef(ref *resource.Ref) *node {
 
 	return nil
 }
+
+func (ri nodeIndex) GetResourceType(rt string) nodeSet {
+	ix, has := ri[rt]
+	if !has {
+		return nil
+	}
+	nm := make(map[*node]bool)
+	for _, nn := range ix {
+		for _, n := range nn {
+			nm[n] = true
+		}
+	}
+
+	nn := make(nodeSet, 0, len(nm))
+	for n := range nm {
+		nn = append(nn, n)
+	}
+	return nn
+}

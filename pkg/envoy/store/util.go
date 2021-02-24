@@ -61,35 +61,61 @@ func makeGenericFilter(ii resource.Identifiers) (f genericFilter) {
 	return f
 }
 
-// Taken from compose/service/values/sanitizer.go
-func toTime(v string) *time.Time {
-	ff := []string{
-		time.RFC3339,
-		time.RFC1123Z,
-		time.RFC1123,
-		time.RFC850,
-		time.RFC822Z,
-		time.RFC822,
-		time.RubyDate,
-		time.UnixDate,
-		time.ANSIC,
-		"2006/_1/_2 15:04:05",
-		"2006/_1/_2 15:04",
+func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interface, us *resource.Userstamps) (*resource.Userstamps, error) {
+	if us == nil {
+		return nil, nil
 	}
 
-	for _, f := range ff {
-		parsed, err := time.Parse(f, v)
-		if err == nil {
-			return &parsed
+	fetch := func(us *resource.Userstamp) (*resource.Userstamp, error) {
+		if us == nil {
+			return nil, nil
 		}
+		ii := resource.MakeIdentifiers()
+
+		if us.UserID > 0 {
+			ii = ii.Add(strconv.FormatUint(us.UserID, 10))
+		}
+		if us.Ref != "" {
+			ii = ii.Add(us.Ref)
+		}
+		if us.U != nil {
+			if us.U.Handle != "" {
+				ii = ii.Add(us.U.Handle)
+			}
+			if us.U.Username != "" {
+				ii = ii.Add(us.U.Username)
+			}
+			if us.U.Email != "" {
+				ii = ii.Add(us.U.Email)
+			}
+		}
+
+		u, err := findUserRS(ctx, s, rr, ii)
+		if err != nil {
+			return nil, err
+		}
+		if u == nil {
+			return nil, resource.UserErrUnresolved(ii)
+		}
+
+		return resource.MakeUserstamp(u), nil
+	}
+	var err error
+	us.CreatedBy, err = fetch(us.CreatedBy)
+	us.UpdatedBy, err = fetch(us.UpdatedBy)
+	us.DeletedBy, err = fetch(us.DeletedBy)
+	us.OwnedBy, err = fetch(us.OwnedBy)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return us, nil
 }
 
 func resolveUserRefs(ctx context.Context, s store.Storer, pr []resource.Interface, refs resource.RefSet, dst map[string]uint64) (err error) {
 	for _, uRef := range refs {
-		u := findUserR(ctx, pr, uRef.Identifiers)
+		u := resource.FindUser(pr, uRef.Identifiers)
 		if u == nil {
 			u, err = findUserS(ctx, s, makeGenericFilter(uRef.Identifiers))
 			if err != nil {
@@ -97,7 +123,7 @@ func resolveUserRefs(ctx context.Context, s store.Storer, pr []resource.Interfac
 			}
 		}
 		if u == nil {
-			return userErrUnresolved(uRef.Identifiers)
+			return resource.UserErrUnresolved(uRef.Identifiers)
 		}
 
 		// Unexisting users will have ID 0, but that's ok, as long as they exist
