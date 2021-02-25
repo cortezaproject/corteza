@@ -100,3 +100,39 @@ func TestRecordValueSet_Merge(t *testing.T) {
 		})
 	}
 }
+
+func TestRecordValueSet_Clone(t *testing.T) {
+	tests := []struct {
+		name string
+		set  RecordValueSet
+		old  RecordValueSet
+		new  RecordValueSet
+	}{
+		{
+			name: "simple update of an empty set",
+			set:  RecordValueSet{{Name: "n", Value: "v"}},
+			old:  RecordValueSet{{Name: "n_old", Value: "v_old"}},
+			new:  RecordValueSet{{Name: "n", Value: "v"}},
+		},
+		// @todo expand test suite a bit?
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			new := tt.set.Clone()
+
+			tt.set.Walk(func(rv *RecordValue) error {
+				rv.Value += "_old"
+				return nil
+			})
+
+			if !reflect.DeepEqual(new, tt.new) {
+				t.Errorf("[new] got:\n%+v\n\nwant\n%+v", new, tt.new)
+			}
+
+			if !reflect.DeepEqual(new, tt.new) {
+				t.Errorf("[old] got:\n%+v\n\nwant\n%+v", tt.set, tt.old)
+			}
+		})
+	}
+}

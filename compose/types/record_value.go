@@ -4,12 +4,13 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/payload"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -54,7 +55,7 @@ func (v RecordValue) Clone() *RecordValue {
 }
 
 func (set RecordValueSet) Clone() (vv RecordValueSet) {
-	vv = make(RecordValueSet, len(vv))
+	vv = make(RecordValueSet, len(set))
 	for i := range set {
 		vv[i] = set[i].Clone()
 	}
