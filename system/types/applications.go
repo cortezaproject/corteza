@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
 
@@ -17,6 +18,7 @@ type (
 		Name    string `json:"name"`
 		OwnerID uint64 `json:"ownerID"`
 		Enabled bool   `json:"enabled"`
+		Weight  int    `json:"weight"`
 
 		Unify *ApplicationUnify `json:"unify,omitempty"`
 
@@ -34,7 +36,6 @@ type (
 		Logo   string `json:"logo"`
 		Url    string `json:"url"`
 		Config string `json:"config"`
-		Order  uint   `json:"order"`
 	}
 
 	ApplicationFilter struct {

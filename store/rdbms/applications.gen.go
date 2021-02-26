@@ -435,6 +435,7 @@ func (s Store) internalApplicationRowScanner(row rowScanner) (res *types.Applica
 			&res.Name,
 			&res.OwnerID,
 			&res.Enabled,
+			&res.Weight,
 			&res.Unify,
 			&res.CreatedAt,
 			&res.UpdatedAt,
@@ -482,6 +483,7 @@ func (Store) applicationColumns(aa ...string) []string {
 		alias + "name",
 		alias + "rel_owner",
 		alias + "enabled",
+		alias + "weight",
 		alias + "unify",
 		alias + "created_at",
 		alias + "updated_at",
@@ -496,7 +498,7 @@ func (Store) applicationColumns(aa ...string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortableApplicationColumns() map[string]string {
 	return map[string]string{
-		"id": "id", "name": "name", "created_at": "created_at",
+		"id": "id", "name": "name", "weight": "weight", "created_at": "created_at",
 		"createdat":  "created_at",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
@@ -515,6 +517,7 @@ func (s Store) internalApplicationEncoder(res *types.Application) store.Payload 
 		"name":       res.Name,
 		"rel_owner":  res.OwnerID,
 		"enabled":    res.Enabled,
+		"weight":     res.Weight,
 		"unify":      res.Unify,
 		"created_at": res.CreatedAt,
 		"updated_at": res.UpdatedAt,
@@ -550,6 +553,9 @@ func (s Store) collectApplicationCursorValues(res *types.Application, cc ...*fil
 					pkId = true
 				case "name":
 					cursor.Set(c.Column, res.Name, c.Descending)
+
+				case "weight":
+					cursor.Set(c.Column, res.Weight, c.Descending)
 
 				case "created_at":
 					cursor.Set(c.Column, res.CreatedAt, c.Descending)

@@ -2,6 +2,8 @@ package rest
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -27,6 +29,7 @@ type (
 		Update(ctx context.Context, upd *types.Application) (app *types.Application, err error)
 		Delete(ctx context.Context, ID uint64) (err error)
 		Undelete(ctx context.Context, ID uint64) (err error)
+		Reorder(ctx context.Context, order []uint64) (err error)
 	}
 
 	applicationAccessController interface {
@@ -87,6 +90,7 @@ func (ctrl *Application) Create(ctx context.Context, r *request.ApplicationCreat
 		app = &types.Application{
 			Name:    r.Name,
 			Enabled: r.Enabled,
+			Weight:  r.Weight,
 			Labels:  r.Labels,
 		}
 	)
@@ -109,6 +113,7 @@ func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdat
 			ID:      r.ApplicationID,
 			Name:    r.Name,
 			Enabled: r.Enabled,
+			Weight:  r.Weight,
 			Labels:  r.Labels,
 		}
 	)
@@ -149,6 +154,21 @@ func (ctrl *Application) TriggerScript(ctx context.Context, r *request.Applicati
 	// @todo implement same behaviour as we have on record - Application+oldApplication
 	err = corredor.Service().Exec(ctx, r.Script, event.ApplicationOnManual(application, application))
 	return application, err
+}
+
+func (ctrl *Application) Reorder(ctx context.Context, r *request.ApplicationReorder) (interface{}, error) {
+	order := make([]uint64, len(r.ApplicationIDs))
+
+	for i, aid := range r.ApplicationIDs {
+		parsed, err := strconv.ParseUint(aid, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		order[i] = parsed
+	}
+
+	return api.OK(), ctrl.application.Reorder(ctx, order)
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

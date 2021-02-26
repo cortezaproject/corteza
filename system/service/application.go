@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
@@ -182,6 +183,7 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 		// Assign changed values after afterUpdate events are emitted
 		app.Name = upd.Name
 		app.Enabled = upd.Enabled
+		app.Weight = upd.Weight
 		app.UpdatedAt = now()
 
 		if upd.Unify != nil {
@@ -280,6 +282,31 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, aaProps, ApplicationActionUndelete, err)
+}
+
+func (svc *application) Reorder(ctx context.Context, order []uint64) (err error) {
+	var (
+		aProps = &applicationActionProps{}
+	)
+
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		for _, id := range order {
+			// This access control creates an aux application so we don't have to fetch them
+			// from the store; the ID is the only thing that matters...
+			auxApp := &types.Application{
+				ID: id,
+			}
+
+			if !svc.ac.CanUpdateApplication(ctx, auxApp) {
+				aProps.application = auxApp
+				return ApplicationErrNotAllowedToUpdate(aProps)
+			}
+		}
+
+		return store.ReorderApplications(ctx, s, order)
+	})
+
+	return svc.recordAction(ctx, aProps, ApplicationActionReorder, err)
 }
 
 // toLabeledApplications converts to []label.LabeledResource

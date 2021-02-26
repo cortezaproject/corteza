@@ -31,6 +31,9 @@ actions:
     log: "searched for applications"
     severity: info
 
+  - action: reorder
+    log: "reordered applications"
+
   - action: lookup
     log: "looked-up for a {application}"
     severity: info

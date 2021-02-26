@@ -3,17 +3,18 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearApplications() {
@@ -42,6 +43,17 @@ func (h helper) lookupApplicationByID(ID uint64) *types.Application {
 	res, err := store.LookupApplicationByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
 	return res
+}
+
+func (h helper) lookupApplicationByName(name string) *types.Application {
+	res, _, err := store.SearchApplications(context.Background(), service.DefaultStore, types.ApplicationFilter{
+		Name: name,
+	})
+	h.noError(err)
+	if len(res) == 0 {
+		return nil
+	}
+	return res[0]
 }
 
 func TestApplicationRead(t *testing.T) {
@@ -122,6 +134,25 @@ func TestApplicationCreate(t *testing.T) {
 		End()
 }
 
+func TestApplicationCreate_weight(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.SystemRBACResource, "application.create")
+	name := "name_weight_create_" + rs()
+
+	h.apiInit().
+		Post("/application/").
+		FormData("name", name).
+		FormData("weight", "10").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res := h.lookupApplicationByName(name)
+	h.a.NotNil(res)
+	h.a.Equal(10, res.Weight)
+}
+
 func TestApplicationUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	u := h.repoMakeApplication()
@@ -157,6 +188,75 @@ func TestApplicationUpdate(t *testing.T) {
 	res = h.lookupApplicationByID(res.ID)
 	h.a.NotNil(res)
 	h.a.Equal(newName, res.Name)
+}
+
+func TestApplicationUpdate_weight(t *testing.T) {
+	h := newHelper(t)
+	res := h.repoMakeApplication()
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+
+	newName := "updated-" + rs()
+	newHandle := "updated-" + rs()
+
+	h.apiInit().
+		Put(fmt.Sprintf("/application/%d", res.ID)).
+		Header("Accept", "application/json").
+		FormData("name", newName).
+		FormData("handle", newHandle).
+		FormData("weight", "20").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupApplicationByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Equal(20, res.Weight)
+}
+
+func TestApplicationReorder_forbiden(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	a := h.repoMakeApplication()
+	b := h.repoMakeApplication()
+	c := h.repoMakeApplication()
+	h.deny(types.ApplicationRBACResource.AppendID(b.ID), "update")
+
+	h.apiInit().
+		Post("/application/reorder").
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{ "applicationIDs": ["%d", "%d", "%d"] }`, b.ID, a.ID, c.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to update this application")).
+		End()
+}
+
+func TestApplicationReorder(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	a := h.repoMakeApplication()
+	b := h.repoMakeApplication()
+	c := h.repoMakeApplication()
+
+	h.apiInit().
+		Post("/application/reorder").
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{ "applicationIDs": ["%d", "%d", "%d"] }`, b.ID, a.ID, c.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	check := func(app uint64, w int) {
+		res := h.lookupApplicationByID(app)
+		h.a.NotNil(res)
+		h.a.Equal(w, res.Weight)
+	}
+
+	check(b.ID, 1)
+	check(a.ID, 2)
+	check(c.ID, 3)
 }
 
 func TestApplicationDeleteForbidden(t *testing.T) {

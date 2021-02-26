@@ -26,6 +26,7 @@ type (
 		Delete(context.Context, *request.ApplicationDelete) (interface{}, error)
 		Undelete(context.Context, *request.ApplicationUndelete) (interface{}, error)
 		TriggerScript(context.Context, *request.ApplicationTriggerScript) (interface{}, error)
+		Reorder(context.Context, *request.ApplicationReorder) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -37,6 +38,7 @@ type (
 		Delete        func(http.ResponseWriter, *http.Request)
 		Undelete      func(http.ResponseWriter, *http.Request)
 		TriggerScript func(http.ResponseWriter, *http.Request)
+		Reorder       func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +156,22 @@ func NewApplication(h ApplicationAPI) *Application {
 
 			api.Send(w, r, value)
 		},
+		Reorder: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApplicationReorder()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Reorder(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +185,6 @@ func (h Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Delete("/application/{applicationID}", h.Delete)
 		r.Post("/application/{applicationID}/undelete", h.Undelete)
 		r.Post("/application/{applicationID}/trigger", h.TriggerScript)
+		r.Post("/application/reorder", h.Reorder)
 	})
 }

@@ -2,8 +2,10 @@ package rdbms
 
 import (
 	"context"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -55,4 +57,57 @@ func (s Store) ApplicationMetrics(ctx context.Context) (*types.ApplicationMetric
 	}
 
 	return rval, nil
+}
+
+func (s Store) ReorderApplications(ctx context.Context, order []uint64) (err error) {
+	var (
+		apps   types.ApplicationSet
+		appMap = map[uint64]bool{}
+		weight = 1
+
+		f = types.ApplicationFilter{}
+	)
+
+	if apps, _, err = s.SearchApplications(ctx, f); err != nil {
+		return
+	}
+
+	for _, app := range apps {
+		appMap[app.ID] = true
+	}
+
+	// honor parameter first
+	for _, pageID := range order {
+		if appMap[pageID] {
+			appMap[pageID] = false
+			err = s.execUpdateApplications(ctx,
+				squirrel.Eq{"app.id": pageID},
+				store.Payload{"weight": weight})
+
+			if err != nil {
+				return
+			}
+
+			weight++
+		}
+	}
+
+	for pageID, update := range appMap {
+		if !update {
+			continue
+		}
+
+		err = s.execUpdateApplications(ctx,
+			squirrel.Eq{"app.id": pageID},
+			store.Payload{"weight": weight})
+
+		if err != nil {
+			return
+		}
+
+		weight++
+
+	}
+
+	return
 }
