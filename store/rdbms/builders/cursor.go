@@ -3,8 +3,6 @@ package builders
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -157,7 +155,6 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 		// Typecast the value so comparasement can work properly
 		vc := fmt.Sprintf(km.TypeCastPtrn, "?")
 
-		spew.Dump("lt", lt)
 		base := fmt.Sprintf(baseTpl, km.FieldCast, notOp[!lt], isNull(i, lt), km.TypeCast, op, vc)
 
 		if cnd == "" {
@@ -168,6 +165,5 @@ func (c *cursorCondition) sql() (cnd string, err error) {
 		}
 	}
 
-	spew.Dump(cnd)
 	return
 }
