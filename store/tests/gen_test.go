@@ -23,6 +23,7 @@ package tests
 //  - store/federation_nodes.yaml
 //  - store/federation_nodes_sync.yaml
 //  - store/federation_shared_modules.yaml
+//  - store/flags.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
 //  - store/messaging_channel_members.yaml
@@ -154,6 +155,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for FederationSharedModules
 	t.Run("FederationSharedModules", func(t *testing.T) {
 		testFederationSharedModules(t, s)
+	})
+
+	// Run generated tests for Flags
+	t.Run("Flags", func(t *testing.T) {
+		testFlags(t, s)
 	})
 
 	// Run generated tests for Labels

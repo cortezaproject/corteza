@@ -721,6 +721,13 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+      - name: flags
+        type: "[]string"
+        title: Flags
+      - name: incFlags
+        required: false
+        title: Calculated (0, default), global (1) or return only (2) own flags
+        type: uint
       - type: uint
         name: limit
         title: Limit
@@ -795,6 +802,45 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+
+  - name: flagCreate
+    method: POST
+    title: Flag application
+    path: "/{applicationID}/flag/{ownedBy}/{flag}"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+      - type: string
+        name: flag
+        required: true
+        title: Flag
+      - type: uint64
+        name: ownedBy
+        required: false
+        title: Owner; 0 = everyone
+
+  - name: flagDelete
+    method: DELETE
+    title: Unflag application
+    path: "/{applicationID}/flag/{ownedBy}/{flag}"
+    parameters:
+      path:
+      - type: uint64
+        name: applicationID
+        required: true
+        title: Application ID
+      - type: string
+        name: flag
+        required: true
+        title: Flag
+      - type: uint64
+        name: ownedBy
+        required: false
+        title: Owner; 0 = everyone
+
   - name: read
     method: GET
     title: Read application details
@@ -805,6 +851,11 @@ endpoints:
         name: applicationID
         required: true
         title: Application ID
+      get:
+      - name: incFlags
+        required: false
+        title: Calculated (0, default), global (1) or return only (2) own flags
+        type: uint
   - name: delete
     method: DELETE
     title: Remove application

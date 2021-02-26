@@ -23,6 +23,7 @@ type (
 		Unify *ApplicationUnify `json:"unify,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
+		Flags  []string          `json:"flags,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -44,6 +45,10 @@ type (
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
+
+		FlaggedIDs []uint64 `json:"-"`
+		Flags      []string `json:"flags,omitempty"`
+		IncFlags   uint     `json:"-"`
 
 		Deleted filter.State `json:"deleted"`
 
@@ -94,4 +99,26 @@ func (au *ApplicationUnify) Scan(value interface{}) error {
 
 func (au ApplicationUnify) Value() (driver.Value, error) {
 	return json.Marshal(au)
+}
+
+// // // These will get generated later on
+
+// SetFlags adds new label to label map
+func (a *Application) SetFlags(flags []string) {
+	a.Flags = flags
+}
+
+// GetFlags returns current flags on the resource
+func (a *Application) GetFlags() []string {
+	return a.Flags
+}
+
+// FlagResourceKind returns the resource kind for the flag
+func (*Application) FlagResourceKind() string {
+	return "system:application"
+}
+
+// GetLabels adds new label to label map
+func (a *Application) FlagResourceID() uint64 {
+	return a.ID
 }

@@ -22,6 +22,8 @@ type (
 		List(context.Context, *request.ApplicationList) (interface{}, error)
 		Create(context.Context, *request.ApplicationCreate) (interface{}, error)
 		Update(context.Context, *request.ApplicationUpdate) (interface{}, error)
+		FlagCreate(context.Context, *request.ApplicationFlagCreate) (interface{}, error)
+		FlagDelete(context.Context, *request.ApplicationFlagDelete) (interface{}, error)
 		Read(context.Context, *request.ApplicationRead) (interface{}, error)
 		Delete(context.Context, *request.ApplicationDelete) (interface{}, error)
 		Undelete(context.Context, *request.ApplicationUndelete) (interface{}, error)
@@ -34,6 +36,8 @@ type (
 		List          func(http.ResponseWriter, *http.Request)
 		Create        func(http.ResponseWriter, *http.Request)
 		Update        func(http.ResponseWriter, *http.Request)
+		FlagCreate    func(http.ResponseWriter, *http.Request)
+		FlagDelete    func(http.ResponseWriter, *http.Request)
 		Read          func(http.ResponseWriter, *http.Request)
 		Delete        func(http.ResponseWriter, *http.Request)
 		Undelete      func(http.ResponseWriter, *http.Request)
@@ -85,6 +89,38 @@ func NewApplication(h ApplicationAPI) *Application {
 			}
 
 			value, err := h.Update(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		FlagCreate: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApplicationFlagCreate()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.FlagCreate(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		FlagDelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApplicationFlagDelete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.FlagDelete(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -181,6 +217,8 @@ func (h Application) MountRoutes(r chi.Router, middlewares ...func(http.Handler)
 		r.Get("/application/", h.List)
 		r.Post("/application/", h.Create)
 		r.Put("/application/{applicationID}", h.Update)
+		r.Post("/application/{applicationID}/flag/{ownedBy}/{flag}", h.FlagCreate)
+		r.Delete("/application/{applicationID}/flag/{ownedBy}/{flag}", h.FlagDelete)
 		r.Get("/application/{applicationID}", h.Read)
 		r.Delete("/application/{applicationID}", h.Delete)
 		r.Post("/application/{applicationID}/undelete", h.Undelete)

@@ -52,6 +52,16 @@ type (
 		// Labels
 		Labels map[string]string
 
+		// Flags GET parameter
+		//
+		// Flags
+		Flags []string
+
+		// IncFlags GET parameter
+		//
+		// Calculated (0, default), global (1) or return only (2) own flags
+		IncFlags uint
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -137,11 +147,50 @@ type (
 		Labels map[string]string
 	}
 
+	ApplicationFlagCreate struct {
+		// ApplicationID PATH parameter
+		//
+		// Application ID
+		ApplicationID uint64 `json:",string"`
+
+		// Flag PATH parameter
+		//
+		// Flag
+		Flag string
+
+		// OwnedBy PATH parameter
+		//
+		// Owner; 0 = everyone
+		OwnedBy uint64 `json:",string"`
+	}
+
+	ApplicationFlagDelete struct {
+		// ApplicationID PATH parameter
+		//
+		// Application ID
+		ApplicationID uint64 `json:",string"`
+
+		// Flag PATH parameter
+		//
+		// Flag
+		Flag string
+
+		// OwnedBy PATH parameter
+		//
+		// Owner; 0 = everyone
+		OwnedBy uint64 `json:",string"`
+	}
+
 	ApplicationRead struct {
 		// ApplicationID PATH parameter
 		//
 		// Application ID
 		ApplicationID uint64 `json:",string"`
+
+		// IncFlags GET parameter
+		//
+		// Calculated (0, default), global (1) or return only (2) own flags
+		IncFlags uint
 	}
 
 	ApplicationDelete struct {
@@ -190,6 +239,8 @@ func (r ApplicationList) Auditable() map[string]interface{} {
 		"query":      r.Query,
 		"deleted":    r.Deleted,
 		"labels":     r.Labels,
+		"flags":      r.Flags,
+		"incFlags":   r.IncFlags,
 		"limit":      r.Limit,
 		"pageCursor": r.PageCursor,
 		"sort":       r.Sort,
@@ -214,6 +265,16 @@ func (r ApplicationList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationList) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationList) GetFlags() []string {
+	return r.Flags
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationList) GetIncFlags() uint {
+	return r.IncFlags
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -273,6 +334,23 @@ func (r *ApplicationList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["flags[]"]; ok {
+			r.Flags, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["flags"]; ok {
+			r.Flags, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["incFlags"]; ok && len(val) > 0 {
+			r.IncFlags, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -554,6 +632,144 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 	return err
 }
 
+// NewApplicationFlagCreate request
+func NewApplicationFlagCreate() *ApplicationFlagCreate {
+	return &ApplicationFlagCreate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagCreate) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"applicationID": r.ApplicationID,
+		"flag":          r.Flag,
+		"ownedBy":       r.OwnedBy,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagCreate) GetApplicationID() uint64 {
+	return r.ApplicationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagCreate) GetFlag() string {
+	return r.Flag
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagCreate) GetOwnedBy() uint64 {
+	return r.OwnedBy
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationFlagCreate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "applicationID")
+		r.ApplicationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "flag")
+		r.Flag, err = val, nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "ownedBy")
+		r.OwnedBy, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewApplicationFlagDelete request
+func NewApplicationFlagDelete() *ApplicationFlagDelete {
+	return &ApplicationFlagDelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagDelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"applicationID": r.ApplicationID,
+		"flag":          r.Flag,
+		"ownedBy":       r.OwnedBy,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagDelete) GetApplicationID() uint64 {
+	return r.ApplicationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagDelete) GetFlag() string {
+	return r.Flag
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationFlagDelete) GetOwnedBy() uint64 {
+	return r.OwnedBy
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationFlagDelete) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "applicationID")
+		r.ApplicationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "flag")
+		r.Flag, err = val, nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "ownedBy")
+		r.OwnedBy, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
 // NewApplicationRead request
 func NewApplicationRead() *ApplicationRead {
 	return &ApplicationRead{}
@@ -563,12 +779,18 @@ func NewApplicationRead() *ApplicationRead {
 func (r ApplicationRead) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"applicationID": r.ApplicationID,
+		"incFlags":      r.IncFlags,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationRead) GetApplicationID() uint64 {
 	return r.ApplicationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationRead) GetIncFlags() uint {
+	return r.IncFlags
 }
 
 // Fill processes request and fills internal variables
@@ -581,6 +803,18 @@ func (r *ApplicationRead) Fill(req *http.Request) (err error) {
 			err = nil
 		case err != nil:
 			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["incFlags"]; ok && len(val) > 0 {
+			r.IncFlags, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
 		}
 	}
 

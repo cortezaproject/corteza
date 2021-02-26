@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/flag"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -102,11 +104,34 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 			}
 		}
 
+		if len(af.Flags) > 0 {
+			af.FlaggedIDs, err = flag.Search(
+				ctx,
+				svc.store,
+				a.GetIdentityFromContext(ctx).Identity(),
+				(&types.Application{}).FlagResourceKind(),
+				af.Flags...,
+			)
+
+			if err != nil {
+				return err
+			}
+
+			// flags specified byt no flagged resources found
+			if len(af.FlaggedIDs) == 0 {
+				return nil
+			}
+		}
+
 		if aa, f, err = store.SearchApplications(ctx, svc.store, af); err != nil {
 			return err
 		}
 
 		if err = label.Load(ctx, svc.store, toLabeledApplications(aa)...); err != nil {
+			return err
+		}
+
+		if err = flag.Load(ctx, svc.store, f.IncFlags, a.GetIdentityFromContext(ctx).Identity(), toFlaggedApplications(aa)...); err != nil {
 			return err
 		}
 
@@ -318,6 +343,22 @@ func toLabeledApplications(set []*types.Application) []label.LabeledResource {
 	}
 
 	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
+}
+
+// toFlaggedApplications converts to []flag.FlaggedResource
+//
+// This function is auto-generated.
+func toFlaggedApplications(set []*types.Application) []flag.FlaggedResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]flag.FlaggedResource, len(set))
 	for i := range set {
 		ll[i] = set[i]
 	}

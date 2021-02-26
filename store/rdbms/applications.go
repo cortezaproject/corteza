@@ -18,6 +18,10 @@ func (s Store) convertApplicationFilter(f types.ApplicationFilter) (query squirr
 		query = query.Where(squirrel.Eq{"app.id": f.LabeledIDs})
 	}
 
+	if len(f.FlaggedIDs) > 0 {
+		query = query.Where(squirrel.Eq{"app.id": f.FlaggedIDs})
+	}
+
 	if f.Query != "" {
 		qs := f.Query + "%"
 		query = query.Where(squirrel.Or{

@@ -62,6 +62,7 @@ func (s Schema) Tables() []*Table {
 		s.RbacRules(),
 		s.Settings(),
 		s.Labels(),
+		s.Flags(),
 		s.Templates(),
 		s.ComposeAttachment(),
 		s.ComposeChart(),
@@ -314,6 +315,18 @@ func (Schema) Labels() *Table {
 		ColumnDef("value", ColumnTypeText),
 
 		AddIndex("unique_kind_res_name", IColumn("kind", "rel_resource"), IExpr("LOWER(name)")),
+	)
+}
+
+func (Schema) Flags() *Table {
+	return TableDef("flags",
+		ColumnDef("kind", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("rel_resource", ColumnTypeIdentifier),
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		ColumnDef("name", ColumnTypeVarchar, ColumnTypeLength(resourceLength)),
+		ColumnDef("active", ColumnTypeBoolean),
+
+		AddIndex("unique_kind_res_owner_name", IColumn("kind", "rel_resource", "owned_by"), IExpr("LOWER(name)")),
 	)
 }
 
