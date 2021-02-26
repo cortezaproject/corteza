@@ -50,6 +50,12 @@ actions:
   - action: undelete
     log: "undeleted {application}"
 
+  - action: flagManage
+    log: "managed flags for application {application}"
+
+  - action: flagManageGlobal
+    log: "managed global flags for application {application}"
+
 errors:
   - error: notFound
     message: "application not found"
@@ -82,3 +88,11 @@ errors:
   - error: notAllowedToUndelete
     message: "not allowed to undelete this application"
     log: "failed to undelete {application.name}; insufficient permissions"
+
+  - error: notAllowedToManageFlag
+    message: "not allowed to manage flags for applications"
+    log: "failed to manage flags {application.name}; insufficient permissions"
+
+  - error: notAllowedToManageFlagGlobal
+    message: "not allowed to manage global flags for applications"
+    log: "failed to manage global flags {application.name}; insufficient permissions"

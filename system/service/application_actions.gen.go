@@ -385,6 +385,46 @@ func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAct
 	return a
 }
 
+// ApplicationActionFlagManage returns "system:application.flagManage" action
+//
+// This function is auto-generated.
+//
+func ApplicationActionFlagManage(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "flagManage",
+		log:       "managed flags for application {application}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// ApplicationActionFlagManageGlobal returns "system:application.flagManageGlobal" action
+//
+// This function is auto-generated.
+//
+func ApplicationActionFlagManageGlobal(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "flagManageGlobal",
+		log:       "managed global flags for application {application}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -662,6 +702,70 @@ func ApplicationErrNotAllowedToUndelete(mm ...*applicationActionProps) *errors.E
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(applicationLogMetaKey{}, "failed to undelete {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrNotAllowedToManageFlag returns "system:application.notAllowedToManageFlag" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApplicationErrNotAllowedToManageFlag(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to manage flags for applications", nil),
+
+		errors.Meta("type", "notAllowedToManageFlag"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to manage flags {application.name}; insufficient permissions"),
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApplicationErrNotAllowedToManageFlagGlobal returns "system:application.notAllowedToManageFlagGlobal" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApplicationErrNotAllowedToManageFlagGlobal(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to manage global flags for applications", nil),
+
+		errors.Meta("type", "notAllowedToManageFlagGlobal"),
+		errors.Meta("resource", "system:application"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(applicationLogMetaKey{}, "failed to manage global flags {application.name}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

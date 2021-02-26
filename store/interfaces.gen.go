@@ -25,6 +25,7 @@ package store
 //  - store/federation_nodes.yaml
 //  - store/federation_nodes_sync.yaml
 //  - store/federation_shared_modules.yaml
+//  - store/flags.yaml
 //  - store/labels.yaml
 //  - store/messaging_attachments.yaml
 //  - store/messaging_channel_members.yaml
@@ -70,6 +71,7 @@ type (
 		FederationNodes
 		FederationNodesSyncs
 		FederationSharedModules
+		Flags
 		Labels
 		MessagingAttachments
 		MessagingChannelMembers

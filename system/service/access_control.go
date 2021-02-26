@@ -43,6 +43,8 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
+	ee.Push(types.SystemRBACResource, "application.flag.self", svc.CanSelfFlagApplication(ctx))
+	ee.Push(types.SystemRBACResource, "application.flag.global", svc.CanGlobalFlagApplication(ctx))
 	ee.Push(types.SystemRBACResource, "template.create", svc.CanCreateTemplate(ctx))
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
 
@@ -71,6 +73,14 @@ func (svc accessControl) CanCreateRole(ctx context.Context) bool {
 
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "application.create")
+}
+
+func (svc accessControl) CanSelfFlagApplication(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "application.flag.self", rbac.Allowed)
+}
+
+func (svc accessControl) CanGlobalFlagApplication(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "application.flag.global")
 }
 
 func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
@@ -262,6 +272,8 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"role.create",
 		"user.create",
 		"application.create",
+		"application.flag.self",
+		"application.flag.global",
 		"template.create",
 		"reminder.assign",
 	)

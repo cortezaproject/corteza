@@ -5,8 +5,10 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/flag"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -64,9 +66,11 @@ func (ctrl *Application) List(ctx context.Context, r *request.ApplicationList) (
 	var (
 		err error
 		f   = types.ApplicationFilter{
-			Name:   r.Name,
-			Query:  r.Query,
-			Labels: r.Labels,
+			Name:     r.Name,
+			Query:    r.Query,
+			Labels:   r.Labels,
+			Flags:    r.Flags,
+			IncFlags: r.IncFlags,
 
 			Deleted: filter.State(r.Deleted),
 		}
@@ -131,6 +135,11 @@ func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdat
 
 func (ctrl *Application) Read(ctx context.Context, r *request.ApplicationRead) (interface{}, error) {
 	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	if err != nil {
+		return ctrl.makePayload(ctx, app, err)
+	}
+
+	err = flag.Load(ctx, service.DefaultStore, r.IncFlags, auth.GetIdentityFromContext(ctx).Identity(), app)
 	return ctrl.makePayload(ctx, app, err)
 }
 
@@ -169,6 +178,44 @@ func (ctrl *Application) Reorder(ctx context.Context, r *request.ApplicationReor
 	}
 
 	return api.OK(), ctrl.application.Reorder(ctx, order)
+}
+
+func (ctrl *Application) FlagCreate(ctx context.Context, r *request.ApplicationFlagCreate) (interface{}, error) {
+	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.OwnedBy == 0 {
+		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
+			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
+		}
+	} else {
+		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
+			return nil, service.ApplicationErrNotAllowedToManageFlag()
+		}
+	}
+
+	return api.OK(), flag.Create(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
+}
+
+func (ctrl *Application) FlagDelete(ctx context.Context, r *request.ApplicationFlagDelete) (interface{}, error) {
+	app, err := ctrl.application.LookupByID(ctx, r.ApplicationID)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.OwnedBy == 0 {
+		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
+			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
+		}
+	} else {
+		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
+			return nil, service.ApplicationErrNotAllowedToManageFlag()
+		}
+	}
+
+	return api.OK(), flag.Delete(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

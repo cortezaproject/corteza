@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	ft "github.com/cortezaproject/corteza-server/pkg/flag/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -39,9 +40,34 @@ func (h helper) repoMakeApplication(ss ...string) *types.Application {
 	return res
 }
 
+func (h helper) repoFlagApplication(appID, owner uint64, flag string, active bool) *ft.Flag {
+	res := &ft.Flag{
+		Kind:       "system:application",
+		ResourceID: appID,
+		OwnedBy:    owner,
+		Name:       flag,
+		Active:     active,
+	}
+
+	h.a.NoError(store.CreateFlag(context.Background(), service.DefaultStore, res))
+	return res
+}
+
 func (h helper) lookupApplicationByID(ID uint64) *types.Application {
 	res, err := store.LookupApplicationByID(context.Background(), service.DefaultStore, ID)
 	h.noError(err)
+	return res
+}
+
+func (h helper) searchApplicationFlags(ID, owner uint64, flag string) ft.FlagSet {
+	res, _, err := store.SearchFlags(context.Background(), service.DefaultStore, ft.FlagFilter{
+		Kind:       "system:application",
+		ResourceID: []uint64{ID},
+		OwnedBy:    []uint64{owner},
+		Name:       []string{flag},
+	})
+	h.noError(err)
+
 	return res
 }
 
@@ -369,5 +395,258 @@ func TestApplicationLabels(t *testing.T) {
 		req.NotEmpty(set)
 		req.NotNil(set.FindByID(ID))
 		req.NotNil(set.FindByID(ID).Labels)
+	})
+}
+
+func TestApplicationFlags(t *testing.T) {
+	h := newHelper(t)
+	h.clearApplications()
+
+	h.allow(types.SystemRBACResource, "application.create")
+
+	t.Run("create", func(t *testing.T) {
+		h.allow(types.SystemRBACResource, "application.flag.global")
+		res := h.repoMakeApplication()
+
+		h.apiInit().
+			Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, 0)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		ff := h.searchApplicationFlags(res.ID, 0, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+	})
+
+	t.Run("create; not allowed", func(t *testing.T) {
+		h.deny(types.SystemRBACResource, "application.flag.global")
+		res := h.repoMakeApplication()
+
+		h.apiInit().
+			Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, 0)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertError("not allowed to manage global flags for applications")).
+			End()
+	})
+
+	t.Run("create own", func(t *testing.T) {
+		h.allow(types.SystemRBACResource, "application.flag.self")
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+
+		h.apiInit().
+			Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, 10)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		ff := h.searchApplicationFlags(res.ID, 0, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+
+		ff = h.searchApplicationFlags(res.ID, 10, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+	})
+
+	t.Run("create own; not allowed", func(t *testing.T) {
+		h.deny(types.SystemRBACResource, "application.flag.self")
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+
+		h.apiInit().
+			Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, 10)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertError("not allowed to manage flags for applications")).
+			End()
+	})
+
+	t.Run("read application", func(t *testing.T) {
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+
+		h.apiInit().
+			Get(fmt.Sprintf("/application/%d", res.ID)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Present(`$.response.flags`)).
+			Assert(jsonpath.Len(`$.response.flags`, 1)).
+			Assert(jsonpath.Equal(`$.response.flags[0]`, "testFlag")).
+			End()
+	})
+
+	t.Run("list applications", func(t *testing.T) {
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.clearApplications()
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+
+		h.apiInit().
+			Get("/application/").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Len(`$.response.set`, 1)).
+			Assert(jsonpath.Len(`$.response.set[0].flags`, 1)).
+			Assert(jsonpath.Equal(`$.response.set[0].flags[0]`, "testFlag")).
+			End()
+	})
+
+	t.Run("read application; with own flag", func(t *testing.T) {
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+		h.repoFlagApplication(res.ID, h.cUser.ID, "testFlagOwn", true)
+
+		h.apiInit().
+			Get(fmt.Sprintf("/application/%d", res.ID)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Present(`$.response.flags`)).
+			Assert(jsonpath.Len(`$.response.flags`, 2)).
+			End()
+	})
+
+	t.Run("read application; overwrite global", func(t *testing.T) {
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, "testFlag", true)
+		h.repoFlagApplication(res.ID, h.cUser.ID, "testFlag", false)
+
+		h.apiInit().
+			Get(fmt.Sprintf("/application/%d", res.ID)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.NotPresent(`$.response.flags`)).
+			End()
+	})
+
+	t.Run("filter by flags", func(t *testing.T) {
+		flag := rs()
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.repoMakeApplication()
+		h.repoMakeApplication()
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, flag, true)
+
+		h.apiInit().
+			Get(fmt.Sprintf("/application/")).
+			QueryCollection(url.Values{"flags": []string{flag}}).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Len("$.response.set", 1)).
+			End()
+	})
+
+	t.Run("filter by flags; self inactive", func(t *testing.T) {
+		flag := rs()
+		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.repoMakeApplication()
+		h.repoMakeApplication()
+		res := h.repoMakeApplication()
+		h.repoFlagApplication(res.ID, 0, flag, true)
+		h.repoFlagApplication(res.ID, h.cUser.ID, flag, false)
+
+		h.apiInit().
+			Get(fmt.Sprintf("/application/")).
+			QueryCollection(url.Values{"flags": []string{flag}}).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			Assert(jsonpath.Len("$.response.set", 0)).
+			End()
+	})
+}
+
+func TestApplicationFlags_Flow1(t *testing.T) {
+	h := newHelper(t)
+	h.clearApplications()
+
+	h.allow(types.SystemRBACResource, "application.create")
+
+	t.Run("create", func(t *testing.T) {
+		h.allow(types.SystemRBACResource, "application.flag.global")
+		h.allow(types.SystemRBACResource, "application.flag.self")
+		res := h.repoMakeApplication()
+		a := h.apiInit()
+
+		a.Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, h.cUser.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		a.Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, 0)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		a.Delete(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, h.cUser.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		ff := h.searchApplicationFlags(res.ID, 0, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.True(ff[0].Active)
+
+		ff = h.searchApplicationFlags(res.ID, h.cUser.ID, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.False(ff[0].Active)
+
+		a.Delete(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, h.cUser.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		ff = h.searchApplicationFlags(res.ID, 0, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.True(ff[0].Active)
+
+		ff = h.searchApplicationFlags(res.ID, h.cUser.ID, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.False(ff[0].Active)
+
+		a.Post(fmt.Sprintf("/application/%d/flag/%d/testFlag", res.ID, h.cUser.ID)).
+			Header("Accept", "application/json").
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		ff = h.searchApplicationFlags(res.ID, 0, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.True(ff[0].Active)
+
+		ff = h.searchApplicationFlags(res.ID, h.cUser.ID, "testFlag")
+		h.a.NotNil(ff)
+		h.a.Len(ff, 1)
+		h.a.True(ff[0].Active)
 	})
 }
