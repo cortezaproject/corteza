@@ -6,6 +6,7 @@ fields:
   - { field: Name,      sortable: true }
   - { field: OwnerID }
   - { field: Enabled }
+  - { field: Weight,    sortable: true }
   - { field: Unify }
   - { field: CreatedAt, sortable: true }
   - { field: UpdatedAt, sortable: true }
@@ -21,6 +22,12 @@ lookups:
 functions:
   - name: ApplicationMetrics
     return: [ "*types.ApplicationMetrics", "error" ]
+
+  - name: ReorderApplications
+    arguments:
+      - { name: order, type: "[]uint64" }
+    return: [ "error" ]
+
 
 rdbms:
   alias: app

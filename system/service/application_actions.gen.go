@@ -265,6 +265,26 @@ func ApplicationActionSearch(props ...*applicationActionProps) *applicationActio
 	return a
 }
 
+// ApplicationActionReorder returns "system:application.reorder" action
+//
+// This function is auto-generated.
+//
+func ApplicationActionReorder(props ...*applicationActionProps) *applicationAction {
+	a := &applicationAction{
+		timestamp: time.Now(),
+		resource:  "system:application",
+		action:    "reorder",
+		log:       "reordered applications",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // ApplicationActionLookup returns "system:application.lookup" action
 //
 // This function is auto-generated.

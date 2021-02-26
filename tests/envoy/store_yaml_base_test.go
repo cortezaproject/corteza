@@ -514,7 +514,6 @@ func TestStoreYaml_base(t *testing.T) {
 				req.Equal("logo", app.Unify.Logo)
 				req.Equal("url", app.Unify.Url)
 				req.Equal("{\"config\": \"config\"}", app.Unify.Config)
-				req.Equal(uint(0), app.Unify.Order)
 				req.Equal(createdAt.Format(time.RFC3339), app.CreatedAt.Format(time.RFC3339))
 				req.Equal(updatedAt.Format(time.RFC3339), app.UpdatedAt.Format(time.RFC3339))
 			},

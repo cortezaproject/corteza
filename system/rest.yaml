@@ -744,6 +744,10 @@ endpoints:
         type: bool
         required: false
         title: Enabled
+      - name: weight
+        type: int
+        required: false
+        title: Weight for sorting
       - name: unify
         type: sqlxTypes.JSONText
         required: false
@@ -775,6 +779,10 @@ endpoints:
         type: bool
         required: false
         title: Enabled
+      - name: weight
+        type: int
+        required: false
+        title: Weight for sorting
       - name: unify
         type: sqlxTypes.JSONText
         required: false
@@ -832,6 +840,17 @@ endpoints:
         type: string
         title: Script to execute
         required: true
+  - name: reorder
+    method: POST
+    title: Reorder applications
+    path: "/reorder"
+    parameters:
+      post:
+      - name: applicationIDs
+        type: "[]string"
+        required: true
+        title: Application order
+
 - title: Permissions
   parameters: {}
   entrypoint: permissions

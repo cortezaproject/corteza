@@ -62,6 +62,7 @@ func (c *application) MarshalYAML() (interface{}, error) {
 	nn, err := makeMap(
 		"name", c.res.Name,
 		"enabled", c.res.Enabled,
+		"weight", c.res.Weight,
 
 		"unify", c.res.Unify,
 

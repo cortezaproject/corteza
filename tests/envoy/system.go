@@ -66,7 +66,6 @@ func sTestApplication(ctx context.Context, t *testing.T, s store.Storer, usrID u
 			Logo:   "logo",
 			Url:    "url",
 			Config: "{\"config\": \"config\"}",
-			Order:  0,
 		},
 		CreatedAt: createdAt,
 		UpdatedAt: &updatedAt,

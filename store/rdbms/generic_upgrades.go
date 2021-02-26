@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"go.uber.org/zap"
 )
@@ -58,6 +59,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 	case "actionlog":
 		return g.all(ctx,
 			g.AlterActionlogAddID,
+		)
+	case "applications":
+		return g.all(ctx,
+			g.AddWeightField,
 		)
 	case "users":
 		return g.all(ctx,
@@ -241,6 +246,17 @@ func (g genericUpgrades) AlterActionlogAddID(ctx context.Context) (err error) {
 	}
 
 	return nil
+}
+
+func (g genericUpgrades) AddWeightField(ctx context.Context) error {
+	_, err := g.u.AddColumn(ctx, "applications", &ddl.Column{
+		Name:         "weight",
+		Type:         ddl.ColumnType{Type: ddl.ColumnTypeInteger},
+		IsNull:       false,
+		DefaultValue: "0",
+	})
+
+	return err
 }
 
 func (g genericUpgrades) RenameReminders(ctx context.Context) error {

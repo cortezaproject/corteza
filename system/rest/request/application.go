@@ -79,6 +79,11 @@ type (
 		// Enabled
 		Enabled bool
 
+		// Weight POST parameter
+		//
+		// Weight for sorting
+		Weight int
+
 		// Unify POST parameter
 		//
 		// Unify properties
@@ -110,6 +115,11 @@ type (
 		//
 		// Enabled
 		Enabled bool
+
+		// Weight POST parameter
+		//
+		// Weight for sorting
+		Weight int
 
 		// Unify POST parameter
 		//
@@ -158,6 +168,13 @@ type (
 		//
 		// Script to execute
 		Script string
+	}
+
+	ApplicationReorder struct {
+		// ApplicationIDs POST parameter
+		//
+		// Application order
+		ApplicationIDs []string
 	}
 )
 
@@ -293,6 +310,7 @@ func (r ApplicationCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"name":    r.Name,
 		"enabled": r.Enabled,
+		"weight":  r.Weight,
 		"unify":   r.Unify,
 		"config":  r.Config,
 		"labels":  r.Labels,
@@ -307,6 +325,11 @@ func (r ApplicationCreate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationCreate) GetEnabled() bool {
 	return r.Enabled
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationCreate) GetWeight() int {
+	return r.Weight
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -358,6 +381,13 @@ func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["unify"]; ok && len(val) > 0 {
 			r.Unify, err = payload.ParseJSONTextWithErr(val[0])
 			if err != nil {
@@ -399,6 +429,7 @@ func (r ApplicationUpdate) Auditable() map[string]interface{} {
 		"applicationID": r.ApplicationID,
 		"name":          r.Name,
 		"enabled":       r.Enabled,
+		"weight":        r.Weight,
 		"unify":         r.Unify,
 		"config":        r.Config,
 		"labels":        r.Labels,
@@ -418,6 +449,11 @@ func (r ApplicationUpdate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r ApplicationUpdate) GetEnabled() bool {
 	return r.Enabled
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationUpdate) GetWeight() int {
+	return r.Weight
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -464,6 +500,13 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["enabled"]; ok && len(val) > 0 {
 			r.Enabled, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -707,6 +750,54 @@ func (r *ApplicationTriggerScript) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewApplicationReorder request
+func NewApplicationReorder() *ApplicationReorder {
+	return &ApplicationReorder{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationReorder) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"applicationIDs": r.ApplicationIDs,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationReorder) GetApplicationIDs() []string {
+	return r.ApplicationIDs
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationReorder) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["applicationIDs[]"]; ok && len(val) > 0  {
+		//    r.ApplicationIDs, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	return err

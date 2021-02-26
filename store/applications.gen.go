@@ -33,6 +33,9 @@ type (
 
 		// ApplicationMetrics (custom function)
 		ApplicationMetrics(ctx context.Context) (*types.ApplicationMetrics, error)
+
+		// ReorderApplications (custom function)
+		ReorderApplications(ctx context.Context, _order []uint64) error
 	}
 )
 
@@ -83,4 +86,8 @@ func TruncateApplications(ctx context.Context, s Applications) error {
 
 func ApplicationMetrics(ctx context.Context, s Applications) (*types.ApplicationMetrics, error) {
 	return s.ApplicationMetrics(ctx)
+}
+
+func ReorderApplications(ctx context.Context, s Applications, _order []uint64) error {
+	return s.ReorderApplications(ctx, _order)
 }

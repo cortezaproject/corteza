@@ -221,6 +221,7 @@ func (Schema) Applications() *Table {
 		ID,
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("enabled", ColumnTypeBoolean, DefaultValue("true")),
+		ColumnDef("weight", ColumnTypeInteger, DefaultValue("0")),
 		ColumnDef("unify", ColumnTypeJson),
 		ColumnDef("rel_owner", ColumnTypeIdentifier),
 		CUDTimestamps,
