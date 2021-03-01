@@ -160,6 +160,11 @@ func (svc template) Search(ctx context.Context, filter types.TemplateFilter) (se
 			if err != nil {
 				return err
 			}
+
+			// labels specified but no labeled resources found
+			if len(filter.LabeledIDs) == 0 {
+				return nil
+			}
 		}
 
 		if set, f, err = store.SearchTemplates(ctx, svc.store, filter); err != nil {
