@@ -133,6 +133,11 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 			if err != nil {
 				return err
 			}
+
+			// labels specified but no labeled resources found
+			if len(af.LabeledIDs) == 0 {
+				return nil
+			}
 		}
 
 		if aa, f, err = store.SearchAuthClients(ctx, svc.store, af); err != nil {
