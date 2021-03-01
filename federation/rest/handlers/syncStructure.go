@@ -19,26 +19,44 @@ import (
 type (
 	// Internal API interface
 	SyncStructureAPI interface {
-		ReadExposedAll(context.Context, *request.SyncStructureReadExposedAll) (interface{}, error)
+		ReadExposedInternal(context.Context, *request.SyncStructureReadExposedInternal) (interface{}, error)
+		ReadExposedSocial(context.Context, *request.SyncStructureReadExposedSocial) (interface{}, error)
 	}
 
 	// HTTP API interface
 	SyncStructure struct {
-		ReadExposedAll func(http.ResponseWriter, *http.Request)
+		ReadExposedInternal func(http.ResponseWriter, *http.Request)
+		ReadExposedSocial   func(http.ResponseWriter, *http.Request)
 	}
 )
 
 func NewSyncStructure(h SyncStructureAPI) *SyncStructure {
 	return &SyncStructure{
-		ReadExposedAll: func(w http.ResponseWriter, r *http.Request) {
+		ReadExposedInternal: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewSyncStructureReadExposedAll()
+			params := request.NewSyncStructureReadExposedInternal()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.ReadExposedAll(r.Context(), params)
+			value, err := h.ReadExposedInternal(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ReadExposedSocial: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewSyncStructureReadExposedSocial()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ReadExposedSocial(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -52,6 +70,7 @@ func NewSyncStructure(h SyncStructureAPI) *SyncStructure {
 func (h SyncStructure) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/nodes/{nodeID}/modules/exposed/", h.ReadExposedAll)
+		r.Get("/nodes/{nodeID}/modules/exposed/", h.ReadExposedInternal)
+		r.Get("/nodes/{nodeID}/modules/exposed/social", h.ReadExposedSocial)
 	})
 }
