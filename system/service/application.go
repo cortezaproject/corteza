@@ -95,6 +95,11 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 			if err != nil {
 				return err
 			}
+
+			// labels specified but no labeled resources found
+			if len(af.LabeledIDs) == 0 {
+				return nil
+			}
 		}
 
 		if aa, f, err = store.SearchApplications(ctx, svc.store, af); err != nil {
