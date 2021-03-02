@@ -27,7 +27,7 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsDateTime():
-		tcp := "to_timestamp(%s,'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') "
+		tcp := "to_timestamp(NULLIF(%s, ''),'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') "
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsRef():
