@@ -123,6 +123,16 @@ endpoints:
         name: namespaceID
         required: true
         title: ID
+  - name: upload
+    path: "/upload"
+    method: POST
+    title: Upload namespace assets
+    parameters:
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        required: true
+        title: File to upload
   - name: triggerScript
     method: POST
     title: Fire compose:namespace trigger

@@ -31,8 +31,9 @@ type (
 	}
 
 	Namespace struct {
-		namespace service.NamespaceService
-		ac        namespaceAccessController
+		namespace  service.NamespaceService
+		attachment service.AttachmentService
+		ac         namespaceAccessController
 	}
 
 	namespaceAccessController interface {
@@ -50,8 +51,9 @@ type (
 
 func (Namespace) New() *Namespace {
 	return &Namespace{
-		namespace: service.DefaultNamespace,
-		ac:        service.DefaultAccessControl,
+		namespace:  service.DefaultNamespace,
+		attachment: service.DefaultAttachment,
+		ac:         service.DefaultAccessControl,
 	}
 }
 
@@ -129,6 +131,26 @@ func (ctrl Namespace) Delete(ctx context.Context, r *request.NamespaceDelete) (i
 	}
 
 	return api.OK(), ctrl.namespace.DeleteByID(ctx, r.NamespaceID)
+}
+
+func (ctrl Namespace) Upload(ctx context.Context, r *request.NamespaceUpload) (interface{}, error) {
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	a, err := ctrl.attachment.With(ctx).CreateNamespaceAttachment(
+		ctx,
+		r.Upload.Filename,
+		r.Upload.Size,
+		file,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return makeAttachmentPayload(ctx, a, err)
 }
 
 func (ctrl *Namespace) TriggerScript(ctx context.Context, r *request.NamespaceTriggerScript) (rsp interface{}, err error) {

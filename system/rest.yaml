@@ -803,6 +803,17 @@ endpoints:
         title: Labels
         parser: label.ParseStrings
 
+  - name: upload
+    path: "/upload"
+    method: POST
+    title: Upload application assets
+    parameters:
+      post:
+      - name: upload
+        type: "*multipart.FileHeader"
+        required: true
+        title: File to upload
+
   - name: flagCreate
     method: POST
     title: Flag application

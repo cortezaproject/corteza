@@ -35,12 +35,14 @@ type (
 
 	attachmentAccessController interface {
 		CanManageSettings(context.Context) bool
+		CanCreateApplication(context.Context) bool
 	}
 
 	AttachmentService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.Attachment, error)
 		Find(ctx context.Context, filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreateSettingsAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
+		CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 		DeleteByID(ctx context.Context, ID uint64) error
@@ -138,6 +140,39 @@ func (svc attachment) CreateSettingsAttachment(ctx context.Context, name string,
 
 	err = func() (err error) {
 		if !svc.ac.CanManageSettings(ctx) {
+			return AttachmentErrNotAllowedToCreate()
+		}
+
+		att = &types.Attachment{
+			OwnerID: currentUserID,
+			Name:    strings.TrimSpace(name),
+			Kind:    types.AttachmentKindSettings,
+		}
+
+		aaProps.setAttachment(att)
+
+		if labels != nil {
+			att.Meta.Labels = labels
+		}
+
+		if err = svc.create(ctx, name, size, fh, att); err != nil {
+			return err
+		}
+
+		return err
+	}()
+
+	return att, svc.recordAction(ctx, aaProps, AttachmentActionCreate, err)
+}
+
+func (svc attachment) CreateApplicationAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker, labels map[string]string) (att *types.Attachment, err error) {
+	var (
+		aaProps       = &attachmentActionProps{}
+		currentUserID = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
+	err = func() (err error) {
+		if !svc.ac.CanCreateApplication(ctx) {
 			return AttachmentErrNotAllowedToCreate()
 		}
 

@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
 
@@ -50,6 +51,13 @@ type (
 	NamespaceMeta struct {
 		Subtitle    string `json:"subtitle,omitempty"`
 		Description string `json:"description,omitempty"`
+
+		// Temporary icon & logo URLs
+		// @todo rework this when we rework attachment management
+		Icon   string `json:"icon,omitempty"`
+		IconID uint64 `json:"iconID,string"`
+		Logo   string `json:"logo,omitempty"`
+		LogoID uint64 `json:"logoID,string"`
 	}
 )
 

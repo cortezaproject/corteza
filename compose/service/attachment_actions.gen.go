@@ -1182,6 +1182,38 @@ func AttachmentErrNotAllowedToUpdateRecord(mm ...*attachmentActionProps) *errors
 	return e
 }
 
+// AttachmentErrNotAllowedToUpdateNamespace returns "compose:attachment.notAllowedToUpdateNamespace" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrNotAllowedToUpdateNamespace(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this namespace", nil),
+
+		errors.Meta("type", "notAllowedToUpdateNamespace"),
+		errors.Meta("resource", "compose:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "could not update {namespace}; insufficient permissions"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
