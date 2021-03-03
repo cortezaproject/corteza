@@ -142,6 +142,13 @@ type (
 		NamespaceID uint64 `json:",string"`
 	}
 
+	NamespaceUpload struct {
+		// Upload POST parameter
+		//
+		// File to upload
+		Upload *multipart.FileHeader
+	}
+
 	NamespaceTriggerScript struct {
 		// NamespaceID PATH parameter
 		//
@@ -589,6 +596,52 @@ func (r *NamespaceDelete) Fill(req *http.Request) (err error) {
 		r.NamespaceID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNamespaceUpload request
+func NewNamespaceUpload() *NamespaceUpload {
+	return &NamespaceUpload{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpload) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"upload": r.Upload,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NamespaceUpload) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// Fill processes request and fills internal variables
+func (r *NamespaceUpload) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
 		}
 
 	}

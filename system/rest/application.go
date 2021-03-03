@@ -21,6 +21,7 @@ var _ = errors.Wrap
 type (
 	Application struct {
 		application applicationService
+		attachment  service.AttachmentService
 		ac          applicationAccessController
 	}
 
@@ -58,6 +59,7 @@ type (
 func (Application) New() *Application {
 	return &Application{
 		application: service.DefaultApplication,
+		attachment:  service.DefaultAttachment,
 		ac:          service.DefaultAccessControl,
 	}
 }
@@ -149,6 +151,27 @@ func (ctrl *Application) Delete(ctx context.Context, r *request.ApplicationDelet
 
 func (ctrl *Application) Undelete(ctx context.Context, r *request.ApplicationUndelete) (interface{}, error) {
 	return api.OK(), ctrl.application.Undelete(ctx, r.ApplicationID)
+}
+
+func (ctrl *Application) Upload(ctx context.Context, r *request.ApplicationUpload) (interface{}, error) {
+	file, err := r.Upload.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	a, err := ctrl.attachment.CreateApplicationAttachment(
+		ctx,
+		r.Upload.Filename,
+		r.Upload.Size,
+		file,
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return makeAttachmentPayload(ctx, a, err)
 }
 
 func (ctrl *Application) TriggerScript(ctx context.Context, r *request.ApplicationTriggerScript) (rsp interface{}, err error) {

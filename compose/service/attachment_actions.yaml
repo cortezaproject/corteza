@@ -138,3 +138,6 @@ errors:
     message: "not allowed to update this record"
     log: "could not update {record}; insufficient permissions"
 
+  - error: notAllowedToUpdateNamespace
+    message: "not allowed to update this namespace"
+    log: "could not update {namespace}; insufficient permissions"

@@ -147,6 +147,13 @@ type (
 		Labels map[string]string
 	}
 
+	ApplicationUpload struct {
+		// Upload POST parameter
+		//
+		// File to upload
+		Upload *multipart.FileHeader
+	}
+
 	ApplicationFlagCreate struct {
 		// ApplicationID PATH parameter
 		//
@@ -625,6 +632,52 @@ func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
 		r.ApplicationID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewApplicationUpload request
+func NewApplicationUpload() *ApplicationUpload {
+	return &ApplicationUpload{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationUpload) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"upload": r.Upload,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApplicationUpload) GetUpload() *multipart.FileHeader {
+	return r.Upload
+}
+
+// Fill processes request and fills internal variables
+func (r *ApplicationUpload) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if _, r.Upload, err = req.FormFile("upload"); err != nil {
+			return fmt.Errorf("error processing uploaded file: %w", err)
 		}
 
 	}

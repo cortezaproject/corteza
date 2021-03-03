@@ -33,10 +33,15 @@ type (
 	ApplicationUnify struct {
 		Name   string `json:"name,omitempty"`
 		Listed bool   `json:"listed"`
-		Icon   string `json:"icon"`
-		Logo   string `json:"logo"`
 		Url    string `json:"url"`
 		Config string `json:"config"`
+
+		// Temporary icon & logo URLs
+		// @todo rework this when we rework attachment management
+		Icon   string `json:"icon,omitempty"`
+		IconID uint64 `json:"iconID,string"`
+		Logo   string `json:"logo,omitempty"`
+		LogoID uint64 `json:"logoID,string"`
 	}
 
 	ApplicationFilter struct {

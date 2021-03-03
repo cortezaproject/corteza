@@ -3,6 +3,13 @@ package service
 import (
 	"bytes"
 	"context"
+	"image"
+	"image/gif"
+	"io"
+	"net/http"
+	"path"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -11,12 +18,6 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/pkg/errors"
-	"image"
-	"image/gif"
-	"io"
-	"net/http"
-	"path"
-	"strings"
 )
 
 const (
@@ -35,6 +36,7 @@ type (
 
 	attachmentAccessController interface {
 		CanReadNamespace(context.Context, *types.Namespace) bool
+		CanCreateNamespace(context.Context) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
@@ -50,6 +52,7 @@ type (
 		Find(filter types.AttachmentFilter) (types.AttachmentSet, types.AttachmentFilter, error)
 		CreatePageAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, pageID uint64) (*types.Attachment, error)
 		CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (*types.Attachment, error)
+		CreateNamespaceAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (*types.Attachment, error)
 		OpenOriginal(att *types.Attachment) (io.ReadSeeker, error)
 		OpenPreview(att *types.Attachment) (io.ReadSeeker, error)
 		DeleteByID(namespaceID, attachmentID uint64) error
@@ -281,6 +284,7 @@ func (svc attachment) CreatePageAttachment(namespaceID uint64, name string, size
 	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionCreate, err)
 
 }
+
 func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, size int64, fh io.ReadSeeker, moduleID, recordID uint64, fieldName string) (att *types.Attachment, err error) {
 	var (
 		ns *types.Namespace
@@ -339,6 +343,28 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 	})
 
 	return att, svc.recordAction(svc.ctx, aProps, AttachmentActionCreate, err)
+}
+
+func (svc attachment) CreateNamespaceAttachment(ctx context.Context, name string, size int64, fh io.ReadSeeker) (att *types.Attachment, err error) {
+	var (
+		aProps = &attachmentActionProps{}
+	)
+
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+
+		if !svc.ac.CanCreateNamespace(ctx) {
+			return AttachmentErrNotAllowedToUpdateNamespace()
+		}
+
+		att = &types.Attachment{
+			Name: strings.TrimSpace(name),
+			Kind: types.NamespaceAttachment,
+		}
+
+		return svc.create(name, size, fh, att)
+	})
+
+	return att, svc.recordAction(ctx, aProps, AttachmentActionCreate, err)
 }
 
 func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *types.Attachment) (err error) {

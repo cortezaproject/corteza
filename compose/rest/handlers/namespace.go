@@ -24,6 +24,7 @@ type (
 		Read(context.Context, *request.NamespaceRead) (interface{}, error)
 		Update(context.Context, *request.NamespaceUpdate) (interface{}, error)
 		Delete(context.Context, *request.NamespaceDelete) (interface{}, error)
+		Upload(context.Context, *request.NamespaceUpload) (interface{}, error)
 		TriggerScript(context.Context, *request.NamespaceTriggerScript) (interface{}, error)
 	}
 
@@ -34,6 +35,7 @@ type (
 		Read          func(http.ResponseWriter, *http.Request)
 		Update        func(http.ResponseWriter, *http.Request)
 		Delete        func(http.ResponseWriter, *http.Request)
+		Upload        func(http.ResponseWriter, *http.Request)
 		TriggerScript func(http.ResponseWriter, *http.Request)
 	}
 )
@@ -120,6 +122,22 @@ func NewNamespace(h NamespaceAPI) *Namespace {
 
 			api.Send(w, r, value)
 		},
+		Upload: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNamespaceUpload()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Upload(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		TriggerScript: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNamespaceTriggerScript()
@@ -147,6 +165,7 @@ func (h Namespace) MountRoutes(r chi.Router, middlewares ...func(http.Handler) h
 		r.Get("/namespace/{namespaceID}", h.Read)
 		r.Post("/namespace/{namespaceID}", h.Update)
 		r.Delete("/namespace/{namespaceID}", h.Delete)
+		r.Post("/namespace/upload", h.Upload)
 		r.Post("/namespace/{namespaceID}/trigger", h.TriggerScript)
 	})
 }

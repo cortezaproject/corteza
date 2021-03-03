@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
 )
@@ -67,8 +68,9 @@ type (
 )
 
 const (
-	PageAttachment   string = "page"
-	RecordAttachment string = "record"
+	PageAttachment      string = "page"
+	RecordAttachment    string = "record"
+	NamespaceAttachment string = "namespace"
 )
 
 func (a *Attachment) SetOriginalImageMeta(width, height int, animated bool) *attachmentFileMeta {
