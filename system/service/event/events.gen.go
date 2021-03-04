@@ -1203,11 +1203,11 @@ func (res *authBase) Decode(results map[string][]byte) (err error) {
 	return
 }
 
-// ResourceType returns "system:authClient"
+// ResourceType returns "system:auth-client"
 //
 // This function is auto-generated.
 func (authClientBase) ResourceType() string {
-	return "system:authClient"
+	return "system:auth-client"
 }
 
 // EventType on authClientOnManual returns "onManual"
@@ -1259,7 +1259,7 @@ func (authClientAfterDelete) EventType() string {
 	return "afterDelete"
 }
 
-// AuthClientOnManual creates onManual for system:authClient resource
+// AuthClientOnManual creates onManual for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientOnManual(
@@ -1275,7 +1275,7 @@ func AuthClientOnManual(
 	}
 }
 
-// AuthClientOnManualImmutable creates onManual for system:authClient resource
+// AuthClientOnManualImmutable creates onManual for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1293,7 +1293,7 @@ func AuthClientOnManualImmutable(
 	}
 }
 
-// AuthClientBeforeCreate creates beforeCreate for system:authClient resource
+// AuthClientBeforeCreate creates beforeCreate for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientBeforeCreate(
@@ -1309,7 +1309,7 @@ func AuthClientBeforeCreate(
 	}
 }
 
-// AuthClientBeforeCreateImmutable creates beforeCreate for system:authClient resource
+// AuthClientBeforeCreateImmutable creates beforeCreate for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1327,7 +1327,7 @@ func AuthClientBeforeCreateImmutable(
 	}
 }
 
-// AuthClientBeforeUpdate creates beforeUpdate for system:authClient resource
+// AuthClientBeforeUpdate creates beforeUpdate for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientBeforeUpdate(
@@ -1343,7 +1343,7 @@ func AuthClientBeforeUpdate(
 	}
 }
 
-// AuthClientBeforeUpdateImmutable creates beforeUpdate for system:authClient resource
+// AuthClientBeforeUpdateImmutable creates beforeUpdate for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1361,7 +1361,7 @@ func AuthClientBeforeUpdateImmutable(
 	}
 }
 
-// AuthClientBeforeDelete creates beforeDelete for system:authClient resource
+// AuthClientBeforeDelete creates beforeDelete for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientBeforeDelete(
@@ -1377,7 +1377,7 @@ func AuthClientBeforeDelete(
 	}
 }
 
-// AuthClientBeforeDeleteImmutable creates beforeDelete for system:authClient resource
+// AuthClientBeforeDeleteImmutable creates beforeDelete for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1395,7 +1395,7 @@ func AuthClientBeforeDeleteImmutable(
 	}
 }
 
-// AuthClientAfterCreate creates afterCreate for system:authClient resource
+// AuthClientAfterCreate creates afterCreate for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientAfterCreate(
@@ -1411,7 +1411,7 @@ func AuthClientAfterCreate(
 	}
 }
 
-// AuthClientAfterCreateImmutable creates afterCreate for system:authClient resource
+// AuthClientAfterCreateImmutable creates afterCreate for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1429,7 +1429,7 @@ func AuthClientAfterCreateImmutable(
 	}
 }
 
-// AuthClientAfterUpdate creates afterUpdate for system:authClient resource
+// AuthClientAfterUpdate creates afterUpdate for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientAfterUpdate(
@@ -1445,7 +1445,7 @@ func AuthClientAfterUpdate(
 	}
 }
 
-// AuthClientAfterUpdateImmutable creates afterUpdate for system:authClient resource
+// AuthClientAfterUpdateImmutable creates afterUpdate for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //
@@ -1463,7 +1463,7 @@ func AuthClientAfterUpdateImmutable(
 	}
 }
 
-// AuthClientAfterDelete creates afterDelete for system:authClient resource
+// AuthClientAfterDelete creates afterDelete for system:auth-client resource
 //
 // This function is auto-generated.
 func AuthClientAfterDelete(
@@ -1479,7 +1479,7 @@ func AuthClientAfterDelete(
 	}
 }
 
-// AuthClientAfterDeleteImmutable creates afterDelete for system:authClient resource
+// AuthClientAfterDeleteImmutable creates afterDelete for system:auth-client resource
 //
 // None of the arguments will be mutable!
 //

@@ -1,6 +1,6 @@
 # List of loggable service actions
 
-resource: system:authClient
+resource: system:auth-client
 service: authClient
 
 # Default sensitivity for actions

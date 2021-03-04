@@ -24,7 +24,7 @@ system:auth:
     - name: 'provider'
       type: '*types.AuthProvider'
 
-system:authClient:
+system:auth-client:
   on: ['manual']
   ba: ['create', 'update', 'delete']
   props:
