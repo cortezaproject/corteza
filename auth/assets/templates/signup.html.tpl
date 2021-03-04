@@ -59,7 +59,7 @@
             </label>
 			<input
 				type="text"
-				class="form-control"
+				class="form-control handle-mask"
 				name="handle"
 				placeholder="Short name, nickname or handle"
 				value="{{ .form.handle }}"

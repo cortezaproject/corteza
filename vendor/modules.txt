@@ -1,7 +1,5 @@
 # cloud.google.com/go v0.67.0
 cloud.google.com/go/compute/metadata
-# github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2
-## explicit
 # github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 ## explicit
 github.com/766b/chi-prometheus
@@ -45,6 +43,9 @@ github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 ## explicit
 github.com/dgrijalva/jwt-go
+# github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
+## explicit
+github.com/dgryski/dgoogauth
 # github.com/disintegration/imaging v1.6.0
 ## explicit
 github.com/disintegration/imaging
@@ -268,6 +269,7 @@ golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a
+## explicit
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
 golang.org/x/image/tiff
@@ -407,3 +409,8 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 ## explicit
 gopkg.in/yaml.v3
+# rsc.io/qr v0.2.0
+## explicit
+rsc.io/qr
+rsc.io/qr/coding
+rsc.io/qr/gf256

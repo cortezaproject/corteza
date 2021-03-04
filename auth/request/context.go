@@ -19,8 +19,8 @@ type (
 		// Sessions
 		Session *sessions.Session
 
-		// Loaded user (from session)
-		User *types.User
+		// Authenticated user
+		AuthUser *authUser
 
 		// Current client (when in oauth2 flow)
 		Client *types.AuthClient
@@ -74,6 +74,14 @@ func (req *AuthReq) SetInternalError(err error) bool {
 	req.Status = http.StatusInternalServerError
 	req.Data["error"] = err
 	return true
+}
+
+func (req *AuthReq) PushAlert(text string) {
+	req.NewAlerts = append(req.NewAlerts, Alert{Type: "primary", Text: text})
+}
+
+func (req *AuthReq) PushDangerAlert(text string) {
+	req.NewAlerts = append(req.NewAlerts, Alert{Type: "danger", Text: text})
 }
 
 func (req *AuthReq) PopAlerts() []Alert {

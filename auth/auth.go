@@ -8,7 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
-	"github.com/cortezaproject/corteza-server/auth/session"
+	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -64,7 +64,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		log = zap.NewNop()
 	}
 
-	sesManager := session.NewManager(s, opt, log)
+	sesManager := request.NewSessionManager(s, opt, log)
 
 	oauth2Manager := oauth2.NewManager(
 		opt,
@@ -230,6 +230,10 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 
 	if svc.settings.ExternalEnabled != s.ExternalEnabled {
 		svc.log.Debug("setting changed", zap.Bool("externalEnabled", s.ExternalEnabled))
+	}
+
+	if svc.settings.MultiFactor != s.MultiFactor {
+		svc.log.Debug("setting changed", zap.Any("mfa", s.MultiFactor))
 	}
 
 	if len(svc.settings.Providers) != len(s.Providers) {

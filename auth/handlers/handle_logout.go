@@ -16,12 +16,11 @@ func (h *AuthHandlers) logoutProc(req *request.AuthReq) (err error) {
 	}
 
 	// Prevent these two to be rendered by in the template
-	req.User = nil
+	req.AuthUser = nil
 	req.Client = nil
 	h.Log.Info("logout successful")
 
 	req.Template = TmplLogout
 	req.Data["backlink"] = req.Request.FormValue("back")
-
 	return
 }

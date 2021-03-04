@@ -55,6 +55,35 @@ type (
 				Providers ExternalAuthProviderSet
 			}
 
+			MultiFactor struct {
+				EmailOTP struct {
+					// Can users use email for MFA
+					Enabled bool
+
+					// Is MFA with email enforced?
+					Enforced bool
+
+					// Require fresh Email OTP on every client authorization
+					//Strict bool
+
+					Expires uint
+				} `kv:"email-otp"`
+
+				TOTP struct {
+					// Can users use TOTP for MFA
+					Enabled bool
+
+					// Is MFA with TOTP enforced?
+					Enforced bool
+
+					// Require fresh TOTP on every client authorization
+					//Strict bool
+
+					// TOTP issuer, defaults to "Corteza"
+					Issuer string
+				} `kv:"totp"`
+			} `kv:"multi-factor"`
+
 			Mail struct {
 				FromAddress string `kv:"from-address"`
 				FromName    string `kv:"from-name"`

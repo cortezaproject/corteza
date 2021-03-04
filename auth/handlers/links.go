@@ -24,6 +24,12 @@ type (
 		OAuth2Info,
 		OAuth2DefaultClient,
 
+		Mfa,
+
+		MfaTotpNewSecret,
+		MfaTotpQRImage,
+		MfaTotpDisable,
+
 		External,
 
 		Assets string
@@ -51,6 +57,11 @@ func GetLinks() Links {
 		OAuth2Token:           "/auth/oauth2/token",
 		OAuth2Info:            "/auth/oauth2/info",
 		OAuth2DefaultClient:   "/auth/oauth2/default-client",
+
+		Mfa:              "/auth/mfa",
+		MfaTotpNewSecret: "/auth/mfa/totp/setup",
+		MfaTotpQRImage:   "/auth/mfa/totp/qr.png",
+		MfaTotpDisable:   "/auth/mfa/totp/disable",
 
 		External: "/auth/external",
 

@@ -1,11 +1,10 @@
-package session
+package request
 
 import (
 	"bytes"
 	"context"
 	"encoding/gob"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
@@ -183,11 +182,11 @@ func (s cortezaSessionStore) save(ctx context.Context, ses *sessions.Session) (e
 
 		// new session does not belong to anyone yet.
 		// retrieve user id from ses. values
-		if user := GetUser(ses); user != nil {
-			cortezaSession.UserID = user.ID
+		if au := GetAuthUser(ses); au != nil {
+			cortezaSession.UserID = au.User.ID
 		}
 
-		extra := request.GetExtraReqInfoFromContext(ctx)
+		extra := GetExtraReqInfoFromContext(ctx)
 		cortezaSession.UserAgent = extra.UserAgent
 		cortezaSession.RemoteAddr = extra.RemoteAddr
 

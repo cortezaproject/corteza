@@ -23,6 +23,7 @@ type (
 	}
 
 	AuthNotificationService interface {
+		EmailOTP(ctx context.Context, lang string, emailAddress string, otp string) error
 		EmailConfirmation(ctx context.Context, lang string, emailAddress string, url string) error
 		PasswordReset(ctx context.Context, lang string, emailAddress string, url string) error
 	}
@@ -30,6 +31,7 @@ type (
 	authNotificationPayload struct {
 		EmailAddress   string
 		URL            string
+		Code           string
 		BaseURL        string
 		Logo           htpl.URL
 		SignatureName  string
@@ -49,6 +51,13 @@ func AuthNotification(s *types.AppSettings, opt options.AuthOpt) AuthNotificatio
 
 func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
+}
+
+func (svc authNotification) EmailOTP(ctx context.Context, lang string, emailAddress string, code string) error {
+	return svc.send(ctx, "email-otp", lang, authNotificationPayload{
+		EmailAddress: emailAddress,
+		Code:         code,
+	})
 }
 
 func (svc authNotification) EmailConfirmation(ctx context.Context, lang string, emailAddress string, token string) error {
@@ -121,6 +130,21 @@ func (svc authNotification) send(ctx context.Context, name, lang string, payload
 		ntf.SetHeader("Subject", tmp)
 		if tmp, err = svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload); err != nil {
 			return fmt.Errorf("failed to render svc.settings.Auth.Mail.PasswordReset.Body: %w", err)
+		}
+		ntf.SetBody("text/html", tmp)
+
+	case "email-otp":
+		// @todo move this to new template/renderer facility
+		ntf.SetHeader("Subject", "Login code")
+
+		bodyTpl := `{{.EmailHeaderEn}}
+      <h2 style="color: #568ba2;text-align: center;">Reset your password</h2>
+      <p>Hello,</p>
+      <p>Enter this code into your login form: <code>{{.Code}}</code></p>
+    {{.EmailFooterEn}}`
+
+		if tmp, err = svc.render(bodyTpl, payload); err != nil {
+			return fmt.Errorf("failed to render EmilOTP body: %w", err)
 		}
 		ntf.SetBody("text/html", tmp)
 

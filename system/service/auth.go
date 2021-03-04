@@ -7,14 +7,17 @@ import (
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/dgryski/dgoogauth"
 	"github.com/markbates/goth"
 	"golang.org/x/crypto/bcrypt"
+	rand2 "math/rand"
 	"regexp"
 	"strconv"
 	"time"
@@ -35,6 +38,7 @@ type (
 
 	authAccessController interface {
 		CanImpersonateUser(context.Context, *types.User) bool
+		CanUpdateUser(context.Context, *types.User) bool
 	}
 )
 
@@ -44,7 +48,8 @@ const (
 	credentialsTypeEmailAuthToken              = "email-authentication-token"
 	credentialsTypeResetPasswordToken          = "password-reset-token"
 	credentialsTypeResetPasswordTokenExchanged = "password-reset-token-exchanged"
-	credentialsTypeAuthToken                   = "auth-token"
+	credentialsTypeMfaTotpSecret               = "mfa-totp-secret"
+	credentialsTypeMFAEmailOTP                 = "mfa-email-otp"
 
 	credentialsTokenLength = 32
 )
@@ -639,31 +644,6 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	return store.CreateCredentials(ctx, svc.store, c)
 }
 
-// IssueAuthRequestToken returns token that can be used for authentication
-func (svc auth) IssueAuthRequestToken(ctx context.Context, user *types.User) (token string, err error) {
-	return svc.createUserToken(ctx, user, credentialsTypeAuthToken)
-}
-
-// ValidateAuthRequestToken returns user that requested auth token
-func (svc auth) ValidateAuthRequestToken(ctx context.Context, token string) (u *types.User, err error) {
-	var (
-		aam = &authActionProps{
-			credentials: &types.Credentials{Kind: credentialsTypeAuthToken},
-		}
-	)
-
-	err = func() error {
-		u, err = svc.loadUserFromToken(ctx, token, credentialsTypeAuthToken)
-		if err != nil && u != nil {
-			aam.setUser(u)
-			ctx = internalAuth.SetIdentityToContext(ctx, u)
-		}
-		return err
-	}()
-
-	return u, svc.recordAction(ctx, aam, AuthActionValidateToken, err)
-}
-
 // ValidateEmailConfirmationToken issues a validation token that can be used for
 func (svc auth) ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error) {
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeEmailAuthToken)
@@ -925,12 +905,20 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 
 	err = func() error {
 		switch kind {
-		case credentialsTypeAuthToken:
-			// 15 sec expiration for all tokens that are part of redirection
-			expiresAt = now().Add(time.Second * 15)
+		case credentialsTypeMFAEmailOTP:
+			expSec := svc.settings.Auth.MultiFactor.EmailOTP.Expires
+			if expSec == 0 {
+				expSec = 60
+			}
+
+			expiresAt = now().Add(time.Second * time.Duration(expSec))
+
+			// random number, 6 chars
+			token = fmt.Sprintf("%06d", rand2.Int())[0:6]
 		default:
 			// 1h expiration for all tokens send via email
 			expiresAt = now().Add(time.Minute * 60)
+			token = string(rand.Bytes(credentialsTokenLength))
 		}
 
 		c := &types.Credentials{
@@ -938,17 +926,25 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 			CreatedAt:   *now(),
 			OwnerID:     u.ID,
 			Kind:        kind,
-			Credentials: string(rand.Bytes(credentialsTokenLength)),
+			Credentials: token,
 			ExpiresAt:   &expiresAt,
 		}
 
-		err := store.CreateCredentials(ctx, svc.store, c)
+		err = store.CreateCredentials(ctx, svc.store, c)
 
 		if err != nil {
 			return err
 		}
 
-		token = fmt.Sprintf("%s%d", c.Credentials, c.ID)
+		switch kind {
+		case credentialsTypeMFAEmailOTP:
+			// do not alter the final token
+		default:
+			// suffixing tokens with credentials ID
+			// this will help us with token lookups
+			token = fmt.Sprintf("%s%d", token, c.ID)
+		}
+
 		return nil
 	}()
 
@@ -976,6 +972,339 @@ func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	}()
 
 	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)
+}
+
+// ValidateTOTP checks given code with the current secret
+// Fn fails if no secret is set
+func (svc auth) ValidateTOTP(ctx context.Context, code string) (err error) {
+	var (
+		c    *types.Credentials
+		u    *types.User
+		kind = credentialsTypeMfaTotpSecret
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		i    = internalAuth.GetIdentityFromContext(ctx)
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
+			return AuthErrDisabledMFAWithTOTP()
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, i.Identity())
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+
+		if !u.Meta.SecurityPolicy.MFA.EnforcedTOTP {
+			return AuthErrUnconfiguredTOTP()
+		}
+
+		if c, err = svc.getTOTPSecret(ctx, s, u.ID); err != nil {
+			return err
+		} else if err = svc.validateTOTP(c.Credentials, code); err != nil {
+			return err
+		} else {
+			c.LastUsedAt = now()
+			return store.UpdateCredentials(ctx, s, c)
+		}
+	})
+
+	return svc.recordAction(ctx, aam, AuthActionTotpValidate, err)
+}
+
+// ConfigureTOTP stores totp secret in user's credentials
+//
+// It returns the user with security policy changes
+func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (u *types.User, err error) {
+	var (
+		kind = credentialsTypeMfaTotpSecret
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		i    = internalAuth.GetIdentityFromContext(ctx)
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
+			return AuthErrDisabledMFAWithTOTP()
+		}
+
+		if err = svc.validateTOTP(secret, code); err != nil {
+			return err
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, i.Identity())
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+
+		if i == nil || u.Meta.SecurityPolicy.MFA.EnforcedTOTP {
+			// TOTP is already enforced on the user,
+			// this means that we can not just allow the change
+			return AuthErrNotAllowedToConfigureTOTP()
+		}
+
+		// revoke (soft-delete) all existing secrets
+		if err = svc.revokeAllTOTP(ctx, s, u.ID); err != nil {
+			return err
+		}
+
+		cred := &types.Credentials{
+			ID:          nextID(),
+			CreatedAt:   *now(),
+			OwnerID:     u.ID,
+			Kind:        kind,
+			Credentials: secret,
+		}
+
+		if err = store.CreateCredentials(ctx, s, cred); err != nil {
+			return err
+		}
+
+		u.Meta.SecurityPolicy.MFA.EnforcedTOTP = true
+		return store.UpdateUser(ctx, s, u)
+	})
+
+	return u, svc.recordAction(ctx, aam, AuthActionTotpConfigure, err)
+}
+
+// RemoveTOTP removes TOTP secret from user's credentials
+//
+// If user is removing own TOTP code is required
+// When removing TOTP for another user, remover shou
+//
+// It returns the user with security policy changes
+func (svc auth) RemoveTOTP(ctx context.Context, userID uint64, code string) (u *types.User, err error) {
+	var (
+		c    *types.Credentials
+		kind = credentialsTypeMfaTotpSecret
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		i    = internalAuth.GetIdentityFromContext(ctx)
+		self = i != nil && i.Identity() == userID
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+		if !svc.settings.Auth.MultiFactor.TOTP.Enabled {
+			return AuthErrDisabledMFAWithTOTP()
+		}
+		if svc.settings.Auth.MultiFactor.TOTP.Enforced {
+			return AuthErrEnforcedMFAWithTOTP()
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, userID)
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+
+		if i != nil && u != nil && self {
+			if c, err = svc.getTOTPSecret(ctx, s, u.ID); err != nil {
+				return err
+			}
+
+			if err = svc.validateTOTP(c.Credentials, code); err != nil {
+				return err
+			}
+		} else if !svc.ac.CanUpdateUser(ctx, u) {
+			return AuthErrNotAllowedToRemoveTOTP()
+		}
+
+		if err = svc.revokeAllTOTP(ctx, s, u.ID); err != nil {
+			return err
+		}
+
+		u.Meta.SecurityPolicy.MFA.EnforcedTOTP = false
+		return store.UpdateUser(ctx, s, u)
+
+	})
+
+	return u, svc.recordAction(ctx, aam, AuthActionTotpConfigure, err)
+}
+
+// Searches for all valid TOTP secret credentials
+func (svc auth) getTOTPSecret(ctx context.Context, s store.Credentials, userID uint64) (*types.Credentials, error) {
+	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialsFilter{
+		OwnerID: userID,
+		Kind:    credentialsTypeMfaTotpSecret,
+		Deleted: filter.StateExcluded,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cc) != 1 {
+		return nil, AuthErrInvalidTOTP()
+	}
+
+	return cc[0], nil
+}
+
+// Verifies TOTP code and secret
+func (auth) validateTOTP(secret string, code string) error {
+	// removes all non-numeric characters
+	code = regexp.MustCompile(`[^0-9]`).ReplaceAllString(code, "")
+	if len(code) != 6 {
+		return AuthErrInvalidTOTP()
+	}
+
+	otpc := &dgoogauth.OTPConfig{
+		Secret:     secret,
+		WindowSize: 5,
+	}
+
+	if ok, err := otpc.Authenticate(code); err != nil {
+		return AuthErrInvalidTOTP().Wrap(err)
+	} else if !ok {
+		return AuthErrInvalidTOTP()
+	}
+
+	return nil
+}
+
+// Revokes all existing user's TOTPs
+func (auth) revokeAllTOTP(ctx context.Context, s store.Credentials, userID uint64) error {
+	// revoke (soft-delete) all existing secrets
+	cc, _, err := store.SearchCredentials(ctx, s, types.CredentialsFilter{
+		OwnerID: userID,
+		Kind:    credentialsTypeMfaTotpSecret,
+		Deleted: filter.StateExcluded,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return cc.Walk(func(c *types.Credentials) error {
+		c.DeletedAt = now()
+		return store.UpdateCredentials(ctx, s, c)
+	})
+}
+
+func (svc auth) SendEmailOTP(ctx context.Context) (err error) {
+	var (
+		notificationLang = "en"
+
+		otp  string
+		u    *types.User
+		kind = credentialsTypeMFAEmailOTP
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		i    = internalAuth.GetIdentityFromContext(ctx)
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
+			return AuthErrDisabledMFAWithEmailOTP()
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, i.Identity())
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+
+		if otp, err = svc.createUserToken(ctx, u, kind); err != nil {
+			return
+		}
+
+		if err = svc.notifications.EmailOTP(ctx, notificationLang, u.Email, otp); err != nil {
+			return
+		}
+
+		return
+	})
+
+	return svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, err)
+}
+
+func (svc auth) ConfigureEmailOTP(ctx context.Context, userID uint64, enable bool) (u *types.User, err error) {
+	var (
+		kind = credentialsTypeMFAEmailOTP
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
+			return AuthErrDisabledMFAWithEmailOTP()
+		}
+
+		if svc.settings.Auth.MultiFactor.EmailOTP.Enforced && !enable {
+			return AuthErrEnforcedMFAWithEmailOTP()
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, userID)
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+		u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP = enable
+
+		return store.UpdateUser(ctx, s, u)
+	})
+
+	return u, svc.recordAction(ctx, aam, AuthActionSendEmailConfirmationToken, err)
+}
+
+// ValidateEmailOTP issues a validation OTP
+func (svc auth) ValidateEmailOTP(ctx context.Context, code string) (err error) {
+	var (
+		cc   types.CredentialsSet
+		u    *types.User
+		kind = credentialsTypeMFAEmailOTP
+		aam  = &authActionProps{credentials: &types.Credentials{Kind: kind}}
+		i    = internalAuth.GetIdentityFromContext(ctx)
+	)
+
+	err = svc.store.Tx(ctx, func(ctx context.Context, s store.Storer) error {
+		if !svc.settings.Auth.MultiFactor.EmailOTP.Enabled {
+			return AuthErrDisabledMFAWithEmailOTP()
+		}
+
+		u, err = store.LookupUserByID(ctx, svc.store, i.Identity())
+		if errors.IsNotFound(err) {
+			return AuthErrFailedForUnknownUser(aam)
+		}
+
+		aam.setUser(u)
+
+		// removes all non-numeric characters
+		code = regexp.MustCompile(`[^0-9]`).ReplaceAllString(code, "")
+		if len(code) != 6 {
+			return AuthErrInvalidEmailOTP()
+		}
+
+		cc, _, err = store.SearchCredentials(ctx, s, types.CredentialsFilter{
+			OwnerID: u.ID,
+			Kind:    kind,
+			Deleted: filter.StateExcluded,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		for _, c := range cc {
+			if c.ExpiresAt.Before(*now()) {
+				continue
+			}
+
+			if c.Credentials != code {
+				continue
+			}
+
+			// Credentials found, remove it
+			return store.DeleteCredentials(ctx, s, c)
+		}
+
+		return AuthErrInvalidEmailOTP()
+	})
+
+	return svc.recordAction(ctx, aam, AuthActionEmailOtpVerify, err)
 }
 
 // LoadRoleMemberships loads membership info

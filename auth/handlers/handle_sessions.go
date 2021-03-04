@@ -101,7 +101,7 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 
 func (h *AuthHandlers) getSessions(req *request.AuthReq) (ss userSessions, err error) {
 	var set []*types.AuthSession
-	if set, err = h.SessionManager.Search(req.Context(), req.User.ID); err != nil {
+	if set, err = h.SessionManager.Search(req.Context(), req.AuthUser.User.ID); err != nil {
 		return
 	} else {
 		ss = make(userSessions, len(set))

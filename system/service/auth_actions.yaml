@@ -68,6 +68,18 @@ actions:
   - action: impersonate
     log: "impersonating {user}"
 
+  - action: totpConfigure
+    log: "time-based one-time-password for {user} configured"
+
+  - action: totpRemove
+    log: "time-based one-time-password for {user} removed"
+
+  - action: totpValidate
+    log: "time-based one-time-password for {user} validated"
+
+  - action: emailOtpVerify
+    log: "email one-time-password for {user} verified"
+
 errors:
   - error: invalidCredentials
     message: "invalid username and password combination"
@@ -137,4 +149,40 @@ errors:
 
   - error: notAllowedToImpersonate
     message: "not allowed to impersonate this user"
+    severity: warning
+
+  - error: notAllowedToRemoveTOTP
+    message: "not allowed to remove TOTP"
+    severity: warning
+
+  - error: unconfiguredTOTP
+    message: "TOTP not configured"
+    severity: warning
+
+  - error: notAllowedToConfigureTOTP
+    message: "not allowed to configure TOTP"
+    severity: warning
+
+  - error: enforcedMFAWithTOTP
+    message: "TOTP is enforced and can not be disabled"
+    severity: warning
+
+  - error: invalidTOTP
+    message: "invalid code"
+    severity: warning
+
+  - error: disabledMFAWithTOTP
+    message: "multi factor authentication with TOTP is disabled"
+    severity: warning
+
+  - error: disabledMFAWithEmailOTP
+    message: "multi factor authentication with email OTP is disabled"
+    severity: warning
+
+  - error: enforcedMFAWithEmailOTP
+    message: "OTP over email is enforced and can not be disabled"
+    severity: warning
+
+  - error: invalidEmailOTP
+    message: "invalid code"
     severity: warning
