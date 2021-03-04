@@ -694,6 +694,36 @@ func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *
 	return e
 }
 
+// ExposedModuleErrRequestParametersInvalid returns "federation:exposed_module.requestParametersInvalid" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ExposedModuleErrRequestParametersInvalid(mm ...*exposedModuleActionProps) *errors.Error {
+	var p = &exposedModuleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("request parameters invalid", nil),
+
+		errors.Meta("type", "requestParametersInvalid"),
+		errors.Meta("resource", "federation:exposed_module"),
+
+		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ExposedModuleErrNotAllowedToCreate returns "federation:exposed_module.notAllowedToCreate" as *errors.Error
 //
 //

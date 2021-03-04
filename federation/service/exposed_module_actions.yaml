@@ -83,6 +83,10 @@ errors:
     message: "compose namespace not found"
     severity: "warning"
 
+  - error: requestParametersInvalid
+    message: "request parameters invalid"
+    severity: "warning"
+
   - error: notAllowedToCreate
     message: "not allowed to create modules"
     log: "could not create modules; insufficient permissions"
