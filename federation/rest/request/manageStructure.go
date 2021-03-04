@@ -189,6 +189,11 @@ type (
 		//
 		// List exposed modules
 		Exposed bool
+
+		// Mapped GET parameter
+		//
+		// List exposed modules
+		Mapped bool
 	}
 )
 
@@ -783,6 +788,7 @@ func (r ManageStructureListAll) Auditable() map[string]interface{} {
 		"nodeID":  r.NodeID,
 		"shared":  r.Shared,
 		"exposed": r.Exposed,
+		"mapped":  r.Mapped,
 	}
 }
 
@@ -799,6 +805,11 @@ func (r ManageStructureListAll) GetShared() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureListAll) GetExposed() bool {
 	return r.Exposed
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureListAll) GetMapped() bool {
+	return r.Mapped
 }
 
 // Fill processes request and fills internal variables
@@ -826,6 +837,12 @@ func (r *ManageStructureListAll) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["exposed"]; ok && len(val) > 0 {
 			r.Exposed, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["mapped"]; ok && len(val) > 0 {
+			r.Mapped, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

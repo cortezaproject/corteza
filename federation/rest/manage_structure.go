@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"errors"
 
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
@@ -22,6 +21,10 @@ type (
 		*types.SharedModule
 
 		CanMapModule bool `json:"canMapModule"`
+	}
+
+	moduleMappingPayload struct {
+		*types.ModuleMapping
 	}
 )
 
@@ -110,6 +113,7 @@ func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageS
 	return (service.DefaultModuleMapping).FindByID(ctx, r.ModuleID)
 }
 
+// ListAll show the list of exposed / shared / mapped modules
 func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStructureListAll) (interface{}, error) {
 	var (
 		list interface{}
@@ -127,8 +131,13 @@ func (ctrl ManageStructure) ListAll(ctx context.Context, r *request.ManageStruct
 			NodeID: r.NodeID,
 		})
 		break
+	case r.Mapped:
+		list, _, err = (service.DefaultModuleMapping).Find(ctx, types.ModuleMappingFilter{
+			NodeID: r.NodeID,
+		})
+		break
 	default:
-		return nil, errors.New("TODO - http 400 bad request - either use ?exposed or ?shared")
+		return nil, service.ExposedModuleErrRequestParametersInvalid()
 	}
 
 	return ctrl.makePayload(ctx, list, err)
@@ -158,6 +167,16 @@ func (ctrl ManageStructure) makeExposedModulePayload(ctx context.Context, em *ty
 	}, nil
 }
 
+func (ctrl ManageStructure) makeModuleMappingPayload(ctx context.Context, em *types.ModuleMapping, err error) (*moduleMappingPayload, error) {
+	if err != nil || em == nil {
+		return nil, err
+	}
+
+	return &moduleMappingPayload{
+		ModuleMapping: em,
+	}, nil
+}
+
 func (ctrl ManageStructure) makePayload(ctx context.Context, payload interface{}, err error) (interface{}, error) {
 	if err != nil || payload == nil {
 		return nil, err
@@ -178,6 +197,15 @@ func (ctrl ManageStructure) makePayload(ctx context.Context, payload interface{}
 
 		for i, d := range payload.(types.ExposedModuleSet) {
 			mp, _ := ctrl.makeExposedModulePayload(ctx, d, err)
+			set[i] = *mp
+		}
+
+		return set, err
+	case types.ModuleMappingSet:
+		set := make([]moduleMappingPayload, len(payload.(types.ModuleMappingSet)))
+
+		for i, d := range payload.(types.ModuleMappingSet) {
+			mp, _ := ctrl.makeModuleMappingPayload(ctx, d, err)
 			set[i] = *mp
 		}
 
