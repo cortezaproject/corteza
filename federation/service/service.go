@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 
 	cs "github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
