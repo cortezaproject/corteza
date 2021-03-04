@@ -360,7 +360,7 @@ endpoints:
       - name: readExposedSocial
         method: GET
         title: List all exposed modules changes in activity streams format
-        path: "/social"
+        path: "/activity-stream"
         parameters:
           path:
             - type: uint64
@@ -458,7 +458,7 @@ endpoints:
       - name: readExposedSocial
         method: GET
         title: List all records per module in activitystreams format
-        path: "/{moduleID}/records/social/"
+        path: "/{moduleID}/records/activity-stream/"
         parameters:
           path:
             - type: uint64
