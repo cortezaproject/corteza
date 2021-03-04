@@ -52,7 +52,7 @@
 			<label for="profileFormHandle">Handle</label>
             <input
                 type="text"
-                class="form-control"
+                class="form-control handle-mask"
                 name="handle"
                 id="profileFormHandle"
                 placeholder="Short name, nickname or handle"

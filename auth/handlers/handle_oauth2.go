@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/auth/session"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	systemService "github.com/cortezaproject/corteza-server/system/service"
@@ -26,7 +25,7 @@ import (
 // OA2 server internals first run user check (see SetUserAuthorizationHandler lambda)
 // to ensure user is authenticated;
 func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
-	if form := session.GetOAuth2AuthParams(req.Session); form != nil {
+	if form := request.GetOAuth2AuthParams(req.Session); form != nil {
 		req.Request.Form = form
 		h.Log.Debug("restarting oauth2 authorization flow", zap.Any("params", req.Request.Form))
 	} else {
@@ -34,7 +33,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 
 	}
 
-	session.SetOauth2AuthParams(req.Session, nil)
+	request.SetOauth2AuthParams(req.Session, nil)
 
 	var (
 		ctx    context.Context
@@ -53,7 +52,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	if client != nil {
 		// No client validation is done at this point;
 		// first, see if user is able to authenticate.
-		session.SetOauth2Client(req.Session, client)
+		request.SetOauth2Client(req.Session, client)
 	}
 
 	// set to -1 to make sure that wrapping request handler
@@ -74,7 +73,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 
 func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 	var (
-		client = session.GetOauth2Client(req.Session)
+		client = request.GetOauth2Client(req.Session)
 	)
 
 	if client == nil {
@@ -87,8 +86,8 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 
 	if !h.canAuthorizeClient(req.Context(), req.Client) {
 		h.Log.Error("user's roles do not allow authorization of this client", zap.Uint64("ID", req.Client.ID), zap.String("handle", req.Client.Handle))
-		session.SetOauth2Client(req.Session, nil)
-		session.SetOauth2AuthParams(req.Session, nil)
+		request.SetOauth2Client(req.Session, nil)
+		request.SetOauth2AuthParams(req.Session, nil)
 		req.RedirectTo = GetLinks().Profile
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
@@ -97,7 +96,7 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		return nil
 	}
 
-	if !req.User.EmailConfirmed {
+	if !req.AuthUser.User.EmailConfirmed {
 		req.Data["invalidUser"] = template.HTML(fmt.Sprintf(
 			`Can not continue with unauthorized email, 
 			visit <a href="%s">your profile</a> and resolve the issue.`,
@@ -110,7 +109,7 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 
 		// Client is trusted, no need to show this screen
 		// move forward and authorize oauth2 request
-		session.SetOauth2ClientAuthorized(req.Session, true)
+		request.SetOauth2ClientAuthorized(req.Session, true)
 		req.RedirectTo = GetLinks().OAuth2Authorize
 		return nil
 	}
@@ -125,9 +124,9 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 	// permissions are already check ed in the  oauth2AuthorizeClient fn,
 	// just making sure
 	if h.canAuthorizeClient(req.Context(), req.Client) {
-		session.SetOauth2Client(req.Session, nil)
+		request.SetOauth2Client(req.Session, nil)
 		if _, allow := req.Request.Form["allow"]; allow {
-			session.SetOauth2ClientAuthorized(req.Session, true)
+			request.SetOauth2ClientAuthorized(req.Session, true)
 			req.RedirectTo = GetLinks().OAuth2Authorize
 			return
 		}
@@ -138,7 +137,7 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 	// This occurs when user pressed "DENY" button on authorize-client form
 	// Remove all and redirect to profile
 	//
-	session.SetOauth2AuthParams(req.Session, nil)
+	request.SetOauth2AuthParams(req.Session, nil)
 	req.RedirectTo = GetLinks().Profile
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
@@ -154,7 +153,7 @@ func (h AuthHandlers) canAuthorizeClient(ctx context.Context, c *types.AuthClien
 
 func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 	// Cleanup
-	session.SetOauth2ClientAuthorized(req.Session, false)
+	request.SetOauth2ClientAuthorized(req.Session, false)
 
 	req.Status = -1
 
@@ -318,7 +317,7 @@ func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.A
 			return errors.InvalidData("invalid client ID")
 		}
 
-		if client = session.GetOauth2Client(req.Session); client != nil {
+		if client = request.GetOauth2Client(req.Session); client != nil {
 			h.Log.Debug("client loaded from session", zap.Uint64("ID", client.ID))
 
 			// ensure that session holds the right client and

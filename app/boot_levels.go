@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	authService "github.com/cortezaproject/corteza-server/auth"
-	"github.com/cortezaproject/corteza-server/auth/settings"
+	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
@@ -428,7 +428,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	var (
 		// current auth settings
 		cas       = current.Auth
-		providers []settings.Provider
+		providers []authSettings.Provider
 	)
 
 	for _, p := range cas.External.Providers {
@@ -436,7 +436,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 			continue
 		}
 
-		providers = append(providers, settings.Provider{
+		providers = append(providers, authSettings.Provider{
 			Handle:      p.Handle,
 			Label:       p.Label,
 			IssuerUrl:   p.IssuerUrl,
@@ -446,12 +446,20 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 		})
 	}
 
-	svc.UpdateSettings(&settings.Settings{
+	as := &authSettings.Settings{
 		LocalEnabled:              cas.Internal.Enabled,
 		SignupEnabled:             cas.Internal.Signup.Enabled,
 		EmailConfirmationRequired: cas.Internal.Signup.EmailConfirmationRequired,
 		PasswordResetEnabled:      cas.Internal.PasswordReset.Enabled,
 		ExternalEnabled:           cas.External.Enabled,
 		Providers:                 providers,
-	})
+	}
+
+	as.MultiFactor.TOTP.Enabled = cas.MultiFactor.TOTP.Enabled
+	as.MultiFactor.TOTP.Enforced = cas.MultiFactor.TOTP.Enforced
+	as.MultiFactor.TOTP.Issuer = cas.MultiFactor.TOTP.Issuer
+	as.MultiFactor.EmailOTP.Enabled = cas.MultiFactor.EmailOTP.Enabled
+	as.MultiFactor.EmailOTP.Enforced = cas.MultiFactor.EmailOTP.Enforced
+
+	svc.UpdateSettings(as)
 }

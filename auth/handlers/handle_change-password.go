@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
 )
@@ -15,8 +16,8 @@ func (h *AuthHandlers) changePasswordForm(req *request.AuthReq) error {
 
 func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 	err = h.AuthService.ChangePassword(
-		req.Context(),
-		req.User.ID,
+		auth.SetIdentityToContext(req.Context(), req.AuthUser.User),
+		req.AuthUser.User.ID,
 		req.Request.PostFormValue("oldPassword"),
 		req.Request.PostFormValue("newPassword"),
 	)

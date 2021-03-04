@@ -535,6 +535,86 @@ func AuthActionImpersonate(props ...*authActionProps) *authAction {
 	return a
 }
 
+// AuthActionTotpConfigure returns "system:auth.totpConfigure" action
+//
+// This function is auto-generated.
+//
+func AuthActionTotpConfigure(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "totpConfigure",
+		log:       "time-based one-time-password for {user} configured",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// AuthActionTotpRemove returns "system:auth.totpRemove" action
+//
+// This function is auto-generated.
+//
+func AuthActionTotpRemove(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "totpRemove",
+		log:       "time-based one-time-password for {user} removed",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// AuthActionTotpValidate returns "system:auth.totpValidate" action
+//
+// This function is auto-generated.
+//
+func AuthActionTotpValidate(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "totpValidate",
+		log:       "time-based one-time-password for {user} validated",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// AuthActionEmailOtpVerify returns "system:auth.emailOtpVerify" action
+//
+// This function is auto-generated.
+//
+func AuthActionEmailOtpVerify(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "emailOtpVerify",
+		log:       "email one-time-password for {user} verified",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors
@@ -1124,6 +1204,276 @@ func AuthErrNotAllowedToImpersonate(mm ...*authActionProps) *errors.Error {
 		p.Format("not allowed to impersonate this user", nil),
 
 		errors.Meta("type", "notAllowedToImpersonate"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrNotAllowedToRemoveTOTP returns "system:auth.notAllowedToRemoveTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrNotAllowedToRemoveTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to remove TOTP", nil),
+
+		errors.Meta("type", "notAllowedToRemoveTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrUnconfiguredTOTP returns "system:auth.unconfiguredTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrUnconfiguredTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("TOTP not configured", nil),
+
+		errors.Meta("type", "unconfiguredTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrNotAllowedToConfigureTOTP returns "system:auth.notAllowedToConfigureTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrNotAllowedToConfigureTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to configure TOTP", nil),
+
+		errors.Meta("type", "notAllowedToConfigureTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrEnforcedMFAWithTOTP returns "system:auth.enforcedMFAWithTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrEnforcedMFAWithTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("TOTP is enforced and can not be disabled", nil),
+
+		errors.Meta("type", "enforcedMFAWithTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrInvalidTOTP returns "system:auth.invalidTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrInvalidTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid TOTP", nil),
+
+		errors.Meta("type", "invalidTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrDisabledMFAWithTOTP returns "system:auth.disabledMFAWithTOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrDisabledMFAWithTOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("multi factor authentication with TOTP is disabled", nil),
+
+		errors.Meta("type", "disabledMFAWithTOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrDisabledMFAWithEmailOTP returns "system:auth.disabledMFAWithEmailOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrDisabledMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("multi factor authentication with email OTP is disabled", nil),
+
+		errors.Meta("type", "disabledMFAWithEmailOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrEnforcedMFAWithEmailOTP returns "system:auth.enforcedMFAWithEmailOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrEnforcedMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("OTP over email is enforced and can not be disabled", nil),
+
+		errors.Meta("type", "enforcedMFAWithEmailOTP"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrInvalidEmailOTP returns "system:auth.invalidEmailOTP" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("invalid email OTP", nil),
+
+		errors.Meta("type", "invalidEmailOTP"),
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),

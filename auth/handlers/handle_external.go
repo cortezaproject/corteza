@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/auth/session"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
@@ -43,23 +42,29 @@ func (h AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) {
 // to a current user
 func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred goth.User) {
 	var (
-		authUser *types.User
-		err      error
-		ctx      = r.Context()
+		user *types.User
+		err  error
+		ctx  = r.Context()
 	)
 
 	h.Log.Info("login successful", zap.String("provider", cred.Provider))
 
 	// Try to login/sign-up external user
-	if authUser, err = h.AuthService.External(ctx, cred); err != nil {
+	if user, err = h.AuthService.External(ctx, cred); err != nil {
 		api.Send(w, r, err)
 		return
 	}
 
 	h.handle(func(req *request.AuthReq) error {
-		h.storeUserToSession(req, authUser)
+		req.AuthUser = request.NewAuthUser(h.Settings, user, false, 0)
 
-		if session.GetOAuth2AuthParams(req.Session) != nil {
+		// auto-complete EmailOTP and TOTP when authenticating via external identity provider
+		req.AuthUser.CompleteEmailOTP()
+		req.AuthUser.CompleteTOTP()
+
+		req.AuthUser.Save(req.Session)
+
+		if request.GetOAuth2AuthParams(req.Session) != nil {
 			// If we have oauth2 auth params stored in the session,
 			// try and continue with the oauth2 flow
 			req.RedirectTo = GetLinks().OAuth2Authorize

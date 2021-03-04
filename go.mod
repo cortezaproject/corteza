@@ -3,7 +3,6 @@ module github.com/cortezaproject/corteza-server
 go 1.16
 
 require (
-	github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2 // indirect
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -17,6 +16,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.0
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
@@ -68,6 +68,7 @@ require (
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
 	golang.org/x/sys v0.0.0-20200918174421-af09f7315aff // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
@@ -78,4 +79,5 @@ require (
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	rsc.io/qr v0.2.0
 )

@@ -9,4 +9,6 @@ $(function () {
       .attr('disabled', true)
     }, 50)
   })
+
+  $('input.mfa-code-mask').mask('000 000')
 })

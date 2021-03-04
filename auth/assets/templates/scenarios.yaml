@@ -47,6 +47,29 @@ login:
       email: some.email@example.tld
       error: "There was an error..."
 
+security:
+  Default:
+    user: { ID: 123, Name: John Doe }
+    settings:
+      LocalEnabled: true
+  MFA enabled:
+    user: { ID: 123, Name: John Doe }
+    settings:
+      LocalEnabled: true
+      MultiFactor:
+        TOTP: { Enabled: true }
+        EmailOTP: { Enabled: true }
+  MFA enforced by user:
+    user: { ID: 123, Name: John Doe }
+    totpEnforced: false
+    emailOtpEnforced: true
+    settings:
+      LocalEnabled: true
+      MultiFactor:
+        TOTP: { Enabled: true }
+        EmailOTP: { Enabled: true }
+
+
 logout:
   Default: {}
   With error:
@@ -115,6 +138,7 @@ profile:
     client:
       Name: foo
     emailConfirmationRequired: true
+
 change-password:
   Default: {}
   With error:

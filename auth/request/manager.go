@@ -1,4 +1,4 @@
-package session
+package request
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	Manager struct {
+	SessionManager struct {
 		cstore store.AuthSessions
 		sstore sessions.Store
 		opt    options.AuthOpt
@@ -19,28 +19,28 @@ type (
 	}
 )
 
-func NewManager(store store.AuthSessions, opt options.AuthOpt, log *zap.Logger) *Manager {
-	m := &Manager{opt: opt, log: log}
+func NewSessionManager(store store.AuthSessions, opt options.AuthOpt, log *zap.Logger) *SessionManager {
+	m := &SessionManager{opt: opt, log: log}
 	m.cstore = store
 	m.sstore = CortezaSessionStore(store, opt)
 	return m
 }
 
-func (m Manager) Store() sessions.Store { return m.sstore }
+func (m SessionManager) Store() sessions.Store { return m.sstore }
 
-func (m *Manager) Get(r *http.Request) *sessions.Session {
+func (m *SessionManager) Get(r *http.Request) *sessions.Session {
 	ses, _ := m.sstore.Get(r, m.opt.SessionCookieName)
 	return ses
 }
 
-func (m *Manager) Save(w http.ResponseWriter, r *http.Request) {
+func (m *SessionManager) Save(w http.ResponseWriter, r *http.Request) {
 	if err := m.Get(r).Save(r, w); err != nil {
 		m.log.Warn("failed to save sessions", zap.Error(err))
 	}
 }
 
 // Returns all users sessions
-func (m *Manager) Search(ctx context.Context, userID uint64) (set []*types.AuthSession, err error) {
+func (m *SessionManager) Search(ctx context.Context, userID uint64) (set []*types.AuthSession, err error) {
 	set, _, err = m.cstore.SearchAuthSessions(ctx, types.AuthSessionFilter{UserID: userID})
 	for i := range set {
 		set[i].Data = nil
@@ -49,11 +49,11 @@ func (m *Manager) Search(ctx context.Context, userID uint64) (set []*types.AuthS
 }
 
 // Returns all users sessions
-func (m *Manager) DeleteByUserID(ctx context.Context, userID uint64) (err error) {
+func (m *SessionManager) DeleteByUserID(ctx context.Context, userID uint64) (err error) {
 	return m.cstore.DeleteAuthSessionsByUserID(ctx, userID)
 }
 
 // Returns all users sessions
-func (m *Manager) DeleteByID(ctx context.Context, sessionID string) (err error) {
+func (m *SessionManager) DeleteByID(ctx context.Context, sessionID string) (err error) {
 	return m.cstore.DeleteAuthSessionByID(ctx, sessionID)
 }

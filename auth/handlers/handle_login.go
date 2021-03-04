@@ -2,7 +2,8 @@ package handlers
 
 import (
 	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/auth/session"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
@@ -25,36 +26,48 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 	req.SetKV(nil)
 
 	var (
-		authUser *types.User
-		email    = req.Request.PostFormValue("email")
+		user  *types.User
+		email = req.Request.PostFormValue("email")
 	)
 
-	authUser, err = h.AuthService.InternalLogin(
+	user, err = h.AuthService.InternalLogin(
 		req.Context(),
 		email,
 		req.Request.PostFormValue("password"),
 	)
 
 	if err == nil {
-		req.NewAlerts = append(req.NewAlerts, request.Alert{
-			Type: "primary",
-			Text: "You are now logged-in",
-		})
+		var (
+			isPerm   = len(req.Request.PostFormValue("keep-session")) > 0
+			lifetime = h.Opt.SessionLifetime
+		)
 
-		if session.GetOAuth2AuthParams(req.Session) == nil {
-			// Not in the OAuth2 flow, go to profile
-			req.RedirectTo = GetLinks().Profile
-		} else {
-			h.Log.Info("oauth2 params found, continuing with authorization flow")
-			req.RedirectTo = GetLinks().OAuth2AuthorizeClient
+		if isPerm {
+			lifetime = h.Opt.SessionPermLifetime
 		}
 
-		h.Log.Info("login successful")
-		h.storeUserToSession(req, authUser)
+		req.AuthUser = request.NewAuthUser(h.Settings, user, isPerm, lifetime)
 
-		if len(req.Request.PostFormValue("keep-session")) > 0 {
-			session.SetPerm(req.Session, h.Opt.SessionPermLifetime)
+		req.AuthUser.Save(req.Session)
+
+		h.Log.Info(
+			"login with password successful",
+			zap.Any("mfa", req.AuthUser.MFAStatus),
+			zap.Bool("perm-login", isPerm),
+			zap.Duration("lifetime", lifetime),
+		)
+		req.PushAlert("You are now logged-in")
+
+		if req.AuthUser.PendingEmailOTP() {
+			// Email OTP enforced (globally or by user sec. policy)
+			//
+			// @todo this should probably be part of login in auth service?
+			if err = h.AuthService.SendEmailOTP(auth.SetIdentityToContext(req.Context(), req.AuthUser.User)); err != nil {
+				return errors.Internal("could not send OTP via email, contact your administrator").Wrap(err)
+			}
 		}
+
+		handleSuccessfulAuth(req)
 
 		return nil
 	}
@@ -92,14 +105,11 @@ func (h *AuthHandlers) onlyIfLocalEnabled(fn handlerFn) handlerFn {
 }
 
 func (h *AuthHandlers) localDisabledAlert(req *request.AuthReq) {
-	if req.User != nil {
+	if req.AuthUser.User != nil {
 		req.RedirectTo = GetLinks().Profile
 	} else {
 		req.RedirectTo = GetLinks().Login
 	}
 
-	req.NewAlerts = append(req.NewAlerts, request.Alert{
-		Type: "danger",
-		Text: "Local accounts disabled",
-	})
+	req.PushDangerAlert("Local accounts disabled")
 }

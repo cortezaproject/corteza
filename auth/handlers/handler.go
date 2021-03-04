@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/auth/session"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -34,6 +33,14 @@ type (
 		SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error)
 		SendPasswordResetToken(ctx context.Context, email string) (err error)
 		GetProviders() types.ExternalAuthProviderSet
+
+		ValidateTOTP(ctx context.Context, code string) (err error)
+		ConfigureTOTP(ctx context.Context, secret string, code string) (u *types.User, err error)
+		RemoveTOTP(ctx context.Context, userID uint64, code string) (u *types.User, err error)
+
+		SendEmailOTP(ctx context.Context) (err error)
+		ConfigureEmailOTP(ctx context.Context, userID uint64, enable bool) (u *types.User, err error)
+		ValidateEmailOTP(ctx context.Context, code string) (err error)
 	}
 
 	userService interface {
@@ -62,7 +69,7 @@ type (
 
 		Templates      templateExecutor
 		OAuth2         *oauth2server.Server
-		SessionManager *session.Manager
+		SessionManager *request.SessionManager
 		AuthService    authService
 		UserService    userService
 		ClientService  clientService
@@ -89,6 +96,9 @@ const (
 	TmplSessions                 = "sessions.html.tpl"
 	TmplSignup                   = "signup.html.tpl"
 	TmplPendingEmailConfirmation = "pending-email-confirmation.html.tpl"
+	TmplMfa                      = "mfa.html.tpl"
+	TmplMfaTotp                  = "mfa-totp.html.tpl"
+	TmplMfaTotpDisable           = "mfa-totp-disable.html.tpl"
 	TmplInternalError            = "error-internal.html.tpl"
 )
 
@@ -97,15 +107,6 @@ func init() {
 	gob.Register(&types.AuthClient{})
 	gob.Register([]request.Alert{})
 	gob.Register(url.Values{})
-}
-
-// Stores user & roles
-//
-// We need to store roles separately because they do not get serialized alongside with user
-// due to unexported field
-func (h *AuthHandlers) storeUserToSession(req *request.AuthReq, u *types.User) {
-	session.SetUser(req.Session, u)
-	session.SetRoleMemberships(req.Session, u.Roles())
 }
 
 // handles auth request and prepares request struct with request, session and response helper
@@ -133,15 +134,15 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 				return
 			}
 
-			req.Client = session.GetOauth2Client(req.Session)
+			req.Client = request.GetOauth2Client(req.Session)
 
-			req.User = session.GetUser(req.Session)
+			req.AuthUser = request.GetAuthUser(req.Session)
 
 			// make sure user (identity) is part of the context
 			// so we can properly identify ourselves when interacting
 			// with services
-			if req.User != nil {
-				req.Request = req.Request.Clone(auth.SetIdentityToContext(req.Context(), req.User))
+			if req.AuthUser != nil && !req.AuthUser.PendingMFA() {
+				req.Request = req.Request.Clone(auth.SetIdentityToContext(req.Context(), req.AuthUser.User))
 			}
 
 			// Alerts show for 1 session only!
@@ -149,6 +150,12 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			if err = fn(req); err != nil {
 				h.Log.Error("error in handler", zap.Error(err))
 				return
+			}
+
+			if req.RedirectTo != "" && len(req.PrevAlerts) > 0 {
+				// redirect happened, so probably none noticed alerts
+				// lets push them at the end of new alerts
+				req.NewAlerts = append(req.NewAlerts, req.PrevAlerts...)
 			}
 
 			if len(req.NewAlerts) > 0 {
@@ -218,7 +225,9 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 // Add alerts, settings, providers, csrf token
 func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	d := req.Data
-	req.Data["user"] = req.User
+	if req.AuthUser != nil {
+		req.Data["user"] = req.AuthUser.User
+	}
 
 	if req.Client != nil {
 		c := authClient{
@@ -270,10 +279,52 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	return d
 }
 
+// Handle successful auth (on any factor)
+func handleSuccessfulAuth(req *request.AuthReq) {
+	switch {
+	case req.AuthUser.PendingMFA():
+		req.RedirectTo = GetLinks().Mfa
+
+	case request.GetOAuth2AuthParams(req.Session) != nil:
+		// client authorization flow was paused, continue.
+		req.RedirectTo = GetLinks().OAuth2AuthorizeClient
+
+	default:
+		// Always go to profile
+		req.RedirectTo = GetLinks().Profile
+	}
+}
+
 // redirects anonymous users to login
 func authOnly(fn handlerFn) handlerFn {
 	return func(req *request.AuthReq) error {
-		if req.User == nil {
+		// these next few lines keep users away from the pages they should not see
+		// and redirect them to where they need to be
+		switch {
+		case req.AuthUser == nil || req.AuthUser.User == nil:
+			// not authenticated at all, move to login
+			req.RedirectTo = GetLinks().Login
+
+		case req.AuthUser.UnconfiguredTOTP():
+			// authenticated but need to configure MFA
+			req.RedirectTo = GetLinks().MfaTotpNewSecret
+
+		case req.AuthUser.PendingMFA():
+			// authenticated but MFA pending
+			req.RedirectTo = GetLinks().Mfa
+
+		default:
+			return fn(req)
+
+		}
+
+		return nil
+	}
+}
+
+func partAuthOnly(fn handlerFn) handlerFn {
+	return func(req *request.AuthReq) error {
+		if req.AuthUser == nil || req.AuthUser.User == nil {
 			req.RedirectTo = GetLinks().Login
 			return nil
 		} else {
@@ -285,7 +336,7 @@ func authOnly(fn handlerFn) handlerFn {
 // redirects authenticated users to profile
 func anonyOnly(fn handlerFn) handlerFn {
 	return func(req *request.AuthReq) error {
-		if req.User != nil {
+		if req.AuthUser != nil && req.AuthUser.User != nil {
 			req.RedirectTo = GetLinks().Profile
 			return nil
 		} else {

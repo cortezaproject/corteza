@@ -8,34 +8,39 @@ import (
 
 func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 	req.Template = TmplProfile
+	u := req.AuthUser.User
+
 	if form := req.GetKV(); len(form) > 0 {
 		req.Data["form"] = form
 		req.SetKV(nil)
 	} else {
 		req.Data["form"] = map[string]string{
-			"email":  req.User.Email,
-			"handle": req.User.Handle,
-			"name":   req.User.Name,
+			"email":  u.Email,
+			"handle": u.Handle,
+			"name":   u.Name,
 		}
 	}
 
-	req.Data["emailConfirmationRequired"] = !req.User.EmailConfirmed && h.Settings.EmailConfirmationRequired
+	req.Data["emailConfirmationRequired"] = !u.EmailConfirmed && h.Settings.EmailConfirmationRequired
 	return nil
 }
 
 func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 	req.RedirectTo = GetLinks().Profile
 	req.SetKV(nil)
+	u := req.AuthUser.User
 
-	req.User.Handle = req.Request.PostFormValue("handle")
-	req.User.Name = req.Request.PostFormValue("name")
+	u.Handle = req.Request.PostFormValue("handle")
+	u.Name = req.Request.PostFormValue("name")
 
 	// a little workaround to inject current user as authenticated identity into context
 	// this way user service will pass us through.
-	user, err := h.UserService.Update(req.Context(), req.User)
+	user, err := h.UserService.Update(req.Context(), u)
 
 	if err == nil {
-		h.storeUserToSession(req, user)
+		req.AuthUser.User = user
+		req.AuthUser.Save(req.Session)
+
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
 			Text: "Profile successfully updated.",
@@ -54,9 +59,9 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		service.UserErrNotAllowedToUpdate().Is(err):
 		req.SetKV(map[string]string{
 			"error":  err.Error(),
-			"email":  req.User.Email,
-			"handle": req.User.Handle,
-			"name":   req.User.Name,
+			"email":  u.Email,
+			"handle": u.Handle,
+			"name":   u.Name,
 		})
 
 		req.NewAlerts = append(req.NewAlerts, request.Alert{

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"sort"
 	"strconv"
@@ -54,7 +55,7 @@ func (h *AuthHandlers) clientsProc(req *request.AuthReq) error {
 			return err
 		}
 
-		if err = h.ClientService.Revoke(req.Context(), req.User.ID, clientID); err != nil {
+		if err = h.ClientService.Revoke(req.Context(), req.AuthUser.User.ID, clientID); err != nil {
 			return err
 		}
 
@@ -73,28 +74,33 @@ func (h *AuthHandlers) getAuthorizedClients(req *request.AuthReq) (ss authClient
 		set    types.AuthConfirmedClientSet
 		client *types.AuthClient
 	)
-	if set, err = h.ClientService.Confirmed(req.Context(), req.User.ID); err != nil {
+	if set, err = h.ClientService.Confirmed(req.Context(), req.AuthUser.User.ID); err != nil {
 		return
 	}
 
-	ss = make(authClients, len(set))
+	ss = make(authClients, 0, len(set))
 
 	for i := range set {
 		client, err = h.ClientService.LookupByID(req.Context(), set[i].ClientID)
+		if errors.IsNotFound(err) {
+			continue
+		}
+
 		if err != nil {
 			return
 		}
 
-		ss[i] = authClient{
+		ac := authClient{
 			ID:          set[i].ClientID,
 			Name:        client.Handle,
 			ConfirmedAt: set[i].ConfirmedAt,
 		}
 
 		if client.Meta != nil {
-			ss[i].Name = client.Meta.Name
+			ac.Name = client.Meta.Name
 		}
 
+		ss = append(ss, ac)
 	}
 
 	return

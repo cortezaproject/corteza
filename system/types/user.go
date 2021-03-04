@@ -40,7 +40,26 @@ type (
 	}
 
 	UserMeta struct {
+		// @todo remove, obsolete.
 		Avatar string `json:"avatar,omitempty"`
+
+		// User's security policy settings
+		SecurityPolicy struct {
+			// settings for multi-factor authentication
+			MFA struct {
+				// Enforce OTP on login
+				EnforcedEmailOTP bool `json:"enforcedEmailOTP"`
+
+				// Require OTP to be entered every time client is authorized
+				//StrictEmailOTP bool `json:"strictEmailOTP"`
+
+				// Is TOTP configured & enforced?
+				EnforcedTOTP bool `json:"enforcedTOTP"`
+
+				// Require OTP to be entered every time client is authorized
+				//StrictTOTP bool `json:"strictTOTP"`
+			} `json:"mfa"`
+		} `json:"securityPolicy"`
 	}
 
 	UserFilter struct {

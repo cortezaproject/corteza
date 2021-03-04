@@ -1,17 +1,15 @@
-package session
+package request
 
 import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/gorilla/sessions"
 	"net/url"
-	"time"
 )
 
 const (
 	keyPermanent              = "permanent"
 	keyOriginalSession        = "originalSession"
-	keySessionKind            = "sessionKind"
-	keyUser                   = "user"
+	keyAuthUser               = "authUser"
 	keyRoles                  = "roles"
 	keyOAuth2AuthParams       = "oauth2AuthParams"
 	keyOAuth2Client           = "oauth2ClientID"
@@ -19,22 +17,13 @@ const (
 )
 
 // GetUser is wrapper to get value from session
-func GetUser(ses *sessions.Session) *types.User {
-	val, has := ses.Values[keyUser]
+func GetAuthUser(ses *sessions.Session) *authUser {
+	val, has := ses.Values[keyAuthUser]
 	if !has {
 		return nil
 	}
 
-	return val.(*types.User)
-}
-
-// SetUser is a session value setting wrapper for User
-func SetUser(ses *sessions.Session, val *types.User) {
-	if val != nil {
-		ses.Values[keyUser] = val
-	} else {
-		delete(ses.Values, keyUser)
-	}
+	return val.(*authUser)
 }
 
 // GetRoleMemberships is wrapper to get value from session
@@ -110,22 +99,5 @@ func SetOauth2ClientAuthorized(ses *sessions.Session, val bool) {
 		ses.Values[keyOAuth2ClientAuthorized] = true
 	} else {
 		delete(ses.Values, keyOAuth2ClientAuthorized)
-	}
-}
-
-// IsOauth2ClientAuthorized is wrapper to get value from session
-func IsPerm(ses *sessions.Session) bool {
-	_, has := ses.Values[keyPermanent]
-	return has
-}
-
-// SetOauth2ClientAuthorized is a session value setting wrapper for Oauth2ClientAuthorized
-func SetPerm(ses *sessions.Session, ttl time.Duration) {
-	if ttl > 0 {
-		ses.Options.MaxAge = int(ttl / time.Second)
-		ses.Values[keyPermanent] = true
-	} else {
-		ses.Options.MaxAge = 0
-		delete(ses.Values, keyPermanent)
 	}
 }

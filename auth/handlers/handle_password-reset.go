@@ -46,15 +46,15 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 
 	req.Template = TmplResetPassword
 
-	if req.User == nil {
+	if req.AuthUser.User == nil {
 		// user not set, expecting valid token in URL
 		if token := req.Request.URL.Query().Get("token"); len(token) > 0 {
-			req.User, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
+			req.AuthUser.User, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
 			if err == nil {
 				// redirect back to self (but without token and with user in session
 				h.Log.Debug("valid password reset token found, refreshing page with stored user")
 				req.RedirectTo = GetLinks().ResetPassword
-				h.storeUserToSession(req, req.User)
+				req.AuthUser.Save(req.Session)
 				return nil
 			}
 		}
@@ -74,7 +74,7 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 func (h *AuthHandlers) resetPasswordProc(req *request.AuthReq) (err error) {
 	h.Log.Debug("password reset proc")
 
-	err = h.AuthService.SetPassword(req.Context(), req.User.ID, req.Request.PostFormValue("password"))
+	err = h.AuthService.SetPassword(req.Context(), req.AuthUser.User.ID, req.Request.PostFormValue("password"))
 
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{

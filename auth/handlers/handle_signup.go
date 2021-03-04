@@ -38,7 +38,14 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 
 			h.Log.Info("signup successful")
 			req.RedirectTo = GetLinks().Profile
-			h.storeUserToSession(req, newUser)
+
+			req.AuthUser = request.NewAuthUser(h.Settings, newUser, false, 0)
+
+			// auto-complete EmailOTP
+			req.AuthUser.CompleteEmailOTP()
+
+			req.AuthUser.Save(req.Session)
+
 		} else {
 			req.RedirectTo = GetLinks().PendingEmailConfirmation
 		}
@@ -73,8 +80,8 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 func (h *AuthHandlers) pendingEmailConfirmation(req *request.AuthReq) error {
 	req.Template = TmplPendingEmailConfirmation
 
-	if _, has := req.Request.URL.Query()["resend"]; has && req.User != nil {
-		err := h.AuthService.SendEmailAddressConfirmationToken(req.Context(), req.User)
+	if _, has := req.Request.URL.Query()["resend"]; has && req.AuthUser.User != nil {
+		err := h.AuthService.SendEmailAddressConfirmationToken(req.Context(), req.AuthUser.User)
 		if err != nil {
 			return err
 		}
@@ -96,7 +103,14 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 			})
 
 			req.RedirectTo = GetLinks().Profile
-			h.storeUserToSession(req, user)
+
+			req.AuthUser = request.NewAuthUser(h.Settings, user, false, 0)
+
+			// auto-complete EmailOTP
+			req.AuthUser.CompleteEmailOTP()
+
+			req.AuthUser.Save(req.Session)
+
 			return nil
 		}
 	}
@@ -106,7 +120,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 	// redirect to the right page
 	// not doing this here and relying on handler on subseq. request
 	// will cause alerts to be removed
-	if req.User == nil {
+	if req.AuthUser.User == nil {
 		req.RedirectTo = GetLinks().Login
 	} else {
 		req.RedirectTo = GetLinks().Profile

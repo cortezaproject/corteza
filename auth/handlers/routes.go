@@ -63,15 +63,26 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Get(l.Login, h.handle(anonyOnly(h.loginForm)))
 			r.Post(l.Login, h.handle(h.onlyIfLocalEnabled(anonyOnly(h.loginProc))))
 
+			r.Get(l.Mfa, h.handle(h.mfaForm))
+			r.Post(l.Mfa, h.handle(h.mfaProc))
+
 			r.Get(l.RequestPasswordReset, h.handle(h.onlyIfPasswordResetEnabled(anonyOnly(h.requestPasswordResetForm))))
 			r.Post(l.RequestPasswordReset, h.handle(h.onlyIfPasswordResetEnabled(anonyOnly(h.requestPasswordResetProc))))
 			r.Get(l.PasswordResetRequested, h.handle(h.onlyIfPasswordResetEnabled(anonyOnly(h.passwordResetRequested))))
 			r.Get(l.ResetPassword, h.handle(h.onlyIfPasswordResetEnabled(h.resetPasswordForm)))
 			r.Post(l.ResetPassword, h.handle(h.onlyIfPasswordResetEnabled(authOnly(h.resetPasswordProc))))
 
-			r.Get(l.Security, h.handle(authOnly(h.security)))
+			r.Get(l.Security, h.handle(authOnly(h.securityForm)))
+			r.Post(l.Security, h.handle(authOnly(h.securityProc)))
 			r.Get(l.ChangePassword, h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordForm))))
 			r.Post(l.ChangePassword, h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordProc))))
+
+			r.Get(l.MfaTotpNewSecret, h.handle(partAuthOnly(h.mfaTotpConfigForm)))
+			r.Post(l.MfaTotpNewSecret, h.handle(partAuthOnly(h.mfaTotpConfigProc)))
+			r.Get(l.MfaTotpQRImage, h.handle(partAuthOnly(h.mfaTotpConfigQR)))
+			r.Get(l.MfaTotpDisable, h.handle(authOnly(h.mfaTotpDisableForm)))
+			r.Post(l.MfaTotpDisable, h.handle(authOnly(h.mfaTotpDisableProc)))
+
 		})
 
 		r.Group(func(r chi.Router) {
@@ -92,5 +103,4 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		r.HandleFunc("/auth/oauth2/token", h.handle(h.oauth2Token))
 		r.HandleFunc("/auth/oauth2/info", h.oauth2Info)
 	})
-
 }
