@@ -542,13 +542,13 @@ func TestStoreYaml_base(t *testing.T) {
 
 				sv := ss[0]
 				req.Equal("base_setting_1", sv.Name)
-				req.Equal("{\"k\": \"vs1\"}", sv.Value.String())
+				req.Equal("10", sv.Value.String())
 				req.Equal(updatedAt.Format(time.RFC3339), sv.UpdatedAt.Format(time.RFC3339))
 				req.Equal(usr.ID, sv.UpdatedBy)
 
 				sv = ss[1]
 				req.Equal("base_setting_2", sv.Name)
-				req.Equal("{\"k\": \"vs2\"}", sv.Value.String())
+				req.Equal("20", sv.Value.String())
 				req.Equal(updatedAt.Format(time.RFC3339), sv.UpdatedAt.Format(time.RFC3339))
 				req.Equal(usr.ID, sv.UpdatedBy)
 			},

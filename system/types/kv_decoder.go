@@ -1,10 +1,11 @@
 package types
 
 import (
-	"github.com/pkg/errors"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type (
