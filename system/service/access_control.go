@@ -268,7 +268,7 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"grant",
 		"settings.read",
 		"settings.manage",
-		"authClient.create",
+		"auth-client.create",
 		"role.create",
 		"user.create",
 		"application.create",

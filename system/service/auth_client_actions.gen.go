@@ -242,14 +242,14 @@ func (e *authClientAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// AuthClientActionSearch returns "system:authClient.search" action
+// AuthClientActionSearch returns "system:auth-client.search" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionSearch(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "search",
 		log:       "searched for auth clients",
 		severity:  actionlog.Info,
@@ -262,14 +262,14 @@ func AuthClientActionSearch(props ...*authClientActionProps) *authClientAction {
 	return a
 }
 
-// AuthClientActionLookup returns "system:authClient.lookup" action
+// AuthClientActionLookup returns "system:auth-client.lookup" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionLookup(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "lookup",
 		log:       "looked-up for a {authClient}",
 		severity:  actionlog.Info,
@@ -282,14 +282,14 @@ func AuthClientActionLookup(props ...*authClientActionProps) *authClientAction {
 	return a
 }
 
-// AuthClientActionCreate returns "system:authClient.create" action
+// AuthClientActionCreate returns "system:auth-client.create" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionCreate(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "create",
 		log:       "created {authClient}",
 		severity:  actionlog.Notice,
@@ -302,14 +302,14 @@ func AuthClientActionCreate(props ...*authClientActionProps) *authClientAction {
 	return a
 }
 
-// AuthClientActionUpdate returns "system:authClient.update" action
+// AuthClientActionUpdate returns "system:auth-client.update" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionUpdate(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "update",
 		log:       "updated {authClient}",
 		severity:  actionlog.Notice,
@@ -322,14 +322,14 @@ func AuthClientActionUpdate(props ...*authClientActionProps) *authClientAction {
 	return a
 }
 
-// AuthClientActionDelete returns "system:authClient.delete" action
+// AuthClientActionDelete returns "system:auth-client.delete" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionDelete(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "delete",
 		log:       "deleted {authClient}",
 		severity:  actionlog.Notice,
@@ -342,14 +342,14 @@ func AuthClientActionDelete(props ...*authClientActionProps) *authClientAction {
 	return a
 }
 
-// AuthClientActionUndelete returns "system:authClient.undelete" action
+// AuthClientActionUndelete returns "system:auth-client.undelete" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionUndelete(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "undelete",
 		log:       "undeleted {authClient}",
 		severity:  actionlog.Notice,
@@ -362,14 +362,14 @@ func AuthClientActionUndelete(props ...*authClientActionProps) *authClientAction
 	return a
 }
 
-// AuthClientActionExposeSecret returns "system:authClient.exposeSecret" action
+// AuthClientActionExposeSecret returns "system:auth-client.exposeSecret" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionExposeSecret(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "exposeSecret",
 		log:       "secret exposed",
 		severity:  actionlog.Notice,
@@ -382,14 +382,14 @@ func AuthClientActionExposeSecret(props ...*authClientActionProps) *authClientAc
 	return a
 }
 
-// AuthClientActionRegenerateSecret returns "system:authClient.regenerateSecret" action
+// AuthClientActionRegenerateSecret returns "system:auth-client.regenerateSecret" action
 //
 // This function is auto-generated.
 //
 func AuthClientActionRegenerateSecret(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
-		resource:  "system:authClient",
+		resource:  "system:auth-client",
 		action:    "regenerateSecret",
 		log:       "secret regenerated",
 		severity:  actionlog.Notice,
@@ -406,7 +406,7 @@ func AuthClientActionRegenerateSecret(props ...*authClientActionProps) *authClie
 // *********************************************************************************************************************
 // Error constructors
 
-// AuthClientErrGeneric returns "system:authClient.generic" as *errors.Error
+// AuthClientErrGeneric returns "system:auth-client.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -423,7 +423,7 @@ func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 		p.Format("failed to complete request due to internal error", nil),
 
 		errors.Meta("type", "generic"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "{err}"),
@@ -438,7 +438,7 @@ func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
-// AuthClientErrNotFound returns "system:authClient.notFound" as *errors.Error
+// AuthClientErrNotFound returns "system:auth-client.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -455,7 +455,7 @@ func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 		p.Format("auth client not found", nil),
 
 		errors.Meta("type", "notFound"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		errors.Meta(authClientPropsMetaKey{}, p),
 
@@ -468,7 +468,7 @@ func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
-// AuthClientErrInvalidID returns "system:authClient.invalidID" as *errors.Error
+// AuthClientErrInvalidID returns "system:auth-client.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -485,7 +485,7 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 		p.Format("invalid ID", nil),
 
 		errors.Meta("type", "invalidID"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		errors.Meta(authClientPropsMetaKey{}, p),
 
@@ -498,7 +498,7 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
-// AuthClientErrNotAllowedToRead returns "system:authClient.notAllowedToRead" as *errors.Error
+// AuthClientErrNotAllowedToRead returns "system:auth-client.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -515,7 +515,7 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 		p.Format("not allowed to read this auth client", nil),
 
 		errors.Meta("type", "notAllowedToRead"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to read {authClient}; insufficient permissions"),
@@ -530,7 +530,7 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
-// AuthClientErrNotAllowedToListAuthClients returns "system:authClient.notAllowedToListAuthClients" as *errors.Error
+// AuthClientErrNotAllowedToListAuthClients returns "system:auth-client.notAllowedToListAuthClients" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -547,7 +547,7 @@ func AuthClientErrNotAllowedToListAuthClients(mm ...*authClientActionProps) *err
 		p.Format("not allowed to list auth clients", nil),
 
 		errors.Meta("type", "notAllowedToListAuthClients"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to list authClient; insufficient permissions"),
@@ -562,7 +562,7 @@ func AuthClientErrNotAllowedToListAuthClients(mm ...*authClientActionProps) *err
 	return e
 }
 
-// AuthClientErrNotAllowedToCreate returns "system:authClient.notAllowedToCreate" as *errors.Error
+// AuthClientErrNotAllowedToCreate returns "system:auth-client.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -579,7 +579,7 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 		p.Format("not allowed to create auth clients", nil),
 
 		errors.Meta("type", "notAllowedToCreate"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to create authClient; insufficient permissions"),
@@ -594,7 +594,7 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 	return e
 }
 
-// AuthClientErrNotAllowedToUpdate returns "system:authClient.notAllowedToUpdate" as *errors.Error
+// AuthClientErrNotAllowedToUpdate returns "system:auth-client.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -611,7 +611,7 @@ func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error
 		p.Format("not allowed to update this auth client", nil),
 
 		errors.Meta("type", "notAllowedToUpdate"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; insufficient permissions"),
@@ -626,7 +626,7 @@ func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error
 	return e
 }
 
-// AuthClientErrNotAllowedToDelete returns "system:authClient.notAllowedToDelete" as *errors.Error
+// AuthClientErrNotAllowedToDelete returns "system:auth-client.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -643,7 +643,7 @@ func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error
 		p.Format("not allowed to delete this auth client", nil),
 
 		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to delete {authClient}; insufficient permissions"),
@@ -658,7 +658,7 @@ func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error
 	return e
 }
 
-// AuthClientErrNotAllowedToUndelete returns "system:authClient.notAllowedToUndelete" as *errors.Error
+// AuthClientErrNotAllowedToUndelete returns "system:auth-client.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -675,7 +675,7 @@ func AuthClientErrNotAllowedToUndelete(mm ...*authClientActionProps) *errors.Err
 		p.Format("not allowed to undelete this auth client", nil),
 
 		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "system:authClient"),
+		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(authClientLogMetaKey{}, "failed to undelete {authClient}; insufficient permissions"),
