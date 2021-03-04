@@ -20,13 +20,15 @@ type (
 	// Internal API interface
 	SyncDataAPI interface {
 		ReadExposedAll(context.Context, *request.SyncDataReadExposedAll) (interface{}, error)
-		ReadExposed(context.Context, *request.SyncDataReadExposed) (interface{}, error)
+		ReadExposedInternal(context.Context, *request.SyncDataReadExposedInternal) (interface{}, error)
+		ReadExposedSocial(context.Context, *request.SyncDataReadExposedSocial) (interface{}, error)
 	}
 
 	// HTTP API interface
 	SyncData struct {
-		ReadExposedAll func(http.ResponseWriter, *http.Request)
-		ReadExposed    func(http.ResponseWriter, *http.Request)
+		ReadExposedAll      func(http.ResponseWriter, *http.Request)
+		ReadExposedInternal func(http.ResponseWriter, *http.Request)
+		ReadExposedSocial   func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -48,15 +50,31 @@ func NewSyncData(h SyncDataAPI) *SyncData {
 
 			api.Send(w, r, value)
 		},
-		ReadExposed: func(w http.ResponseWriter, r *http.Request) {
+		ReadExposedInternal: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewSyncDataReadExposed()
+			params := request.NewSyncDataReadExposedInternal()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.ReadExposed(r.Context(), params)
+			value, err := h.ReadExposedInternal(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		ReadExposedSocial: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewSyncDataReadExposedSocial()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ReadExposedSocial(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -71,6 +89,7 @@ func (h SyncData) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/exposed/records/", h.ReadExposedAll)
-		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/", h.ReadExposed)
+		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/", h.ReadExposedInternal)
+		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/activity-stream/", h.ReadExposedSocial)
 	})
 }

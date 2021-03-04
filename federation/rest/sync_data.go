@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/federation"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	ss "github.com/cortezaproject/corteza-server/system/service"
 	st "github.com/cortezaproject/corteza-server/system/types"
@@ -107,14 +110,74 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 	return listResponse{&responseSet}, nil
 }
 
-func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExposed) (interface{}, error) {
+// ReadExposedInternal fetches all the data - records (with paging)
+// for an exposed module in an internal format
+func (ctrl SyncData) ReadExposedInternal(ctx context.Context, r *request.SyncDataReadExposedInternal) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		payload, err := ctrl.readExposed(ctx, r)
+
+		if err != nil {
+			errors.ServeHTTP(w, req, err, false)
+			return
+		}
+
+		fEncoder := federation.NewEncoder(w, service.DefaultOptions)
+
+		err = fEncoder.Encode(payload, federation.CortezaInternalData)
+
+		if err != nil {
+			errors.ServeHTTP(w, req, err, false)
+			return
+		}
+
+		return
+	}, nil
+}
+
+// ReadExposedInternal fetches all the data - records (with paging)
+// for an exposed module in activity streams format
+func (ctrl SyncData) ReadExposedSocial(ctx context.Context, r *request.SyncDataReadExposedSocial) (interface{}, error) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		rr := request.SyncDataReadExposedInternal{
+			NodeID:     r.NodeID,
+			ModuleID:   r.ModuleID,
+			LastSync:   r.LastSync,
+			Query:      r.Query,
+			Limit:      r.Limit,
+			PageCursor: r.PageCursor,
+			Sort:       r.Sort,
+		}
+
+		payload, err := ctrl.readExposed(ctx, &rr)
+
+		if err != nil {
+			errors.ServeHTTP(w, req, err, false)
+			return
+		}
+
+		fEncoder := federation.NewEncoder(w, service.DefaultOptions)
+
+		err = fEncoder.Encode(payload, federation.ActivityStreamsData)
+
+		if err != nil {
+			errors.ServeHTTP(w, req, err, false)
+			return
+		}
+
+		return
+	}, nil
+}
+
+// readExposed fetches all the data - records (with paging) for an exposed module in an internal format
+func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExposedInternal) (interface{}, error) {
 	var (
 		err   error
 		em    *types.ExposedModule
 		users st.UserSet
+		node  *types.Node
 	)
 
-	if _, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
+	if node, err = service.DefaultNode.FindBySharedNodeID(ctx, r.NodeID); err != nil {
 		return nil, err
 	}
 
@@ -172,9 +235,11 @@ func (ctrl SyncData) ReadExposed(ctx context.Context, r *request.SyncDataReadExp
 		return nil, err
 	}
 
-	return listRecordResponse{
-		Set:    &list,
-		Filter: &f,
+	return federation.ListDataPayload{
+		NodeID:   node.ID,
+		ModuleID: em.ID,
+		Filter:   &f,
+		Set:      &list,
 	}, nil
 }
 
