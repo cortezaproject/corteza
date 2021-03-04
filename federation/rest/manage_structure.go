@@ -109,8 +109,28 @@ func (ctrl ManageStructure) CreateMappings(ctx context.Context, r *request.Manag
 	return service.DefaultModuleMapping.Create(ctx, mm)
 }
 
+// ReadMappings outputs an object with the module mappings per each federation module
 func (ctrl ManageStructure) ReadMappings(ctx context.Context, r *request.ManageStructureReadMappings) (interface{}, error) {
-	return (service.DefaultModuleMapping).FindByID(ctx, r.ModuleID)
+	f := types.ModuleMappingFilter{
+		NodeID:             r.NodeID,
+		FederationModuleID: r.ModuleID,
+	}
+
+	if r.ComposeModuleID > 0 {
+		f.ComposeModuleID = r.ComposeModuleID
+	}
+
+	set, _, err := service.DefaultModuleMapping.Find(ctx, f)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(set) != 1 {
+		return nil, service.ModuleMappingErrNotFound()
+	}
+
+	return set[0], nil
 }
 
 // ListAll show the list of exposed / shared / mapped modules
