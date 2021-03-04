@@ -172,6 +172,11 @@ type (
 		//
 		// Module ID
 		ModuleID uint64 `json:",string"`
+
+		// ComposeModuleID GET parameter
+		//
+		// Compose module id
+		ComposeModuleID uint64 `json:",string"`
 	}
 
 	ManageStructureListAll struct {
@@ -192,7 +197,7 @@ type (
 
 		// Mapped GET parameter
 		//
-		// List exposed modules
+		// List mapped modules
 		Mapped bool
 	}
 )
@@ -728,8 +733,9 @@ func NewManageStructureReadMappings() *ManageStructureReadMappings {
 // Auditable returns all auditable/loggable parameters
 func (r ManageStructureReadMappings) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"nodeID":   r.NodeID,
-		"moduleID": r.ModuleID,
+		"nodeID":          r.NodeID,
+		"moduleID":        r.ModuleID,
+		"composeModuleID": r.ComposeModuleID,
 	}
 }
 
@@ -743,6 +749,11 @@ func (r ManageStructureReadMappings) GetModuleID() uint64 {
 	return r.ModuleID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r ManageStructureReadMappings) GetComposeModuleID() uint64 {
+	return r.ComposeModuleID
+}
+
 // Fill processes request and fills internal variables
 func (r *ManageStructureReadMappings) Fill(req *http.Request) (err error) {
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
@@ -753,6 +764,18 @@ func (r *ManageStructureReadMappings) Fill(req *http.Request) (err error) {
 			err = nil
 		case err != nil:
 			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["composeModuleID"]; ok && len(val) > 0 {
+			r.ComposeModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -299,6 +299,11 @@ endpoints:
               name: moduleID
               required: true
               title: Module ID
+          get:
+            - name: composeModuleID
+              type: uint64
+              required: false
+              title: Compose module id
       - name: listAll
         method: GET
         title: List of shared/exposed/mapped modules
@@ -321,7 +326,7 @@ endpoints:
             - name: mapped
               type: bool
               required: false
-              title: List exposed modules
+              title: List mapped modules
 
   - title: Sync structure
     description: Sync structure
