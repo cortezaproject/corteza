@@ -71,6 +71,6 @@ func (h SyncStructure) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/exposed/", h.ReadExposedInternal)
-		r.Get("/nodes/{nodeID}/modules/exposed/social", h.ReadExposedSocial)
+		r.Get("/nodes/{nodeID}/modules/exposed/activity-stream", h.ReadExposedSocial)
 	})
 }

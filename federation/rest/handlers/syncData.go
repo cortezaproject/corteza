@@ -90,6 +90,6 @@ func (h SyncData) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 		r.Use(middlewares...)
 		r.Get("/nodes/{nodeID}/modules/exposed/records/", h.ReadExposedAll)
 		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/", h.ReadExposedInternal)
-		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/social/", h.ReadExposedSocial)
+		r.Get("/nodes/{nodeID}/modules/{moduleID}/records/activity-stream/", h.ReadExposedSocial)
 	})
 }
