@@ -83,13 +83,13 @@ func sTestSettings(ctx context.Context, t *testing.T, s store.Storer, usrID uint
 	ss := types.SettingValueSet{
 		{
 			Name:      pfx + "_setting_1",
-			Value:     []byte("{\"k\": \"vs1\"}"),
+			Value:     []byte(`10`),
 			UpdatedAt: updatedAt,
 			UpdatedBy: usrID,
 		},
 		{
 			Name:      pfx + "_setting_2",
-			Value:     []byte("{\"k\": \"vs2\"}"),
+			Value:     []byte(`20`),
 			UpdatedAt: updatedAt,
 			UpdatedBy: usrID,
 		},

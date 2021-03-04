@@ -61,6 +61,8 @@ func (n *setting) Encode(ctx context.Context, pl *payload) (err error) {
 		} else {
 			res.UpdatedAt = *now()
 		}
+	} else {
+		res.UpdatedAt = *now()
 	}
 
 	if us != nil {
