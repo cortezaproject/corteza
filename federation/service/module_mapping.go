@@ -97,6 +97,11 @@ func (svc moduleMapping) Find(ctx context.Context, filter types.ModuleMappingFil
 		return nil
 	}()
 
+	set.Walk(func(mm *types.ModuleMapping) error {
+		mm.NodeID = f.NodeID
+		return nil
+	})
+
 	return
 }
 

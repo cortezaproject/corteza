@@ -301,7 +301,7 @@ endpoints:
               title: Module ID
       - name: listAll
         method: GET
-        title: List of shared/exposed modules
+        title: List of shared/exposed/mapped modules
         path: "/"
         parameters:
           path:
@@ -315,6 +315,10 @@ endpoints:
               required: false
               title: List shared modules
             - name: exposed
+              type: bool
+              required: false
+              title: List exposed modules
+            - name: mapped
               type: bool
               required: false
               title: List exposed modules
