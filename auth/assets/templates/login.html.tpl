@@ -69,7 +69,7 @@
         {{ end }}
         {{ if .settings.SignupEnabled }}
         <div class="col cols-6 mb-5">
-            <a href="{{ links.Signup }}">Create new account</a>
+            <a href="{{ links.Signup }}">Create a new account</a>
         </div>
         {{ end }}
 	</div>
