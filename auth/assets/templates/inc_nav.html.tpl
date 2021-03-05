@@ -1,17 +1,9 @@
-<div class="card-header p-0">
+<div class="card-header border-0">
 	<div class="row">
-		<div class="col cols-6">
+		<div class="text-center w-100">
 			<a href="{{ links.Profile }}">
-				<img class="logo m-3" src="{{ links.Assets }}/logo.png">
+				<img class="logo m-2" src="{{ links.Assets }}/logo.png">
 			</a>
-		</div>
-		<div class="col cols-6 text-right small m-3">
-			{{ if .user }}
-			Logged-in as
-			<a href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
-			|
-			<a href="{{ links.Logout }}">Logout</a>
-			{{ end }}
 		</div>
 	</div>
 

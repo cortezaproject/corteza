@@ -1,6 +1,8 @@
 :root {
-  --primary: #568ba2;
+  --primary: #4D7281;
   --primary-hover: #497689;
+  --light: #E4E9EF;
+  --danger: #E54122;
 }
 
 html {
@@ -20,6 +22,8 @@ body {
   padding-top: 150px;
   padding-bottom: 100px;
   background: rgb(17, 25, 31);
+  font-family: 'Nunito', sans-serif;
+
 }
 
 body::before {
@@ -29,11 +33,10 @@ body::before {
   right: 0;
   top: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.23);
 }
 
 .logo {
-  height: 30px;
+  height: 45px;
 }
 
 .version {
@@ -41,13 +44,21 @@ body::before {
   right: 0;
 }
 
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6, label, .btn, a {
+  font-weight: 600;
+}
+
 /* over-ride default variables colors */
-a {
-  color: var(--primary);
+a, label, .text-primary {
+  color: var(--primary) !important;
 }
 
 a:hover {
   color: var(--primary-hover);
+}
+
+.text-danger {
+  color: var(--danger) !important;
 }
 
 .card,
@@ -66,10 +77,27 @@ a:hover {
   border-color: var(--primary-hover);
 }
 
+.btn-light,
+.bg-light,
+.badge-light {
+  background-color: var(--light)!important;
+  border-color: var(--light);
+}
+
+.btn-danger,
+.bg-danger {
+  background-color: var(--danger)!important;
+  border-color: var(--danger);
+}
+
+.btn-lg {
+  font-size: 1rem;
+}
+
 /* form styling*/
-.form-control,
-.input-group-text {
-  border-radius: 0;
+.form-control {
+  border: 2px solid var(--light);
+  padding: 1.25rem 0.75rem;
 }
 
 .form-control:focus {
@@ -79,6 +107,17 @@ a:hover {
 
 .auth {
   width: 100%;
-  max-width: 750px;
+  max-width: 650px;
   margin: auto;
+}
+
+.footer {
+  bottom: 0;
+  z-index: -1;
+}
+
+/* position bootstrap icons on buttons centrally */
+[class^="bi-"]::before, [class*=" bi-"]::before {
+  vertical-align: middle;
+  line-height: 1.6;
 }
