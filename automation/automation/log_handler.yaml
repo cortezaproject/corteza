@@ -1,8 +1,12 @@
+imports:
+  - io
+
 params:
   message: &message
     required: true
     types:
       - { wf: String }
+      - { wf: Reader,   suffix: r }
   fields: &fields
     types:
       - { wf: KV }

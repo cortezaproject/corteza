@@ -13,6 +13,7 @@ import (
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
+	"io"
 )
 
 var _ wfexec.ExecResponse
@@ -35,13 +36,19 @@ func (h logHandler) register() {
 
 type (
 	logDebugArgs struct {
-		hasMessage bool
-		Message    string
+		hasMessage    bool
+		Message       interface{}
+		messageString string
+		messager      io.Reader
 
 		hasFields bool
 		Fields    map[string]string
 	}
 )
+
+func (a logDebugArgs) GetMessage() (bool, string, io.Reader) {
+	return a.hasMessage, a.messageString, a.messager
+}
 
 // Debug function Writes debug log message
 //
@@ -61,7 +68,7 @@ func (h logHandler) Debug() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "message",
-				Types: []string{"String"}, Required: true,
+				Types: []string{"String", "Reader"}, Required: true,
 			},
 			{
 				Name:  "fields",
@@ -81,6 +88,17 @@ func (h logHandler) Debug() *atypes.Function {
 				return
 			}
 
+			// Converting Message argument
+			if args.hasMessage {
+				aux := expr.Must(expr.Select(in, "message"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.messageString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.messager = aux.Get().(io.Reader)
+				}
+			}
+
 			return out, h.debug(ctx, args)
 		},
 	}
@@ -88,13 +106,19 @@ func (h logHandler) Debug() *atypes.Function {
 
 type (
 	logInfoArgs struct {
-		hasMessage bool
-		Message    string
+		hasMessage    bool
+		Message       interface{}
+		messageString string
+		messager      io.Reader
 
 		hasFields bool
 		Fields    map[string]string
 	}
 )
+
+func (a logInfoArgs) GetMessage() (bool, string, io.Reader) {
+	return a.hasMessage, a.messageString, a.messager
+}
 
 // Info function Writes info log message
 //
@@ -114,7 +138,7 @@ func (h logHandler) Info() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "message",
-				Types: []string{"String"}, Required: true,
+				Types: []string{"String", "Reader"}, Required: true,
 			},
 			{
 				Name:  "fields",
@@ -134,6 +158,17 @@ func (h logHandler) Info() *atypes.Function {
 				return
 			}
 
+			// Converting Message argument
+			if args.hasMessage {
+				aux := expr.Must(expr.Select(in, "message"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.messageString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.messager = aux.Get().(io.Reader)
+				}
+			}
+
 			return out, h.info(ctx, args)
 		},
 	}
@@ -141,13 +176,19 @@ func (h logHandler) Info() *atypes.Function {
 
 type (
 	logWarnArgs struct {
-		hasMessage bool
-		Message    string
+		hasMessage    bool
+		Message       interface{}
+		messageString string
+		messager      io.Reader
 
 		hasFields bool
 		Fields    map[string]string
 	}
 )
+
+func (a logWarnArgs) GetMessage() (bool, string, io.Reader) {
+	return a.hasMessage, a.messageString, a.messager
+}
 
 // Warn function Writes warn log message
 //
@@ -167,7 +208,7 @@ func (h logHandler) Warn() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "message",
-				Types: []string{"String"}, Required: true,
+				Types: []string{"String", "Reader"}, Required: true,
 			},
 			{
 				Name:  "fields",
@@ -187,6 +228,17 @@ func (h logHandler) Warn() *atypes.Function {
 				return
 			}
 
+			// Converting Message argument
+			if args.hasMessage {
+				aux := expr.Must(expr.Select(in, "message"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.messageString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.messager = aux.Get().(io.Reader)
+				}
+			}
+
 			return out, h.warn(ctx, args)
 		},
 	}
@@ -194,13 +246,19 @@ func (h logHandler) Warn() *atypes.Function {
 
 type (
 	logErrorArgs struct {
-		hasMessage bool
-		Message    string
+		hasMessage    bool
+		Message       interface{}
+		messageString string
+		messager      io.Reader
 
 		hasFields bool
 		Fields    map[string]string
 	}
 )
+
+func (a logErrorArgs) GetMessage() (bool, string, io.Reader) {
+	return a.hasMessage, a.messageString, a.messager
+}
 
 // Error function Writes error log message
 //
@@ -220,7 +278,7 @@ func (h logHandler) Error() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "message",
-				Types: []string{"String"}, Required: true,
+				Types: []string{"String", "Reader"}, Required: true,
 			},
 			{
 				Name:  "fields",
@@ -238,6 +296,17 @@ func (h logHandler) Error() *atypes.Function {
 
 			if err = in.Decode(args); err != nil {
 				return
+			}
+
+			// Converting Message argument
+			if args.hasMessage {
+				aux := expr.Must(expr.Select(in, "message"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.messageString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.messager = aux.Get().(io.Reader)
+				}
 			}
 
 			return out, h.error(ctx, args)
