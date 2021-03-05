@@ -2,19 +2,17 @@
 <div class="card-body">
 	<form>
 		{{ if .form.error }}
-		<div class="alert alert-danger" role="alert">
+		<div class="text-danger font-weight-bold" role="alert">
 			{{ .form.error }}
 		</div>
 		{{ else }}
-		<div class="alert alert-primary" role="primary">
-			Logout successful
+		<div class="text-dark font-weight-bold" role="primary">
+			Log out successful.
 		</div>
 		{{ end }}
 
-		<hr />
-
 		<div class="text-center my-3">
-			<a href="{{ if .backlink }}{{ .backlink }}{{ else }}{{ links.Login }}{{ end }}">Login</a>
+			Click here to <a href="{{ if .backlink }}{{ .backlink }}{{ else }}{{ links.Login }}{{ end }}">Log in</a>
 		</div>
 
 	</form>

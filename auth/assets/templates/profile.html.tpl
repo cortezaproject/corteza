@@ -1,82 +1,76 @@
 {{ template "inc_header.html.tpl" . }}
-<div class="card-body">
+<div class="card-body p-0">
 	{{ template "inc_alerts.html.tpl" .alerts }}
-	<h4 class="card-title">Your profile</h4>
+	<h4 class="card-title p-3 border-bottom">Your profile</h4>
 	<form
 		method="POST"
 		action="{{ links.Profile }}"
 		onsubmit="buttonDisabler()"
+		class="p-3"
 	>
 		{{ .csrfField }}
 
 		{{ if .form.error }}
-		<div class="alert alert-danger" role="alert">
+		<div class="text-danger mb-4 font-weight-bold" role="alert">
 			{{ .form.error }}
 		</div>
 		{{ end }}
 
-		<div class="form-group row">
-			<label for="profileFormEmail" class="col-sm-2 col-form-label">Email</label>
-			<div class="col-sm-10">
-				<input
-					type="email"
-					class="form-control"
-					name="email"
-					id="profileFormEmail"
-					placeholder="email@domain.ltd"
-					autocomplete="username"
-					readonly
-					value="{{ .form.email }}"
-					aria-label="Email">
+        <div class="mb-3">
+            <label for="profileFormEmail">Email</label>
+            <input
+                type="email"
+                class="form-control"
+                name="email"
+                id="profileFormEmail"
+                placeholder="email@domain.ltd"
+                autocomplete="username"
+                readonly
+                value="{{ .form.email }}"
+                aria-label="Email">
+            <div>
+                {{ if .emailConfirmationRequired }}
+                <div class="form-text text-danger">
+                    Email is not verified, <a href="{{ links.PendingEmailConfirmation }}?resend">resend confirmation link.</a>
+                </div>
+                {{ end }}
+            </div>
+        </div>
 
-				{{ if .emailConfirmationRequired }}
-				<small class="form-text text-danger">
-					Email is not verified, <a href="{{ links.PendingEmailConfirmation }}?resend">resend confirmation link.</a>
-				</small>
-				{{ end }}
-			</div>
+		<div class="mb-3">
+			<label for="profileFormName">Full name</label>
+            <input
+                type="text"
+                class="form-control"
+                name="name"
+                id="profileFormName"
+                placeholder="Your full name"
+                value="{{ .form.name }}"
+                autocomplete="name"
+                aria-label="Full name">
 		</div>
 
-		<div class="form-group row">
-			<label for="profileFormName" class="col-sm-2 col-form-label">Full name</label>
-			<div class="col-sm-10">
-				<input
-					type="text"
-					class="form-control"
-					name="name"
-					id="profileFormName"
-					placeholder="Your full name"
-					value="{{ .form.name }}"
-					autocomplete="name"
-					aria-label="Full name">
-			</div>
+		<div class="mb-3">
+			<label for="profileFormHandle">Handle</label>
+            <input
+                type="text"
+                class="form-control"
+                name="handle"
+                id="profileFormHandle"
+                placeholder="Short name, nickname or handle"
+                value="{{ .form.handle }}"
+                autocomplete="handle"
+                aria-label="Handle">
 		</div>
 
-		<div class="form-group row">
-			<label for="profileFormHandle" class="col-sm-2 col-form-label">Handle</label>
-			<div class="col-sm-10">
-				<input
-					type="text"
-					class="form-control"
-					name="handle"
-					id="profileFormHandle"
-					placeholder="Short name, nickname or handle"
-					value="{{ .form.handle }}"
-					autocomplete="handle"
-					aria-label="Handle">
-			</div>
-		</div>
-
-		<div class="form-group row">
-			<div class="col-12 text-right">
-				<button
-					type="submit"
-					class="btn btn-primary"
-				>
-					Update profile
-				</button>
-			</div>
-		</div>
+        <div>
+            <button
+                type="submit"
+                class="btn btn-primary btn-block btn-lg"
+            >
+                Update profile
+            </button>
+        </div>
 	</form>
 </div>
 {{ template "inc_footer.html.tpl" . }}
