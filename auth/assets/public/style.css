@@ -94,6 +94,11 @@ a:hover {
   font-size: 1rem;
 }
 
+/* Navigation */
+.nav-item.active {
+  border-bottom: 4px solid var(--primary);
+}
+
 /* form styling*/
 .form-control {
   border: 2px solid var(--light);

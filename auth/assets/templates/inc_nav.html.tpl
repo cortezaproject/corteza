@@ -1,20 +1,22 @@
-<div class="card-header border-0">
-	<div class="row">
-		<div class="text-center w-100">
-			<a href="{{ links.Profile }}">
-				<img class="logo m-2" src="{{ links.Assets }}/logo.png">
-			</a>
-		</div>
-	</div>
+<div class="card-header border-0 p-0">
+    <div class="text-center w-100">
+        <a href="{{ links.Profile }}">
+            <img class="logo m-3" src="{{ links.Assets }}/logo.png">
+        </a>
+    </div>
 
 {{ if not .hideNav }}
 	{{ if and .user .client }}
 	<div class="py-1 px-3">
-		<a href="{{ links.OAuth2AuthorizeClient }}">&raquo; Continue with authorization of {{ .client.Name }}</a>
+		<a href="{{ links.OAuth2AuthorizeClient }}" class="text-danger">
+		 Finalize the authorization of {{ .client.Name }}
+		 <i class="bi bi-chevron-double-right"></i>
+		 </a>
 	</div>
 	{{ else if .user }}
 	<ul class="nav ml-1">
-		<li class="nav-item">
+	   {{/* @TO-DO Denis -- apply active class to selected nav item */}}
+		<li class="nav-item active">
 			<a class="nav-link" href="{{ links.Profile }}">Your profile</a>
 		</li>
 		<li class="nav-item">

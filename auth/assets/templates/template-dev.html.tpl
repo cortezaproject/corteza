@@ -7,7 +7,7 @@
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
 		<script type="application/javascript">
 			window.addEventListener('load', function() {
-				document.getElementsByID('preview').src=location.hash.substring(1)
+				document.getElementByID('preview').src=location.hash.substring(1)
 			})
 		</script>
 	</head>
