@@ -111,7 +111,7 @@ errors:
     message: "system requires confirmed email before logging in"
     log: "failed to log-in with with unconfirmed email"
 
-  - error: interalLoginDisabledByConfig
+  - error: internalLoginDisabledByConfig
     message: "internal login (username/password) is disabled"
 
   - error: internalSignupDisabledByConfig
