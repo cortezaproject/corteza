@@ -13,7 +13,7 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&display=swap" rel="stylesheet">
 	</head>
-	<body style="background: url({{ links.Assets }}/background.jpg) no-repeat center;background-size: cover;">
-		<main class="auth">
+	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat bottom;background-size: cover;background-attachment: fixed;" class="d-flex">
+		<main class="auth justify-content-center align-items-center">
 			<div class="card">
 			{{ template "inc_nav.html.tpl" . }}

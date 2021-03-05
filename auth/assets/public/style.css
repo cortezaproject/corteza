@@ -3,36 +3,18 @@
   --primary-hover: #497689;
   --light: #E4E9EF;
   --danger: #E54122;
+  --body-margin: 50px;
 }
 
 html {
   overflow: hidden;
 }
 
-html,
-body {
-  height: 100%;
-}
-
 body {
   overflow: scroll;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  padding-top: 150px;
-  padding-bottom: 100px;
-  background: rgb(17, 25, 31);
+  margin: var(--body-margin) 0;
   font-family: 'Nunito', sans-serif;
-
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  height: calc(100vh - 2 * var(--body-margin));
 }
 
 .logo {
@@ -119,6 +101,7 @@ a:hover {
   width: 100%;
   max-width: 650px;
   margin: auto;
+  padding: 0 20px;
 }
 
 .footer {
