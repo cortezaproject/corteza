@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"sort"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -12,9 +16,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
-	"reflect"
-	"sort"
-	"strconv"
 )
 
 type (
@@ -327,7 +328,7 @@ func (svc module) updater(namespaceID, moduleID uint64, action func(...*moduleAc
 
 			hasRecords = len(set) > 0
 
-			if err = updateModuleFields(ctx, s, m, m.Fields, hasRecords); err != nil {
+			if err = updateModuleFields(ctx, s, m, old, hasRecords); err != nil {
 				return err
 			}
 		}
@@ -499,86 +500,93 @@ func (svc module) handleUndelete(ctx context.Context, ns *types.Namespace, m *ty
 // updates module fields
 // expecting to receive all module fields, as it deletes the rest
 // also, sort order of the fields is also important as this fn stores and updates field's place as send
-func updateModuleFields(ctx context.Context, s store.Storer, m *types.Module, newFields types.ModuleFieldSet, hasRecords bool) (err error) {
-	for _, f := range newFields {
-		// Set module ID to all new fields
+func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Module, hasRecords bool) (err error) {
+	// Go over new to assure field integrity
+	for _, f := range new.Fields {
 		if f.ModuleID == 0 {
-			f.ModuleID = m.ID
+			f.ModuleID = new.ID
 		}
 
-		// Make sure all updating fields belong here
-		if f.ModuleID != m.ID {
+		if f.ModuleID != new.ID {
 			return fmt.Errorf("module id of field %q does not match the module", f.Name)
 		}
 	}
 
-	if err = loadModuleFields(ctx, s, m); err != nil {
-		return
+	// Delete any missing module fields
+	n := now()
+	ff := make(types.ModuleFieldSet, 0, len(old.Fields))
+	for _, of := range old.Fields {
+		nf := new.Fields.FindByID(of.ID)
+
+		if nf == nil {
+			of.DeletedAt = n
+			ff = append(ff, of)
+		} else if nf.DeletedAt != nil {
+			of.DeletedAt = n
+			ff = append(ff, of)
+		}
 	}
 
-	for _, ef := range m.Fields {
-		f := newFields.FindByID(ef.ID)
-		if f == nil || f.DeletedAt == nil {
-			continue
-		}
-
-		ef.DeletedAt = now()
-		err = store.UpdateComposeModuleField(ctx, s, ef)
+	if len(ff) > 0 {
+		err = store.DeleteComposeModuleField(ctx, s, ff...)
 		if err != nil {
 			return err
 		}
 	}
 
-	for idx, f := range newFields {
-		f.Place = idx
-		f.DeletedAt = nil
+	// Assure; create/update remaining fields
+	idx := 0
+	ff = make(types.ModuleFieldSet, 0, len(old.Fields))
+	for _, f := range new.Fields {
+		if f.DeletedAt != nil {
+			continue
+		}
 
-		if e := m.Fields.FindByID(f.ID); e != nil {
-			f.CreatedAt = e.CreatedAt
+		f.Place = idx
+		if of := old.Fields.FindByID(f.ID); of != nil {
+			f.CreatedAt = of.CreatedAt
 
 			// We do not have any other code in place that would handle changes of field name and kind, so we need
 			// to reset any changes made to the field.
 			// @todo remove when we are able to handle field rename & type change
 			if hasRecords {
-				f.Name = e.Name
-				f.Kind = e.Kind
+				f.Name = of.Name
+				f.Kind = of.Kind
 			}
 
 			f.UpdatedAt = now()
 
 			err = store.UpdateComposeModuleField(ctx, s, f)
-
 			if err != nil {
 				return err
 			}
 
-			if label.Changed(f.Labels, e.Labels) {
+			if label.Changed(f.Labels, of.Labels) {
 				if err = label.Update(ctx, s, f); err != nil {
 					return
 				}
 			}
 
-			// override existing with new field
-			*e = *f
-
+			ff = append(ff, f)
 		} else {
 			f.ID = nextID()
 			f.CreatedAt = *now()
-			err = store.CreateComposeModuleField(ctx, s, f)
 
-			if err != nil {
+			if err = store.CreateComposeModuleField(ctx, s, f); err != nil {
 				return err
 			}
-
 			if err = label.Update(ctx, s, f); err != nil {
 				return
 			}
 
-			m.Fields = append(m.Fields, f)
+			ff = append(ff, f)
 		}
+
+		idx++
 	}
 
-	sort.Sort(m.Fields)
+	sort.Sort(ff)
+	new.Fields = ff
 
 	return nil
 }

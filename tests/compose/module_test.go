@@ -3,17 +3,18 @@ package compose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearModules() {
@@ -262,6 +263,63 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Nil(m.Fields[1].UpdatedAt)
 	h.a.Equal(m.Fields[1].Name, "new")
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
+}
+
+func TestModuleFieldsUpdate_removed(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "a"}, &types.ModuleField{ID: id.Next(), Kind: "String", Name: "b"})
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "a", "kind": "String" }] }`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	m = h.lookupModuleByID(m.ID)
+	h.a.NotNil(m)
+	h.a.NotNil(m.Fields)
+	h.a.Len(m.Fields, 1)
+
+	h.a.NotNil(m.Fields[0].UpdatedAt)
+	h.a.Equal(m.Fields[0].Name, "a")
+}
+
+func TestModuleFieldsUpdate_removedHasRecords(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "a"}, &types.ModuleField{ID: id.Next(), Kind: "String", Name: "b"})
+	h.makeRecord(m, &types.RecordValue{Name: "a", Value: "va"}, &types.RecordValue{Name: "b", Value: "vb"})
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "a", "kind": "String" }] }`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	m = h.lookupModuleByID(m.ID)
+	h.a.NotNil(m)
+	h.a.NotNil(m.Fields)
+	h.a.Len(m.Fields, 1)
+
+	h.a.NotNil(m.Fields[0].UpdatedAt)
+	h.a.Equal(m.Fields[0].Name, "a")
 }
 
 func TestModuleFieldsUpdateExpressions(t *testing.T) {
