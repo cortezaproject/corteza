@@ -883,12 +883,12 @@ func AuthErrFailedUnconfirmedEmail(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
-// AuthErrInteralLoginDisabledByConfig returns "system:auth.interalLoginDisabledByConfig" as *errors.Error
+// AuthErrInternalLoginDisabledByConfig returns "system:auth.internalLoginDisabledByConfig" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthErrInteralLoginDisabledByConfig(mm ...*authActionProps) *errors.Error {
+func AuthErrInternalLoginDisabledByConfig(mm ...*authActionProps) *errors.Error {
 	var p = &authActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -899,7 +899,7 @@ func AuthErrInteralLoginDisabledByConfig(mm ...*authActionProps) *errors.Error {
 
 		p.Format("internal login (username/password) is disabled", nil),
 
-		errors.Meta("type", "interalLoginDisabledByConfig"),
+		errors.Meta("type", "internalLoginDisabledByConfig"),
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
