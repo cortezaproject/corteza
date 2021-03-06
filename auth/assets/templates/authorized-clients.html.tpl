@@ -1,12 +1,10 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "clients" }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
     <h4 class="card-title p-3 border-bottom">Authorized clients</h4>
 	<form
 		method="POST"
 		class="clearfix"
 		action="{{ links.AuthorizedClients }}"
-		onsubmit="buttonDisabler()"
 		class="p-3"
 	>
 

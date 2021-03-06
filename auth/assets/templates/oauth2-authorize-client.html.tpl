@@ -1,8 +1,6 @@
 {{/* setting hideNav=true to root scope and passign it to header template */}}
 {{ template "inc_header.html.tpl" set . "hideNav" true }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
-
 	{{ if .invalidUser }}
 	<div class="text-danger font-weight-bold p-3" role="alert">
 		{{ .invalidUser }}
@@ -14,7 +12,6 @@
 	<form
 		action="{{ links.OAuth2AuthorizeClient }}"
 		method="POST"
-		onsubmit="buttonDisabler()"
 		class="p-3"
 	>
 	  {{ .csrfField }}

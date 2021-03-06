@@ -1,10 +1,12 @@
-// placeholder
+$(function () {
+  $('.toast').toast('show');
 
-function buttonDisabler() {
-  setTimeout(function() {
-    let bb = document.getElementsByTagName('button')
-    for (let i = 0; i < bb.length; i++) {
-      bb[i].disabled = true
-    }
-  }, 100)
-}
+  $('form').not('do-not-disable-buttons-on-submit').on('submit', function() {
+    let form = this
+    setTimeout(function() {
+      $('button, input[type=submit]', form)
+      .not('do-not-disable-on-submit')
+      .attr('disabled', true)
+    }, 50)
+  })
+})
