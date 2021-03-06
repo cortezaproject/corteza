@@ -571,36 +571,6 @@ func AuthErrGeneric(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
-// AuthErrSubscription returns "system:auth.subscription" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func AuthErrSubscription(mm ...*authActionProps) *errors.Error {
-	var p = &authActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("subscription error", nil),
-
-		errors.Meta("type", "subscription"),
-		errors.Meta("resource", "system:auth"),
-
-		errors.Meta(authPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
 // AuthErrInvalidCredentials returns "system:auth.invalidCredentials" as *errors.Error
 //
 //

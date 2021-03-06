@@ -35,12 +35,6 @@ type (
 		Auth      options.AuthOpt
 	}
 
-	permitChecker interface {
-		Validate(string, bool) error
-		CanCreateUser(uint) error
-		CanRegister(uint) error
-	}
-
 	eventDispatcher interface {
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
@@ -56,17 +50,6 @@ var (
 	DefaultStore store.Storer
 
 	DefaultLogger *zap.Logger
-
-	// CurrentSubscription holds current subscription info,
-	// and functions for domain validation, user limit checks and
-	// warning texts
-	//
-	// By default, Corteza (community edition) has this set to nil
-	// and with that all checks & validations are skipped
-	//
-	// Other flavours or distributions can set this to
-	// something that suits their needs.
-	CurrentSubscription permitChecker
 
 	// DefaultSettings controls system's settings
 	DefaultSettings *settings
