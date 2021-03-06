@@ -69,6 +69,7 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Get(l.ResetPassword, h.handle(h.onlyIfPasswordResetEnabled(h.resetPasswordForm)))
 			r.Post(l.ResetPassword, h.handle(h.onlyIfPasswordResetEnabled(authOnly(h.resetPasswordProc))))
 
+			r.Get(l.Security, h.handle(authOnly(h.security)))
 			r.Get(l.ChangePassword, h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordForm))))
 			r.Post(l.ChangePassword, h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordProc))))
 		})

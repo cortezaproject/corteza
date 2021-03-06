@@ -18,11 +18,9 @@
 		<li class="nav-item {{ if eq .activeNav "profile" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.Profile }}">Your profile</a>
 		</li>
-		{{ if .settings.LocalEnabled }}
 		<li class="nav-item {{ if eq .activeNav "security" }}active{{ end  }}">
-			<a class="nav-link" href="{{ links.ChangePassword }}">Security</a>
+			<a class="nav-link" href="{{ links.Security }}">Security</a>
 		</li>
-		{{ end }}
 		<li class="nav-item {{ if eq .activeNav "sessions" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.Sessions }}">Login sessions</a>
 		</li>

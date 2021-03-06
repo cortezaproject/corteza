@@ -7,7 +7,10 @@ type (
 		ConfirmEmail,
 		PendingEmailConfirmation,
 		Login,
+
+		Security,
 		ChangePassword,
+
 		RequestPasswordReset,
 		PasswordResetRequested,
 		ResetPassword,
@@ -34,6 +37,7 @@ func GetLinks() Links {
 		ConfirmEmail:             "/auth/confirm-email",
 		PendingEmailConfirmation: "/auth/pending-email-confirmation",
 		Login:                    "/auth/login",
+		Security:                 "/auth/security",
 		ChangePassword:           "/auth/change-password",
 		RequestPasswordReset:     "/auth/request-password-reset",
 		PasswordResetRequested:   "/auth/password-reset-requested",
