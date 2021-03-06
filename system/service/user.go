@@ -31,8 +31,7 @@ type (
 
 		settings *types.AppSettings
 
-		auth         userAuth
-		subscription userSubscriptionChecker
+		auth userAuth
 
 		ac       userAccessController
 		eventbus eventDispatcher
@@ -43,10 +42,6 @@ type (
 	userAuth interface {
 		CheckPasswordStrength(string) bool
 		SetPasswordCredentials(context.Context, uint64, string) error
-	}
-
-	userSubscriptionChecker interface {
-		CanCreateUser(uint) error
 	}
 
 	userAccessController interface {
@@ -99,8 +94,6 @@ func User(ctx context.Context) UserService {
 		store: DefaultStore,
 
 		actionlog: DefaultActionlog,
-
-		subscription: CurrentSubscription,
 	})
 }
 
@@ -358,21 +351,6 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 
 		if _, err := mail.ParseAddress(new.Email); err != nil {
 			return UserErrInvalidEmail()
-		}
-
-		if svc.subscription != nil {
-			var c uint
-			if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{}); err != nil {
-				return err
-			}
-
-			// When we have an active subscription, we need to check
-			// if users can be create or did this deployment hit
-			// it's user-limit
-			err = svc.subscription.CanCreateUser(c)
-			if err != nil {
-				return err
-			}
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeCreate(new, u)); err != nil {

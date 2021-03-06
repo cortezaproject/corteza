@@ -69,10 +69,6 @@ actions:
     log: "impersonating {user}"
 
 errors:
-  - error: subscription
-    message: "subscription error"
-    severity: warning
-
   - error: invalidCredentials
     message: "invalid username and password combination"
     log: "{email} failed to authenticate with {credentials.kind}"

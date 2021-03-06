@@ -209,15 +209,6 @@ endpoints:
     method: GET
     title: Current compose settings
     path: "/current"
-- title: Subscription
-  path: "/subscription"
-  entrypoint: subscription
-  apis:
-  - name: current
-    method: GET
-    title: Returns current subscription status
-    path: "/"
-    parameters: {}
 - title: Roles
   description: An organisation may have many roles. Roles may have many channels available.
     Access to channels may be shared between roles.

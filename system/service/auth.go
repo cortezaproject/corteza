@@ -26,7 +26,6 @@ type (
 		ac        authAccessController
 		eventbus  eventDispatcher
 
-		subscription  authSubscriptionChecker
 		store         store.Storer
 		settings      *types.AppSettings
 		notifications AuthNotificationService
@@ -36,10 +35,6 @@ type (
 
 	authAccessController interface {
 		CanImpersonateUser(context.Context, *types.User) bool
-	}
-
-	authSubscriptionChecker interface {
-		CanRegister(uint) error
 	}
 )
 
@@ -67,7 +62,6 @@ func Auth() *auth {
 	return &auth{
 		eventbus:      eventbus.Service(),
 		ac:            DefaultAccessControl,
-		subscription:  CurrentSubscription,
 		settings:      CurrentSettings,
 		notifications: DefaultAuthNotification,
 
@@ -190,9 +184,6 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		// Find user via his email
 		if u, err = store.LookupUserByEmail(ctx, svc.store, profile.Email); errors.IsNotFound(err) {
 			// @todo check if it is ok to auto-create a user here
-			if err = svc.CanRegister(ctx); err != nil {
-				return AuthErrSubscription(aam).Wrap(err)
-			}
 
 			// In case we do not have this email, create a new user
 			u = &types.User{
@@ -350,10 +341,6 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 		// }
 		//
 		// return nil,nil
-
-		if err = svc.CanRegister(ctx); err != nil {
-			return err
-		}
 
 		var nUser = &types.User{
 			ID:        nextID(),
@@ -816,23 +803,6 @@ func (svc auth) SendPasswordResetToken(ctx context.Context, email string) (err e
 	}()
 
 	return svc.recordAction(ctx, aam, AuthActionSendPasswordResetToken, err)
-}
-
-// CanRegister verifies if user can register
-func (svc auth) CanRegister(ctx context.Context) error {
-	if svc.subscription != nil {
-		c, err := store.CountUsers(ctx, svc.store, types.UserFilter{})
-		if err != nil {
-			return fmt.Errorf("can not check if user can register: %w", err)
-		}
-
-		// When we have an active subscription, we need to check
-		// if users can register or did this deployment hit
-		// it's user-limit
-		return svc.subscription.CanRegister(c)
-	}
-
-	return nil
 }
 
 func (svc auth) sendPasswordResetToken(ctx context.Context, u *types.User) (err error) {
