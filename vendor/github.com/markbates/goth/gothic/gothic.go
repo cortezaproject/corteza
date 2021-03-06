@@ -10,6 +10,7 @@ package gothic
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -34,6 +35,11 @@ var Store sessions.Store
 var defaultStore sessions.Store
 
 var keySet = false
+
+type key int
+
+// ProviderParamKey can be used as a key in context when passing in a provider
+const ProviderParamKey key = iota
 
 func init() {
 	key := []byte(os.Getenv("SESSION_SECRET"))
@@ -93,7 +99,11 @@ var SetState = func(req *http.Request) string {
 // This is used to prevent CSRF attacks, see
 // http://tools.ietf.org/html/rfc6749#section-10.12
 var GetState = func(req *http.Request) string {
-	return req.URL.Query().Get("state")
+	params := req.URL.Query()
+	if params.Encode() == "" && req.Method == http.MethodPost {
+		return req.FormValue("state")
+	}
+	return params.Get("state")
 }
 
 /*
@@ -149,7 +159,6 @@ as either "provider" or ":provider".
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
 var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
-	defer Logout(res, req)
 	if !keySet && defaultStore == Store {
 		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
 	}
@@ -168,7 +177,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 	if err != nil {
 		return goth.User{}, err
 	}
-
+	defer Logout(res, req)
 	sess, err := provider.UnmarshalSession(value)
 	if err != nil {
 		return goth.User{}, err
@@ -185,8 +194,14 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 		return user, err
 	}
 
+	params := req.URL.Query()
+	if params.Encode() == "" && req.Method == "POST" {
+		req.ParseForm()
+		params = req.Form
+	}
+
 	// get new token and retry fetch
-	_, err = sess.Authorize(provider, req.URL.Query())
+	_, err = sess.Authorize(provider, params)
 	if err != nil {
 		return goth.User{}, err
 	}
@@ -214,8 +229,10 @@ func validateState(req *http.Request, sess goth.Session) error {
 		return err
 	}
 
+	reqState := GetState(req)
+
 	originalState := authURL.Query().Get("state")
-	if originalState != "" && (originalState != req.URL.Query().Get("state")) {
+	if originalState != "" && (originalState != reqState) {
 		return errors.New("state token mismatch")
 	}
 	return nil
@@ -245,19 +262,6 @@ var GetProviderName = getProviderName
 
 func getProviderName(req *http.Request) (string, error) {
 
-	// get all the used providers
-	providers := goth.GetProviders()
-
-	// loop over the used providers, if we already have a valid session for any provider (ie. user is already logged-in with a provider), then return that provider name
-	for _, provider := range providers {
-		p := provider.Name()
-		session, _ := Store.Get(req, p+SessionName)
-		value := session.Values[p]
-		if _, ok := value.(string); ok {
-			return p, nil
-		}
-	}
-
 	// try to get it from the url param "provider"
 	if p := req.URL.Query().Get("provider"); p != "" {
 		return p, nil
@@ -278,8 +282,29 @@ func getProviderName(req *http.Request) (string, error) {
 		return p, nil
 	}
 
+	// try to get it from the go-context's value of providerContextKey key
+	if p, ok := req.Context().Value(ProviderParamKey).(string); ok {
+		return p, nil
+	}
+
+	// As a fallback, loop over the used providers, if we already have a valid session for any provider (ie. user has already begun authentication with a provider), then return that provider name
+	providers := goth.GetProviders()
+	session, _ := Store.Get(req, SessionName)
+	for _, provider := range providers {
+		p := provider.Name()
+		value := session.Values[p]
+		if _, ok := value.(string); ok {
+			return p, nil
+		}
+	}
+
 	// if not found then return an empty string with the corresponding error
 	return "", errors.New("you must select a provider")
+}
+
+// GetContextWithProvider returns a new request context containing the provider
+func GetContextWithProvider(req *http.Request, provider string) *http.Request {
+	return req.WithContext(context.WithValue(req.Context(), ProviderParamKey, provider))
 }
 
 // StoreInSession stores a specified key/value pair in the session.
