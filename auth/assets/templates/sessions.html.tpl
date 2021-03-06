@@ -1,4 +1,4 @@
-{{ template "inc_header.html.tpl" . }}
+{{ template "inc_header.html.tpl" set . "activeNav" "sessions" }}
 <div class="card-body p-0">
 	{{ template "inc_alerts.html.tpl" .alerts }}
 	    <div class="card-title p-3 border-bottom">
