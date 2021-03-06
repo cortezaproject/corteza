@@ -1,23 +1,22 @@
 {{ template "inc_header.html.tpl" . }}
-<div class="card-body">
-	{{ template "inc_alerts.html.tpl" .alerts }}
-	<h4 class="card-title">Login</h4>
+<div class="card-body p-0">
+	<h4 class="card-title p-3 border-bottom">Log in</h4>
 	{{ if .settings.LocalEnabled }}
 	<form
 		method="POST"
-		onsubmit="buttonDisabler()"
 		action="{{ links.Login }}"
+		class="p-3"
 	>
 		{{ .csrfField }}
 		{{ if .form.error }}
-		<div class="alert alert-danger" role="alert">
+		<div class="text-danger mb-4 font-weight-bold" role="alert">
 			{{ .form.error }}
 		</div>
 		{{ end }}
-		<div class="input-group mb-3">
-			<span class="input-group-text">
-			  <i class="bi bi-envelope"></i>
-			</span>
+		<div class="mb-3">
+		    <label>
+                E-mail *
+            </label>
 			<input
 				type="email"
 				class="form-control"
@@ -28,10 +27,10 @@
 				autocomplete="username"
 				aria-label="Email">
 		</div>
-		<div class="input-group mb-3">
-			<span class="input-group-text">
-			  <i class="bi bi-key-fill"></i>
-			</span>
+		<div class="mb-3">
+            <label>
+                Password *
+            </label>
 			<input
 				type="password"
 				required
@@ -42,14 +41,9 @@
 				aria-label="Password">
 		</div>
 		<div class="row">
-			<div class="col">
-			{{ if .settings.PasswordResetEnabled }}
-				<a href="{{ links.RequestPasswordReset }}" class="small">Forgot your password?</a>
-			{{ end }}
-			</div>
 			<div class="col text-right">
 				<button
-					class="btn btn-primary"
+					class="btn btn-primary btn-block btn-lg"
 					name="keep-session"
 					value="true"
 					type="submit"
@@ -57,7 +51,7 @@
 					Log in and remember me
 				</button>
 				<button
-					class="btn btn-secondary"
+					class="btn btn-light btn-block"
 					type="submit"
 				>
 					Log in
@@ -65,19 +59,25 @@
 			</div>
 		</div>
 	</form>
-	{{ if .settings.SignupEnabled }}
-	<div class="text-center my-5">
-		<a href="{{ links.Signup }}">Create new account</a>
+	<div class="row text-center">
+        {{ if .settings.PasswordResetEnabled }}
+        <div class="col cols-6 mb-5">
+            <a href="{{ links.RequestPasswordReset }}">Forgot your password?</a>
+        </div>
+        {{ end }}
+        {{ if .settings.SignupEnabled }}
+        <div class="col cols-6 mb-5">
+            <a href="{{ links.Signup }}">Create a new account</a>
+        </div>
+        {{ end }}
 	</div>
 	{{ end }}
-	{{ end }}
 	{{ if .settings.ExternalEnabled }}
-	<hr>
-	<div>
+	<div class="p-3">
 	{{ range .providers }}
-		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-outline-dark btn-block text-left mb-2">
-			<i class="bi bi-{{ .Icon }} mr-2"></i>
-			<small>Login with {{ coalesce .Label .Handle }}</small>
+		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 text-dark">
+			<i class="bi bi-{{ .Icon }} mr-1"></i>
+			Login with {{ coalesce .Label .Handle }}
 		</a>
 	{{ end }}
 	</div>

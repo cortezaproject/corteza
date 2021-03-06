@@ -1,7 +1,7 @@
 {{ template "inc_header.html.tpl" . }}
-<div class="card-body">
-	<h4 class="card-title">Internal error</h4>
-	<div class="alert alert-danger" role="alert">
+<div class="card-body p-0">
+	<h4 class="card-title p-3 border-bottom">Internal error</h4>
+	<div class="text-danger mb-4 font-weight-bold p-3" role="alert">
 		{{ .error }}
 	</div>
 </div>

@@ -84,6 +84,7 @@ const (
 	TmplRequestPasswordReset     = "request-password-reset.html.tpl"
 	TmplPasswordResetRequested   = "password-reset-requested.html.tpl"
 	TmplResetPassword            = "reset-password.html.tpl"
+	TmplSecurity                 = "security.html.tpl"
 	TmplProfile                  = "profile.html.tpl"
 	TmplSessions                 = "sessions.html.tpl"
 	TmplSignup                   = "signup.html.tpl"
