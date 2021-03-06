@@ -199,19 +199,21 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 					return nil
 				}
 
-				var new = *old
-				new.Name = strings.Replace(new.Name, "provider.gplus.", "provider.google.", 1)
+				if strings.Contains(old.Name, ".provider.gplus.") {
+					var new = *old
+					new.Name = strings.Replace(new.Name, "provider.gplus.", "provider.google.", 1)
 
-				log.Info("renaming settings", zap.String("old", old.Name), zap.String("new", new.Name))
+					log.Info("renaming settings", zap.String("old", old.Name), zap.String("new", new.Name))
 
-				if err = store.CreateSetting(ctx, app.Store, &new); err != nil {
-					if store.ErrNotUnique != err {
+					if err = store.CreateSetting(ctx, app.Store, &new); err != nil {
+						if store.ErrNotUnique != err {
+							return err
+						}
+					}
+
+					if err = store.DeleteSetting(ctx, app.Store, old); err != nil {
 						return err
 					}
-				}
-
-				if err = store.DeleteSetting(ctx, app.Store, old); err != nil {
-					return err
 				}
 
 				return nil
