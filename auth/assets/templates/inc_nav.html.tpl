@@ -15,20 +15,19 @@
 	</div>
 	{{ else if .user }}
 	<ul class="nav ml-1 d-flex justify-content-around">
-	   {{/* @TO-DO Denis -- apply active class to selected nav item */}}
-		<li class="nav-item active">
+		<li class="nav-item {{ if eq .activeNav "profile" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.Profile }}">Your profile</a>
 		</li>
 		{{ if .settings.LocalEnabled }}
-		<li class="nav-item">
+		<li class="nav-item {{ if eq .activeNav "security" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.ChangePassword }}">Security</a>
 		</li>
 		{{ end }}
-		<li class="nav-item">
+		<li class="nav-item {{ if eq .activeNav "sessions" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.Sessions }}">Login sessions</a>
 		</li>
 		{{ if .settings.ExternalEnabled }}
-		<li class="nav-item">
+		<li class="nav-item {{ if eq .activeNav "clients" }}active{{ end  }}">
 			<a class="nav-link" href="{{ links.AuthorizedClients }}">Authorized clients</a>
 		</li>
 		{{ end }}
