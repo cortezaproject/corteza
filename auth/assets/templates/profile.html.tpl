@@ -1,11 +1,9 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "profile" }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
 	<h4 class="card-title p-3 border-bottom">Your profile</h4>
 	<form
 		method="POST"
 		action="{{ links.Profile }}"
-		onsubmit="buttonDisabler()"
 		class="p-3"
 	>
 		{{ .csrfField }}

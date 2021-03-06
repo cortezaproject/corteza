@@ -10,6 +10,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 	req.Template = TmplProfile
 	if form := req.GetKV(); len(form) > 0 {
 		req.Data["form"] = form
+		req.SetKV(nil)
 	} else {
 		req.Data["form"] = map[string]string{
 			"email":  req.User.Email,
@@ -23,7 +24,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 }
 
 func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
-	req.RedirectTo = GetLinks().Signup
+	req.RedirectTo = GetLinks().Profile
 	req.SetKV(nil)
 
 	req.User.Handle = req.Request.PostFormValue("handle")
@@ -56,6 +57,11 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 			"email":  req.User.Email,
 			"handle": req.User.Handle,
 			"name":   req.User.Name,
+		})
+
+		req.NewAlerts = append(req.NewAlerts, request.Alert{
+			Type: "danger",
+			Text: "Could not update profile due to input errors",
 		})
 
 		h.Log.Warn("handled error", zap.Error(err))

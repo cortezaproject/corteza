@@ -1,11 +1,9 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "security" }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
 	<h4 class="card-title p-3 border-bottom">Change your password</h4>
 	<form
 		method="POST"
 		action="{{ links.ChangePassword }}"
-		onsubmit="buttonDisabler()"
 		class="p-3"
 	>
 		{{ .csrfField }}

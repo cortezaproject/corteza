@@ -1,10 +1,8 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
 	<h4 class="card-title p-3 border-bottom">Sign up</h4>
 	<form
 		method="POST"
-		onsubmit="buttonDisabler()"
 		action="{{ links.Signup }}"
 		class="p-3"
 	>

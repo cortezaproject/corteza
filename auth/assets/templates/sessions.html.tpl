@@ -1,6 +1,5 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "sessions" }}
 <div class="card-body p-0">
-	{{ template "inc_alerts.html.tpl" .alerts }}
 	    <div class="card-title p-3 border-bottom">
             <h4 class="card-title d-inline">Your sessions</h4>
             {{ if .sessions}}
@@ -17,7 +16,6 @@
 	<form
 		method="POST"
 		action="{{ links.Sessions }}"
-		onsubmit="buttonDisabler()"
 		class="p-3"
 	>
 		{{ .csrfField }}
