@@ -3,8 +3,7 @@ module github.com/cortezaproject/corteza-server
 go 1.16
 
 require (
-	cloud.google.com/go v0.44.3 // indirect
-	github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2
+	github.com/360EntSecGroup-Skylar/excelize/v2 v2.0.2 // indirect
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -30,9 +29,8 @@ require (
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 	github.com/go-oauth2/oauth2/v4 v4.2.0
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/golang/mock v1.3.1
+	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/mux v1.7.1 // indirect
@@ -48,7 +46,7 @@ require (
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lestrrat-go/strftime v1.0.3
 	github.com/lib/pq v1.1.0
-	github.com/markbates/goth v1.50.0
+	github.com/markbates/goth v1.67.1
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
