@@ -20,7 +20,8 @@ login:
     providers:
       - { Label: Google,   Handle: google,   Icon: google }
       - { Label: Facebook, Handle: facebook, Icon: facebook }
-      - { Label: Corteza,  Handle: corteza,  Icon: oidc }
+      - { Label: GitHub,  Handle: github,  Icon: github }
+      - { Label: Corteza,  Handle: corteza,  Icon: shield-lock }
 
   Only external:
     settings:
@@ -29,7 +30,8 @@ login:
     providers:
       - { Label: Google,   Handle: google,   Icon: google }
       - { Label: Facebook, Handle: facebook, Icon: facebook }
-      - { Label: Corteza,  Handle: corteza,  Icon: oidc }
+      - { Label: GitHub,  Handle: github,  Icon: github }
+      - { Label: Corteza,  Handle: corteza,  Icon: shield-lock }
 
   Without signup and pass reset:
     settings:
@@ -47,27 +49,77 @@ login:
 
 logout:
   Default: {}
+  With error:
+    form:
+      error: "There was an error..."
 
 signup:
   Default: {}
+  With error:
+    form:
+      error: "There was an error..."
 
 reset-password:
   Default: {}
 
 request-password-reset:
   Default: {}
+  With error:
+    form:
+      error: "There was an error..."
 
 password-reset-requested:
   Default: {}
 
 pending-email-confirmation:
-  Default: {}
+  Default:
 
 profile:
-  Default: {}
-
+  Default:
+    user:
+      ID: 123
+      Name: John Doe
+    settings:
+      ExternalEnabled: true
+      LocalEnabled: true
+  With errros:
+    user:
+      ID: 123
+      Name: John Doe
+    settings:
+      ExternalEnabled: true
+      LocalEnabled: true
+    form:
+      error: Profile change form submit error
+      name: foo
+      email: foo
+  With unconfirmed email:
+    user:
+      ID: 123
+      Name: John Doe
+    settings:
+      ExternalEnabled: true
+      LocalEnabled: true
+    form:
+      error: Profile change form submit error
+      name: foo
+      email: foo
+    emailConfirmationRequired: true
+  In OAuth2 flow:
+    user:
+      ID: 123
+      Name: John Doe
+    settings:
+      ExternalEnabled: true
+      LocalEnabled: true
+    client:
+      Name: foo
+    emailConfirmationRequired: true
 change-password:
   Default: {}
+  With error:
+    form:
+      error: "There was an error..."
 
 authorized-clients:
   Empty: {}
