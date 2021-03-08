@@ -31,7 +31,7 @@
             </button>
         </div>
 	{{ else }}
-		<div class="text-center m-3">
+		<div class="text-center m-3 mb-5">
 			<i>No authorized clients found</i>
 		</div>
 	{{ end }}
