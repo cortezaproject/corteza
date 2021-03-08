@@ -134,7 +134,7 @@ func (wrap composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 		for _, m := range s.Mapping {
 			mtt = append(mtt, &m.MappingTpl)
 		}
-		crs = resource.NewComposeRecordTemplate(rs.Identifiers().First(), wrap.refNamespace, s.Source, mtt, s.Key...)
+		crs = resource.NewComposeRecordTemplate(rs.Identifiers().First(), wrap.refNamespace, s.Source, s.Defaultable, mtt, s.Key...)
 	}
 
 	return envoy.CollectNodes(
@@ -160,6 +160,9 @@ func (rt *composeRecordTpl) UnmarshalYAML(n *yaml.Node) error {
 					return nil
 				})
 			}
+
+		case "defaultable":
+			return y7s.DecodeScalar(v, "defaultable field mapping", &rt.Defaultable)
 
 		case "mapping", "map":
 			rt.Mapping = make(mappingTplSet, 0, 20)

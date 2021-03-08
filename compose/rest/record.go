@@ -333,6 +333,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 			strconv.FormatUint(ses.ModuleID, 10),
 			strconv.FormatUint(ses.NamespaceID, 10),
 			ses.Name,
+			false,
 			resource.MapToMappingTplSet(ses.Fields),
 		)
 

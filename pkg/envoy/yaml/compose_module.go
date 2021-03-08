@@ -14,8 +14,9 @@ type (
 	composeRecordTpl struct {
 		Source string `yaml:"from"`
 
-		Key     []string
-		Mapping mappingTplSet
+		Key         []string
+		Mapping     mappingTplSet
+		Defaultable bool
 	}
 
 	composeModule struct {

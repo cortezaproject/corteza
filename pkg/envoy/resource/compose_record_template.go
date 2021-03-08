@@ -27,19 +27,21 @@ type (
 		// Name is the source name; topically file name
 		Name string
 		// Key determines what defines an identifier
-		Key      []string
-		FieldMap MappingTplSet
+		Key         []string
+		FieldMap    MappingTplSet
+		Defaultable bool
 	}
 )
 
 // NewComposeRecordTemplate returns a record template based on the provided parameters.
 //
 // The template is only valid up until the resource shaping; it is not allowed after the fact.
-func NewComposeRecordTemplate(modRef, nsRef, name string, fieldMap MappingTplSet, key ...string) *ComposeRecordTemplate {
+func NewComposeRecordTemplate(modRef, nsRef, name string, defaultable bool, fieldMap MappingTplSet, key ...string) *ComposeRecordTemplate {
 	r := &ComposeRecordTemplate{base: &base{}}
 	r.Name = name
 	r.Key = key
 	r.FieldMap = fieldMap
+	r.Defaultable = defaultable
 
 	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
 	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
