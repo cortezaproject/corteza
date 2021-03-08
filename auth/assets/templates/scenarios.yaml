@@ -80,6 +80,16 @@ mfa:
     emailOtpPending: true
     form:
       emailOtpError: "There was an error..."
+  With alerts (toast):
+    alerts:
+      - Text: booya
+      - Text: Red top border for errors
+        Type: danger
+      - Text: Modi sociosqu quibusdam modi delectus ridiculus per potenti sollicitudin dicta porro cumque, gravida odio? Tempora! Molestia
+        Type: danger
+      - Text: Primary toast
+        Type: primary
+
 
 mfa-totp:
   Default:
