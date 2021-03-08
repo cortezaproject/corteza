@@ -69,6 +69,9 @@ security:
         TOTP: { Enabled: true }
         EmailOTP: { Enabled: true }
 
+mfa:
+  MFA pending:
+    emailOtpPending: true
 
 logout:
   Default: {}
