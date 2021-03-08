@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/service/event"
+	"github.com/cortezaproject/corteza-server/compose/service/values"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -522,6 +523,12 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		}
 	}
 
+	// Next preproc any default values
+	new.Fields, err = moduleFieldDefaultPreparer(ctx, s, new, new.Fields)
+	if err != nil {
+		return err
+	}
+
 	// Assure; create/update remaining fields
 	idx := 0
 	ff = make(types.ModuleFieldSet, 0, len(old.Fields))
@@ -577,6 +584,48 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 	new.Fields = ff
 
 	return nil
+}
+
+func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Module, newFields types.ModuleFieldSet) (types.ModuleFieldSet, error) {
+	var err error
+
+	for _, f := range newFields {
+		if f.DefaultValue == nil || len(f.DefaultValue) == 0 {
+			continue
+		}
+		vv := f.DefaultValue
+		vv.SetUpdatedFlag(true)
+		// Module field default values should not have a field name, so let's temporarily add it
+		vv.Walk(func(rv *types.RecordValue) error {
+			rv.Name = f.Name
+			return nil
+		})
+
+		if err = RecordValueSanitazion(m, vv); err != nil {
+			return nil, err
+		}
+
+		vv = values.Sanitizer().Run(m, vv)
+
+		r := &types.Record{
+			Values: vv,
+		}
+		rve := defaultValidator().Run(ctx, s, m, r)
+		if !rve.IsValid() {
+			return nil, rve
+		}
+
+		vv = values.Formatter().Run(m, vv)
+
+		// Module field default values should not have a field name, so let's remove it
+		vv.Walk(func(rv *types.RecordValue) error {
+			rv.Name = ""
+			return nil
+		})
+
+		f.DefaultValue = vv
+	}
+	return newFields, nil
 }
 
 func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) (err error) {

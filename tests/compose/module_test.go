@@ -265,6 +265,121 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
+func TestModuleFieldsDefaultValue(t *testing.T) {
+	var ns *types.Namespace
+
+	h := newHelper(t)
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+
+	prep := func() {
+		h.clearModules()
+		ns = h.makeNamespace("some-namespace")
+	}
+
+	t.Run("boolean; true", func(t *testing.T) {
+		prep()
+
+		m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "Boolean", Name: "boolean"})
+		h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+		f := m.Fields[0]
+		fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "boolean", "kind": "Boolean", "defaultValue": [{"name": "boolean", "value": "1"}] }] }`, m.Name, f.ID)
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			JSON(fjs).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		m = h.lookupModuleByID(m.ID)
+		h.a.NotNil(m)
+		h.a.NotNil(m.Fields)
+		h.a.Len(m.Fields, 1)
+
+		h.a.NotNil(m.Fields[0].DefaultValue)
+		h.a.Len(m.Fields[0].DefaultValue, 1)
+		h.a.Equal("1", m.Fields[0].DefaultValue[0].Value)
+	})
+
+	t.Run("boolean; false", func(t *testing.T) {
+		prep()
+
+		m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "Boolean", Name: "boolean"})
+		h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+		f := m.Fields[0]
+		fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "boolean", "kind": "Boolean", "defaultValue": [{"name": "boolean", "value": ""}] }] }`, m.Name, f.ID)
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			JSON(fjs).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		m = h.lookupModuleByID(m.ID)
+		h.a.NotNil(m)
+		h.a.NotNil(m.Fields)
+		h.a.Len(m.Fields, 1)
+
+		h.a.NotNil(m.Fields[0].DefaultValue)
+		h.a.Len(m.Fields[0].DefaultValue, 1)
+		h.a.Equal("", m.Fields[0].DefaultValue[0].Value)
+	})
+
+	t.Run("boolean; undefined", func(t *testing.T) {
+		prep()
+
+		m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "Boolean", Name: "boolean"})
+		h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+		f := m.Fields[0]
+		fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "boolean", "kind": "Boolean" }] }`, m.Name, f.ID)
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			JSON(fjs).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		m = h.lookupModuleByID(m.ID)
+		h.a.NotNil(m)
+		h.a.NotNil(m.Fields)
+		h.a.Len(m.Fields, 1)
+
+		h.a.Nil(m.Fields[0].DefaultValue)
+		h.a.Len(m.Fields[0].DefaultValue, 0)
+	})
+
+	t.Run("boolean; true; compact form", func(t *testing.T) {
+		prep()
+
+		m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "Boolean", Name: "boolean"})
+		h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+		f := m.Fields[0]
+		fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "boolean", "kind": "Boolean", "defaultValue": [{"value": "1"}] }] }`, m.Name, f.ID)
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+			JSON(fjs).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(helpers.AssertNoErrors).
+			End()
+
+		m = h.lookupModuleByID(m.ID)
+		h.a.NotNil(m)
+		h.a.NotNil(m.Fields)
+		h.a.Len(m.Fields, 1)
+
+		h.a.NotNil(m.Fields[0].DefaultValue)
+		h.a.Len(m.Fields[0].DefaultValue, 1)
+		h.a.Equal("1", m.Fields[0].DefaultValue[0].Value)
+	})
+}
+
 func TestModuleFieldsUpdate_removed(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()

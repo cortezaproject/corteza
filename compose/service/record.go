@@ -141,6 +141,21 @@ type (
 )
 
 func Record() RecordService {
+
+	return &record{
+		actionlog:     DefaultActionlog,
+		ac:            DefaultAccessControl,
+		eventbus:      eventbus.Service(),
+		optEmitEvents: true,
+		store:         DefaultStore,
+
+		formatter: values.Formatter(),
+		sanitizer: values.Sanitizer(),
+		validator: defaultValidator(),
+	}
+}
+
+func defaultValidator() recordValuesValidator {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
@@ -175,17 +190,7 @@ func Record() RecordService {
 		return r != nil, err
 	})
 
-	return &record{
-		actionlog:     DefaultActionlog,
-		ac:            DefaultAccessControl,
-		eventbus:      eventbus.Service(),
-		optEmitEvents: true,
-		store:         DefaultStore,
-
-		formatter: values.Formatter(),
-		sanitizer: values.Sanitizer(),
-		validator: validator,
-	}
+	return validator
 }
 
 func (svc *record) EventEmitting(enable bool) {
