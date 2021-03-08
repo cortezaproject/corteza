@@ -60,7 +60,7 @@ func Auth() (o *AuthOpt) {
 		CsrfFieldName:            "same-site-authenticity-token",
 		CsrfCookieName:           "same-site-authenticity-token",
 		DefaultClient:            "corteza-webapp",
-		AssetsPath:               "auth/assets",
+		AssetsPath:               "",
 	}
 
 	fill(o)
