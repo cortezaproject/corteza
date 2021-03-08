@@ -294,8 +294,8 @@ func (svc service) MountHttpRoutes(r chi.Router) {
 	svc.handlers.MountHttpRoutes(r)
 
 	const uriRoot = "/auth/assets/public"
-	if len(svc.opt.AssetsPath) == 0 {
-		r.Handle(uriRoot+"/*", http.StripPrefix("/auth/assets", http.FileServer(http.FS(publicAssets))))
+	if len(svc.opt.AssetsPath) == 0 && !svc.opt.DevelopmentMode {
+		r.Handle(uriRoot+"/*", http.StripPrefix("/auth/", http.FileServer(http.FS(publicAssets))))
 	} else {
 		var root = strings.TrimRight(svc.opt.AssetsPath, "/") + "/public"
 		r.Handle(uriRoot+"/*", http.StripPrefix(uriRoot, http.FileServer(http.Dir(root))))
