@@ -73,10 +73,14 @@ func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet
 		mx[m.Cell] = m
 	}
 
-	for k, v := range ov {
-		if m, has := mx[k]; has {
-			nv[m.Field] = v
-		} else {
+	if len(mx) > 0 {
+		for k, v := range ov {
+			if m, has := mx[k]; has {
+				nv[m.Field] = v
+			}
+		}
+	} else {
+		for k, v := range ov {
 			nv[k] = v
 		}
 	}
