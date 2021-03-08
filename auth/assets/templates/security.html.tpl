@@ -24,9 +24,9 @@
 				<div class="row">
 					<div class="col-10 pt-2">
 						{{ if .totpEnforced }}
-						<i class="bi bi-check-circle text-success h5"></i>
+						<i class="bi bi-check-circle text-success h5 mr-1"></i>
 						{{ else }}
-						<i class="bi bi-exclamation-circle-fill text-danger h5"></i>
+						<i class="bi bi-exclamation-circle-fill text-danger h5 mr-1"></i>
 						{{ end }}
 						{{ if .totpEnforced }}
 							Configured and required on login.
@@ -53,9 +53,9 @@
 				<div class="row">
 					<div class="col-10 pt-2">
                     {{ if .emailOtpEnforced }}
-                    <i class="bi bi-check-circle text-success h4"></i>
+                    <i class="bi bi-check-circle text-success h5 mr-1"></i>
                     {{ else }}
-                    <i class="bi bi-exclamation-circle-fill text-danger h5"></i>
+                    <i class="bi bi-exclamation-circle-fill text-danger h5 mr-1"></i>
                     {{ end }}
 					{{ if .emailOtpEnforced }}
 						Enabled and required on login.
