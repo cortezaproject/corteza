@@ -29,6 +29,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -252,16 +256,6 @@ func (r ModuleList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *ModuleList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -380,6 +374,7 @@ func (r ModuleCreate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *ModuleCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -479,16 +474,6 @@ func (r ModuleRead) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ModuleRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -572,6 +557,7 @@ func (r ModuleUpdate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *ModuleUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -684,16 +670,6 @@ func (r ModuleDelete) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ModuleDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -747,6 +723,7 @@ func (r ModuleTriggerScript) GetScript() string {
 
 // Fill processes request and fills internal variables
 func (r *ModuleTriggerScript) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

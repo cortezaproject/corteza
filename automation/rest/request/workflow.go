@@ -28,6 +28,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -293,16 +297,6 @@ func (r WorkflowList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -450,6 +444,7 @@ func (r WorkflowCreate) GetOwnedBy() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -659,6 +654,7 @@ func (r WorkflowUpdate) GetOwnedBy() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -814,16 +810,6 @@ func (r WorkflowRead) GetWorkflowID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -859,16 +845,6 @@ func (r WorkflowDelete) GetWorkflowID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -904,16 +880,6 @@ func (r WorkflowUndelete) GetWorkflowID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowUndelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -961,6 +927,7 @@ func (r WorkflowTest) GetRunAs() bool {
 
 // Fill processes request and fills internal variables
 func (r *WorkflowTest) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

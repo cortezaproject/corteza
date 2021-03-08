@@ -26,6 +26,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -274,16 +278,6 @@ func (r RoleList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *RoleList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -378,6 +372,7 @@ func (r RoleCreate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *RoleCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -476,6 +471,7 @@ func (r RoleUpdate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *RoleUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -562,16 +558,6 @@ func (r RoleRead) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -607,16 +593,6 @@ func (r RoleDelete) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -652,16 +628,6 @@ func (r RoleArchive) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleArchive) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -697,16 +663,6 @@ func (r RoleUnarchive) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleUnarchive) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -742,16 +698,6 @@ func (r RoleUndelete) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleUndelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -793,6 +739,7 @@ func (r RoleMove) GetOrganisationID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleMove) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -859,6 +806,7 @@ func (r RoleMerge) GetDestination() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleMerge) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -919,16 +867,6 @@ func (r RoleMemberList) GetRoleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleMemberList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -970,16 +908,6 @@ func (r RoleMemberAdd) GetUserID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleMemberAdd) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1027,16 +955,6 @@ func (r RoleMemberRemove) GetUserID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RoleMemberRemove) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1084,6 +1002,7 @@ func (r RoleTriggerScript) GetScript() string {
 
 // Fill processes request and fills internal variables
 func (r *RoleTriggerScript) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

@@ -27,6 +27,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -301,16 +305,6 @@ func (r ApplicationList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -434,6 +428,7 @@ func (r ApplicationCreate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -558,6 +553,7 @@ func (r ApplicationUpdate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -658,6 +654,7 @@ func (r ApplicationUpload) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationUpload) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -716,16 +713,6 @@ func (r ApplicationFlagCreate) GetOwnedBy() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationFlagCreate) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -785,16 +772,6 @@ func (r ApplicationFlagDelete) GetOwnedBy() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationFlagDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -848,16 +825,6 @@ func (r ApplicationRead) GetIncFlags() uint {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -905,16 +872,6 @@ func (r ApplicationDelete) GetApplicationID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -950,16 +907,6 @@ func (r ApplicationUndelete) GetApplicationID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationUndelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1001,6 +948,7 @@ func (r ApplicationTriggerScript) GetScript() string {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationTriggerScript) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1061,6 +1009,7 @@ func (r ApplicationReorder) GetApplicationIDs() []string {
 
 // Fill processes request and fills internal variables
 func (r *ApplicationReorder) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

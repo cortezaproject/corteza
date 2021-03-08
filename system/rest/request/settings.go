@@ -26,6 +26,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -96,16 +100,6 @@ func (r SettingsList) GetPrefix() string {
 
 // Fill processes request and fills internal variables
 func (r *SettingsList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -141,6 +135,7 @@ func (r SettingsUpdate) GetValues() types.SettingValueSet {
 
 // Fill processes request and fills internal variables
 func (r *SettingsUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -195,16 +190,6 @@ func (r SettingsGet) GetOwnerID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *SettingsGet) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -264,6 +249,7 @@ func (r SettingsSet) GetOwnerID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *SettingsSet) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -321,16 +307,6 @@ func (r SettingsCurrent) Auditable() map[string]interface{} {
 
 // Fill processes request and fills internal variables
 func (r *SettingsCurrent) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	return err
 }

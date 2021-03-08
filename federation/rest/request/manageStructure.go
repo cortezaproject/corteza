@@ -26,6 +26,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -227,16 +231,6 @@ func (r ManageStructureReadExposed) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureReadExposed) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -308,6 +302,7 @@ func (r ManageStructureCreateExposed) GetFields() types.ModuleFieldSet {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureCreateExposed) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -432,6 +427,7 @@ func (r ManageStructureUpdateExposed) GetFields() types.ModuleFieldSet {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureUpdateExposed) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -532,16 +528,6 @@ func (r ManageStructureRemoveExposed) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureRemoveExposed) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -589,16 +575,6 @@ func (r ManageStructureReadShared) GetModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureReadShared) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -664,6 +640,7 @@ func (r ManageStructureCreateMappings) GetFields() types.ModuleFieldMappingSet {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureCreateMappings) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -756,16 +733,6 @@ func (r ManageStructureReadMappings) GetComposeModuleID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureReadMappings) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -837,16 +804,6 @@ func (r ManageStructureListAll) GetMapped() bool {
 
 // Fill processes request and fills internal variables
 func (r *ManageStructureListAll) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params

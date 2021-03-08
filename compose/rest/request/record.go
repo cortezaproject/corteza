@@ -27,6 +27,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -465,16 +469,6 @@ func (r RecordReport) GetFilter() string {
 
 // Fill processes request and fills internal variables
 func (r *RecordReport) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -600,16 +594,6 @@ func (r RecordList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *RecordList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -728,6 +712,7 @@ func (r RecordImportInit) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *RecordImportInit) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -816,6 +801,7 @@ func (r RecordImportRun) GetOnError() string {
 
 // Fill processes request and fills internal variables
 func (r *RecordImportRun) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -907,16 +893,6 @@ func (r RecordImportProgress) GetSessionID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RecordImportProgress) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1000,16 +976,6 @@ func (r RecordExport) GetTimezone() string {
 
 // Fill processes request and fills internal variables
 func (r *RecordExport) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -1110,6 +1076,7 @@ func (r RecordExec) GetArgs() []ProcedureArg {
 
 // Fill processes request and fills internal variables
 func (r *RecordExec) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1206,6 +1173,7 @@ func (r RecordCreate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *RecordCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1303,16 +1271,6 @@ func (r RecordRead) GetRecordID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RecordRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1390,6 +1348,7 @@ func (r RecordUpdate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *RecordUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1499,6 +1458,7 @@ func (r RecordBulkDelete) GetTruncate() bool {
 
 // Fill processes request and fills internal variables
 func (r *RecordBulkDelete) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1584,16 +1544,6 @@ func (r RecordDelete) GetRecordID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *RecordDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1665,6 +1615,7 @@ func (r RecordUpload) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *RecordUpload) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1767,6 +1718,7 @@ func (r RecordTriggerScript) GetValues() types.RecordValueSet {
 
 // Fill processes request and fills internal variables
 func (r *RecordTriggerScript) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1858,6 +1810,7 @@ func (r RecordTriggerScriptOnList) GetScript() string {
 
 // Fill processes request and fills internal variables
 func (r *RecordTriggerScriptOnList) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
