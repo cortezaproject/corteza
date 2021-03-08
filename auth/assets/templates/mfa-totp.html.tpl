@@ -3,7 +3,7 @@
 	<h4 class="card-title p-3 border-bottom">Configure two-factor authentication with TOTP</h4>
 
 	{{ if .enforced }}
-	<p class="p-3 text-danger">
+	<p class="p-3 text-danger mb-0 font-weight-bold">
 		TOTP multi factor authentication is enforced by Corteza administrator.
 		Please configure it right away.
 	</p>
@@ -12,9 +12,9 @@
 
 	<div class="container p-3 m-0">
 		<div class="row">
-			<div class="col-6 p-0">
+			<div class="col-12 col-sm-6 p-0 mb-3">
 				<pre class="h5 px-4">{{ .secret }}</pre>
-				<img style="width: 280px" src="{{ links.MfaTotpQRImage }}" />
+				<img style="width: 280px" class="d-block m-auto pb-2" src="{{ if .devQRImage }}{{ .devQRImage }}{{ else }}{{ links.MfaTotpQRImage }}{{ end }}" />
 
 				<form
 					class="px-3"
@@ -41,6 +41,7 @@
 							aria-required="true"
 							placeholder="000 000"
 							autocomplete="off"
+							style="letter-spacing:5px;font-size:20px;"
 							aria-label="Code">
 					</div>
 
@@ -54,8 +55,8 @@
 					</button>
 				</form>
 			</div>
-			<div class="col-6 p-0">
-				<p>
+			<div class="col-12 col-sm-6">
+				<p class="text-justify">
 					Corteza uses time based one time passwords (TOTP) as one of the
 					underlying technologies for two-factor authentication.
 					Use one of the applications listed below and type in the secret or scan the QR code.

@@ -1,5 +1,5 @@
 {{ template "inc_header.html.tpl" set . "hideNav" true }}
-<div class="card-body p-0">
+<div class="card-body p-0 mb-2">
 	<h4 class="card-title p-3 border-bottom">Multi-factor authentication</h4>
 
 	{{ if .emailOtpPending }}
@@ -11,7 +11,7 @@
 		<h5>Check your inbox and enter the received code</h5>
 
 		{{ if .form.emailOtpError }}
-		<div class="alert alert-danger" role="alert">
+		<div class="text-danger my-4 font-weiUpdate MFAght-bold" role="alert">
 			{{ .form.emailOtpError }}
 		</div>
 		{{ end }}
@@ -29,6 +29,7 @@
 				aria-required="true"
 				placeholder="000 000"
 				autocomplete="off"
+				style="letter-spacing:5px;font-size:20px;"
 				aria-label="Code">
 		</div>
 
@@ -43,7 +44,7 @@
 
 		<a
 			href="{{ links.Mfa }}?action=resendEmailOtp"
-			class="btn btn-link btn-block btn-lg"
+			class="btn btn-light btn-block btn-lg text-dark"
 			name="action"
 			value="resendEmailOtp"
 		>
@@ -51,8 +52,8 @@
 		</a>
 	</form>
 	{{ else if not .emailOtpDisabled }}
-		<p class="p-3">
-			<i class="bi bi-check text-primary"></i> Email OTP confirmed
+		<p class="p-3 mb-0">
+			<i class="bi bi-check-circle text-success h5"></i> Email OTP confirmed
 		</p>
 	{{ end }}
 
@@ -62,7 +63,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>Check your TOTP application and enter the received code</h5>
+		<h5>Check your TOTP application and enter the code you received</h5>
 
 		{{ if .form.totpError }}
 		<div class="alert alert-danger" role="alert">
@@ -83,6 +84,7 @@
 				aria-required="true"
 				placeholder="000 000"
 				autocomplete="off"
+				style="letter-spacing:5px;font-size:20px;"
 				aria-label="Code">
 		</div>
 
@@ -96,8 +98,8 @@
 		</button>
 	</form>
 	{{ else if not .totpDisabled }}
-		<p class="p-3">
-			<i class="bi bi-check text-primary"></i> TOTP confirmed
+		<p class="p-3 mb-0">
+			<i class="bi bi-check-circle text-success h5"></i> TOTP confirmed
 		</p>
 	{{ end }}
 </div>

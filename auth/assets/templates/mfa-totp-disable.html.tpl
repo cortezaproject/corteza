@@ -10,7 +10,7 @@
 		Disable by entering existing code.
 
 		{{ if .form.error }}
-		<div class="alert alert-danger" role="alert">
+		<div class="pt-3 text-danger font-weight-bold" role="alert">
 			{{ .form.error }}
 		</div>
 		{{ end }}
@@ -27,6 +27,7 @@
 				aria-required="true"
 				placeholder="000 000"
 				autocomplete="off"
+				style="letter-spacing:5px;font-size:20px;"
 				aria-label="Code">
 		</div>
 

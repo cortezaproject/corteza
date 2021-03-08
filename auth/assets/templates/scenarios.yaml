@@ -70,8 +70,29 @@ security:
         EmailOTP: { Enabled: true }
 
 mfa:
+  Defautl: {}
   MFA pending:
     emailOtpPending: true
+    totpDisabled: true
+  TOTP pending:
+    totpPending: true
+  With error:
+    emailOtpPending: true
+    form:
+      emailOtpError: "There was an error..."
+
+mfa-totp:
+  Default:
+    devQRImage: https://awgsalesservices.com/wp-content/uploads/2019/02/QR-code-example.jpg
+  TOTP enforced:
+    enforced: true
+    devQRImage: https://awgsalesservices.com/wp-content/uploads/2019/02/QR-code-example.jpg
+
+mfa-totp-disable:
+  Default: {}
+  With error:
+    form:
+      error: "There was an error..."
 
 logout:
   Default: {}
