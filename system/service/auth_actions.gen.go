@@ -1351,7 +1351,7 @@ func AuthErrInvalidTOTP(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("invalid TOTP", nil),
+		p.Format("invalid code", nil),
 
 		errors.Meta("type", "invalidTOTP"),
 		errors.Meta("resource", "system:auth"),
@@ -1471,7 +1471,7 @@ func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("invalid email OTP", nil),
+		p.Format("invalid code", nil),
 
 		errors.Meta("type", "invalidEmailOTP"),
 		errors.Meta("resource", "system:auth"),

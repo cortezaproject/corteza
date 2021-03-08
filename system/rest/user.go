@@ -2,7 +2,8 @@ package rest
 
 import (
 	"context"
-
+	"encoding/json"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -12,6 +13,8 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
+	"net/http"
 )
 
 var _ = errors.Wrap
@@ -38,6 +41,7 @@ func (User) New() *User {
 func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, error) {
 	var (
 		err error
+		set types.UserSet
 		f   = types.UserFilter{
 			UserID:    payload.ParseUint64s(r.UserID),
 			RoleID:    payload.ParseUint64s(r.RoleID),
@@ -68,8 +72,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		f.Deleted = filter.StateInclusive
 	}
 
-	set, filter, err := ctrl.user.Find(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	set, f, err = ctrl.user.Find(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, f, err)
 }
 
 func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}, error) {
@@ -95,6 +99,78 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 	}
 
 	return ctrl.user.Update(ctx, user)
+}
+
+type (
+	patchOp struct {
+		Operation string          `json:"op"`
+		Path      string          `json:"path"`
+		Value     json.RawMessage `json:"value"`
+	}
+)
+
+// PartialUpdate
+//
+// experimental resource management with partial updates (patching) using
+// JavaScript Object Notation (JSON) Patch standard (RFC 6902)
+//
+// If this proves useful, we'll use it on other resources & fields
+func (ctrl User) PartialUpdate(ctx context.Context, r *request.UserPartialUpdate) (interface{}, error) {
+	u, err := ctrl.user.FindByID(ctx, r.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		err = func() (err error) {
+			var (
+				ops = make([]*patchOp, 0)
+			)
+
+			if err = json.NewDecoder(r.Body).Decode(&ops); err != nil {
+				return err
+			}
+
+			for _, p := range ops {
+				if p.Operation != "replace" {
+					return fmt.Errorf("unsupported operation '%s'", p.Operation)
+				}
+
+				var aux interface{}
+				err = json.Unmarshal(p.Value, &aux)
+
+				switch p.Path {
+				case "/meta/securityPolicy/mfa/enforcedEmailOTP":
+					u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP, err = cast.ToBoolE(aux)
+
+				case "/meta/securityPolicy/mfa/enforcedTOTP":
+					u.Meta.SecurityPolicy.MFA.EnforcedTOTP, err = cast.ToBoolE(aux)
+
+				case "/emailConfirmed":
+					// unfortunately, this can not be passed to update right now
+					// internal limitations
+					u.EmailConfirmed, err = cast.ToBoolE(aux)
+					err = ctrl.user.ToggleEmailConfirmation(ctx, u.ID, u.EmailConfirmed)
+
+				default:
+					return fmt.Errorf("unknown path: %s", p.Path)
+				}
+
+				if err != nil {
+					return fmt.Errorf("could not replace falue of %s: %w", p.Path, err)
+				}
+			}
+
+			u, err = ctrl.user.Update(ctx, u)
+			return err
+		}()
+
+		if err != nil {
+			api.Send(w, r, err)
+		}
+
+		api.Send(w, r, u)
+	}, nil
 }
 
 func (ctrl User) Read(ctx context.Context, r *request.UserRead) (interface{}, error) {

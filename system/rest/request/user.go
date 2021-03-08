@@ -167,6 +167,13 @@ type (
 		Labels map[string]string
 	}
 
+	UserPartialUpdate struct {
+		// UserID PATH parameter
+		//
+		// User ID
+		UserID uint64 `json:",string"`
+	}
+
 	UserRead struct {
 		// UserID PATH parameter
 		//
@@ -696,6 +703,51 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserPartialUpdate request
+func NewUserPartialUpdate() *UserPartialUpdate {
+	return &UserPartialUpdate{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserPartialUpdate) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"userID": r.UserID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserPartialUpdate) GetUserID() uint64 {
+	return r.UserID
+}
+
+// Fill processes request and fills internal variables
+func (r *UserPartialUpdate) Fill(req *http.Request) (err error) {
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
 		}
 	}
 
