@@ -403,7 +403,7 @@ paths:
     get:
       tags:
         - Manage structure
-      summary: List of shared/exposed modules
+      summary: List of shared/exposed/mapped modules
       responses:
         '200':
           description: OK
@@ -422,6 +422,11 @@ paths:
         - in: query
           name: exposed
           description: List exposed modules
+          required: false
+          schema: *ref_9
+        - in: query
+          name: mapped
+          description: List mapped modules
           required: false
           schema: *ref_9
   '/federation/nodes/{nodeID}/modules/{moduleID}/shared':
@@ -501,6 +506,11 @@ paths:
           name: moduleID
           description: Module ID
           required: true
+          schema: *ref_3
+        - in: query
+          name: composeModuleID
+          description: Compose module id
+          required: false
           schema: *ref_3
   '/federation/nodes/{nodeID}/modules/exposed/':
     get:
