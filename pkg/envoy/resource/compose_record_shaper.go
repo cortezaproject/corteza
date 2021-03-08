@@ -52,7 +52,7 @@ func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *Resou
 			// Get the bits in order
 			rRaw := &ComposeRecordRaw{
 				ID:     crt.getKey(mr, def.Key),
-				Values: crt.mapValues(mr, def.FieldMap),
+				Values: crt.mapValues(mr, def.FieldMap, def.Defaultable),
 			}
 
 			crt.getTimestamps(rRaw)
@@ -70,7 +70,7 @@ func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *Resou
 }
 
 // mapValues maps original values based on the provided mapping
-func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet) map[string]string {
+func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet, defaultable bool) map[string]string {
 	nv := make(map[string]string)
 
 	// Mappings are provided as a slice since we'll want to do some additional conditional mappings.
@@ -80,13 +80,27 @@ func (crt *composeRecordShaper) mapValues(ov map[string]string, fm MappingTplSet
 		mx[m.Cell] = m
 	}
 
-	for k, v := range ov {
-		if m, has := mx[k]; has {
-			if !m.IsIgnored() {
-				nv[m.Field] = v
+	if defaultable {
+		for k, v := range ov {
+			if m, has := mx[k]; has {
+				if !m.IsIgnored() {
+					nv[m.Field] = v
+				}
+			} else {
+				nv[k] = v
+			}
+		}
+	} else {
+		if len(mx) > 0 {
+			for k, v := range ov {
+				if m, has := mx[k]; has && !m.IsIgnored() {
+					nv[m.Field] = v
+				}
 			}
 		} else {
-			nv[k] = v
+			for k, v := range ov {
+				nv[k] = v
+			}
 		}
 	}
 

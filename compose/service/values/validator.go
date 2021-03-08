@@ -3,15 +3,16 @@ package values
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
-	"github.com/cortezaproject/corteza-server/store"
 	"math/big"
 	"net/mail"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza-server/store"
 )
 
 // Validator package provides tooling to validate
@@ -333,6 +334,7 @@ func (vldtr validator) vRecord(ctx context.Context, s store.Storer, v *types.Rec
 	if vldtr.recordRefCheckerFn == nil {
 		return nil
 	}
+
 	if ok, err := vldtr.recordRefCheckerFn(ctx, s, v, f, m); err != nil {
 		return e2s(makeInternalErr(f, err))
 	} else if !ok {
