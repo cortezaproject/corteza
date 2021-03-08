@@ -69,6 +69,7 @@ type (
 
 		Create(ctx context.Context, input *types.User) (*types.User, error)
 		Update(ctx context.Context, mod *types.User) (*types.User, error)
+		ToggleEmailConfirmation(ctx context.Context, userID uint64, confirm bool) error
 
 		CreateWithAvatar(ctx context.Context, input *types.User, avatar io.Reader) (*types.User, error)
 		UpdateWithAvatar(ctx context.Context, mod *types.User, avatar io.Reader) (*types.User, error)
@@ -85,7 +86,7 @@ type (
 )
 
 func User(ctx context.Context) UserService {
-	return (&user{
+	return &user{
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
 		settings: CurrentSettings,
@@ -94,7 +95,7 @@ func User(ctx context.Context) UserService {
 		store: DefaultStore,
 
 		actionlog: DefaultActionlog,
-	})
+	}
 }
 
 func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err error) {
@@ -428,6 +429,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		u.Name = upd.Name
 		u.Handle = upd.Handle
 		u.Kind = upd.Kind
+		u.Meta = upd.Meta
 		u.UpdatedAt = now()
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
@@ -455,6 +457,39 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 	}()
 
 	return u, svc.recordAction(ctx, uaProps, UserActionUpdate, err)
+}
+
+func (svc user) ToggleEmailConfirmation(ctx context.Context, userID uint64, confirmed bool) (err error) {
+	var (
+		u       *types.User
+		uaProps = &userActionProps{}
+	)
+
+	err = func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
+		if u, err = store.LookupUserByID(ctx, svc.store, userID); err != nil {
+			return
+		}
+
+		uaProps.setUser(u)
+
+		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+			if !svc.ac.CanUpdateUser(ctx, u) {
+				return UserErrNotAllowedToUpdate()
+			}
+		}
+
+		u.EmailConfirmed = confirmed
+
+		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+		return
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionUpdate, err)
 }
 
 func (svc user) UpdateWithAvatar(ctx context.Context, mod *types.User, avatar io.Reader) (out *types.User, err error) {

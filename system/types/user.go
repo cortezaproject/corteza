@@ -24,7 +24,7 @@ type (
 
 		Meta *UserMeta `json:"meta"`
 
-		EmailConfirmed bool `json:"-"`
+		EmailConfirmed bool `json:"emailConfirmed"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 

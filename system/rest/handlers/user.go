@@ -22,6 +22,7 @@ type (
 		List(context.Context, *request.UserList) (interface{}, error)
 		Create(context.Context, *request.UserCreate) (interface{}, error)
 		Update(context.Context, *request.UserUpdate) (interface{}, error)
+		PartialUpdate(context.Context, *request.UserPartialUpdate) (interface{}, error)
 		Read(context.Context, *request.UserRead) (interface{}, error)
 		Delete(context.Context, *request.UserDelete) (interface{}, error)
 		Suspend(context.Context, *request.UserSuspend) (interface{}, error)
@@ -39,6 +40,7 @@ type (
 		List             func(http.ResponseWriter, *http.Request)
 		Create           func(http.ResponseWriter, *http.Request)
 		Update           func(http.ResponseWriter, *http.Request)
+		PartialUpdate    func(http.ResponseWriter, *http.Request)
 		Read             func(http.ResponseWriter, *http.Request)
 		Delete           func(http.ResponseWriter, *http.Request)
 		Suspend          func(http.ResponseWriter, *http.Request)
@@ -95,6 +97,22 @@ func NewUser(h UserAPI) *User {
 			}
 
 			value, err := h.Update(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		PartialUpdate: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewUserPartialUpdate()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.PartialUpdate(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -271,6 +289,7 @@ func (h User) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Get("/users/", h.List)
 		r.Post("/users/", h.Create)
 		r.Put("/users/{userID}", h.Update)
+		r.Patch("/users/{userID}", h.PartialUpdate)
 		r.Get("/users/{userID}", h.Read)
 		r.Delete("/users/{userID}", h.Delete)
 		r.Post("/users/{userID}/suspend", h.Suspend)

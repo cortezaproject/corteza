@@ -563,6 +563,16 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+  - name: partialUpdate
+    method: PATCH
+    title: Patch user (experimental)
+    path: "/{userID}"
+    parameters:
+      path:
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
   - name: read
     method: GET
     title: Read user details
@@ -603,6 +613,7 @@ endpoints:
         name: userID
         required: true
         title: User ID
+
   - name: undelete
     method: POST
     title: Undelete user
@@ -629,6 +640,7 @@ endpoints:
         required: true
         sensitive: true
         title: New password
+
   - name: membershipList
     method: GET
     title: Add member to a role
