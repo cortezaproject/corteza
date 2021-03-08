@@ -18,6 +18,250 @@ import (
 var _ = context.Background
 var _ = fmt.Errorf
 
+// Document is an expression type, wrapper for *RenderedDocument type
+type Document struct{ value *RenderedDocument }
+
+// NewDocument creates new instance of Document expression type
+func NewDocument(val interface{}) (*Document, error) {
+	if c, err := CastToDocument(val); err != nil {
+		return nil, fmt.Errorf("unable to create Document: %w", err)
+	} else {
+		return &Document{value: c}, nil
+	}
+}
+
+// Return underlying value on Document
+func (t Document) Get() interface{} { return t.value }
+
+// Return underlying value on Document
+func (t Document) GetValue() *RenderedDocument { return t.value }
+
+// Return type name
+func (Document) Type() string { return "Document" }
+
+// Convert value to *RenderedDocument
+func (Document) Cast(val interface{}) (TypedValue, error) {
+	return NewDocument(val)
+}
+
+// Assign new value to Document
+//
+// value is first passed through CastToDocument
+func (t *Document) Assign(val interface{}) error {
+	if c, err := CastToDocument(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *Document) AssignFieldValue(key string, val interface{}) error {
+	return assignToDocument(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access Document's underlying value (*RenderedDocument)
+// and it's fields
+//
+func (t Document) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return documentGValSelector(t.value, k)
+}
+
+// Select is field accessor for *RenderedDocument
+//
+// Similar to SelectGVal but returns typed values
+func (t Document) Select(k string) (TypedValue, error) {
+	return documentTypedValueSelector(t.value, k)
+}
+
+func (t Document) Has(k string) bool {
+	switch k {
+	case "document":
+		return true
+	case "name":
+		return true
+	case "type":
+		return true
+	}
+	return false
+}
+
+// documentGValSelector is field accessor for *RenderedDocument
+func documentGValSelector(res *RenderedDocument, k string) (interface{}, error) {
+	switch k {
+	case "document":
+		return res.Document, nil
+	case "name":
+		return res.Name, nil
+	case "type":
+		return res.Type, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// documentTypedValueSelector is field accessor for *RenderedDocument
+func documentTypedValueSelector(res *RenderedDocument, k string) (TypedValue, error) {
+	switch k {
+	case "document":
+		return NewReader(res.Document)
+	case "name":
+		return NewString(res.Name)
+	case "type":
+		return NewString(res.Type)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToDocument is field value setter for *RenderedDocument
+func assignToDocument(res *RenderedDocument, k string, val interface{}) error {
+	switch k {
+	case "document":
+		aux, err := CastToReader(val)
+		if err != nil {
+			return err
+		}
+
+		res.Document = aux
+		return nil
+	case "name":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Name = aux
+		return nil
+	case "type":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Type = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// DocumentType is an expression type, wrapper for types.DocumentType type
+type DocumentType struct{ value types.DocumentType }
+
+// NewDocumentType creates new instance of DocumentType expression type
+func NewDocumentType(val interface{}) (*DocumentType, error) {
+	if c, err := CastToDocumentType(val); err != nil {
+		return nil, fmt.Errorf("unable to create DocumentType: %w", err)
+	} else {
+		return &DocumentType{value: c}, nil
+	}
+}
+
+// Return underlying value on DocumentType
+func (t DocumentType) Get() interface{} { return t.value }
+
+// Return underlying value on DocumentType
+func (t DocumentType) GetValue() types.DocumentType { return t.value }
+
+// Return type name
+func (DocumentType) Type() string { return "DocumentType" }
+
+// Convert value to types.DocumentType
+func (DocumentType) Cast(val interface{}) (TypedValue, error) {
+	return NewDocumentType(val)
+}
+
+// Assign new value to DocumentType
+//
+// value is first passed through CastToDocumentType
+func (t *DocumentType) Assign(val interface{}) error {
+	if c, err := CastToDocumentType(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+// RenderOptions is an expression type, wrapper for map[string]string type
+type RenderOptions struct{ value map[string]string }
+
+// NewRenderOptions creates new instance of RenderOptions expression type
+func NewRenderOptions(val interface{}) (*RenderOptions, error) {
+	if c, err := CastToRenderOptions(val); err != nil {
+		return nil, fmt.Errorf("unable to create RenderOptions: %w", err)
+	} else {
+		return &RenderOptions{value: c}, nil
+	}
+}
+
+// Return underlying value on RenderOptions
+func (t RenderOptions) Get() interface{} { return t.value }
+
+// Return underlying value on RenderOptions
+func (t RenderOptions) GetValue() map[string]string { return t.value }
+
+// Return type name
+func (RenderOptions) Type() string { return "RenderOptions" }
+
+// Convert value to map[string]string
+func (RenderOptions) Cast(val interface{}) (TypedValue, error) {
+	return NewRenderOptions(val)
+}
+
+// Assign new value to RenderOptions
+//
+// value is first passed through CastToRenderOptions
+func (t *RenderOptions) Assign(val interface{}) error {
+	if c, err := CastToRenderOptions(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+// RenderVariables is an expression type, wrapper for map[string]interface{} type
+type RenderVariables struct{ value map[string]interface{} }
+
+// NewRenderVariables creates new instance of RenderVariables expression type
+func NewRenderVariables(val interface{}) (*RenderVariables, error) {
+	if c, err := CastToRenderVariables(val); err != nil {
+		return nil, fmt.Errorf("unable to create RenderVariables: %w", err)
+	} else {
+		return &RenderVariables{value: c}, nil
+	}
+}
+
+// Return underlying value on RenderVariables
+func (t RenderVariables) Get() interface{} { return t.value }
+
+// Return underlying value on RenderVariables
+func (t RenderVariables) GetValue() map[string]interface{} { return t.value }
+
+// Return type name
+func (RenderVariables) Type() string { return "RenderVariables" }
+
+// Convert value to map[string]interface{}
+func (RenderVariables) Cast(val interface{}) (TypedValue, error) {
+	return NewRenderVariables(val)
+}
+
+// Assign new value to RenderVariables
+//
+// value is first passed through CastToRenderVariables
+func (t *RenderVariables) Assign(val interface{}) error {
+	if c, err := CastToRenderVariables(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
 // Role is an expression type, wrapper for *types.Role type
 type Role struct{ value *types.Role }
 
@@ -183,6 +427,356 @@ func assignToRole(res *types.Role, k string, val interface{}) error {
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "deletedAt":
 		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// Template is an expression type, wrapper for *types.Template type
+type Template struct{ value *types.Template }
+
+// NewTemplate creates new instance of Template expression type
+func NewTemplate(val interface{}) (*Template, error) {
+	if c, err := CastToTemplate(val); err != nil {
+		return nil, fmt.Errorf("unable to create Template: %w", err)
+	} else {
+		return &Template{value: c}, nil
+	}
+}
+
+// Return underlying value on Template
+func (t Template) Get() interface{} { return t.value }
+
+// Return underlying value on Template
+func (t Template) GetValue() *types.Template { return t.value }
+
+// Return type name
+func (Template) Type() string { return "Template" }
+
+// Convert value to *types.Template
+func (Template) Cast(val interface{}) (TypedValue, error) {
+	return NewTemplate(val)
+}
+
+// Assign new value to Template
+//
+// value is first passed through CastToTemplate
+func (t *Template) Assign(val interface{}) error {
+	if c, err := CastToTemplate(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *Template) AssignFieldValue(key string, val interface{}) error {
+	return assignToTemplate(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access Template's underlying value (*types.Template)
+// and it's fields
+//
+func (t Template) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return templateGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.Template
+//
+// Similar to SelectGVal but returns typed values
+func (t Template) Select(k string) (TypedValue, error) {
+	return templateTypedValueSelector(t.value, k)
+}
+
+func (t Template) Has(k string) bool {
+	switch k {
+	case "ID":
+		return true
+	case "handle":
+		return true
+	case "language":
+		return true
+	case "type":
+		return true
+	case "partial":
+		return true
+	case "meta":
+		return true
+	case "template":
+		return true
+	case "labels":
+		return true
+	case "ownerID":
+		return true
+	case "createdAt":
+		return true
+	case "updatedAt":
+		return true
+	case "deletedAt":
+		return true
+	case "lastUsedAt":
+		return true
+	}
+	return false
+}
+
+// templateGValSelector is field accessor for *types.Template
+func templateGValSelector(res *types.Template, k string) (interface{}, error) {
+	switch k {
+	case "ID":
+		return res.ID, nil
+	case "handle":
+		return res.Handle, nil
+	case "language":
+		return res.Language, nil
+	case "type":
+		return res.Type, nil
+	case "partial":
+		return res.Partial, nil
+	case "meta":
+		return res.Meta, nil
+	case "template":
+		return res.Template, nil
+	case "labels":
+		return res.Labels, nil
+	case "ownerID":
+		return res.OwnerID, nil
+	case "createdAt":
+		return res.CreatedAt, nil
+	case "updatedAt":
+		return res.UpdatedAt, nil
+	case "deletedAt":
+		return res.DeletedAt, nil
+	case "lastUsedAt":
+		return res.LastUsedAt, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// templateTypedValueSelector is field accessor for *types.Template
+func templateTypedValueSelector(res *types.Template, k string) (TypedValue, error) {
+	switch k {
+	case "ID":
+		return NewID(res.ID)
+	case "handle":
+		return NewHandle(res.Handle)
+	case "language":
+		return NewString(res.Language)
+	case "type":
+		return NewDocumentType(res.Type)
+	case "partial":
+		return NewBoolean(res.Partial)
+	case "meta":
+		return NewTemplateMeta(res.Meta)
+	case "template":
+		return NewString(res.Template)
+	case "labels":
+		return NewKV(res.Labels)
+	case "ownerID":
+		return NewID(res.OwnerID)
+	case "createdAt":
+		return NewDateTime(res.CreatedAt)
+	case "updatedAt":
+		return NewDateTime(res.UpdatedAt)
+	case "deletedAt":
+		return NewDateTime(res.DeletedAt)
+	case "lastUsedAt":
+		return NewDateTime(res.LastUsedAt)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToTemplate is field value setter for *types.Template
+func assignToTemplate(res *types.Template, k string, val interface{}) error {
+	switch k {
+	case "ID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "handle":
+		aux, err := CastToHandle(val)
+		if err != nil {
+			return err
+		}
+
+		res.Handle = aux
+		return nil
+	case "language":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Language = aux
+		return nil
+	case "type":
+		aux, err := CastToDocumentType(val)
+		if err != nil {
+			return err
+		}
+
+		res.Type = aux
+		return nil
+	case "partial":
+		aux, err := CastToBoolean(val)
+		if err != nil {
+			return err
+		}
+
+		res.Partial = aux
+		return nil
+	case "meta":
+		aux, err := CastToTemplateMeta(val)
+		if err != nil {
+			return err
+		}
+
+		res.Meta = aux
+		return nil
+	case "template":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Template = aux
+		return nil
+	case "labels":
+		aux, err := CastToKV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Labels = aux
+		return nil
+	case "ownerID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "createdAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "updatedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "deletedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "lastUsedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// TemplateMeta is an expression type, wrapper for types.TemplateMeta type
+type TemplateMeta struct{ value types.TemplateMeta }
+
+// NewTemplateMeta creates new instance of TemplateMeta expression type
+func NewTemplateMeta(val interface{}) (*TemplateMeta, error) {
+	if c, err := CastToTemplateMeta(val); err != nil {
+		return nil, fmt.Errorf("unable to create TemplateMeta: %w", err)
+	} else {
+		return &TemplateMeta{value: c}, nil
+	}
+}
+
+// Return underlying value on TemplateMeta
+func (t TemplateMeta) Get() interface{} { return t.value }
+
+// Return underlying value on TemplateMeta
+func (t TemplateMeta) GetValue() types.TemplateMeta { return t.value }
+
+// Return type name
+func (TemplateMeta) Type() string { return "TemplateMeta" }
+
+// Convert value to types.TemplateMeta
+func (TemplateMeta) Cast(val interface{}) (TypedValue, error) {
+	return NewTemplateMeta(val)
+}
+
+// Assign new value to TemplateMeta
+//
+// value is first passed through CastToTemplateMeta
+func (t *TemplateMeta) Assign(val interface{}) error {
+	if c, err := CastToTemplateMeta(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *TemplateMeta) AssignFieldValue(key string, val interface{}) error {
+	return assignToTemplateMeta(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access TemplateMeta's underlying value (types.TemplateMeta)
+// and it's fields
+//
+func (t TemplateMeta) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return templateMetaGValSelector(t.value, k)
+}
+
+// Select is field accessor for types.TemplateMeta
+//
+// Similar to SelectGVal but returns typed values
+func (t TemplateMeta) Select(k string) (TypedValue, error) {
+	return templateMetaTypedValueSelector(t.value, k)
+}
+
+func (t TemplateMeta) Has(k string) bool {
+	switch k {
+	case "short":
+		return true
+	case "description":
+		return true
+	}
+	return false
+}
+
+// templateMetaGValSelector is field accessor for types.TemplateMeta
+func templateMetaGValSelector(res types.TemplateMeta, k string) (interface{}, error) {
+	switch k {
+	case "short":
+		return res.Short, nil
+	case "description":
+		return res.Description, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// templateMetaTypedValueSelector is field accessor for types.TemplateMeta
+func templateMetaTypedValueSelector(res types.TemplateMeta, k string) (TypedValue, error) {
+	switch k {
+	case "short":
+		return NewString(res.Short)
+	case "description":
+		return NewString(res.Description)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToTemplateMeta is field value setter for types.TemplateMeta
+func assignToTemplateMeta(res types.TemplateMeta, k string, val interface{}) error {
+	switch k {
+	case "short":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Short = aux
+		return nil
+	case "description":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Description = aux
+		return nil
 	}
 
 	return fmt.Errorf("unknown field '%s'", k)

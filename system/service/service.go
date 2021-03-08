@@ -172,11 +172,20 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automationService.Registry().AddTypes(
 		automation.User{},
 		automation.Role{},
+		automation.Template{},
+		automation.RenderVariables{},
+		automation.RenderOptions{},
+		automation.Document{},
 	)
 
 	automation.UsersHandler(
 		automationService.Registry(),
 		DefaultUser,
+	)
+
+	automation.TemplatesHandler(
+		automationService.Registry(),
+		DefaultRenderer,
 	)
 
 	automation.RolesHandler(
