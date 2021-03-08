@@ -70,7 +70,7 @@ security:
         EmailOTP: { Enabled: true }
 
 mfa:
-  Defautl: {}
+  Default: {}
   MFA pending:
     emailOtpPending: true
     totpDisabled: true

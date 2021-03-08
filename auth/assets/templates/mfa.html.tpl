@@ -11,7 +11,7 @@
 		<h5>Check your inbox and enter the received code</h5>
 
 		{{ if .form.emailOtpError }}
-		<div class="text-danger my-4 font-weiUpdate MFAght-bold" role="alert">
+		<div class="text-danger my-4 font-weight-bold" role="alert">
 			{{ .form.emailOtpError }}
 		</div>
 		{{ end }}
@@ -53,7 +53,7 @@
 	</form>
 	{{ else if not .emailOtpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5"></i> Email OTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> Email OTP confirmed
 		</p>
 	{{ end }}
 
@@ -99,7 +99,7 @@
 	</form>
 	{{ else if not .totpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5"></i> TOTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> TOTP confirmed
 		</p>
 	{{ end }}
 </div>
