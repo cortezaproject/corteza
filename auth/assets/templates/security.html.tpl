@@ -22,30 +22,27 @@
 			<div class="py-4">
 				<h6>Additional security with mobile app (time-based one-time-password)</h6>
 				<div class="row">
-					<div class="col-1 text-left">
+					<div class="col-10 pt-2">
 						{{ if .totpEnforced }}
-						<h4><i class="bi bi-check-square text-primary"></i></h4>
+						<i class="bi bi-check-circle text-success h5"></i>
 						{{ else }}
-						<h4><i class="bi bi-exclamation-triangle-fill text-danger"></i></h4>
+						<i class="bi bi-exclamation-circle-fill text-danger h5"></i>
 						{{ end }}
-					</div>
-					<div class="col-7 pt-2">
 						{{ if .totpEnforced }}
 							Configured and required on login.
 						{{ else }}
 							Currently disabled.
 						{{ end }}
 					</div>
-					<div class="col-5">
+					<div class="col-md-2 col-sm-12">
 						{{ if .totpEnforced }}
 							{{ if not .settings.MultiFactor.TOTP.Enforced }}
-							<button name="action" value="disableTOTP" class="btn btn-link text-danger">Disable</button>
+							<button name="action" value="disableTOTP" class="btn btn-danger float-right">Disable</button>
 							{{ end }}
 						{{ else }}
-							<button name="action" value="configureTOTP" class="btn btn-link text-primary">Configure</button>
+							<button name="action" value="configureTOTP" class="btn btn-primary float-right">Configure</button>
 						{{ end }}
 					</div>
-
 				</div>
 			</div>
 			{{ end }}
@@ -54,27 +51,25 @@
 			<div class="py-4">
 				<h6>Additional security with one-time-password over email</h6>
 				<div class="row">
-					<div class="col-1 text-left">
-						{{ if .emailOtpEnforced }}
-						<h4><i class="bi bi-check-square text-primary"></i></h4>
-						{{ else }}
-						<h4><i class="bi bi-exclamation-triangle-fill text-danger"></i></h4>
-						{{ end }}
-					</div>
-					<div class="col-7 pt-2">
+					<div class="col-10 pt-2">
+                    {{ if .emailOtpEnforced }}
+                    <i class="bi bi-check-circle text-success h4"></i>
+                    {{ else }}
+                    <i class="bi bi-exclamation-circle-fill text-danger h5"></i>
+                    {{ end }}
 					{{ if .emailOtpEnforced }}
 						Enabled and required on login.
 					{{ else }}
 						Currently disabled.
 					{{ end }}
 					</div>
-					<div class="col-4">
+					<div class="col-md-2 col-sm-12">
 					{{ if .emailOtpEnforced }}
 						{{ if not .settings.MultiFactor.EmailOTP.Enforced }}
-						<button name="action" value="disableEmailOTP" class="btn btn-link text-danger">Disable</button>
+						<button name="action" value="disableEmailOTP" class="btn btn-danger float-right">Disable</button>
 						{{ end }}
 					{{ else }}
-						<button name="action" value="enableEmailOTP" class="btn btn-link text-primary">Enable</button>
+						<button name="action" value="enableEmailOTP" class="btn btn-primary float-right">Enable</button>
 					{{ end }}
 					</div>
 
@@ -82,7 +77,7 @@
 			</div>
 			{{ end }}
 		{{ else }}
-			<div class="text-danger font-weight-bold mb-4" role="alert">
+			<div class="mb-4 font-italic" role="alert">
 				All MFA methods are currently disabled. Ask your administrator to enable them.
 			</div>
 		{{ end }}
