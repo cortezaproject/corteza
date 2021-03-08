@@ -25,6 +25,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -165,16 +169,6 @@ func (r NodeSearch) GetStatus() string {
 
 // Fill processes request and fills internal variables
 func (r *NodeSearch) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -234,6 +228,7 @@ func (r NodeCreate) GetPairingURI() string {
 
 // Fill processes request and fills internal variables
 func (r *NodeCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -303,16 +298,6 @@ func (r NodeRead) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -348,16 +333,6 @@ func (r NodeGenerateURI) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeGenerateURI) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -411,6 +386,7 @@ func (r NodeUpdate) GetBaseURL() string {
 
 // Fill processes request and fills internal variables
 func (r *NodeUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -485,16 +461,6 @@ func (r NodeDelete) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -530,16 +496,6 @@ func (r NodeUndelete) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeUndelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -575,16 +531,6 @@ func (r NodePair) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodePair) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -620,16 +566,6 @@ func (r NodeHandshakeConfirm) GetNodeID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *NodeHandshakeConfirm) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -671,6 +607,7 @@ func (r NodeHandshakeComplete) GetAuthToken() string {
 
 // Fill processes request and fills internal variables
 func (r *NodeHandshakeComplete) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

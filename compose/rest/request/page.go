@@ -27,6 +27,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -326,16 +330,6 @@ func (r PageList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *PageList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -478,6 +472,7 @@ func (r PageCreate) GetBlocks() sqlxTypes.JSONText {
 
 // Fill processes request and fills internal variables
 func (r *PageCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -605,16 +600,6 @@ func (r PageRead) GetPageID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *PageRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -656,16 +641,6 @@ func (r PageTree) GetNamespaceID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *PageTree) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -761,6 +736,7 @@ func (r PageUpdate) GetBlocks() sqlxTypes.JSONText {
 
 // Fill processes request and fills internal variables
 func (r *PageUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -900,6 +876,7 @@ func (r PageReorder) GetPageIDs() []string {
 
 // Fill processes request and fills internal variables
 func (r *PageReorder) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -972,16 +949,6 @@ func (r PageDelete) GetPageID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *PageDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -1035,6 +1002,7 @@ func (r PageUpload) GetUpload() *multipart.FileHeader {
 
 // Fill processes request and fills internal variables
 func (r *PageUpload) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -1111,6 +1079,7 @@ func (r PageTriggerScript) GetScript() string {
 
 // Fill processes request and fills internal variables
 func (r *PageTriggerScript) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

@@ -27,6 +27,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -239,16 +243,6 @@ func (r ReminderList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *ReminderList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -361,6 +355,7 @@ func (r ReminderCreate) GetRemindAt() *time.Time {
 
 // Fill processes request and fills internal variables
 func (r *ReminderCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -454,6 +449,7 @@ func (r ReminderUpdate) GetRemindAt() *time.Time {
 
 // Fill processes request and fills internal variables
 func (r *ReminderUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -535,16 +531,6 @@ func (r ReminderRead) GetReminderID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ReminderRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -580,16 +566,6 @@ func (r ReminderDelete) GetReminderID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ReminderDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -625,16 +601,6 @@ func (r ReminderDismiss) GetReminderID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *ReminderDismiss) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -676,6 +642,7 @@ func (r ReminderSnooze) GetRemindAt() *time.Time {
 
 // Fill processes request and fills internal variables
 func (r *ReminderSnooze) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

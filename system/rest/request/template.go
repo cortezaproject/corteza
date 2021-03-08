@@ -27,6 +27,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -283,16 +287,6 @@ func (r TemplateList) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *TemplateList) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -423,6 +417,7 @@ func (r TemplateCreate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *TemplateCreate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -530,16 +525,6 @@ func (r TemplateRead) GetTemplateID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *TemplateRead) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -623,6 +608,7 @@ func (r TemplateUpdate) GetLabels() map[string]string {
 
 // Fill processes request and fills internal variables
 func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
@@ -742,16 +728,6 @@ func (r TemplateDelete) GetTemplateID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *TemplateDelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -787,16 +763,6 @@ func (r TemplateUndelete) GetTemplateID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *TemplateUndelete) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		var val string
@@ -856,6 +822,7 @@ func (r TemplateRender) GetOptions() json.RawMessage {
 
 // Fill processes request and fills internal variables
 func (r *TemplateRender) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 

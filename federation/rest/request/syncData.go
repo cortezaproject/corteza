@@ -25,6 +25,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -185,16 +189,6 @@ func (r SyncDataReadExposedAll) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *SyncDataReadExposedAll) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -302,16 +296,6 @@ func (r SyncDataReadExposedInternal) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *SyncDataReadExposedInternal) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params
@@ -425,16 +409,6 @@ func (r SyncDataReadExposedSocial) GetSort() string {
 
 // Fill processes request and fills internal variables
 func (r *SyncDataReadExposedSocial) Fill(req *http.Request) (err error) {
-	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
-		err = json.NewDecoder(req.Body).Decode(r)
-
-		switch {
-		case err == io.EOF:
-			err = nil
-		case err != nil:
-			return fmt.Errorf("error parsing http request body: %w", err)
-		}
-	}
 
 	{
 		// GET params

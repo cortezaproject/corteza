@@ -25,6 +25,10 @@ var (
 	_ = chi.URLParam
 	_ = multipart.ErrMessageTooLarge
 	_ = payload.ParseUint64s
+	_ = strings.ToLower
+	_ = io.EOF
+	_ = fmt.Errorf
+	_ = json.NewEncoder
 )
 
 type (
@@ -56,6 +60,7 @@ func (r AuthImpersonate) GetUserID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *AuthImpersonate) Fill(req *http.Request) (err error) {
+
 	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
 		err = json.NewDecoder(req.Body).Decode(r)
 
