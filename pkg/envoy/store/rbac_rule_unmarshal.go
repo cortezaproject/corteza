@@ -49,7 +49,7 @@ func rbacResToRef(rr string) (*resource.Ref, error) {
 
 	parts := strings.Split(rr, rbacSep)
 
-	// When len is 1; only top-level defined (system, compose, messaging)
+	// When len is 1; only top-level defined (system, compose, ....)
 	if len(parts) == 1 {
 		ref.ResourceType = rr
 		return ref, nil

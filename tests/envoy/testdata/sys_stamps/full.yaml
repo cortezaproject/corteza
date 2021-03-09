@@ -59,13 +59,3 @@ roles:
     updatedAt: "2021-12-02T10:00:00Z"
     deletedAt: "2021-12-03T10:00:00Z"
     archivedAt: "2021-12-05T10:00:00Z"
-
-# Messaging things
-
-channels:
-  - name: ch1
-    creatorID: test
-    createdAt: "2021-12-01T10:00:00Z"
-    updatedAt: "2021-12-02T10:00:00Z"
-    deletedAt: "2021-12-03T10:00:00Z"
-    # archivedAt: "2021-12-04T10:00:00Z"

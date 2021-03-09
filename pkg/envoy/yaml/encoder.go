@@ -121,9 +121,6 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 		case *resource.ComposeChart:
 			err = f(composeChartFromResource(res, ye.cfg), e)
 
-		case *resource.MessagingChannel:
-			err = f(messagingChannelFromResource(res, ye.cfg), e)
-
 		case *resource.Role:
 			err = f(roleFromResource(res, ye.cfg), e)
 		case *resource.User:
@@ -275,26 +272,4 @@ func (d *encodedDocument) encode() error {
 
 	d.Source = &b
 	return nil
-}
-
-func mergeEncoderConfig(ec *EncoderConfig, rs *resource.EnvoyConfig) *EncoderConfig {
-	// Nothing we can do
-	if rs == nil {
-		return ec
-	}
-
-	// Take resource config as base
-	rr := &EncoderConfig{
-		SkipIf: rs.SkipIf,
-	}
-
-	// Default to store config
-	rr.Defer = ec.Defer
-	rr.DeferNok = ec.DeferNok
-	rr.DeferOk = ec.DeferOk
-	if rr.SkipIf == "" {
-		rr.SkipIf = ec.SkipIf
-	}
-
-	return rr
 }

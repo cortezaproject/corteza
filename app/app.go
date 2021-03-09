@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/auth/settings"
-	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
@@ -47,7 +46,6 @@ type (
 
 		// Servers
 		HttpServer httpApiServer
-		WsServer   *websocket.Websocket
 		GrpcServer grpcServer
 
 		AuthService authServicer

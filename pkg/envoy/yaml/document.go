@@ -13,7 +13,6 @@ type (
 	// Document defines the supported yaml structure
 	Document struct {
 		compose      *compose
-		messaging    *messaging
 		roles        roleSet
 		users        userSet
 		applications applicationSet
@@ -26,10 +25,6 @@ type (
 
 func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 	if err = n.Decode(&doc.compose); err != nil {
-		return
-	}
-
-	if err = n.Decode(&doc.messaging); err != nil {
 		return
 	}
 
@@ -65,17 +60,6 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 		doc.compose.EncoderConfig = doc.cfg
 
 		cn, err := encodeNode(doc.compose)
-		if err != nil {
-			return nil, err
-		}
-
-		dn, _ = inlineContent(dn, cn)
-	}
-
-	if doc.messaging != nil {
-		doc.messaging.EncoderConfig = doc.cfg
-
-		cn, err := encodeNode(doc.messaging)
 		if err != nil {
 			return nil, err
 		}
@@ -142,9 +126,6 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	mm := make([]envoy.Marshaller, 0, 20)
 	if doc.compose != nil {
 		mm = append(mm, doc.compose)
-	}
-	if doc.messaging != nil {
-		mm = append(mm, doc.messaging)
 	}
 	if doc.roles != nil {
 		mm = append(mm, doc.roles)
@@ -235,18 +216,6 @@ func (doc *Document) AddComposeChart(c *composeChart) {
 	}
 
 	doc.compose.Charts = append(doc.compose.Charts, c)
-}
-
-// AddMessagingChannel adds a new messagingChannel to the document
-func (doc *Document) AddMessagingChannel(c *messagingChannel) {
-	if doc.messaging == nil {
-		doc.messaging = &messaging{}
-	}
-	if doc.messaging.Channels == nil {
-		doc.messaging.Channels = make(messagingChannelSet, 0)
-	}
-
-	doc.messaging.Channels = append(doc.messaging.Channels, c)
 }
 
 // AddRole adds a new role to the document

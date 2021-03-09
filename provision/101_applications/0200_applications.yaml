@@ -26,15 +26,6 @@ applications:
       logo: /applications/low-code-service-solution-app.png
       url: /compose/ns/service-solution/pages
 
-  - name: Messaging
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      icon: /applications/messaging.png
-      logo: /applications/messaging.png
-      url: /messaging
-
   - name: Jitsi Bridge
     (envoy): { skipIf: "!missing" }
     enabled: true

@@ -9,14 +9,12 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	mypes "github.com/cortezaproject/corteza-server/messaging/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/json"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
-	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
@@ -91,8 +89,6 @@ func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 		s.TruncateComposeRecords(ctx, nil),
 		s.TruncateComposePages(ctx),
 		s.TruncateComposeCharts(ctx),
-
-		s.TruncateMessagingChannels(ctx),
 
 		s.TruncateRoles(ctx),
 		s.TruncateUsers(ctx),
@@ -222,27 +218,6 @@ func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) er
 		r.Name = ss[1]
 	}
 	return store.CreateRole(ctx, s, r)
-}
-
-func storeMessagingChannel(ctx context.Context, t *testing.T, s store.Storer, usrID uint64, pfx string) *mypes.Channel {
-	ch := &mypes.Channel{
-		ID:    su.NextID(),
-		Name:  pfx + "_channel",
-		Topic: "topic",
-		Type:  mypes.ChannelTypeGroup,
-
-		CreatorID: usrID,
-
-		CreatedAt: createdAt,
-		UpdatedAt: &updatedAt,
-	}
-
-	err := store.CreateMessagingChannel(ctx, s, ch)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return ch
 }
 
 // // // // // // Misc. helpers

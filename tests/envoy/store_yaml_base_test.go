@@ -7,8 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	mtypes "github.com/cortezaproject/corteza-server/messaging/types"
+	ctypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -53,7 +52,7 @@ func TestStoreYaml_base(t *testing.T) {
 			name: "base namespace",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				sTestComposeNamespace(ctx, t, s, "base")
-				df := su.NewDecodeFilter().ComposeNamespace(&types.NamespaceFilter{
+				df := su.NewDecodeFilter().ComposeNamespace(&ctypes.NamespaceFilter{
 					Slug: "base_namespace",
 				})
 				return nil, df
@@ -79,10 +78,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeModule(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					})
@@ -94,7 +93,7 @@ func TestStoreYaml_base(t *testing.T) {
 
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, n.ID, "base_module")
 				req.NoError(err)
-				mff, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{
+				mff, _, err := store.SearchComposeModuleFields(ctx, s, ctypes.ModuleFieldFilter{
 					ModuleID: []uint64{mod.ID},
 				})
 				req.NoError(err)
@@ -140,10 +139,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposePage(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposePage(&types.PageFilter{
+					ComposePage(&ctypes.PageFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_page",
 					})
@@ -188,14 +187,14 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeChart(ctx, t, s, ns.ID, mod.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
-					ComposeChart(&types.ChartFilter{
+					ComposeChart(&ctypes.ChartFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_chart",
 					})
@@ -234,17 +233,17 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeRecord(ctx, t, s, ns.ID, mod.ID, usr.ID)
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&types.RecordFilter{
+					ComposeRecord(&ctypes.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -258,7 +257,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})
@@ -294,12 +293,12 @@ func TestStoreYaml_base(t *testing.T) {
 				usr := sTestUser(ctx, t, s, "base")
 
 				recID := su.NextID()
-				rec := &types.Record{
+				rec := &ctypes.Record{
 					ID:          recID,
 					NamespaceID: ns.ID,
 					ModuleID:    mod.ID,
 
-					Values: types.RecordValueSet{
+					Values: ctypes.RecordValueSet{
 						{
 							RecordID: recID,
 							Name:     "BoolTrue",
@@ -354,17 +353,17 @@ func TestStoreYaml_base(t *testing.T) {
 				}
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&types.RecordFilter{
+					ComposeRecord(&ctypes.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -378,7 +377,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})
@@ -396,37 +395,6 @@ func TestStoreYaml_base(t *testing.T) {
 				req.Equal("htts://www.testing.tld", rec.Values.FilterByName("Url")[0].Value)
 				req.Equal(strconv.FormatUint(usr.ID, 10), rec.Values.FilterByName("User")[0].Value)
 				req.Equal(usr.ID, rec.Values.FilterByName("User")[0].Ref)
-			},
-		},
-
-		{
-			name: "base channel",
-			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
-				usr := sTestUser(ctx, t, s, "base")
-				storeMessagingChannel(ctx, t, s, usr.ID, "base")
-
-				df := su.NewDecodeFilter().
-					Users(&stypes.UserFilter{
-						Email: "base_user@test.tld",
-					}).
-					MessagingChannels(&mtypes.ChannelFilter{})
-				return nil, df
-			},
-			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
-				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
-				req.NoError(err)
-
-				cc, _, err := store.SearchMessagingChannels(ctx, s, mtypes.ChannelFilter{})
-				req.NoError(err)
-				req.Len(cc, 1)
-				ch := cc[0]
-
-				req.Equal("base_channel", ch.Name)
-				req.Equal("topic", ch.Topic)
-				req.Equal(mtypes.ChannelTypeGroup, ch.Type)
-				req.Equal(usr.ID, ch.CreatorID)
-				req.Equal(createdAt.Format(time.RFC3339), ch.CreatedAt.Format(time.RFC3339))
-				req.Equal(updatedAt.Format(time.RFC3339), ch.UpdatedAt.Format(time.RFC3339))
 			},
 		},
 

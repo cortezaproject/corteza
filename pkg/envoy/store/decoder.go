@@ -19,9 +19,6 @@ type (
 		composePage      []*composePageFilter
 		composeChart     []*composeChartFilter
 
-		// Messaging stuff
-		messagingChannels []*messagingChannelsFilter
-
 		// System stuff
 		roles        []*roleFilter
 		users        []*userFilter
@@ -79,7 +76,6 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 	}
 
 	compose := newComposeDecoder()
-	messaging := newMessagingDecoder()
 	system := newSystemDecoder()
 
 	mm, err := pof(
@@ -88,8 +84,6 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 		compose.decodeComposeRecord(ctx, s, f.composeRecord),
 		compose.decodeComposePage(ctx, s, f.composePage),
 		compose.decodeComposeChart(ctx, s, f.composeChart),
-
-		messaging.decodeMessagingChannel(ctx, s, f.messagingChannels),
 
 		system.decodeRoles(ctx, s, f.roles),
 		system.decodeUsers(ctx, s, f.users),

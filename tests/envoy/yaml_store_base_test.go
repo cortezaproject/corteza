@@ -501,7 +501,7 @@ func TestYamlStore_base(t *testing.T) {
 
 				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 				req.NoError(err)
-				req.Len(rr, 18)
+				req.Len(rr, 16)
 
 				// Check that the role is ok
 				rr.Walk(func(r *rbac.Rule) error {
@@ -518,8 +518,6 @@ func TestYamlStore_base(t *testing.T) {
 					"compose:page:",
 					"compose:chart:",
 					"compose:chart:",
-					"messaging:channel:",
-					"messaging:channel:",
 					"system:role:",
 					"system:role:",
 					"system:user:",

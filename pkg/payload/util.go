@@ -3,14 +3,9 @@ package payload
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx/types"
-	"regexp"
+	"github.com/spf13/cast"
 	"strconv"
-	"strings"
 	"time"
-)
-
-var (
-	truthy = regexp.MustCompile(`^\s*(t(rue)?|y(es)?|1)\s*$`)
 )
 
 func Uint64toa(i uint64) string {
@@ -93,5 +88,5 @@ func ParseInt64(s string) int64 {
 
 // parseUInt64 parses a string to uint64
 func ParseBool(s string) bool {
-	return truthy.MatchString(strings.ToLower(s))
+	return cast.ToBool(s)
 }

@@ -25,14 +25,6 @@ package tests
 //  - store/federation_shared_modules.yaml
 //  - store/flags.yaml
 //  - store/labels.yaml
-//  - store/messaging_attachments.yaml
-//  - store/messaging_channel_members.yaml
-//  - store/messaging_channels.yaml
-//  - store/messaging_flags.yaml
-//  - store/messaging_mentions.yaml
-//  - store/messaging_message_attachments.yaml
-//  - store/messaging_messages.yaml
-//  - store/messaging_unread.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/role_members.yaml
@@ -165,46 +157,6 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Labels
 	t.Run("Labels", func(t *testing.T) {
 		testLabels(t, s)
-	})
-
-	// Run generated tests for MessagingAttachments
-	t.Run("MessagingAttachments", func(t *testing.T) {
-		testMessagingAttachments(t, s)
-	})
-
-	// Run generated tests for MessagingChannelMembers
-	t.Run("MessagingChannelMembers", func(t *testing.T) {
-		testMessagingChannelMembers(t, s)
-	})
-
-	// Run generated tests for MessagingChannels
-	t.Run("MessagingChannels", func(t *testing.T) {
-		testMessagingChannels(t, s)
-	})
-
-	// Run generated tests for MessagingFlags
-	t.Run("MessagingFlags", func(t *testing.T) {
-		testMessagingFlags(t, s)
-	})
-
-	// Run generated tests for MessagingMentions
-	t.Run("MessagingMentions", func(t *testing.T) {
-		testMessagingMentions(t, s)
-	})
-
-	// Run generated tests for MessagingMessageAttachments
-	t.Run("MessagingMessageAttachments", func(t *testing.T) {
-		testMessagingMessageAttachments(t, s)
-	})
-
-	// Run generated tests for MessagingMessages
-	t.Run("MessagingMessages", func(t *testing.T) {
-		testMessagingMessages(t, s)
-	})
-
-	// Run generated tests for MessagingUnread
-	t.Run("MessagingUnread", func(t *testing.T) {
-		testMessagingUnread(t, s)
 	})
 
 	// Run generated tests for RbacRules

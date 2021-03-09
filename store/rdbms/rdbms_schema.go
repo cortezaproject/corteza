@@ -72,14 +72,6 @@ func (s Schema) Tables() []*Table {
 		s.ComposePage(),
 		s.ComposeRecord(),
 		s.ComposeRecordValue(),
-		s.MessagingAttachment(),
-		s.MessagingChannel(),
-		s.MessagingChannelMember(),
-		s.MessagingMention(),
-		s.MessagingMessage(),
-		s.MessagingMessageAttachment(),
-		s.MessagingMessageFlag(),
-		s.MessagingUnread(),
 		s.FederationModuleShared(),
 		s.FederationModuleExposed(),
 		s.FederationModuleMapping(),
@@ -505,101 +497,6 @@ func (Schema) ComposeRecordValue() *Table {
 
 		PrimaryKey(IColumn("record_id", "name", "place")),
 		AddIndex("ref", IColumn("ref"), IWhere("ref > 0")),
-	)
-}
-
-func (Schema) MessagingAttachment() *Table {
-	// @todo merge with general attachment table
-	return TableDef("messaging_attachment",
-		ID,
-		ColumnDef("rel_owner", ColumnTypeIdentifier),
-		ColumnDef("url", ColumnTypeText),
-		ColumnDef("preview_url", ColumnTypeText),
-		ColumnDef("name", ColumnTypeText),
-		ColumnDef("meta", ColumnTypeJson),
-		CUDTimestamps,
-	)
-}
-
-func (Schema) MessagingChannel() *Table {
-	return TableDef("messaging_channel",
-		ID,
-		ColumnDef("name", ColumnTypeText),
-		ColumnDef("topic", ColumnTypeText),
-		ColumnDef("meta", ColumnTypeJson),
-		ColumnDef("type", ColumnTypeText),
-		ColumnDef("membership_policy", ColumnTypeText),
-		ColumnDef("rel_creator", ColumnTypeIdentifier), // @todo rename => created_by
-		ColumnDef("archived_at", ColumnTypeTimestamp, Null),
-		ColumnDef("rel_last_message", ColumnTypeIdentifier),
-		CUDTimestamps,
-	)
-}
-
-func (Schema) MessagingChannelMember() *Table {
-	return TableDef("messaging_channel_member",
-		ColumnDef("rel_channel", ColumnTypeIdentifier),
-		ColumnDef("rel_user", ColumnTypeIdentifier),
-		ColumnDef("type", ColumnTypeText),
-		ColumnDef("flag", ColumnTypeText),
-		CUDTimestamps,
-		PrimaryKey(IColumn("rel_channel", "rel_user")),
-	)
-}
-
-func (Schema) MessagingMention() *Table {
-	return TableDef("messaging_mention",
-		ID,
-		ColumnDef("rel_channel", ColumnTypeIdentifier),
-		ColumnDef("rel_message", ColumnTypeIdentifier),
-		ColumnDef("rel_user", ColumnTypeIdentifier),
-		ColumnDef("rel_mentioned_by", ColumnTypeIdentifier),
-		ColumnDef("created_at", ColumnTypeTimestamp),
-	)
-}
-
-func (Schema) MessagingMessage() *Table {
-	return TableDef("messaging_message",
-		ID,
-		ColumnDef("type", ColumnTypeText),
-		ColumnDef("message", ColumnTypeText),
-		ColumnDef("meta", ColumnTypeJson),
-		ColumnDef("rel_channel", ColumnTypeIdentifier),
-		ColumnDef("rel_user", ColumnTypeIdentifier),
-		ColumnDef("reply_to", ColumnTypeIdentifier, DefaultValue("0")),
-		ColumnDef("replies", ColumnTypeInteger, DefaultValue("0")),
-
-		CUDTimestamps,
-	)
-}
-
-func (Schema) MessagingMessageAttachment() *Table {
-	return TableDef("messaging_message_attachment",
-		ColumnDef("rel_message", ColumnTypeIdentifier),
-		ColumnDef("rel_attachment", ColumnTypeIdentifier),
-		PrimaryKey(IColumn("rel_message")),
-	)
-}
-
-func (Schema) MessagingMessageFlag() *Table {
-	return TableDef("messaging_message_flag",
-		ID,
-		ColumnDef("rel_channel", ColumnTypeIdentifier),
-		ColumnDef("rel_message", ColumnTypeIdentifier),
-		ColumnDef("rel_user", ColumnTypeIdentifier),
-		ColumnDef("flag", ColumnTypeText),
-		ColumnDef("created_at", ColumnTypeTimestamp),
-	)
-}
-
-func (Schema) MessagingUnread() *Table {
-	return TableDef("messaging_unread",
-		ColumnDef("rel_channel", ColumnTypeIdentifier),
-		ColumnDef("rel_reply_to", ColumnTypeIdentifier),
-		ColumnDef("rel_user", ColumnTypeIdentifier),
-		ColumnDef("count", ColumnTypeInteger),
-		ColumnDef("rel_last_message", ColumnTypeIdentifier),
-		PrimaryKey(IColumn("rel_channel", "rel_reply_to", "rel_user")),
 	)
 }
 

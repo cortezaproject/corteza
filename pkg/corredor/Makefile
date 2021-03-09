@@ -7,7 +7,7 @@ DIR      ?= corteza-protobuf-$(BRANCH)
 PROTO    ?= service-corredor.proto
 URL      ?= https://github.com/cortezaproject/corteza-protobuf/archive/$(ZIP)
 
-PARTS    ?= compose messaging system
+PARTS    ?= compose system
 OUTPUTS  ?= $(addsuffix /static.go, $(PARTS))
 PROTOC   ?= /usr/local/bin/protoc
 CURL     ?= /usr/bin/curl

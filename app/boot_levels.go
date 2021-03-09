@@ -10,9 +10,6 @@ import (
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	fdrService "github.com/cortezaproject/corteza-server/federation/service"
 	fedService "github.com/cortezaproject/corteza-server/federation/service"
-	msgService "github.com/cortezaproject/corteza-server/messaging/service"
-	msgEvent "github.com/cortezaproject/corteza-server/messaging/service/event"
-	"github.com/cortezaproject/corteza-server/messaging/websocket"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
@@ -125,8 +122,6 @@ func (app *CortezaApp) Setup() (err error) {
 			sysEvent.SystemOnTimestamp(),
 			cmpEvent.ComposeOnInterval(),
 			cmpEvent.ComposeOnTimestamp(),
-			msgEvent.MessagingOnInterval(),
-			msgEvent.MessagingOnTimestamp(),
 		)
 	} else {
 		app.Log.Debug("eventbus scheduler disabled (EVENTBUS_SCHEDULER_ENABLED=false)")
@@ -284,27 +279,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	// Initializes messaging services
-	//
-	// Note: this is a legacy approach, all services from all 3 apps
-	// will most likely be merged in the future
-	err = msgService.Initialize(ctx, app.Log, app.Store, msgService.Config{
-		ActionLog: app.Opt.ActionLog,
-		Storage:   app.Opt.ObjStore,
-	})
-
-	if err != nil {
-		return
-	}
-
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
-
-	app.WsServer = websocket.New(&websocket.Config{
-		Timeout:     app.Opt.Websocket.Timeout,
-		PingTimeout: app.Opt.Websocket.PingTimeout,
-		PingPeriod:  app.Opt.Websocket.PingPeriod,
-	})
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
@@ -378,7 +354,6 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	sysService.Watchers(ctx)
 	cmpService.Watchers(ctx)
-	msgService.Watchers(ctx)
 
 	if app.Opt.Federation.Enabled {
 		fedService.Watchers(ctx)
@@ -394,14 +369,6 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	if err = cmpService.Activate(ctx); err != nil {
 		return err
-	}
-
-	if err = msgService.Activate(ctx); err != nil {
-		return err
-	}
-
-	if app.WsServer != nil {
-		websocket.Watch(ctx)
 	}
 
 	if app.AuthService, err = authService.New(ctx, app.Log, app.Store, app.Opt.Auth); err != nil {
