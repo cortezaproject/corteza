@@ -208,7 +208,7 @@ func ExpressionsStep(ee ...*Expr) *expressionsStep {
 	return &expressionsStep{Set: ee}
 }
 
-func (s *expressionsStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+func (s expressionsStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 	result, err := s.Set.Eval(ctx, r.Scope.Merge(r.Input))
 	if err != nil {
 		return nil, err

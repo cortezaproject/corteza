@@ -22,7 +22,7 @@ func DebugStep(log *zap.Logger) *debugStep {
 }
 
 // Executes debug step
-func (s *debugStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+func (s debugStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 	var (
 		fields = make([]zap.Field, 0)
 

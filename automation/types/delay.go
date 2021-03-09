@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"time"
@@ -10,9 +11,8 @@ import (
 type (
 	delayStep struct {
 		wfexec.StepIdentifier
-		args  ExprSet
-		until time.Time
-		now   func() time.Time
+		args ExprSet
+		now  func() time.Time
 	}
 )
 
@@ -25,10 +25,11 @@ func DelayStep(args ExprSet) *delayStep {
 }
 
 // Executes delay step
-func (s *delayStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
-	if s.until.IsZero() {
-		// wait time not yet calculated
-		s.until = s.now()
+func (s delayStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+	// session will set "resumed" on input when step is resumed
+	if !r.Input.Has("resumed") {
+		// not yet resumed
+		var until = s.now()
 
 		var (
 			result, err = s.args.Eval(ctx, r.Scope)
@@ -44,19 +45,18 @@ func (s *delayStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.Exe
 		)
 
 		switch {
+
 		case result.Has(absArgName):
 			abs, _ := expr.NewDateTime(expr.Must(result.Select(absArgName)))
-			s.until = abs.GetValue().Add(0)
+			return wfexec.Delay(abs.GetValue().Add(0)), nil
+
 		case result.Has(relArgName):
 			rel, _ := expr.NewDuration(expr.Must(result.Select(relArgName)))
-			s.until = s.until.Add(rel.GetValue())
+			return wfexec.Delay(until.Add(rel.GetValue())), nil
 		}
+
+		return nil, errors.InvalidData("failed to execute delay step")
 	}
 
-	if s.now().After(s.until) {
-		// Resume if we've delayed enough
-		return wfexec.Resume(), nil
-	}
-
-	return wfexec.Delay(s.until), nil
+	return wfexec.Resume(), nil
 }

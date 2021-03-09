@@ -17,6 +17,6 @@ func ErrorHandlerStep(h wfexec.Step) *errorHandlerStep {
 }
 
 // Executes prompt step
-func (h *errorHandlerStep) Exec(_ context.Context, _ *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+func (h errorHandlerStep) Exec(_ context.Context, _ *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 	return wfexec.ErrorHandler(h.handler), nil
 }
