@@ -155,7 +155,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
 
-	DefaultAuthNotification = AuthNotification(CurrentSettings, c.Auth)
+	DefaultRenderer = Renderer(c.Template)
+	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth()
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultUser = User(ctx)
@@ -165,7 +166,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
-	DefaultRenderer = Renderer(c.Template)
 
 	return
 }

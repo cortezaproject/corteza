@@ -1,9 +1,12 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	htpl "html/template"
+	"io/ioutil"
+	"net/url"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -11,14 +14,13 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	gomail "gopkg.in/mail.v2"
-	htpl "html/template"
-	"net/url"
 )
 
 type (
 	authNotification struct {
 		logger   *zap.Logger
 		settings *types.AppSettings
+		ts       TemplateService
 		opt      options.AuthOpt
 	}
 
@@ -27,24 +29,13 @@ type (
 		EmailConfirmation(ctx context.Context, lang string, emailAddress string, url string) error
 		PasswordReset(ctx context.Context, lang string, emailAddress string, url string) error
 	}
-
-	authNotificationPayload struct {
-		EmailAddress   string
-		URL            string
-		Code           string
-		BaseURL        string
-		Logo           htpl.URL
-		SignatureName  string
-		SignatureEmail string
-		EmailHeaderEn  htpl.HTML
-		EmailFooterEn  htpl.HTML
-	}
 )
 
-func AuthNotification(s *types.AppSettings, opt options.AuthOpt) AuthNotificationService {
+func AuthNotification(s *types.AppSettings, ts TemplateService, opt options.AuthOpt) AuthNotificationService {
 	return &authNotification{
 		logger:   DefaultLogger.Named("auth-notification"),
 		settings: s,
+		ts:       ts,
 		opt:      opt,
 	}
 }
@@ -54,23 +45,20 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 }
 
 func (svc authNotification) EmailOTP(ctx context.Context, lang string, emailAddress string, code string) error {
-	return svc.send(ctx, "email-otp", lang, authNotificationPayload{
-		EmailAddress: emailAddress,
-		Code:         code,
+	return svc.send(ctx, "auth_email_otp", lang, emailAddress, map[string]interface{}{
+		"Code": code,
 	})
 }
 
 func (svc authNotification) EmailConfirmation(ctx context.Context, lang string, emailAddress string, token string) error {
-	return svc.send(ctx, "email-confirmation", lang, authNotificationPayload{
-		EmailAddress: emailAddress,
-		URL:          fmt.Sprintf("%s/confirm-email?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
+	return svc.send(ctx, "auth_email_confirmation", lang, emailAddress, map[string]interface{}{
+		"URL": fmt.Sprintf("%s/confirm-email?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
 
 func (svc authNotification) PasswordReset(ctx context.Context, lang string, emailAddress string, token string) error {
-	return svc.send(ctx, "password-reset", lang, authNotificationPayload{
-		EmailAddress: emailAddress,
-		URL:          fmt.Sprintf("%s/reset-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
+	return svc.send(ctx, "auth_email_password_reset", lang, emailAddress, map[string]interface{}{
+		"URL": fmt.Sprintf("%s/reset-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
 
@@ -88,96 +76,59 @@ func (svc authNotification) newMail() *gomail.Message {
 	return m
 }
 
-func (svc authNotification) send(ctx context.Context, name, lang string, payload authNotificationPayload) error {
+func (svc authNotification) send(ctx context.Context, name, lang, sendTo string, payload map[string]interface{}) error {
 	var (
 		err error
-		tmp string
+		tmp []byte
 		ntf = svc.newMail()
 	)
 
-	payload.Logo = htpl.URL(svc.settings.General.Mail.Logo)
-	payload.BaseURL = svc.opt.BaseURL
-	payload.SignatureName = svc.settings.Auth.Mail.FromName
-	payload.SignatureEmail = svc.settings.Auth.Mail.FromAddress
-
-	// @todo translations
-	if tmp, err = svc.render(svc.settings.General.Mail.Header, payload); err != nil {
-		return fmt.Errorf("failed to render svc.settings.General.Mail.Header: %w", err)
+	// Fetch parts
+	st, err := svc.ts.FindByHandle(ctx, name+"_subject")
+	if err != nil {
+		return err
 	}
-	payload.EmailHeaderEn = htpl.HTML(tmp)
-	if tmp, err = svc.render(svc.settings.General.Mail.Footer, payload); err != nil {
-		return fmt.Errorf("failed to render svc.settings.General.Mail.Footer: %w", err)
+	ct, err := svc.ts.FindByHandle(ctx, name+"_content")
+	if err != nil {
+		return err
 	}
-	payload.EmailFooterEn = htpl.HTML(tmp)
 
-	ntf.SetAddressHeader("To", payload.EmailAddress, "")
-	// @todo translations
-	switch name {
-	case "email-confirmation":
-		if tmp, err = svc.render(svc.settings.Auth.Mail.EmailConfirmation.Subject, payload); err != nil {
-			return fmt.Errorf("failed to render svc.settings.Auth.Mail.EmailConfirmation.Subject: %w", err)
-		}
-		ntf.SetHeader("Subject", tmp)
-		if tmp, err = svc.render(svc.settings.Auth.Mail.EmailConfirmation.Body, payload); err != nil {
-			return fmt.Errorf("failed to render svc.settings.Auth.Mail.EmailConfirmation.Body: %w", err)
-		}
-		ntf.SetBody("text/html", tmp)
+	// Prepare payload
+	payload["Logo"] = htpl.URL(svc.settings.General.Mail.Logo)
+	payload["BaseURL"] = svc.opt.BaseURL
+	payload["SignatureName"] = svc.settings.Auth.Mail.FromName
+	payload["SignatureEmail"] = svc.settings.Auth.Mail.FromAddress
+	payload["EmailAddress"] = sendTo
 
-	case "password-reset":
-		if tmp, err = svc.render(svc.settings.Auth.Mail.PasswordReset.Subject, payload); err != nil {
-			return fmt.Errorf("failed to render svc.settings.Auth.Mail.PasswordReset.Subject: %w", err)
-		}
-		ntf.SetHeader("Subject", tmp)
-		if tmp, err = svc.render(svc.settings.Auth.Mail.PasswordReset.Body, payload); err != nil {
-			return fmt.Errorf("failed to render svc.settings.Auth.Mail.PasswordReset.Body: %w", err)
-		}
-		ntf.SetBody("text/html", tmp)
-
-	case "email-otp":
-		// @todo move this to new template/renderer facility
-		ntf.SetHeader("Subject", "Login code")
-
-		bodyTpl := `{{.EmailHeaderEn}}
-      <h2 style="color: #568ba2;text-align: center;">Reset your password</h2>
-      <p>Hello,</p>
-      <p>Enter this code into your login form: <code>{{.Code}}</code></p>
-    {{.EmailFooterEn}}`
-
-		if tmp, err = svc.render(bodyTpl, payload); err != nil {
-			return fmt.Errorf("failed to render EmilOTP body: %w", err)
-		}
-		ntf.SetBody("text/html", tmp)
-
-	default:
-		return fmt.Errorf("unknown notification email template %q", name)
+	// Render document
+	subject, err := svc.ts.Render(ctx, st.ID, "text/plain", payload, nil)
+	if err != nil {
+		return err
 	}
+
+	content, err := svc.ts.Render(ctx, ct.ID, "text/plain", payload, nil)
+	if err != nil {
+		return err
+	}
+
+	tmp, err = ioutil.ReadAll(subject)
+	if err != nil {
+		return err
+	}
+	ntf.SetAddressHeader("To", sendTo, "")
+	ntf.SetHeader("Subject", string(tmp))
+	tmp, err = ioutil.ReadAll(content)
+	if err != nil {
+		return err
+	}
+	ntf.SetBody("text/html", string(tmp))
 
 	svc.log(ctx).Debug(
 		"sending auth notification",
 		zap.String("name", name),
 		zap.String("language", lang),
-		zap.String("email", payload.EmailAddress),
+		zap.String("email", sendTo),
 	)
 
 	return mail.Send(ntf)
-}
-
-func (svc authNotification) render(source string, payload interface{}) (string, error) {
-	var (
-		err error
-		tpl *htpl.Template
-		buf = bytes.Buffer{}
-	)
-
-	tpl, err = htpl.New("").Parse(source)
-	if err != nil {
-		return "", fmt.Errorf("could not parse template: %w", err)
-	}
-
-	err = tpl.Execute(&buf, payload)
-	if err != nil {
-		return "", fmt.Errorf("could not render template: %w", err)
-	}
-
-	return buf.String(), nil
 }
