@@ -141,10 +141,6 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		case *resource.RbacRule:
 			err = f(newRbacRuleFromResource(res, se.cfg), ers)
 
-			// Messaging resources
-		case *resource.MessagingChannel:
-			err = f(newMessagingChannelFromResource(res, se.cfg), ers)
-
 		default:
 			err = ErrUnknownResource
 		}

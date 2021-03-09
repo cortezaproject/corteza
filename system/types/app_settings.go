@@ -161,46 +161,6 @@ type (
 				}
 			}
 		} `kv:"compose" json:"compose"`
-
-		Messaging struct {
-			// UI related settings
-			UI struct {
-				// Emoji
-				// @todo implementation
-				Emoji struct {
-					Enabled bool
-				}
-
-				// In-browser notifications
-				// @todo implementation
-				BrowserNotifications struct {
-					Enabled     bool
-					Header      string
-					MessageTrim uint `kv:"message-trim"`
-				} `kv:"browser-notifications"`
-			} `kv:"ui"`
-
-			// Message related settings
-			Message struct {
-				// @todo implementation
-				Attachments struct {
-					// Completely disable attachments
-					Enabled bool
-
-					// What is max size (in MB, so: MaxSize x 2^20)
-					MaxSize uint `kv:"max-size"`
-
-					// List of mime-types we support,
-					Mimetypes []string
-
-					// Enable/disable individual attachment sources (mobile)
-					Source struct {
-						Gallery struct{ Enabled bool }
-						Camera  struct{ Enabled bool }
-					}
-				}
-			}
-		} `kv:"messaging" json:"messaging"`
 	}
 
 	ExternalAuthProviderSet []*ExternalAuthProvider

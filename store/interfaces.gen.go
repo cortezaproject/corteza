@@ -27,14 +27,6 @@ package store
 //  - store/federation_shared_modules.yaml
 //  - store/flags.yaml
 //  - store/labels.yaml
-//  - store/messaging_attachments.yaml
-//  - store/messaging_channel_members.yaml
-//  - store/messaging_channels.yaml
-//  - store/messaging_flags.yaml
-//  - store/messaging_mentions.yaml
-//  - store/messaging_message_attachments.yaml
-//  - store/messaging_messages.yaml
-//  - store/messaging_unread.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/role_members.yaml
@@ -73,14 +65,6 @@ type (
 		FederationSharedModules
 		Flags
 		Labels
-		MessagingAttachments
-		MessagingChannelMembers
-		MessagingChannels
-		MessagingFlags
-		MessagingMentions
-		MessagingMessageAttachments
-		MessagingMessages
-		MessagingUnreads
 		RbacRules
 		Reminders
 		RoleMembers

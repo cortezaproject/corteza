@@ -20,16 +20,6 @@ settings:
       <p>You will be logged-in after successful reset.</p>
     {{.EmailFooterEn}}
 
-  messaging.ui.emoji.enabled: true
-  messaging.ui.browser-notifications.enabled: true
-  messaging.ui.browser-notifications.header: ${user} in ${channel}
-  messaging.ui.browser-notifications.message-trim: 200
-  messaging.message.attachments.enabled: true
-  messaging.message.attachments.max-size: 10
-  messaging.message.attachments.mimetypes: []
-  messaging.message.attachments.source.gallery.enabled: true
-  messaging.message.attachments.source.camera.enabled: true
-
   compose.ui.namespace-switcher.enabled: false
   compose.record.attachments.max-size: 10
   compose.record.attachments.mimetypes: []

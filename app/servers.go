@@ -5,7 +5,6 @@ import (
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/docs"
 	federationRest "github.com/cortezaproject/corteza-server/federation/rest"
-	messagingRest "github.com/cortezaproject/corteza-server/messaging/rest"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
@@ -61,10 +60,6 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		r.Route("/"+apiBaseUrl, func(r chi.Router) {
 			r.Route("/system", systemRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
-			r.Route("/messaging", func(r chi.Router) {
-				messagingRest.MountRoutes(r)
-				app.WsServer.ApiServerRoutes(r)
-			})
 
 			if app.Opt.Federation.Enabled {
 				r.Route("/federation", federationRest.MountRoutes)

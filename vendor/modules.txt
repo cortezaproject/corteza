@@ -117,9 +117,6 @@ github.com/gorilla/securecookie
 # github.com/gorilla/sessions v1.2.1
 ## explicit
 github.com/gorilla/sessions
-# github.com/gorilla/websocket v1.4.2
-## explicit
-github.com/gorilla/websocket
 # github.com/huandu/xstrings v1.3.2
 ## explicit
 github.com/huandu/xstrings

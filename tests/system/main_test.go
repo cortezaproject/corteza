@@ -141,7 +141,7 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 	))
 }
 
-// Prepends allow access rule for messaging service for everyone
+// Prepends allow access rule for system service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	h.mockPermissions(rules...)
 }

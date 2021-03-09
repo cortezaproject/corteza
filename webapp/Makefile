@@ -3,7 +3,7 @@ WGET_FLAGS   ?= -q
 TAR          ?= tar
 TAR_FLAGS    ?= -xzmok
 RELEASE_PAGE ?= https://releases.cortezaproject.org/files
-APPS         ?= auth admin messaging compose
+APPS         ?= auth admin compose
 ALL_APPS     ?= $(APPS) one
 VERSION      ?= unstable
 PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
@@ -16,7 +16,6 @@ install: $(PACKAGES)
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-one-$(VERSION).tar.gz -C public
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-auth-$(VERSION).tar.gz -C public/auth
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-admin-$(VERSION).tar.gz -C public/admin
-	$(TAR) $(TAR_FLAGS) -f corteza-webapp-messaging-$(VERSION).tar.gz -C public/messaging
 	$(TAR) $(TAR_FLAGS) -f corteza-webapp-compose-$(VERSION).tar.gz -C public/compose
 
 download: $(PACKAGES)

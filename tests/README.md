@@ -60,7 +60,7 @@ This can be combined with any of the testing suits and flavours described below.
  - `all`: shared + services + integration
  - `integration` integration tests (from API to the DB)
  - `pkg`, `internal`: shared packages (ran as one)
- - `messaging`, `system`, `compose`: services
+ - `federation`, `system`, `compose`: services
 
 See `Makefile` internals for details.
  

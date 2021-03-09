@@ -77,14 +77,6 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 		return g.all(ctx,
 			g.AlterComposeModuleFieldAddExpresions,
 		)
-	case "messaging_channel":
-		return g.all(ctx,
-			g.AlterMessagingChannelsDropOrganisation,
-		)
-	case "messaging_attachment":
-		return g.all(ctx,
-			g.AlterMessageAttachmentsRenameOwner,
-		)
 		//case "compose_attachment_binds":
 		//	return g.all(ctx,
 		//		g.MigrateComposeAttachmentsToBindsTable,
@@ -114,7 +106,6 @@ func (g genericUpgrades) MergeSettingsTables(ctx context.Context) error {
 		}{
 			{tbl: "sys_settings", applyNamePrefix: ""},
 			{tbl: "compose_settings", applyNamePrefix: "compose."},
-			{tbl: "messaging_settings", applyNamePrefix: "messaging."},
 		}
 
 		// CONCAT does not work in sqlite but we'Ll ignore this since sqlite should
@@ -158,7 +149,6 @@ func (g genericUpgrades) MergePermissionRulesTables(ctx context.Context) error {
 		}{
 			{tbl: "sys_permission_rules"},
 			{tbl: "compose_permission_rules"},
-			{tbl: "messaging_permission_rules"},
 		}
 
 		// CONCAT does not work in sqlite but we'Ll ignore this since sqlite should
@@ -273,11 +263,6 @@ func (g genericUpgrades) AlterUsersDropOrganisation(ctx context.Context) error {
 	return err
 }
 
-func (g genericUpgrades) AlterMessagingChannelsDropOrganisation(ctx context.Context) error {
-	_, err := g.u.DropColumn(ctx, "messaging_channel", "rel_organisation")
-	return err
-}
-
 func (g genericUpgrades) AlterUsersDropRelatedUser(ctx context.Context) error {
 	_, err := g.u.DropColumn(ctx, "users", "rel_user_id")
 	return err
@@ -315,7 +300,6 @@ func (g genericUpgrades) RenameTable(ctx context.Context, old, new string) error
 //		}{
 //			{tbl: "sys_permission_rules"},
 //			{tbl: "compose_permission_rules"},
-//			{tbl: "messaging_permission_rules"},
 //		}
 //
 //		// Are there entries in the attachment_binds table?
@@ -392,9 +376,4 @@ func (g genericUpgrades) AlterComposeModuleFieldAddExpresions(ctx context.Contex
 
 	_, err = g.u.AddColumn(ctx, "compose_module_field", col)
 	return
-}
-
-func (g genericUpgrades) AlterMessageAttachmentsRenameOwner(ctx context.Context) error {
-	_, err := g.u.RenameColumn(ctx, "messaging_attachment", "rel_user", "rel_owner")
-	return err
 }

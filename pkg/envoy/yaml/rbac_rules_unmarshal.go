@@ -131,7 +131,7 @@ func (r *rbacRule) SetResource(res string) {
 	res = strings.TrimRight(res, sp)
 	rr := strings.Split(res, sp)
 
-	// When len is 1; only top-level defined (system, compose, messaging)
+	// When len is 1; only top-level defined (system, compose, ...)
 	if len(rr) == 1 {
 		r.res.Resource = rbac.Resource(res)
 		return

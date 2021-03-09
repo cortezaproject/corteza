@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
-	mtypes "github.com/cortezaproject/corteza-server/messaging/types"
+	ctypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
@@ -31,8 +30,8 @@ func TestStamps(t *testing.T) {
 			return t.Format(time.RFC3339)
 		}
 
-		lcn = func(ctx context.Context, s store.Storer, slg string) (*types.Namespace, error) {
-			rr, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{
+		lcn = func(ctx context.Context, s store.Storer, slg string) (*ctypes.Namespace, error) {
+			rr, _, err := store.SearchComposeNamespaces(ctx, s, ctypes.NamespaceFilter{
 				Slug:    slg,
 				Deleted: filter.StateInclusive,
 			})
@@ -45,8 +44,8 @@ func TestStamps(t *testing.T) {
 			return nil, nil
 		}
 
-		lcm = func(ctx context.Context, s store.Storer, hnd string) (*types.Module, error) {
-			rr, _, err := store.SearchComposeModules(ctx, s, types.ModuleFilter{
+		lcm = func(ctx context.Context, s store.Storer, hnd string) (*ctypes.Module, error) {
+			rr, _, err := store.SearchComposeModules(ctx, s, ctypes.ModuleFilter{
 				Handle:  hnd,
 				Deleted: filter.StateInclusive,
 			})
@@ -59,8 +58,8 @@ func TestStamps(t *testing.T) {
 			return nil, nil
 		}
 
-		lcp = func(ctx context.Context, s store.Storer, hnd string) (*types.Page, error) {
-			rr, _, err := store.SearchComposePages(ctx, s, types.PageFilter{
+		lcp = func(ctx context.Context, s store.Storer, hnd string) (*ctypes.Page, error) {
+			rr, _, err := store.SearchComposePages(ctx, s, ctypes.PageFilter{
 				Handle:  hnd,
 				Deleted: filter.StateInclusive,
 			})
@@ -73,8 +72,8 @@ func TestStamps(t *testing.T) {
 			return nil, nil
 		}
 
-		lcc = func(ctx context.Context, s store.Storer, hnd string) (*types.Chart, error) {
-			rr, _, err := store.SearchComposeCharts(ctx, s, types.ChartFilter{
+		lcc = func(ctx context.Context, s store.Storer, hnd string) (*ctypes.Chart, error) {
+			rr, _, err := store.SearchComposeCharts(ctx, s, ctypes.ChartFilter{
 				Handle:  hnd,
 				Deleted: filter.StateInclusive,
 			})
@@ -87,8 +86,8 @@ func TestStamps(t *testing.T) {
 			return nil, nil
 		}
 
-		lcr = func(ctx context.Context, s store.Storer, m *types.Module) (*types.Record, error) {
-			rr, _, err := store.SearchComposeRecords(ctx, s, m, types.RecordFilter{
+		lcr = func(ctx context.Context, s store.Storer, m *ctypes.Module) (*ctypes.Record, error) {
+			rr, _, err := store.SearchComposeRecords(ctx, s, m, ctypes.RecordFilter{
 				Deleted: filter.StateInclusive,
 			})
 			if err != nil {
@@ -134,19 +133,6 @@ func TestStamps(t *testing.T) {
 				Handle:   hnd,
 				Deleted:  filter.StateInclusive,
 				Archived: filter.StateInclusive,
-			})
-			if err != nil {
-				return nil, err
-			}
-			if len(rr) > 0 {
-				return rr[0], nil
-			}
-			return nil, nil
-		}
-
-		lmc = func(ctx context.Context, s store.Storer, name string) (*mtypes.Channel, error) {
-			rr, _, err := store.SearchMessagingChannels(ctx, s, mtypes.ChannelFilter{
-				IncludeDeleted: true,
 			})
 			if err != nil {
 				return nil, err
@@ -260,22 +246,5 @@ func TestStamps(t *testing.T) {
 		req.Equal(updatedAtTs, ft(*r.UpdatedAt))
 		req.Equal(deletedAtTs, ft(*r.DeletedAt))
 		req.Equal(archivedAtTs, ft(*r.ArchivedAt))
-	})
-
-	t.Run("messaging channels", func(t *testing.T) {
-		r, err := lmc(ctx, s, "ch1")
-		req.NoError(err)
-		req.NotNil(r)
-		u, err := lu(ctx, s, "test")
-		req.NoError(err)
-		req.NotNil(u)
-
-		req.Equal(createdAtTs, ft(r.CreatedAt))
-		req.Equal(updatedAtTs, ft(*r.UpdatedAt))
-		req.Equal(deletedAtTs, ft(*r.DeletedAt))
-		// Can't get archived channels
-		// req.Equal(archivedAtTs, ft(*r.ArchivedAt))
-
-		req.Equal(u.ID, r.CreatorID)
 	})
 }

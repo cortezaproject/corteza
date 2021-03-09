@@ -21,7 +21,6 @@ type (
 		Monitor     options.MonitorOpt
 		WaitFor     options.WaitForOpt
 		HTTPServer  options.HTTPServerOpt
-		Websocket   options.WebsocketOpt
 		Eventbus    options.EventbusOpt
 		Federation  options.FederationOpt
 		SCIM        options.SCIMOpt
@@ -45,7 +44,6 @@ func NewOptions() *Options {
 		Monitor:     *options.Monitor(),
 		WaitFor:     *options.WaitFor(),
 		HTTPServer:  *options.HTTPServer(),
-		Websocket:   *options.Websocket(),
 		Eventbus:    *options.Eventbus(),
 		Federation:  *options.Federation(),
 		SCIM:        *options.SCIM(),
