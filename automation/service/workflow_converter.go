@@ -554,8 +554,8 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 
 		// reference should not be set on the step
 		noRef = func() error {
-			if s.Ref == "" {
-				return errors.Internal("%s step expects reference", s.Kind)
+			if s.Ref != "" {
+				return errors.Internal("%s step does not expects reference", s.Kind)
 			}
 
 			return nil
