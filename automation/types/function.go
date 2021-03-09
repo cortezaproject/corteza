@@ -56,6 +56,7 @@ const (
 	FunctionKindIterator = "iterator"
 )
 
+// FunctionStep initializes new function step with function definition and configured arguments and results
 func FunctionStep(def *Function, arguments, results ExprSet) (*functionStep, error) {
 	if def.Kind != FunctionKindFunction {
 		return nil, fmt.Errorf("expecting function kind")
@@ -64,7 +65,13 @@ func FunctionStep(def *Function, arguments, results ExprSet) (*functionStep, err
 	return &functionStep{def: def, arguments: arguments, results: results}, nil
 }
 
-func (f *functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
+// Exec executes function step
+//
+// Configured arguments are evaluated with the step's scope and input and passed
+// to the function
+//
+// Configured results are evaluated with the results from the function and final scope is then returned
+func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 	var (
 		started       = time.Now()
 		args, results *expr.Vars
@@ -115,6 +122,9 @@ func (f *functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.
 	return results, nil
 }
 
+// IteratorStep initializes new iterator step with function (iterator) and other parameters
+//
+// Pointers to next and exit steps are are given and then passed on to the iterator
 func IteratorStep(def *Function, arguments, results ExprSet, next, exit wfexec.Step) (*iteratorStep, error) {
 	if def.Kind != FunctionKindIterator {
 		return nil, fmt.Errorf("expecting iterator kind")
@@ -129,6 +139,12 @@ func IteratorStep(def *Function, arguments, results ExprSet, next, exit wfexec.S
 	}, nil
 }
 
+// Exec configures and returns generic iterator
+//
+// This fn is executed only once, before 1st iteration. From there on, session executor uses Iterator to
+// iterate over all items, elements or content that iterator serves it through Next() fn
+//
+// See also EvalResults
 func (f *iteratorStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
 	var (
 		started = time.Now()
@@ -168,6 +184,9 @@ func (f *iteratorStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.
 	return wfexec.GenericIterator(f, f.next, f.exit, ih), nil
 }
 
+// EvalResults is called from iterator's Next() fn.
+//
+// It prepares scope for each iteration by evaluating results from the iterator function
 func (f *iteratorStep) EvalResults(ctx context.Context, results *expr.Vars) (*expr.Vars, error) {
 	if results.Len() == 0 || len(f.results) == 0 {
 		// No results or result expressions defined, nothing to return

@@ -75,7 +75,8 @@ type (
 		LeadTime  time.Duration `json:"leadTime"`
 	}
 
-	// ExecRequest is passed to Exec() functions and contains all information to
+	// ExecRequest is passed to Exec() functions and contains all information
+	// for ste pexecution
 	ExecRequest struct {
 		SessionID uint64
 		StateID   uint64
@@ -440,6 +441,12 @@ func (s *Session) queueScheduledSuspended() {
 		}
 
 		delete(s.delayed, id)
+
+		// Set state input when step is resumed
+		sus.state.input = expr.RVars{
+			"resumed":  expr.Must(expr.NewBoolean(true)),
+			"resumeAt": expr.Must(expr.NewDateTime(sus.resumeAt)),
+		}.Vars()
 		s.qState <- sus.state
 	}
 }
