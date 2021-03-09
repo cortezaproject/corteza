@@ -18,6 +18,7 @@ import (
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
 	ffn := []func() error{
 		func() error { return roles(ctx, s) },
+		func() error { return apps(ctx, s) },
 		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
 		func() error { return authSettingsAutoDiscovery(ctx, log, service.DefaultSettings) },
 		func() error { return authAddExternals(ctx, log) },
