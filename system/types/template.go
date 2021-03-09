@@ -70,8 +70,8 @@ type (
 
 const (
 	DocumentTypePlain DocumentType = "text/plain"
-	DocumentTypeHTML               = "text/html"
-	DocumentTypePDF                = "application/pdf"
+	DocumentTypeHTML  DocumentType = "text/html"
+	DocumentTypePDF   DocumentType = "application/pdf"
 )
 
 func (t *TemplateMeta) Scan(value interface{}) error {

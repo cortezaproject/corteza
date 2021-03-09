@@ -3,8 +3,10 @@ package service
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -99,7 +101,7 @@ func (svc template) FindByHandle(ctx context.Context, h string) (tpl *types.Temp
 		}
 
 		if tpl, err = store.LookupTemplateByHandle(ctx, svc.store, h); err != nil {
-			return TemplateErrInvalidHandle().Wrap(err)
+			return TemplateErrNotFound().Wrap(err)
 		}
 
 		tplProps.setTemplate(tpl)
@@ -408,9 +410,14 @@ func (svc template) getPartials(ctx context.Context, tpl *types.Template) ([]*re
 	// @todo do some filtering based on partial type and main template type
 
 	for _, t := range set {
+		tpl := t.Template
+		if !strings.HasPrefix(tpl, "{{define") {
+			tpl = fmt.Sprintf(`{{define "%s"}}%s{{end}}`, t.Handle, tpl)
+		}
+
 		pp = append(pp, &renderer.TemplatePartial{
 			Handle:       t.Handle,
-			Template:     bytes.NewBuffer([]byte(t.Template)),
+			Template:     bytes.NewBuffer([]byte(tpl)),
 			TemplateType: t.Type,
 		})
 	}
