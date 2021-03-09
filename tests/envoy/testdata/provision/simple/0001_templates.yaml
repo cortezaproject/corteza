@@ -1,0 +1,30 @@
+templates:
+  email_general_header:
+    type: text/html
+    partial: true
+    meta:
+      short: General template header
+      description: General template header to use with system email notifications
+    template: <p>header</p>
+
+  email_general_footer:
+    type: text/html
+    partial: true
+    meta:
+      short: General template footer
+      description: General template footer to use with system email notifications
+    template: <p>footer</p>
+
+  email_general_content:
+    type: text/html
+    meta:
+      short: General template content
+      description: General template content to use with system email notifications
+    template: <p>content</p>
+
+  email_general_subject:
+    type: text/plain
+    meta:
+      short: General template subject
+      description: General template subject to use with system email notifications
+    template: content

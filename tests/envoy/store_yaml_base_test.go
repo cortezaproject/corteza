@@ -448,6 +448,32 @@ func TestStoreYaml_base(t *testing.T) {
 		},
 
 		{
+			name: "base templates",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				sTestTemplate(ctx, t, s, "base")
+
+				df := su.NewDecodeFilter().
+					Templates(&stypes.TemplateFilter{
+						Handle: "base_template",
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				tpl, err := store.LookupTemplateByHandle(ctx, s, "base_template")
+				req.NoError(err)
+
+				req.Equal("base_template", tpl.Handle)
+				req.Equal(stypes.DocumentTypeHTML, tpl.Type)
+				req.Equal(true, tpl.Partial)
+				req.Equal("base_short", tpl.Meta.Short)
+				req.Equal("base_description", tpl.Meta.Description)
+				req.Equal("base_template content", tpl.Template)
+				req.Equal(createdAt.Format(time.RFC3339), tpl.CreatedAt.Format(time.RFC3339))
+				req.Equal(updatedAt.Format(time.RFC3339), tpl.UpdatedAt.Format(time.RFC3339))
+			},
+		},
+
+		{
 			name: "base applications",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				usr := sTestUser(ctx, t, s, "base")

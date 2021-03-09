@@ -12,6 +12,7 @@ import (
 type (
 	roleFilter        types.RoleFilter
 	userFilter        types.UserFilter
+	templateFilter    types.TemplateFilter
 	applicationFilter types.ApplicationFilter
 	settingFilter     types.SettingsFilter
 	rbacFilter        struct {
@@ -28,6 +29,7 @@ type (
 		store.Roles
 		store.Settings
 		store.Users
+		store.Templates
 	}
 
 	systemDecoder struct {
@@ -130,6 +132,52 @@ func (d *systemDecoder) decodeUsers(ctx context.Context, s systemStore, ff []*us
 		mm: mm,
 	}
 }
+
+func (d *systemDecoder) decodeTemplates(ctx context.Context, s systemStore, ff []*templateFilter) *auxRsp {
+	mm := make([]envoy.Marshaller, 0, 100)
+	if ff == nil {
+		return &auxRsp{
+			mm: mm,
+		}
+	}
+
+	var nn types.TemplateSet
+	var fn types.TemplateFilter
+	var err error
+
+	for _, f := range ff {
+		aux := *f
+
+		if aux.Limit == 0 {
+			aux.Limit = 1000
+		}
+
+		for {
+			nn, fn, err = s.SearchTemplates(ctx, types.TemplateFilter(aux))
+			if err != nil {
+				return &auxRsp{
+					err: err,
+				}
+			}
+
+			for _, n := range nn {
+				mm = append(mm, newTemplate(n))
+				d.resourceID = append(d.resourceID, n.ID)
+			}
+
+			if fn.NextPage != nil {
+				aux.PageCursor = fn.NextPage
+			} else {
+				break
+			}
+		}
+	}
+
+	return &auxRsp{
+		mm: mm,
+	}
+}
+
 func (d *systemDecoder) decodeApplications(ctx context.Context, s systemStore, ff []*applicationFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
@@ -273,6 +321,15 @@ func (df *DecodeFilter) Users(f *types.UserFilter) *DecodeFilter {
 		df.users = make([]*userFilter, 0, 1)
 	}
 	df.users = append(df.users, (*userFilter)(f))
+	return df
+}
+
+// Templates adds a new TemplateFilter
+func (df *DecodeFilter) Templates(f *types.TemplateFilter) *DecodeFilter {
+	if df.templates == nil {
+		df.templates = make([]*templateFilter, 0, 1)
+	}
+	df.templates = append(df.templates, (*templateFilter)(f))
 	return df
 }
 

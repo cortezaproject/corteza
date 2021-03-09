@@ -22,6 +22,7 @@ type (
 		// System stuff
 		roles        []*roleFilter
 		users        []*userFilter
+		templates    []*templateFilter
 		applications []*applicationFilter
 		settings     []*settingFilter
 		rbac         []*rbacFilter
@@ -87,6 +88,7 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 
 		system.decodeRoles(ctx, s, f.roles),
 		system.decodeUsers(ctx, s, f.users),
+		system.decodeTemplates(ctx, s, f.templates),
 		system.decodeApplications(ctx, s, f.applications),
 		system.decodeSettings(ctx, s, f.settings),
 	)

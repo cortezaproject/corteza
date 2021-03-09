@@ -132,6 +132,8 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 		// System resources
 		case *resource.User:
 			err = f(NewUserFromResource(res, se.cfg), ers)
+		case *resource.Template:
+			err = f(NewTemplateFromResource(res, se.cfg), ers)
 		case *resource.Role:
 			err = f(NewRoleFromResource(res, se.cfg), ers)
 		case *resource.Application:

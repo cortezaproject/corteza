@@ -125,6 +125,8 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 			err = f(roleFromResource(res, ye.cfg), e)
 		case *resource.User:
 			err = f(userFromResource(res, ye.cfg), e)
+		case *resource.Template:
+			err = f(templateFromResource(res, ye.cfg), e)
 		case *resource.Application:
 			err = f(applicationFromResource(res, ye.cfg), e)
 		case *resource.Setting:
