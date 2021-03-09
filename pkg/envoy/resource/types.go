@@ -49,6 +49,7 @@ var (
 	ROLE_RESOURCE_TYPE              = st.RoleRBACResource.String()
 	SETTINGS_RESOURCE_TYPE          = "system:setting:"
 	USER_RESOURCE_TYPE              = st.UserRBACResource.String()
+	TEMPLATE_RESOURCE_TYPE          = st.TemplateRBACResource.String()
 	DATA_SOURCE_RESOURCE_TYPE       = "data:raw:"
 )
 

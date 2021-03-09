@@ -11,6 +11,7 @@ import (
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
+	stypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -167,6 +168,12 @@ func TestYamlStore_provision(t *testing.T) {
 			sr := rr[0]
 			req.Equal("s1 value", sr.Values.Get("s1", 0).Value)
 			req.Equal("1", sr.Values.Get("s2", 0).Value)
+		})
+
+		t.Run("templates", func(t *testing.T) {
+			tpls, _, err := store.SearchTemplates(ctx, s, stypes.TemplateFilter{})
+			req.NoError(err)
+			req.Len(tpls, 4)
 		})
 
 		truncateStore(ctx, s, t)

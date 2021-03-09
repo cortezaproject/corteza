@@ -52,7 +52,10 @@ func (y *decoder) Decode(ctx context.Context, r io.Reader, dctx *envoy.DecoderOp
 		return nil, err
 	}
 
-	return doc.Decode(ctx)
+	aaa, err := doc.Decode(ctx)
+
+	return aaa, err
+
 }
 
 // Checks validity of ref node and sets the value to given arg ptr

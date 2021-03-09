@@ -15,6 +15,7 @@ type (
 		compose      *compose
 		roles        roleSet
 		users        userSet
+		templates    templateSet
 		applications applicationSet
 		settings     settingSet
 		rbac         rbacRuleSet
@@ -39,6 +40,9 @@ func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		case "users":
 			return v.Decode(&doc.users)
+
+		case "templates":
+			return v.Decode(&doc.templates)
 
 		case "applications":
 			return v.Decode(&doc.applications)
@@ -80,6 +84,15 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 		doc.users.ConfigureEncoder(doc.cfg)
 
 		dn, err = encodeResource(dn, "users", doc.users, doc.cfg.MappedOutput, "handle")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if doc.templates != nil && len(doc.templates) > 0 {
+		doc.templates.ConfigureEncoder(doc.cfg)
+
+		dn, err = encodeResource(dn, "templates", doc.templates, doc.cfg.MappedOutput, "handle")
 		if err != nil {
 			return nil, err
 		}
@@ -132,6 +145,9 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	}
 	if doc.users != nil {
 		mm = append(mm, doc.users)
+	}
+	if doc.templates != nil {
+		mm = append(mm, doc.templates)
 	}
 	if doc.applications != nil {
 		mm = append(mm, doc.applications)
@@ -234,6 +250,15 @@ func (doc *Document) AddUser(u *user) {
 	}
 
 	doc.users = append(doc.users, u)
+}
+
+// AddTemplate adds a new template to the document
+func (doc *Document) AddTemplate(u *template) {
+	if doc.templates == nil {
+		doc.templates = make(templateSet, 0, 20)
+	}
+
+	doc.templates = append(doc.templates, u)
 }
 
 // AddApplication adds a new application to the document

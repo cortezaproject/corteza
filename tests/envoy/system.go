@@ -36,6 +36,29 @@ func sTestUser(ctx context.Context, t *testing.T, s store.Storer, pfx string) *t
 	return usr
 }
 
+func sTestTemplate(ctx context.Context, t *testing.T, s store.Storer, pfx string) *types.Template {
+	tpl := &types.Template{
+		ID:      su.NextID(),
+		Handle:  pfx + "_template",
+		Type:    types.DocumentTypeHTML,
+		Partial: true,
+		Meta: types.TemplateMeta{
+			Short:       pfx + "_short",
+			Description: pfx + "_description",
+		},
+		Template:  pfx + "_template content",
+		CreatedAt: createdAt,
+		UpdatedAt: &updatedAt,
+	}
+
+	err := store.CreateTemplate(ctx, s, tpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return tpl
+}
+
 func sTestRole(ctx context.Context, t *testing.T, s store.Storer, pfx string) *types.Role {
 	rl := &types.Role{
 		ID:        su.NextID(),

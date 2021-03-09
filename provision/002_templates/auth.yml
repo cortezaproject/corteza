@@ -1,0 +1,53 @@
+templates:
+  auth_email_password_reset_subject:
+    type: text/plain
+    meta:
+      short: Password reset subject
+    template: Reset your password
+
+  auth_email_password_reset_content:
+    type: text/html
+    meta:
+      short: Password reset content
+    template: |-
+      {{template "email_general_header" .}}
+        <h2 style="color: #568ba2;text-align: center;">Reset your password</h2>
+        <p>Hello,</p>
+        <p>Follow <a href="{{ .URL }}" style="color:#568ba2;">this link</a> and reset your password.</p>
+        <p>You will be logged-in after successful reset.</p>
+      {{template "email_general_footer" .}}
+
+  auth_email_email_confirm_subject:
+    type: text/plain
+    meta:
+      short: Email confirmation subject
+    template: Reset your password
+
+  auth_email_email_confirm_content:
+    type: text/html
+    meta:
+      short: Email confirmation content
+    template: |-
+      {{template "email_general_header" .}}
+        <h2 style="color: #568ba2;text-align: center;">Confirm your email address</h2>
+        <p>Hello,</p>
+        <p>Follow <a href="{{ .URL }}" style="color:#568ba2;">this link</a> to confirm your email address.</p>
+        <p>You will be logged-in after successful confirmation.</p>
+      {{template "email_general_footer" .}}
+
+  auth_email_email_mfa_subject:
+    type: text/plain
+    meta:
+      short: MFA login code subject
+    template: Login code
+
+  auth_email_email_mfa_content:
+    type: text/html
+    meta:
+      short: MFA login code content
+    template: |-
+      {{template "email_general_header" .}}
+        <h2 style="color: #568ba2;text-align: center;">Reset your password</h2>
+        <p>Hello,</p>
+        <p>Enter this code into your login form: <code>{{.Code}}</code></p>
+      {{template "email_general_footer" .}}
