@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
@@ -24,6 +25,8 @@ type (
 		store     store.Storer
 		actionlog actionlog.Recorder
 		ac        triggerAccessController
+
+		opt options.WorkflowOpt
 
 		log *zap.Logger
 
@@ -68,9 +71,10 @@ const (
 	triggerLabelsChanged triggerChanges = 2
 )
 
-func Trigger(log *zap.Logger) *trigger {
+func Trigger(log *zap.Logger, opt options.WorkflowOpt) *trigger {
 	return &trigger{
 		log:       log,
+		opt:       opt,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
@@ -415,6 +419,10 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 	var (
 		runAs auth.Identifiable
 	)
+
+	if !svc.opt.Enabled {
+		return nil
+	}
 
 	if len(types.TriggerSet(tt).FilterByWorkflowID(wf.ID)) < len(tt) {
 		return fmt.Errorf("all triggers must reference the given workflow")

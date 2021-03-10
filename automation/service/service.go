@@ -23,6 +23,7 @@ type (
 
 	Config struct {
 		ActionLog options.ActionLogOpt
+		Workflow  options.WorkflowOpt
 	}
 
 	userService interface {
@@ -91,7 +92,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"))
 	DefaultSession = Session(DefaultLogger.Named("session"))
-	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"))
+	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
 	DefaultWorkflow.triggers = DefaultTrigger
 

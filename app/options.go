@@ -24,6 +24,7 @@ type (
 		Eventbus    options.EventbusOpt
 		Federation  options.FederationOpt
 		SCIM        options.SCIMOpt
+		Workflow    options.WorkflowOpt
 	}
 )
 
@@ -47,5 +48,6 @@ func NewOptions() *Options {
 		Eventbus:    *options.Eventbus(),
 		Federation:  *options.Federation(),
 		SCIM:        *options.SCIM(),
+		Workflow:    *options.Workflow(),
 	}
 }
