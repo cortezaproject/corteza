@@ -103,7 +103,7 @@ func (n Operator) ToSql() (string, []interface{}, error) {
 	switch n.Kind {
 	case "LIKE", "NOT LIKE":
 		// Make sure we are doing case insensitive search
-		op = "COLLATE utf8_general_ci " + n.Kind
+		op = QueryEncoder.CaseInsensitiveLike(n.Kind == "NOT LIKE")
 	}
 
 	return " " + op + " ", nil, nil
