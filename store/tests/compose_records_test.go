@@ -340,6 +340,16 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			req.NoError(err)
 			req.Len(set, 1)
 		})
+
+		t.Run("with like op", func(t *testing.T) {
+			var (
+				req = require.New(t)
+				f   = types.RecordFilter{Query: `str3 LIKE '%“2020%'`}
+
+				_, _, err = s.SearchComposeRecords(ctx, mod, f)
+			)
+			req.NoError(err)
+		})
 	})
 
 	t.Run("paging and sorting", func(t *testing.T) {

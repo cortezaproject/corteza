@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/instrumentation"
@@ -50,6 +51,8 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {
 		return nil, err
 	}
+
+	ql.QueryEncoder = &QueryEncoder{}
 
 	return s, nil
 }

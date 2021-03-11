@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/instrumentation"
@@ -52,6 +53,8 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	// See https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_ansi
 	// for details
 	s.DB().ExecContext(ctx, "SET SESSION sql_mode = 'ANSI'")
+
+	ql.QueryEncoder = &QueryEncoder{}
 
 	return s, nil
 }
