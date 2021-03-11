@@ -41,28 +41,6 @@ type (
 		opt      options.AuthOpt
 	}
 
-	// oasm interface {
-	// 	redirectError(w http.ResponseWriter, req *server.AuthorizeRequest, err error) error
-	// 	redirect(w http.ResponseWriter, req *server.AuthorizeRequest, data map[string]interface{}) error
-	// 	tokenError(w http.ResponseWriter, err error) error
-	// 	token(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error
-	// 	GetRedirectURI(req *server.AuthorizeRequest, data map[string]interface{}) (string, error)
-	// 	CheckResponseType(rt oauth2.ResponseType) bool
-	// 	CheckCodeChallengeMethod(ccm oauth2.CodeChallengeMethod) bool
-	// 	ValidationAuthorizeRequest(r *http.Request) (*server.AuthorizeRequest, error)
-	// 	GetAuthorizeToken(ctx context.Context, req *server.AuthorizeRequest) (oauth2.TokenInfo, error)
-	// 	GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) map[string]interface{}
-	// 	HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) error
-	// 	ValidationTokenRequest(r *http.Request) (oauth2.GrantType, *oauth2.TokenGenerateRequest, error)
-	// 	CheckGrantType(gt oauth2.GrantType) bool
-	// 	GetAccessToken(ctx context.Context, gt oauth2.GrantType, tgr *oauth2.TokenGenerateRequest) (oauth2.TokenInfo, error)
-	// 	GetTokenData(ti oauth2.TokenInfo) map[string]interface{}
-	// 	HandleTokenRequest(w http.ResponseWriter, r *http.Request) error
-	// 	GetErrorData(err error) (map[string]interface{}, int, http.Header)
-	// 	BearerAuth(r *http.Request) (string, bool)
-	// 	ValidationBearerToken(r *http.Request) (oauth2.TokenInfo, error)
-	// }
-
 	oauth2ServiceMocked struct {
 		getRedirectURI             func(req *server.AuthorizeRequest, data map[string]interface{}) (string, error)
 		checkResponseType          func(rt oauth2.ResponseType) bool
@@ -342,4 +320,11 @@ func prepareClientAuthHandlers(ctx context.Context, authService authService, s *
 		AuthService: authService,
 		Settings:    s,
 	}
+}
+
+// wrapper around time.Now() that will aid service testing
+func now() *time.Time {
+	c := time.Now()
+	// c := time.Now().Round(time.Second)
+	return &c
 }

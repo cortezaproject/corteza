@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"testing"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
@@ -182,11 +181,4 @@ func Test_loginProc(t *testing.T) {
 			rq.Equal(tc.link, authReq.RedirectTo)
 		})
 	}
-}
-
-// wrapper around time.Now() that will aid service testing
-func now() *time.Time {
-	c := time.Now()
-	// c := time.Now().Round(time.Second)
-	return &c
 }
