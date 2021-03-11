@@ -102,7 +102,7 @@ func Auth(app serviceInitializer, opt options.AuthOpt) *cobra.Command {
 			// Update current settings to be sure that we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
-			err = ntf.PasswordReset(ctx, "en", args[0], "notification-testing-token")
+			err = ntf.PasswordReset(ctx, args[0], "notification-testing-token")
 			cli.HandleError(err)
 		},
 	}

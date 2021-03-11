@@ -733,8 +733,7 @@ func (svc auth) ExchangePasswordResetToken(ctx context.Context, token string) (u
 
 func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error) {
 	var (
-		notificationLang = "en"
-		token            string
+		token string
 
 		aam = &authActionProps{
 			user:        u,
@@ -746,7 +745,7 @@ func (svc auth) SendEmailAddressConfirmationToken(ctx context.Context, u *types.
 		return
 	}
 
-	if err = svc.notifications.EmailConfirmation(ctx, notificationLang, u.Email, token); err != nil {
+	if err = svc.notifications.EmailConfirmation(ctx, u.Email, token); err != nil {
 		return
 	}
 
@@ -786,16 +785,12 @@ func (svc auth) SendPasswordResetToken(ctx context.Context, email string) (err e
 }
 
 func (svc auth) sendPasswordResetToken(ctx context.Context, u *types.User) (err error) {
-	var (
-		notificationLang = "en"
-	)
-
 	token, err := svc.createUserToken(ctx, u, credentialsTypeResetPasswordToken)
 	if err != nil {
 		return err
 	}
 
-	return svc.notifications.PasswordReset(ctx, notificationLang, u.Email, token)
+	return svc.notifications.PasswordReset(ctx, u.Email, token)
 }
 
 // procLogin fn performs standard validation, credentials-update tasks and triggers events
@@ -1186,8 +1181,6 @@ func (auth) revokeAllTOTP(ctx context.Context, s store.Credentials, userID uint6
 
 func (svc auth) SendEmailOTP(ctx context.Context) (err error) {
 	var (
-		notificationLang = "en"
-
 		otp  string
 		u    *types.User
 		kind = credentialsTypeMFAEmailOTP
@@ -1211,7 +1204,7 @@ func (svc auth) SendEmailOTP(ctx context.Context) (err error) {
 			return
 		}
 
-		if err = svc.notifications.EmailOTP(ctx, notificationLang, u.Email, otp); err != nil {
+		if err = svc.notifications.EmailOTP(ctx, u.Email, otp); err != nil {
 			return
 		}
 
