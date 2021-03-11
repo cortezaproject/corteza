@@ -350,6 +350,16 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			)
 			req.NoError(err)
 		})
+
+		t.Run("with bool field", func(t *testing.T) {
+			var (
+				req = require.New(t)
+				f   = types.RecordFilter{Query: `bool1 = true`}
+
+				_, _, err = s.SearchComposeRecords(ctx, mod, f)
+			)
+			req.NoError(err)
+		})
 	})
 
 	t.Run("paging and sorting", func(t *testing.T) {

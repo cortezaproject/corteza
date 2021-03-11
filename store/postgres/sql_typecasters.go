@@ -19,7 +19,7 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 
 	switch true {
 	case field.IsBoolean():
-		tcp := "CASE WHEN %s NOT IN ('', '0', 'false', 'f',  'FALSE', 'F') THEN 1 ELSE 0 END "
+		tcp := "%s NOT IN ('', '0', 'false', 'f',  'FALSE', 'F')"
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsNumeric():
