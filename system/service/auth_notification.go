@@ -25,13 +25,13 @@ type (
 	}
 
 	AuthNotificationService interface {
-		EmailOTP(ctx context.Context, lang string, emailAddress string, otp string) error
-		EmailConfirmation(ctx context.Context, lang string, emailAddress string, url string) error
-		PasswordReset(ctx context.Context, lang string, emailAddress string, url string) error
+		EmailOTP(ctx context.Context, emailAddress string, otp string) error
+		EmailConfirmation(ctx context.Context, emailAddress string, url string) error
+		PasswordReset(ctx context.Context, emailAddress string, url string) error
 	}
 )
 
-func AuthNotification(s *types.AppSettings, ts TemplateService, opt options.AuthOpt) AuthNotificationService {
+func AuthNotification(s *types.AppSettings, ts TemplateService, opt options.AuthOpt) *authNotification {
 	return &authNotification{
 		logger:   DefaultLogger.Named("auth-notification"),
 		settings: s,
@@ -44,20 +44,20 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
-func (svc authNotification) EmailOTP(ctx context.Context, lang string, emailAddress string, code string) error {
-	return svc.send(ctx, "auth_email_otp", lang, emailAddress, map[string]interface{}{
+func (svc authNotification) EmailOTP(ctx context.Context, emailAddress string, code string) error {
+	return svc.send(ctx, "auth_email_otp", emailAddress, map[string]interface{}{
 		"Code": code,
 	})
 }
 
-func (svc authNotification) EmailConfirmation(ctx context.Context, lang string, emailAddress string, token string) error {
-	return svc.send(ctx, "auth_email_confirmation", lang, emailAddress, map[string]interface{}{
+func (svc authNotification) EmailConfirmation(ctx context.Context, emailAddress string, token string) error {
+	return svc.send(ctx, "auth_email_confirmation", emailAddress, map[string]interface{}{
 		"URL": fmt.Sprintf("%s/confirm-email?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
 
-func (svc authNotification) PasswordReset(ctx context.Context, lang string, emailAddress string, token string) error {
-	return svc.send(ctx, "auth_email_password_reset", lang, emailAddress, map[string]interface{}{
+func (svc authNotification) PasswordReset(ctx context.Context, emailAddress string, token string) error {
+	return svc.send(ctx, "auth_email_password_reset", emailAddress, map[string]interface{}{
 		"URL": fmt.Sprintf("%s/reset-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
@@ -76,7 +76,7 @@ func (svc authNotification) newMail() *gomail.Message {
 	return m
 }
 
-func (svc authNotification) send(ctx context.Context, name, lang, sendTo string, payload map[string]interface{}) error {
+func (svc authNotification) send(ctx context.Context, name, sendTo string, payload map[string]interface{}) error {
 	var (
 		err error
 		tmp []byte
@@ -126,7 +126,6 @@ func (svc authNotification) send(ctx context.Context, name, lang, sendTo string,
 	svc.log(ctx).Debug(
 		"sending auth notification",
 		zap.String("name", name),
-		zap.String("language", lang),
 		zap.String("email", sendTo),
 	)
 
