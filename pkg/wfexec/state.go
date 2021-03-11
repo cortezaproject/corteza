@@ -121,7 +121,7 @@ func (s State) loopCurr() Iterator {
 
 func (s State) MakeFrame() *Frame {
 	f := &Frame{
-		Created:   s.created,
+		CreatedAt: s.created,
 		SessionID: s.sessionId,
 		StateID:   s.stateId,
 		Input:     s.input,
