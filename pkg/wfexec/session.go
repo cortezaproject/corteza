@@ -65,7 +65,7 @@ type (
 	sessionOpt func(*Session)
 
 	Frame struct {
-		Created   time.Time     `json:"created"`
+		CreatedAt time.Time     `json:"createdAt"`
 		SessionID uint64        `json:"sessionID"`
 		StateID   uint64        `json:"stateID"`
 		Input     *expr.Vars    `json:"input"`

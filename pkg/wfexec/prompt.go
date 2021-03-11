@@ -24,7 +24,7 @@ type (
 	PendingPrompt struct {
 		Ref       string     `json:"ref"`
 		SessionID uint64     `json:"sessionID,string"`
-		CreatedAt time.Time  `json:"created"`
+		CreatedAt time.Time  `json:"createdAt"`
 		StateID   uint64     `json:"stateID,string"`
 		Payload   *expr.Vars `json:"payload"`
 	}
