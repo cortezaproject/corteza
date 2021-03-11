@@ -3,22 +3,24 @@ package handlers
 import (
 	"context"
 	"encoding/gob"
+	"io"
+	"net/http"
+	"net/url"
+	"sort"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
-	oauth2server "github.com/go-oauth2/oauth2/v4/server"
+	"github.com/go-oauth2/oauth2/v4"
+	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"net/url"
-	"sort"
-	"strings"
 )
 
 type (
@@ -64,11 +66,29 @@ type (
 		ExecuteTemplate(io.Writer, string, interface{}) error
 	}
 
+	oauth2Service interface {
+		GetRedirectURI(req *server.AuthorizeRequest, data map[string]interface{}) (string, error)
+		CheckResponseType(rt oauth2.ResponseType) bool
+		CheckCodeChallengeMethod(ccm oauth2.CodeChallengeMethod) bool
+		ValidationAuthorizeRequest(r *http.Request) (*server.AuthorizeRequest, error)
+		GetAuthorizeToken(ctx context.Context, req *server.AuthorizeRequest) (oauth2.TokenInfo, error)
+		GetAuthorizeData(rt oauth2.ResponseType, ti oauth2.TokenInfo) map[string]interface{}
+		HandleAuthorizeRequest(w http.ResponseWriter, r *http.Request) error
+		ValidationTokenRequest(r *http.Request) (oauth2.GrantType, *oauth2.TokenGenerateRequest, error)
+		CheckGrantType(gt oauth2.GrantType) bool
+		GetAccessToken(ctx context.Context, gt oauth2.GrantType, tgr *oauth2.TokenGenerateRequest) (oauth2.TokenInfo, error)
+		GetTokenData(ti oauth2.TokenInfo) map[string]interface{}
+		HandleTokenRequest(w http.ResponseWriter, r *http.Request) error
+		GetErrorData(err error) (map[string]interface{}, int, http.Header)
+		BearerAuth(r *http.Request) (string, bool)
+		ValidationBearerToken(r *http.Request) (oauth2.TokenInfo, error)
+	}
+
 	AuthHandlers struct {
 		Log *zap.Logger
 
 		Templates      templateExecutor
-		OAuth2         *oauth2server.Server
+		OAuth2         oauth2Service
 		SessionManager *request.SessionManager
 		AuthService    authService
 		UserService    userService

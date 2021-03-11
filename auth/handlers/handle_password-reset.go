@@ -19,6 +19,7 @@ func (h *AuthHandlers) requestPasswordResetProc(req *request.AuthReq) (err error
 
 	email := req.Request.PostFormValue("email")
 	err = h.AuthService.SendPasswordResetToken(req.Context(), email)
+
 	if err == nil || errors.IsNotFound(err) {
 		req.RedirectTo = GetLinks().PasswordResetRequested
 		return nil

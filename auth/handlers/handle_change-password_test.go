@@ -46,7 +46,6 @@ func Test_changePasswordForm_setValues(t *testing.T) {
 	rq.NoError(err)
 	rq.Equal(TmplChangePassword, authReq.Template)
 	rq.Equal(payload, authReq.Data["form"])
-
 }
 
 func Test_changePasswordProc(t *testing.T) {
