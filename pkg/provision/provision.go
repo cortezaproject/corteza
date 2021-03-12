@@ -17,9 +17,17 @@ import (
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
 	ffn := []func() error{
+		// Old relics
 		func() error { return roles(ctx, s) },
+
+		// Migrations:
 		func() error { return apps(ctx, s) },
+		func() error { return migrateEmailTemplates(ctx, log, s) },
+
+		// Config (full & partial)
 		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
+
+		// Auto-discoveries and other parts that can not be imported from static files
 		func() error { return authSettingsAutoDiscovery(ctx, log, service.DefaultSettings) },
 		func() error { return authAddExternals(ctx, log) },
 		func() error { return service.DefaultSettings.UpdateCurrent(ctx) },
