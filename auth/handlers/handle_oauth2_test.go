@@ -9,16 +9,14 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
-	"github.com/quasoft/memstore"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
 func Test_oauth2AuthorizeSuccess(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -31,8 +29,6 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	tcc := []testingExpect{
@@ -66,9 +62,11 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = &AuthHandlers{
 				Log:         zap.NewNop(),
 				AuthService: authService,
@@ -91,9 +89,8 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 
 func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -115,7 +112,7 @@ func Test_oauth2AuthorizeSuccessSetParams(t *testing.T) {
 		},
 	}
 
-	authReq = prepareClientAuthReq(ctx, req, user, memStore)
+	authReq = prepareClientAuthReq(ctx, req, user)
 	authReq.Session.Values["oauth2AuthParams"] = url.Values{"foo": []string{"bar"}}
 
 	authHandlers = &AuthHandlers{

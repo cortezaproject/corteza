@@ -10,15 +10,13 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/quasoft/memstore"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_logoutProc(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{}
 
@@ -36,7 +34,7 @@ func Test_logoutProc(t *testing.T) {
 	service.CurrentSettings.Auth.Internal.Enabled = true
 
 	authService = &authServiceMocked{}
-	authReq = prepareClientAuthReq(ctx, req, user, memStore)
+	authReq = prepareClientAuthReq(ctx, req, user)
 	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 	req.PostForm = url.Values{}
@@ -44,7 +42,6 @@ func Test_logoutProc(t *testing.T) {
 	authReq.Session.Values = map[interface{}]interface{}{"key": url.Values{"key": []string{"value"}}}
 
 	err := authHandlers.logoutProc(authReq)
-
 	rq.NoError(err)
 	rq.Empty(authReq.Session.Values)
 	rq.Empty(authReq.AuthUser)

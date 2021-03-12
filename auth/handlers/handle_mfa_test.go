@@ -10,15 +10,13 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/quasoft/memstore"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_mfaProc(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{}
 
@@ -27,8 +25,6 @@ func Test_mfaProc(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	service.CurrentSettings = &types.AppSettings{}
@@ -194,6 +190,8 @@ func Test_mfaProc(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			// reset from previous
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
@@ -201,7 +199,7 @@ func Test_mfaProc(t *testing.T) {
 
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			err := authHandlers.mfaProc(authReq)

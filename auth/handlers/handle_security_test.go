@@ -10,15 +10,13 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/quasoft/memstore"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_securityForm(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -33,7 +31,7 @@ func Test_securityForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authReq = prepareClientAuthReq(ctx, req, user, memStore)
+	authReq = prepareClientAuthReq(ctx, req, user)
 	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 	err := authHandlers.securityForm(authReq)
@@ -46,9 +44,8 @@ func Test_securityForm(t *testing.T) {
 
 func Test_securityProc(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			PostForm: url.Values{},
@@ -59,8 +56,6 @@ func Test_securityProc(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	tcc := []testingExpect{
@@ -99,13 +94,15 @@ func Test_securityProc(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			// reset from previous
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			authReq.Session.Values = map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"}
@@ -128,9 +125,8 @@ func Test_securityProc(t *testing.T) {
 
 func Test_securityProcDisableEmailOTPSuccess(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			Form:     url.Values{},
@@ -154,7 +150,7 @@ func Test_securityProcDisableEmailOTPSuccess(t *testing.T) {
 		},
 	}
 
-	authReq = prepareClientAuthReq(ctx, req, user, memStore)
+	authReq = prepareClientAuthReq(ctx, req, user)
 	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 	authReq.Session.Values = map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"}
