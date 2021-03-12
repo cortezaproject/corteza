@@ -6,6 +6,8 @@ type (
 		// supported by the db
 		CaseInsensitiveLike(neg bool) string
 	}
+
+	failsafeEncoder struct{}
 )
 
 var (
@@ -17,5 +19,13 @@ var (
 	// only supporting one single db at the time.
 	//
 	// This will change in the future and so will the pkg/ql logic
-	QueryEncoder Encoder
+	QueryEncoder Encoder = &failsafeEncoder{}
 )
+
+func (failsafeEncoder) CaseInsensitiveLike(neg bool) string {
+	if neg {
+		return "NOT LIKE"
+	} else {
+		return "LIKE"
+	}
+}
