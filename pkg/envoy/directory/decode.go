@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	decoder interface {
+	Decoder interface {
 		CanDecodeExt(string) bool
 		CanDecodeFile(io.Reader) bool
 		Decode(context.Context, io.Reader, *envoy.DecoderOpts) ([]resource.Interface, error)
@@ -21,7 +21,7 @@ type (
 )
 
 // DecodeDirectory is a helper to run the decoding process over the entire directory
-func Decode(ctx context.Context, p string, decoders ...decoder) ([]resource.Interface, error) {
+func Decode(ctx context.Context, p string, decoders ...Decoder) ([]resource.Interface, error) {
 	var (
 		f *os.File
 
