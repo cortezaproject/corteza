@@ -254,7 +254,7 @@ func (s Store) internalCredentialsRowScanner(row rowScanner) (res *types.Credent
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan credentials db row").Wrap(err)
+		return nil, errors.Store("could not scan credentials db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

@@ -1,6 +1,6 @@
 # Gval
 
-[![Godoc](https://godoc.org/github.com/PaesslerAG/gval?status.png)](https://godoc.org/github.com/PaesslerAG/gval)
+[![Godoc](https://pkg.go.dev/github.com/PaesslerAG/gval?status.png)](https://godoc.org/github.com/PaesslerAG/gval)
 [![Build Status](https://api.travis-ci.org/PaesslerAG/gval.svg?branch=master)](https://travis-ci.org/PaesslerAG/gval)
 [![Coverage Status](https://coveralls.io/repos/github/PaesslerAG/gval/badge.svg?branch=master)](https://coveralls.io/github/PaesslerAG/gval?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/PaesslerAG/gval)](https://goreportcard.com/report/github.com/PaesslerAG/gval)
@@ -100,6 +100,13 @@ Gval is completly customizable. Every constant, function or operator can be defi
 - [foo.Hello + foo.World()](https://godoc.org/github.com/PaesslerAG/gval/#example-Language)
 
 For details see [Godoc](https://godoc.org/github.com/PaesslerAG/gval).
+
+### Implementing custom selector
+
+In a case you want to provide custom logic for selectors you can implement `SelectGVal(ctx context.Context, k string) (interface{}, error)` on your struct.
+Function receives next part of the path and can return any type of var that is again evaluated through standard gval procedures.
+
+[Example Custom Selector](https://godoc.org/github.com/PaesslerAG/gval/#example-custom-selector)
 
 ### External gval Languages
 

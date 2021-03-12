@@ -1,0 +1,25 @@
+# List of security/audit events and errors that we need to log
+
+resource: automation:access_control
+service: accessControl
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza-server/pkg/rbac
+
+props:
+  - name: rule
+    type: "*rbac.Rule"
+    fields: [ operation, roleID, access, resource ]
+
+actions:
+  - action: grant
+
+errors:
+  - error: notAllowedToSetPermissions
+    message: "not allowed to set permissions"
