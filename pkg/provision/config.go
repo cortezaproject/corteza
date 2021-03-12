@@ -2,6 +2,7 @@ package provision
 
 import (
 	"context"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"path/filepath"
 	"strings"
@@ -19,9 +20,11 @@ import (
 //
 // paths can be colon delimited list of absolute or relative paths and/or with glob pattern
 func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths string) error {
-	if can, err := canImportConfig(ctx, s); !can || err != nil {
-		log.Info("config import skipped, already provisioned")
-		return err
+	if can, err := canImportConfig(ctx, s); !can {
+		log.Info("already provisioned, skipping full config import")
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to check if config import can be done: %w", err)
 	}
 
 	var (
