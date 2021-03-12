@@ -33,7 +33,7 @@ func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 	}
 
 	switch {
-	case service.AuthErrInteralLoginDisabledByConfig().Is(err),
+	case service.AuthErrInternalLoginDisabledByConfig().Is(err),
 		service.AuthErrPasswordNotSecure().Is(err),
 		service.AuthErrPasswordChangeFailedForUnknownUser().Is(err),
 		service.AuthErrPasswodResetFailedOldPasswordCheckFailed().Is(err):

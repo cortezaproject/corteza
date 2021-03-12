@@ -1,10 +1,11 @@
 package types
 
 import (
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/jmoiron/sqlx/types"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
 type (

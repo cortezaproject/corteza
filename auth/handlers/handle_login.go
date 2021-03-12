@@ -73,7 +73,7 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 	}
 
 	switch {
-	case service.AuthErrInteralLoginDisabledByConfig().Is(err):
+	case service.AuthErrInternalLoginDisabledByConfig().Is(err):
 		h.localDisabledAlert(req)
 		return nil
 	case service.AuthErrInvalidEmailFormat().Is(err),

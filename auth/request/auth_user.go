@@ -2,10 +2,11 @@ package request
 
 import (
 	"encoding/gob"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/gorilla/sessions"
-	"time"
 )
 
 type (
