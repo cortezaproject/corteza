@@ -2,9 +2,10 @@ package oauth2
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-oauth2/oauth2/v4"
-	"strconv"
 )
 
 type (
