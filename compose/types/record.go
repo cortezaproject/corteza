@@ -108,6 +108,10 @@ func (r *Record) SetModule(m *Module) {
 	}
 }
 
+func (r *Record) GetModule() *Module {
+	return r.module
+}
+
 func (r Record) Clone() *Record {
 	c := &r
 	c.Values = r.Values.Clone()

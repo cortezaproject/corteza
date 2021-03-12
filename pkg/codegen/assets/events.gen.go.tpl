@@ -13,6 +13,7 @@ import (
 {{- range .Imports }}
   {{ normalizeImport . }}
 {{- end }}
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 // dummy placing to simplify import generation logic
@@ -145,6 +146,28 @@ func (res {{ camelCase .ResourceIdent "base" }}) Encode() (args map[string][]byt
 	return
 }
 
+// Encode internal data to be passed as event params & arguments to workflow
+func (res {{ camelCase .ResourceIdent "base" }}) EncodeVars() (vars *expr.Vars, err error) {
+	{{- if $r.Properties }}
+	var (
+		rvars = expr.RVars{}
+	)
+
+	{{ range $r.Properties }}
+	{{- if .ExprType }}
+	if rvars[{{ printf "%q" .Name }}], err = automation.{{ export "new" .ExprType }}(res.{{ .Name }}); err != nil {
+		return nil, err
+	}
+	{{- else }}
+	// Could not found expression-type counterpart for {{ .Type }}
+	{{- end }}
+	{{ end }}
+	return rvars.Vars(), err
+	{{ else }}
+	return
+	{{ end -}}
+}
+
 // Decode return values from Corredor script into struct props
 func (res *{{ camelCase .ResourceIdent "base" }}) Decode(results map[string][]byte)( err error) {
 	if res.immutable {
@@ -179,5 +202,37 @@ func (res *{{ camelCase .ResourceIdent "base" }}) Decode(results map[string][]by
 	return
 }
 
+func (res *{{ camelCase .ResourceIdent "base" }}) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+
+	{{- range $r.Properties }}
+	{{- if .Immutable }}
+	// {{ .Name }} marked as immutable
+	{{- else }}
+	{{- if .ExprType }}
+	if res.{{ .Name }} != nil && vars.Has({{ printf "%q" .Name }}) {
+		var aux *automation.{{ export .ExprType }}
+		aux, err = automation.{{ export "new" .ExprType }}(expr.Must(vars.Select({{ printf "%q" .Name }})))
+		if err != nil {
+			return
+		}
+
+		res.{{ .Name }} = aux.GetValue()
+	}
+	{{- else }}
+	// Could not find expression-type counterpart for {{ .Type }}
+	{{- end }}
+	{{- end }}
+	{{- end }}
+
+	return
+}
 
 {{ end }}
+
+
+
+

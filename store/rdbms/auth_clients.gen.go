@@ -469,7 +469,7 @@ func (s Store) internalAuthClientRowScanner(row rowScanner) (res *types.AuthClie
 	}
 
 	if err != nil {
-		return nil, errors.Store("could not scan authClient db row").Wrap(err)
+		return nil, errors.Store("could not scan authClient db row: %s", err).Wrap(err)
 	} else {
 		return res, nil
 	}

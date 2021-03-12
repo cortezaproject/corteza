@@ -1,0 +1,237 @@
+prefix: compose
+
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+params:
+  moduleLookup: &moduleLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: Handle,           }
+      - { wf: ComposeModule,    suffix: res }
+    meta:
+      label: Module to set record type
+      description: |-
+        Even with unique record ID across all modules, module needs to be known
+        before doing any record operations. Mainly because records of different
+        modules can be located in different stores.
+
+  namespaceLookup: &namespaceLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: Handle,           }
+      - { wf: ComposeNamespace, suffix: res }
+
+  recordLookup: &recordLookup
+    required: true
+    types:
+      - { wf: ID,               }
+      - { wf: ComposeRecord,    suffix: res }
+
+  record: &record
+    required: true
+    types:
+      - { wf: ComposeRecord,    }
+
+  rvRecord: &rvRecord
+    wf: ComposeRecord
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+    meta:
+      label: Total records found
+      description: |-
+        Total items that satisfy given conditions.
+
+        Needs to be explicitly requested with incTotal argument
+
+  rvIndex: &rvIndex
+    wf: UnsignedInteger
+    meta:
+      label: Iteration counter
+      description: |-
+        Zero-based number iteration counter
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    module: *moduleLookup
+    namespace: *namespaceLookup
+    query:
+      types:
+        - { wf: String }
+    labels:
+      types:
+        - { wf: KV }
+    deleted:
+      types:
+        - { wf: UnsignedInteger }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+labels: &labels
+  record: "step,workflow"
+  compose: "step,workflow"
+
+functions:
+  lookup:
+    meta:
+      short: Lookup for compose record by ID
+    labels:
+      <<: *labels
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+      record:    *recordLookup
+    results:
+      record: *rvRecord
+
+  search:
+    meta:
+      short: Searches for records and returns them
+    labels:
+      <<: *labels
+    params: *filterParams
+    results:
+      records:
+        <<: *rvRecord
+        isArray: true
+      total:      *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for records and iterates over results
+    labels:
+      <<: *labels
+    params: *filterParams
+    results:
+      record: *rvRecord
+      index:  *rvIndex
+      total:  *rvTotal
+
+  new:
+    meta:
+      short: Make a new record
+    labels:
+      <<: *labels
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+    results:
+      record: *rvRecord
+
+  validate:
+    meta:
+      short: Validate record
+    labels:
+      <<: *labels
+    params:
+      record: *record
+    results:
+      valid:
+        wf: Boolean
+        meta:
+          label: Set to true when record is valid
+
+  create:
+    meta:
+      short: Creates and stores a new record
+    labels:
+      <<: *labels
+      create: "step"
+    params:
+      record:
+        <<: *record
+        required: true
+    results:
+      record: *rvRecord
+
+  update:
+    meta:
+      short: Updates an existing record
+    labels:
+      <<: *labels
+      update: "step"
+    params:
+      record:
+        <<: *record
+        required: true
+    results:
+      record: *rvRecord
+
+  delete:
+    meta:
+      short: Soft deletes compose record by ID
+    labels:
+      <<: *labels
+      delete: "step"
+    params:
+      record: *recordLookup
+
+#  undelete:
+#    meta:
+#      short: Recovers deleted record by ID
+#    params:
+#      record: *recordLookup
+
+
+
+  report:
+    meta:
+      short: Searches for records and returns them
+    labels:
+      <<: *labels
+    params:
+      module:    *moduleLookup
+      namespace: *namespaceLookup
+      metrics:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Metrics for records report
+          description: |-
+            List of comma delimited expressions with aggregation functions (count, sum, min, avg)
+      dimensons:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Dimensons for records report
+          description: |-
+             List of comma delimited dimension (i.e.: group by) expressions or fields
+      filter:
+        required: true
+        types: [ { wf: String } ]
+        meta:
+          label: Filter for records report
+          description: |-
+            Filter in CortezaQL format
+    results:
+      report:
+        wf: Any
+        meta:
+          label: Complex structure holding complete records report
+          description: |-
+            Example of a result value
+            []map[string]interface{}{
+            	{"count": 3, "dimension_0": 1, "metric_0": 3},
+            	{"count": 2, "dimension_0": 2, "metric_0": 5},
+            	{"count": 1, "dimension_0": nil, "metric_0": nil},
+            }

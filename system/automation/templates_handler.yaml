@@ -1,0 +1,161 @@
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+
+snippets:
+  lookup: &lookup
+    required: true
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: Template,   suffix: res }
+
+  template: &template
+    types:
+      - { wf: Template }
+
+  rvTemplate: &rvTemplate
+    wf: Template
+
+  rvDocument: &rvDocument
+    wf: Document
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    handle:
+      types:
+        - { wf: String }
+    type:
+      types:
+        - { wf: String }
+    ownerID:
+      types:
+        - { wf: ID }
+    partial:
+      types:
+        - { wf: Boolean }
+    labels:
+      types:
+        - { wf: KV }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+labels: &labels
+  templates:  "step,workflow"
+
+functions:
+  lookup:
+    meta:
+      short: Looks-up for template by ID
+    params:
+      lookup: *lookup
+    labels:
+      <<: *labels
+    results:
+      template: *rvTemplate
+
+  search:
+    meta:
+      short: Searches for templates and returns them
+    params: *filterParams
+    labels:
+      <<: *labels
+    results:
+      templates:
+        <<: *rvTemplate
+        isArray: true
+      total: *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for templates and iterates over results
+    params: *filterParams
+    labels:
+      <<: *labels
+    results:
+      template:  *rvTemplate
+      total: *rvTotal
+
+  create:
+    meta:
+      short: Creates new template
+    labels:
+      <<: *labels
+    params:
+      template:
+        <<: *template
+        required: true
+    results:
+      template: *rvTemplate
+
+  update:
+    meta:
+      short: Updates exiting template
+    labels:
+      <<: *labels
+    params:
+      template:
+        <<: *template
+        required: true
+    results:
+      template: *rvTemplate
+
+  delete:
+    labels:
+      <<: *labels
+      delete: "step"
+    meta:
+      short: Deletes template
+    params:
+      lookup: *lookup
+
+  recover:
+    meta:
+      short: Recovers deleted template
+    labels:
+      <<: *labels
+      recover: "step"
+    params:
+      lookup: *lookup
+
+  render:
+    meta:
+      short: Renders a document from template
+    labels:
+      <<: *labels
+      render: "step"
+    params:
+      lookup: *lookup
+      documentName:
+        types:
+          - { wf: String }
+      documentType:
+        types:
+          - { wf: String }
+      variables:
+        types:
+          - { wf: RenderVariables }
+      options:
+        types:
+          - { wf: RenderOptions }
+    results:
+      document: *rvDocument

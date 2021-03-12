@@ -1,0 +1,160 @@
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+
+params:
+  lookup: &lookup
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: Role,   suffix: res }
+
+  role: &role
+    types:
+      - { wf: Role }
+
+  rvRole: &rvRole
+    wf: Role
+
+
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+
+  rvPageCursor: &rvPageCursor
+    wf: String
+
+  filterParams: &filterParams
+    query:
+      types:
+        - { wf: String }
+    memberID:
+      types:
+        - { wf: ID }
+    handle:
+      types:
+        - { wf: String }
+    name:
+      types:
+        - { wf: String }
+    labels:
+      types:
+        - { wf: KV }
+    deleted:
+      types:
+        - { wf: UnsignedInteger }
+    archived:
+      types:
+        - { wf: UnsignedInteger }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    incTotal:
+      types:
+        - { wf: Boolean }
+    incPageNavigation:
+      types:
+        - { wf: Boolean }
+    pageCursor:
+      types:
+        - { wf: String }
+
+labels: &labels
+  users:  "step,workflow"
+
+functions:
+  lookup:
+    meta:
+      short: Looks-up for role by ID
+    labels:
+      <<: *labels
+    params:
+      lookup: *lookup
+    results:
+      role: *rvRole
+
+  search:
+    meta:
+      short: Searches for roles and returns them
+    labels:
+      <<: *labels
+    params: *filterParams
+    results:
+      roles:
+        <<: *rvRole
+        isArray: true
+      total: *rvTotal
+      pageCursor: *rvPageCursor
+
+  each:
+    kind: iterator
+    meta:
+      short: Searches for roles and iterates over results
+    params: *filterParams
+    results:
+      role:  *rvRole
+      total: *rvTotal
+
+  create:
+    meta:
+      short: Creates new role
+    labels:
+      <<: *labels
+      create: "step"
+    params:
+      role:
+        <<: *role
+        required: true
+    results:
+      role: *rvRole
+
+  update:
+    meta:
+      short: Updates exiting role
+    labels:
+      <<: *labels
+      update: "step"
+    params:
+      role:
+        <<: *role
+        required: true
+    results:
+      role: *rvRole
+
+  delete:
+    meta:
+      short: Deletes the role
+    labels:
+      <<: *labels
+      delete: "step"
+    params:
+      lookup: *lookup
+
+  recover:
+    meta:
+      short: Recovers deleted role
+    labels:
+      <<: *labels
+      recover: "step"
+    params:
+      lookup: *lookup
+
+  archive:
+    meta:
+      short: Archives the role
+    labels:
+      <<: *labels
+      archive: "step"
+    params:
+      lookup: *lookup
+
+  unarchive:
+    meta:
+      short: Unarchives the role
+    labels:
+      <<: *labels
+      unarchive: "step"
+    params:
+      lookup: *lookup

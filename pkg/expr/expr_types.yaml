@@ -1,0 +1,61 @@
+package: expr
+imports:
+  - io
+  - time
+
+types:
+  Any:
+    as: 'interface{}'
+
+  Array:
+    as: '[]TypedValue'
+
+  Vars:
+    as: 'RVars'
+
+  Boolean:
+    as: 'bool'
+    default: 'false'
+
+  ID:
+    as: 'uint64'
+    default: '0'
+
+  Integer:
+    as: 'int64'
+    default: '0'
+
+  UnsignedInteger:
+    as: 'uint64'
+    default: '0'
+
+  Float:
+    as: 'float64'
+    default: '0'
+
+  String:
+    as: 'string'
+    default: '""'
+
+  Handle:
+    as: 'string'
+    default: '""'
+
+  DateTime:
+    as: '*time.Time'
+
+  Duration:
+    as: 'time.Duration'
+    default: '0'
+
+  KV:
+    as: 'map[string]string'
+    assignFn: assignToKV
+
+  KVV:
+    as: 'map[string][]string'
+    assignFn: assignToKVV
+
+  Reader:
+    as: 'io.Reader'
+

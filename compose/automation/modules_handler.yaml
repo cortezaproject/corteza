@@ -1,0 +1,36 @@
+prefix: compose
+
+imports:
+  - github.com/cortezaproject/corteza-server/compose/types
+
+params:
+  moduleLookup: &moduleLookup
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: ComposeModule,     suffix: res }
+
+  namespaceLookup: &namespaceLookup
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: ComposeNamespace,  suffix: res }
+
+  rvModule: &rvModule
+    wf: ComposeModule
+
+functions:
+  lookup:
+    meta:
+      short: Lookup for compose Lookup by ID
+    params:
+      module: *moduleLookup
+      namespace: *namespaceLookup
+    labels:
+      lookup: "step"
+      module: "step,workflow"
+      compose: "step,workflow"
+    results:
+      module: *rvModule

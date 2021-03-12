@@ -1,0 +1,8 @@
+docs:
+  title: Workflow
+
+props:
+  - name: register
+    type: bool
+    default: true
+    description: Registers enabled and valid workflows and executes them whe ntriggere
