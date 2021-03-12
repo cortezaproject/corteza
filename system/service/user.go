@@ -429,8 +429,12 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		u.Name = upd.Name
 		u.Handle = upd.Handle
 		u.Kind = upd.Kind
-		u.Meta = upd.Meta
 		u.UpdatedAt = now()
+
+		if upd.Meta != nil {
+			// Only update meta when set
+			u.Meta = upd.Meta
+		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
 			return
