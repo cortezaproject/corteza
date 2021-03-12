@@ -6,12 +6,16 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
-	decoder struct{}
+	decoder struct {
+		ux *userIndex
+	}
 
 	DecodeFilter struct {
+
 		// Compose stuff
 		composeNamespace []*composeNamespaceFilter
 		composeModule    []*composeModuleFilter
@@ -26,6 +30,9 @@ type (
 		applications []*applicationFilter
 		settings     []*settingFilter
 		rbac         []*rbacFilter
+
+		// Automation stuff
+		automationWorkflow []*automationWorkflowFilter
 	}
 
 	auxMarshaller []envoy.Marshaller
@@ -33,13 +40,28 @@ type (
 		mm  []envoy.Marshaller
 		err error
 	}
+
+	// We'll use the userIndex to hold required users
+	userIndex struct {
+		users map[uint64]*types.User
+		s     store.Users
+	}
 )
 
 func Decoder() *decoder {
 	return &decoder{}
 }
+
 func NewDecodeFilter() *DecodeFilter {
 	return &DecodeFilter{}
+}
+
+func (df *DecodeFilter) FromResource(rr ...string) *DecodeFilter {
+	df = df.systemFromResource(rr...)
+	df = df.automationFromResource(rr...)
+	// @todo others...
+
+	return df
 }
 
 func (aum auxMarshaller) MarshalEnvoy() ([]resource.Interface, error) {
@@ -59,6 +81,13 @@ func (aum auxMarshaller) MarshalEnvoy() ([]resource.Interface, error) {
 func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) ([]resource.Interface, error) {
 	mm := make(auxMarshaller, 0, 100)
 
+	if d.ux == nil {
+		d.ux = &userIndex{
+			users: make(map[uint64]*types.User),
+		}
+	}
+	d.ux.s = s
+
 	pof := func(rr ...*auxRsp) (auxMarshaller, error) {
 		mm := make(auxMarshaller, 0, 200)
 
@@ -77,7 +106,8 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 	}
 
 	compose := newComposeDecoder()
-	system := newSystemDecoder()
+	system := newSystemDecoder(d.ux)
+	automation := newAutomationDecoder(d.ux)
 
 	mm, err := pof(
 		compose.decodeComposeNamespace(ctx, s, f.composeNamespace),
@@ -91,6 +121,8 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 		system.decodeTemplates(ctx, s, f.templates),
 		system.decodeApplications(ctx, s, f.applications),
 		system.decodeSettings(ctx, s, f.settings),
+
+		automation.decodeWorkflows(ctx, s, f.automationWorkflow),
 	)
 	if err != nil {
 		return nil, err
@@ -98,6 +130,7 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 
 	f.allowRbacResource(compose.resourceID...)
 	f.allowRbacResource(system.resourceID...)
+	f.allowRbacResource(automation.resourceID...)
 	rr, err := pof(
 		system.decodeRbac(ctx, s, f.rbac),
 	)
@@ -106,4 +139,40 @@ func (d *decoder) Decode(ctx context.Context, s store.Storer, f *DecodeFilter) (
 	}
 
 	return append(rr, mm...).MarshalEnvoy()
+}
+
+func (ux *userIndex) add(ctx context.Context, uu ...uint64) error {
+	// List of filtered users
+	filtered := make([]uint64, 0, len(uu))
+
+	for _, u := range uu {
+		// not defined, we don't need
+		if u == 0 {
+			continue
+		}
+
+		// we have, no need
+		if ux.users[u] != nil {
+			continue
+		}
+
+		filtered = append(filtered, u)
+	}
+
+	if len(filtered) == 0 {
+		return nil
+	}
+
+	users, _, err := store.SearchUsers(ctx, ux.s, types.UserFilter{
+		UserID: filtered,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, u := range users {
+		ux.users[u.ID] = u
+	}
+
+	return nil
 }

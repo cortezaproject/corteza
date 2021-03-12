@@ -1,6 +1,7 @@
 package resource
 
 import (
+	at "github.com/cortezaproject/corteza-server/automation/types"
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	st "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -39,18 +40,19 @@ type (
 )
 
 var (
-	APPLICATION_RESOURCE_TYPE       = st.ApplicationRBACResource.String()
-	COMPOSE_CHART_RESOURCE_TYPE     = ct.ChartRBACResource.String()
-	COMPOSE_MODULE_RESOURCE_TYPE    = ct.ModuleRBACResource.String()
-	COMPOSE_NAMESPACE_RESOURCE_TYPE = ct.NamespaceRBACResource.String()
-	COMPOSE_PAGE_RESOURCE_TYPE      = ct.PageRBACResource.String()
-	COMPOSE_RECORD_RESOURCE_TYPE    = "compose:record:"
-	RBAC_RESOURCE_TYPE              = "rbac:rule:"
-	ROLE_RESOURCE_TYPE              = st.RoleRBACResource.String()
-	SETTINGS_RESOURCE_TYPE          = "system:setting:"
-	USER_RESOURCE_TYPE              = st.UserRBACResource.String()
-	TEMPLATE_RESOURCE_TYPE          = st.TemplateRBACResource.String()
-	DATA_SOURCE_RESOURCE_TYPE       = "data:raw:"
+	APPLICATION_RESOURCE_TYPE         = st.ApplicationRBACResource.String()
+	COMPOSE_CHART_RESOURCE_TYPE       = ct.ChartRBACResource.String()
+	COMPOSE_MODULE_RESOURCE_TYPE      = ct.ModuleRBACResource.String()
+	COMPOSE_NAMESPACE_RESOURCE_TYPE   = ct.NamespaceRBACResource.String()
+	COMPOSE_PAGE_RESOURCE_TYPE        = ct.PageRBACResource.String()
+	COMPOSE_RECORD_RESOURCE_TYPE      = "compose:record:"
+	RBAC_RESOURCE_TYPE                = "rbac:rule:"
+	ROLE_RESOURCE_TYPE                = st.RoleRBACResource.String()
+	SETTINGS_RESOURCE_TYPE            = "system:setting:"
+	USER_RESOURCE_TYPE                = st.UserRBACResource.String()
+	TEMPLATE_RESOURCE_TYPE            = st.TemplateRBACResource.String()
+	DATA_SOURCE_RESOURCE_TYPE         = "data:raw:"
+	AUTOMATION_WORKFLOW_RESOURCE_TYPE = at.WorkflowRBACResource.String()
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {

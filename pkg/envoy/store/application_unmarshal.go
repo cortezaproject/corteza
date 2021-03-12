@@ -6,14 +6,18 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func newApplication(app *types.Application) *application {
+func newApplication(app *types.Application, ux *userIndex) *application {
 	return &application{
 		app: app,
+		ux:  ux,
 	}
 }
 
 func (app *application) MarshalEnvoy() ([]resource.Interface, error) {
+	rs := resource.NewApplication(app.app)
+	syncUserStamps(rs.Userstamps(), app.ux)
+
 	return envoy.CollectNodes(
-		resource.NewApplication(app.app),
+		rs,
 	)
 }

@@ -69,6 +69,10 @@ func decodeUserstamps(n *yaml.Node) (*resource.Userstamps, error) {
 			"ownerid",
 			"owner":
 			us.OwnedBy, err = f(v)
+		case "runas",
+			"runasid",
+			"runner":
+			us.RunAs, err = f(v)
 		}
 		return err
 	})

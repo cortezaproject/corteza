@@ -134,6 +134,9 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 		case *resource.RbacRule:
 			err = f(rbacRuleFromResource(res, ye.cfg), e)
 
+		case *resource.AutomationWorkflow:
+			err = f(automationWorkflowFromResource(res, ye.cfg), e)
+
 		default:
 			err = ErrUnknownResource
 		}

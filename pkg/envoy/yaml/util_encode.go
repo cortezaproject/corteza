@@ -34,6 +34,7 @@ func mapUserstamps(n *yaml.Node, us *resource.Userstamps) (*yaml.Node, error) {
 		"updatedBy", us.UpdatedBy,
 		"deletedBy", us.DeletedBy,
 		"ownedBy", us.OwnedBy,
+		"runAs", us.RunAs,
 	)
 }
 

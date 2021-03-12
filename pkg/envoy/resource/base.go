@@ -58,6 +58,7 @@ type (
 		UpdatedBy *Userstamp
 		DeletedBy *Userstamp
 		OwnedBy   *Userstamp
+		RunAs     *Userstamp
 	}
 	UserstampIndex map[string]*Userstamp
 
@@ -123,7 +124,7 @@ func (t *base) SetUserstamps(us *Userstamps) {
 	t.us = us
 
 	if us != nil {
-		uu := []*Userstamp{us.CreatedBy, us.UpdatedBy, us.DeletedBy, us.OwnedBy}
+		uu := []*Userstamp{us.CreatedBy, us.UpdatedBy, us.DeletedBy, us.OwnedBy, us.RunAs}
 		t.SetUserRefs(uu)
 	}
 }
@@ -350,6 +351,10 @@ func MakeUserstampFromRef(ref string) *Userstamp {
 	us.Ref = ref
 
 	return us
+}
+
+func MakeUserstampFromID(ID uint64) *Userstamp {
+	return MakeUserstampFromRef(strconv.FormatUint(ID, 10))
 }
 
 func (ux UserstampIndex) Add(uu ...*types.User) {

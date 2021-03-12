@@ -12,7 +12,9 @@ import (
 type (
 	// Document defines the supported yaml structure
 	Document struct {
-		compose      *compose
+		compose    *compose
+		automation *automation
+
 		roles        roleSet
 		users        userSet
 		templates    templateSet
@@ -26,6 +28,10 @@ type (
 
 func (doc *Document) UnmarshalYAML(n *yaml.Node) (err error) {
 	if err = n.Decode(&doc.compose); err != nil {
+		return
+	}
+
+	if err = n.Decode(&doc.automation); err != nil {
 		return
 	}
 
@@ -64,6 +70,17 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 		doc.compose.EncoderConfig = doc.cfg
 
 		cn, err := encodeNode(doc.compose)
+		if err != nil {
+			return nil, err
+		}
+
+		dn, _ = inlineContent(dn, cn)
+	}
+
+	if doc.automation != nil {
+		doc.automation.EncoderConfig = doc.cfg
+
+		cn, err := encodeNode(doc.automation)
 		if err != nil {
 			return nil, err
 		}
@@ -149,6 +166,9 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	if doc.templates != nil {
 		mm = append(mm, doc.templates)
 	}
+	if doc.automation != nil {
+		mm = append(mm, doc.automation)
+	}
 	if doc.applications != nil {
 		mm = append(mm, doc.applications)
 	}
@@ -232,6 +252,17 @@ func (doc *Document) AddComposeChart(c *composeChart) {
 	}
 
 	doc.compose.Charts = append(doc.compose.Charts, c)
+}
+
+func (doc *Document) AddAutomationWorkflow(m *automationWorkflow) {
+	if doc.automation == nil {
+		doc.automation = &automation{}
+	}
+	if doc.automation.Workflows == nil {
+		doc.automation.Workflows = make(automationWorkflowSet, 0)
+	}
+
+	doc.automation.Workflows = append(doc.automation.Workflows, m)
 }
 
 // AddRole adds a new role to the document

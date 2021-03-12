@@ -149,9 +149,15 @@ func resolveUserstamps(rr []resource.Interface, us *resource.Userstamps) (*resou
 	}
 
 	fetch := func(us *resource.Userstamp) (*resource.Userstamp, error) {
-		if us == nil {
+		if us == nil || us.UserID == 0 {
 			return nil, nil
 		}
+
+		// This one can be considered as valid
+		if us.Ref != "" && us.UserID > 0 && us.U != nil {
+			return us, nil
+		}
+
 		ii := resource.MakeIdentifiers()
 
 		if us.UserID > 0 {
@@ -184,6 +190,7 @@ func resolveUserstamps(rr []resource.Interface, us *resource.Userstamps) (*resou
 	us.UpdatedBy, err = fetch(us.UpdatedBy)
 	us.DeletedBy, err = fetch(us.DeletedBy)
 	us.OwnedBy, err = fetch(us.OwnedBy)
+	us.RunAs, err = fetch(us.RunAs)
 
 	if err != nil {
 		return nil, err
