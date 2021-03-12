@@ -56,6 +56,7 @@ func (app *CortezaApp) InitCLI() {
 		systemCommands.Sink(app),
 		systemCommands.Settings(),
 		systemCommands.Import(storeInit),
+		systemCommands.Export(storeInit),
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
