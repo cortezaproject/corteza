@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	ctypes "github.com/cortezaproject/corteza-server/compose/types"
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -49,10 +50,44 @@ func TestStoreYaml_base(t *testing.T) {
 
 	cases := []*tc{
 		{
+			name: "base automation workflow",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				wf := sTestAutomationWorkflow(ctx, t, s, "base")
+				sTestAutomationTrigger(ctx, t, s, wf.ID, "base")
+
+				df := su.NewDecodeFilter().Workflows(&atypes.WorkflowFilter{})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				wf, err := store.LookupAutomationWorkflowByHandle(ctx, s, "base_handle")
+				req.NoError(err)
+				req.NotNil(wf)
+
+				req.Equal("base_handle", wf.Handle)
+				req.Equal("base_name", wf.Meta.Name)
+				req.Equal("base_description", wf.Meta.Description)
+				req.True(wf.Enabled)
+				req.True(wf.Trace)
+				req.Equal(10, wf.KeepSessions)
+				req.Len(wf.Steps, 2)
+				req.Len(wf.Paths, 1)
+				req.Equal(createdAt.Format(time.RFC3339), wf.CreatedAt.Format(time.RFC3339))
+				req.Equal(updatedAt.Format(time.RFC3339), wf.UpdatedAt.Format(time.RFC3339))
+
+				tt, _, err := store.SearchAutomationTriggers(ctx, s, atypes.TriggerFilter{
+					WorkflowID: []uint64{wf.ID},
+				})
+				req.NoError(err)
+				req.NotNil(tt)
+				req.Len(tt, 1)
+			},
+		},
+
+		{
 			name: "base namespace",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				sTestComposeNamespace(ctx, t, s, "base")
-				df := su.NewDecodeFilter().ComposeNamespace(&ctypes.NamespaceFilter{
+				df := su.NewDecodeFilter().ComposeNamespace(&types.NamespaceFilter{
 					Slug: "base_namespace",
 				})
 				return nil, df
@@ -78,10 +113,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeModule(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&ctypes.NamespaceFilter{
+					ComposeNamespace(&types.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&ctypes.ModuleFilter{
+					ComposeModule(&types.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					})
@@ -93,7 +128,7 @@ func TestStoreYaml_base(t *testing.T) {
 
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, n.ID, "base_module")
 				req.NoError(err)
-				mff, _, err := store.SearchComposeModuleFields(ctx, s, ctypes.ModuleFieldFilter{
+				mff, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{
 					ModuleID: []uint64{mod.ID},
 				})
 				req.NoError(err)
@@ -139,10 +174,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposePage(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&ctypes.NamespaceFilter{
+					ComposeNamespace(&types.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposePage(&ctypes.PageFilter{
+					ComposePage(&types.PageFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_page",
 					})
@@ -187,14 +222,14 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeChart(ctx, t, s, ns.ID, mod.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&ctypes.NamespaceFilter{
+					ComposeNamespace(&types.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&ctypes.ModuleFilter{
+					ComposeModule(&types.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
-					ComposeChart(&ctypes.ChartFilter{
+					ComposeChart(&types.ChartFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_chart",
 					})
@@ -233,17 +268,17 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeRecord(ctx, t, s, ns.ID, mod.ID, usr.ID)
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&ctypes.NamespaceFilter{
+					ComposeNamespace(&types.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&ctypes.ModuleFilter{
+					ComposeModule(&types.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&ctypes.RecordFilter{
+					ComposeRecord(&types.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -257,7 +292,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})
@@ -293,12 +328,12 @@ func TestStoreYaml_base(t *testing.T) {
 				usr := sTestUser(ctx, t, s, "base")
 
 				recID := su.NextID()
-				rec := &ctypes.Record{
+				rec := &types.Record{
 					ID:          recID,
 					NamespaceID: ns.ID,
 					ModuleID:    mod.ID,
 
-					Values: ctypes.RecordValueSet{
+					Values: types.RecordValueSet{
 						{
 							RecordID: recID,
 							Name:     "BoolTrue",
@@ -353,17 +388,17 @@ func TestStoreYaml_base(t *testing.T) {
 				}
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&ctypes.NamespaceFilter{
+					ComposeNamespace(&types.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&ctypes.ModuleFilter{
+					ComposeModule(&types.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&ctypes.RecordFilter{
+					ComposeRecord(&types.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -377,7 +412,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})

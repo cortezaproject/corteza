@@ -1,0 +1,75 @@
+workflows:
+  testko_wf:
+    enabled: true
+    trace: true
+    keepSessions: 2
+    meta:
+      name: name here
+      description: description here
+
+    triggers:
+      - enabled: true
+        stepID: 101
+        resourceType: "compose:module"
+        eventType: "beforeCreate"
+        constraints:
+          - name: name
+            op: op
+            values:
+            - values
+
+        meta:
+          description: description
+          visual: {}
+        ownedBy: "219521853847258224"
+        createdAt: "2021-02-23T09:53:41Z"
+        createdBy: "219521853847258224"
+        updatedAt: "2021-02-23T09:53:41Z"
+        updatedBy: "219521853847258224"
+        deletedAt: "2021-02-23T09:53:41Z"
+        deletedBy: "219521853847258224"
+
+    steps:
+      - stepID: 101
+        kind: "termination"
+        arguments:
+          - target: target
+            source: source
+            expr: expr
+            value: value
+            type: type
+            tests:
+              - expr: expr
+                error: error
+        results:
+          - target: target
+            source: source
+            expr: expr
+            value: value
+            type: type
+            tests:
+              - expr: expr
+                error: error
+        meta:
+          name: name
+          description: description
+          visual: {}
+
+    paths: 
+      - expr: expr
+        parentID: 101
+        childID: 101
+        meta:
+          name: name
+          description: description
+          visual: {}
+
+    runAs: "219521853847258224"
+
+    ownedBy: "219521853847258224"
+    createdAt: "2021-02-23T09:53:41Z"
+    createdBy: "219521853847258224"
+    updatedAt: "2021-02-23T09:53:41Z"
+    updatedBy: "219521853847258224"
+    deletedAt: "2021-02-23T09:53:41Z"
+    deletedBy: "219521853847258224"

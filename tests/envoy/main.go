@@ -96,6 +96,9 @@ func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 		s.TruncateApplications(ctx),
 		s.TruncateSettings(ctx),
 		s.TruncateRbacRules(ctx),
+
+		s.TruncateAutomationWorkflows(ctx),
+		s.TruncateAutomationTriggers(ctx),
 	)
 	if err != nil {
 		t.Fatal(err.Error())

@@ -38,6 +38,7 @@ func mapUserstamps(n mapNode, us *resource.Userstamps) (mapNode, error) {
 		"updatedBy", us.UpdatedBy,
 		"deletedBy", us.DeletedBy,
 		"ownedBy", us.OwnedBy,
+		"runAs", us.RunAs,
 	)
 }
 

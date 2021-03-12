@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -34,12 +35,14 @@ type (
 
 	systemDecoder struct {
 		resourceID []uint64
+		ux         *userIndex
 	}
 )
 
-func newSystemDecoder() *systemDecoder {
+func newSystemDecoder(ux *userIndex) *systemDecoder {
 	return &systemDecoder{
 		resourceID: make([]uint64, 0, 200),
+		ux:         ux,
 	}
 }
 
@@ -206,7 +209,13 @@ func (d *systemDecoder) decodeApplications(ctx context.Context, s systemStore, f
 			}
 
 			for _, n := range nn {
-				mm = append(mm, newApplication(n))
+				// Index users
+				err = d.ux.add(
+					ctx,
+					n.OwnerID,
+				)
+
+				mm = append(mm, newApplication(n, d.ux))
 				d.resourceID = append(d.resourceID, n.ID)
 			}
 
@@ -245,7 +254,14 @@ func (d *systemDecoder) decodeSettings(ctx context.Context, s systemStore, ff []
 			}
 
 			for _, n := range nn {
-				mm = append(mm, newSetting(n))
+				// Index users
+				err = d.ux.add(
+					ctx,
+					n.OwnedBy,
+					n.UpdatedBy,
+				)
+
+				mm = append(mm, newSetting(n, d.ux))
 			}
 			// mm = append(mm, NewSettings(nn))
 
@@ -304,6 +320,44 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s systemStore, ff []*rba
 	return &auxRsp{
 		mm: mm,
 	}
+}
+
+func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
+	for _, r := range rr {
+		if !strings.HasPrefix(r, "system") {
+			continue
+		}
+
+		id := ""
+		if strings.Count(r, ":") == 2 && !strings.HasSuffix(r, "*") {
+			// There is an identifier
+			aux := strings.Split(r, ":")
+
+			id = aux[len(aux)-1]
+			r = strings.Join(aux[:len(aux)-1], ":")
+		}
+
+		switch strings.ToLower(r) {
+		case "system:rols":
+			df = df.Roles(&types.RoleFilter{
+				Query: id,
+			})
+		case "system:uses":
+			df = df.Users(&types.UserFilter{
+				Query: id,
+			})
+		case "system:applicatios":
+			df = df.Applications(&types.ApplicationFilter{
+				Query: id,
+			})
+		case "system:settins":
+			df = df.Settings(&types.SettingsFilter{})
+		case "system:rbac":
+			df = df.Rbac(&rbac.RuleFilter{})
+		}
+	}
+
+	return df
 }
 
 // Roles adds a new RoleFilter

@@ -7,7 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
+	ctypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -82,7 +83,7 @@ func TestYamlStore_base(t *testing.T) {
 				req.NoError(err)
 				req.NotNil(mod)
 
-				mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
+				mod.Fields, _, err = store.SearchComposeModuleFields(ctx, s, ctypes.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
 				req.NoError(err)
 
 				req.Equal("mod1", mod.Handle)
@@ -311,6 +312,29 @@ func TestYamlStore_base(t *testing.T) {
 		},
 
 		{
+			name: "workflows",
+			file: "workflows",
+			check: func(req *require.Assertions) {
+				ww, err := store.LookupAutomationWorkflowByHandle(ctx, s, "testko_wf")
+				req.NoError(err)
+				req.NotNil(ww)
+
+				req.Equal("testko_wf", ww.Handle)
+				req.Equal("name here", ww.Meta.Name)
+				req.Equal("description here", ww.Meta.Description)
+				req.Len(ww.Steps, 2)
+				req.Len(ww.Paths, 1)
+
+				tt, _, err := store.SearchAutomationTriggers(ctx, s, atypes.TriggerFilter{
+					WorkflowID: []uint64{ww.ID},
+				})
+				req.NoError(err)
+				req.NotNil(tt)
+				req.Len(tt, 1)
+			},
+		},
+
+		{
 			name: "roles",
 			file: "roles",
 			check: func(req *require.Assertions) {
@@ -402,7 +426,7 @@ func TestYamlStore_base(t *testing.T) {
 				req.NoError(err)
 				req.NotNil(m)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, m, types.RecordFilter{ModuleID: m.ID, NamespaceID: m.NamespaceID})
+				rr, _, err := store.SearchComposeRecords(ctx, s, m, ctypes.RecordFilter{ModuleID: m.ID, NamespaceID: m.NamespaceID})
 				req.NoError(err)
 				req.NotNil(rr)
 				req.Len(rr, 1)
@@ -439,13 +463,13 @@ func TestYamlStore_base(t *testing.T) {
 				req.NoError(err)
 				req.NotNil(mod2)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod1, types.RecordFilter{ModuleID: mod1.ID, NamespaceID: mod1.NamespaceID})
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod1, ctypes.RecordFilter{ModuleID: mod1.ID, NamespaceID: mod1.NamespaceID})
 				req.NoError(err)
 				req.NotNil(rr)
 				req.Len(rr, 1)
 				req.Equal("mod1 f1 v1", rr[0].Values[0].Value)
 
-				rr, _, err = store.SearchComposeRecords(ctx, s, mod2, types.RecordFilter{ModuleID: mod2.ID, NamespaceID: mod2.NamespaceID})
+				rr, _, err = store.SearchComposeRecords(ctx, s, mod2, ctypes.RecordFilter{ModuleID: mod2.ID, NamespaceID: mod2.NamespaceID})
 				req.NoError(err)
 				req.NotNil(rr)
 				req.Len(rr, 1)
@@ -477,13 +501,13 @@ func TestYamlStore_base(t *testing.T) {
 				req.NoError(err)
 				req.NotNil(mod2)
 
-				rr1, _, err := store.SearchComposeRecords(ctx, s, mod1, types.RecordFilter{ModuleID: mod1.ID, NamespaceID: mod1.NamespaceID})
+				rr1, _, err := store.SearchComposeRecords(ctx, s, mod1, ctypes.RecordFilter{ModuleID: mod1.ID, NamespaceID: mod1.NamespaceID})
 				req.NoError(err)
 				req.NotNil(rr1)
 				req.Len(rr1, 1)
 				req.Equal("existing value", rr1[0].Values.FilterByName("f1")[0].Value)
 
-				rr2, _, err := store.SearchComposeRecords(ctx, s, mod2, types.RecordFilter{ModuleID: mod2.ID, NamespaceID: mod2.NamespaceID})
+				rr2, _, err := store.SearchComposeRecords(ctx, s, mod2, ctypes.RecordFilter{ModuleID: mod2.ID, NamespaceID: mod2.NamespaceID})
 				req.NoError(err)
 				req.NotNil(rr2)
 				req.Len(rr2, 1)
