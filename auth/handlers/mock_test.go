@@ -16,7 +16,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
-	"github.com/quasoft/memstore"
 	"go.uber.org/zap"
 )
 
@@ -39,6 +38,13 @@ type (
 	mockNotificationService struct {
 		settings *types.AppSettings
 		opt      options.AuthOpt
+	}
+
+	mockSession struct {
+		Options *sessions.Options
+		get     func(r *http.Request, name string) (*sessions.Session, error)
+		new     func(r *http.Request, name string) (*sessions.Session, error)
+		save    func(r *http.Request, w http.ResponseWriter, s *sessions.Session) error
 	}
 
 	oauth2ServiceMocked struct {
@@ -250,16 +256,29 @@ func (ma mockedAuthService) ValidateTOTP(ctx context.Context, code string) (err 
 //
 // Mocking notification service
 //
-func (m mockNotificationService) EmailConfirmation(ctx context.Context, lang string, emailAddress string, url string) error {
+func (m mockNotificationService) EmailConfirmation(ctx context.Context, emailAddress string, token string) error {
 	return nil
 }
 
-func (m mockNotificationService) PasswordReset(ctx context.Context, lang string, emailAddress string, url string) error {
+func (m mockNotificationService) PasswordReset(ctx context.Context, emailAddress string, token string) error {
 	return nil
 }
 
-func (m mockNotificationService) EmailOTP(ctx context.Context, lang string, emailAddress string, otp string) error {
+func (m mockNotificationService) EmailOTP(ctx context.Context, emailAddress string, code string) error {
 	return nil
+}
+
+//
+// Mocking gorilla session
+//
+func (ms mockSession) Get(r *http.Request, name string) (*sessions.Session, error) {
+	return ms.get(r, name)
+}
+func (ms mockSession) New(r *http.Request, name string) (*sessions.Session, error) {
+	return ms.new(r, name)
+}
+func (ms mockSession) Save(r *http.Request, w http.ResponseWriter, s *sessions.Session) error {
+	return ms.save(r, w, s)
 }
 
 //
@@ -292,7 +311,7 @@ func makeMockUser(ctx context.Context) *types.User {
 	return u
 }
 
-func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.User, memStore *memstore.MemStore) *request.AuthReq {
+func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.User) *request.AuthReq {
 	s := &settings.Settings{}
 	s.MultiFactor.EmailOTP.Enabled = true
 	s.MultiFactor.EmailOTP.Enforced = true
@@ -300,16 +319,23 @@ func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.Us
 
 	authUser := request.NewAuthUser(s, user, true, time.Duration(time.Hour))
 
+	session := sessions.NewSession(&mockSession{
+		save: func(r *http.Request, w http.ResponseWriter, s *sessions.Session) error {
+			s.Values = make(map[interface{}]interface{})
+			return nil
+		},
+	}, "session")
+
 	return &request.AuthReq{
 		Request:  req,
 		AuthUser: authUser,
-		Session:  sessions.NewSession(memStore, "session"),
+		Session:  session,
 		Response: httptest.NewRecorder(),
 		Data:     make(map[string]interface{}),
 	}
 }
 
-func prepareClientAuthService(ctx context.Context, user *types.User, memStore *memstore.MemStore) *mockAuthService {
+func prepareClientAuthService(ctx context.Context, user *types.User) *mockAuthService {
 	authService := makeMockAuthService(ctx)
 	return authService
 }

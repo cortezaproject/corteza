@@ -11,15 +11,13 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/quasoft/memstore"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_requestPasswordResetForm(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -34,7 +32,7 @@ func Test_requestPasswordResetForm(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authReq = prepareClientAuthReq(ctx, req, user, memStore)
+	authReq = prepareClientAuthReq(ctx, req, user)
 	authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 	payload := map[string]string{"foo": "bar"}
@@ -49,9 +47,8 @@ func Test_requestPasswordResetForm(t *testing.T) {
 
 func Test_resetPasswordForm(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{
 			URL: &url.URL{},
@@ -62,8 +59,6 @@ func Test_resetPasswordForm(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	tcc := []testingExpect{
@@ -106,13 +101,15 @@ func Test_resetPasswordForm(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			// reset from previous
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			// unset so we get to the main functionality
@@ -131,9 +128,8 @@ func Test_resetPasswordForm(t *testing.T) {
 
 func Test_requestPasswordReset(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{}
 
@@ -142,8 +138,6 @@ func Test_requestPasswordReset(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	tcc := []testingExpect{
@@ -177,6 +171,8 @@ func Test_requestPasswordReset(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			// reset from previous
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
@@ -184,7 +180,7 @@ func Test_requestPasswordReset(t *testing.T) {
 
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			err := authHandlers.requestPasswordResetProc(authReq)
@@ -199,9 +195,8 @@ func Test_requestPasswordReset(t *testing.T) {
 
 func Test_requestPasswordProc(t *testing.T) {
 	var (
-		ctx      = context.Background()
-		memStore = memstore.NewMemStore()
-		user     = makeMockUser(ctx)
+		ctx  = context.Background()
+		user = makeMockUser(ctx)
 
 		req = &http.Request{}
 
@@ -210,8 +205,6 @@ func Test_requestPasswordProc(t *testing.T) {
 		authReq      *request.AuthReq
 
 		authSettings = &settings.Settings{}
-
-		rq = require.New(t)
 	)
 
 	tcc := []testingExpect{
@@ -245,9 +238,11 @@ func Test_requestPasswordProc(t *testing.T) {
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
+			rq := require.New(t)
+
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user, memStore)
+			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			err := authHandlers.resetPasswordProc(authReq)
