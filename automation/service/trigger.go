@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -15,8 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"reflect"
-	"sync"
 )
 
 type (
@@ -420,7 +421,7 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 		runAs auth.Identifiable
 	)
 
-	if !svc.opt.Enabled {
+	if !svc.opt.Register {
 		return nil
 	}
 
