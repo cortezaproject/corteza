@@ -535,7 +535,7 @@ func (s *Session) exec(ctx context.Context, st *State) {
 				if errors.IsAutomation(st.err) {
 					s.qErr <- st.err
 				} else {
-					log.Error("step execution failed", zap.Error(st.err))
+					log.Warn("step execution failed", zap.Error(st.err))
 					s.qErr <- fmt.Errorf("session %d step %d execution failed: %w", s.id, st.step.ID(), st.err)
 				}
 
