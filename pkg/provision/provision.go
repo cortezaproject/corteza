@@ -17,11 +17,8 @@ import (
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
 	ffn := []func() error{
-		// Old relics
-		func() error { return roles(ctx, s) },
-
 		// Migrations:
-		func() error { return apps(ctx, s) },
+		func() error { return migrateApplications(ctx, s) },
 		func() error { return migrateEmailTemplates(ctx, log, s) },
 
 		// Config (full & partial)

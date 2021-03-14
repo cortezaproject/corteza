@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func apps(ctx context.Context, s store.Storer) error {
+func migrateApplications(ctx context.Context, s store.Storer) error {
 	rd := releaseDate(2021, time.March)
 
 	set, _, err := store.SearchApplications(ctx, s, types.ApplicationFilter{})
