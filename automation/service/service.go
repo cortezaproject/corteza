@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/automation/automation"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
@@ -115,6 +116,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automation.HttpRequestHandler(Registry())
 	automation.LogHandler(Registry())
 	automation.LoopHandler(Registry(), DefaultWorkflow.parser)
+	automation.CorredorHandler(Registry(), corredor.Service())
 
 	return
 }
