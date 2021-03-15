@@ -168,6 +168,9 @@ func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
 
 					if t.GoType == "" {
 						t.GoType = ti[t.WorkflowType].As
+						if "[]TypedValue" == t.GoType {
+							t.GoType = "[]expr.TypedValue"
+						}
 					}
 
 					if t.Suffix == "" && len(p.Types) > 1 {
@@ -183,6 +186,9 @@ func expandAutomationFunctionTypes(ff []*aFuncDefs, tt []*exprTypesDef) {
 
 				if r.GoType == "" {
 					r.GoType = ti[r.WorkflowType].As
+					if "[]TypedValue" == r.GoType {
+						r.GoType = "[]expr.TypedValue"
+					}
 				}
 			}
 		}

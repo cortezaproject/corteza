@@ -111,12 +111,15 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		&expr.KV{},
 		&expr.KVV{},
 		&expr.Reader{},
+
+		&automation.EmailMessage{},
 	)
 
 	automation.HttpRequestHandler(Registry())
 	automation.LogHandler(Registry())
 	automation.LoopHandler(Registry(), DefaultWorkflow.parser)
 	automation.CorredorHandler(Registry(), corredor.Service())
+	automation.EmailHandler(Registry())
 
 	return
 }
