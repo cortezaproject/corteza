@@ -75,7 +75,8 @@ type (
 {{ range .Params }}
 {{- if gt (len .Types) 1 }}
 {{ $name := .Name }}
-func (a {{ $ARGS }}) {{ export "get" $name }}() (bool, {{ range .Types }}{{ .GoType }},{{ end }}) {
+{{ $isArray := .IsArray }}
+func (a {{ $ARGS }}) {{ export "get" $name }}() (bool, {{ range .Types }}{{ if $isArray }}[]{{ end }}{{ .GoType }},{{ end }}) {
 	return a.has{{ export $name }}{{ range .Types }}, a.{{ $name }}{{ export .Suffix }}{{ end }}
 }
 {{- end }}
@@ -250,6 +251,7 @@ func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 
 	{{ range . }}
 		{{ $name := .Name }}
+		{{ $isArray := .IsArray }}
 		{{ if gt (len .Types) 1 }}
 		// Converting {{ export .Name }} argument
 		if args.has{{ export .Name }} {
@@ -257,7 +259,7 @@ func (h {{ $.Name }}Handler) {{ export .Name }}() *atypes.Function {
 			switch aux.Type() {
 		{{- range .Types }}
 			case h.reg.Type({{ printf "%q" .WorkflowType }}).Type():
-				args.{{ $name }}{{ export .Suffix }} = aux.Get().({{ .GoType }})
+				args.{{ $name }}{{ export .Suffix }} = aux.Get().({{ if $isArray }}[]{{ end }}{{ .GoType }})
 		{{- end -}}
 			}
 		}

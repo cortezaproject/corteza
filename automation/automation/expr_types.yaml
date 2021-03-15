@@ -1,0 +1,18 @@
+package: automation
+
+types:
+  EmailMessage:
+    # using ad-hoc type for now, we'll port this to something internal
+    # when email-gateway is implemented
+    as: '*emailMessage'
+    struct:
+#      - { name: 'subject',   exprType: 'String', goType: 'string' }
+#      - { name: 'addresses', exprType: 'Array',  goType: '[]*emailAddress' }
+#      - { name: 'headers',   exprType: 'KVV',    goType: 'map[string][]string' }
+#      - { name: 'replyTo',         exprType: 'KV',           goType: 'map[string]string',    mode: ro }
+#      - { name: 'to',              exprType: 'KV',           goType: 'map[string]string',    mode: ro }
+#      - { name: 'cc',              exprType: 'KV',           goType: 'map[string]string',    mode: ro }
+#      - { name: 'bcc',             exprType: 'KV',           goType: 'map[string]string',    mode: ro }
+#      - { name: 'parts',           exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
+#      - { name: 'embedded',        exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }
+#      - { name: 'attachments',     exprType: 'Any',          goType: 'map[string]io.Reader', mode: ro }

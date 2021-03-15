@@ -8,7 +8,6 @@ package {{ .Package }}
 // Definitions file that controls how this file is generated:
 // {{ .Source }}
 
-{{ if .Imports }}
 import (
 	"context"
 	"fmt"
@@ -19,12 +18,9 @@ import (
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 {{- end }}
 )
-{{ end }}
-
 
 var _ = context.Background
 var _ = fmt.Errorf
-
 
 {{ range $exprType, $def := .Types }}
 // {{ $exprType }} is an expression type, wrapper for {{ $def.As }} type

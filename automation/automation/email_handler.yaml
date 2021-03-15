@@ -1,0 +1,171 @@
+name: email
+
+imports:
+  - io
+  - sysTypes github.com/cortezaproject/corteza-server/system/types
+
+
+messageParams: &messageParams
+  subject:
+    meta:
+      label: Subject
+    types:
+      - { wf: String }
+
+  replyTo:
+    meta:
+      label: Reply to
+    types:
+      - { wf: String }
+      - { wf: User, go: '*sysTypes.User' }
+  from:
+    meta:
+      label: Sender
+    types:
+      - { wf: String }
+      - { wf: User, go: '*sysTypes.User' }
+  to:
+    meta:
+      label: Recipients
+    types:
+      - { wf: String }
+      - { wf: KV }
+      - { wf: User, go: '*sysTypes.User' }
+  cc:
+    meta:
+      label: CC
+    types:
+      - { wf: String }
+      - { wf: KV }
+      - { wf: User, go: '*sysTypes.User' }
+
+  html:
+    meta:
+      label: HTML message body
+    types:
+      - { wf: String,   suffix: String }
+      - { wf: Reader,   suffix: Stream }
+
+  plain:
+    meta:
+      label: Plain text message body
+    types:
+      - { wf: String,   suffix: String }
+      - { wf: Reader,   suffix: Stream }
+
+messageParam: &messageParam
+  required: true
+  meta:
+    label: Message to be sent
+  types:
+    - { wf: EmailMessage }
+
+messageResults: &messageResults
+  message: { wf: EmailMessage }
+
+functions:
+  send:
+    kind: function
+    meta:
+      short: Sends email message with basic parameters
+    params:  *messageParams
+
+  message:
+    kind: function
+    meta:
+      short: Constructs new email message
+    params:  *messageParams
+    results: *messageResults
+
+  sendMessage:
+    kind: function
+    meta:
+      short: Sends email message
+    params:
+      message: *messageParam
+
+  setSubject:
+    kind: function
+    meta:
+      short: Sets message subject
+    params:
+      message: *messageParam
+      subject:
+        required: true
+        meta:
+          label: Subject
+        types:
+          - { wf: String }
+
+  setHeaders:
+    kind: function
+    meta:
+      short: Sets message headers (overrides any existing headers, subject, recipients)
+    params:
+      message: *messageParam
+      headers:
+        required: true
+        meta:
+          label: Headers
+        types:
+          - { wf: KVV }
+
+  setHeader:
+    kind: function
+    meta:
+      short: Appends value or removes specific header,
+    params:
+      message: *messageParam
+      name:
+        required: true
+        meta: { label: Value }
+        types: [ { wf: String } ]
+      value:
+        meta: { label: Value, description: Raw header value. Omiting value will remove header. }
+        types: [ { wf: String } ]
+
+  setAddress:
+    kind: function
+    meta:
+      short: Adds new recipient, sender or reply-to address
+    params:
+      message: *messageParam
+      type:
+        required: true
+        meta: { label: Type, description: One of From, ReplyTo, To, CC, BCC }
+        types: [ { wf: String } ]
+      address:
+        required: true
+        meta: { label: Address }
+        types: [ { wf: String } ]
+      name:
+        meta: { label: Name }
+        types: [ { wf: String } ]
+
+  attach:
+    kind: function
+    meta:
+      short: Attach content to an email message
+    params:
+      message: *messageParam
+      content:
+        required: true
+        meta: { label: Content }
+        types: [ { wf: Reader, suffix: Stream }, { wf: String } ]
+      name:
+        meta: { label: Name }
+        types: [ { wf: String } ]
+
+  embed:
+    kind: function
+    meta:
+      short: Embed file to an email message
+    params:
+      message: *messageParam
+      content:
+        required: true
+        meta: { label: Content }
+        types: [ { wf: Reader } ]
+      name:
+        meta: { label: Name }
+        types: [ { wf: String } ]
