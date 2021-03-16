@@ -20,7 +20,7 @@ func (s Store) convertAutomationSessionFilter(f types.SessionFilter) (query squi
 	}
 
 	if len(f.WorkflowID) > 0 {
-		query = query.Where(squirrel.Eq{"atms.id": f.WorkflowID})
+		query = query.Where(squirrel.Eq{"atms.rel_workflow": f.WorkflowID})
 	}
 
 	if len(f.EventType) > 0 {
