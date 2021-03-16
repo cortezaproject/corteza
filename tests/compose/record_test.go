@@ -777,3 +777,103 @@ func TestRecordLabels(t *testing.T) {
 		req.NotNil(set.FindByID(ID).Labels)
 	})
 }
+
+func TestRecordReports(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
+
+	var (
+		ns  = h.makeNamespace("some-namespace")
+		mod = h.makeModule(ns, "some-module", &types.ModuleField{
+			Kind: "Number", Name: "n_float", Options: types.ModuleFieldOptions{"precision": 2},
+		}, &types.ModuleField{
+			Kind: "Number", Name: "n_int", Options: types.ModuleFieldOptions{"precision": 0},
+		})
+	)
+
+	h.makeRecord(mod, &types.RecordValue{
+		Name: "n_float", Value: "1.1",
+	}, &types.RecordValue{
+		Name: "n_int", Value: "1",
+	})
+
+	h.makeRecord(mod, &types.RecordValue{
+		Name: "n_float", Value: "2.3",
+	}, &types.RecordValue{
+		Name: "n_int", Value: "2",
+	})
+
+	t.Run("base metrics", func(t *testing.T) {
+		tcc := []struct {
+			op   string
+			expI float64
+			expF float64
+		}{
+			{
+				op:   "COUNT",
+				expF: 2,
+				expI: 2,
+			},
+			{
+				op:   "SUM",
+				expF: 3.4,
+				expI: 3,
+			},
+			{
+				op:   "MAX",
+				expF: 2.3,
+				expI: 2,
+			},
+			{
+				op:   "MIN",
+				expF: 1.1,
+				expI: 1,
+			},
+			{
+				op:   "AVG",
+				expF: 1.7,
+				expI: 1.5,
+			},
+			// @todo
+			// {
+			// 	op: "STD",
+			// 	expF: 0,
+			// 	expI: 0,
+			// },
+		}
+
+		for _, tc := range tcc {
+			t.Run("basic operations; float; "+tc.op, func(t *testing.T) {
+				h.apiInit().
+					Get(fmt.Sprintf("/namespace/%d/module/%d/record/report", mod.NamespaceID, mod.ID)).
+					Query("metrics", tc.op+"(n_float) as rp").
+					Query("dimensions", "DATE_FORMAT(created_at,'Y-01-01')").
+					Header("Accept", "application/json").
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(jsonpath.Len(`$.response`, 1)).
+					Assert(jsonpath.Equal(`$.response[0].count`, 2.0)).
+					Assert(jsonpath.Equal(`$.response[0].rp`, tc.expF)).
+					End()
+			})
+			t.Run("basic operations; int; "+tc.op, func(t *testing.T) {
+				h.apiInit().
+					Get(fmt.Sprintf("/namespace/%d/module/%d/record/report", mod.NamespaceID, mod.ID)).
+					Query("metrics", tc.op+"(n_int) as rp").
+					Query("dimensions", "DATE_FORMAT(created_at,'Y-01-01')").
+					Header("Accept", "application/json").
+					Expect(t).
+					Status(http.StatusOK).
+					Assert(jsonpath.Len(`$.response`, 1)).
+					Assert(jsonpath.Equal(`$.response[0].count`, 2.0)).
+					Assert(jsonpath.Equal(`$.response[0].rp`, tc.expI)).
+					End()
+			})
+		}
+	})
+}
