@@ -1,0 +1,10 @@
+allow:
+  everyone:
+    system:auth-client:
+      - authorize
+
+  admins:
+    system:auth-client:
+      - read
+      - update
+      - delete

@@ -3,12 +3,13 @@ package provision
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 // Pre 2021.3 versions had email templates stored in settings

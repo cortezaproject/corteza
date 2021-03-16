@@ -11,8 +11,8 @@ allow:
     system:role:
       - read
 
-    system:auth-client:
-      - authorize
+    system:template:
+      - render
 
   admins:
     system:
@@ -23,6 +23,7 @@ allow:
       - application.create
       - authClient.create
       - user.create
+      - template.create
       - role.create
       - reminder.assign
 
@@ -46,7 +47,8 @@ allow:
       - delete
       - members.manage
 
-    system:auth-client:
+    system:template:
       - read
       - update
       - delete
+      - render
