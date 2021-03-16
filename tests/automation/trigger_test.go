@@ -151,7 +151,7 @@ func TestTriggerCreateFull(t *testing.T) {
 			WorkflowID:   wf.ID,
 			ResourceType: "wf-full-test",
 			Enabled:      true,
-			Input:        expr.RVars{}.Vars(),
+			Input:        &expr.Vars{},
 			OwnedBy:      42,
 		}
 	)
@@ -184,7 +184,6 @@ func TestTriggerCreateFull(t *testing.T) {
 	h.allow(types.AutomationRBACResource, "triggers.search")
 
 	h.apiInit().
-		Debug().
 		Get(fmt.Sprintf("/triggers/%d", output.ID)).
 		Header("Accept", "application/json").
 		Expect(t).
