@@ -23,7 +23,7 @@ func fieldToColumnTypeCaster(field rdbms.ModuleFieldTypeDetector, ident string) 
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsNumeric():
-		tcp := "CAST(%s AS SIGNED)"
+		tcp := "CAST(%s AS DOUBLE)"
 		fc := fmt.Sprintf(fcp, ident)
 		return fmt.Sprintf(tcp, fc), fcp, tcp, nil
 	case field.IsDateTime():
