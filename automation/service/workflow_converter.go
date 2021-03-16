@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type (
@@ -91,6 +92,12 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 			}
 
 			stepIssues := verifyStep(step, inPaths, outPaths)
+
+			if step.Kind == types.WorkflowStepKindVisual {
+				// make sure visual steps are skipped
+				progress = true
+				continue
+			}
 
 			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
 				switch aux := err.(type) {
