@@ -3,11 +3,10 @@ package provision
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"path/filepath"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -81,36 +80,49 @@ func canImportConfig(ctx context.Context, s store.Storer) (bool, error) {
 }
 
 func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Storer, sources []string, dec directory.Decoder) (nn []resource.Interface, err error) {
-	// @todo when these parts starts multiplying, refactor
 	var (
-		aux          []resource.Interface
-		hasSourceDir = func(dir string) (string, bool) {
-			for _, source := range sources {
-				if strings.HasSuffix(source, dir) {
-					return source, true
-				}
-			}
-			return "", false
+		searchPartialDirectories = []uConfig{
+			{dir: "002_templates", fn: provisionPartialTemplates},
+			{dir: "003_auth", fn: provisionPartialAuthClients},
 		}
 	)
 
 	return nn, store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
-		log.Debug("verifying partial config import for templates")
-		set, _, err := store.SearchTemplates(ctx, s, types.TemplateFilter{Deleted: filter.StateInclusive})
-		// Import only of no templates exist
-		if err != nil || len(set) > 0 {
-			// return err
-		}
+		for _, d := range searchPartialDirectories {
+			// first, check if we need to import at all
+			if !d.fn(ctx, s, log) {
+				log.Debug("skipping partial config import, changes detected", zap.String("dir", d.dir))
+				continue
+			}
 
-		if source, has := hasSourceDir("002_templates"); !has {
-			log.Debug("failed to execute partial config import for templates, 002_templates dir not found")
-			return
-		} else if aux, err = directory.Decode(ctx, source, dec); err != nil {
-			return fmt.Errorf("failed to decode template configs: %w", err)
-		} else {
-			nn = append(nn, aux...)
+			if list, e := decodeDirectory(ctx, sources, d.dir, dec); e != nil {
+				return fmt.Errorf("failed to decode template configs: %w", err)
+			} else if len(list) == 0 {
+				log.Error("failed to execute partial config import for templates, directory not found or no configs", zap.Any("dir", d))
+				return
+			} else {
+				log.Debug("partial import", zap.String("dir", d.dir))
+				nn = append(nn, list...)
+			}
 		}
 
 		return
 	})
+}
+
+func hasSourceDir(sources []string, dir string) (string, bool) {
+	for _, source := range sources {
+		if strings.HasSuffix(source, dir) {
+			return source, true
+		}
+	}
+	return "", false
+}
+
+func decodeDirectory(ctx context.Context, sources []string, dir string, dec directory.Decoder) (res []resource.Interface, err error) {
+	if source, has := hasSourceDir(sources, dir); has {
+		res, err = directory.Decode(ctx, source, dec)
+	}
+
+	return
 }
