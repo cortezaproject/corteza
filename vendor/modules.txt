@@ -28,6 +28,9 @@ github.com/PaesslerAG/jsonpath
 ## explicit
 github.com/SentimensRG/ctx
 github.com/SentimensRG/ctx/sigctx
+# github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+## explicit
+github.com/asaskevich/govalidator
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
