@@ -118,10 +118,11 @@ func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.R
 			return err
 		}
 
+		r = new
 		r.ID = nextID()
 		r.CreatedAt = *now()
 
-		if err = store.CreateReminder(ctx, svc.store, new); err != nil {
+		if err = store.CreateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
 
