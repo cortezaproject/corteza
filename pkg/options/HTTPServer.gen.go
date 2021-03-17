@@ -54,7 +54,7 @@ func HTTPServer() (o *HTTPServerOpt) {
 		WebappEnabled:          false,
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "webapp/public",
-		WebappList:             "admin,compose",
+		WebappList:             "admin,compose,workflow",
 	}
 
 	fill(o)
