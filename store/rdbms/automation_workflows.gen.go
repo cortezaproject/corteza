@@ -527,7 +527,12 @@ func (Store) automationWorkflowColumns(aa ...string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortableAutomationWorkflowColumns() map[string]string {
 	return map[string]string{
-		"id": "id",
+		"id": "id", "handle": "handle", "enabled": "enabled", "created_at": "created_at",
+		"createdat":  "created_at",
+		"updated_at": "updated_at",
+		"updatedat":  "updated_at",
+		"deleted_at": "deleted_at",
+		"deletedat":  "deleted_at",
 	}
 }
 
@@ -587,6 +592,18 @@ func (s Store) collectAutomationWorkflowCursorValues(res *types.Workflow, cc ...
 				case "handle":
 					cursor.Set(c.Column, res.Handle, c.Descending)
 					hasUnique = true
+
+				case "enabled":
+					cursor.Set(c.Column, res.Enabled, c.Descending)
+
+				case "created_at":
+					cursor.Set(c.Column, res.CreatedAt, c.Descending)
+
+				case "updated_at":
+					cursor.Set(c.Column, res.UpdatedAt, c.Descending)
+
+				case "deleted_at":
+					cursor.Set(c.Column, res.DeletedAt, c.Descending)
 
 				}
 			}
