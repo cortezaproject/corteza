@@ -6,9 +6,9 @@ types:
 
 fields:
   - { field: ID }
-  - { field: Handle,       unique: true, lookupFilterPreprocessor: lower }
+  - { field: Handle,       unique: true, lookupFilterPreprocessor: lower, sortable: true }
   - { field: Meta,         type: "types.WorkflowMeta" }
-  - { field: Enabled,      type: bool }
+  - { field: Enabled,      type: bool, sortable: true }
   - { field: Trace,        type: bool }
   - { field: KeepSessions, type: "time.Duration" }
   - { field: Scope,        type: "expr.Vars" }
@@ -20,9 +20,9 @@ fields:
   - { field: CreatedBy }
   - { field: UpdatedBy }
   - { field: DeletedBy }
-  - { field: CreatedAt }
-  - { field: UpdatedAt }
-  - { field: DeletedAt }
+  - { field: CreatedAt,                               sortable: true }
+  - { field: UpdatedAt,                               sortable: true }
+  - { field: DeletedAt,                               sortable: true }
 
 rdbms:
   alias: atmwf
