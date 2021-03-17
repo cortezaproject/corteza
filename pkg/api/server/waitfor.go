@@ -39,7 +39,7 @@ func (s server) WaitFor(ctx context.Context) {
 	// Setup a simple HTTP server that will inform the impatient users
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
-		s.log.Error("Can not start server", zap.Error(err))
+		s.log.Error("cannot start server", zap.Error(err))
 		os.Exit(1)
 	}
 	defer listener.Close()

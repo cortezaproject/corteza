@@ -113,7 +113,7 @@ func (bb *PageBlocks) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, bb); err != nil {
-			return errors.Wrapf(err, "Can not scan '%v' into PageBlocks", string(b))
+			return errors.Wrapf(err, "cannot scan '%v' into PageBlocks", string(b))
 		}
 	}
 

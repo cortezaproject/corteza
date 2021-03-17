@@ -50,11 +50,11 @@ func (t Unresolved) Type() string { return t.typ }
 
 // Casts value to interface{}
 func (Unresolved) Cast(interface{}) (TypedValue, error) {
-	return nil, fmt.Errorf("can not cast to unresolved type")
+	return nil, fmt.Errorf("cannot cast to unresolved type")
 }
 
 func (t *Unresolved) Assign(interface{}) (err error) {
-	return fmt.Errorf("can not set on unresolved type")
+	return fmt.Errorf("cannot set on unresolved type")
 }
 
 func CastToAny(val interface{}) (interface{}, error) {

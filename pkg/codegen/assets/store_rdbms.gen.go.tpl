@@ -692,7 +692,7 @@ func (s Store) collect{{ export $.Types.Singular }}CursorValues({{ template "ext
 // check{{ export $.Types.Singular }}Constraints performs lookups (on valid) resource to check if any of the values on unique fields
 // already exists in the store
 //
-// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// Using built-in constraint checking would be more performant but unfortunately we cannot rely
 // on the full support (MySQL does not support conditional indexes)
 func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Context{{ template "extraArgsDef" $ }}, res *{{ $.Types.GoType }}) error {
 	// Consider resource valid when all fields in unique constraint check lookups
@@ -709,7 +709,7 @@ func (s *Store) check{{ export $.Types.Singular }}Constraints(ctx context.Contex
 		{{ else if eq .Type "string" }}
 		valid = valid && len(res.{{ .Field }}) > 0
 		{{ else }}
-		// can not check field {{ .Field }} with unsupported type: {{ .Type }}
+		// cannot check field {{ .Field }} with unsupported type: {{ .Type }}
 		{{ end }}
 	{{- end }}
 	{{- end }}

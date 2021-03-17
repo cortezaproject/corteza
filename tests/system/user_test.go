@@ -271,7 +271,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
 	h.allow(newUserWeCanAccess.RBACResource(), "read")
 
-	// And one we can not access
+	// And one we cannot access
 	h.createUserWithEmail(h.randEmail())
 
 	aux := struct {

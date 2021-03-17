@@ -592,7 +592,7 @@ func (s Store) collectFederationModuleMappingCursorValues(res *types.ModuleMappi
 // checkFederationModuleMappingConstraints performs lookups (on valid) resource to check if any of the values on unique fields
 // already exists in the store
 //
-// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// Using built-in constraint checking would be more performant but unfortunately we cannot rely
 // on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkFederationModuleMappingConstraints(ctx context.Context, res *types.ModuleMapping) error {
 	// Consider resource valid when all fields in unique constraint check lookups

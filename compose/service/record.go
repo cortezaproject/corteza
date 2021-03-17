@@ -1004,7 +1004,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 			}
 
 			// Check field existence and permissions
-			// check if numeric -- we can not reorder on any other field type
+			// check if numeric -- we cannot reorder on any other field type
 
 			sf := m.Fields.FindByName(posField)
 			if sf == nil {
@@ -1012,11 +1012,11 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 			}
 
 			if !sf.IsNumeric() {
-				return fmt.Errorf("can not reorder on non numeric field %q", posField)
+				return fmt.Errorf("cannot reorder on non numeric field %q", posField)
 			}
 
 			if sf.Multi {
-				return fmt.Errorf("can not reorder on multi-value field %q", posField)
+				return fmt.Errorf("cannot reorder on multi-value field %q", posField)
 			}
 
 			if !svc.ac.CanUpdateRecordValue(ctx, sf) {
@@ -1040,7 +1040,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 			}
 
 			if vf.Multi {
-				return fmt.Errorf("can not update multi-value field %q", posField)
+				return fmt.Errorf("cannot update multi-value field %q", posField)
 			}
 
 			if !svc.ac.CanUpdateRecordValue(ctx, vf) {

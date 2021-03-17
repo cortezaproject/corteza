@@ -52,7 +52,7 @@ func Decode(ctx context.Context, p string, decoders ...Decoder) ([]resource.Inte
 
 		for _, d := range decoders {
 			if !d.CanDecodeFile(f) {
-				// decoder can not handle this file
+				// decoder cannot handle this file
 				// Make sure to reset it, as the above check consumes the reader
 				if _, err = f.Seek(0, 0); err != nil {
 					return err
@@ -62,7 +62,7 @@ func Decode(ctx context.Context, p string, decoders ...Decoder) ([]resource.Inte
 			}
 
 			if !d.CanDecodeExt(info.Name()) {
-				// this decoder can not handle this extension
+				// this decoder cannot handle this extension
 				continue
 			}
 

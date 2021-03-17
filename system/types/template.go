@@ -82,7 +82,7 @@ func (t *TemplateMeta) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, t); err != nil {
-			return errors.Wrapf(err, "Can not scan '%v' into TemplateMeta", string(b))
+			return errors.Wrapf(err, "cannot scan '%v' into TemplateMeta", string(b))
 		}
 	}
 

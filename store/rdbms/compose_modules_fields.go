@@ -11,7 +11,7 @@ func (s Store) convertComposeModuleFieldFilter(f types.ModuleFieldFilter) (query
 	query = s.composeModuleFieldsSelectBuilder()
 
 	if len(f.ModuleID) == 0 {
-		err = fmt.Errorf("can not search for module fields without module IDs")
+		err = fmt.Errorf("cannot search for module fields without module IDs")
 		return
 	}
 

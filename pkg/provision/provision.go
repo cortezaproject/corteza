@@ -24,7 +24,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		// Config (full & partial)
 		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
 
-		// Auto-discoveries and other parts that can not be imported from static files
+		// Auto-discoveries and other parts that cannot be imported from static files
 		func() error { return authSettingsAutoDiscovery(ctx, log, service.DefaultSettings) },
 		func() error { return authAddExternals(ctx, log) },
 		func() error { return service.DefaultSettings.UpdateCurrent(ctx) },

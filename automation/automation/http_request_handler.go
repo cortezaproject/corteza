@@ -74,7 +74,7 @@ func (h httpRequestHandler) makeRequest(ctx context.Context, args *httpRequestSe
 
 		if len(args.Form) > 0 {
 			if args.Body != nil {
-				return fmt.Errorf("can not not use form and body parameters at the same time")
+				return fmt.Errorf("cannot not use form and body parameters at the same time")
 			}
 
 			if !args.hasHeaderContentType {

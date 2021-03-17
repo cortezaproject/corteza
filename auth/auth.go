@@ -170,7 +170,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 	if len(opt.AssetsPath) > 0 {
 		tplLoader = func(t *template.Template) (tpl *template.Template, err error) {
 			if tpl, err = t.Clone(); err != nil {
-				return nil, fmt.Errorf("can not clone templates: %w", err)
+				return nil, fmt.Errorf("cannot clone templates: %w", err)
 			} else {
 				return tpl.ParseGlob(opt.AssetsPath + "/templates/*.tpl")
 			}
@@ -185,7 +185,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		log.Info("initializing templates without reloading (production mode)")
 		tpls, err = NewStaticTemplates(tplBase, tplLoader)
 		if err != nil {
-			return nil, fmt.Errorf("can not load templates: %w", err)
+			return nil, fmt.Errorf("cannot load templates: %w", err)
 		}
 	} else {
 		log.Info("initializing reloadable templates (development mode)")

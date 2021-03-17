@@ -91,15 +91,14 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		req.RedirectTo = GetLinks().Profile
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
-			Text: fmt.Sprintf("Can not authorize '%s', no permissions.", req.Client),
+			Text: fmt.Sprintf("cannot authorize '%s', no permissions.", req.Client),
 		})
 		return nil
 	}
 
 	if !req.AuthUser.User.EmailConfirmed {
 		req.Data["invalidUser"] = template.HTML(fmt.Sprintf(
-			`Can not continue with unauthorized email, 
-			visit <a href="%s">your profile</a> and resolve the issue.`,
+			`Cannot continue with unauthorized email, visit <a href="%s">your profile</a> and resolve the issue.`,
 			GetLinks().Profile,
 		))
 

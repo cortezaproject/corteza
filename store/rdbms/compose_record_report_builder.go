@@ -80,9 +80,9 @@ func (b *recordReportBuilder) Run(ctx context.Context) (ComposeRecordsReport, er
 	)
 
 	if sb, err := b.Build(); err != nil {
-		return nil, fmt.Errorf("can not generate report query: %w", err)
+		return nil, fmt.Errorf("cannot generate report query: %w", err)
 	} else if rows, err := b.store.Query(ctx, sb); err != nil {
-		return nil, fmt.Errorf("can not execute report query: %w", err)
+		return nil, fmt.Errorf("cannot execute report query: %w", err)
 	} else {
 		err = func() error {
 			defer rows.Close()

@@ -38,7 +38,7 @@ errors:
     message: "invalid recipient format ({recipient})"
 
   - error: noRecipients
-    message: "can not send email message without recipients"
+    message: "cannot send email message without recipients"
 
   - error: failedToDownloadAttachment
     message: "could not download attachment from {attachmentURL}: {err}"

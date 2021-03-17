@@ -565,7 +565,7 @@ func (svc *service) processIterator(script *Script) (ptr uintptr, err error) {
 		}
 
 		if script.Security == nil {
-			return 0, fmt.Errorf("can not schedule iterator without security descriptor")
+			return 0, fmt.Errorf("cannot schedule iterator without security descriptor")
 		}
 
 		if p := strings.Index(i.ResourceType, ":"); p > 0 {

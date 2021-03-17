@@ -1904,7 +1904,7 @@ paths:
             items: *ref_1
         - in: query
           name: excludeInvalid
-          description: Exclude scripts that can not be used (errors)
+          description: Exclude scripts that cannot be used (errors)
           required: false
           schema: *ref_13
         - in: query

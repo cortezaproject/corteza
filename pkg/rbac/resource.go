@@ -16,7 +16,7 @@ const (
 
 func (r Resource) append(suffix string) Resource {
 	if !r.IsAppendable() {
-		panic("can not append to non appendable resource '" + r.String() + "'")
+		panic("cannot append to non appendable resource '" + r.String() + "'")
 	}
 
 	return Resource(r.String() + suffix)

@@ -165,7 +165,7 @@ func (vv *AuthClientMeta) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into AuthClientMeta: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into AuthClientMeta: %w", string(b), err)
 		}
 	}
 
@@ -189,7 +189,7 @@ func (vv *AuthClientSecurity) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into AuthClientSecurity: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into AuthClientSecurity: %w", string(b), err)
 		}
 	}
 
