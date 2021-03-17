@@ -45,13 +45,13 @@ func (svc authNotification) log(ctx context.Context, fields ...zapcore.Field) *z
 }
 
 func (svc authNotification) EmailOTP(ctx context.Context, emailAddress string, code string) error {
-	return svc.send(ctx, "auth_email_otp", emailAddress, map[string]interface{}{
+	return svc.send(ctx, "auth_email_mfa", emailAddress, map[string]interface{}{
 		"Code": code,
 	})
 }
 
 func (svc authNotification) EmailConfirmation(ctx context.Context, emailAddress string, token string) error {
-	return svc.send(ctx, "auth_email_confirmation", emailAddress, map[string]interface{}{
+	return svc.send(ctx, "auth_email_confirm", emailAddress, map[string]interface{}{
 		"URL": fmt.Sprintf("%s/confirm-email?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
 }
@@ -81,16 +81,20 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 		err error
 		tmp []byte
 		ntf = svc.newMail()
+		hdl string
 	)
 
 	// Fetch parts
-	st, err := svc.ts.FindByHandle(ctx, name+"_subject")
+	hdl = name + "_subject"
+	st, err := svc.ts.FindByHandle(ctx, hdl)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot generate auth email with template %s: %w", hdl, err)
 	}
-	ct, err := svc.ts.FindByHandle(ctx, name+"_content")
+
+	hdl = name + "_content"
+	ct, err := svc.ts.FindByHandle(ctx, hdl)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot generate auth email with template %s: %w", hdl, err)
 	}
 
 	// Prepare payload

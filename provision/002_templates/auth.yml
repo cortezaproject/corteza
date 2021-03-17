@@ -17,13 +17,13 @@ templates:
         <p>You will be logged-in after successful reset.</p>
       {{template "email_general_footer" .}}
 
-  auth_email_email_confirm_subject:
+  auth_email_confirm_subject:
     type: text/plain
     meta:
       short: Email confirmation subject
     template: Reset your password
 
-  auth_email_email_confirm_content:
+  auth_email_confirm_content:
     type: text/html
     meta:
       short: Email confirmation content
@@ -35,13 +35,13 @@ templates:
         <p>You will be logged-in after successful confirmation.</p>
       {{template "email_general_footer" .}}
 
-  auth_email_email_mfa_subject:
+  auth_email_mfa_subject:
     type: text/plain
     meta:
       short: MFA login code subject
     template: Login code
 
-  auth_email_email_mfa_content:
+  auth_email_mfa_content:
     type: text/html
     meta:
       short: MFA login code content
