@@ -147,7 +147,7 @@ func (meta *UserMeta) Scan(value interface{}) error {
 		return nil
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), meta); err != nil {
-			return errors.Wrapf(err, "Can not scan '%v' into User.Meta", value)
+			return errors.Wrapf(err, "cannot scan '%v' into User.Meta", value)
 		}
 		return nil
 	}

@@ -370,7 +370,7 @@ func NotificationErrNoRecipients(mm ...*notificationActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("can not send email message without recipients", nil),
+		p.Format("cannot send email message without recipients", nil),
 
 		errors.Meta("type", "noRecipients"),
 		errors.Meta("resource", "compose:notification"),

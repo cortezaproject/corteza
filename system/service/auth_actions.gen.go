@@ -1321,7 +1321,7 @@ func AuthErrEnforcedMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("TOTP is enforced and can not be disabled", nil),
+		p.Format("TOTP is enforced and cannot be disabled", nil),
 
 		errors.Meta("type", "enforcedMFAWithTOTP"),
 		errors.Meta("resource", "system:auth"),
@@ -1441,7 +1441,7 @@ func AuthErrEnforcedMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("OTP over email is enforced and can not be disabled", nil),
+		p.Format("OTP over email is enforced and cannot be disabled", nil),
 
 		errors.Meta("type", "enforcedMFAWithEmailOTP"),
 		errors.Meta("resource", "system:auth"),

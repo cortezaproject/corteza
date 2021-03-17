@@ -159,7 +159,7 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		case 0:
 			return nil, errors.InvalidData("could not find starting step")
 		default:
-			return nil, errors.InvalidData("can not start workflow session multiple starting steps found")
+			return nil, errors.InvalidData("cannot start workflow session multiple starting steps found")
 		}
 	} else if start = g.StepByID(ssp.StepID); start == nil {
 		return nil, errors.InvalidData("trigger staring step references nonexisting step")

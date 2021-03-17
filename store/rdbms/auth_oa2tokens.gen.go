@@ -271,7 +271,7 @@ func (s Store) internalAuthOa2tokenEncoder(res *types.AuthOa2token) store.Payloa
 // checkAuthOa2tokenConstraints performs lookups (on valid) resource to check if any of the values on unique fields
 // already exists in the store
 //
-// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// Using built-in constraint checking would be more performant but unfortunately we cannot rely
 // on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkAuthOa2tokenConstraints(ctx context.Context, res *types.AuthOa2token) error {
 	// Consider resource valid when all fields in unique constraint check lookups

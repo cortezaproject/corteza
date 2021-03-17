@@ -42,7 +42,7 @@ func (list *ModuleFieldSet) Scan(value interface{}) error {
 		*list = ModuleFieldSet{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), list); err != nil {
-			return errors.New(fmt.Sprintf("Can not scan '%v' into ModuleFieldSet", value))
+			return errors.New(fmt.Sprintf("cannot scan '%v' into ModuleFieldSet", value))
 		}
 	}
 

@@ -147,7 +147,7 @@ func (ctrl User) PartialUpdate(ctx context.Context, r *request.UserPartialUpdate
 					u.Meta.SecurityPolicy.MFA.EnforcedTOTP, err = cast.ToBoolE(aux)
 
 				case "/emailConfirmed":
-					// unfortunately, this can not be passed to update right now
+					// unfortunately, this cannot be passed to update right now
 					// internal limitations
 					u.EmailConfirmed, err = cast.ToBoolE(aux)
 					err = ctrl.user.ToggleEmailConfirmation(ctx, u.ID, u.EmailConfirmed)

@@ -207,7 +207,7 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 	att.CreatedAt = *now()
 
 	if svc.files == nil {
-		return errors.New("can not create attachment: store handler not set")
+		return errors.New("cannot create attachment: store handler not set")
 	}
 
 	aaProps.setName(name)

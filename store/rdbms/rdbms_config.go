@@ -93,7 +93,7 @@ type (
 		// Different store backend implementation might handle upsert differently...
 		UpsertBuilder func(*Config, string, store.Payload, ...string) (squirrel.InsertBuilder, error)
 
-		// TriggerHandlers handle various exceptions that can not be handled generally within RDBMS package.
+		// TriggerHandlers handle various exceptions that cannot be handled generally within RDBMS package.
 		// see triggerKey type and defined constants to see where the hooks are and how can they be called
 		TriggerHandlers TriggerHandlers
 

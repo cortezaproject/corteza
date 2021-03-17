@@ -1403,7 +1403,7 @@ endpoints:
         title: Filter by event type
       - name: excludeInvalid
         type: bool
-        title: Exclude scripts that can not be used (errors)
+        title: Exclude scripts that cannot be used (errors)
       - name: excludeClientScripts
         type: bool
         title: Do not include client scripts

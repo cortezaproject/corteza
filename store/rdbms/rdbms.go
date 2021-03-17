@@ -391,7 +391,7 @@ func tx(ctx context.Context, dbCandidate interface{}, cfg *Config, txOpt *sql.Tx
 		// Call the the configured transaction retry error handler
 		// if this particular error should be retried or not
 		//
-		// We can not generalize here because different store implementation have
+		// We cannot generalize here because different store implementation have
 		// different errors and we need to act accordingly
 		if !cfg.TxRetryErrHandler(try, lastTaskErr) {
 			return fmt.Errorf("failed to complete transaction: %w", lastTaskErr)

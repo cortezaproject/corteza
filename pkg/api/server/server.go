@@ -47,7 +47,7 @@ func (s server) Serve(ctx context.Context) {
 
 	listener, err := net.Listen("tcp", s.httpOpt.Addr)
 	if err != nil {
-		s.log.Error("can not start server", zap.Error(err))
+		s.log.Error("cannot start server", zap.Error(err))
 		return
 	}
 

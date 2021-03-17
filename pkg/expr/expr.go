@@ -93,7 +93,7 @@ func Assign(base TypedValue, path string, val interface{}) error {
 			}
 
 		default:
-			return fmt.Errorf("can not set value on %s with path '%s'", base.Type(), path)
+			return fmt.Errorf("cannot set value on %s with path '%s'", base.Type(), path)
 
 		}
 	}
@@ -134,7 +134,7 @@ func Select(base TypedValue, path string) (TypedValue, error) {
 	}
 
 	var (
-		failure = fmt.Errorf("can not get value from %s with path '%s'", base.Type(), path)
+		failure = fmt.Errorf("cannot get value from %s with path '%s'", base.Type(), path)
 		key     string
 	)
 

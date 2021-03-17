@@ -381,7 +381,7 @@ func (svc attachment) create(name string, size int64, fh io.ReadSeeker, att *typ
 	}
 
 	if svc.objects == nil {
-		return errors.New("can not create attachment: store handler not set")
+		return errors.New("cannot create attachment: store handler not set")
 	}
 
 	aProps.setName(name)

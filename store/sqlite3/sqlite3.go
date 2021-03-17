@@ -67,7 +67,7 @@ func ConnectInMemoryWithDebug(ctx context.Context) (s store.Storer, err error) {
 
 func (s *Store) Upgrade(ctx context.Context, log *zap.Logger) (err error) {
 	if err = (&rdbms.Schema{}).Upgrade(ctx, NewUpgrader(log, s)); err != nil {
-		return fmt.Errorf("can not upgrade sqlite schema: %w", err)
+		return fmt.Errorf("cannot upgrade sqlite schema: %w", err)
 	}
 
 	return nil

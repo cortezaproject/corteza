@@ -95,7 +95,7 @@ func (au *ApplicationUnify) Scan(value interface{}) error {
 		au = nil
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), au); err != nil {
-			return errors.Wrapf(err, "Can not scan '%v' into ApplicationUnify", value)
+			return errors.Wrapf(err, "cannot scan '%v' into ApplicationUnify", value)
 		}
 	}
 

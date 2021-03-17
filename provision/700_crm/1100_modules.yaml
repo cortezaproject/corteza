@@ -7541,7 +7541,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Discount can not be a negative number
+              error: Discount cannot be a negative number
       Email:
         label: Email
         kind: Email
@@ -8616,7 +8616,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Shipping and Handling can not be a negative number
+              error: Shipping and Handling cannot be a negative number
 
       Status:
         label: Status
@@ -8650,7 +8650,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Sub total can not be a negative number
+              error: Sub total cannot be a negative number
       Tax:
         label: Tax
         kind: Number
@@ -8661,7 +8661,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Tax can not be a negative number
+              error: Tax cannot be a negative number
       TotalPrice:
         label: Total Price (calculated)
         kind: Number
@@ -8949,7 +8949,7 @@ modules:
           format: "0"
           precision: 2
       ScoreCriticality:
-        label: 
+        label:
         kind: Number
         options:
           format: "0"

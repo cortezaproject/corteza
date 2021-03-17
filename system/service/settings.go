@@ -148,7 +148,7 @@ func (svc settings) updateCurrent(ctx context.Context, vv types.SettingValueSet)
 		return
 	}
 
-	// push message over update chan so we can notify listeners
+	// push message over update chan so we cannotify listeners
 	select {
 	case svc.update <- vv:
 	case <-ctx.Done():

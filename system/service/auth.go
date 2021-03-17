@@ -1038,7 +1038,7 @@ func (svc auth) ConfigureTOTP(ctx context.Context, secret string, code string) (
 
 		if i == nil || u.Meta.SecurityPolicy.MFA.EnforcedTOTP {
 			// TOTP is already enforced on the user,
-			// this means that we can not just allow the change
+			// this means that we cannot just allow the change
 			return AuthErrNotAllowedToConfigureTOTP()
 		}
 

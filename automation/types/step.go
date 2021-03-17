@@ -107,7 +107,7 @@ func (vv *WorkflowStepSet) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into WorkflowStepSet: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into WorkflowStepSet: %w", string(b), err)
 		}
 	}
 
@@ -131,7 +131,7 @@ func (vv *WorkflowPathSet) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into WorkflowPathSet: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into WorkflowPathSet: %w", string(b), err)
 		}
 	}
 

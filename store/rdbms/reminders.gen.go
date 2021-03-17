@@ -593,7 +593,7 @@ func (s Store) collectReminderCursorValues(res *types.Reminder, cc ...*filter.So
 // checkReminderConstraints performs lookups (on valid) resource to check if any of the values on unique fields
 // already exists in the store
 //
-// Using built-in constraint checking would be more performant but unfortunately we can not rely
+// Using built-in constraint checking would be more performant but unfortunately we cannot rely
 // on the full support (MySQL does not support conditional indexes)
 func (s *Store) checkReminderConstraints(ctx context.Context, res *types.Reminder) error {
 	// Consider resource valid when all fields in unique constraint check lookups

@@ -42,11 +42,11 @@ func mapExplicitTriggers(script *ServerScript) map[string]bool {
 // converts trigger's constraint to eventbus' constraint options
 func triggerToHandlerOps(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 	if len(t.ResourceTypes) == 0 {
-		return nil, fmt.Errorf("can not generate event handler without at least one resource")
+		return nil, fmt.Errorf("cannot generate event handler without at least one resource")
 	}
 
 	if len(t.EventTypes) == 0 {
-		return nil, fmt.Errorf("can not generate event handler without at least one events")
+		return nil, fmt.Errorf("cannot generate event handler without at least one events")
 	}
 
 	// Make a copy of event types slice so that we do not modify it
@@ -73,7 +73,7 @@ func triggerToHandlerOps(t *Trigger) (oo []eventbus.HandlerRegOp, err error) {
 func constraintsToHandlerOps(cc []*TConstraint) (oo []eventbus.HandlerRegOp, err error) {
 	for _, raw := range cc {
 		if c, err := eventbus.ConstraintMaker(raw.Name, raw.Op, raw.Value...); err != nil {
-			return nil, errors.Wrap(err, "can not generate constraints")
+			return nil, errors.Wrap(err, "cannot generate constraints")
 		} else {
 			oo = append(oo, eventbus.Constraint(c))
 		}

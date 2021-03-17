@@ -33,7 +33,7 @@ func (opt *ModuleFieldExpr) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, opt); err != nil {
-			return fmt.Errorf("Can not scan '%v' into ModuleFieldExpr: %v", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into ModuleFieldExpr: %v", string(b), err)
 		}
 	}
 

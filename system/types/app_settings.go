@@ -282,7 +282,7 @@ var _ KVDecoder = &ExternalAuthProviderSet{}
 
 func (p ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
 	if p.Handle == "" {
-		return nil, errors.New("can not encode external auth provider without handle")
+		return nil, errors.New("cannot encode external auth provider without handle")
 	}
 	var (
 		prefix = "auth.external.providers." + p.Handle + "."

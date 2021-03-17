@@ -218,7 +218,7 @@ func (t *Vars) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, t); err != nil {
-			return fmt.Errorf("can not scan '%v' into %T: %w", string(b), t, err)
+			return fmt.Errorf("cannot scan '%v' into %T: %w", string(b), t, err)
 		}
 	}
 

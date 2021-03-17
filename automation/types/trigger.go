@@ -97,7 +97,7 @@ func (vv *TriggerConstraintSet) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into TriggerConstraintSet: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into TriggerConstraintSet: %w", string(b), err)
 		}
 	}
 
@@ -112,7 +112,7 @@ func (vv *TriggerMeta) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into TriggerMeta: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into TriggerMeta: %w", string(b), err)
 		}
 	}
 

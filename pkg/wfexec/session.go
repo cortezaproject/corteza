@@ -223,7 +223,7 @@ func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
 	}
 
 	if len(s.g.Parents(step)) > 0 {
-		return fmt.Errorf("can not execute step with parents")
+		return fmt.Errorf("cannot execute step with parents")
 	}
 
 	if scope == nil {

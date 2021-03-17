@@ -164,7 +164,7 @@ errors:
     severity: warning
 
   - error: enforcedMFAWithTOTP
-    message: "TOTP is enforced and can not be disabled"
+    message: "TOTP is enforced and cannot be disabled"
     severity: warning
 
   - error: invalidTOTP
@@ -180,7 +180,7 @@ errors:
     severity: warning
 
   - error: enforcedMFAWithEmailOTP
-    message: "OTP over email is enforced and can not be disabled"
+    message: "OTP over email is enforced and cannot be disabled"
     severity: warning
 
   - error: invalidEmailOTP

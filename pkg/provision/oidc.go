@@ -44,7 +44,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, opt options.AuthOpt
 		// because we do not want to override the provider every time the system restarts
 		//
 		// validate: false
-		// because at the initial (empty db) start, we can not actually validate (server is not yet up)
+		// because at the initial (empty db) start, we cannot actually validate (server is not yet up)
 		//
 		// enable:   true
 		// we want provider & the entire external auth to be validated

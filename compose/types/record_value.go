@@ -274,7 +274,7 @@ func (set *RecordValueSet) Scan(value interface{}) error {
 		*set = RecordValueSet{}
 	case []uint8:
 		if err := json.Unmarshal(value.([]byte), set); err != nil {
-			return errors.Wrapf(err, "Can not scan '%v' into RecordValueSet", value)
+			return errors.Wrapf(err, "cannot scan '%v' into RecordValueSet", value)
 		}
 	}
 

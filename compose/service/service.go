@@ -200,7 +200,7 @@ func RegisterIteratorProviders() {
 			var limit uint
 			if lString, has := f["limit"]; has {
 				if limit64, err := strconv.ParseUint(lString, 10, 32); err != nil {
-					return fmt.Errorf("can not parse iterator limit param: %w", err)
+					return fmt.Errorf("cannot parse iterator limit param: %w", err)
 				} else {
 					// We specify the bit size during parsing, so this is fine
 					limit = uint(limit64)

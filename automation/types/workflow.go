@@ -87,7 +87,7 @@ func (r *Workflow) RBACResource() rbac.Resource {
 // CheckDeferred returns true if any of the steps is deferred.
 //
 // Workflow is considered deferred when delay or prompt step types are used.
-// Deferred workflows can not short-circuit triggers or prevent creation/update on before triggers
+// Deferred workflows cannot short-circuit triggers or prevent creation/update on before triggers
 //
 // @todo add flag on workflow to explicitly mark workflow as deferred even when there are no delay or prompt steps
 func (r Workflow) CheckDeferred() bool {
@@ -102,7 +102,7 @@ func (vv *WorkflowMeta) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, vv); err != nil {
-			return fmt.Errorf("can not scan '%v' into WorkflowMeta: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into WorkflowMeta: %w", string(b), err)
 		}
 	}
 
@@ -131,7 +131,7 @@ func (set *WorkflowIssueSet) Scan(value interface{}) error {
 	case []uint8:
 		b := value.([]byte)
 		if err := json.Unmarshal(b, set); err != nil {
-			return fmt.Errorf("can not scan '%v' into WorkflowIssueSet: %w", string(b), err)
+			return fmt.Errorf("cannot scan '%v' into WorkflowIssueSet: %w", string(b), err)
 		}
 	}
 

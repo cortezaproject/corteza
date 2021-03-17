@@ -51,7 +51,7 @@ type (
 
 		// ExcludeInvalid GET parameter
 		//
-		// Exclude scripts that can not be used (errors)
+		// Exclude scripts that cannot be used (errors)
 		ExcludeInvalid bool
 
 		// ExcludeClientScripts GET parameter
