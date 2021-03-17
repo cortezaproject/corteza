@@ -3,6 +3,7 @@ package expr
 import (
 	"context"
 	"fmt"
+
 	"github.com/PaesslerAG/gval"
 )
 
@@ -84,6 +85,7 @@ func AllFunctions() []gval.Language {
 	ff = append(ff, StringFunctions()...)
 	ff = append(ff, NumericFunctions()...)
 	ff = append(ff, TimeFunctions()...)
+	ff = append(ff, ArrayFunctions()...)
 
 	return ff
 }

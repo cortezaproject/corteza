@@ -15,7 +15,26 @@ func TimeFunctions() []gval.Language {
 		gval.Function("modTime", modTime),
 		gval.Function("parseDuration", time.ParseDuration),
 		gval.Function("strftime", strfTime),
+		gval.Function("isLeapYear", isLeapYear),
+		gval.Function("now", now),
+		gval.Function("isWeekDay", isWeekDay),
 	}
+}
+
+func now() time.Time {
+	return time.Now()
+}
+
+func isLeapYear(f time.Time) bool {
+	return time.Date(f.Year(), time.December, 31, 0, 0, 0, 0, time.Local).YearDay() == 366
+}
+
+func isLeapDay(f time.Time) bool {
+	return f.Day() == 29 && f.Month() == 2
+}
+
+func isWeekDay(f time.Time) bool {
+	return time.Sunday < f.Weekday() && f.Weekday() < time.Saturday
 }
 
 func earliest(f time.Time, aa ...time.Time) time.Time {
