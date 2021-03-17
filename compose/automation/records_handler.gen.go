@@ -29,6 +29,8 @@ func (h recordsHandler) register() {
 	h.reg.AddFunctions(
 		h.Lookup(),
 		h.Search(),
+		h.First(),
+		h.Last(),
 		h.Each(),
 		h.New(),
 		h.Validate(),
@@ -427,6 +429,264 @@ func (h recordsHandler) Search() *atypes.Function {
 				if tval, err = h.reg.Type("String").Cast(results.PageCursor); err != nil {
 					return
 				} else if err = expr.Assign(out, "pageCursor", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	recordsFirstArgs struct {
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+	}
+
+	recordsFirstResults struct {
+		Record *types.Record
+	}
+)
+
+func (a recordsFirstArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (a recordsFirstArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+// First function Returns the first created record
+//
+// expects implementation of first function:
+// func (h recordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
+//    return
+// }
+func (h recordsHandler) First() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "composeRecordsFirst",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Returns the first created record",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "module",
+				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
+				Name:  "namespace",
+				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "record",
+				Types: []string{"ComposeRecord"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsFirstArgs{
+					hasModule:    in.Has("module"),
+					hasNamespace: in.Has("namespace"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.reg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.reg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			var results *recordsFirstResults
+			if results, err = h.first(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	recordsLastArgs struct {
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+	}
+
+	recordsLastResults struct {
+		Record *types.Record
+	}
+)
+
+func (a recordsLastArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (a recordsLastArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+// Last function Returns the last created record
+//
+// expects implementation of last function:
+// func (h recordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
+//    return
+// }
+func (h recordsHandler) Last() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "composeRecordsLast",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Returns the last created record",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "module",
+				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+			{
+				Name:  "namespace",
+				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "record",
+				Types: []string{"ComposeRecord"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &recordsLastArgs{
+					hasModule:    in.Has("module"),
+					hasNamespace: in.Has("namespace"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.reg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.reg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			var results *recordsLastResults
+			if results, err = h.last(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
 					return
 				}
 			}

@@ -2,7 +2,9 @@ package automation
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -103,6 +105,28 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 
 	results.Records, _, err = h.rec.Find(ctx, f)
 	return
+}
+
+func (h recordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
+	r, err := h.fetchEdge(ctx, args, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recordsFirstResults{
+		Record: r,
+	}, nil
+}
+
+func (h recordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
+	r, err := h.fetchEdge(ctx, args, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recordsLastResults{
+		Record: r,
+	}, nil
 }
 
 func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wfexec.IteratorHandler, err error) {
@@ -256,6 +280,34 @@ func (h recordsHandler) loadCombo(ctx context.Context, args interface{}) (namesp
 	}
 
 	return
+}
+
+func (h recordsHandler) fetchEdge(ctx context.Context, args interface{}, first bool) (*types.Record, error) {
+	f := types.RecordFilter{}
+
+	if first {
+		f.Sort.Set("createdAt DESC")
+	} else {
+		f.Sort.Set("createdAt ASC")
+	}
+
+	f.Limit = 1
+
+	if ns, mod, err := h.loadCombo(ctx, args); err != nil {
+		return nil, err
+	} else {
+		f.ModuleID = mod.ID
+		f.NamespaceID = ns.ID
+	}
+
+	rr, _, err := h.rec.Find(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	if len(rr) == 0 {
+		return nil, errors.New("could not fetch records: no records found")
+	}
+	return rr[0], nil
 }
 
 func (i *recordSetIterator) More(context.Context, *Vars) (bool, error) {

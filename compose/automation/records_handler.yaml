@@ -85,6 +85,10 @@ params:
       types:
         - { wf: String }
 
+  edgeParams: &edgeParams
+    module: *moduleLookup
+    namespace: *namespaceLookup
+
 labels: &labels
   record: "step,workflow"
   compose: "step,workflow"
@@ -114,6 +118,24 @@ functions:
         isArray: true
       total:      *rvTotal
       pageCursor: *rvPageCursor
+
+  first:
+    meta:
+      short: Returns the first created record
+    labels:
+      <<: *labels
+    params: *edgeParams
+    results:
+      record: *rvRecord
+
+  last:
+    meta:
+      short: Returns the last created record
+    labels:
+      <<: *labels
+    params: *edgeParams
+    results:
+      record: *rvRecord
 
   each:
     kind: iterator
