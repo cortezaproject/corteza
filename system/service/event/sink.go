@@ -20,7 +20,9 @@ func (res sinkBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles sink's URL matchers
 func sinkMatch(r *types.SinkRequest, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "request.remoteAddress":
+	case "request.host":
+		return c.Match(r.Host)
+	case "request.remoteAddress", "request.remote-address":
 		return c.Match(r.RemoteAddr)
 	case "request.method":
 		return c.Match(r.Method)

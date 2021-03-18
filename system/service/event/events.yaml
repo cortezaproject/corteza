@@ -9,12 +9,30 @@ system:sink:
     - name: 'request'
       type: '*types.SinkRequest'
       immutable: true
+  constraints:
+    - name: request.host
+    - name: request.remote-address
+    - name: request.method
+    - name: request.path
+    - name: request.username
+    - name: request.password
+    - name: request.content-type
+    - name: request.get.*
+    - name: request.post.*
+    - name: request.header.*
 
 system:mail:
   on: ['manual', 'receive', 'send']
   props:
     - name: 'message'
       type: '*types.MailMessage'
+  constraints:
+    - name: message.header.subject
+    - name: message.header.from
+    - name: message.header.to
+    - name: message.header.reply-to
+    - name: message.header.cc
+    - name: message.header.bcc
 
 system:auth:
   ba: ['login', 'signup']
@@ -23,6 +41,9 @@ system:auth:
       type: '*types.User'
     - name: 'provider'
       type: '*types.AuthProvider'
+  constraints:
+    - name: user.handle
+    - name: user.email
 
 system:auth-client:
   on: ['manual']
@@ -33,6 +54,9 @@ system:auth-client:
     - name: 'oldAuthClient'
       type: '*types.AuthClient'
       immutable: true
+  constraints:
+    - name: auth-client.handle
+
 
 system:user:
   on: ['manual']
@@ -43,6 +67,9 @@ system:user:
     - name: 'oldUser'
       type: '*types.User'
       immutable: true
+  constraints:
+    - name: user.handle
+    - name: user.email
 
 system:role:
   on: ['manual']
@@ -53,6 +80,9 @@ system:role:
     - name: 'oldRole'
       type: '*types.Role'
       immutable: true
+  constraints:
+    - name: role.handle
+    - name: role.name
 
 system:role:member:
   ba: ['add', 'remove']
@@ -61,6 +91,12 @@ system:role:member:
       type: '*types.User'
     - name: 'role'
       type: '*types.Role'
+  constraints:
+    - name: role.handle
+    - name: role.name
+    - name: user.handle
+    - name: user.email
+
 
 system:application:
   on: ['manual']
@@ -71,3 +107,5 @@ system:application:
     - name: 'oldApplication'
       type: '*types.Application'
       immutable: true
+  constraints:
+    - name: application.name

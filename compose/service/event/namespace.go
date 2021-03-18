@@ -13,7 +13,7 @@ func (res namespaceBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles namespace matchers
 func namespaceMatch(r *types.Namespace, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "namespace", "namespace.slug":
+	case "namespace", "namespace.slug", "namespace.handle":
 		return c.Match(r.Slug)
 	case "namespace.name":
 		return c.Match(r.Name)
