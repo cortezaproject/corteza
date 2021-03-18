@@ -205,7 +205,11 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			CreatedBy: cUser,
 		}
 
-		_, wf.Issues = Convert(svc, wf)
+		if _, wf.Issues = Convert(svc, wf); len(wf.Issues) == 0 {
+			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
+				return err
+			}
+		}
 
 		if err = store.CreateAutomationWorkflow(ctx, s, wf); err != nil {
 			return
@@ -234,11 +238,39 @@ func (svc *workflow) Update(ctx context.Context, upd *types.Workflow) (*types.Wo
 }
 
 func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) error {
-	return trim1st(svc.updater(ctx, workflowID, WorkflowActionDelete, svc.handleDelete))
+	return trim1st(svc.updater(ctx, workflowID, WorkflowActionDelete, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
+		changes, err := svc.handleDelete(ctx, res)
+		if err != nil {
+			return workflowUnchanged, err
+		}
+
+		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
+				return workflowUnchanged, err
+			}
+		}
+
+		return changes, err
+
+	}))
 }
 
 func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error {
-	return trim1st(svc.updater(ctx, workflowID, WorkflowActionUndelete, svc.handleUndelete))
+	return trim1st(svc.updater(ctx, workflowID, WorkflowActionUndelete, func(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
+		changes, err := svc.handleUndelete(ctx, res)
+		if err != nil {
+			return workflowUnchanged, err
+		}
+
+		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
+				return workflowUnchanged, err
+			}
+		}
+
+		return changes, err
+
+	}))
 }
 
 // Start runs a new workflow
@@ -285,11 +317,9 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return err
 		}
 
-		if changes&workflowDefChanged > 0 {
-			if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
-				if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
-					return err
-				}
+		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
+				return err
 			}
 		}
 
