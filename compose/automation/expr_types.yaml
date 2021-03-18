@@ -6,9 +6,9 @@ types:
   ComposeNamespace:
     as: '*types.Namespace'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro }
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro, alias: 'namespaceID' }
       - { name: 'name',            exprType: 'String',       goType: 'string' }
-      - { name: 'slug',            exprType: 'Handle',       goType: 'string',                alias: 'handle'}
+      - { name: 'slug',            exprType: 'Handle',       goType: 'string',                           alias: 'handle'}
       - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
       - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
       - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
@@ -16,7 +16,7 @@ types:
   ComposeModule:
     as: '*types.Module'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro }
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro, alias: 'moduleID' }
       - { name: 'namespaceID',     exprType: 'ID',           goType: 'uint64',                 mode: ro }
       - { name: 'name',            exprType: 'String',       goType: 'string' }
       - { name: 'handle',          exprType: 'Handle',       goType: 'string' }
@@ -28,7 +28,7 @@ types:
   ComposeRecord:
     as: '*types.Record'
     struct:
-      - { name: 'ID',              exprType: 'ID',                  goType: 'uint64',                 mode: ro }
+      - { name: 'ID',              exprType: 'ID',                  goType: 'uint64',                 mode: ro, alias: 'recordID' }
       - { name: 'moduleID',        exprType: 'ID',                  goType: 'uint64',                 mode: ro }
       - { name: 'namespaceID',     exprType: 'ID',                  goType: 'uint64',                 mode: ro }
       - { name: 'values',          exprType: 'ComposeRecordValues', goType: 'map[string]interface{}' }

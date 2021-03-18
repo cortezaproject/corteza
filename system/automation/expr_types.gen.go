@@ -322,7 +322,7 @@ func (t Role) Select(k string) (TypedValue, error) {
 
 func (t Role) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "roleID":
 		return true
 	case "name":
 		return true
@@ -345,7 +345,7 @@ func (t Role) Has(k string) bool {
 // roleGValSelector is field accessor for *types.Role
 func roleGValSelector(res *types.Role, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "roleID":
 		return res.ID, nil
 	case "name":
 		return res.Name, nil
@@ -369,7 +369,7 @@ func roleGValSelector(res *types.Role, k string) (interface{}, error) {
 // roleTypedValueSelector is field accessor for *types.Role
 func roleTypedValueSelector(res *types.Role, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "roleID":
 		return NewID(res.ID)
 	case "name":
 		return NewString(res.Name)
@@ -393,7 +393,7 @@ func roleTypedValueSelector(res *types.Role, k string) (TypedValue, error) {
 // assignToRole is field value setter for *types.Role
 func assignToRole(res *types.Role, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "roleID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "name":
 		aux, err := CastToString(val)
@@ -492,7 +492,7 @@ func (t Template) Select(k string) (TypedValue, error) {
 
 func (t Template) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "templateID":
 		return true
 	case "handle":
 		return true
@@ -525,7 +525,7 @@ func (t Template) Has(k string) bool {
 // templateGValSelector is field accessor for *types.Template
 func templateGValSelector(res *types.Template, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "templateID":
 		return res.ID, nil
 	case "handle":
 		return res.Handle, nil
@@ -559,7 +559,7 @@ func templateGValSelector(res *types.Template, k string) (interface{}, error) {
 // templateTypedValueSelector is field accessor for *types.Template
 func templateTypedValueSelector(res *types.Template, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "templateID":
 		return NewID(res.ID)
 	case "handle":
 		return NewHandle(res.Handle)
@@ -593,7 +593,7 @@ func templateTypedValueSelector(res *types.Template, k string) (TypedValue, erro
 // assignToTemplate is field value setter for *types.Template
 func assignToTemplate(res *types.Template, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "templateID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "handle":
 		aux, err := CastToHandle(val)
@@ -842,7 +842,7 @@ func (t User) Select(k string) (TypedValue, error) {
 
 func (t User) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "userID":
 		return true
 	case "username":
 		return true
@@ -871,7 +871,7 @@ func (t User) Has(k string) bool {
 // userGValSelector is field accessor for *types.User
 func userGValSelector(res *types.User, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "userID":
 		return res.ID, nil
 	case "username":
 		return res.Username, nil
@@ -901,7 +901,7 @@ func userGValSelector(res *types.User, k string) (interface{}, error) {
 // userTypedValueSelector is field accessor for *types.User
 func userTypedValueSelector(res *types.User, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "userID":
 		return NewID(res.ID)
 	case "username":
 		return NewString(res.Username)
@@ -931,7 +931,7 @@ func userTypedValueSelector(res *types.User, k string) (TypedValue, error) {
 // assignToUser is field value setter for *types.User
 func assignToUser(res *types.User, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "userID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "username":
 		aux, err := CastToString(val)
