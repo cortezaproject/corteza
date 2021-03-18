@@ -49,7 +49,7 @@ func (a namespacesLookupArgs) GetNamespace() (bool, uint64, string, *types.Names
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Lookup function Lookup for compose namespace by ID
+// Lookup function Compose namespace lookup
 //
 // expects implementation of lookup function:
 // func (h namespacesHandler) lookup(ctx context.Context, args *namespacesLookupArgs) (results *namespacesLookupResults, err error) {
@@ -61,7 +61,8 @@ func (h namespacesHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "lookup": "step", "namespace": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Lookup for compose namespace by ID",
+			Short:       "Compose namespace lookup",
+			Description: "Find specific namespace by ID or handle",
 		},
 
 		Parameters: []*atypes.Param{

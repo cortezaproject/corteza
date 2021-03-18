@@ -44,7 +44,7 @@ type (
 	}
 )
 
-// Exec function Executes script in Corredor Automation server
+// Exec function Corredor automation script executor
 //
 // expects implementation of exec function:
 // func (h corredorHandler) exec(ctx context.Context, args *corredorExecArgs) (results *corredorExecResults, err error) {
@@ -56,7 +56,8 @@ func (h corredorHandler) Exec() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Executes script in Corredor Automation server",
+			Short:       "Corredor automation script executor",
+			Description: "Executes script in Corredor Automation server",
 		},
 
 		Parameters: []*atypes.Param{

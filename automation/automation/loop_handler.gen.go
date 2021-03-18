@@ -126,7 +126,7 @@ type (
 	}
 )
 
-// Do function Iterates while condition is true
+// Do function Condition
 //
 // expects implementation of do function:
 // func (h loopHandler) do(ctx context.Context, args *loopDoArgs) (err error) {
@@ -138,7 +138,8 @@ func (h loopHandler) Do() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Iterates while condition is true",
+			Short:       "Condition",
+			Description: "Iterates while condition is true",
 		},
 
 		Parameters: []*atypes.Param{
@@ -179,7 +180,7 @@ type (
 	}
 )
 
-// Each function Iterates over set of items
+// Each function Items
 //
 // expects implementation of each function:
 // func (h loopHandler) each(ctx context.Context, args *loopEachArgs) (results *loopEachResults, err error) {
@@ -191,7 +192,8 @@ func (h loopHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Iterates over set of items",
+			Short:       "Items",
+			Description: "Iterates over set of items",
 		},
 
 		Parameters: []*atypes.Param{
@@ -236,7 +238,7 @@ type (
 	}
 )
 
-// Lines function Iterates over lines from stream
+// Lines function Stream lines
 //
 // expects implementation of lines function:
 // func (h loopHandler) lines(ctx context.Context, args *loopLinesArgs) (results *loopLinesResults, err error) {
@@ -248,7 +250,8 @@ func (h loopHandler) Lines() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Iterates over lines from stream",
+			Short:       "Stream lines",
+			Description: "Iterates over lines from stream",
 		},
 
 		Parameters: []*atypes.Param{

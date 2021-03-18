@@ -14,7 +14,7 @@ labels: &labels
 functions:
   debug:
     meta:
-      short: Writes debug log message
+      short: Log debug message
     labels: *labels
     params:
       message: *message
@@ -22,7 +22,7 @@ functions:
 
   info:
     meta:
-      short: Writes info log message
+      short: Log info message
     labels: *labels
     params:
       message: *message
@@ -30,7 +30,7 @@ functions:
 
   warn:
     meta:
-      short: Writes warn log message
+      short: Log warning message
     labels: *labels
     params:
       message: *message
@@ -38,7 +38,7 @@ functions:
 
   error:
     meta:
-      short: Writes error log message
+      short: Log error message
     labels: *labels
     params:
       message: *message

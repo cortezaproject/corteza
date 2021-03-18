@@ -4,7 +4,8 @@ functions:
   exec:
     kind: function
     meta:
-      short: Executes script in Corredor Automation server
+      short: Corredor automation script executor
+      description: Executes script in Corredor Automation server
     params:
       script: { types: [ { wf: String } ], required: true }
       args:  { types: [ { wf: Any } ] }

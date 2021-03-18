@@ -78,7 +78,7 @@ func (a recordsLookupArgs) GetRecord() (bool, uint64, *types.Record) {
 	return a.hasRecord, a.recordID, a.recordRes
 }
 
-// Lookup function Lookup for compose record by ID
+// Lookup function Compose record lookup
 //
 // expects implementation of lookup function:
 // func (h recordsHandler) lookup(ctx context.Context, args *recordsLookupArgs) (results *recordsLookupResults, err error) {
@@ -90,7 +90,8 @@ func (h recordsHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Lookup for compose record by ID",
+			Short:       "Compose record lookup",
+			Description: "Find specific record by ID",
 		},
 
 		Parameters: []*atypes.Param{
@@ -249,7 +250,7 @@ func (a recordsSearchArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Search function Searches for records and returns them
+// Search function Compose records search
 //
 // expects implementation of search function:
 // func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (results *recordsSearchResults, err error) {
@@ -261,7 +262,7 @@ func (h recordsHandler) Search() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for records and returns them",
+			Short: "Compose records search",
 		},
 
 		Parameters: []*atypes.Param{
@@ -466,7 +467,7 @@ func (a recordsFirstArgs) GetNamespace() (bool, uint64, string, *types.Namespace
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// First function Returns the first created record
+// First function Compose record lookup (first created)
 //
 // expects implementation of first function:
 // func (h recordsHandler) first(ctx context.Context, args *recordsFirstArgs) (results *recordsFirstResults, err error) {
@@ -478,7 +479,7 @@ func (h recordsHandler) First() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Returns the first created record",
+			Short: "Compose record lookup (first created)",
 		},
 
 		Parameters: []*atypes.Param{
@@ -595,7 +596,7 @@ func (a recordsLastArgs) GetNamespace() (bool, uint64, string, *types.Namespace)
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Last function Returns the last created record
+// Last function Compose record lookup (last created)
 //
 // expects implementation of last function:
 // func (h recordsHandler) last(ctx context.Context, args *recordsLastArgs) (results *recordsLastResults, err error) {
@@ -607,7 +608,7 @@ func (h recordsHandler) Last() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Returns the last created record",
+			Short: "Compose record lookup (last created)",
 		},
 
 		Parameters: []*atypes.Param{
@@ -750,7 +751,7 @@ func (a recordsEachArgs) GetNamespace() (bool, uint64, string, *types.Namespace)
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Each function Searches for records and iterates over results
+// Each function Compose records
 //
 // expects implementation of each function:
 // func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (results *recordsEachResults, err error) {
@@ -762,7 +763,7 @@ func (h recordsHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for records and iterates over results",
+			Short: "Compose records",
 		},
 
 		Parameters: []*atypes.Param{
@@ -917,7 +918,7 @@ func (a recordsNewArgs) GetNamespace() (bool, uint64, string, *types.Namespace) 
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// New function Make a new record
+// New function Compose record maker
 //
 // expects implementation of new function:
 // func (h recordsHandler) new(ctx context.Context, args *recordsNewArgs) (results *recordsNewResults, err error) {
@@ -929,7 +930,8 @@ func (h recordsHandler) New() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Make a new record",
+			Short:       "Compose record maker",
+			Description: "Creates new compose record instance without saving it",
 		},
 
 		Parameters: []*atypes.Param{
@@ -1029,7 +1031,7 @@ type (
 	}
 )
 
-// Validate function Validate record
+// Validate function Compose record validator
 //
 // expects implementation of validate function:
 // func (h recordsHandler) validate(ctx context.Context, args *recordsValidateArgs) (results *recordsValidateResults, err error) {
@@ -1041,7 +1043,7 @@ func (h recordsHandler) Validate() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Validate record",
+			Short: "Compose record validator",
 		},
 
 		Parameters: []*atypes.Param{
@@ -1109,7 +1111,7 @@ type (
 	}
 )
 
-// Create function Creates and stores a new record
+// Create function Compose record create
 //
 // expects implementation of create function:
 // func (h recordsHandler) create(ctx context.Context, args *recordsCreateArgs) (results *recordsCreateResults, err error) {
@@ -1121,7 +1123,7 @@ func (h recordsHandler) Create() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Creates and stores a new record",
+			Short: "Compose record create",
 		},
 
 		Parameters: []*atypes.Param{
@@ -1186,7 +1188,7 @@ type (
 	}
 )
 
-// Update function Updates an existing record
+// Update function Compose record update
 //
 // expects implementation of update function:
 // func (h recordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
@@ -1198,7 +1200,7 @@ func (h recordsHandler) Update() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow", "update": "step"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Updates an existing record",
+			Short: "Compose record update",
 		},
 
 		Parameters: []*atypes.Param{
@@ -1265,7 +1267,7 @@ func (a recordsDeleteArgs) GetRecord() (bool, uint64, *types.Record) {
 	return a.hasRecord, a.recordID, a.recordRes
 }
 
-// Delete function Soft deletes compose record by ID
+// Delete function Compose record delete
 //
 // expects implementation of delete function:
 // func (h recordsHandler) delete(ctx context.Context, args *recordsDeleteArgs) (err error) {
@@ -1277,7 +1279,7 @@ func (h recordsHandler) Delete() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "delete": "step", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Soft deletes compose record by ID",
+			Short: "Compose record delete",
 		},
 
 		Parameters: []*atypes.Param{
@@ -1351,7 +1353,7 @@ func (a recordsReportArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Report function Searches for records and returns them
+// Report function Report
 //
 // expects implementation of report function:
 // func (h recordsHandler) report(ctx context.Context, args *recordsReportArgs) (results *recordsReportResults, err error) {
@@ -1363,7 +1365,8 @@ func (h recordsHandler) Report() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for records and returns them",
+			Short:       "Report",
+			Description: "Compose records report",
 		},
 
 		Parameters: []*atypes.Param{

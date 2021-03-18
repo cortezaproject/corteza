@@ -43,7 +43,7 @@ type (
 	}
 )
 
-// Debug function Writes debug log message
+// Debug function Log debug message
 //
 // expects implementation of debug function:
 // func (h logHandler) debug(ctx context.Context, args *logDebugArgs) (err error) {
@@ -55,7 +55,7 @@ func (h logHandler) Debug() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Writes debug log message",
+			Short: "Log debug message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -96,7 +96,7 @@ type (
 	}
 )
 
-// Info function Writes info log message
+// Info function Log info message
 //
 // expects implementation of info function:
 // func (h logHandler) info(ctx context.Context, args *logInfoArgs) (err error) {
@@ -108,7 +108,7 @@ func (h logHandler) Info() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Writes info log message",
+			Short: "Log info message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -149,7 +149,7 @@ type (
 	}
 )
 
-// Warn function Writes warn log message
+// Warn function Log warning message
 //
 // expects implementation of warn function:
 // func (h logHandler) warn(ctx context.Context, args *logWarnArgs) (err error) {
@@ -161,7 +161,7 @@ func (h logHandler) Warn() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Writes warn log message",
+			Short: "Log warning message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -202,7 +202,7 @@ type (
 	}
 )
 
-// Error function Writes error log message
+// Error function Log error message
 //
 // expects implementation of error function:
 // func (h logHandler) error(ctx context.Context, args *logErrorArgs) (err error) {
@@ -214,7 +214,7 @@ func (h logHandler) Error() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"debug": "step", "logger": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Writes error log message",
+			Short: "Log error message",
 		},
 
 		Parameters: []*atypes.Param{

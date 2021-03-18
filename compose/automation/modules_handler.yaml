@@ -24,7 +24,8 @@ params:
 functions:
   lookup:
     meta:
-      short: Lookup for compose Lookup by ID
+      short: Compose module lookup
+      description: Find specific module by ID or handle
     params:
       module: *moduleLookup
       namespace: *namespaceLookup

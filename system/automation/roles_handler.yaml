@@ -67,7 +67,8 @@ labels: &labels
 functions:
   lookup:
     meta:
-      short: Looks-up for role by ID
+      short: Role lookup
+      description: Find specific role by ID or handle
     labels:
       <<: *labels
     params:
@@ -77,7 +78,7 @@ functions:
 
   search:
     meta:
-      short: Searches for roles and returns them
+      short: Roles search
     labels:
       <<: *labels
     params: *filterParams
@@ -91,7 +92,7 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Searches for roles and iterates over results
+      short: Roles
     params: *filterParams
     results:
       role:  *rvRole
@@ -99,7 +100,7 @@ functions:
 
   create:
     meta:
-      short: Creates new role
+      short: Role creator
     labels:
       <<: *labels
       create: "step"
@@ -112,7 +113,7 @@ functions:
 
   update:
     meta:
-      short: Updates exiting role
+      short: Role update
     labels:
       <<: *labels
       update: "step"
@@ -125,7 +126,7 @@ functions:
 
   delete:
     meta:
-      short: Deletes the role
+      short: Role delete
     labels:
       <<: *labels
       delete: "step"
@@ -134,7 +135,7 @@ functions:
 
   recover:
     meta:
-      short: Recovers deleted role
+      short: Role recover
     labels:
       <<: *labels
       recover: "step"
@@ -143,7 +144,7 @@ functions:
 
   archive:
     meta:
-      short: Archives the role
+      short: Role archive
     labels:
       <<: *labels
       archive: "step"
@@ -152,7 +153,7 @@ functions:
 
   unarchive:
     meta:
-      short: Unarchives the role
+      short: Role unarchive
     labels:
       <<: *labels
       unarchive: "step"
