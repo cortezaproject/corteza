@@ -700,6 +700,38 @@ func WorkflowErrNotAllowedToUndelete(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrNotAllowedToExecute returns "automation:workflow.notAllowedToExecute" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to execute this workflow", nil),
+
+		errors.Meta("type", "notAllowedToExecute"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrHandleNotUnique returns "automation:workflow.handleNotUnique" as *errors.Error
 //
 //

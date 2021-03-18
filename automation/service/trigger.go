@@ -47,6 +47,7 @@ type (
 	triggerAccessController interface {
 		CanSearchTriggers(context.Context) bool
 		CanManageWorkflowTriggers(context.Context, *types.Workflow) bool
+		CanExecuteWorkflow(context.Context, *types.Workflow) bool
 	}
 
 	triggerEventTriggerHandler interface {
@@ -510,7 +511,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 				).Wrap(wf.Issues)
 			}
 		} else {
-			handlerFn = makeWorkflowHandler(svc.session, t, wf, g, runAs)
+			handlerFn = makeWorkflowHandler(svc.ac, svc.session, t, wf, g, runAs)
 		}
 
 		ops = append(
@@ -570,71 +571,6 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", t.ID), zap.Uint64("workflowID", t.WorkflowID))
 			delete(svc.triggers, t.ID)
 		}
-	}
-}
-
-func makeWorkflowHandler(s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs auth.Identifiable) eventbus.HandlerFn {
-	return func(ctx context.Context, ev eventbus.Event) (err error) {
-
-		var (
-			// create session scope from predefined workflow scope and trigger input
-			scope   = wf.Scope.Merge(t.Input)
-			evScope *expr.Vars
-			wait    WaitFn
-		)
-
-		if enc, is := ev.(varsEncoder); is {
-			if evScope, err = enc.EncodeVars(); err != nil {
-				return
-			}
-
-			scope = scope.Merge(evScope)
-		}
-
-		_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
-		_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
-
-		if runAs == nil {
-			// @todo can/should we get alternative identity from Event?
-			//       for example:
-			//         - use http auth header and get username
-			//         - use from/to/replyTo and use that as an identifier
-			runAs = auth.GetIdentityFromContext(ctx)
-		}
-
-		wait, err = s.Start(g, runAs, types.SessionStartParams{
-			WorkflowID:   wf.ID,
-			KeepFor:      wf.KeepSessions,
-			Trace:        wf.Trace,
-			Input:        scope,
-			StepID:       t.StepID,
-			EventType:    t.EventType,
-			ResourceType: t.ResourceType,
-		})
-
-		if err != nil {
-			return err
-		}
-
-		if wf.CheckDeferred() {
-			// deferred workflow, return right away and keep the workflow session
-			// running without waiting for the execution
-			return nil
-		}
-
-		// wait for the workflow to complete
-		// reuse scope for results
-		// this will be decoded back to event properties
-		scope, _, err = wait(ctx)
-		if err != nil {
-			return
-		}
-
-		if dec, is := ev.(varsDecoder); is {
-			return dec.DecodeVars(scope)
-		}
-
-		return nil
 	}
 }
 
