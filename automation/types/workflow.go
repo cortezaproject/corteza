@@ -77,6 +77,22 @@ type (
 		Culprit     map[string]int `json:"culprit"`
 		Description string         `json:"description"`
 	}
+
+	WorkflowExecParams struct {
+		// Start with this specific step
+		StepID uint64
+
+		// Enable execution tracing
+		Trace bool
+
+		// Do not wait for workflow to be finished
+		Async bool
+
+		// Wait for workflow to be executed even if it's deferred
+		Wait bool
+
+		Input *expr.Vars
+	}
 )
 
 // Resource returns a resource ID for this type

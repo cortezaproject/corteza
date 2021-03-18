@@ -131,6 +131,32 @@ func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (rr 
 	return rr, filter, svc.recordAction(ctx, wap, TriggerActionSearch, err)
 }
 
+// SearchOnManual finds first matching onManual trigger and returns it
+//
+// In case stepID is 0, first trigger is returned
+func (svc *trigger) SearchOnManual(ctx context.Context, workflowID, stepID uint64) (*types.Trigger, error) {
+	tt, _, err := svc.Search(ctx, types.TriggerFilter{
+		WorkflowID: []uint64{workflowID},
+		EventType:  "onManual",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if stepID == 0 && len(tt) > 0 {
+		return tt[0], nil
+	}
+
+	for _, t := range tt {
+		if t.StepID == stepID {
+			return t, nil
+		}
+	}
+
+	return nil, nil
+}
+
 func (svc *trigger) LookupByID(ctx context.Context, triggerID uint64) (res *types.Trigger, err error) {
 	var (
 		wap = &triggerActionProps{trigger: &types.Trigger{ID: triggerID}}
@@ -493,6 +519,11 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		// do not register disabled or deleted triggers
 		if !registerWorkflow || !t.Enabled || t.DeletedAt != nil {
 			continue
+		}
+
+		if t.EventType == "onManual" {
+			// skip onManual trigger registration,
+			// we'll handle them directly
 		}
 
 		var (

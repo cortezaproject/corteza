@@ -26,6 +26,7 @@ type (
 		Delete(context.Context, *request.WorkflowDelete) (interface{}, error)
 		Undelete(context.Context, *request.WorkflowUndelete) (interface{}, error)
 		Test(context.Context, *request.WorkflowTest) (interface{}, error)
+		Exec(context.Context, *request.WorkflowExec) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -37,6 +38,7 @@ type (
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
 		Test     func(http.ResponseWriter, *http.Request)
+		Exec     func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -154,6 +156,22 @@ func NewWorkflow(h WorkflowAPI) *Workflow {
 
 			api.Send(w, r, value)
 		},
+		Exec: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewWorkflowExec()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Exec(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -167,5 +185,6 @@ func (h Workflow) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 		r.Delete("/workflows/{workflowID}", h.Delete)
 		r.Post("/workflows/{workflowID}/undelete", h.Undelete)
 		r.Post("/workflows/{workflowID}/test", h.Test)
+		r.Post("/workflows/{workflowID}/exec", h.Exec)
 	})
 }

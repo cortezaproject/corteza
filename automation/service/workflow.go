@@ -26,6 +26,7 @@ type (
 		actionlog actionlog.Recorder
 		ac        workflowAccessController
 		triggers  *trigger
+		session   *session
 
 		log *zap.Logger
 
@@ -48,7 +49,11 @@ type (
 		CanDeleteWorkflow(context.Context, *types.Workflow) bool
 		CanUndeleteWorkflow(context.Context, *types.Workflow) bool
 
+		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
+
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
+
+		workflowExecController
 	}
 
 	workflowExecController interface {
@@ -78,6 +83,7 @@ func Workflow(log *zap.Logger) *workflow {
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 		triggers:  DefaultTrigger,
+		session:   DefaultSession,
 		eventbus:  eventbus.Service(),
 		wfgs:      make(map[uint64]*wfexec.Graph),
 		mux:       &sync.RWMutex{},
@@ -277,15 +283,6 @@ func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error 
 	}))
 }
 
-// Start runs a new workflow
-//
-// Workflow execution is asynchronous operation.
-func (svc *workflow) Start(ctx context.Context, workflowID uint64, scope *expr.Vars) error {
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
-	return errors.Internal("pending implementation")
-}
-
 func (svc workflow) uniqueCheck(ctx context.Context, res *types.Workflow) (err error) {
 	if res.Handle != "" {
 		if e, _ := store.LookupAutomationWorkflowByHandle(ctx, svc.store, res.Handle); e != nil && e.ID != res.ID {
@@ -479,9 +476,133 @@ func (svc *workflow) Load(ctx context.Context) error {
 	return svc.triggers.registerWorkflows(ctx, wwf...)
 }
 
+func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error) {
+	var (
+		runAs   intAuth.Identifiable
+		wap     = &workflowActionProps{}
+		wf      *types.Workflow
+		t       *types.Trigger
+		results *expr.Vars
+		wait    WaitFn
+	)
+
+	err := func() (err error) {
+		wf, err = loadWorkflow(ctx, svc.store, workflowID)
+		if err != nil {
+			return
+		}
+
+		wap.setWorkflow(wf)
+		if !svc.ac.CanExecuteWorkflow(ctx, wf) {
+			return WorkflowErrNotAllowedToExecute()
+		}
+
+		// User wants to trace workflow execution
+		// This means we'll allow him to specify any (orphaned) step
+		// even if it's not linked to onManual trigger
+		if p.Trace && !svc.ac.CanManageWorkflowSessions(ctx, wf) {
+			return WorkflowErrNotAllowedToExecute()
+		}
+
+		g, convErr := Convert(svc, wf)
+		if len(convErr) > 0 {
+			return convErr
+		}
+
+		// Find the trigger.
+		t, err = func() (*types.Trigger, error) {
+			var tt types.TriggerSet
+			tt, _, err = svc.triggers.Search(ctx, types.TriggerFilter{WorkflowID: []uint64{workflowID}})
+			if err != nil {
+				return nil, err
+			}
+
+			if p.StepID == 0 && len(tt) > 0 {
+				return tt[0], nil
+			} else {
+				for _, tMatch := range tt {
+					if tMatch.StepID == p.StepID {
+						return tMatch, nil
+					}
+				}
+			}
+
+			return nil, nil
+		}()
+
+		// Start with workflow scope
+		scope := wf.Scope.Merge()
+
+		ssp := types.SessionStartParams{
+			WorkflowID: wf.ID,
+			KeepFor:    wf.KeepSessions,
+			Trace:      wf.Trace,
+			StepID:     p.StepID,
+		}
+
+		if !p.Trace {
+			if t == nil {
+				return WorkflowErrUnknownWorkflowStep()
+			}
+		}
+
+		if t != nil {
+			wap.setTrigger(t)
+
+			// Add trigger's input to scope
+			scope = scope.Merge(t.Input)
+			_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(t.EventType)))
+			_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(t.ResourceType)))
+
+			ssp.StepID = t.StepID
+			ssp.EventType = t.EventType
+			ssp.ResourceType = t.ResourceType
+		} else {
+			ssp.EventType = "onTrace"
+			ssp.ResourceType = ""
+		}
+
+		// Finally, assign input values
+		ssp.Input = scope.Merge(p.Input)
+
+		if wf.RunAs > 0 {
+			if runAs, err = DefaultUser.FindByID(ctx, wf.RunAs); err != nil {
+				return
+			}
+		}
+
+		if runAs == nil {
+			// Default to current user
+			runAs = intAuth.GetIdentityFromContext(ctx)
+		}
+
+		wait, err = svc.session.Start(g, runAs, ssp)
+
+		if err != nil {
+			return err
+		}
+
+		if !p.Async {
+			if p.Wait || wf.CheckDeferred() {
+				// deferred workflow, return right away and keep the workflow session
+				// running without waiting for the execution
+				return nil
+			}
+		}
+
+		// wait for the workflow to complete
+		// reuse scope for results
+		// this will be decoded back to event properties
+		results, _, err = wait(ctx)
+		return
+	}()
+
+	return results, nil, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
+}
+
 func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs intAuth.Identifiable) eventbus.HandlerFn {
 	return func(ctx context.Context, ev eventbus.Event) (err error) {
-		if !ac.(*accessControl).CanExecuteWorkflow(ctx, wf) {
+		if !ac.CanExecuteWorkflow(ctx, wf) {
 			return WorkflowErrNotAllowedToExecute()
 		}
 

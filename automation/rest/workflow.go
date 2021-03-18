@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 )
@@ -20,12 +21,18 @@ type (
 			Update(ctx context.Context, upd *types.Workflow) (*types.Workflow, error)
 			DeleteByID(ctx context.Context, workflowID uint64) error
 			UndeleteByID(ctx context.Context, workflowID uint64) error
+			Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error)
 		}
 	}
 
 	workflowSetPayload struct {
 		Filter types.WorkflowFilter `json:"filter"`
 		Set    types.WorkflowSet    `json:"set"`
+	}
+
+	workflowExecPayload struct {
+		Results *expr.Vars       `json:"results"`
+		Trace   types.Stacktrace `json:"trace,omitempty"`
 	}
 )
 
@@ -110,6 +117,21 @@ func (ctrl Workflow) Delete(ctx context.Context, r *request.WorkflowDelete) (int
 
 func (ctrl Workflow) Undelete(ctx context.Context, r *request.WorkflowUndelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.WorkflowID)
+}
+
+func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interface{}, error) {
+	var (
+		wep = &workflowExecPayload{}
+		err error
+	)
+
+	wep.Results, wep.Trace, err = ctrl.svc.Exec(ctx, r.WorkflowID, types.WorkflowExecParams{
+		StepID: r.StepID,
+		Trace:  r.Trace,
+		Input:  r.Input,
+	})
+
+	return wep, err
 }
 
 func (ctrl Workflow) makeFilterPayload(ctx context.Context, uu types.WorkflowSet, f types.WorkflowFilter, err error) (*workflowSetPayload, error) {

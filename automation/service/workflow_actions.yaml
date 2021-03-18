@@ -23,6 +23,9 @@ props:
   - name: update
     type: "*types.Workflow"
     fields: [ handle, ID ]
+  - name: trigger
+    type: "*types.Trigger"
+    fields: [ eventType, resourceType, ID, stepID,  ]
   - name: filter
     type: "*types.WorkflowFilter"
 
@@ -47,6 +50,10 @@ actions:
 
   - action: undelete
     log: "undeleted {workflow}"
+
+  - action: execute
+    # NOTE: only explicitly triggered workflow execution is logged
+    log: "{workflow} executed"
 
 errors:
   - error: notFound
@@ -89,6 +96,10 @@ errors:
   - error: notAllowedToExecute
     message: "not allowed to execute this workflow"
     log: "failed to execute {workflow}; insufficient permissions"
+
+  - error: unknownWorkflowStep
+    message: "unknown workflow step"
+    log: "failed to execute {workflow}; unknown workflow step"
 
   - error: handleNotUnique
     message: "workflow handle not unique"

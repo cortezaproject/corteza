@@ -88,6 +88,17 @@ endpoints:
       post:
       - { name: scope,    type: "*expr.Vars",           title: "Workflow meta data",              parser: "types.ParseWorkflowVariables" }
       - { name: runAs,    type: bool,   required: true, title: "Is workflow enabled" }
+  - name: exec
+    method: POST
+    title: Executes workflow on a specific step (must be orphan step and connected to 'onManual' trigger)
+    path: "/{workflowID}/exec"
+    parameters:
+      path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
+      post:
+       - { name: stepID,     type: uint64, required: true, title: "Step ID" }
+       - { name: input,      type: "*expr.Vars",           title: "Input", parser: "types.ParseWorkflowVariables" }
+       - { name: trace,      type: bool,                   title: "Trace workflow execution" }
+
 
 - title: Triggers
   path: "/triggers"
