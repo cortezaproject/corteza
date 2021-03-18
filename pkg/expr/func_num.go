@@ -1,8 +1,9 @@
 package expr
 
 import (
-	"github.com/PaesslerAG/gval"
 	"math"
+
+	"github.com/PaesslerAG/gval"
 )
 
 func NumericFunctions() []gval.Language {
@@ -12,6 +13,12 @@ func NumericFunctions() []gval.Language {
 		gval.Function("round", round),
 		gval.Function("floor", floor),
 		gval.Function("ceil", ceil),
+		gval.Function("abs", math.Abs),
+		gval.Function("log", math.Log10),
+		gval.Function("pow", math.Pow),
+		gval.Function("sqrt", math.Sqrt),
+		gval.Function("sum", sum),
+		gval.Function("average", average),
 	}
 }
 
@@ -70,4 +77,38 @@ func floor(f float64) float64 {
 
 func ceil(f float64) float64 {
 	return math.Ceil(f)
+}
+
+func sum(v ...interface{}) float64 {
+	var sum float64
+
+	for _, vv := range v {
+		c, err := CastToFloat(vv)
+
+		if err != nil {
+			continue
+		}
+
+		sum += c
+	}
+
+	return sum
+}
+
+func average(v ...interface{}) float64 {
+	var i int
+	var j, sum float64
+
+	for ; i < len(v); i++ {
+		c, err := CastToFloat(v[i])
+
+		if err != nil {
+			continue
+		}
+
+		j++
+		sum += c
+	}
+
+	return sum / j
 }

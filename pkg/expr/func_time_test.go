@@ -1,6 +1,8 @@
 package expr
 
-import "time"
+import (
+	"time"
+)
 
 var (
 
@@ -17,6 +19,7 @@ var (
 		"hgp": hgp,
 		"wfa": wfa,
 		"ghd": ghd,
+		"now": now,
 	}
 )
 
@@ -67,4 +70,18 @@ func Example_latest() {
 
 	// output:
 	// 1993-02-02 06:00:00 -0500 -0500
+}
+
+func Example_isLeapYear() {
+	eval(`isLeapYear(ghd)`, exampleTimeParams)
+
+	// output:
+	// false
+}
+
+func Example_isWeekDay() {
+	eval(`isWeekDay(now)`, exampleTimeParams)
+
+	// output:
+	// true
 }
