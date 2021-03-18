@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen provision docs build auth
+.PHONY: pack build help qa critic vet codegen provision docs build auth webapp
 
 include Makefile.inc
 
@@ -141,6 +141,10 @@ clean.codegen:
 
 provision:
 	$(MAKE) --directory=provision clean all
+
+webapp:
+	$(MAKE) --directory=webapp install
+
 
 #######################################################################################################################
 # Quality Assurance
