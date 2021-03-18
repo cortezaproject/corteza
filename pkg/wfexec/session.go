@@ -65,14 +65,19 @@ type (
 	sessionOpt func(*Session)
 
 	Frame struct {
-		CreatedAt time.Time     `json:"createdAt"`
-		SessionID uint64        `json:"sessionID"`
-		StateID   uint64        `json:"stateID"`
-		Input     *expr.Vars    `json:"input"`
-		Scope     *expr.Vars    `json:"scope"`
-		ParentID  uint64        `json:"parentID"`
-		StepID    uint64        `json:"stepID"`
-		LeadTime  time.Duration `json:"leadTime"`
+		CreatedAt time.Time  `json:"createdAt"`
+		SessionID uint64     `json:"sessionID"`
+		StateID   uint64     `json:"stateID"`
+		Input     *expr.Vars `json:"input"`
+		Scope     *expr.Vars `json:"scope"`
+		ParentID  uint64     `json:"parentID"`
+		StepID    uint64     `json:"stepID"`
+
+		// How much time from the 1st step to the start of this step in milliseconds
+		ElapsedTime uint `json:"elapsedTime"`
+
+		// How much time it took to execute this step in milliseconds
+		StepTime uint `json:"stepTime"`
 	}
 
 	// ExecRequest is passed to Exec() functions and contains all information
@@ -305,7 +310,7 @@ func (s *Session) enqueue(ctx context.Context, st *State) error {
 	}
 }
 
-// does not wait for the whole wf to be complete but until:
+// Wait does not wait for the whole wf to be complete but until:
 //  - context timeout
 //  - idle state
 //  - error in error queue
@@ -484,8 +489,6 @@ func (s *Session) exec(ctx context.Context, st *State) {
 	//		s.qErr <- fmt.Errorf("session %d step %d crashed: %v", s.id, st.step.ID(), reason)
 	//	}
 	//}()
-
-	s.eventHandler(SessionActive, st, s)
 
 	{
 		if currLoop != nil && currLoop.Is(st.step) {

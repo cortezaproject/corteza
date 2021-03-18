@@ -484,6 +484,8 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		t       *types.Trigger
 		results *expr.Vars
 		wait    WaitFn
+
+		stacktrace types.Stacktrace
 	)
 
 	err := func() (err error) {
@@ -536,7 +538,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		ssp := types.SessionStartParams{
 			WorkflowID: wf.ID,
 			KeepFor:    wf.KeepSessions,
-			Trace:      wf.Trace,
+			Trace:      wf.Trace || p.Trace,
 			StepID:     p.StepID,
 		}
 
@@ -583,7 +585,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		}
 
 		if !p.Async {
-			if p.Wait || wf.CheckDeferred() {
+			if !p.Wait && wf.CheckDeferred() {
 				// deferred workflow, return right away and keep the workflow session
 				// running without waiting for the execution
 				return nil
@@ -593,11 +595,11 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// wait for the workflow to complete
 		// reuse scope for results
 		// this will be decoded back to event properties
-		results, _, err = wait(ctx)
+		results, _, stacktrace, err = wait(ctx)
 		return
 	}()
 
-	return results, nil, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
+	return results, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
 }
 
 func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs intAuth.Identifiable) eventbus.HandlerFn {
@@ -655,7 +657,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 		// wait for the workflow to complete
 		// reuse scope for results
 		// this will be decoded back to event properties
-		scope, _, err = wait(ctx)
+		scope, _, _, err = wait(ctx)
 		if err != nil {
 			return
 		}

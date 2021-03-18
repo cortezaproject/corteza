@@ -137,7 +137,7 @@ func (s State) MakeFrame() *Frame {
 	}
 
 	if s.completed != nil {
-		f.LeadTime = s.completed.Sub(s.created)
+		f.StepTime = uint(s.completed.Sub(s.created) / time.Millisecond)
 	}
 
 	return f
