@@ -395,6 +395,14 @@ func (svc *trigger) registerWorkflows(ctx context.Context, workflows ...*types.W
 	for _, wf := range workflows {
 		svc.unregisterWorkflows(wf)
 
+		if !wf.Enabled {
+			continue
+		}
+
+		if wf.DeletedAt != nil {
+			continue
+		}
+
 		if err = svc.registerWorkflow(ctx, wf, tt.FilterByWorkflowID(wf.ID)...); err != nil {
 			return err
 		}
