@@ -371,6 +371,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 		ses.Progress.FinishedAt = &now
 		if err != nil {
 			ses.Progress.FailReason = err.Error()
+			ses.Progress.Failed++
 			return err
 		}
 
