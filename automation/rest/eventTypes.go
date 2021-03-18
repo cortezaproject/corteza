@@ -18,15 +18,20 @@ type (
 	}
 
 	eventTypeDef struct {
-		ResourceType string                 `json:"resourceType"`
-		EventType    string                 `json:"eventType"`
-		Properties   []eventTypePropertyDef `json:"properties"`
+		ResourceType string                   `json:"resourceType"`
+		EventType    string                   `json:"eventType"`
+		Properties   []eventTypePropertyDef   `json:"properties"`
+		Constraints  []eventTypeConstraintDef `json:"constraints"`
 	}
 
 	eventTypePropertyDef struct {
 		Name      string `json:"name"`
 		Type      string `json:"type"`
 		Immutable bool   `json:"immutable"`
+	}
+
+	eventTypeConstraintDef struct {
+		Name string `json:"name"`
 	}
 )
 

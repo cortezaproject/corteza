@@ -4,31 +4,29 @@ package rest
 //
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
-//
-// Definitions file that controls how this file is generated:
-// <no value>
 
 func getEventTypeDefinitions() []eventTypeDef {
 	return []eventTypeDef{
-
-		// []string{"github.com/cortezaproject/corteza-server/compose/types", "github.com/cortezaproject/corteza-server/compose/automation", "github.com/cortezaproject/corteza-server/pkg/auth"}
 
 		{
 			ResourceType: "compose",
 			EventType:    "onManual",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
 			ResourceType: "compose",
 			EventType:    "onInterval",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
 			ResourceType: "compose",
 			EventType:    "onTimestamp",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
@@ -52,6 +50,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
 				},
 			},
 		},
@@ -79,6 +95,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+			},
 		},
 
 		{
@@ -102,6 +136,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
 				},
 			},
 		},
@@ -129,6 +181,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+			},
 		},
 
 		{
@@ -152,6 +222,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
 				},
 			},
 		},
@@ -179,6 +267,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+			},
 		},
 
 		{
@@ -202,6 +308,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
 				},
 			},
 		},
@@ -223,6 +347,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+			},
 		},
 
 		{
@@ -240,6 +374,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldNamespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
 				},
 			},
 		},
@@ -261,6 +405,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+			},
 		},
 
 		{
@@ -278,6 +432,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldNamespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
 				},
 			},
 		},
@@ -299,6 +463,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+			},
 		},
 
 		{
@@ -318,6 +492,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+			},
 		},
 
 		{
@@ -335,6 +519,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldNamespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
 				},
 			},
 		},
@@ -362,6 +556,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
+				},
+			},
 		},
 
 		{
@@ -385,6 +597,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
 				},
 			},
 		},
@@ -412,6 +642,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
+				},
+			},
 		},
 
 		{
@@ -435,6 +683,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
 				},
 			},
 		},
@@ -462,6 +728,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
+				},
+			},
 		},
 
 		{
@@ -487,6 +771,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
+				},
+			},
 		},
 
 		{
@@ -510,6 +812,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "namespace",
 					Type:      "ComposeNamespace",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "page.handle",
+				},
+
+				{
+					Name: "page.name",
 				},
 			},
 		},
@@ -547,6 +867,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
 				},
 			},
 		},
@@ -586,6 +940,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
 		},
 
 		{
@@ -621,6 +1009,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
 				},
 			},
 		},
@@ -660,6 +1082,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
 		},
 
 		{
@@ -695,6 +1151,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
 				},
 			},
 		},
@@ -734,6 +1224,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
 		},
 
 		{
@@ -769,6 +1293,40 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "recordValueErrors",
 					Type:      "ComposeRecordValueErrorSet",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
 				},
 			},
 		},
@@ -808,26 +1366,61 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
-		},
+			Constraints: []eventTypeConstraintDef{
 
-		// []string{"github.com/cortezaproject/corteza-server/system/types", "github.com/cortezaproject/corteza-server/system/automation", "github.com/cortezaproject/corteza-server/pkg/auth"}
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "module.handle",
+				},
+
+				{
+					Name: "module.name",
+				},
+
+				{
+					Name: "record.created-at",
+				},
+
+				{
+					Name: "record.updated-at",
+				},
+
+				{
+					Name: "record.deleted-at",
+				},
+
+				{
+					Name: "record.values.*",
+				},
+			},
+		},
 
 		{
 			ResourceType: "system",
 			EventType:    "onManual",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
 			ResourceType: "system",
 			EventType:    "onInterval",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
 			ResourceType: "system",
 			EventType:    "onTimestamp",
 			Properties:   []eventTypePropertyDef{},
+			Constraints:  []eventTypeConstraintDef{},
 		},
 
 		{
@@ -845,6 +1438,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldApplication",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
 				},
 			},
 		},
@@ -866,6 +1465,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
+				},
+			},
 		},
 
 		{
@@ -883,6 +1488,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldApplication",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
 				},
 			},
 		},
@@ -904,6 +1515,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
+				},
+			},
 		},
 
 		{
@@ -921,6 +1538,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldApplication",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
 				},
 			},
 		},
@@ -942,6 +1565,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
+				},
+			},
 		},
 
 		{
@@ -959,6 +1588,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldApplication",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "application.name",
 				},
 			},
 		},
@@ -980,6 +1615,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -997,6 +1642,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "provider",
 					Type:      "",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1018,6 +1673,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1037,6 +1702,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1054,6 +1729,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldAuthClient",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
 				},
 			},
 		},
@@ -1075,6 +1756,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
+				},
+			},
 		},
 
 		{
@@ -1092,6 +1779,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldAuthClient",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
 				},
 			},
 		},
@@ -1113,6 +1806,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
+				},
+			},
 		},
 
 		{
@@ -1130,6 +1829,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldAuthClient",
 					Type:      "",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
 				},
 			},
 		},
@@ -1151,6 +1856,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
+				},
+			},
 		},
 
 		{
@@ -1170,6 +1881,12 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "auth-client.handle",
+				},
+			},
 		},
 
 		{
@@ -1181,6 +1898,32 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "message",
 					Type:      "",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "message.header.subject",
+				},
+
+				{
+					Name: "message.header.from",
+				},
+
+				{
+					Name: "message.header.to",
+				},
+
+				{
+					Name: "message.header.reply-to",
+				},
+
+				{
+					Name: "message.header.cc",
+				},
+
+				{
+					Name: "message.header.bcc",
 				},
 			},
 		},
@@ -1196,6 +1939,32 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "message.header.subject",
+				},
+
+				{
+					Name: "message.header.from",
+				},
+
+				{
+					Name: "message.header.to",
+				},
+
+				{
+					Name: "message.header.reply-to",
+				},
+
+				{
+					Name: "message.header.cc",
+				},
+
+				{
+					Name: "message.header.bcc",
+				},
+			},
 		},
 
 		{
@@ -1207,6 +1976,32 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "message",
 					Type:      "",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "message.header.subject",
+				},
+
+				{
+					Name: "message.header.from",
+				},
+
+				{
+					Name: "message.header.to",
+				},
+
+				{
+					Name: "message.header.reply-to",
+				},
+
+				{
+					Name: "message.header.cc",
+				},
+
+				{
+					Name: "message.header.bcc",
 				},
 			},
 		},
@@ -1228,6 +2023,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+			},
 		},
 
 		{
@@ -1245,6 +2050,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldRole",
 					Type:      "Role",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
 				},
 			},
 		},
@@ -1266,6 +2081,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+			},
 		},
 
 		{
@@ -1283,6 +2108,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldRole",
 					Type:      "Role",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
 				},
 			},
 		},
@@ -1304,6 +2139,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+			},
 		},
 
 		{
@@ -1323,6 +2168,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+			},
 		},
 
 		{
@@ -1340,6 +2195,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldRole",
 					Type:      "Role",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
 				},
 			},
 		},
@@ -1361,6 +2226,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1378,6 +2261,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "role",
 					Type:      "Role",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1399,6 +2300,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: false,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1416,6 +2335,24 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "role",
 					Type:      "Role",
 					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "role.handle",
+				},
+
+				{
+					Name: "role.name",
+				},
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1437,6 +2374,48 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "request.host",
+				},
+
+				{
+					Name: "request.remote-address",
+				},
+
+				{
+					Name: "request.method",
+				},
+
+				{
+					Name: "request.path",
+				},
+
+				{
+					Name: "request.username",
+				},
+
+				{
+					Name: "request.password",
+				},
+
+				{
+					Name: "request.content-type",
+				},
+
+				{
+					Name: "request.get.*",
+				},
+
+				{
+					Name: "request.post.*",
+				},
+
+				{
+					Name: "request.header.*",
+				},
+			},
 		},
 
 		{
@@ -1454,6 +2433,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldUser",
 					Type:      "User",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1475,6 +2464,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1492,6 +2491,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldUser",
 					Type:      "User",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1513,6 +2522,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1530,6 +2549,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldUser",
 					Type:      "User",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},
@@ -1551,6 +2580,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Immutable: true,
 				},
 			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
 		},
 
 		{
@@ -1568,6 +2607,16 @@ func getEventTypeDefinitions() []eventTypeDef {
 					Name:      "oldUser",
 					Type:      "User",
 					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
 				},
 			},
 		},

@@ -38,10 +38,11 @@ type (
 		// used for filename
 		ResourceFile string
 
-		On          []string      `yaml:"on"`
-		BeforeAfter []string      `yaml:"ba"`
-		Properties  []*eventProps `yaml:"props"`
-		Result      string        `yaml:"result"`
+		On          []string           `yaml:"on"`
+		BeforeAfter []string           `yaml:"ba"`
+		Properties  []*eventProps      `yaml:"props"`
+		Constraints []*eventConstraint `yaml:"constraints"`
+		Result      string             `yaml:"result"`
 	}
 
 	eventProps struct {
@@ -57,6 +58,10 @@ type (
 
 		// Do not allow change of the variable through
 		Immutable bool
+	}
+
+	eventConstraint struct {
+		Name string
 	}
 )
 

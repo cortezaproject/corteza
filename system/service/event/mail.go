@@ -21,17 +21,17 @@ func (res mailBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles role matchers
 func mailMatch(r *types.MailMessage, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "mail.header.subject":
+	case "message.header.subject", "mail.header.subject":
 		return c.Match(r.Subject)
-	case "mail.header.from":
+	case "message.header.from", "mail.header.from":
 		return mailMatchAnyAddress(c, r.Header.From...)
-	case "mail.header.to":
+	case "message.header.to", "mail.header.to":
 		return mailMatchAnyAddress(c, r.Header.To...)
-	case "mail.header.replyTo":
+	case "message.header.reply-to", "mail.header.replyTo":
 		return mailMatchAnyAddress(c, r.Header.ReplyTo...)
-	case "mail.header.cc":
+	case "message.header.cc", "mail.header.cc":
 		return mailMatchAnyAddress(c, r.Header.CC...)
-	case "mail.header.bcc":
+	case "message.header.bcc", "mail.header.bcc":
 		return mailMatchAnyAddress(c, r.Header.BCC...)
 	}
 

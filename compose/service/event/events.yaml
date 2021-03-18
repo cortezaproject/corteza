@@ -10,6 +10,9 @@ compose:namespace:
     - name: 'oldNamespace'
       type: '*types.Namespace'
       immutable: true
+  constraints:
+    - name: namespace.handle
+    - name: namespace.name
 
 compose:page:
   on: ['manual']
@@ -23,6 +26,11 @@ compose:page:
     - name: 'namespace'
       type: '*types.Namespace'
       immutable: true
+  constraints:
+    - name: namespace.handle
+    - name: namespace.name
+    - name: page.handle
+    - name: page.name
 
 compose:module:
   on: ['manual']
@@ -36,6 +44,11 @@ compose:module:
     - name: 'namespace'
       type: '*types.Namespace'
       immutable: true
+  constraints:
+    - name: namespace.handle
+    - name: namespace.name
+    - name: module.handle
+    - name: module.name
 
 compose:record:
   on: ['manual', 'iteration']
@@ -54,3 +67,13 @@ compose:record:
       immutable: true
     - name: 'recordValueErrors'
       type: '*types.RecordValueErrorSet'
+
+  constraints:
+    - name: namespace.handle
+    - name: namespace.name
+    - name: module.handle
+    - name: module.name
+    - name: record.created-at
+    - name: record.updated-at
+    - name: record.deleted-at
+    - name: record.values.*

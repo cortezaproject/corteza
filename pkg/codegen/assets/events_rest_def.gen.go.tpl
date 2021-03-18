@@ -4,14 +4,10 @@ package rest
 //
 // Changes to this file may cause incorrect behavior and will be lost if
 // the code is regenerated.
-//
-// Definitions file that controls how this file is generated:
-// {{ .Source }}
 
 func getEventTypeDefinitions() []eventTypeDef {
 	return []eventTypeDef{
 	{{ range .Definitions }}
-		// {{ printf "%#v" .Imports }}
 		{{ range $r := .Resources }}
 		{{ template "eventTypeDefinitions" dict "res" $r "type" "on"     "types" .On          }}
 		{{ template "eventTypeDefinitions" dict "res" $r "type" "before" "types" .BeforeAfter }}
@@ -35,6 +31,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 				Immutable: {{ printf "%v" .Immutable }},
 			},
 		{{ end }}
+		{{ end }}
+		},
+		Constraints: []eventTypeConstraintDef{
+		{{ range $.res.Constraints }}
+			{
+				Name: {{ printf "%q" .Name }},
+			},
 		{{ end }}
 		},
 	},

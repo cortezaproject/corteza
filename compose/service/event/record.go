@@ -22,11 +22,11 @@ func (res recordBase) Match(c eventbus.ConstraintMatcher) bool {
 
 func recordMatch(r *types.Record, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
-	case "record.updatedAt":
+	case "record.updatedAt", "record.updated-at":
 		return c.Match(r.UpdatedAt.Format(time.RFC3339))
-	case "record.createdAt":
+	case "record.createdAt", "record.created-at":
 		return c.Match(r.CreatedAt.Format(time.RFC3339))
-	case "record.deletedAt":
+	case "record.deletedAt", "record.deleted-at":
 		return c.Match(r.DeletedAt.Format(time.RFC3339))
 	}
 
