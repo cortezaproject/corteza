@@ -15,9 +15,6 @@ func settingFromResource(r *resource.Setting, cfg *EncoderConfig) *setting {
 	}
 }
 
-// Prepare prepares the setting to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *setting) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	st, ok := state.Res.(*resource.Setting)
 	if !ok {
@@ -30,13 +27,8 @@ func (n *setting) Prepare(ctx context.Context, state *envoy.ResourceState) (err 
 	return nil
 }
 
-// Encode encodes the setting to the document
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *setting) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
-	// Timestamps
-	n.ts, err = resource.MakeCUDATimestamps(nil, &n.res.UpdatedAt, nil, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(nil, &n.res.UpdatedAt, nil, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -49,7 +41,7 @@ func (n *setting) Encode(ctx context.Context, doc *Document, state *envoy.Resour
 
 	// @todo skip eval?
 
-	doc.AddSetting(n)
+	doc.addSetting(n)
 	return nil
 }
 
@@ -67,12 +59,12 @@ func (c *setting) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, c.ts)
+	nn, err = encodeTimestamps(nn, c.ts)
 	if err != nil {
 		return nil, err
 	}
 
-	nn, err = mapUserstamps(nn, c.us)
+	nn, err = encodeUserstamps(nn, c.us)
 	if err != nil {
 		return nil, err
 	}

@@ -35,7 +35,7 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 	}
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
 	return r
 }
@@ -45,7 +45,7 @@ func (r *ComposeChart) SysID() uint64 {
 }
 
 func (r *ComposeChart) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindComposeChart looks for the chart in the resources

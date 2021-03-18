@@ -22,7 +22,7 @@ func NewApplication(res *types.Application) *Application {
 	r.AddIdentifier(identifiers(res.Name, res.ID)...)
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 	// Initial userstamps
 	if res.OwnerID > 0 {
 		r.SetUserstamps(&Userstamps{
@@ -38,7 +38,7 @@ func (r *Application) SysID() uint64 {
 }
 
 func (r *Application) Ref() string {
-	return FirstOkString(r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindApplication looks for the app in the resource set

@@ -12,7 +12,6 @@ func newComposeRecordFromAux(rec *composeRecordAux) *composeRecord {
 	}
 }
 
-// MarshalEnvoy converts the composeResource aux struct to a resource
 func (rec *composeRecord) MarshalEnvoy() ([]resource.Interface, error) {
 	rr := resource.NewComposeRecordSet(rec.rec.walker, rec.rec.refNs, rec.rec.refMod)
 	rr.SetUserFlakes(rec.rec.relUsers)

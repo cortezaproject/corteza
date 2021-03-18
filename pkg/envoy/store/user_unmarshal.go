@@ -12,7 +12,6 @@ func newUser(u *types.User) *user {
 	}
 }
 
-// MarshalEnvoy converts the user struct to a resource
 func (u *user) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
 		resource.NewUser(u.u),

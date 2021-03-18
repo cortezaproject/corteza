@@ -21,9 +21,6 @@ func NewSettingFromResource(res *resource.Setting, cfg *EncoderConfig) resourceS
 	}
 }
 
-// Prepare prepares the setting to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *setting) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Init global state
 	if gSettings == nil {
@@ -40,20 +37,14 @@ func (n *setting) Prepare(ctx context.Context, pl *payload) (err error) {
 	return nil
 }
 
-// Encode encodes the setting to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *setting) Encode(ctx context.Context, pl *payload) (err error) {
 	res := n.st
 
-	// Sys users
 	us, err := resolveUserstamps(ctx, pl.s, pl.state.ParentResources, n.res.Userstamps())
 	if err != nil {
 		return err
 	}
 
-	// Timestamps
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.UpdatedAt != nil {

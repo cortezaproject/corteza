@@ -20,7 +20,6 @@ func newRbacRule(rl *rbac.Rule) *rbacRule {
 	}
 }
 
-// MarshalEnvoy converts the rbac rule struct to a resource
 func (rl *rbacRule) MarshalEnvoy() ([]resource.Interface, error) {
 	refRole := strconv.FormatUint(rl.rule.RoleID, 10)
 

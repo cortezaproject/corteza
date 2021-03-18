@@ -13,6 +13,7 @@ import (
 )
 
 type (
+	// genericFilter defines resource identifiers in a generic manner
 	genericFilter struct {
 		id          uint64
 		identifiers []string
@@ -35,12 +36,10 @@ var (
 		return &c
 	}
 
+	// Global expression parser
 	exprP = expr.Parser()
 )
 
-// makeGenericFilter is a helper to determine the base resource filter.
-//
-// It attempts to determine an identifier, handle, and name.
 func makeGenericFilter(ii resource.Identifiers) (f genericFilter) {
 	for i := range ii {
 		if i == "" {
@@ -61,15 +60,24 @@ func makeGenericFilter(ii resource.Identifiers) (f genericFilter) {
 	return f
 }
 
+// resolveUserstamps tries to resolve any missing userstamp using the store
+//
+// @todo rework based on the bellow userIndex
 func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interface, us *resource.Userstamps) (*resource.Userstamps, error) {
 	if us == nil {
 		return nil, nil
 	}
 
 	fetch := func(us *resource.Userstamp) (*resource.Userstamp, error) {
-		if us == nil {
+		if us == nil || (us.UserID == 0 && us.Ref == "") {
 			return nil, nil
 		}
+
+		// This one can be considered as valid
+		if us.Ref != "" && us.UserID > 0 && us.U != nil {
+			return us, nil
+		}
+
 		ii := resource.MakeIdentifiers()
 
 		if us.UserID > 0 {
@@ -78,19 +86,8 @@ func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interf
 		if us.Ref != "" {
 			ii = ii.Add(us.Ref)
 		}
-		if us.U != nil {
-			if us.U.Handle != "" {
-				ii = ii.Add(us.U.Handle)
-			}
-			if us.U.Username != "" {
-				ii = ii.Add(us.U.Username)
-			}
-			if us.U.Email != "" {
-				ii = ii.Add(us.U.Email)
-			}
-		}
 
-		u, err := findUserRS(ctx, s, rr, ii)
+		u, err := findUser(ctx, s, rr, ii)
 		if err != nil {
 			return nil, err
 		}
@@ -100,12 +97,13 @@ func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interf
 
 		return resource.MakeUserstamp(u), nil
 	}
+
 	var err error
 	us.CreatedBy, err = fetch(us.CreatedBy)
 	us.UpdatedBy, err = fetch(us.UpdatedBy)
 	us.DeletedBy, err = fetch(us.DeletedBy)
-	us.RunAs, err = fetch(us.RunAs)
 	us.OwnedBy, err = fetch(us.OwnedBy)
+	us.RunAs, err = fetch(us.RunAs)
 
 	if err != nil {
 		return nil, err
@@ -114,6 +112,7 @@ func resolveUserstamps(ctx context.Context, s store.Storer, rr []resource.Interf
 	return us, nil
 }
 
+// syncUserStamps tries to resolve any missing userstamp using the userIndex
 func syncUserStamps(us *resource.Userstamps, ux *userIndex) {
 	if us.CreatedBy != nil && us.CreatedBy.UserID > 0 {
 		us.CreatedBy.U = ux.users[us.CreatedBy.UserID]
@@ -130,27 +129,6 @@ func syncUserStamps(us *resource.Userstamps, ux *userIndex) {
 	if us.RunAs != nil && us.RunAs.UserID > 0 {
 		us.RunAs.U = ux.users[us.RunAs.UserID]
 	}
-}
-
-func resolveUserRefs(ctx context.Context, s store.Storer, pr []resource.Interface, refs resource.RefSet, dst map[string]uint64) (err error) {
-	for _, uRef := range refs {
-		u := resource.FindUser(pr, uRef.Identifiers)
-		if u == nil {
-			u, err = findUserS(ctx, s, makeGenericFilter(uRef.Identifiers))
-			if err != nil {
-				return err
-			}
-		}
-		if u == nil {
-			return resource.UserErrUnresolved(uRef.Identifiers)
-		}
-
-		// Unexisting users will have ID 0, but that's ok, as long as they exist
-		for i := range uRef.Identifiers {
-			dst[i] = u.ID
-		}
-	}
-	return nil
 }
 
 func mergeConfig(ec *EncoderConfig, rs *resource.EnvoyConfig) *EncoderConfig {
@@ -189,6 +167,7 @@ func basicSkipEval(ctx context.Context, cfg *EncoderConfig, missing bool) (bool,
 		if err != nil {
 			return false, err
 		}
+
 		// @todo expand this
 		skip, err := evl.EvalBool(ctx, map[string]interface{}{
 			"missing": missing,

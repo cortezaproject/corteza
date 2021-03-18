@@ -18,7 +18,7 @@ type (
 	userSet []*user
 )
 
-func (nn userSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn userSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}

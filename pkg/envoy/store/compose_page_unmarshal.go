@@ -14,7 +14,6 @@ func newComposePage(pg *types.Page) *composePage {
 	}
 }
 
-// MarshalEnvoy converts the compose page struct to a resource
 func (pg *composePage) MarshalEnvoy() ([]resource.Interface, error) {
 	refNs := strconv.FormatUint(pg.pg.NamespaceID, 10)
 	refMod := ""

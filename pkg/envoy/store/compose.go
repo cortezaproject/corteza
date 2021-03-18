@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -229,8 +230,8 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 					r := &resource.ComposeRecordRaw{
 						ID:     strconv.FormatUint(n.ID, 10),
 						Values: mapValues(n),
-						Ts:     resource.MakeCUDATimestamps(&n.CreatedAt, n.UpdatedAt, n.DeletedAt, nil),
-						Us:     resource.MakeCUDOUserstamps(n.CreatedBy, n.UpdatedBy, n.DeletedBy, n.OwnedBy),
+						Ts:     resource.MakeTimestampsCUDA(&n.CreatedAt, n.UpdatedAt, n.DeletedAt, nil),
+						Us:     resource.MakeUserstampsCUDO(n.CreatedBy, n.UpdatedBy, n.DeletedBy, n.OwnedBy),
 					}
 
 					err = cb(r)
@@ -346,6 +347,49 @@ func (d *composeDecoder) decodeComposeChart(ctx context.Context, s composeStore,
 	return &auxRsp{
 		mm: mm,
 	}
+}
+
+func (df *DecodeFilter) composeFromResource(rr ...string) *DecodeFilter {
+	for _, r := range rr {
+		if !strings.HasPrefix(r, "compose") {
+			continue
+		}
+
+		id := ""
+		if strings.Count(r, ":") == 2 && !strings.HasSuffix(r, "*") {
+			// There is an identifier
+			aux := strings.Split(r, ":")
+
+			id = aux[len(aux)-1]
+			r = strings.Join(aux[:len(aux)-1], ":")
+		}
+
+		switch strings.ToLower(r) {
+
+		case "compose:namespace":
+			df = df.ComposeNamespace(&types.NamespaceFilter{
+				Query: id,
+			})
+		case "compose:module":
+			df = df.ComposeModule(&types.ModuleFilter{
+				Query: id,
+			})
+		case "compose:record":
+			df = df.ComposeRecord(&types.RecordFilter{
+				Query: id,
+			})
+		case "compose:page":
+			df = df.ComposePage(&types.PageFilter{
+				Query: id,
+			})
+		case "compose:chart":
+			df = df.ComposeChart(&types.ChartFilter{
+				Query: id,
+			})
+		}
+	}
+
+	return df
 }
 
 // ComposeNamespace adds a new compose NamespaceFilter

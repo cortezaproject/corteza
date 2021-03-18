@@ -17,11 +17,6 @@ func newAutomationWorkflowFromResource(res *resource.AutomationWorkflow, cfg *En
 	}
 }
 
-// @todo all of the deps and stuff and things
-
-// Prepare prepares the automationWorkflow to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *automationWorkflow) Prepare(ctx context.Context, pl *payload) (err error) {
 	err = n.prepareWorkflows(ctx, pl)
 	if err != nil {
@@ -33,7 +28,7 @@ func (n *automationWorkflow) Prepare(ctx context.Context, pl *payload) (err erro
 
 func (n *automationWorkflow) prepareWorkflows(ctx context.Context, pl *payload) (err error) {
 	// Try to get the original workflow
-	n.wf, err = findAutomationWorkflowS(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
+	n.wf, err = findAutomationWorkflowStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {
 		return err
 	}
@@ -62,10 +57,6 @@ func (n *automationWorkflow) prepareTriggers(ctx context.Context, pl *payload) (
 	return nil
 }
 
-// Encode encodes the automationWorkflow to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *automationWorkflow) Encode(ctx context.Context, pl *payload) (err error) {
 	err = n.encodeWorkflow(ctx, pl)
 	if err != nil {

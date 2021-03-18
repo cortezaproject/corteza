@@ -24,7 +24,7 @@ type (
 	}
 )
 
-func (nn composeRecordSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn composeRecordSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.cfg = cfg
 	}

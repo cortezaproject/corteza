@@ -41,12 +41,12 @@ type (
 	}
 )
 
-func (nn composeChartSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn composeChartSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}
 }
 
 func relChartToRef(chr *types.Chart) string {
-	return resource.FirstOkString(chr.Handle, chr.Name, strconv.FormatUint(chr.ID, 10))
+	return firstOkString(chr.Handle, chr.Name, strconv.FormatUint(chr.ID, 10))
 }

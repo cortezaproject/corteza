@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func roleFromResource(r *resource.Role, cfg *EncoderConfig) *role {
@@ -15,9 +14,6 @@ func roleFromResource(r *resource.Role, cfg *EncoderConfig) *role {
 	}
 }
 
-// Prepare prepares the role to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (r *role) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	rl, ok := state.Res.(*resource.Role)
 	if !ok {
@@ -29,24 +25,20 @@ func (r *role) Prepare(ctx context.Context, state *envoy.ResourceState) (err err
 	return nil
 }
 
-// Encode encodes the role to the document
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (r *role) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	if r.res.ID <= 0 {
-		r.res.ID = util.NextID()
+		r.res.ID = nextID()
 	}
 
-	r.ts, err = resource.MakeCUDATimestamps(&r.res.CreatedAt, r.res.UpdatedAt, r.res.DeletedAt, r.res.ArchivedAt).
+	r.ts, err = resource.MakeTimestampsCUDA(&r.res.CreatedAt, r.res.UpdatedAt, r.res.DeletedAt, r.res.ArchivedAt).
 		Model(r.encoderConfig.TimeLayout, r.encoderConfig.Timezone)
 	if err != nil {
 		return err
 	}
 
-	// @todo 1skip eval?
+	// @todo skip eval?
 
-	doc.AddRole(r)
+	doc.addRole(r)
 	return err
 }
 
@@ -62,7 +54,7 @@ func (c *role) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nsn, err = mapTimestamps(nsn, c.ts)
+	nsn, err = encodeTimestamps(nsn, c.ts)
 	if err != nil {
 		return nil, err
 	}

@@ -52,10 +52,10 @@ func mergeComposeChart(a, b *types.Chart) *types.Chart {
 	return &c
 }
 
-// findComposeChartRS looks for the chart in the resources & the store
+// findComposeChart looks for the chart in the resources & the store
 //
 // Provided resources are prioritized.
-func findComposeChartRS(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (ch *types.Chart, err error) {
+func findComposeChart(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (ch *types.Chart, err error) {
 	ch = resource.FindComposeChart(rr, ii)
 	if ch != nil {
 		return ch, nil
@@ -66,11 +66,11 @@ func findComposeChartRS(ctx context.Context, s store.Storer, nsID uint64, rr res
 	}
 
 	// Go in the store
-	return findComposeChartS(ctx, s, nsID, makeGenericFilter(ii))
+	return findComposeChartStore(ctx, s, nsID, makeGenericFilter(ii))
 }
 
-// findComposeChartS looks for the chart in the store
-func findComposeChartS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (ch *types.Chart, err error) {
+// findComposeChartStore looks for the chart in the store
+func findComposeChartStore(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (ch *types.Chart, err error) {
 	if nsID == 0 {
 		return nil, nil
 	}

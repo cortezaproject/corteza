@@ -62,10 +62,10 @@ func mergeComposePage(a, b *types.Page) *types.Page {
 	return c
 }
 
-// resource.FindComposePageS looks for the page in the resources & the store
+// findComposePage looks for the page in the resources & the store
 //
 // Provided resources are prioritized.
-func findComposePageRS(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page, err error) {
+func findComposePage(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (pg *types.Page, err error) {
 	pg = resource.FindComposePage(rr, ii)
 	if pg != nil {
 		return pg, nil
@@ -76,11 +76,11 @@ func findComposePageRS(ctx context.Context, s store.Storer, nsID uint64, rr reso
 	}
 
 	// Go in the store
-	return findComposePageS(ctx, s, nsID, makeGenericFilter(ii))
+	return findComposePageStore(ctx, s, nsID, makeGenericFilter(ii))
 }
 
-// findComposePageS looks for the page in the store
-func findComposePageS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (pg *types.Page, err error) {
+// findComposePageStore looks for the page in the store
+func findComposePageStore(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (pg *types.Page, err error) {
 	if nsID == 0 {
 		return nil, nil
 	}

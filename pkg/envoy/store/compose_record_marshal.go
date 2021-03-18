@@ -29,12 +29,9 @@ func NewComposeRecordFromResource(res *resource.ComposeRecord, cfg *EncoderConfi
 	}
 }
 
-// Prepare prepares the composeRecord to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related namespace
-	n.relNS, err = findComposeNamespaceRS(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
+	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
 	if err != nil {
 		return err
 	}
@@ -45,13 +42,13 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	n.missing = true
 	n.relMod = resource.FindComposeModule(pl.state.ParentResources, n.res.RefMod.Identifiers)
 	if n.relMod == nil && n.relNS.ID > 0 {
-		n.relMod, err = findComposeModuleS(ctx, pl.s, n.relNS.ID, makeGenericFilter(n.res.RefMod.Identifiers))
+		n.relMod, err = findComposeModuleStore(ctx, pl.s, n.relNS.ID, makeGenericFilter(n.res.RefMod.Identifiers))
 		if err != nil {
 			return err
 		}
 		if n.relMod != nil {
 			// Preload existing fields
-			n.relMod.Fields, err = findComposeModuleFieldsS(ctx, pl.s, n.relMod)
+			n.relMod.Fields, err = findComposeModuleFieldsStore(ctx, pl.s, n.relMod)
 			if err != nil {
 				return err
 			}
@@ -136,11 +133,6 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	return nil
 }
 
-// Encode encodes the composeRecord to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
-//
 // @note composeRecord.Encode can raise an error in case of unresolved user dependencies.
 func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	// Namespace

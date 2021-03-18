@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func composeChartFromResource(r *resource.ComposeChart, cfg *EncoderConfig) *composeChart {
@@ -15,9 +14,6 @@ func composeChartFromResource(r *resource.ComposeChart, cfg *EncoderConfig) *com
 	}
 }
 
-// Prepare prepares the composeChart to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *composeChart) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	chr, ok := state.Res.(*resource.ComposeChart)
 	if !ok {
@@ -56,14 +52,10 @@ func (n *composeChart) Prepare(ctx context.Context, state *envoy.ResourceState) 
 	return nil
 }
 
-// Encode encodes the composeChart to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *composeChart) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	res := n.res
 	if res.ID <= 0 {
-		res.ID = util.NextID()
+		res.ID = nextID()
 	}
 
 	if state.Conflicting {
@@ -71,7 +63,7 @@ func (n *composeChart) Encode(ctx context.Context, doc *Document, state *envoy.R
 	}
 
 	// Handle timestamps
-	n.ts, err = resource.MakeCUDATimestamps(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -80,9 +72,9 @@ func (n *composeChart) Encode(ctx context.Context, doc *Document, state *envoy.R
 	// @todo skip eval?
 
 	if n.encoderConfig.CompactOutput {
-		err = doc.NestComposeChart(n.refNamespace, n)
+		err = doc.nestComposeChart(n.refNamespace, n)
 	} else {
-		doc.AddComposeChart(n)
+		doc.addComposeChart(n)
 	}
 
 	return err
@@ -99,7 +91,7 @@ func (c *composeChart) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, c.ts)
+	nn, err = encodeTimestamps(nn, c.ts)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +114,7 @@ func (c *composeChartConfig) MarshalYAML() (interface{}, error) {
 func (c *composeChartConfigReport) MarshalYAML() (interface{}, error) {
 	nn, err := makeMap(
 		"filter", c.report.Filter,
-		"module", firstValidString(c.relModule.Handle, c.relModule.Name),
+		"module", firstOkString(c.relModule.Handle, c.relModule.Name),
 		"metrics", c.report.Metrics,
 		"dimensions", c.report.Dimensions,
 		"yAxis", c.report.YAxis,

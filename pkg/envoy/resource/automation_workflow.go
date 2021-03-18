@@ -46,8 +46,8 @@ func NewAutomationWorkflow(res *types.Workflow) *AutomationWorkflow {
 	r.AddIdentifier(identifiers(res.Handle, res.Meta.Name, res.ID)...)
 
 	// Initial stamps
-	r.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
-	us := MakeCUDOUserstamps(res.CreatedBy, res.UpdatedBy, res.DeletedBy, res.OwnedBy)
+	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+	us := MakeUserstampsCUDO(res.CreatedBy, res.UpdatedBy, res.DeletedBy, res.OwnedBy)
 	us.RunAs = MakeUserstampFromID(res.RunAs)
 	r.SetUserstamps(us)
 
@@ -62,8 +62,8 @@ func (r *AutomationWorkflow) AddAutomationTrigger(res *types.Trigger) *Automatio
 	t.Res = res
 
 	// Initial stamps
-	t.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
-	t.SetUserstamps(MakeCUDOUserstamps(res.CreatedBy, res.UpdatedBy, res.DeletedBy, res.OwnedBy))
+	t.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+	t.SetUserstamps(MakeUserstampsCUDO(res.CreatedBy, res.UpdatedBy, res.DeletedBy, res.OwnedBy))
 
 	if r.Triggers == nil {
 		r.Triggers = make([]*AutomationTrigger, 0, 2)
@@ -108,7 +108,7 @@ func (r *AutomationWorkflow) SysID() uint64 {
 }
 
 func (r *AutomationWorkflow) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Meta.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Meta.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindAutomationWorkflow looks for the workflow in the resource set

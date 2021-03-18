@@ -43,21 +43,6 @@ func (wset *roleSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset roleSet) MarshalEnvoy() ([]resource.Interface, error) {
-	nn := make([]resource.Interface, 0, len(wset))
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-
-	}
-
-	return nn, nil
-}
-
 func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !y7s.IsKind(n, yaml.MappingNode) {
 		return y7s.NodeErr(n, "role definition must be a map")
@@ -84,6 +69,21 @@ func (wrap *role) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return nil
+}
+
+func (wset roleSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+
+	}
+
+	return nn, nil
 }
 
 func (wrap role) MarshalEnvoy() ([]resource.Interface, error) {

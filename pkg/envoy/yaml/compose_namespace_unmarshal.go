@@ -41,25 +41,6 @@ func (wset *composeNamespaceSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset composeNamespaceSet) MarshalEnvoy() ([]resource.Interface, error) {
-	if wset == nil {
-		return []resource.Interface{}, nil
-	}
-
-	// namespace usually have bunch of sub-resources defined
-	nn := make([]resource.Interface, 0, len(wset)*10)
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-	}
-
-	return nn, nil
-}
-
 func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !y7s.IsKind(n, yaml.MappingNode) {
 		return y7s.NodeErr(n, "namespace definition must be a map or scalar")
@@ -106,6 +87,25 @@ func (wrap *composeNamespace) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		return nil
 	})
+}
+
+func (wset composeNamespaceSet) MarshalEnvoy() ([]resource.Interface, error) {
+	if wset == nil {
+		return []resource.Interface{}, nil
+	}
+
+	// namespace usually have bunch of sub-resources defined
+	nn := make([]resource.Interface, 0, len(wset)*10)
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
 }
 
 func (wrap composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {

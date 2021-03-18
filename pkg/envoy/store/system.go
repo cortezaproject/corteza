@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -20,17 +21,6 @@ type (
 		rbac.RuleFilter
 		// This will help us determine what rules for what resources we are able to export
 		resourceID map[uint64]bool
-	}
-
-	systemStore interface {
-		store.Actionlogs
-		store.Applications
-		store.Attachments
-		store.RbacRules
-		store.Roles
-		store.Settings
-		store.Users
-		store.Templates
 	}
 
 	systemDecoder struct {
@@ -46,7 +36,7 @@ func newSystemDecoder(ux *userIndex) *systemDecoder {
 	}
 }
 
-func (d *systemDecoder) decodeRoles(ctx context.Context, s systemStore, ff []*roleFilter) *auxRsp {
+func (d *systemDecoder) decodeRoles(ctx context.Context, s store.Storer, ff []*roleFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -91,7 +81,7 @@ func (d *systemDecoder) decodeRoles(ctx context.Context, s systemStore, ff []*ro
 	}
 }
 
-func (d *systemDecoder) decodeUsers(ctx context.Context, s systemStore, ff []*userFilter) *auxRsp {
+func (d *systemDecoder) decodeUsers(ctx context.Context, s store.Storer, ff []*userFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -136,7 +126,7 @@ func (d *systemDecoder) decodeUsers(ctx context.Context, s systemStore, ff []*us
 	}
 }
 
-func (d *systemDecoder) decodeTemplates(ctx context.Context, s systemStore, ff []*templateFilter) *auxRsp {
+func (d *systemDecoder) decodeTemplates(ctx context.Context, s store.Storer, ff []*templateFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -181,7 +171,7 @@ func (d *systemDecoder) decodeTemplates(ctx context.Context, s systemStore, ff [
 	}
 }
 
-func (d *systemDecoder) decodeApplications(ctx context.Context, s systemStore, ff []*applicationFilter) *auxRsp {
+func (d *systemDecoder) decodeApplications(ctx context.Context, s store.Storer, ff []*applicationFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -231,7 +221,7 @@ func (d *systemDecoder) decodeApplications(ctx context.Context, s systemStore, f
 		mm: mm,
 	}
 }
-func (d *systemDecoder) decodeSettings(ctx context.Context, s systemStore, ff []*settingFilter) *auxRsp {
+func (d *systemDecoder) decodeSettings(ctx context.Context, s store.Storer, ff []*settingFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -273,7 +263,7 @@ func (d *systemDecoder) decodeSettings(ctx context.Context, s systemStore, ff []
 		mm: mm,
 	}
 }
-func (d *systemDecoder) decodeRbac(ctx context.Context, s systemStore, ff []*rbacFilter) *auxRsp {
+func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rbacFilter) *auxRsp {
 	mm := make([]envoy.Marshaller, 0, 100)
 	if ff == nil {
 		return &auxRsp{
@@ -338,15 +328,25 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 		}
 
 		switch strings.ToLower(r) {
-		case "system:rols":
+		case "system:roles":
 			df = df.Roles(&types.RoleFilter{
 				Query: id,
 			})
-		case "system:uses":
+		case "system:users":
 			df = df.Users(&types.UserFilter{
 				Query: id,
 			})
-		case "system:applicatios":
+		case "system:templates":
+			df = df.Templates(&types.TemplateFilter{
+				Handle: id,
+			})
+			templateID, err := cast.ToUint64E(id)
+			if err == nil && templateID > 0 {
+				df = df.Templates(&types.TemplateFilter{
+					TemplateID: []uint64{templateID},
+				})
+			}
+		case "system:applications":
 			df = df.Applications(&types.ApplicationFilter{
 				Query: id,
 			})

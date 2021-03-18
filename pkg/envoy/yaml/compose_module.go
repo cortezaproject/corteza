@@ -51,13 +51,13 @@ type (
 	composeModuleFieldExpr types.ModuleFieldExpr
 )
 
-func (nn composeModuleSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn composeModuleSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}
 }
 
-func (ff composeModuleFieldSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (ff composeModuleFieldSet) configureEncoder(cfg *EncoderConfig) {
 	for _, f := range ff {
 		f.cfg = cfg
 	}

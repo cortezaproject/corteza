@@ -38,33 +38,6 @@ func (wset *composeChartSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset composeChartSet) setNamespaceRef(ref string) error {
-	for _, res := range wset {
-		if res.refNamespace != "" && ref != res.refNamespace {
-			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
-		}
-
-		res.refNamespace = ref
-	}
-
-	return nil
-}
-
-func (wset composeChartSet) MarshalEnvoy() ([]resource.Interface, error) {
-	// namespace usually have bunch of sub-resources defined
-	nn := make([]resource.Interface, 0, len(wset))
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-	}
-
-	return nn, nil
-}
-
 func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.rbac = make(rbacRuleSet, 0, 10)
@@ -107,6 +80,33 @@ func (wrap *composeChart) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		return nil
 	})
+}
+
+func (wset composeChartSet) setNamespaceRef(ref string) error {
+	for _, res := range wset {
+		if res.refNamespace != "" && ref != res.refNamespace {
+			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
+		}
+
+		res.refNamespace = ref
+	}
+
+	return nil
+}
+
+func (wset composeChartSet) MarshalEnvoy() ([]resource.Interface, error) {
+	// namespace usually have bunch of sub-resources defined
+	nn := make([]resource.Interface, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
 }
 
 func (wrap composeChart) MarshalEnvoy() ([]resource.Interface, error) {

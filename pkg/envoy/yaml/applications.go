@@ -19,7 +19,7 @@ type (
 	applicationSet []*application
 )
 
-func (nn applicationSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn applicationSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}

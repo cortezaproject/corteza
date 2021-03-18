@@ -21,7 +21,7 @@ func (c *automation) MarshalYAML() (interface{}, error) {
 	var err error
 
 	if len(c.Workflows) > 0 {
-		c.Workflows.ConfigureEncoder(c.EncoderConfig)
+		c.Workflows.configureEncoder(c.EncoderConfig)
 
 		cn, err = encodeResource(cn, "workflows", c.Workflows, c.EncoderConfig.MappedOutput, "handle")
 		if err != nil {

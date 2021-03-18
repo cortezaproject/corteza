@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func applicationFromResource(r *resource.Application, cfg *EncoderConfig) *application {
@@ -15,9 +14,6 @@ func applicationFromResource(r *resource.Application, cfg *EncoderConfig) *appli
 	}
 }
 
-// Prepare prepares the application to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *application) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	app, ok := state.Res.(*resource.Application)
 	if !ok {
@@ -30,16 +26,12 @@ func (n *application) Prepare(ctx context.Context, state *envoy.ResourceState) (
 	return nil
 }
 
-// Encode encodes the application to the document
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *application) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	if n.res.ID <= 0 {
-		n.res.ID = util.NextID()
+		n.res.ID = nextID()
 	}
 
-	n.ts, err = resource.MakeCUDATimestamps(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -51,7 +43,7 @@ func (n *application) Encode(ctx context.Context, doc *Document, state *envoy.Re
 
 	// @todo 1skip eval?
 
-	doc.AddApplication(n)
+	doc.addApplication(n)
 
 	return err
 }
@@ -72,7 +64,7 @@ func (c *application) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, c.ts)
+	nn, err = encodeTimestamps(nn, c.ts)
 	if err != nil {
 		return nil, err
 	}

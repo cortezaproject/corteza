@@ -121,6 +121,7 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 		case *resource.ComposeChart:
 			err = f(composeChartFromResource(res, ye.cfg), e)
 
+		// System resources
 		case *resource.Role:
 			err = f(roleFromResource(res, ye.cfg), e)
 		case *resource.User:
@@ -134,6 +135,7 @@ func (ye *yamlEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) 
 		case *resource.RbacRule:
 			err = f(rbacRuleFromResource(res, ye.cfg), e)
 
+		// Automation resources
 		case *resource.AutomationWorkflow:
 			err = f(automationWorkflowFromResource(res, ye.cfg), e)
 

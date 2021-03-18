@@ -57,20 +57,20 @@ func mergeTemplates(a, b *types.Template) *types.Template {
 	return &c
 }
 
-// findTemplateRS looks for the template in the resources & the store
+// findTemplate looks for the template in the resources & the store
 //
 // Provided resources are prioritized.
-func findTemplateRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (u *types.Template, err error) {
+func findTemplate(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (u *types.Template, err error) {
 	u = resource.FindTemplate(rr, ii)
 	if u != nil {
 		return u, nil
 	}
 
-	return findTemplateS(ctx, s, makeGenericFilter(ii))
+	return findTemplateStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findTemplateS looks for the template in the store
-func findTemplateS(ctx context.Context, s store.Storer, gf genericFilter) (t *types.Template, err error) {
+// findTemplateStore looks for the template in the store
+func findTemplateStore(ctx context.Context, s store.Storer, gf genericFilter) (t *types.Template, err error) {
 	if gf.id > 0 {
 		t, err = store.LookupTemplateByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {
@@ -83,7 +83,7 @@ func findTemplateS(ctx context.Context, s store.Storer, gf genericFilter) (t *ty
 	}
 
 	for _, i := range gf.identifiers {
-		// Handle & templatename
+		// Handle
 		t, err = store.LookupTemplateByHandle(ctx, s, i)
 		if err != nil && err != store.ErrNotFound {
 			return nil, err

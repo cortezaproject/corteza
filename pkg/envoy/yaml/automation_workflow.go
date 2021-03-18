@@ -56,7 +56,7 @@ type (
 	automationWorkflowPathSet []*automationWorkflowPath
 )
 
-func (nn automationWorkflowSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn automationWorkflowSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}

@@ -1,7 +1,7 @@
 package yaml
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -45,7 +45,7 @@ type (
 	composePageBlockStyle = types.PageBlockStyle
 )
 
-func (pg *composePage) Matches(i string) bool {
+func (pg *composePage) matches(i string) bool {
 	if pg.res.ID > 0 && strconv.FormatUint(pg.res.ID, 10) == i {
 		return true
 	} else if pg.res.Handle == i {
@@ -57,17 +57,17 @@ func (pg *composePage) Matches(i string) bool {
 	return false
 }
 
-func (c composePageSet) AddComposePage(ii string, p *composePage) error {
+func (c composePageSet) addComposePage(ii string, p *composePage) error {
 	var cpg *composePage
 	for _, s := range c {
-		if s.Matches(ii) {
+		if s.matches(ii) {
 			cpg = s
 			break
 		}
 	}
 
 	if cpg == nil {
-		return errors.New("page does not exist; @todo error")
+		return composePageErrNotFound(ii)
 	}
 	if cpg.children == nil {
 		cpg.children = make(composePageSet, 0, 1)
@@ -77,14 +77,18 @@ func (c composePageSet) AddComposePage(ii string, p *composePage) error {
 	return nil
 }
 
-func (nn composePageSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn composePageSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}
 }
 
-func (bb composePageBlockSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (bb composePageBlockSet) configureEncoder(cfg *EncoderConfig) {
 	for _, b := range bb {
 		b.cfg = cfg
 	}
+}
+
+func composePageErrNotFound(i string) error {
+	return fmt.Errorf("page not found: %v", i)
 }

@@ -15,12 +15,9 @@ func NewApplicationFromResource(res *resource.Application, cfg *EncoderConfig) r
 	}
 }
 
-// Prepare prepares the application to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *application) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get the existing app
-	n.app, err = findApplicationS(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
+	n.app, err = findApplicationStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {
 		return err
 	}
@@ -31,10 +28,6 @@ func (n *application) Prepare(ctx context.Context, pl *payload) (err error) {
 	return nil
 }
 
-// Encode encodes the application to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *application) Encode(ctx context.Context, pl *payload) (err error) {
 	res := n.res.Res
 	exists := n.app != nil && n.app.ID > 0
@@ -58,7 +51,6 @@ func (n *application) Encode(ctx context.Context, pl *payload) (err error) {
 		res.Unify = &types.ApplicationUnify{}
 	}
 
-	// Timestamps
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.CreatedAt != nil {
@@ -74,7 +66,6 @@ func (n *application) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 	}
 
-	// Userstamps
 	if us != nil {
 		if us.OwnedBy != nil {
 			res.OwnerID = us.OwnedBy.UserID

@@ -23,7 +23,7 @@ func NewRole(rl *types.Role) *Role {
 	r.AddIdentifier(identifiers(rl.Handle, rl.Name, rl.ID)...)
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&rl.CreatedAt, rl.UpdatedAt, rl.DeletedAt, rl.ArchivedAt))
+	r.SetTimestamps(MakeTimestampsCUDA(&rl.CreatedAt, rl.UpdatedAt, rl.DeletedAt, rl.ArchivedAt))
 
 	return r
 }
@@ -33,7 +33,7 @@ func (r *Role) SysID() uint64 {
 }
 
 func (r *Role) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindRole looks for the role in the resources

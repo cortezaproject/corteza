@@ -40,7 +40,7 @@ func NewSetting(s *types.SettingValue) *Setting {
 	r.AddIdentifier(identifiers(s.Name)...)
 
 	// Set initial stamps
-	r.SetTimestamps(MakeCUDATimestamps(nil, &s.UpdatedAt, nil, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(nil, &s.UpdatedAt, nil, nil))
 	r.SetUserstamps(&Userstamps{
 		UpdatedBy: &Userstamp{UserID: s.UpdatedBy},
 	})

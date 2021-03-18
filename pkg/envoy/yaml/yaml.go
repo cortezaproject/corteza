@@ -4,39 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"gopkg.in/yaml.v3"
 )
-
-// mapTimestamps helper encodes Timestamps into the mapping node
-func mapTimestamps(n *yaml.Node, ts *resource.Timestamps) (*yaml.Node, error) {
-	if ts == nil {
-		return n, nil
-	}
-
-	return addMap(n,
-		"createdAt", ts.CreatedAt,
-		"updatedAt", ts.UpdatedAt,
-		"deletedAt", ts.DeletedAt,
-		"archivedAt", ts.ArchivedAt,
-		"suspendedAt", ts.SuspendedAt,
-	)
-}
-
-// mapUserstamps helper encodes Userstamps into the mapping node
-func mapUserstamps(n *yaml.Node, us *resource.Userstamps) (*yaml.Node, error) {
-	if us == nil {
-		return n, nil
-	}
-
-	return addMap(n,
-		"createdBy", us.CreatedBy,
-		"updatedBy", us.UpdatedBy,
-		"deletedBy", us.DeletedBy,
-		"ownedBy", us.OwnedBy,
-		"runAs", us.RunAs,
-	)
-}
 
 // cleanMap helper removes any empty k:v nodes from the mapping node
 //
@@ -284,13 +253,4 @@ func addSeq(n *yaml.Node, vv ...interface{}) (*yaml.Node, error) {
 	}
 
 	return n, nil
-}
-
-func firstValidString(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
 }

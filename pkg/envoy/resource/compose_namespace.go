@@ -22,7 +22,7 @@ func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	r.AddIdentifier(identifiers(ns.Slug, ns.Name, ns.ID)...)
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&ns.CreatedAt, ns.UpdatedAt, ns.DeletedAt, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(&ns.CreatedAt, ns.UpdatedAt, ns.DeletedAt, nil))
 
 	return r
 }
@@ -32,7 +32,7 @@ func (r *ComposeNamespace) SysID() uint64 {
 }
 
 func (r *ComposeNamespace) Ref() string {
-	return FirstOkString(r.Res.Slug, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Slug, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindComposeNamespace looks for the namespace in the resource set

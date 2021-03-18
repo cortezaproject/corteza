@@ -12,7 +12,6 @@ func newTemplate(t *types.Template) *template {
 	}
 }
 
-// MarshalEnvoy converts the template struct to a resource
 func (u *template) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
 		resource.NewTemplate(u.t),

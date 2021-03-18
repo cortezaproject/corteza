@@ -89,7 +89,7 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 	}
 
 	if doc.roles != nil {
-		doc.roles.ConfigureEncoder(doc.cfg)
+		doc.roles.configureEncoder(doc.cfg)
 
 		dn, err = encodeResource(dn, "roles", doc.roles, doc.cfg.MappedOutput, "handle")
 		if err != nil {
@@ -98,7 +98,7 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 	}
 
 	if doc.users != nil && len(doc.users) > 0 {
-		doc.users.ConfigureEncoder(doc.cfg)
+		doc.users.configureEncoder(doc.cfg)
 
 		dn, err = encodeResource(dn, "users", doc.users, doc.cfg.MappedOutput, "handle")
 		if err != nil {
@@ -107,7 +107,7 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 	}
 
 	if doc.templates != nil && len(doc.templates) > 0 {
-		doc.templates.ConfigureEncoder(doc.cfg)
+		doc.templates.configureEncoder(doc.cfg)
 
 		dn, err = encodeResource(dn, "templates", doc.templates, doc.cfg.MappedOutput, "handle")
 		if err != nil {
@@ -116,7 +116,7 @@ func (doc *Document) MarshalYAML() (interface{}, error) {
 	}
 
 	if doc.applications != nil && len(doc.applications) > 0 {
-		doc.applications.ConfigureEncoder(doc.cfg)
+		doc.applications.configureEncoder(doc.cfg)
 
 		// Applications don't support map representation
 		dn, err = addMap(dn,
@@ -192,10 +192,7 @@ func (doc *Document) Decode(ctx context.Context) ([]resource.Interface, error) {
 	return nn, nil
 }
 
-// Document utilities...
-
-// AddComposeNamespace adds a new composeNamespace to the document
-func (doc *Document) AddComposeNamespace(n *composeNamespace) {
+func (doc *Document) addComposeNamespace(n *composeNamespace) {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -206,8 +203,7 @@ func (doc *Document) AddComposeNamespace(n *composeNamespace) {
 	doc.compose.Namespaces = append(doc.compose.Namespaces, n)
 }
 
-// AddComposeModule adds a new composeModule to the document
-func (doc *Document) AddComposeModule(m *composeModule) {
+func (doc *Document) addComposeModule(m *composeModule) {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -218,8 +214,7 @@ func (doc *Document) AddComposeModule(m *composeModule) {
 	doc.compose.Modules = append(doc.compose.Modules, m)
 }
 
-// AddComposeRecord adds a new composeRecord to the document
-func (doc *Document) AddComposeRecord(r *composeRecord) {
+func (doc *Document) addComposeRecord(r *composeRecord) {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -230,8 +225,7 @@ func (doc *Document) AddComposeRecord(r *composeRecord) {
 	doc.compose.Records = append(doc.compose.Records, r)
 }
 
-// AddComposePage adds a new composePage to the document
-func (doc *Document) AddComposePage(p *composePage) {
+func (doc *Document) addComposePage(p *composePage) {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -242,8 +236,7 @@ func (doc *Document) AddComposePage(p *composePage) {
 	doc.compose.Pages = append(doc.compose.Pages, p)
 }
 
-// AddComposeChart adds a new composeChart to the document
-func (doc *Document) AddComposeChart(c *composeChart) {
+func (doc *Document) addComposeChart(c *composeChart) {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -254,7 +247,7 @@ func (doc *Document) AddComposeChart(c *composeChart) {
 	doc.compose.Charts = append(doc.compose.Charts, c)
 }
 
-func (doc *Document) AddAutomationWorkflow(m *automationWorkflow) {
+func (doc *Document) addAutomationWorkflow(m *automationWorkflow) {
 	if doc.automation == nil {
 		doc.automation = &automation{}
 	}
@@ -265,8 +258,7 @@ func (doc *Document) AddAutomationWorkflow(m *automationWorkflow) {
 	doc.automation.Workflows = append(doc.automation.Workflows, m)
 }
 
-// AddRole adds a new role to the document
-func (doc *Document) AddRole(r *role) {
+func (doc *Document) addRole(r *role) {
 	if doc.roles == nil {
 		doc.roles = make(roleSet, 0, 20)
 	}
@@ -274,8 +266,7 @@ func (doc *Document) AddRole(r *role) {
 	doc.roles = append(doc.roles, r)
 }
 
-// AddUser adds a new user to the document
-func (doc *Document) AddUser(u *user) {
+func (doc *Document) addUser(u *user) {
 	if doc.users == nil {
 		doc.users = make(userSet, 0, 20)
 	}
@@ -283,8 +274,7 @@ func (doc *Document) AddUser(u *user) {
 	doc.users = append(doc.users, u)
 }
 
-// AddTemplate adds a new template to the document
-func (doc *Document) AddTemplate(u *template) {
+func (doc *Document) addTemplate(u *template) {
 	if doc.templates == nil {
 		doc.templates = make(templateSet, 0, 20)
 	}
@@ -292,8 +282,7 @@ func (doc *Document) AddTemplate(u *template) {
 	doc.templates = append(doc.templates, u)
 }
 
-// AddApplication adds a new application to the document
-func (doc *Document) AddApplication(a *application) {
+func (doc *Document) addApplication(a *application) {
 	if doc.applications == nil {
 		doc.applications = make(applicationSet, 0, 20)
 	}
@@ -301,8 +290,7 @@ func (doc *Document) AddApplication(a *application) {
 	doc.applications = append(doc.applications, a)
 }
 
-// AddSetting adds a new setting to the document
-func (doc *Document) AddSetting(s *setting) {
+func (doc *Document) addSetting(s *setting) {
 	if doc.settings == nil {
 		doc.settings = make([]*setting, 0, 100)
 	}
@@ -310,8 +298,7 @@ func (doc *Document) AddSetting(s *setting) {
 	doc.settings = append(doc.settings, s)
 }
 
-// AddRbacRule adds a new rbacRule to the document
-func (doc *Document) AddRbacRule(r *rbacRule) {
+func (doc *Document) addRbacRule(r *rbacRule) {
 	if doc.rbac == nil {
 		doc.rbac = make(rbacRuleSet, 0, 100)
 	}
@@ -319,8 +306,7 @@ func (doc *Document) AddRbacRule(r *rbacRule) {
 	doc.rbac = append(doc.rbac, r)
 }
 
-// NestComposeModule adds a new composeModule to the document under a specified namespace
-func (doc *Document) NestComposeModule(ns string, m *composeModule) error {
+func (doc *Document) nestComposeModule(ns string, m *composeModule) error {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -328,11 +314,10 @@ func (doc *Document) NestComposeModule(ns string, m *composeModule) error {
 		return composeNamespaceErrNotFound(ns)
 	}
 
-	return doc.compose.Namespaces.AddComposeModule(ns, m)
+	return doc.compose.Namespaces.addComposeModule(ns, m)
 }
 
-// NestComposePage adds a new composePage to the document under a specified namespace
-func (doc *Document) NestComposePage(ns string, p *composePage) error {
+func (doc *Document) nestComposePage(ns string, p *composePage) error {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -340,11 +325,10 @@ func (doc *Document) NestComposePage(ns string, p *composePage) error {
 		return composeNamespaceErrNotFound(ns)
 	}
 
-	return doc.compose.Namespaces.AddComposePage(ns, p)
+	return doc.compose.Namespaces.addComposePage(ns, p)
 }
 
-// NestComposePageChild adds a new composePage to the document under a specified parent page
-func (doc *Document) NestComposePageChild(parent string, p *composePage) error {
+func (doc *Document) nestComposePageChild(parent string, p *composePage) error {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -352,11 +336,10 @@ func (doc *Document) NestComposePageChild(parent string, p *composePage) error {
 		return composeNamespaceErrNotFound(parent)
 	}
 
-	return doc.compose.Pages.AddComposePage(parent, p)
+	return doc.compose.Pages.addComposePage(parent, p)
 }
 
-// NestComposeChart adds a new composeChart to the document under a specified namespace
-func (doc *Document) NestComposeChart(ns string, c *composeChart) error {
+func (doc *Document) nestComposeChart(ns string, c *composeChart) error {
 	if doc.compose == nil {
 		doc.compose = &compose{}
 	}
@@ -364,5 +347,5 @@ func (doc *Document) NestComposeChart(ns string, c *composeChart) error {
 		return composeNamespaceErrNotFound(ns)
 	}
 
-	return doc.compose.Namespaces.AddComposeChart(ns, c)
+	return doc.compose.Namespaces.addComposeChart(ns, c)
 }

@@ -49,37 +49,6 @@ func (wset *composePageSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-// @todo also do this for the pages property
-func (wset composePageSet) setNamespaceRef(ref string) error {
-	for _, res := range wset {
-		if res.refNamespace != "" && ref != res.refNamespace {
-			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
-		}
-
-		res.refNamespace = ref
-		if res.children != nil {
-			res.children.setNamespaceRef(ref)
-		}
-	}
-
-	return nil
-}
-
-func (wset composePageSet) MarshalEnvoy() ([]resource.Interface, error) {
-	// namespace usually have bunch of sub-resources defined
-	nn := make([]resource.Interface, 0, len(wset)*10)
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-	}
-
-	return nn, nil
-}
-
 func (wrap *composePage) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.rbac = make(rbacRuleSet, 0, 10)
@@ -147,6 +116,37 @@ func (wrap *composePageBlock) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 	wrap.res = &b
 	return nil
+}
+
+// @todo also do this for the pages property
+func (wset composePageSet) setNamespaceRef(ref string) error {
+	for _, res := range wset {
+		if res.refNamespace != "" && ref != res.refNamespace {
+			return fmt.Errorf("cannot override namespace reference %s with %s", res.refNamespace, ref)
+		}
+
+		res.refNamespace = ref
+		if res.children != nil {
+			res.children.setNamespaceRef(ref)
+		}
+	}
+
+	return nil
+}
+
+func (wset composePageSet) MarshalEnvoy() ([]resource.Interface, error) {
+	// namespace usually have bunch of sub-resources defined
+	nn := make([]resource.Interface, 0, len(wset)*10)
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+	}
+
+	return nn, nil
 }
 
 func (wrap composePage) MarshalEnvoy() ([]resource.Interface, error) {
