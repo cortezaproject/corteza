@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -21,8 +23,9 @@ import (
 )
 
 const (
-	IMPORT_ON_ERROR_SKIP = "SKIP"
-	IMPORT_ON_ERROR_FAIL = "FAIL"
+	IMPORT_ON_ERROR_SKIP         = "SKIP"
+	IMPORT_ON_ERROR_FAIL         = "FAIL"
+	IMPORT_ERROR_MAX_INDEX_COUNT = 500000
 )
 
 type (
@@ -121,7 +124,20 @@ type (
 		Completed  uint64     `json:"completed"`
 		Failed     uint64     `json:"failed"`
 		FailReason string     `json:"failReason,omitempty"`
+
+		FailLog *FailLog `json:"failLog,omitempty"`
 	}
+
+	FailLog struct {
+		// Records holds an array of record indexes
+		Records          RecordIndex `json:"records"`
+		RecordsTruncated bool        `json:"recordsTruncated"`
+		// Errors specifies a map of occurred errors & the number of
+		Errors ErrorIndex `json:"errors"`
+	}
+
+	RecordIndex []int
+	ErrorIndex  map[string]int
 )
 
 func Record() RecordService {
@@ -1352,4 +1368,39 @@ func toLabeledRecords(set []*types.Record) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+func (ei ErrorIndex) Add(err string) {
+	if _, has := ei[err]; has {
+		ei[err]++
+	} else {
+		ei[err] = 1
+	}
+}
+
+func (ri RecordIndex) MarshalJSON() ([]byte, error) {
+	sort.Ints(ri)
+
+	rr := make([][]int, 0, len(ri))
+	start := -1
+	crt := -1
+
+	for i := 0; i < len(ri); i++ {
+		if start == -1 {
+			start = ri[i]
+			crt = ri[i]
+			continue
+		}
+
+		// If the index increases for more then 1, the set is complete
+		if ri[i]-crt > 1 {
+			rr = append(rr, []int{start, crt})
+			start = ri[i]
+		}
+
+		crt = ri[i]
+	}
+
+	rr = append(rr, []int{start, crt})
+	return json.Marshal(rr)
 }
