@@ -346,17 +346,40 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 		cfg := &estore.EncoderConfig{
 			// For now the identifier is ignored, so this will never occur
 			OnExisting: resource.Skip,
-			Defer: func() {
+			DeferOk: func() {
 				ses.Progress.Completed++
 			},
 		}
-		if ses.OnError == service.IMPORT_ON_ERROR_SKIP {
-			cfg.DeferNok = func(err error) error {
-				ses.Progress.Failed++
-				ses.Progress.FailReason = err.Error()
+		cfg.DeferNok = func(err error) error {
+			ses.Progress.Failed++
 
+			if ses.Progress.FailLog == nil {
+				ses.Progress.FailLog = &service.FailLog{
+					Errors: make(service.ErrorIndex),
+				}
+			}
+
+			if rve, is := err.(*types.RecordValueErrorSet); is {
+				for _, ve := range rve.Set {
+					for k, v := range ve.Meta {
+						ses.Progress.FailLog.Errors.Add(fmt.Sprintf("%s %s %v", ve.Kind, k, v))
+					}
+				}
+			} else {
+				ses.Progress.FailLog.Errors.Add(err.Error())
+			}
+
+			if len(ses.Progress.FailLog.Records) < service.IMPORT_ERROR_MAX_INDEX_COUNT {
+				// +1 because we indexed them with 1 before
+				ses.Progress.FailLog.Records = append(ses.Progress.FailLog.Records, int(ses.Progress.Completed)+1)
+			} else {
+				ses.Progress.FailLog.RecordsTruncated = true
+			}
+
+			if ses.OnError == service.IMPORT_ON_ERROR_SKIP {
 				return nil
 			}
+			return err
 		}
 		se := estore.NewStoreEncoder(service.DefaultStore, cfg)
 		bld := envoy.NewBuilder(se)
@@ -371,7 +394,6 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 		ses.Progress.FinishedAt = &now
 		if err != nil {
 			ses.Progress.FailReason = err.Error()
-			ses.Progress.Failed++
 			return err
 		}
 
