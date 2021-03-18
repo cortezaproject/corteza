@@ -147,6 +147,7 @@ func TestStoreJsonl_records(t *testing.T) {
 				"base_module",
 				"base_namespace",
 				"tmp.jsonl",
+				true,
 				resource.MappingTplSet{
 					{
 						Cell:  "id",
@@ -360,6 +361,7 @@ func TestStoreJsonl_records_fieldTypes(t *testing.T) {
 				"base_module",
 				"base_namespace",
 				"tmp.csv",
+				true,
 				resource.MappingTplSet{
 					{
 						Cell:  "id",
