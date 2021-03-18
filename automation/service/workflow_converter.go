@@ -57,11 +57,22 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 	if len(wfii) > 0 {
 		return nil, wfii
 	}
+	// remove all steps that should not go through
+	// resolving procedure and should not be added to the graph
+	ss, _ := def.Steps.Filter(func(step *types.WorkflowStep) (bool, error) {
+		switch {
+		case step.Kind == types.WorkflowStepKindVisual:
+			return false, nil
+		}
 
-	for g.Len() < len(def.Steps) {
+		return true, nil
+	})
+
+	for g.Len() < len(ss) {
 		progress := false
 		lastResStep = nil
-		for _, step := range def.Steps {
+
+		for _, step := range ss {
 			lastResStep = step
 			if g.StepByID(step.ID) != nil {
 				// resolved
@@ -80,11 +91,6 @@ func (svc workflowConverter) makeGraph(def *types.Workflow) (*wfexec.Graph, type
 			}
 
 			stepIssues := verifyStep(step, inPaths, outPaths)
-
-			if step.Kind == types.WorkflowStepKindVisual {
-				// make sure visual steps are skipped
-				continue
-			}
 
 			if resolved, err := svc.workflowStepDefConv(g, step, inPaths, outPaths); err != nil {
 				switch aux := err.(type) {
