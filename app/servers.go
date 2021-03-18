@@ -135,6 +135,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			"client web applications enabled",
 			zap.String("baseUrl", app.Opt.HTTPServer.WebappBaseUrl),
 			zap.String("baseDir", app.Opt.HTTPServer.WebappBaseDir),
+			zap.Strings("apps", strings.Split(app.Opt.HTTPServer.WebappList, ",")),
 		)
 	} else {
 		app.Log.Info("client web applications disabled")
