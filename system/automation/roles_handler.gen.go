@@ -57,7 +57,7 @@ func (a rolesLookupArgs) GetLookup() (bool, uint64, string, *types.Role) {
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Lookup function Looks-up for role by ID
+// Lookup function Role lookup
 //
 // expects implementation of lookup function:
 // func (h rolesHandler) lookup(ctx context.Context, args *rolesLookupArgs) (results *rolesLookupResults, err error) {
@@ -69,7 +69,8 @@ func (h rolesHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Looks-up for role by ID",
+			Short:       "Role lookup",
+			Description: "Find specific role by ID or handle",
 		},
 
 		Parameters: []*atypes.Param{
@@ -182,7 +183,7 @@ type (
 	}
 )
 
-// Search function Searches for roles and returns them
+// Search function Roles search
 //
 // expects implementation of search function:
 // func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (results *rolesSearchResults, err error) {
@@ -194,7 +195,7 @@ func (h rolesHandler) Search() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for roles and returns them",
+			Short: "Roles search",
 		},
 
 		Parameters: []*atypes.Param{
@@ -392,7 +393,7 @@ type (
 	}
 )
 
-// Each function Searches for roles and iterates over results
+// Each function Roles
 //
 // expects implementation of each function:
 // func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (results *rolesEachResults, err error) {
@@ -404,7 +405,7 @@ func (h rolesHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for roles and iterates over results",
+			Short: "Roles",
 		},
 
 		Parameters: []*atypes.Param{
@@ -509,7 +510,7 @@ type (
 	}
 )
 
-// Create function Creates new role
+// Create function Role creator
 //
 // expects implementation of create function:
 // func (h rolesHandler) create(ctx context.Context, args *rolesCreateArgs) (results *rolesCreateResults, err error) {
@@ -521,7 +522,7 @@ func (h rolesHandler) Create() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"create": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Creates new role",
+			Short: "Role creator",
 		},
 
 		Parameters: []*atypes.Param{
@@ -586,7 +587,7 @@ type (
 	}
 )
 
-// Update function Updates exiting role
+// Update function Role update
 //
 // expects implementation of update function:
 // func (h rolesHandler) update(ctx context.Context, args *rolesUpdateArgs) (results *rolesUpdateResults, err error) {
@@ -598,7 +599,7 @@ func (h rolesHandler) Update() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"update": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Updates exiting role",
+			Short: "Role update",
 		},
 
 		Parameters: []*atypes.Param{
@@ -666,7 +667,7 @@ func (a rolesDeleteArgs) GetLookup() (bool, uint64, string, *types.Role) {
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Delete function Deletes the role
+// Delete function Role delete
 //
 // expects implementation of delete function:
 // func (h rolesHandler) delete(ctx context.Context, args *rolesDeleteArgs) (err error) {
@@ -678,7 +679,7 @@ func (h rolesHandler) Delete() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Deletes the role",
+			Short: "Role delete",
 		},
 
 		Parameters: []*atypes.Param{
@@ -731,7 +732,7 @@ func (a rolesRecoverArgs) GetLookup() (bool, uint64, string, *types.Role) {
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Recover function Recovers deleted role
+// Recover function Role recover
 //
 // expects implementation of recover function:
 // func (h rolesHandler) recover(ctx context.Context, args *rolesRecoverArgs) (err error) {
@@ -743,7 +744,7 @@ func (h rolesHandler) Recover() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"recover": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Recovers deleted role",
+			Short: "Role recover",
 		},
 
 		Parameters: []*atypes.Param{
@@ -796,7 +797,7 @@ func (a rolesArchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Archive function Archives the role
+// Archive function Role archive
 //
 // expects implementation of archive function:
 // func (h rolesHandler) archive(ctx context.Context, args *rolesArchiveArgs) (err error) {
@@ -808,7 +809,7 @@ func (h rolesHandler) Archive() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"archive": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Archives the role",
+			Short: "Role archive",
 		},
 
 		Parameters: []*atypes.Param{
@@ -861,7 +862,7 @@ func (a rolesUnarchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Unarchive function Unarchives the role
+// Unarchive function Role unarchive
 //
 // expects implementation of unarchive function:
 // func (h rolesHandler) unarchive(ctx context.Context, args *rolesUnarchiveArgs) (err error) {
@@ -873,7 +874,7 @@ func (h rolesHandler) Unarchive() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"unarchive": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Unarchives the role",
+			Short: "Role unarchive",
 		},
 
 		Parameters: []*atypes.Param{

@@ -59,7 +59,7 @@ func (a modulesLookupArgs) GetNamespace() (bool, uint64, string, *types.Namespac
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Lookup function Lookup for compose Lookup by ID
+// Lookup function Compose module lookup
 //
 // expects implementation of lookup function:
 // func (h modulesHandler) lookup(ctx context.Context, args *modulesLookupArgs) (results *modulesLookupResults, err error) {
@@ -71,7 +71,8 @@ func (h modulesHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "lookup": "step", "module": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Lookup for compose Lookup by ID",
+			Short:       "Compose module lookup",
+			Description: "Find specific module by ID or handle",
 		},
 
 		Parameters: []*atypes.Param{

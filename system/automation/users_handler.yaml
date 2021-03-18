@@ -64,7 +64,8 @@ labels: &labels
 functions:
   lookup:
     meta:
-      short: Looks-up for user by ID
+      short: User lookup
+      description: Find specific user by ID, handle or string
     params:
       lookup: *lookup
     labels:
@@ -74,7 +75,7 @@ functions:
 
   search:
     meta:
-      short: Searches for users and returns them
+      short: User search
     params: *filterParams
     labels:
       <<: *labels
@@ -88,7 +89,7 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Searches for users and iterates over results
+      short: Users
     params: *filterParams
     labels:
       <<: *labels
@@ -98,7 +99,7 @@ functions:
 
   create:
     meta:
-      short: Creates new user
+      short: User create
     labels:
       <<: *labels
     params:
@@ -110,7 +111,7 @@ functions:
 
   update:
     meta:
-      short: Updates exiting user
+      short: User update
     labels:
       <<: *labels
     params:
@@ -125,7 +126,7 @@ functions:
       <<: *labels
       delete: "step"
     meta:
-      short: Deletes user
+      short: User delete
     params:
       lookup: *lookup
 
@@ -134,7 +135,7 @@ functions:
       <<: *labels
       recover: "step"
     meta:
-      short: Recovers deleted user
+      short: User recover
     params:
       lookup: *lookup
 
@@ -143,7 +144,7 @@ functions:
       <<: *labels
       suspend: "step"
     meta:
-      short: Suspends user
+      short: User suspend
     params:
       lookup: *lookup
 
@@ -152,6 +153,6 @@ functions:
       <<: *labels
       unsuspend: "step"
     meta:
-      short: Unsuspends user
+      short: User unsuspend
     params:
       lookup: *lookup

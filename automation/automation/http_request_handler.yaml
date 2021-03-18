@@ -71,7 +71,8 @@ results:
 functions:
   send:
     meta:
-      short: Sends HTTP request
+      short: HTTP request
+      description: Sends HTTP requests
     labels:
       "http request": "step,workflow"
     params:

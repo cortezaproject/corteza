@@ -103,7 +103,7 @@ func (a emailSendArgs) GetPlain() (bool, string, io.Reader) {
 	return a.hasPlain, a.plainString, a.plainStream
 }
 
-// Send function Sends email message with basic parameters
+// Send function Email
 //
 // expects implementation of send function:
 // func (h emailHandler) send(ctx context.Context, args *emailSendArgs) (err error) {
@@ -115,7 +115,8 @@ func (h emailHandler) Send() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Sends email message with basic parameters",
+			Short:       "Email",
+			Description: "Sends email directly",
 		},
 
 		Parameters: []*atypes.Param{
@@ -329,7 +330,7 @@ func (a emailMessageArgs) GetPlain() (bool, string, io.Reader) {
 	return a.hasPlain, a.plainString, a.plainStream
 }
 
-// Message function Constructs new email message
+// Message function Email builder
 //
 // expects implementation of message function:
 // func (h emailHandler) message(ctx context.Context, args *emailMessageArgs) (results *emailMessageResults, err error) {
@@ -341,7 +342,8 @@ func (h emailHandler) Message() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Constructs new email message",
+			Short:       "Email builder",
+			Description: "Constructs new email message from basic parameters without sending it",
 		},
 
 		Parameters: []*atypes.Param{
@@ -523,7 +525,7 @@ type (
 	}
 )
 
-// SendMessage function Sends email message
+// SendMessage function Email sender
 //
 // expects implementation of sendMessage function:
 // func (h emailHandler) sendMessage(ctx context.Context, args *emailSendMessageArgs) (err error) {
@@ -535,7 +537,8 @@ func (h emailHandler) SendMessage() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Sends email message",
+			Short:       "Email sender",
+			Description: "Sends email message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -574,7 +577,7 @@ type (
 	}
 )
 
-// SetSubject function Sets message subject
+// SetSubject function Email subject
 //
 // expects implementation of setSubject function:
 // func (h emailHandler) setSubject(ctx context.Context, args *emailSetSubjectArgs) (err error) {
@@ -586,7 +589,8 @@ func (h emailHandler) SetSubject() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Sets message subject",
+			Short:       "Email subject",
+			Description: "Sets subject on the email message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -633,7 +637,7 @@ type (
 	}
 )
 
-// SetHeaders function Sets message headers (overrides any existing headers, subject, recipients)
+// SetHeaders function Email headers
 //
 // expects implementation of setHeaders function:
 // func (h emailHandler) setHeaders(ctx context.Context, args *emailSetHeadersArgs) (err error) {
@@ -645,7 +649,8 @@ func (h emailHandler) SetHeaders() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Sets message headers (overrides any existing headers, subject, recipients)",
+			Short:       "Email headers",
+			Description: "Sets message headers (overrides any existing headers, subject, recipients)",
 		},
 
 		Parameters: []*atypes.Param{
@@ -695,7 +700,7 @@ type (
 	}
 )
 
-// SetHeader function Appends value or removes specific header,
+// SetHeader function Email header
 //
 // expects implementation of setHeader function:
 // func (h emailHandler) setHeader(ctx context.Context, args *emailSetHeaderArgs) (err error) {
@@ -707,7 +712,8 @@ func (h emailHandler) SetHeader() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Appends value or removes specific header,",
+			Short:       "Email header",
+			Description: "Sets or removes specific header without changing the rest",
 		},
 
 		Parameters: []*atypes.Param{
@@ -769,7 +775,7 @@ type (
 	}
 )
 
-// SetAddress function Adds new recipient, sender or reply-to address
+// SetAddress function Email address
 //
 // expects implementation of setAddress function:
 // func (h emailHandler) setAddress(ctx context.Context, args *emailSetAddressArgs) (err error) {
@@ -781,7 +787,8 @@ func (h emailHandler) SetAddress() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Adds new recipient, sender or reply-to address",
+			Short:       "Email address",
+			Description: "Adds new recipient, sender or reply-to address",
 		},
 
 		Parameters: []*atypes.Param{
@@ -854,7 +861,7 @@ func (a emailAttachArgs) GetContent() (bool, io.Reader, string) {
 	return a.hasContent, a.contentStream, a.contentString
 }
 
-// Attach function Attach content to an email message
+// Attach function Email attachment
 //
 // expects implementation of attach function:
 // func (h emailHandler) attach(ctx context.Context, args *emailAttachArgs) (err error) {
@@ -866,7 +873,8 @@ func (h emailHandler) Attach() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Attach content to an email message",
+			Short:       "Email attachment",
+			Description: "Attach content to an email message",
 		},
 
 		Parameters: []*atypes.Param{
@@ -935,7 +943,7 @@ type (
 	}
 )
 
-// Embed function Embed file to an email message
+// Embed function Email embedded attachment
 //
 // expects implementation of embed function:
 // func (h emailHandler) embed(ctx context.Context, args *emailEmbedArgs) (err error) {
@@ -947,7 +955,8 @@ func (h emailHandler) Embed() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short: "Embed file to an email message",
+			Short:       "Email embedded attachment",
+			Description: "Embed file (image) to an email message",
 		},
 
 		Parameters: []*atypes.Param{

@@ -67,27 +67,31 @@ functions:
   send:
     kind: function
     meta:
-      short: Sends email message with basic parameters
+      short: Email
+      description: Sends email directly
     params:  *messageParams
 
   message:
     kind: function
     meta:
-      short: Constructs new email message
+      short: Email builder
+      description: Constructs new email message from basic parameters without sending it
     params:  *messageParams
     results: *messageResults
 
   sendMessage:
     kind: function
     meta:
-      short: Sends email message
+      short: Email sender
+      description: Sends email message
     params:
       message: *messageParam
 
   setSubject:
     kind: function
     meta:
-      short: Sets message subject
+      short: Email subject
+      description: Sets subject on the email message
     params:
       message: *messageParam
       subject:
@@ -100,7 +104,8 @@ functions:
   setHeaders:
     kind: function
     meta:
-      short: Sets message headers (overrides any existing headers, subject, recipients)
+      short: Email headers
+      description: Sets message headers (overrides any existing headers, subject, recipients)
     params:
       message: *messageParam
       headers:
@@ -113,7 +118,8 @@ functions:
   setHeader:
     kind: function
     meta:
-      short: Appends value or removes specific header,
+      short: Email header
+      description: Sets or removes specific header without changing the rest
     params:
       message: *messageParam
       name:
@@ -127,7 +133,8 @@ functions:
   setAddress:
     kind: function
     meta:
-      short: Adds new recipient, sender or reply-to address
+      short: Email address
+      description: Adds new recipient, sender or reply-to address
     params:
       message: *messageParam
       type:
@@ -145,7 +152,8 @@ functions:
   attach:
     kind: function
     meta:
-      short: Attach content to an email message
+      short: Email attachment
+      description: Attach content to an email message
     params:
       message: *messageParam
       content:
@@ -159,7 +167,8 @@ functions:
   embed:
     kind: function
     meta:
-      short: Embed file to an email message
+      short: Email embedded attachment
+      description: Embed file (image) to an email message
     params:
       message: *messageParam
       content:

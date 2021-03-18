@@ -90,7 +90,7 @@ func (a httpRequestSendArgs) GetBody() (bool, string, io.Reader, interface{}) {
 	return a.hasBody, a.bodyString, a.bodyStream, a.bodyRaw
 }
 
-// Send function Sends HTTP request
+// Send function HTTP request
 //
 // expects implementation of send function:
 // func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs) (results *httpRequestSendResults, err error) {
@@ -102,7 +102,8 @@ func (h httpRequestHandler) Send() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"http request": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Sends HTTP request",
+			Short:       "HTTP request",
+			Description: "Sends HTTP requests",
 		},
 
 		Parameters: []*atypes.Param{

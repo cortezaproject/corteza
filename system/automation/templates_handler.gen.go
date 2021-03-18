@@ -56,7 +56,7 @@ func (a templatesLookupArgs) GetLookup() (bool, uint64, string, *types.Template)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Lookup function Looks-up for template by ID
+// Lookup function Template lookup
 //
 // expects implementation of lookup function:
 // func (h templatesHandler) lookup(ctx context.Context, args *templatesLookupArgs) (results *templatesLookupResults, err error) {
@@ -68,7 +68,8 @@ func (h templatesHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Looks-up for template by ID",
+			Short:       "Template lookup",
+			Description: "Find specific template by ID or handle",
 		},
 
 		Parameters: []*atypes.Param{
@@ -175,7 +176,7 @@ type (
 	}
 )
 
-// Search function Searches for templates and returns them
+// Search function Templates search
 //
 // expects implementation of search function:
 // func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs) (results *templatesSearchResults, err error) {
@@ -187,7 +188,7 @@ func (h templatesHandler) Search() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for templates and returns them",
+			Short: "Templates search",
 		},
 
 		Parameters: []*atypes.Param{
@@ -369,7 +370,7 @@ type (
 	}
 )
 
-// Each function Searches for templates and iterates over results
+// Each function Tempates
 //
 // expects implementation of each function:
 // func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (results *templatesEachResults, err error) {
@@ -381,7 +382,7 @@ func (h templatesHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for templates and iterates over results",
+			Short: "Tempates",
 		},
 
 		Parameters: []*atypes.Param{
@@ -476,7 +477,7 @@ type (
 	}
 )
 
-// Create function Creates new template
+// Create function Template create
 //
 // expects implementation of create function:
 // func (h templatesHandler) create(ctx context.Context, args *templatesCreateArgs) (results *templatesCreateResults, err error) {
@@ -488,7 +489,7 @@ func (h templatesHandler) Create() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Creates new template",
+			Short: "Template create",
 		},
 
 		Parameters: []*atypes.Param{
@@ -553,7 +554,7 @@ type (
 	}
 )
 
-// Update function Updates exiting template
+// Update function Template update
 //
 // expects implementation of update function:
 // func (h templatesHandler) update(ctx context.Context, args *templatesUpdateArgs) (results *templatesUpdateResults, err error) {
@@ -565,7 +566,7 @@ func (h templatesHandler) Update() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Updates exiting template",
+			Short: "Template update",
 		},
 
 		Parameters: []*atypes.Param{
@@ -633,7 +634,7 @@ func (a templatesDeleteArgs) GetLookup() (bool, uint64, string, *types.Template)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Delete function Deletes template
+// Delete function Template delete
 //
 // expects implementation of delete function:
 // func (h templatesHandler) delete(ctx context.Context, args *templatesDeleteArgs) (err error) {
@@ -645,7 +646,7 @@ func (h templatesHandler) Delete() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"delete": "step", "templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Deletes template",
+			Short: "Template delete",
 		},
 
 		Parameters: []*atypes.Param{
@@ -698,7 +699,7 @@ func (a templatesRecoverArgs) GetLookup() (bool, uint64, string, *types.Template
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Recover function Recovers deleted template
+// Recover function Template recover
 //
 // expects implementation of recover function:
 // func (h templatesHandler) recover(ctx context.Context, args *templatesRecoverArgs) (err error) {
@@ -710,7 +711,7 @@ func (h templatesHandler) Recover() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"recover": "step", "templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Recovers deleted template",
+			Short: "Template recover",
 		},
 
 		Parameters: []*atypes.Param{
@@ -779,7 +780,7 @@ func (a templatesRenderArgs) GetLookup() (bool, uint64, string, *types.Template)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
 }
 
-// Render function Renders a document from template
+// Render function Render template
 //
 // expects implementation of render function:
 // func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (results *templatesRenderResults, err error) {
@@ -791,7 +792,7 @@ func (h templatesHandler) Render() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"render": "step", "templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Renders a document from template",
+			Short: "Render template",
 		},
 
 		Parameters: []*atypes.Param{

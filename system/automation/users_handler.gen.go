@@ -58,7 +58,7 @@ func (a usersLookupArgs) GetLookup() (bool, uint64, string, string, *types.User)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
 }
 
-// Lookup function Looks-up for user by ID
+// Lookup function User lookup
 //
 // expects implementation of lookup function:
 // func (h usersHandler) lookup(ctx context.Context, args *usersLookupArgs) (results *usersLookupResults, err error) {
@@ -70,7 +70,8 @@ func (h usersHandler) Lookup() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Looks-up for user by ID",
+			Short:       "User lookup",
+			Description: "Find specific user by ID, handle or string",
 		},
 
 		Parameters: []*atypes.Param{
@@ -182,7 +183,7 @@ type (
 	}
 )
 
-// Search function Searches for users and returns them
+// Search function User search
 //
 // expects implementation of search function:
 // func (h usersHandler) search(ctx context.Context, args *usersSearchArgs) (results *usersSearchResults, err error) {
@@ -194,7 +195,7 @@ func (h usersHandler) Search() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for users and returns them",
+			Short: "User search",
 		},
 
 		Parameters: []*atypes.Param{
@@ -384,7 +385,7 @@ type (
 	}
 )
 
-// Each function Searches for users and iterates over results
+// Each function Users
 //
 // expects implementation of each function:
 // func (h usersHandler) each(ctx context.Context, args *usersEachArgs) (results *usersEachResults, err error) {
@@ -396,7 +397,7 @@ func (h usersHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Searches for users and iterates over results",
+			Short: "Users",
 		},
 
 		Parameters: []*atypes.Param{
@@ -496,7 +497,7 @@ type (
 	}
 )
 
-// Create function Creates new user
+// Create function User create
 //
 // expects implementation of create function:
 // func (h usersHandler) create(ctx context.Context, args *usersCreateArgs) (results *usersCreateResults, err error) {
@@ -508,7 +509,7 @@ func (h usersHandler) Create() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Creates new user",
+			Short: "User create",
 		},
 
 		Parameters: []*atypes.Param{
@@ -573,7 +574,7 @@ type (
 	}
 )
 
-// Update function Updates exiting user
+// Update function User update
 //
 // expects implementation of update function:
 // func (h usersHandler) update(ctx context.Context, args *usersUpdateArgs) (results *usersUpdateResults, err error) {
@@ -585,7 +586,7 @@ func (h usersHandler) Update() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Updates exiting user",
+			Short: "User update",
 		},
 
 		Parameters: []*atypes.Param{
@@ -654,7 +655,7 @@ func (a usersDeleteArgs) GetLookup() (bool, uint64, string, string, *types.User)
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
 }
 
-// Delete function Deletes user
+// Delete function User delete
 //
 // expects implementation of delete function:
 // func (h usersHandler) delete(ctx context.Context, args *usersDeleteArgs) (err error) {
@@ -666,7 +667,7 @@ func (h usersHandler) Delete() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"delete": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Deletes user",
+			Short: "User delete",
 		},
 
 		Parameters: []*atypes.Param{
@@ -722,7 +723,7 @@ func (a usersRecoverArgs) GetLookup() (bool, uint64, string, string, *types.User
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
 }
 
-// Recover function Recovers deleted user
+// Recover function User recover
 //
 // expects implementation of recover function:
 // func (h usersHandler) recover(ctx context.Context, args *usersRecoverArgs) (err error) {
@@ -734,7 +735,7 @@ func (h usersHandler) Recover() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"recover": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Recovers deleted user",
+			Short: "User recover",
 		},
 
 		Parameters: []*atypes.Param{
@@ -790,7 +791,7 @@ func (a usersSuspendArgs) GetLookup() (bool, uint64, string, string, *types.User
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
 }
 
-// Suspend function Suspends user
+// Suspend function User suspend
 //
 // expects implementation of suspend function:
 // func (h usersHandler) suspend(ctx context.Context, args *usersSuspendArgs) (err error) {
@@ -802,7 +803,7 @@ func (h usersHandler) Suspend() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"suspend": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Suspends user",
+			Short: "User suspend",
 		},
 
 		Parameters: []*atypes.Param{
@@ -858,7 +859,7 @@ func (a usersUnsuspendArgs) GetLookup() (bool, uint64, string, string, *types.Us
 	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
 }
 
-// Unsuspend function Unsuspends user
+// Unsuspend function User unsuspend
 //
 // expects implementation of unsuspend function:
 // func (h usersHandler) unsuspend(ctx context.Context, args *usersUnsuspendArgs) (err error) {
@@ -870,7 +871,7 @@ func (h usersHandler) Unsuspend() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"unsuspend": "step", "users": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Unsuspends user",
+			Short: "User unsuspend",
 		},
 
 		Parameters: []*atypes.Param{

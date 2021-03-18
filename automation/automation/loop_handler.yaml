@@ -23,7 +23,8 @@ functions:
   do:
     kind: iterator
     meta:
-      short: Iterates while condition is true
+      short: Condition
+      description: Iterates while condition is true
     params:
       while:
         required: true
@@ -35,7 +36,8 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Iterates over set of items
+      short: Items
+      description: Iterates over set of items
     params:
       items:
         required: true
@@ -49,7 +51,8 @@ functions:
   lines:
     kind: iterator
     meta:
-      short: Iterates over lines from stream
+      short: Stream lines
+      description: Iterates over lines from stream
     params:
       stream:
         required: true

@@ -63,7 +63,8 @@ labels: &labels
 functions:
   lookup:
     meta:
-      short: Looks-up for template by ID
+      short: Template lookup
+      description: Find specific template by ID or handle
     params:
       lookup: *lookup
     labels:
@@ -73,7 +74,7 @@ functions:
 
   search:
     meta:
-      short: Searches for templates and returns them
+      short: Templates search
     params: *filterParams
     labels:
       <<: *labels
@@ -87,7 +88,7 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Searches for templates and iterates over results
+      short: Tempates
     params: *filterParams
     labels:
       <<: *labels
@@ -97,7 +98,7 @@ functions:
 
   create:
     meta:
-      short: Creates new template
+      short: Template create
     labels:
       <<: *labels
     params:
@@ -109,7 +110,7 @@ functions:
 
   update:
     meta:
-      short: Updates exiting template
+      short: Template update
     labels:
       <<: *labels
     params:
@@ -124,13 +125,13 @@ functions:
       <<: *labels
       delete: "step"
     meta:
-      short: Deletes template
+      short: Template delete
     params:
       lookup: *lookup
 
   recover:
     meta:
-      short: Recovers deleted template
+      short: Template recover
     labels:
       <<: *labels
       recover: "step"
@@ -139,7 +140,7 @@ functions:
 
   render:
     meta:
-      short: Renders a document from template
+      short: Render template
     labels:
       <<: *labels
       render: "step"

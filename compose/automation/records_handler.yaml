@@ -96,7 +96,8 @@ labels: &labels
 functions:
   lookup:
     meta:
-      short: Lookup for compose record by ID
+      short: Compose record lookup
+      description: Find specific record by ID
     labels:
       <<: *labels
     params:
@@ -108,7 +109,7 @@ functions:
 
   search:
     meta:
-      short: Searches for records and returns them
+      short: Compose records search
     labels:
       <<: *labels
     params: *filterParams
@@ -121,7 +122,7 @@ functions:
 
   first:
     meta:
-      short: Returns the first created record
+      short: Compose record lookup (first created)
     labels:
       <<: *labels
     params: *edgeParams
@@ -130,7 +131,7 @@ functions:
 
   last:
     meta:
-      short: Returns the last created record
+      short: Compose record lookup (last created)
     labels:
       <<: *labels
     params: *edgeParams
@@ -140,7 +141,7 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Searches for records and iterates over results
+      short: Compose records
     labels:
       <<: *labels
     params: *filterParams
@@ -151,7 +152,8 @@ functions:
 
   new:
     meta:
-      short: Make a new record
+      short: Compose record maker
+      description: Creates new compose record instance without saving it
     labels:
       <<: *labels
     params:
@@ -162,7 +164,7 @@ functions:
 
   validate:
     meta:
-      short: Validate record
+      short: Compose record validator
     labels:
       <<: *labels
     params:
@@ -175,7 +177,7 @@ functions:
 
   create:
     meta:
-      short: Creates and stores a new record
+      short: Compose record create
     labels:
       <<: *labels
       create: "step"
@@ -188,7 +190,7 @@ functions:
 
   update:
     meta:
-      short: Updates an existing record
+      short: Compose record update
     labels:
       <<: *labels
       update: "step"
@@ -201,7 +203,7 @@ functions:
 
   delete:
     meta:
-      short: Soft deletes compose record by ID
+      short: Compose record delete
     labels:
       <<: *labels
       delete: "step"
@@ -218,7 +220,8 @@ functions:
 
   report:
     meta:
-      short: Searches for records and returns them
+      short: Report
+      description: Compose records report
     labels:
       <<: *labels
     params:
