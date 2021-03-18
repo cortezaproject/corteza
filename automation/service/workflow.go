@@ -51,6 +51,10 @@ type (
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
 
+	workflowExecController interface {
+		CanExecuteWorkflow(context.Context, *types.Workflow) bool
+	}
+
 	workflowEventTriggerHandler interface {
 		Register(h eventbus.HandlerFn, ops ...eventbus.HandlerRegOp) uintptr
 		Unregister(ptrs ...uintptr)
@@ -449,7 +453,7 @@ func (svc workflow) handleDelete(ctx context.Context, res *types.Workflow) (work
 }
 
 func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (workflowChanges, error) {
-	if !svc.ac.CanDeleteWorkflow(ctx, res) {
+	if !svc.ac.CanUndeleteWorkflow(ctx, res) {
 		return workflowUnchanged, WorkflowErrNotAllowedToUndelete()
 	}
 
@@ -473,6 +477,74 @@ func (svc *workflow) Load(ctx context.Context) error {
 	}
 
 	return svc.triggers.registerWorkflows(ctx, wwf...)
+}
+
+func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs intAuth.Identifiable) eventbus.HandlerFn {
+	return func(ctx context.Context, ev eventbus.Event) (err error) {
+		if !ac.(*accessControl).CanExecuteWorkflow(ctx, wf) {
+			return WorkflowErrNotAllowedToExecute()
+		}
+
+		var (
+			// create session scope from predefined workflow scope and trigger input
+			scope   = wf.Scope.Merge(t.Input)
+			evScope *expr.Vars
+			wait    WaitFn
+		)
+
+		if enc, is := ev.(varsEncoder); is {
+			if evScope, err = enc.EncodeVars(); err != nil {
+				return
+			}
+
+			scope = scope.Merge(evScope)
+		}
+
+		_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))
+		_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(ev.ResourceType())))
+
+		if runAs == nil {
+			// @todo can/should we get alternative identity from Event?
+			//       for example:
+			//         - use http auth header and get username
+			//         - use from/to/replyTo and use that as an identifier
+			runAs = intAuth.GetIdentityFromContext(ctx)
+		}
+
+		wait, err = s.Start(g, runAs, types.SessionStartParams{
+			WorkflowID:   wf.ID,
+			KeepFor:      wf.KeepSessions,
+			Trace:        wf.Trace,
+			Input:        scope,
+			StepID:       t.StepID,
+			EventType:    t.EventType,
+			ResourceType: t.ResourceType,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if wf.CheckDeferred() {
+			// deferred workflow, return right away and keep the workflow session
+			// running without waiting for the execution
+			return nil
+		}
+
+		// wait for the workflow to complete
+		// reuse scope for results
+		// this will be decoded back to event properties
+		scope, _, err = wait(ctx)
+		if err != nil {
+			return
+		}
+
+		if dec, is := ev.(varsDecoder); is {
+			return dec.DecodeVars(scope)
+		}
+
+		return nil
+	}
 }
 
 func loadWorkflow(ctx context.Context, s store.Storer, workflowID uint64) (res *types.Workflow, err error) {

@@ -86,6 +86,10 @@ errors:
     message: "not allowed to undelete this workflow"
     log: "failed to undelete {workflow}; insufficient permissions"
 
+  - error: notAllowedToExecute
+    message: "not allowed to execute this workflow"
+    log: "failed to execute {workflow}; insufficient permissions"
+
   - error: handleNotUnique
     message: "workflow handle not unique"
     log: "duplicate handle used for workflow ({workflow})"
