@@ -99,6 +99,40 @@ func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleF
 	return h.makeModule(namespace, name, ff...)
 }
 
+func (h helper) repoMakeRecordModuleWithFieldsRequired(name string, ff ...*types.ModuleField) *types.Module {
+	namespace := h.makeNamespace("record testing namespace")
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
+
+	if len(ff) == 0 {
+		// Default fields
+		ff = types.ModuleFieldSet{
+			&types.ModuleField{
+				Name:     "name",
+				Required: true,
+			},
+			&types.ModuleField{
+				Name: "email",
+			},
+			&types.ModuleField{
+				Name:  "options",
+				Multi: true,
+			},
+			&types.ModuleField{
+				Name: "description",
+			},
+			&types.ModuleField{
+				Name: "another_record",
+				Kind: "Record",
+			},
+		}
+	}
+
+	return h.makeModule(namespace, name, ff...)
+}
+
 func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *types.Record {
 	rec := &types.Record{
 		ID:          id.Next(),
@@ -516,6 +550,45 @@ func TestRecordImportRunForbidden_field(t *testing.T) {
 
 			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
 				Assert(helpers.AssertErrorP("1 issue(s) found")).
+				End()
+		})
+	}
+}
+
+func TestRecordImportRunFieldError_missing(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+
+	module := h.repoMakeRecordModuleWithFieldsRequired("record import run module")
+
+	tests := []struct {
+		Name    string
+		Content string
+	}{
+		{
+			Name:    "f1.csv",
+			Content: "fname,femail\n,v2\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(t.Name(), func(t *testing.T) {
+			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
+			rsp := &rImportSession{}
+			api := h.apiInit()
+
+			r := h.apiInitRecordImport(api, url, test.Name, []byte(test.Content)).End()
+			r.JSON(rsp)
+
+			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"femail":"email"},"onError":"skip"}`).
+				End()
+
+			api.Get(fmt.Sprintf("%s/%s", url, rsp.Response.SessionID)).
+				Expect(h.t).
+				Status(http.StatusOK).
+				Assert(helpers.AssertNoErrors).
+				Assert(jsonpath.Present("$.response.progress.failLog.errors[\"empty field name\"]")).
 				End()
 		})
 	}
