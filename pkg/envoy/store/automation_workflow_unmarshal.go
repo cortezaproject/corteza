@@ -15,7 +15,6 @@ func newAutomationWorkflow(wf *types.Workflow, tt types.TriggerSet, ux *userInde
 	}
 }
 
-// MarshalEnvoy converts the automation workflow struct to a resource
 func (awf *automationWorkflow) MarshalEnvoy() ([]resource.Interface, error) {
 	rs := resource.NewAutomationWorkflow(awf.wf)
 	syncUserStamps(rs.Userstamps(), awf.ux)

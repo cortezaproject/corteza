@@ -26,9 +26,6 @@ func newRbacRuleFromResource(res *resource.RbacRule, cfg *EncoderConfig) resourc
 	}
 }
 
-// Prepare prepares the rbacRule to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *rbacRule) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Init global state
 	if gRbacRules == nil {
@@ -43,17 +40,13 @@ func (n *rbacRule) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Related role
-	n.relRole, err = findRoleRS(ctx, pl.s, pl.state.ParentResources, n.res.RefRole.Identifiers)
+	n.relRole, err = findRole(ctx, pl.s, pl.state.ParentResources, n.res.RefRole.Identifiers)
 	if err != nil {
 		return err
 	}
 	if n.relRole == nil {
 		return resource.RoleErrUnresolved(n.res.RefRole.Identifiers)
 	}
-
-	// For now we will only allow resource specific RBAC rules if that resource is
-	// also present.
-	// Here we check if we can find it in case we're handling a resource specific rule.
 
 	// For now we will only allow resource specific RBAC rules if that resource is
 	// also present.
@@ -74,10 +67,6 @@ pass:
 	return nil
 }
 
-// Encode encodes the rbacRule to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 	res := n.res.Res
 

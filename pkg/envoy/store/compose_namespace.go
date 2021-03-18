@@ -49,20 +49,20 @@ func mergeComposeNamespaces(a, b *types.Namespace) *types.Namespace {
 	return c
 }
 
-// findComposeNamespaceRS looks for the namespace in the resources & the store
+// findComposeNamespace looks for the namespace in the resources & the store
 //
 // Provided resources are prioritized.
-func findComposeNamespaceRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (ns *types.Namespace, err error) {
+func findComposeNamespace(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (ns *types.Namespace, err error) {
 	ns = resource.FindComposeNamespace(rr, ii)
 	if ns != nil {
 		return ns, nil
 	}
 
-	return findComposeNamespaceS(ctx, s, makeGenericFilter(ii))
+	return findComposeNamespaceStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findComposeNamespaceS looks for the namespace in the store
-func findComposeNamespaceS(ctx context.Context, s store.Storer, gf genericFilter) (ns *types.Namespace, err error) {
+// findComposeNamespaceStore looks for the namespace in the store
+func findComposeNamespaceStore(ctx context.Context, s store.Storer, gf genericFilter) (ns *types.Namespace, err error) {
 	if gf.id > 0 {
 		ns, err = store.LookupComposeNamespaceByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {

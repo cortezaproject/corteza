@@ -14,7 +14,6 @@ func newComposeModule(mod *types.Module) *composeModule {
 	}
 }
 
-// MarshalEnvoy converts the compose module struct to a resource
 func (mod *composeModule) MarshalEnvoy() ([]resource.Interface, error) {
 	refNs := strconv.FormatUint(mod.mod.NamespaceID, 10)
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func automationWorkflowFromResource(r *resource.AutomationWorkflow, cfg *EncoderConfig) *automationWorkflow {
@@ -43,9 +42,6 @@ func automationWorkflowFromResource(r *resource.AutomationWorkflow, cfg *Encoder
 	}
 }
 
-// Prepare prepares the automationWorkflow to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *automationWorkflow) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	wf, ok := state.Res.(*resource.AutomationWorkflow)
 	if !ok {
@@ -58,16 +54,12 @@ func (n *automationWorkflow) Prepare(ctx context.Context, state *envoy.ResourceS
 	return nil
 }
 
-// Encode encodes the automationWorkflow to the document
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *automationWorkflow) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	if n.res.ID <= 0 {
-		n.res.ID = util.NextID()
+		n.res.ID = nextID()
 	}
 
-	n.ts, err = resource.MakeCUDATimestamps(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -79,7 +71,7 @@ func (n *automationWorkflow) Encode(ctx context.Context, doc *Document, state *e
 
 	// @todo skip eval?
 
-	doc.AddAutomationWorkflow(n)
+	doc.addAutomationWorkflow(n)
 
 	return err
 }
@@ -107,12 +99,12 @@ func (wf *automationWorkflow) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, wf.ts)
+	nn, err = encodeTimestamps(nn, wf.ts)
 	if err != nil {
 		return nil, err
 	}
 
-	nn, err = mapUserstamps(nn, wf.us)
+	nn, err = encodeUserstamps(nn, wf.us)
 	if err != nil {
 		return nil, err
 	}
@@ -141,12 +133,12 @@ func (t *automationTrigger) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, t.ts)
+	nn, err = encodeTimestamps(nn, t.ts)
 	if err != nil {
 		return nil, err
 	}
 
-	nn, err = mapUserstamps(nn, t.us)
+	nn, err = encodeUserstamps(nn, t.us)
 	if err != nil {
 		return nil, err
 	}

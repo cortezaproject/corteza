@@ -77,3 +77,33 @@ func decodeUserstamps(n *yaml.Node) (*resource.Userstamps, error) {
 		return err
 	})
 }
+
+// mapTimestamps helper encodes Timestamps into the mapping node
+func encodeTimestamps(n *yaml.Node, ts *resource.Timestamps) (*yaml.Node, error) {
+	if ts == nil {
+		return n, nil
+	}
+
+	return addMap(n,
+		"createdAt", ts.CreatedAt,
+		"updatedAt", ts.UpdatedAt,
+		"deletedAt", ts.DeletedAt,
+		"archivedAt", ts.ArchivedAt,
+		"suspendedAt", ts.SuspendedAt,
+	)
+}
+
+// mapUserstamps helper encodes Userstamps into the mapping node
+func encodeUserstamps(n *yaml.Node, us *resource.Userstamps) (*yaml.Node, error) {
+	if us == nil {
+		return n, nil
+	}
+
+	return addMap(n,
+		"createdBy", us.CreatedBy,
+		"updatedBy", us.UpdatedBy,
+		"deletedBy", us.DeletedBy,
+		"ownedBy", us.OwnedBy,
+		"runAs", us.RunAs,
+	)
+}

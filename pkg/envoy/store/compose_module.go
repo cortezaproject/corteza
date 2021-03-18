@@ -114,10 +114,10 @@ func mergeComposeModule(a, b *types.Module) *types.Module {
 	return c
 }
 
-// findComposeModuleRS looks for the chart in the resources & the store
+// findComposeModule looks for the chart in the resources & the store
 //
 // Provided resources are prioritized.
-func findComposeModuleRS(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (mod *types.Module, err error) {
+func findComposeModule(ctx context.Context, s store.Storer, nsID uint64, rr resource.InterfaceSet, ii resource.Identifiers) (mod *types.Module, err error) {
 	mod = resource.FindComposeModule(rr, ii)
 	if mod != nil {
 		return mod, nil
@@ -128,11 +128,11 @@ func findComposeModuleRS(ctx context.Context, s store.Storer, nsID uint64, rr re
 	}
 
 	// Go in the store
-	return findComposeModuleS(ctx, s, nsID, makeGenericFilter(ii))
+	return findComposeModuleStore(ctx, s, nsID, makeGenericFilter(ii))
 }
 
-// findComposeModuleS looks for the module in the store
-func findComposeModuleS(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (mod *types.Module, err error) {
+// findComposeModuleStore looks for the module in the store
+func findComposeModuleStore(ctx context.Context, s store.Storer, nsID uint64, gf genericFilter) (mod *types.Module, err error) {
 	if nsID == 0 {
 		return nil, nil
 	}
@@ -179,8 +179,8 @@ func findComposeModuleS(ctx context.Context, s store.Storer, nsID uint64, gf gen
 	return nil, nil
 }
 
-// findComposeModuleFieldsS looks for the module fields in the store
-func findComposeModuleFieldsS(ctx context.Context, s store.Storer, mod *types.Module) (types.ModuleFieldSet, error) {
+// findComposeModuleFieldsStore looks for the module fields in the store
+func findComposeModuleFieldsStore(ctx context.Context, s store.Storer, mod *types.Module) (types.ModuleFieldSet, error) {
 	if mod.ID <= 0 {
 		return mod.Fields, nil
 	}

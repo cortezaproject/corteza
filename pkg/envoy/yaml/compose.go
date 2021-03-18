@@ -41,7 +41,7 @@ func (c *compose) MarshalYAML() (interface{}, error) {
 	}
 
 	if nsDefined {
-		c.Namespaces.ConfigureEncoder(c.EncoderConfig)
+		c.Namespaces.configureEncoder(c.EncoderConfig)
 
 		cn, err = encodeResource(cn, "namespaces", c.Namespaces, c.EncoderConfig.MappedOutput, "slug")
 		if err != nil {
@@ -55,7 +55,7 @@ func (c *compose) MarshalYAML() (interface{}, error) {
 			return nil, err
 		}
 
-		c.Modules.ConfigureEncoder(c.EncoderConfig)
+		c.Modules.configureEncoder(c.EncoderConfig)
 
 		cn, err = encodeResource(cn, "modules", c.Modules, c.EncoderConfig.MappedOutput, "handle")
 		if err != nil {
@@ -69,7 +69,7 @@ func (c *compose) MarshalYAML() (interface{}, error) {
 			return nil, err
 		}
 
-		c.Records.ConfigureEncoder(c.EncoderConfig)
+		c.Records.configureEncoder(c.EncoderConfig)
 
 		// Records don't have this
 		cn, err = encodeResource(cn, "records", c.Records, false, "")
@@ -84,7 +84,7 @@ func (c *compose) MarshalYAML() (interface{}, error) {
 			return nil, err
 		}
 
-		c.Pages.ConfigureEncoder(c.EncoderConfig)
+		c.Pages.configureEncoder(c.EncoderConfig)
 
 		// @todo A bit of a complication with pages and handles...
 		//       Will probably just leave it as so, but might change it later.
@@ -100,7 +100,7 @@ func (c *compose) MarshalYAML() (interface{}, error) {
 			return nil, err
 		}
 
-		c.Charts.ConfigureEncoder(c.EncoderConfig)
+		c.Charts.configureEncoder(c.EncoderConfig)
 
 		cn, err = encodeResource(cn, "charts", c.Charts, c.EncoderConfig.MappedOutput, "handle")
 		if err != nil {

@@ -52,7 +52,7 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 	// under the related namespace.
 	// For now all rules will be nested under a root node for simplicity sake.
 
-	doc.AddRbacRule(r)
+	doc.addRbacRule(r)
 
 	return nil
 }

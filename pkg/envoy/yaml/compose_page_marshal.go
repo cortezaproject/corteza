@@ -5,7 +5,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func composePageFromResource(r *resource.ComposePage, cfg *EncoderConfig) *composePage {
@@ -15,9 +14,6 @@ func composePageFromResource(r *resource.ComposePage, cfg *EncoderConfig) *compo
 	}
 }
 
-// Prepare prepares the composePage to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	pg, ok := state.Res.(*resource.ComposePage)
 	if !ok {
@@ -89,7 +85,7 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 
 func (n *composePage) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	if n.res.ID <= 0 {
-		n.res.ID = util.NextID()
+		n.res.ID = nextID()
 	}
 
 	if state.Conflicting {
@@ -97,7 +93,7 @@ func (n *composePage) Encode(ctx context.Context, doc *Document, state *envoy.Re
 	}
 
 	// Timestaps
-	n.ts, err = resource.MakeCUDATimestamps(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -107,12 +103,12 @@ func (n *composePage) Encode(ctx context.Context, doc *Document, state *envoy.Re
 
 	if n.encoderConfig.CompactOutput {
 		if n.refParent != "" {
-			err = doc.NestComposePageChild(n.refParent, n)
+			err = doc.nestComposePageChild(n.refParent, n)
 		} else {
-			err = doc.NestComposePage(n.refNamespace, n)
+			err = doc.nestComposePage(n.refNamespace, n)
 		}
 	} else {
-		doc.AddComposePage(n)
+		doc.addComposePage(n)
 	}
 
 	return err
@@ -122,13 +118,13 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 	var err error
 
 	if p.blocks != nil && len(p.blocks) > 0 {
-		p.blocks.ConfigureEncoder(p.encoderConfig)
+		p.blocks.configureEncoder(p.encoderConfig)
 	}
 
 	nn, _ := makeMap()
 
 	if p.relMod != nil {
-		nn, err = addMap(nn, "module", firstValidString(p.relMod.Handle, p.relMod.Name))
+		nn, err = addMap(nn, "module", firstOkString(p.relMod.Handle, p.relMod.Name))
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +145,7 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 	if p.children != nil && len(p.children) > 0 {
-		p.children.ConfigureEncoder(p.encoderConfig)
+		p.children.configureEncoder(p.encoderConfig)
 
 		nn, err = encodeResource(nn, "pages", p.children, p.encoderConfig.MappedOutput, "handle")
 		if err != nil {
@@ -157,7 +153,7 @@ func (p *composePage) MarshalYAML() (interface{}, error) {
 		}
 	}
 
-	nn, err = mapTimestamps(nn, p.ts)
+	nn, err = encodeTimestamps(nn, p.ts)
 	if err != nil {
 		return nil, err
 	}

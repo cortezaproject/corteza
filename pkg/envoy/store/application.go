@@ -46,20 +46,20 @@ func mergeApplications(a, b *types.Application) *types.Application {
 	return &c
 }
 
-// findApplicationRS looks for the app in the resources & the store
+// findApplication looks for the app in the resources & the store
 //
 // Provided resources are prioritized.
-func findApplicationRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (ap *types.Application, err error) {
+func findApplication(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (ap *types.Application, err error) {
 	ap = resource.FindApplication(rr, ii)
 	if ap != nil {
 		return ap, nil
 	}
 
-	return findApplicationS(ctx, s, makeGenericFilter(ii))
+	return findApplicationStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findApplicationS looks for the app in the store
-func findApplicationS(ctx context.Context, s store.Storer, gf genericFilter) (ap *types.Application, err error) {
+// findApplicationStore looks for the app in the store
+func findApplicationStore(ctx context.Context, s store.Storer, gf genericFilter) (ap *types.Application, err error) {
 	if gf.id > 0 {
 		ap, err = store.LookupApplicationByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {

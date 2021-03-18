@@ -118,7 +118,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	}
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
 
 	return r
 }
@@ -128,7 +128,7 @@ func (r *ComposePage) SysID() uint64 {
 }
 
 func (r *ComposePage) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Title, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Title, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindComposePage looks for the page in the resources

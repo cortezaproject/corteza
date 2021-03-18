@@ -52,6 +52,45 @@ func (wset *composeRecordSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
+func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
+	if wrap.values == nil {
+		wrap.values = make(map[string]string)
+	}
+
+	// @todo enable when records are ready for RBAC
+	//if wrap.rbac, err = decodeRbac(types.RecordRBACResource, n); err != nil {
+	//	return
+	//}
+
+	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
+		return
+	}
+
+	if wrap.ts, err = decodeTimestamps(n); err != nil {
+		return
+	}
+	if wrap.us, err = decodeUserstamps(n); err != nil {
+		return
+	}
+
+	return y7s.EachMap(n, func(k, v *yaml.Node) error {
+		switch k.Value {
+		case "module":
+			return decodeRef(v, "module", &wrap.refModule)
+
+		case "values":
+			// Use aux structure to decode record values into RVS
+			if err := v.Decode(&wrap.values); err != nil {
+				return err
+			}
+			return nil
+
+		}
+
+		return nil
+	})
+}
+
 // MarshalEnvoy works a bit differenlty
 func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 	nn := make([]resource.Interface, 0, len(wset))
@@ -133,45 +172,6 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 	}
 
 	return nil
-}
-
-func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
-	if wrap.values == nil {
-		wrap.values = make(map[string]string)
-	}
-
-	// @todo enable when records are ready for RBAC
-	//if wrap.rbac, err = decodeRbac(types.RecordRBACResource, n); err != nil {
-	//	return
-	//}
-
-	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
-		return
-	}
-
-	if wrap.ts, err = decodeTimestamps(n); err != nil {
-		return
-	}
-	if wrap.us, err = decodeUserstamps(n); err != nil {
-		return
-	}
-
-	return y7s.EachMap(n, func(k, v *yaml.Node) error {
-		switch k.Value {
-		case "module":
-			return decodeRef(v, "module", &wrap.refModule)
-
-		case "values":
-			// Use aux structure to decode record values into RVS
-			if err := v.Decode(&wrap.values); err != nil {
-				return err
-			}
-			return nil
-
-		}
-
-		return nil
-	})
 }
 
 // Utilities

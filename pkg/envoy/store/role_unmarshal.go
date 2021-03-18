@@ -12,7 +12,6 @@ func newRole(rl *types.Role) *role {
 	}
 }
 
-// MarshalEnvoy converts the role struct to a resource
 func (rl *role) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
 		resource.NewRole(rl.rl),

@@ -16,12 +16,9 @@ func newComposeChartFromResource(res *resource.ComposeChart, cfg *EncoderConfig)
 	}
 }
 
-// Prepare prepares the composeChart to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related namespace
-	n.relNS, err = findComposeNamespaceRS(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
+	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
 	if err != nil {
 		return err
 	}
@@ -32,7 +29,7 @@ func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related modules
 	n.relMods = make(types.ModuleSet, len(n.res.RefMods))
 	for i, rMod := range n.res.RefMods {
-		n.relMods[i], err = findComposeModuleRS(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, rMod.Identifiers)
+		n.relMods[i], err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, rMod.Identifiers)
 		if err != nil {
 			return err
 		}
@@ -42,7 +39,7 @@ func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Try to get the original chart
-	n.chr, err = findComposeChartS(ctx, pl.s, n.relNS.ID, makeGenericFilter(n.res.Identifiers()))
+	n.chr, err = findComposeChartStore(ctx, pl.s, n.relNS.ID, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {
 		return err
 	}
@@ -54,10 +51,6 @@ func (n *composeChart) Prepare(ctx context.Context, pl *payload) (err error) {
 	return nil
 }
 
-// Encode encodes the composeChart to the store
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *composeChart) Encode(ctx context.Context, pl *payload) (err error) {
 	res := n.res.Res
 	exists := n.chr != nil && n.chr.ID > 0
@@ -70,7 +63,6 @@ func (n *composeChart) Encode(ctx context.Context, pl *payload) (err error) {
 		res.ID = NextID()
 	}
 
-	// Timestamps
 	ts := n.res.Timestamps()
 	if ts != nil {
 		if ts.CreatedAt != nil {

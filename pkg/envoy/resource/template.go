@@ -23,7 +23,7 @@ func NewTemplate(t *types.Template) *Template {
 	r.AddIdentifier(identifiers(t.Handle, t.Meta.Short, t.ID)...)
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDASTimestamps(&t.CreatedAt, t.UpdatedAt, t.DeletedAt, nil, nil))
+	r.SetTimestamps(MakeTimestampsCUDAS(&t.CreatedAt, t.UpdatedAt, t.DeletedAt, nil, nil))
 
 	return r
 }
@@ -33,7 +33,7 @@ func (r *Template) SysID() uint64 {
 }
 
 func (r *Template) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Meta.Short, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Meta.Short, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindTemplate looks for the template in the resources

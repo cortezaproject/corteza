@@ -28,10 +28,6 @@ type (
 func rbacRuleFromResource(r *resource.RbacRule, cfg *EncoderConfig) *rbacRule {
 	rr := string(r.Res.Resource)
 	rr = strings.TrimRight(rr, ":")
-	// if r.RefResource != nil {
-	// 	rr += r.RefResource.Identifiers.First()
-	// } else {
-	// }
 
 	return &rbacRule{
 		res:         r.Res,

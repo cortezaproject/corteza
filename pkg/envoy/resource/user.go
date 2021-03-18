@@ -23,7 +23,7 @@ func NewUser(u *types.User) *User {
 	r.AddIdentifier(identifiers(u.Handle, u.Email, u.Name, u.ID)...)
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDASTimestamps(&u.CreatedAt, u.UpdatedAt, u.DeletedAt, nil, u.SuspendedAt))
+	r.SetTimestamps(MakeTimestampsCUDAS(&u.CreatedAt, u.UpdatedAt, u.DeletedAt, nil, u.SuspendedAt))
 
 	return r
 }
@@ -33,7 +33,7 @@ func (r *User) SysID() uint64 {
 }
 
 func (r *User) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Username, r.Res.Email, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Username, r.Res.Email, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindUser looks for the user in the resources

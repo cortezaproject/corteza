@@ -7,7 +7,6 @@ import (
 
 type (
 	role struct {
-		// when role is at least partially defined
 		res *types.Role
 		ts  *resource.Timestamps
 
@@ -20,7 +19,7 @@ type (
 	roleSet []*role
 )
 
-func (nn roleSet) ConfigureEncoder(cfg *EncoderConfig) {
+func (nn roleSet) configureEncoder(cfg *EncoderConfig) {
 	for _, n := range nn {
 		n.encoderConfig = cfg
 	}

@@ -134,7 +134,7 @@ func (df *DecodeFilter) automationFromResource(rr ...string) *DecodeFilter {
 
 		switch strings.ToLower(r) {
 		case "automation:workflow":
-			df = df.Workflows(&types.WorkflowFilter{
+			df = df.AutomationWorkflows(&types.WorkflowFilter{
 				Query: id,
 			})
 		}
@@ -143,8 +143,8 @@ func (df *DecodeFilter) automationFromResource(rr ...string) *DecodeFilter {
 	return df
 }
 
-// Roles adds a new RoleFilter
-func (df *DecodeFilter) Workflows(f *types.WorkflowFilter) *DecodeFilter {
+// AutomationWorkflows adds a new WorkflowFilter
+func (df *DecodeFilter) AutomationWorkflows(f *types.WorkflowFilter) *DecodeFilter {
 	if df.automationWorkflow == nil {
 		df.automationWorkflow = make([]*automationWorkflowFilter, 0, 1)
 	}

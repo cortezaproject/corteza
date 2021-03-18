@@ -82,20 +82,20 @@ func mergeAutomationWorkflows(a, b *types.Workflow) *types.Workflow {
 	return c
 }
 
-// findAutomationWorkflowRS looks for the workflow in the resources & the store
+// findAutomationWorkflow looks for the workflow in the resources & the store
 //
 // Provided resources are prioritized.
-func findAutomationWorkflowRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (wf *types.Workflow, err error) {
+func findAutomationWorkflow(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (wf *types.Workflow, err error) {
 	wf = resource.FindAutomationWorkflow(rr, ii)
 	if wf != nil {
 		return wf, nil
 	}
 
-	return findAutomationWorkflowS(ctx, s, makeGenericFilter(ii))
+	return findAutomationWorkflowStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findAutomationWorkflowS looks for the workflow in the store
-func findAutomationWorkflowS(ctx context.Context, s store.Storer, gf genericFilter) (wf *types.Workflow, err error) {
+// findAutomationWorkflowStore looks for the workflow in the store
+func findAutomationWorkflowStore(ctx context.Context, s store.Storer, gf genericFilter) (wf *types.Workflow, err error) {
 	if gf.id > 0 {
 		wf, err = store.LookupAutomationWorkflowByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {
@@ -136,56 +136,3 @@ func findAutomationWorkflowS(ctx context.Context, s store.Storer, gf genericFilt
 
 	return nil, nil
 }
-
-// // findAutomationTriggerRS looks for the trigger in the resources & the store
-// //
-// // Provided resources are prioritized.
-// func findAutomationTriggerRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (wf *types.Trigger, err error) {
-// 	wf = resource.FindAutomationTrigger(rr, ii)
-// 	if wf != nil {
-// 		return wf, nil
-// 	}
-
-// 	return findAutomationTriggerS(ctx, s, makeGenericFilter(ii))
-// }
-
-// // findAutomationTriggerS looks for the trigger in the store
-// func findAutomationTriggerS(ctx context.Context, s store.Storer, gf genericFilter) (wf *types.Trigger, err error) {
-// 	if gf.id > 0 {
-// 		wf, err = store.LookupAutomationTriggerByID(ctx, s, gf.id)
-// 		if err != nil && err != store.ErrNotFound {
-// 			return nil, err
-// 		}
-
-// 		if wf != nil {
-// 			return
-// 		}
-// 	}
-
-// 	for _, i := range gf.identifiers {
-// 		store.SearchAutomationTriggers()
-
-// 		nn, _, err := store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{
-// 			Query: i,
-// 			Paging: filter.Paging{
-// 				Limit: 2,
-// 			},
-// 		})
-// 		if len(nn) > 1 {
-// 			return nil, resourceErrIdentifierNotUnique(i)
-// 		}
-// 		if len(nn) == 1 {
-// 			wf = nn[0]
-// 		}
-
-// 		if err != nil && err != store.ErrNotFound {
-// 			return nil, err
-// 		}
-
-// 		if wf != nil {
-// 			return
-// 		}
-// 	}
-
-// 	return nil, nil
-// }

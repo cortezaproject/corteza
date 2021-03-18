@@ -14,7 +14,6 @@ func newComposeChart(chr *types.Chart) *composeChart {
 	}
 }
 
-// MarshalEnvoy converts the chart struct to a resource
 func (chr *composeChart) MarshalEnvoy() ([]resource.Interface, error) {
 	refNs := strconv.FormatUint(chr.chr.NamespaceID, 10)
 	refMods := make([]string, 0, 2)

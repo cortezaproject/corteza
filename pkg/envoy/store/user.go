@@ -57,20 +57,20 @@ func mergeUsers(a, b *types.User) *types.User {
 	return &c
 }
 
-// findUserRS looks for the user in the resources & the store
+// findUser looks for the user in the resources & the store
 //
 // Provided resources are prioritized.
-func findUserRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (u *types.User, err error) {
+func findUser(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (u *types.User, err error) {
 	u = resource.FindUser(rr, ii)
 	if u != nil {
 		return u, nil
 	}
 
-	return findUserS(ctx, s, makeGenericFilter(ii))
+	return findUserStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findUserS looks for the user in the store
-func findUserS(ctx context.Context, s store.Storer, gf genericFilter) (u *types.User, err error) {
+// findUserStore looks for the user in the store
+func findUserStore(ctx context.Context, s store.Storer, gf genericFilter) (u *types.User, err error) {
 	if gf.id > 0 {
 		u, err = store.LookupUserByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {

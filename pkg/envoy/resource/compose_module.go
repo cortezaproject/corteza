@@ -45,7 +45,7 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 	}
 
 	// Initial timestamps
-	r.SetTimestamps(MakeCUDATimestamps(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
+	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
 	return r
 }
@@ -55,7 +55,7 @@ func (r *ComposeModule) SysID() uint64 {
 }
 
 func (r *ComposeModule) Ref() string {
-	return FirstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+	return firstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
 }
 
 // FindComposeModule looks for the module in the resource set

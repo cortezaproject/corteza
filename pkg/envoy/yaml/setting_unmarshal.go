@@ -91,21 +91,6 @@ func (wset *settingSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset settingSet) MarshalEnvoy() ([]resource.Interface, error) {
-	nn := make([]resource.Interface, 0, len(wset))
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-
-	}
-
-	return nn, nil
-}
-
 func (wrap *setting) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !y7s.IsKind(n, yaml.MappingNode) {
 		return y7s.NodeErr(n, "setting definition must be a map")
@@ -114,10 +99,6 @@ func (wrap *setting) UnmarshalYAML(n *yaml.Node) (err error) {
 	if wrap.res == nil {
 		wrap.res = &types.SettingValue{}
 	}
-
-	// if err = n.Decode(&wrap.res); err != nil {
-	// 	return
-	// }
 
 	err = y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
@@ -157,6 +138,21 @@ func (wrap *setting) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return nil
+}
+
+func (wset settingSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+
+	}
+
+	return nn, nil
 }
 
 func (wrap *setting) MarshalEnvoy() ([]resource.Interface, error) {

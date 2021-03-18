@@ -12,7 +12,6 @@ func newComposeNamespace(ns *types.Namespace) *composeNamespace {
 	}
 }
 
-// MarshalEnvoy converts the compose namespace struct to a resource
 func (ns *composeNamespace) MarshalEnvoy() ([]resource.Interface, error) {
 	return envoy.CollectNodes(
 		resource.NewComposeNamespace(ns.ns),

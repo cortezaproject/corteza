@@ -35,6 +35,7 @@ type (
 		automationWorkflow []*automationWorkflowFilter
 	}
 
+	// These two aux things let us simplify the code a little bit
 	auxMarshaller []envoy.Marshaller
 	auxRsp        struct {
 		mm  []envoy.Marshaller
@@ -59,7 +60,7 @@ func NewDecodeFilter() *DecodeFilter {
 func (df *DecodeFilter) FromResource(rr ...string) *DecodeFilter {
 	df = df.systemFromResource(rr...)
 	df = df.automationFromResource(rr...)
-	// @todo others...
+	df = df.composeFromResource(rr...)
 
 	return df
 }

@@ -45,20 +45,20 @@ func mergeRoles(a, b *types.Role) *types.Role {
 	return &c
 }
 
-// findRoleRS looks for the role in the resources & the store
+// findRole looks for the role in the resources & the store
 //
 // Provided resources are prioritized.
-func findRoleRS(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Role, err error) {
+func findRole(ctx context.Context, s store.Storer, rr resource.InterfaceSet, ii resource.Identifiers) (rl *types.Role, err error) {
 	rl = resource.FindRole(rr, ii)
 	if rl != nil {
 		return rl, nil
 	}
 
-	return findRoleS(ctx, s, makeGenericFilter(ii))
+	return findRoleStore(ctx, s, makeGenericFilter(ii))
 }
 
-// findRoleS looks for the role in the store
-func findRoleS(ctx context.Context, s store.Storer, gf genericFilter) (rl *types.Role, err error) {
+// findRoleStore looks for the role in the store
+func findRoleStore(ctx context.Context, s store.Storer, gf genericFilter) (rl *types.Role, err error) {
 	if gf.id > 0 {
 		rl, err = store.LookupRoleByID(ctx, s, gf.id)
 		if err != nil && err != store.ErrNotFound {

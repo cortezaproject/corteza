@@ -47,21 +47,6 @@ func (wset *userSet) UnmarshalYAML(n *yaml.Node) error {
 	})
 }
 
-func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
-	nn := make([]resource.Interface, 0, len(wset))
-
-	for _, res := range wset {
-		if tmp, err := res.MarshalEnvoy(); err != nil {
-			return nil, err
-		} else {
-			nn = append(nn, tmp...)
-		}
-
-	}
-
-	return nn, nil
-}
-
 func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 	if !y7s.IsKind(n, yaml.MappingNode) {
 		return y7s.NodeErr(n, "user definition must be a map")
@@ -88,6 +73,21 @@ func (wrap *user) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return nil
+}
+
+func (wset userSet) MarshalEnvoy() ([]resource.Interface, error) {
+	nn := make([]resource.Interface, 0, len(wset))
+
+	for _, res := range wset {
+		if tmp, err := res.MarshalEnvoy(); err != nil {
+			return nil, err
+		} else {
+			nn = append(nn, tmp...)
+		}
+
+	}
+
+	return nn, nil
 }
 
 func (wrap user) MarshalEnvoy() ([]resource.Interface, error) {

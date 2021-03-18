@@ -84,16 +84,16 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 
 		if r.Us != nil {
 			if r.Us.OwnedBy != nil && (all || n.encoderConfig.Fields["ownedBy"]) {
-				row[fx["ownedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.OwnedBy).Stringify()
+				row[fx["ownedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.OwnedBy).Model()
 			}
 			if r.Us.CreatedBy != nil && (all || n.encoderConfig.Fields["createdBy"]) {
-				row[fx["createdBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.CreatedBy).Stringify()
+				row[fx["createdBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.CreatedBy).Model()
 			}
 			if r.Us.UpdatedBy != nil && (all || n.encoderConfig.Fields["updatedBy"]) {
-				row[fx["updatedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.UpdatedBy).Stringify()
+				row[fx["updatedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.UpdatedBy).Model()
 			}
 			if r.Us.DeletedBy != nil && (all || n.encoderConfig.Fields["deletedBy"]) {
-				row[fx["deletedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.DeletedBy).Stringify()
+				row[fx["deletedBy"]], err = n.res.UserFlakes.GetByStamp(r.Us.DeletedBy).Model()
 			}
 		}
 
@@ -132,7 +132,7 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 			}
 
 			if f.Kind == "User" {
-				row[cell], err = n.res.UserFlakes.GetByKey(v).Stringify()
+				row[cell], err = n.res.UserFlakes.GetByKey(v).Model()
 				if err != nil {
 					return err
 				}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/envoy/util"
 )
 
 func composeModuleFromResource(r *resource.ComposeModule, cfg *EncoderConfig) *composeModule {
@@ -16,9 +15,6 @@ func composeModuleFromResource(r *resource.ComposeModule, cfg *EncoderConfig) *c
 	}
 }
 
-// Prepare prepares the composeModule to be encoded
-//
-// Any validation, additional constraining should be performed here.
 func (n *composeModule) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	mod, ok := state.Res.(*resource.ComposeModule)
 	if !ok {
@@ -62,21 +58,16 @@ func (n *composeModule) Prepare(ctx context.Context, state *envoy.ResourceState)
 	return nil
 }
 
-// Encode encodes the composeModule to the document
-//
-// Encode is allowed to do some data manipulation, but no resource constraints
-// should be changed.
 func (n *composeModule) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
 	if n.res.ID <= 0 {
-		n.res.ID = util.NextID()
+		n.res.ID = nextID()
 	}
 
 	if state.Conflicting {
 		return nil
 	}
 
-	// Timestaps
-	n.ts, err = resource.MakeCUDATimestamps(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
+	n.ts, err = resource.MakeTimestampsCUDA(&n.res.CreatedAt, n.res.UpdatedAt, n.res.DeletedAt, nil).
 		Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 	if err != nil {
 		return err
@@ -85,7 +76,7 @@ func (n *composeModule) Encode(ctx context.Context, doc *Document, state *envoy.
 	// Fields
 	for _, f := range n.fields {
 		// Timestaps
-		n.ts, err = resource.MakeCUDATimestamps(&f.res.CreatedAt, f.res.UpdatedAt, f.res.DeletedAt, nil).
+		n.ts, err = resource.MakeTimestampsCUDA(&f.res.CreatedAt, f.res.UpdatedAt, f.res.DeletedAt, nil).
 			Model(n.encoderConfig.TimeLayout, n.encoderConfig.Timezone)
 		if err != nil {
 			return err
@@ -95,9 +86,9 @@ func (n *composeModule) Encode(ctx context.Context, doc *Document, state *envoy.
 	// @todo skip eval?
 
 	if n.encoderConfig.CompactOutput {
-		err = doc.NestComposeModule(n.refNamespace, n)
+		err = doc.nestComposeModule(n.refNamespace, n)
 	} else {
-		doc.AddComposeModule(n)
+		doc.addComposeModule(n)
 	}
 
 	return err
@@ -116,7 +107,7 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 	)
 
 	if c.fields != nil && len(c.fields) > 0 {
-		c.fields.ConfigureEncoder(c.encoderConfig)
+		c.fields.configureEncoder(c.encoderConfig)
 
 		// Currently only mapped field representation is supported
 		//
@@ -130,7 +121,7 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nn, err = mapTimestamps(nn, c.ts)
+	nn, err = encodeTimestamps(nn, c.ts)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +168,7 @@ func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 		return nil, err
 	}
 
-	nsn, err = mapTimestamps(nsn, c.ts)
+	nsn, err = encodeTimestamps(nsn, c.ts)
 	if err != nil {
 		return nil, err
 	}
