@@ -78,7 +78,7 @@ func (t ComposeModule) Select(k string) (TypedValue, error) {
 
 func (t ComposeModule) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "moduleID":
 		return true
 	case "namespaceID":
 		return true
@@ -101,7 +101,7 @@ func (t ComposeModule) Has(k string) bool {
 // composeModuleGValSelector is field accessor for *types.Module
 func composeModuleGValSelector(res *types.Module, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "moduleID":
 		return res.ID, nil
 	case "namespaceID":
 		return res.NamespaceID, nil
@@ -125,7 +125,7 @@ func composeModuleGValSelector(res *types.Module, k string) (interface{}, error)
 // composeModuleTypedValueSelector is field accessor for *types.Module
 func composeModuleTypedValueSelector(res *types.Module, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "moduleID":
 		return NewID(res.ID)
 	case "namespaceID":
 		return NewID(res.NamespaceID)
@@ -149,7 +149,7 @@ func composeModuleTypedValueSelector(res *types.Module, k string) (TypedValue, e
 // assignToComposeModule is field value setter for *types.Module
 func assignToComposeModule(res *types.Module, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "moduleID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "namespaceID":
 		return fmt.Errorf("field '%s' is read-only", k)
@@ -248,7 +248,7 @@ func (t ComposeNamespace) Select(k string) (TypedValue, error) {
 
 func (t ComposeNamespace) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "namespaceID":
 		return true
 	case "name":
 		return true
@@ -269,7 +269,7 @@ func (t ComposeNamespace) Has(k string) bool {
 // composeNamespaceGValSelector is field accessor for *types.Namespace
 func composeNamespaceGValSelector(res *types.Namespace, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "namespaceID":
 		return res.ID, nil
 	case "name":
 		return res.Name, nil
@@ -291,7 +291,7 @@ func composeNamespaceGValSelector(res *types.Namespace, k string) (interface{}, 
 // composeNamespaceTypedValueSelector is field accessor for *types.Namespace
 func composeNamespaceTypedValueSelector(res *types.Namespace, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "namespaceID":
 		return NewID(res.ID)
 	case "name":
 		return NewString(res.Name)
@@ -313,7 +313,7 @@ func composeNamespaceTypedValueSelector(res *types.Namespace, k string) (TypedVa
 // assignToComposeNamespace is field value setter for *types.Namespace
 func assignToComposeNamespace(res *types.Namespace, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "namespaceID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "name":
 		aux, err := CastToString(val)
@@ -397,7 +397,7 @@ func (t ComposeRecord) Select(k string) (TypedValue, error) {
 
 func (t ComposeRecord) Has(k string) bool {
 	switch k {
-	case "ID":
+	case "ID", "recordID":
 		return true
 	case "moduleID":
 		return true
@@ -428,7 +428,7 @@ func (t ComposeRecord) Has(k string) bool {
 // composeRecordGValSelector is field accessor for *types.Record
 func composeRecordGValSelector(res *types.Record, k string) (interface{}, error) {
 	switch k {
-	case "ID":
+	case "ID", "recordID":
 		return res.ID, nil
 	case "moduleID":
 		return res.ModuleID, nil
@@ -460,7 +460,7 @@ func composeRecordGValSelector(res *types.Record, k string) (interface{}, error)
 // composeRecordTypedValueSelector is field accessor for *types.Record
 func composeRecordTypedValueSelector(res *types.Record, k string) (TypedValue, error) {
 	switch k {
-	case "ID":
+	case "ID", "recordID":
 		return NewID(res.ID)
 	case "moduleID":
 		return NewID(res.ModuleID)
@@ -492,7 +492,7 @@ func composeRecordTypedValueSelector(res *types.Record, k string) (TypedValue, e
 // assignToComposeRecord is field value setter for *types.Record
 func assignToComposeRecord(res *types.Record, k string, val interface{}) error {
 	switch k {
-	case "ID":
+	case "ID", "recordID":
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "moduleID":
 		return fmt.Errorf("field '%s' is read-only", k)

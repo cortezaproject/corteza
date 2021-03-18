@@ -6,26 +6,26 @@ types:
   Template:
     as: '*types.Template'
     struct:
-      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',     mode: ro}
+      - { name: 'ID',              exprType: 'ID',           goType: 'uint64',     mode: ro, alias: 'templateID'}
       - { name: 'handle',          exprType: 'Handle',       goType: 'string' }
       - { name: 'language',        exprType: 'String',       goType: 'string' }
 
-      - { name: 'type',          exprType: 'DocumentType',    goType: 'types.DocumentType' }
-      - { name: 'partial',       exprType: 'Boolean',         goType: 'bool' }
+      - { name: 'type',            exprType: 'DocumentType', goType: 'types.DocumentType' }
+      - { name: 'partial',         exprType: 'Boolean',      goType: 'bool' }
 
       - { name: 'meta',            exprType: 'TemplateMeta', goType: 'types.TemplateMeta' }
       - { name: 'template',        exprType: 'String',       goType: 'string' }
       - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
 
-      - { name: 'ownerID',         exprType: 'ID',         goType: 'uint64',     mode: ro}
-      - { name: 'createdAt',       exprType: 'DateTime',   goType: 'time.Time',  mode: ro}
-      - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
-      - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
-      - { name: 'lastUsedAt',      exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'ownerID',         exprType: 'ID',           goType: 'uint64',     mode: ro}
+      - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',  mode: ro}
+      - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time', mode: ro }
+      - { name: 'lastUsedAt',      exprType: 'DateTime',     goType: '*time.Time', mode: ro }
   User:
     as: '*types.User'
     struct:
-      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro, alias: 'userID' }
       - { name: 'username',        exprType: 'String',     goType: 'string' }
       - { name: 'email',           exprType: 'String',     goType: 'string' }
       - { name: 'name',            exprType: 'String',     goType: 'string' }
@@ -39,7 +39,7 @@ types:
   Role:
     as: '*types.Role'
     struct:
-      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro, alias: 'roleID' }
       - { name: 'name',            exprType: 'String',     goType: 'string' }
       - { name: 'handle',          exprType: 'Handle',     goType: 'string' }
       - { name: 'labels',          exprType: 'KV',         goType: 'map[string]string' }
