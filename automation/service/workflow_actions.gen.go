@@ -23,6 +23,7 @@ type (
 		workflow *types.Workflow
 		new      *types.Workflow
 		update   *types.Workflow
+		trigger  *types.Trigger
 		filter   *types.WorkflowFilter
 	}
 
@@ -84,6 +85,17 @@ func (p *workflowActionProps) setUpdate(update *types.Workflow) *workflowActionP
 	return p
 }
 
+// setTrigger updates workflowActionProps's trigger
+//
+// Allows method chaining
+//
+// This function is auto-generated.
+//
+func (p *workflowActionProps) setTrigger(trigger *types.Trigger) *workflowActionProps {
+	p.trigger = trigger
+	return p
+}
+
 // setFilter updates workflowActionProps's filter
 //
 // Allows method chaining
@@ -115,6 +127,12 @@ func (p workflowActionProps) Serialize() actionlog.Meta {
 	if p.update != nil {
 		m.Set("update.handle", p.update.Handle, true)
 		m.Set("update.ID", p.update.ID, true)
+	}
+	if p.trigger != nil {
+		m.Set("trigger.eventType", p.trigger.EventType, true)
+		m.Set("trigger.resourceType", p.trigger.ResourceType, true)
+		m.Set("trigger.ID", p.trigger.ID, true)
+		m.Set("trigger.stepID", p.trigger.StepID, true)
 	}
 	if p.filter != nil {
 	}
@@ -187,6 +205,24 @@ func (p workflowActionProps) Format(in string, err error) string {
 		)
 		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
 		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+	}
+
+	if p.trigger != nil {
+		// replacement for "{trigger}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{trigger}",
+			fns(
+				p.trigger.EventType,
+				p.trigger.ResourceType,
+				p.trigger.ID,
+				p.trigger.StepID,
+			),
+		)
+		pairs = append(pairs, "{trigger.eventType}", fns(p.trigger.EventType))
+		pairs = append(pairs, "{trigger.resourceType}", fns(p.trigger.ResourceType))
+		pairs = append(pairs, "{trigger.ID}", fns(p.trigger.ID))
+		pairs = append(pairs, "{trigger.stepID}", fns(p.trigger.StepID))
 	}
 
 	if p.filter != nil {
@@ -342,6 +378,26 @@ func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "undelete",
 		log:       "undeleted {workflow}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// WorkflowActionExecute returns "automation:workflow.execute" action
+//
+// This function is auto-generated.
+//
+func WorkflowActionExecute(props ...*workflowActionProps) *workflowAction {
+	a := &workflowAction{
+		timestamp: time.Now(),
+		resource:  "automation:workflow",
+		action:    "execute",
+		log:       "{workflow} executed",
 		severity:  actionlog.Info,
 	}
 
@@ -721,6 +777,38 @@ func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow}; insufficient permissions"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// WorkflowErrUnknownWorkflowStep returns "automation:workflow.unknownWorkflowStep" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrUnknownWorkflowStep(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unknown workflow step", nil),
+
+		errors.Meta("type", "unknownWorkflowStep"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow}; unknown workflow step"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

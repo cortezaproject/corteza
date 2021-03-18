@@ -234,6 +234,28 @@ type (
 		// Is workflow enabled
 		RunAs bool
 	}
+
+	WorkflowExec struct {
+		// WorkflowID PATH parameter
+		//
+		// Workflow ID
+		WorkflowID uint64 `json:",string"`
+
+		// StepID POST parameter
+		//
+		// Step ID
+		StepID uint64 `json:",string"`
+
+		// Input POST parameter
+		//
+		// Input
+		Input *expr.Vars
+
+		// Trace POST parameter
+		//
+		// Trace workflow execution
+		Trace bool
+	}
 )
 
 // NewWorkflowList request
@@ -960,6 +982,104 @@ func (r *WorkflowTest) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["runAs"]; ok && len(val) > 0 {
 			r.RunAs, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "workflowID")
+		r.WorkflowID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewWorkflowExec request
+func NewWorkflowExec() *WorkflowExec {
+	return &WorkflowExec{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"workflowID": r.WorkflowID,
+		"stepID":     r.StepID,
+		"input":      r.Input,
+		"trace":      r.Trace,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetWorkflowID() uint64 {
+	return r.WorkflowID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetStepID() uint64 {
+	return r.StepID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetInput() *expr.Vars {
+	return r.Input
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetTrace() bool {
+	return r.Trace
+}
+
+// Fill processes request and fills internal variables
+func (r *WorkflowExec) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["stepID"]; ok && len(val) > 0 {
+			r.StepID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["input[]"]; ok {
+			r.Input, err = types.ParseWorkflowVariables(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["input"]; ok {
+			r.Input, err = types.ParseWorkflowVariables(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["trace"]; ok && len(val) > 0 {
+			r.Trace, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
