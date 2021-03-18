@@ -255,6 +255,16 @@ type (
 		//
 		// Trace workflow execution
 		Trace bool
+
+		// Wait POST parameter
+		//
+		// Wait for workflow to complete
+		Wait bool
+
+		// Async POST parameter
+		//
+		// Execute step and return immediately
+		Async bool
 	}
 )
 
@@ -1015,6 +1025,8 @@ func (r WorkflowExec) Auditable() map[string]interface{} {
 		"stepID":     r.StepID,
 		"input":      r.Input,
 		"trace":      r.Trace,
+		"wait":       r.Wait,
+		"async":      r.Async,
 	}
 }
 
@@ -1036,6 +1048,16 @@ func (r WorkflowExec) GetInput() *expr.Vars {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowExec) GetTrace() bool {
 	return r.Trace
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetWait() bool {
+	return r.Wait
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowExec) GetAsync() bool {
+	return r.Async
 }
 
 // Fill processes request and fills internal variables
@@ -1080,6 +1102,20 @@ func (r *WorkflowExec) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["trace"]; ok && len(val) > 0 {
 			r.Trace, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["wait"]; ok && len(val) > 0 {
+			r.Wait, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["async"]; ok && len(val) > 0 {
+			r.Async, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

@@ -186,7 +186,7 @@ func TestWorkflowCreateFull(t *testing.T) {
 			Scope:        expr.RVars{"foo": expr.Must(expr.NewString("bar"))}.Vars(),
 			Steps:        types.WorkflowStepSet{},
 			Paths:        types.WorkflowPathSet{},
-			RunAs:        42,
+			RunAs:        0,
 			OwnedBy:      42,
 		}
 	)

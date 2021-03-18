@@ -98,6 +98,8 @@ endpoints:
        - { name: stepID,     type: uint64, required: true, title: "Step ID" }
        - { name: input,      type: "*expr.Vars",           title: "Input", parser: "types.ParseWorkflowVariables" }
        - { name: trace,      type: bool,                   title: "Trace workflow execution" }
+       - { name: wait,       type: bool,                   title: "Wait for workflow to complete" }
+       - { name: async,      type: bool,                   title: "Execute step and return immediately" }
 
 
 - title: Triggers

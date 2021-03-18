@@ -37,7 +37,7 @@ type (
 		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
 	}
 
-	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, error)
+	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
 )
 
 func Session(log *zap.Logger) *session {
@@ -111,15 +111,6 @@ func (svc *session) suspendAll(ctx context.Context) error {
 	return nil
 }
 
-type (
-	foo struct {
-		SessionID uint64
-		StateID   uint64
-		CreatedAt time.Time
-		Payload   *expr.Vars
-	}
-)
-
 // PendingPrompts returns all prompts on all sessions owned by current user
 func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPrompt) {
 	var (
@@ -182,7 +173,9 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 		return
 	}
 
-	return func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, error) { return ses.WaitResults(ctx) }, nil
+	return func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error) {
+		return ses.WaitResults(ctx)
+	}, nil
 }
 
 // Resume resumes suspended session/state
@@ -267,8 +260,14 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			frame  = state.MakeFrame()
 		)
 
+		// Stacktrace will be set to !nil if frame collection is needed
 		if ses.Stacktrace != nil {
-			// Stacktrace will be set to !nil if frame collection is needed
+
+			if len(ses.Stacktrace) > 0 {
+				// calculate how long it took to get to this step
+				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.Stacktrace[0].CreatedAt) / time.Millisecond)
+			}
+
 			ses.Stacktrace = append(ses.Stacktrace, frame)
 		}
 

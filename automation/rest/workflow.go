@@ -129,6 +129,8 @@ func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interfa
 		StepID: r.StepID,
 		Trace:  r.Trace,
 		Input:  r.Input,
+		Async:  r.Async,
+		Wait:   r.Wait,
 	})
 
 	return wep, err
