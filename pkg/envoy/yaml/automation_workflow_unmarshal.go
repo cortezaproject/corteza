@@ -1,6 +1,8 @@
 package yaml
 
 import (
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -158,8 +160,9 @@ func (wrap *automationWorkflowStep) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
-		switch k.Value {
-		case "stepID":
+		switch strings.ToLower(k.Value) {
+		case "stepid",
+			"id":
 			return y7s.DecodeScalar(v, "trigger step", &wrap.res.ID)
 		case "kind":
 			return y7s.DecodeScalar(v, "step kind", &wrap.res.Kind)
@@ -189,12 +192,14 @@ func (wrap *automationWorkflowPath) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
-		switch k.Value {
+		switch strings.ToLower(k.Value) {
 		case "expr":
 			return y7s.DecodeScalar(v, "path expr", &wrap.res.Expr)
-		case "parentID":
+		case "parentid",
+			"parent":
 			return y7s.DecodeScalar(v, "parent ref", &wrap.res.ParentID)
-		case "childID":
+		case "childid",
+			"child":
 			return y7s.DecodeScalar(v, "child ref", &wrap.res.ChildID)
 		case "meta":
 			return v.Decode(&wrap.res.Meta)
