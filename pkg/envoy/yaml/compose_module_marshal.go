@@ -97,7 +97,9 @@ func (n *composeModule) Encode(ctx context.Context, doc *Document, state *envoy.
 func (c *composeModule) MarshalYAML() (interface{}, error) {
 	// Get a struct from the raw JSON string
 	auxMeta := make(map[string]interface{})
-	json.Unmarshal(c.res.Meta, auxMeta)
+	if err := json.Unmarshal(c.res.Meta, &auxMeta); err != nil {
+		return nil, err
+	}
 
 	nn, err := makeMap(
 		"handle", c.res.Handle,
