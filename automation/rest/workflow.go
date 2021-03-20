@@ -33,6 +33,7 @@ type (
 	workflowExecPayload struct {
 		Results *expr.Vars       `json:"results"`
 		Trace   types.Stacktrace `json:"trace,omitempty"`
+		Error   string           `json:"error,omitempty"`
 	}
 )
 
@@ -132,6 +133,13 @@ func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interfa
 		Async:  r.Async,
 		Wait:   r.Wait,
 	})
+
+	if err != nil && wep.Trace != nil && r.Trace {
+		// in case of an error & trace enabled (and stacktrace present)
+		// we'll suppress the error
+		wep.Error = err.Error()
+		return wep, nil
+	}
 
 	return wep, err
 }
