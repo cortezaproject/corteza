@@ -80,7 +80,6 @@ func migrateEmailTemplates(ctx context.Context, log *zap.Logger, s store.Storer)
 				continue
 			}
 
-			sval.String()
 			tmpl.ID = id.Next()
 			tmpl.CreatedAt = time.Now()
 			tmpl.Template = sval.String()
