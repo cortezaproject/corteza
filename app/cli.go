@@ -54,7 +54,7 @@ func (app *CortezaApp) InitCLI() {
 		systemCommands.Auth(app, app.Opt.Auth),
 		systemCommands.RBAC(app),
 		systemCommands.Sink(app),
-		systemCommands.Settings(),
+		systemCommands.Settings(app),
 		systemCommands.Import(storeInit),
 		systemCommands.Export(storeInit),
 		serveCmd,

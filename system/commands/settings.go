@@ -13,7 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
-func Settings() *cobra.Command {
+func Settings(app serviceInitializer) *cobra.Command {
 	var (
 		cmd = &cobra.Command{
 			Use:   "settings",
@@ -22,8 +22,9 @@ func Settings() *cobra.Command {
 	)
 
 	list := &cobra.Command{
-		Use:   "list",
-		Short: "List all",
+		Use:     "list",
+		Short:   "List all",
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -52,8 +53,9 @@ func Settings() *cobra.Command {
 	get := &cobra.Command{
 		Use: "get [key to get, ...]",
 
-		Short: "Get value (raw JSON) for a specific key",
-		Args:  cobra.ExactArgs(1),
+		Short:   "Get value (raw JSON) for a specific key",
+		Args:    cobra.ExactArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -68,9 +70,10 @@ func Settings() *cobra.Command {
 	}
 
 	set := &cobra.Command{
-		Use:   "set [key to set] [value]",
-		Short: "Set value (raw JSON or string) for a specific key",
-		Args:  cobra.ExactArgs(2),
+		Use:     "set [key to set] [value]",
+		Short:   "Set value (raw JSON or string) for a specific key",
+		Args:    cobra.ExactArgs(2),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				err error
@@ -104,9 +107,10 @@ func Settings() *cobra.Command {
 	set.Flags().BoolP("as-string", "s", false, "Treat input value as string (to avoid wrapping in quites)")
 
 	imp := &cobra.Command{
-		Use:   "import [file]",
-		Short: "Import settings as JSON from stdin or file",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "import [file]",
+		Short:   "Import settings as JSON from stdin or file",
+		Args:    cobra.MaximumNArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -143,9 +147,10 @@ func Settings() *cobra.Command {
 	}
 
 	exp := &cobra.Command{
-		Use:   "export [file]",
-		Short: "Import settings as JSON to stdout or file",
-		Args:  cobra.MaximumNArgs(1),
+		Use:     "export [file]",
+		Short:   "Import settings as JSON to stdout or file",
+		Args:    cobra.MaximumNArgs(1),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx = auth.SetSuperUserContext(cli.Context())
@@ -175,9 +180,10 @@ func Settings() *cobra.Command {
 	}
 
 	del := &cobra.Command{
-		Use:   "delete [keys, ...]",
-		Short: "Set value (raw JSON) for a specific key (or by prefix)",
-		Args:  cobra.MinimumNArgs(0),
+		Use:     "delete [keys, ...]",
+		Short:   "Set value (raw JSON) for a specific key (or by prefix)",
+		Args:    cobra.MinimumNArgs(0),
+		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
 				ctx   = auth.SetSuperUserContext(cli.Context())
