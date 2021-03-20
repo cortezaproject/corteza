@@ -28,6 +28,9 @@ type (
 		// current step
 		step Step
 
+		// next steps
+		next Steps
+
 		// step error (if any)
 		err error
 
@@ -37,10 +40,15 @@ type (
 		// scope
 		scope *expr.Vars
 
+		// step execution results
+		results *expr.Vars
+
 		// error handling step
 		errHandler Step
 
 		loops []Iterator
+
+		action string
 	}
 )
 
@@ -70,9 +78,7 @@ func FinalState(ses *Session, scope *expr.Vars) *State {
 
 func (s State) Next(current Step, scope *expr.Vars) *State {
 	return &State{
-		stateId: nextID(),
-		created: *now(),
-
+		stateId:    nextID(),
 		owner:      s.owner,
 		sessionId:  s.sessionId,
 		parent:     s.step,
@@ -126,6 +132,13 @@ func (s State) MakeFrame() *Frame {
 		StateID:   s.stateId,
 		Input:     s.input,
 		Scope:     s.scope,
+		Results:   s.results,
+		NextSteps: s.next.IDs(),
+		Action:    s.action,
+	}
+
+	if s.err != nil {
+		f.Error = s.err.Error()
 	}
 
 	if s.step != nil {
