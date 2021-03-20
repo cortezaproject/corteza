@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-
 	rand2 "math/rand"
 	"regexp"
 	"strconv"
@@ -677,14 +676,14 @@ func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenTy
 		aam.setUser(u)
 		ctx = internalAuth.SetIdentityToContext(ctx, u)
 
-		if u.EmailConfirmed {
-			return nil
-		}
-
-		u.EmailConfirmed = true
-		u.UpdatedAt = now()
-		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
-			return err
+		if !u.EmailConfirmed {
+			// User's email is not confirmed but going through password reset flow
+			// we can confirm it
+			u.EmailConfirmed = true
+			u.UpdatedAt = now()
+			if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+				return err
+			}
 		}
 
 		if err = svc.LoadRoleMemberships(ctx, u); err != nil {
