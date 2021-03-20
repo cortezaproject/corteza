@@ -317,8 +317,6 @@ func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.Us
 	s.MultiFactor.EmailOTP.Enforced = true
 	s.MultiFactor.TOTP.Enabled = true
 
-	authUser := request.NewAuthUser(s, user, true, time.Duration(time.Hour))
-
 	session := sessions.NewSession(&mockSession{
 		save: func(r *http.Request, w http.ResponseWriter, s *sessions.Session) error {
 			s.Values = make(map[interface{}]interface{})
@@ -326,13 +324,18 @@ func prepareClientAuthReq(ctx context.Context, req *http.Request, user *types.Us
 		},
 	}, "session")
 
-	return &request.AuthReq{
+	authReq := &request.AuthReq{
 		Request:  req,
-		AuthUser: authUser,
 		Session:  session,
 		Response: httptest.NewRecorder(),
 		Data:     make(map[string]interface{}),
 	}
+
+	if user != nil {
+		authReq.AuthUser = request.NewAuthUser(s, user, true, time.Duration(time.Hour))
+	}
+
+	return authReq
 }
 
 func prepareClientAuthService(ctx context.Context, user *types.User) *mockAuthService {

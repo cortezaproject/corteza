@@ -47,9 +47,7 @@ func Test_requestPasswordResetForm(t *testing.T) {
 
 func Test_resetPasswordForm(t *testing.T) {
 	var (
-		ctx  = context.Background()
-		user = makeMockUser(ctx)
-
+		ctx = context.Background()
 		req = &http.Request{
 			URL: &url.URL{},
 		}
@@ -109,11 +107,11 @@ func Test_resetPasswordForm(t *testing.T) {
 
 			tc.fn()
 
-			authReq = prepareClientAuthReq(ctx, req, user)
+			authReq = prepareClientAuthReq(ctx, req, nil)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
 
 			// unset so we get to the main functionality
-			authReq.AuthUser.User = nil
+			authReq.AuthUser = nil
 
 			err := authHandlers.resetPasswordForm(authReq)
 

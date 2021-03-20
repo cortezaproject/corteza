@@ -4,6 +4,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -46,11 +47,16 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 
 	req.Template = TmplResetPassword
 
-	if req.AuthUser.User == nil {
+	if req.AuthUser == nil {
 		// user not set, expecting valid token in URL
 		if token := req.Request.URL.Query().Get("token"); len(token) > 0 {
-			req.AuthUser.User, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
+			var user *types.User
+
+			user, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
 			if err == nil {
+				// login user
+				req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
+
 				// redirect back to self (but without token and with user in session
 				h.Log.Debug("valid password reset token found, refreshing page with stored user")
 				req.RedirectTo = GetLinks().ResetPassword
