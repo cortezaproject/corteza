@@ -17,7 +17,7 @@ type (
 
 func (h *AuthHandlers) loginForm(req *request.AuthReq) error {
 	req.Template = TmplLogin
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	return nil
 }
 

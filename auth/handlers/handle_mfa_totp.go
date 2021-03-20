@@ -43,9 +43,8 @@ func (h AuthHandlers) mfaTotpConfigForm(req *request.AuthReq) (err error) {
 
 	req.Data["secret"] = secret
 	req.Data["enforced"] = h.Settings.MultiFactor.TOTP.Enforced
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	req.Template = TmplMfaTotp
-	req.SetKV(nil)
 	return nil
 }
 
@@ -154,9 +153,8 @@ func (h AuthHandlers) mfaTotpConfigQR(req *request.AuthReq) (err error) {
 //
 // Where the TOTP QR & code are displayed and where
 func (h AuthHandlers) mfaTotpDisableForm(req *request.AuthReq) (err error) {
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	req.Template = TmplMfaTotpDisable
-	req.SetKV(nil)
 	return nil
 }
 

@@ -10,7 +10,7 @@ import (
 func (h *AuthHandlers) changePasswordForm(req *request.AuthReq) error {
 	h.Log.Debug("showing password change form")
 	req.Template = TmplChangePassword
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	return nil
 }
 

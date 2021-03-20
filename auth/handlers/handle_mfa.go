@@ -30,7 +30,7 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 		req.RedirectTo = GetLinks().Mfa
 	}
 
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	req.Data["emailOtpDisabled"] = req.AuthUser.DisabledEmailOTP()
 	req.Data["emailOtpPending"] = req.AuthUser.PendingEmailOTP()
 	req.Data["totpDisabled"] = req.AuthUser.DisabledTOTP()

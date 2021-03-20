@@ -10,9 +10,8 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) error {
 	req.Template = TmplProfile
 	u := req.AuthUser.User
 
-	if form := req.GetKV(); len(form) > 0 {
+	if form := req.PopKV(); len(form) > 0 {
 		req.Data["form"] = form
-		req.SetKV(nil)
 	} else {
 		req.Data["form"] = map[string]string{
 			"email":  u.Email,
