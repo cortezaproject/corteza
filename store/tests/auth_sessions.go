@@ -18,7 +18,7 @@ func testAuthSessions(t *testing.T, s store.AuthSessions) {
 		makeNew = func(handle string) *types.AuthSession {
 			// minimum data set for new authSession
 			return &types.AuthSession{
-				ID:        string(rand.Bytes(10)),
+				ID:        handle,
 				CreatedAt: time.Now(),
 				Data:      []byte("..."),
 			}
