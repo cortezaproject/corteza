@@ -80,7 +80,7 @@ func Example_isLeapYear() {
 }
 
 func Example_isWeekDay() {
-	eval(`isWeekDay(now)`, exampleTimeParams)
+	eval(`isWeekDay(ghd)`, exampleTimeParams)
 
 	// output:
 	// true

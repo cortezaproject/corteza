@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/PaesslerAG/gval"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func GenericFunctions() []gval.Language {
@@ -42,8 +41,6 @@ func isEmpty(i interface{}) bool {
 	if isNil(i) {
 		return true
 	}
-
-	spew.Dump("A", reflect.ValueOf(i).IsZero())
 
 	switch reflect.TypeOf(i).Kind() {
 	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map:
