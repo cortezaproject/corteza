@@ -9,7 +9,7 @@ import (
 
 func (h *AuthHandlers) signupForm(req *request.AuthReq) error {
 	req.Template = TmplSignup
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	return nil
 }
 

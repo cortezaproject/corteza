@@ -11,7 +11,7 @@ import (
 func (h *AuthHandlers) requestPasswordResetForm(req *request.AuthReq) error {
 	h.Log.Debug("showing request password reset form")
 	req.Template = TmplRequestPasswordReset
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	return nil
 }
 
@@ -73,7 +73,7 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 		})
 	}
 
-	req.Data["form"] = req.GetKV()
+	req.Data["form"] = req.PopKV()
 	return nil
 }
 

@@ -122,6 +122,12 @@ func (req *AuthReq) SetKV(val map[string]string) {
 	}
 }
 
+func (req *AuthReq) PopKV() map[string]string {
+	val := req.GetKV()
+	req.SetKV(nil)
+	return val
+}
+
 func ExtraReqInfoMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ExtraReqInfo{}, ExtraReqInfo{
