@@ -65,23 +65,55 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 
 // Before runs before all tables are upgraded
 func (u upgrader) Before(ctx context.Context) error {
-	err := func() error {
-		const migrations = "migrations"
-		if exists, err := u.TableExists(ctx, migrations); err != nil || !exists {
+	tt := []func() error{
+		func() error {
+			const migrations = "migrations"
+			if exists, err := u.TableExists(ctx, migrations); err != nil || !exists {
+				return err
+			}
+
+			if _, err := u.s.DB().ExecContext(ctx, fmt.Sprintf(`DROP TABLE "%s"`, migrations)); err != nil {
+				return err
+			}
+
+			u.log.Debug(fmt.Sprintf("%s table removed", migrations))
+
+			return nil
+		},
+		func() error {
+			// in the first versions we created and used foreign keys
+			// this is now obsolete with future plans with the (composite) store architecture
+			var (
+				// find and remove all foreign keys
+				find = `SELECT CONSTRAINT_NAME, TABLE_NAME FROM information_schema.TABLE_CONSTRAINTS where CONSTRAINT_SCHEMA = '%s' AND CONSTRAINT_TYPE = 'FOREIGN KEY';`
+				drop = `ALTER TABLE %s DROP FOREIGN KEY %s`
+
+				table, constraint string
+			)
+
+			if rows, err := u.s.DB().QueryContext(ctx, fmt.Sprintf(find, u.s.Config().DBName)); err != nil {
+				return err
+			} else {
+				for rows.Next() {
+					if err = rows.Scan(&constraint, &table); err != nil {
+						return err
+					}
+
+					u.log.Debug(fmt.Sprintf("removing foreign key %s from table %s", constraint, table))
+					if _, err = u.s.DB().ExecContext(ctx, fmt.Sprintf(drop, table, constraint)); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+
+	for _, t := range tt {
+		if err := t(); err != nil {
 			return err
 		}
-
-		if _, err := u.s.DB().ExecContext(ctx, fmt.Sprintf(`DROP TABLE "%s"`, migrations)); err != nil {
-			return err
-		}
-
-		u.log.Debug(fmt.Sprintf("%s table removed", migrations))
-
-		return nil
-	}()
-
-	if err != nil {
-		return err
 	}
 
 	return rdbms.GenericUpgrades(u.log, u).Before(ctx)
