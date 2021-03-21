@@ -61,7 +61,7 @@ func fill(opt interface{}) {
 	}
 }
 
-func guestHostname() string {
+func guessHostname() string {
 	// All env keys we'll check, first that has any value set, will be used as hostname
 	candidates := []string{
 		os.Getenv("DOMAIN"),
@@ -80,9 +80,9 @@ func guestHostname() string {
 	return "local.cortezaproject.org"
 }
 
-func guestBaseURL() string {
+func guessBaseURL() string {
 	var (
-		host        = guestHostname()
+		host        = guessHostname()
 		_, isSecure = os.LookupEnv("LETSENCRYPT_HOST")
 	)
 
