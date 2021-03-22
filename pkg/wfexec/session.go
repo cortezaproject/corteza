@@ -401,7 +401,12 @@ func (s *Session) worker(ctx context.Context) {
 			s.execLock <- struct{}{}
 
 			go func() {
-				st.err = s.exec(ctx, st)
+				err := s.exec(ctx, st)
+				if err != nil && st.err == nil {
+					// override the error from the execution
+					st.err = err
+				}
+
 				st.completed = now()
 
 				// remove single
@@ -422,7 +427,7 @@ func (s *Session) worker(ctx context.Context) {
 				// after exec lock is released call event handler with (new) session status
 				s.eventHandler(status, st, s)
 
-				if st.err != nil {
+				if err != nil {
 					// pushing step execution error into error queue
 					// to break worker loop
 					s.qErr <- st.err
