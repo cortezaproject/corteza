@@ -1,10 +1,12 @@
 package expr
 
 import (
+	"errors"
 	"time"
 
 	"github.com/PaesslerAG/gval"
 	"github.com/lestrrat-go/strftime"
+	"github.com/spf13/cast"
 )
 
 func TimeFunctions() []gval.Language {
@@ -13,6 +15,9 @@ func TimeFunctions() []gval.Language {
 		gval.Function("latest", latest),
 		gval.Function("parseISOTime", parseISOTime),
 		gval.Function("modTime", modTime),
+		gval.Function("modDate", modDate),
+		gval.Function("modMonth", modMonth),
+		gval.Function("modYear", modYear),
 		gval.Function("parseDuration", time.ParseDuration),
 		gval.Function("strftime", strfTime),
 		gval.Function("isLeapYear", isLeapYear),
@@ -25,47 +30,82 @@ func now() time.Time {
 	return time.Now()
 }
 
-func isLeapYear(f time.Time) bool {
-	return time.Date(f.Year(), time.December, 31, 0, 0, 0, 0, time.Local).YearDay() == 366
+func isLeapYear(base interface{}) (bool, error) {
+	t, _, err := prepMod(base, 0)
+	if err != nil {
+		return false, err
+	}
+	return time.Date(t.Year(), time.December, 31, 0, 0, 0, 0, time.Local).YearDay() == 366, nil
 }
 
-func isLeapDay(f time.Time) bool {
-	return f.Day() == 29 && f.Month() == 2
+func isLeapDay(base interface{}) (bool, error) {
+	t, _, err := prepMod(base, 0)
+	if err != nil {
+		return false, err
+	}
+	return t.Day() == 29 && t.Month() == 2, nil
 }
 
-func isWeekDay(f time.Time) bool {
-	return time.Sunday < f.Weekday() && f.Weekday() < time.Saturday
+func isWeekDay(base interface{}) (bool, error) {
+	t, _, err := prepMod(base, 0)
+	if err != nil {
+		return false, err
+	}
+	return time.Sunday < t.Weekday() && t.Weekday() < time.Saturday, nil
 }
 
-func earliest(f time.Time, aa ...time.Time) time.Time {
-	for _, s := range aa {
-		if s.Before(f) {
-			f = s
+func earliest(f interface{}, aa ...interface{}) (*time.Time, error) {
+	t, _, err := prepMod(f, 0)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range aa {
+		s, _, err := prepMod(a, 0)
+		if err != nil {
+			return nil, err
+		}
+		if (*s).Before(*t) {
+			t = s
 		}
 	}
 
-	return f
+	return t, nil
 }
 
-func latest(f time.Time, aa ...time.Time) time.Time {
-	for _, s := range aa {
-		if s.After(f) {
-			f = s
+func latest(f interface{}, aa ...interface{}) (*time.Time, error) {
+	t, _, err := prepMod(f, 0)
+	if err != nil {
+		return nil, err
+	}
+	for _, a := range aa {
+		s, _, err := prepMod(a, 0)
+		if err != nil {
+			return nil, err
+		}
+		if s.After(*t) {
+			t = s
 		}
 	}
 
-	return f
+	return t, nil
 }
 
 func parseISOTime(s string) (time.Time, error) {
 	return time.Parse(time.RFC3339, s)
 }
 
-func modTime(t time.Time, mod interface{}) (time.Time, error) {
+func modTime(base interface{}, mod interface{}) (*time.Time, error) {
 	var (
 		err error
 		d   time.Duration
+		t   *time.Time
 	)
+
+	t, _, err = prepMod(base, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	switch c := mod.(type) {
 	case time.Duration:
 		d = c
@@ -77,13 +117,70 @@ func modTime(t time.Time, mod interface{}) (time.Time, error) {
 		return t, err
 	}
 
-	return t.Add(d), nil
+	tmp := t.Add(d)
+	return &tmp, nil
+}
+
+func modDate(base interface{}, mod interface{}) (*time.Time, error) {
+	t, m, err := prepMod(base, mod)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := t.AddDate(0, 0, m)
+	return &tmp, nil
+}
+
+func modMonth(base interface{}, mod interface{}) (*time.Time, error) {
+	t, m, err := prepMod(base, mod)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := t.AddDate(0, m, 0)
+	return &tmp, nil
+}
+
+func modYear(base interface{}, mod interface{}) (*time.Time, error) {
+	t, m, err := prepMod(base, mod)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := t.AddDate(m, 0, 0)
+	return &tmp, nil
+}
+
+func prepMod(base interface{}, mod interface{}) (*time.Time, int, error) {
+	var (
+		t *time.Time
+	)
+
+	switch auxt := base.(type) {
+	case time.Time:
+		t = &auxt
+	case *time.Time:
+		t = auxt
+	default:
+		return nil, 0, errors.New("unexpected input type")
+	}
+
+	m, err := cast.ToIntE(mod)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return t, m, nil
 }
 
 // Strftime formats time with POSIX standard format
 // More details here:
 // https://github.com/lestrrat-go/strftime#supported-conversion-specifications
-func strfTime(t time.Time, f string) string {
-	o, _ := strftime.Format(f, t, strftime.WithMilliseconds('b'))
-	return o
+func strfTime(base interface{}, f string) (string, error) {
+	t, _, err := prepMod(base, 0)
+	if err != nil {
+		return "", err
+	}
+	o, _ := strftime.Format(f, *t, strftime.WithMilliseconds('b'))
+	return o, nil
 }
