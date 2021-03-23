@@ -1,8 +1,11 @@
 package values
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
@@ -206,6 +209,25 @@ func TestSanitizerExpr(t *testing.T) {
 			if sanitized := s.Run(m, v); !reflect.DeepEqual(sanitized, o) {
 				t.Errorf("\ninput value:\n%v\n\nresult of sanitization:\n%v\n\nexpected:\n%v\n", tt.input, sanitized, o)
 			}
+		})
+	}
+}
+
+func TestDatetimeSanitizer(t *testing.T) {
+	tests := []struct {
+		input              interface{}
+		onlyDate, onlyTime bool
+		rval               string
+	}{
+		{time.Date(1999, 9, 9, 9, 9, 9, 9, time.UTC), false, false, "1999-09-09T09:09:09Z"},
+		{"2021-03-23T20:21:15Z", false, false, "2021-03-23T20:21:15Z"},
+		{"2021-03-23T20:21:15+01:00", false, false, "2021-03-23T19:21:15Z"},
+		{"2021-03-23", true, false, "2021-03-23"},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%v", tt.input), func(t *testing.T) {
+			assert.New(t).Equal(tt.rval, sDatetime(tt.input, tt.onlyDate, tt.onlyTime))
 		})
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/spf13/cast"
 	"strings"
+	"time"
 )
 
 func CastToComposeNamespace(val interface{}) (out *types.Namespace, err error) {
@@ -94,7 +95,6 @@ func (t ComposeRecord) SelectGVal(ctx context.Context, k string) (interface{}, e
 
 func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err error) {
 	out = types.RecordValueSet{}
-
 	switch val := val.(type) {
 	case expr.Iterator:
 		return out, val.Each(func(k string, v expr.TypedValue) error {
@@ -212,10 +212,21 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 	if len(pp) < 1 {
 		return fmt.Errorf("empty path used for assigning record values")
 	}
-
 	k := pp[0]
 	rv := &types.RecordValue{Name: k}
-	if rv.Value, err = cast.ToStringE(expr.UntypedValue(val)); err != nil {
+
+	// @todo this needs to be implemented properly
+	//       we're just guessing here and puting out fires
+	switch utval := expr.UntypedValue(val).(type) {
+	case time.Time:
+		rv.Value = utval.Format(time.RFC3339)
+	case *time.Time:
+		rv.Value = utval.Format(time.RFC3339)
+	default:
+		rv.Value, err = cast.ToStringE(utval)
+	}
+
+	if err != nil {
 		return
 	}
 
@@ -226,7 +237,7 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 	}
 
 	*res = res.Set(rv)
-	//return fmt.Errorf("unknown field '%s'", k)
+
 	return nil
 }
 
