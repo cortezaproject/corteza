@@ -19,6 +19,10 @@ func (s Store) convertComposePageFilter(f types.PageFilter) (query squirrel.Sele
 		query = query.Where("cpg.rel_namespace = ?", f.NamespaceID)
 	}
 
+	if f.ModuleID > 0 {
+		query = query.Where("cpg.rel_module = ?", f.ModuleID)
+	}
+
 	if len(f.LabeledIDs) > 0 {
 		query = query.Where(squirrel.Eq{"cpg.id": f.LabeledIDs})
 	}

@@ -173,6 +173,10 @@ endpoints:
         name: selfID
         required: false
         title: Parent page ID
+      - type: uint64
+        name: moduleID
+        required: false
+        title: Module ID
       - type: string
         name: query
         required: false

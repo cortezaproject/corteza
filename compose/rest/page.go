@@ -58,6 +58,7 @@ func (ctrl *Page) List(ctx context.Context, r *request.PageList) (interface{}, e
 		err error
 		f   = types.PageFilter{
 			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
 			ParentID:    r.SelfID,
 			Labels:      r.Labels,
 
