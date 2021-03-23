@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -91,7 +92,9 @@ func (h usersHandler) search(ctx context.Context, args *usersSearchArgs) (result
 		f.Limit = uint(args.Limit)
 	}
 
-	results.Users, _, err = h.uSvc.Find(ctx, f)
+	var auxf types.UserFilter
+	results.Users, auxf, err = h.uSvc.Find(ctx, f)
+	results.Total = uint64(auxf.Total)
 	return
 }
 

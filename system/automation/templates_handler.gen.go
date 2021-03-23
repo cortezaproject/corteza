@@ -10,6 +10,7 @@ package automation
 
 import (
 	"context"
+
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -170,9 +171,8 @@ type (
 	}
 
 	templatesSearchResults struct {
-		Templates  []*types.Template
-		Total      uint64
-		PageCursor string
+		Templates []*types.Template
+		Total     uint64
 	}
 )
 
@@ -246,11 +246,6 @@ func (h templatesHandler) Search() *atypes.Function {
 				Name:  "total",
 				Types: []string{"UnsignedInteger"},
 			},
-
-			{
-				Name:  "pageCursor",
-				Types: []string{"String"},
-			},
 		},
 
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
@@ -309,19 +304,6 @@ func (h templatesHandler) Search() *atypes.Function {
 				if tval, err = h.reg.Type("UnsignedInteger").Cast(results.Total); err != nil {
 					return
 				} else if err = expr.Assign(out, "total", tval); err != nil {
-					return
-				}
-			}
-
-			{
-				// converting results.PageCursor (string) to String
-				var (
-					tval expr.TypedValue
-				)
-
-				if tval, err = h.reg.Type("String").Cast(results.PageCursor); err != nil {
-					return
-				} else if err = expr.Assign(out, "pageCursor", tval); err != nil {
 					return
 				}
 			}

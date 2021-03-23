@@ -103,7 +103,9 @@ func (h recordsHandler) search(ctx context.Context, args *recordsSearchArgs) (re
 		f.Limit = uint(args.Limit)
 	}
 
-	results.Records, _, err = h.rec.Find(ctx, f)
+	var auxf types.RecordFilter
+	results.Records, auxf, err = h.rec.Find(ctx, f)
+	results.Total = uint64(auxf.Total)
 	return
 }
 
