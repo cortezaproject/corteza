@@ -46,6 +46,11 @@ type (
 		// Parent page ID
 		SelfID uint64 `json:",string"`
 
+		// ModuleID GET parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
 		// Query GET parameter
 		//
 		// Search query
@@ -279,6 +284,7 @@ func (r PageList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"namespaceID": r.NamespaceID,
 		"selfID":      r.SelfID,
+		"moduleID":    r.ModuleID,
 		"query":       r.Query,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -296,6 +302,11 @@ func (r PageList) GetNamespaceID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageList) GetSelfID() uint64 {
 	return r.SelfID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageList) GetModuleID() uint64 {
+	return r.ModuleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -337,6 +348,12 @@ func (r *PageList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["selfID"]; ok && len(val) > 0 {
 			r.SelfID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["moduleID"]; ok && len(val) > 0 {
+			r.ModuleID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}
