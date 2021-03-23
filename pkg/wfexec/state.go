@@ -1,6 +1,7 @@
 package wfexec
 
 import (
+	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"time"
@@ -126,13 +127,24 @@ func (s State) loopCurr() Iterator {
 }
 
 func (s State) MakeFrame() *Frame {
+	var (
+		// might not be the most optimal way but we need to
+		// un-reference scope, input, result variables
+		unref = func(vars *expr.Vars) *expr.Vars {
+			out := &expr.Vars{}
+			tmp, _ := json.Marshal(vars)
+			_ = json.Unmarshal(tmp, out)
+			return out
+		}
+	)
+
 	f := &Frame{
 		CreatedAt: s.created,
 		SessionID: s.sessionId,
 		StateID:   s.stateId,
-		Input:     s.input,
-		Scope:     s.scope,
-		Results:   s.results,
+		Input:     unref(s.input),
+		Scope:     unref(s.scope),
+		Results:   unref(s.results),
 		NextSteps: s.next.IDs(),
 		Action:    s.action,
 	}
