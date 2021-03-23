@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
@@ -142,6 +143,10 @@ func (t Array) Select(k string) (TypedValue, error) {
 	} else {
 		return t.value[i], nil
 	}
+}
+
+func (t ID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprintf("%d", t.value))
 }
 
 func CastToBoolean(val interface{}) (out bool, err error) {
