@@ -118,7 +118,6 @@ functions:
         <<: *rvRecord
         isArray: true
       total:      *rvTotal
-      pageCursor: *rvPageCursor
 
   first:
     meta:

@@ -83,7 +83,6 @@ functions:
         <<: *rvTemplate
         isArray: true
       total: *rvTotal
-      pageCursor: *rvPageCursor
 
   each:
     kind: iterator

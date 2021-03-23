@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -91,7 +92,9 @@ func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (result
 		f.Limit = uint(args.Limit)
 	}
 
-	results.Roles, _, err = h.rSvc.Find(ctx, f)
+	var auxf types.RoleFilter
+	results.Roles, auxf, err = h.rSvc.Find(ctx, f)
+	results.Total = uint64(auxf.Total)
 	return
 }
 
