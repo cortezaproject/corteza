@@ -74,7 +74,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	// store interface exposed or generated inside app package
 	DefaultStore = s
 
-	DefaultLogger = log.Named("service")
+	DefaultLogger = log.Named("workflow")
 
 	{
 		tee := zap.NewNop()
@@ -92,7 +92,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultAccessControl = AccessControl(rbac.Global())
 
-	DefaultSession = Session(DefaultLogger.Named("session"))
+	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow)
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"))
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 

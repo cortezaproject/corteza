@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
@@ -20,6 +21,7 @@ type (
 		store      store.Storer
 		actionlog  actionlog.Recorder
 		ac         sessionAccessController
+		opt        options.WorkflowOpt
 		log        *zap.Logger
 		mux        *sync.RWMutex
 		pool       map[uint64]*types.Session
@@ -40,9 +42,10 @@ type (
 	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
 )
 
-func Session(log *zap.Logger) *session {
+func Session(log *zap.Logger, opt options.WorkflowOpt) *session {
 	return &session{
 		log:        log,
+		opt:        opt,
 		actionlog:  DefaultActionlog,
 		store:      DefaultStore,
 		ac:         DefaultAccessControl,
@@ -225,11 +228,17 @@ func (svc *session) Watch(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case s := <-svc.spawnQueue:
+				wfexecSessLog := zap.NewNop()
+				if svc.opt.ExecDebug {
+					wfexecSessLog = svc.log.Named("exec")
+				}
+
 				//
 				s.session <- wfexec.NewSession(ctx,
 					s.graph,
 					wfexec.SetHandler(svc.stateChangeHandler(ctx)),
-					wfexec.SetLogger(svc.log),
+					wfexec.SetLogger(wfexecSessLog),
+					wfexec.SetDumpStacktraceOnPanic(svc.opt.ExecDebug),
 				)
 				// case time for a pool cleanup
 				// @todo cleanup pool when sessions are complete

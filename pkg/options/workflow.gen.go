@@ -10,14 +10,16 @@ package options
 
 type (
 	WorkflowOpt struct {
-		Register bool `env:"WORKFLOW_REGISTER"`
+		Register  bool `env:"WORKFLOW_REGISTER"`
+		ExecDebug bool `env:"WORKFLOW_EXEC_DEBUG"`
 	}
 )
 
 // Workflow initializes and returns a WorkflowOpt with default values
 func Workflow() (o *WorkflowOpt) {
 	o = &WorkflowOpt{
-		Register: true,
+		Register:  true,
+		ExecDebug: false,
 	}
 
 	fill(o)
