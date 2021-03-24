@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/spf13/cast"
 	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -196,9 +197,6 @@ func CastToFloat(val interface{}) (out float64, err error) {
 
 func CastToID(val interface{}) (out uint64, err error) {
 	out, err = cast.ToUint64E(UntypedValue(val))
-	if out == 0 {
-		err = fmt.Errorf("invalid ID")
-	}
 
 	return
 }

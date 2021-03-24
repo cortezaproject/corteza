@@ -3,12 +3,13 @@ package automation
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/mail"
-	sysTypes "github.com/cortezaproject/corteza-server/system/types"
-	gomail "gopkg.in/mail.v2"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/mail"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
+	gomail "gopkg.in/mail.v2"
 )
 
 type (
@@ -37,17 +38,32 @@ func EmailHandler(reg emailHandlerRegistry) *emailHandler {
 
 func (h emailHandler) send(_ context.Context, args *emailSendArgs) (err error) {
 	msg := mail.New()
-	if err = h.procArgs(msg, args.Subject, args); err != nil {
+
+	_, s, r := args.GetSubject()
+	if r != nil {
+		aux, _ := ioutil.ReadAll(r)
+		s = string(aux)
+	}
+
+	if err = h.procArgs(msg, s, args); err != nil {
 		return
 	}
 
 	return mail.Send(msg)
 }
 
-func (h emailHandler) message(_ context.Context, args *emailMessageArgs) (r *emailMessageResults, err error) {
+func (h emailHandler) message(_ context.Context, args *emailMessageArgs) (*emailMessageResults, error) {
+	var err error
 	msg := mail.New()
-	if err = h.procArgs(msg, args.Subject, args); err != nil {
-		return
+
+	_, s, r := args.GetSubject()
+	if r != nil {
+		aux, _ := ioutil.ReadAll(r)
+		s = string(aux)
+	}
+
+	if err = h.procArgs(msg, s, args); err != nil {
+		return nil, err
 	}
 
 	return &emailMessageResults{Message: &emailMessage{msg: msg}}, nil
