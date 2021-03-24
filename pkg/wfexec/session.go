@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -55,6 +56,8 @@ type (
 
 		// debug logger
 		log *zap.Logger
+
+		dumpStacktraceOnPanic bool
 
 		eventHandler StateChangeHandler
 	}
@@ -165,6 +168,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
 		mux: &sync.RWMutex{},
 
 		log: zap.NewNop(),
+
 		eventHandler: func(SessionStatus, *State, *Session) {
 			// noop
 		},
@@ -490,13 +494,22 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			return
 		}
 
+		var perr error
+
 		// normalize error and set it to state
 		switch reason := reason.(type) {
 		case error:
-			s.qErr <- fmt.Errorf("step %d crashed: %w", st.step.ID(), reason)
+			perr = fmt.Errorf("step %d crashed: %w", st.step.ID(), reason)
 		default:
-			s.qErr <- fmt.Errorf("step %d crashed: %v", st.step.ID(), reason)
+			perr = fmt.Errorf("step %d crashed: %v", st.step.ID(), reason)
 		}
+
+		if s.dumpStacktraceOnPanic {
+			fmt.Printf("Error: %v\n", perr)
+			println(string(debug.Stack()))
+		}
+
+		s.qErr <- perr
 	}()
 
 	var (
@@ -735,6 +748,12 @@ func SetHandler(fn StateChangeHandler) sessionOpt {
 func SetLogger(log *zap.Logger) sessionOpt {
 	return func(s *Session) {
 		s.log = log
+	}
+}
+
+func SetDumpStacktraceOnPanic(dump bool) sessionOpt {
+	return func(s *Session) {
+		s.dumpStacktraceOnPanic = dump
 	}
 }
 

@@ -5,4 +5,9 @@ props:
   - name: register
     type: bool
     default: true
-    description: Registers enabled and valid workflows and executes them whe ntriggere
+    description: Registers enabled and valid workflows and executes them when triggered
+
+  - name: execDebug
+    type: bool
+    default: false
+    description: Enables verbose logging for workflow execution
