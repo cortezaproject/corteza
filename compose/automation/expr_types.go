@@ -210,6 +210,15 @@ func composeRecordValuesTypedValueSelector(res types.RecordValueSet, k string) (
 // assignToRecordValuesSet is field value setter for *types.Record
 func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val interface{}) (err error) {
 	if len(pp) < 1 {
+		switch val := expr.UntypedValue(val).(type) {
+		case types.RecordValueSet:
+			*res = val
+			return
+		case *types.Record:
+			*res = val.Values
+			return
+		}
+
 		return fmt.Errorf("empty path used for assigning record values")
 	}
 	k := pp[0]

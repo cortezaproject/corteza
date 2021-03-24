@@ -129,7 +129,54 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 		eval, err = parser.Parse(`rec.values.m2[0] == "mVal2.0"`)
 		req.NoError(err)
 		req.True(eval.Test(context.Background(), scope))
+	})
+}
 
+func TestAssignToComposeRecordValues(t *testing.T) {
+	t.Run("assign simple", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = types.RecordValueSet{}
+		)
+
+		req.NoError(assignToComposeRecordValues(&target, []string{"a"}, "b"))
+		req.Len(target, 1)
+		req.True(target.Has("a", 0))
+		req.NoError(assignToComposeRecordValues(&target, []string{"a", "1"}, "b"))
+		req.Len(target, 2)
+		req.True(target.Has("a", 0))
+		req.True(target.Has("a", 1))
 	})
 
+	t.Run("assign rvs", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = types.RecordValueSet{}
+		)
+
+		req.NoError(assignToComposeRecordValues(&target, nil, types.RecordValueSet{{}}))
+		req.Len(target, 1)
+	})
+
+	t.Run("assign record", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = types.RecordValueSet{}
+		)
+
+		req.NoError(assignToComposeRecordValues(&target, nil, &types.Record{Values: types.RecordValueSet{{}}}))
+		req.Len(target, 1)
+	})
+
+	t.Run("overwrite rvs", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = types.RecordValueSet{{Name: "a"}}
+		)
+
+		req.NoError(assignToComposeRecordValues(&target, nil, types.RecordValueSet{{Name: "b"}}))
+		req.Len(target, 1)
+		req.False(target.Has("a", 0))
+		req.True(target.Has("b", 0))
+	})
 }
