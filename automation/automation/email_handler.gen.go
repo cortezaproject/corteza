@@ -42,8 +42,10 @@ func (h emailHandler) register() {
 
 type (
 	emailSendArgs struct {
-		hasSubject bool
-		Subject    string
+		hasSubject    bool
+		Subject       interface{}
+		subjectString string
+		subjectStream io.Reader
 
 		hasReplyTo    bool
 		ReplyTo       interface{}
@@ -78,6 +80,10 @@ type (
 		plainStream io.Reader
 	}
 )
+
+func (a emailSendArgs) GetSubject() (bool, string, io.Reader) {
+	return a.hasSubject, a.subjectString, a.subjectStream
+}
 
 func (a emailSendArgs) GetReplyTo() (bool, string, *sysTypes.User) {
 	return a.hasReplyTo, a.replyToString, a.replyToUser
@@ -122,7 +128,7 @@ func (h emailHandler) Send() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "subject",
-				Types: []string{"String"},
+				Types: []string{"String", "Reader"},
 				Meta: &atypes.ParamMeta{
 					Label: "Subject",
 				},
@@ -186,6 +192,17 @@ func (h emailHandler) Send() *atypes.Function {
 
 			if err = in.Decode(args); err != nil {
 				return
+			}
+
+			// Converting Subject argument
+			if args.hasSubject {
+				aux := expr.Must(expr.Select(in, "subject"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.subjectString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.subjectStream = aux.Get().(io.Reader)
+				}
 			}
 
 			// Converting ReplyTo argument
@@ -265,8 +282,10 @@ func (h emailHandler) Send() *atypes.Function {
 
 type (
 	emailMessageArgs struct {
-		hasSubject bool
-		Subject    string
+		hasSubject    bool
+		Subject       interface{}
+		subjectString string
+		subjectStream io.Reader
 
 		hasReplyTo    bool
 		ReplyTo       interface{}
@@ -305,6 +324,10 @@ type (
 		Message *emailMessage
 	}
 )
+
+func (a emailMessageArgs) GetSubject() (bool, string, io.Reader) {
+	return a.hasSubject, a.subjectString, a.subjectStream
+}
 
 func (a emailMessageArgs) GetReplyTo() (bool, string, *sysTypes.User) {
 	return a.hasReplyTo, a.replyToString, a.replyToUser
@@ -349,7 +372,7 @@ func (h emailHandler) Message() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "subject",
-				Types: []string{"String"},
+				Types: []string{"String", "Reader"},
 				Meta: &atypes.ParamMeta{
 					Label: "Subject",
 				},
@@ -421,6 +444,17 @@ func (h emailHandler) Message() *atypes.Function {
 
 			if err = in.Decode(args); err != nil {
 				return
+			}
+
+			// Converting Subject argument
+			if args.hasSubject {
+				aux := expr.Must(expr.Select(in, "subject"))
+				switch aux.Type() {
+				case h.reg.Type("String").Type():
+					args.subjectString = aux.Get().(string)
+				case h.reg.Type("Reader").Type():
+					args.subjectStream = aux.Get().(io.Reader)
+				}
 			}
 
 			// Converting ReplyTo argument

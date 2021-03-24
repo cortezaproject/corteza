@@ -11,6 +11,7 @@ messageParams: &messageParams
       label: Subject
     types:
       - { wf: String }
+      - { wf: Reader,   suffix: Stream }
 
   replyTo:
     meta:
