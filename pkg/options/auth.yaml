@@ -30,7 +30,7 @@ props:
     description: Experation time for the auth JWT tokens.
 
   - name: externalRedirectURL
-    default: guestBaseURL() + "/auth/external/{provider}/callback"
+    default: guessBaseURL() + "/auth/external/{provider}/callback"
     description: |-
       Redirect URL to be sent with OAuth2 authentication request to provider
 
@@ -48,7 +48,7 @@ props:
       ====
 
   - name: baseURL
-    default: guestBaseURL() + "/auth"
+    default: guessBaseURL() + "/auth"
     description: |-
       Frontend base URL. Must be an absolute URL
 
@@ -63,13 +63,13 @@ props:
       Session cookie path
 
   - name: sessionCookieDomain
-    default: guestHostname()
+    default: guessHostname()
     description: |-
       Session cookie domain
 
   - name: sessionCookieSecure
     type: bool
-    default: strings.HasPrefix(guestBaseURL(), "https://")
+    default: strings.HasPrefix(guessBaseURL(), "https://")
     description: |-
       Defaults to true when HTTPS is used.
 
