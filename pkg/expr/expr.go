@@ -65,7 +65,7 @@ func PathBase(path string) string {
 	return strings.Split(path, ".")[0]
 }
 
-func Assign(base TypedValue, path string, val interface{}) error {
+func Assign(base TypedValue, path string, val TypedValue) error {
 	pp, err := PathSplit(path)
 	if err != nil {
 		return err

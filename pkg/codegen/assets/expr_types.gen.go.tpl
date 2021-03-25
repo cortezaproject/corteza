@@ -65,7 +65,7 @@ func (t *{{ $exprType }}) Assign(val interface{}) (error) {
 
 {{ if $def.Struct }}
 {{ if not $def.CustomFieldAssigner }}
-func (t *{{ $exprType }}) AssignFieldValue(key string, val interface{}) error {
+func (t *{{ $exprType }}) AssignFieldValue(key string, val TypedValue) error {
 	return {{ $def.AssignerFn }}(t.value, key, val)
 }
 {{ end }}

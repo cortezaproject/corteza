@@ -52,18 +52,29 @@ func TestVars(t *testing.T) {
 				}.Vars(),
 			}.Vars(),
 		}.Vars()
+
+		tv = func(in interface{}) TypedValue {
+			switch cnv := in.(type) {
+			case int:
+				return Must(NewInteger(cnv))
+			case string:
+				return Must(NewString(cnv))
+			}
+
+			return Must(NewAny(in))
+		}
 	)
 
-	req.NoError(Assign(vars, "int", 123))
-	req.Equal(123, Must(Select(vars, "int")).Get().(int))
+	req.NoError(Assign(vars, "int", tv(123)))
+	req.Equal(int64(123), Must(Select(vars, "int")).Get().(int64))
 
-	req.NoError(Assign(vars, "sub.foo", "bar"))
+	req.NoError(Assign(vars, "sub.foo", tv("bar")))
 	req.Equal("bar", Must(Select(vars, "sub.foo")).Get().(string))
 
 	req.NoError(Assign(vars, "kv", &KV{}))
-	req.NoError(Assign(vars, "kv.foo", "bar"))
+	req.NoError(Assign(vars, "kv.foo", tv("bar")))
 	req.Equal("bar", Must(Select(vars, "kv.foo")).Get().(string))
 
-	req.NoError(Assign(vars, "three.two.one.go", "!!!"))
+	req.NoError(Assign(vars, "three.two.one.go", tv("!!!")))
 	req.Equal("!!!", Must(Select(vars, "three.two.one.go")).Get().(string))
 }

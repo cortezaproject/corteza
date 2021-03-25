@@ -17,7 +17,7 @@ func TestUser(t *testing.T) {
 	req.NoError(err)
 	req.Equal("handle", u.value.Handle)
 	req.Error(u.AssignFieldValue("some-unexisting-field", nil))
-	req.NoError(u.AssignFieldValue("email", "dummy@domain.tpl"))
+	req.NoError(u.AssignFieldValue("email", expr.Must(expr.NewString("dummy@domain.tpl"))))
 	req.Equal("dummy@domain.tpl", u.value.Email)
 }
 
