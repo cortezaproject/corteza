@@ -180,7 +180,7 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 		req.True(target.Has("b", 0))
 	})
 
-	t.Run("assign multipl values", func(t *testing.T) {
+	t.Run("assign multiple values", func(t *testing.T) {
 		var (
 			req    = require.New(t)
 			target = types.RecordValueSet{}
