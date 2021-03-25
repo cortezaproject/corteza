@@ -224,8 +224,33 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 		return fmt.Errorf("empty path used for assigning record values")
 	}
 
-	k := pp[0]
-	rv := &types.RecordValue{Name: k}
+	var (
+		k  = pp[0]
+		rv = &types.RecordValue{Name: k}
+
+		setSliceOfValues = func(vv []interface{}) error {
+			// Handle situation where array of values is assigned to a single (multi-value) field
+			// @todo this should use field context (when available) to determinate if we're actually
+			//       setting array to a multi-value field
+
+			if len(pp) == 2 {
+				// Tying to assign an array of values to a single value; that will not work
+				return fmt.Errorf("can not assign array of values to a single value in a record value set")
+			}
+
+			for p, v := range vv {
+				rv = &types.RecordValue{Name: k, Place: uint(p)}
+				rv.Value, err = cast.ToStringE(v)
+				if err != nil {
+					return err
+				}
+
+				*res = res.Set(rv)
+			}
+
+			return nil
+		}
+	)
 
 	// @todo this needs to be implemented properly
 	//       we're just guessing here and puting out fires
@@ -234,48 +259,22 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 		rv.Value = utval.Format(time.RFC3339)
 	case *time.Time:
 		rv.Value = utval.Format(time.RFC3339)
+	case []string:
+		aux := make([]interface{}, len(utval))
+		for i := range utval {
+			aux[i] = utval[i]
+		}
+
+		return setSliceOfValues(aux)
 	case []expr.TypedValue: // expr.Array
-		// Handle situation where array of values is assigned to a single (multi-value) field
-		// @todo this should use field context (when available) to determinate if we're actually
-		//       setting array to a multi-value field
-
-		if len(pp) == 2 {
-			// Tying to assign an array of values to a single value; that will not work
-			return fmt.Errorf("can not assign array of values to a single value in a record value set")
+		aux := make([]interface{}, len(utval))
+		for i := range utval {
+			aux[i] = utval[i].Get()
 		}
 
-		for p, v := range utval {
-			rv = &types.RecordValue{Name: k, Place: uint(p)}
-			rv.Value, err = cast.ToStringE(v.Get())
-			if err != nil {
-				return
-			}
-
-			*res = res.Set(rv)
-		}
-
-		return nil
+		return setSliceOfValues(aux)
 	case []interface{}: // expr.Any
-		// Handle situation where array of values is assigned to a single (multi-value) field
-		// @todo this should use field context (when available) to determinate if we're actually
-		//       setting array to a multi-value field
-
-		if len(pp) == 2 {
-			// Tying to assign an array of values to a single value; that will not work
-			return fmt.Errorf("can not assign array of values to a single value in a record value set")
-		}
-
-		for p, v := range utval {
-			rv = &types.RecordValue{Name: k, Place: uint(p)}
-			rv.Value, err = cast.ToStringE(v)
-			if err != nil {
-				return
-			}
-
-			*res = res.Set(rv)
-		}
-
-		return nil
+		return setSliceOfValues(utval)
 	default:
 		rv.Value, err = cast.ToStringE(utval)
 	}
