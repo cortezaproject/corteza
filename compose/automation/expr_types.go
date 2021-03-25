@@ -53,9 +53,11 @@ func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 			return assignToComposeRecord(out, k, v)
 		})
 	}
-
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Record:
+		if val.Values == nil {
+			val.Values = types.RecordValueSet{}
+		}
 		return val, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
@@ -221,6 +223,7 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 
 		return fmt.Errorf("empty path used for assigning record values")
 	}
+
 	k := pp[0]
 	rv := &types.RecordValue{Name: k}
 
@@ -231,6 +234,48 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 		rv.Value = utval.Format(time.RFC3339)
 	case *time.Time:
 		rv.Value = utval.Format(time.RFC3339)
+	case []expr.TypedValue: // expr.Array
+		// Handle situation where array of values is assigned to a single (multi-value) field
+		// @todo this should use field context (when available) to determinate if we're actually
+		//       setting array to a multi-value field
+
+		if len(pp) == 2 {
+			// Tying to assign an array of values to a single value; that will not work
+			return fmt.Errorf("can not assign array of values to a single value in a record value set")
+		}
+
+		for p, v := range utval {
+			rv = &types.RecordValue{Name: k, Place: uint(p)}
+			rv.Value, err = cast.ToStringE(v.Get())
+			if err != nil {
+				return
+			}
+
+			*res = res.Set(rv)
+		}
+
+		return nil
+	case []interface{}: // expr.Any
+		// Handle situation where array of values is assigned to a single (multi-value) field
+		// @todo this should use field context (when available) to determinate if we're actually
+		//       setting array to a multi-value field
+
+		if len(pp) == 2 {
+			// Tying to assign an array of values to a single value; that will not work
+			return fmt.Errorf("can not assign array of values to a single value in a record value set")
+		}
+
+		for p, v := range utval {
+			rv = &types.RecordValue{Name: k, Place: uint(p)}
+			rv.Value, err = cast.ToStringE(v)
+			if err != nil {
+				return
+			}
+
+			*res = res.Set(rv)
+		}
+
+		return nil
 	default:
 		rv.Value, err = cast.ToStringE(utval)
 	}

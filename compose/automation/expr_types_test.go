@@ -179,4 +179,20 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 		req.False(target.Has("a", 0))
 		req.True(target.Has("b", 0))
 	})
+
+	t.Run("assign multipl values", func(t *testing.T) {
+		var (
+			req    = require.New(t)
+			target = types.RecordValueSet{}
+		)
+
+		req.Error(assignToComposeRecordValues(&target, []string{"a", "2"}, expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
+		req.Len(target, 0)
+
+		req.NoError(assignToComposeRecordValues(&target, []string{"a"}, expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
+		req.Len(target, 2)
+
+		req.NoError(assignToComposeRecordValues(&target, []string{"a"}, expr.Must(expr.NewAny([]string{"1", "2"}))))
+		req.Len(target, 2)
+	})
 }
