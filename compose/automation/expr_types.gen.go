@@ -56,7 +56,7 @@ func (t *ComposeModule) Assign(val interface{}) error {
 	}
 }
 
-func (t *ComposeModule) AssignFieldValue(key string, val interface{}) error {
+func (t *ComposeModule) AssignFieldValue(key string, val TypedValue) error {
 	return assignToComposeModule(t.value, key, val)
 }
 
@@ -226,7 +226,7 @@ func (t *ComposeNamespace) Assign(val interface{}) error {
 	}
 }
 
-func (t *ComposeNamespace) AssignFieldValue(key string, val interface{}) error {
+func (t *ComposeNamespace) AssignFieldValue(key string, val TypedValue) error {
 	return assignToComposeNamespace(t.value, key, val)
 }
 

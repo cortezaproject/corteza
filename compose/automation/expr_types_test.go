@@ -16,8 +16,8 @@ func TestSetRecordValuesWithPath(t *testing.T) {
 			rvs = &ComposeRecordValues{types.RecordValueSet{}}
 		)
 
-		r.NoError(expr.Assign(rvs, "field1", "a"))
-		r.NoError(expr.Assign(rvs, "field1.1", "a"))
+		r.NoError(expr.Assign(rvs, "field1", expr.Must(expr.NewString("a"))))
+		r.NoError(expr.Assign(rvs, "field1.1", expr.Must(expr.NewString("a"))))
 		r.True(rvs.value.Has("field1", 0))
 		r.True(rvs.value.Has("field1", 1))
 	})

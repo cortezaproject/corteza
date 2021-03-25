@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"io"
 	"net/http"
 	"net/url"
@@ -222,11 +223,11 @@ func (t *KV) Select(k string) (TypedValue, error) {
 	}
 }
 
-func (t *KV) AssignFieldValue(key string, val interface{}) error {
+func (t *KV) AssignFieldValue(key string, val TypedValue) error {
 	return assignToKV(t, key, val)
 }
 
-func assignToKV(t *KV, key string, val interface{}) error {
+func assignToKV(t *KV, key string, val TypedValue) error {
 	if t.value == nil {
 		t.value = make(map[string]string)
 	}
@@ -247,20 +248,21 @@ func CastToKV(val interface{}) (out map[string]string, err error) {
 	case map[string]string:
 		return casted, nil
 	default:
-		return cast.ToStringMapStringE(casted)
+		return cast.ToStringMapStringE(UntypedValue(casted))
 	}
 }
 
-func (t *KVV) AssignFieldValue(key string, val interface{}) error {
+func (t *KVV) AssignFieldValue(key string, val TypedValue) error {
 	return assignToKVV(t, key, val)
 }
 
-func assignToKVV(t *KVV, key string, val interface{}) error {
+func assignToKVV(t *KVV, key string, val TypedValue) error {
 	if t.value == nil {
 		t.value = make(map[string][]string)
 	}
 
-	str, err := cast.ToStringSliceE(val)
+	spew.Dump(val)
+	str, err := cast.ToStringSliceE(val.Get())
 	t.value[key] = str
 	return err
 }

@@ -33,16 +33,12 @@ func (t Vars) Select(k string) (TypedValue, error) {
 	}
 }
 
-func (t *Vars) AssignFieldValue(key string, val interface{}) (err error) {
+func (t *Vars) AssignFieldValue(key string, val TypedValue) (err error) {
 	if t.value == nil {
 		t.value = make(RVars)
 	}
 
-	if tv, is := val.(TypedValue); is {
-		t.value[key] = tv
-	} else {
-		t.value[key] = Must(NewAny(val))
-	}
+	t.value[key] = val
 
 	return err
 }

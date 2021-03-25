@@ -17,7 +17,7 @@ func TestKV_Set(t *testing.T) {
 		}}
 	)
 
-	req.NoError(Assign(&vars, "k1", "v11"))
+	req.NoError(Assign(&vars, "k1", Must(NewString("v11"))))
 	req.Equal("v11", vars.value["k1"])
 	req.Equal("v2", vars.value["k2"])
 
@@ -29,7 +29,7 @@ func TestKVV_Set(t *testing.T) {
 		kvv KVV
 	)
 
-	req.NoError(Assign(&kvv, "foo", "bar"))
+	req.NoError(Assign(&kvv, "foo", Must(NewString("bar"))))
 	req.Contains(kvv.value, "foo")
 	req.Equal([]string{"bar"}, kvv.value["foo"])
 

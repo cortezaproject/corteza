@@ -29,11 +29,11 @@ type (
 	}
 
 	FieldAssigner interface {
-		AssignFieldValue(string, interface{}) error
+		AssignFieldValue(string, TypedValue) error
 	}
 
 	DeepFieldAssigner interface {
-		AssignFieldValue([]string, interface{}) error
+		AssignFieldValue([]string, TypedValue) error
 	}
 
 	Iterator interface {

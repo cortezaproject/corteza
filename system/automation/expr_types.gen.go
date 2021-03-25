@@ -56,7 +56,7 @@ func (t *Document) Assign(val interface{}) error {
 	}
 }
 
-func (t *Document) AssignFieldValue(key string, val interface{}) error {
+func (t *Document) AssignFieldValue(key string, val TypedValue) error {
 	return assignToDocument(t.value, key, val)
 }
 
@@ -300,7 +300,7 @@ func (t *Role) Assign(val interface{}) error {
 	}
 }
 
-func (t *Role) AssignFieldValue(key string, val interface{}) error {
+func (t *Role) AssignFieldValue(key string, val TypedValue) error {
 	return assignToRole(t.value, key, val)
 }
 
@@ -470,7 +470,7 @@ func (t *Template) Assign(val interface{}) error {
 	}
 }
 
-func (t *Template) AssignFieldValue(key string, val interface{}) error {
+func (t *Template) AssignFieldValue(key string, val TypedValue) error {
 	return assignToTemplate(t.value, key, val)
 }
 
@@ -704,7 +704,7 @@ func (t *TemplateMeta) Assign(val interface{}) error {
 	}
 }
 
-func (t *TemplateMeta) AssignFieldValue(key string, val interface{}) error {
+func (t *TemplateMeta) AssignFieldValue(key string, val TypedValue) error {
 	return assignToTemplateMeta(t.value, key, val)
 }
 
@@ -820,7 +820,7 @@ func (t *User) Assign(val interface{}) error {
 	}
 }
 
-func (t *User) AssignFieldValue(key string, val interface{}) error {
+func (t *User) AssignFieldValue(key string, val TypedValue) error {
 	return assignToUser(t.value, key, val)
 }
 

@@ -70,7 +70,7 @@ var _ expr.DeepFieldAssigner = &ComposeRecord{}
 //
 // We need to reroute value assigning for record-value-sets because
 // we loose the reference to record-value slice
-func (t *ComposeRecord) AssignFieldValue(kk []string, val interface{}) error {
+func (t *ComposeRecord) AssignFieldValue(kk []string, val expr.TypedValue) error {
 	switch kk[0] {
 	case "values":
 		return assignToComposeRecordValues(&t.value.Values, kk[1:], val)
@@ -145,7 +145,7 @@ func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err e
 	}
 }
 
-func (t *ComposeRecordValues) AssignFieldValue(pp []string, val interface{}) error {
+func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue) error {
 	return assignToComposeRecordValues(&t.value, pp, val)
 }
 
