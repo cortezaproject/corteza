@@ -26,7 +26,7 @@ type (
 func ObjectStore() (o *ObjectStoreOpt) {
 	o = &ObjectStoreOpt{
 		Path:           "var/store",
-		MinioBucketSep: "/"
+		MinioBucketSep: "/",
 		MinioSecure:    true,
 		MinioStrict:    false,
 	}
