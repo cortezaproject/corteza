@@ -160,6 +160,11 @@ func (wrap *composeChartConfigReport) UnmarshalYAML(n *yaml.Node) error {
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch k.Value {
+		case "y",
+			"yAxis",
+			"YAxis":
+			wrap.report.YAxis = make(map[string]interface{})
+			return v.Decode(&wrap.report.YAxis)
 		case "module":
 			// custom decoder for referenced module
 			// we'll copy this to the dedicated prop of the wrapping structure

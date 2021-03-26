@@ -220,6 +220,10 @@ func sTestComposeChart(ctx context.Context, t *testing.T, s store.Storer, nsID, 
 				{
 					Filter:   "filter",
 					ModuleID: modID,
+					YAxis: map[string]interface{}{
+						"beginAtZero": true,
+						"label":       "Euro",
+					},
 				},
 			},
 			ColorScheme: "colorscheme",
