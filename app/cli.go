@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 
+	authCommands "github.com/cortezaproject/corteza-server/auth/commands"
 	federationCommands "github.com/cortezaproject/corteza-server/federation/commands"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -51,7 +52,6 @@ func (app *CortezaApp) InitCLI() {
 	app.Command.AddCommand(
 		systemCommands.Users(app),
 		systemCommands.Roles(app),
-		systemCommands.Auth(app, app.Opt.Auth),
 		systemCommands.RBAC(app),
 		systemCommands.Sink(app),
 		systemCommands.Settings(app),
@@ -60,6 +60,7 @@ func (app *CortezaApp) InitCLI() {
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
+		authCommands.General(app, app.Opt.Auth),
 		federationCommands.Sync(app),
 		cli.VersionCommand(),
 	)
