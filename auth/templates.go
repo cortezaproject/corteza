@@ -7,7 +7,7 @@ import (
 )
 
 //go:embed assets/templates/*.tpl
-var embeddedTemplates embed.FS
+var Templates embed.FS
 
 type (
 	templateLoader func(tpls *template.Template) (tpl *template.Template, err error)
@@ -62,5 +62,5 @@ func (t templateStatic) ExecuteTemplate(w io.Writer, name string, data interface
 
 // EmbeddedTemplates returns embedded templates.
 func EmbeddedTemplates(t *template.Template) (tpl *template.Template, err error) {
-	return t.ParseFS(embeddedTemplates, "assets/templates/*.html.tpl")
+	return t.ParseFS(Templates, "assets/templates/*.html.tpl")
 }
