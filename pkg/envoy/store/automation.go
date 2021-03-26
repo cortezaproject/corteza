@@ -135,7 +135,8 @@ func (df *DecodeFilter) automationFromResource(rr ...string) *DecodeFilter {
 		switch strings.ToLower(r) {
 		case "automation:workflow":
 			df = df.AutomationWorkflows(&types.WorkflowFilter{
-				Query: id,
+				Query:    id,
+				Disabled: filter.StateInclusive,
 			})
 		}
 	}

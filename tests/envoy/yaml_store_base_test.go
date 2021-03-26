@@ -207,6 +207,31 @@ func TestYamlStore_base(t *testing.T) {
 		},
 
 		{
+			name: "charts; axis",
+			file: "charts_axis",
+			pre: func() (err error) {
+				return collect(
+					storeComposeNamespace(ctx, s, 100, "ns1"),
+					storeComposeModule(ctx, s, 100, 200, "mod1"),
+				)
+			},
+			check: func(req *require.Assertions) {
+				chr, err := store.LookupComposeChartByNamespaceIDHandle(ctx, s, 100, "c1")
+				req.NoError(err)
+				req.NotNil(chr)
+
+				req.Equal("c1", chr.Handle)
+				req.Equal("c1 name", chr.Name)
+
+				req.Len(chr.Config.Reports, 1)
+
+				rep := chr.Config.Reports[0]
+				req.Equal("Euro", rep.YAxis["label"])
+				req.Equal(true, rep.YAxis["beginAtZero"])
+			},
+		},
+
+		{
 			name: "pages; no namespace",
 			file: "pages_no_ns",
 			post: func(req *require.Assertions, err error) {
