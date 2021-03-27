@@ -6,13 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type (
-	tc struct {
-		value  interface{}
-		expect interface{}
-	}
-)
-
 func Test_empty(t *testing.T) {
 	var (
 		req              = require.New(t)
@@ -23,7 +16,10 @@ func Test_empty(t *testing.T) {
 		unsetString      string
 		unsetInt64       int64
 
-		tcc = []tc{
+		tcc = []struct {
+			value  interface{}
+			expect interface{}
+		}{
 			{
 				value:  []string{},
 				expect: true,

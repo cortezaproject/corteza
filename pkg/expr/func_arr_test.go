@@ -1,7 +1,7 @@
 package expr
 
 import (
-	"reflect"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,14 +21,6 @@ var (
 		"intVal":    42,
 		"stringVal": "foobar",
 		"boolVal":   false,
-	}
-)
-
-type (
-	fac struct {
-		expect interface{}
-		arr    interface{}
-		val    interface{}
 	}
 )
 
@@ -81,298 +73,355 @@ func Example_pop_float() {
 	// 69.42
 }
 
+func Test_push(t *testing.T) {
+	tcc := []struct {
+		base     interface{}
+		new      []interface{}
+		expect   interface{}
+		expError bool
+	}{
+		{
+			base:   []string{"1", "2", "3"},
+			new:    []interface{}{"4"},
+			expect: []string{"1", "2", "3", "4"},
+		},
+		{
+			base:   Must(NewArray(nil)),
+			new:    []interface{}{"foo"},
+			expect: []TypedValue{Must(NewString("foo"))},
+		},
+		{
+			base:   Must(NewArray([]interface{}{"foo"})),
+			new:    []interface{}{"bar"},
+			expect: []TypedValue{Must(NewString("foo")), Must(NewString("bar"))},
+		},
+		{
+			base:   Must(NewArray([]interface{}{Must(NewString("foo"))})),
+			new:    []interface{}{"bar"},
+			expect: []TypedValue{Must(NewString("foo")), Must(NewString("bar"))},
+		},
+		{
+			base:   Must(NewArray([]interface{}{Must(NewString("foo"))})),
+			new:    []interface{}{Must(NewString("bar"))},
+			expect: []TypedValue{Must(NewString("foo")), Must(NewString("bar"))},
+		},
+		{
+			base:     []string{"1", "2", "3"},
+			new:      []interface{}{4},
+			expError: true,
+		},
+	}
+
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req      = require.New(t)
+				out, err = push(tc.base, tc.new...)
+			)
+
+			if tc.expError {
+				req.Error(err)
+				return
+			}
+
+			req.NoError(err)
+			req.Equal(tc.expect, out)
+		})
+	}
+}
+
 func Test_shift(t *testing.T) {
-	var (
-		req = require.New(t)
+	tcc := []struct {
+		value    interface{}
+		expect   interface{}
+		expError bool
+	}{
+		{
+			value:  []string{"1", "2", "3"},
+			expect: "1",
+		},
+		{
+			value:    map[string]string{"test": "123"},
+			expect:   nil,
+			expError: true,
+		},
+		{
+			value:  []int{4, 5, 6, 7},
+			expect: 4,
+		},
+		{
+			value:  []int{},
+			expect: nil,
+		},
+		{
+			value:    int(1),
+			expect:   nil,
+			expError: true,
+		},
+		{
+			value:  []float64{11.1},
+			expect: 11.1,
+		},
+	}
 
-		tcc = []tc{
-			{
-				value:  []string{"1", "2", "3"},
-				expect: "1",
-			},
-			{
-				value:  map[string]string{"test": "123"},
-				expect: nil,
-			},
-			{
-				value:  []int{4, 5, 6, 7},
-				expect: 4,
-			},
-			{
-				value:  []int{},
-				expect: nil,
-			},
-			{
-				value:  int(1),
-				expect: nil,
-			},
-			{
-				value:  []float64{11.1},
-				expect: 11.1,
-			},
-		}
-	)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req      = require.New(t)
+				val, err = shift(tc.value)
+			)
 
-	for _, tst := range tcc {
-		val, _ := shift(tst.value)
+			if tc.expError {
+				req.Error(err)
+				return
+			}
 
-		req.Equal(tst.expect, val)
+			req.NoError(err)
+			req.Equal(tc.expect, val)
+		})
 	}
 }
 
 func Test_find(t *testing.T) {
-	var (
-		req = require.New(t)
+	tcc := []struct {
+		expect interface{}
+		arr    interface{}
+		val    interface{}
+	}{
+		{
+			arr:    []string{"1", "2", "3"},
+			val:    "3",
+			expect: 2,
+		},
+		{
+			arr:    []bool{true, false, true},
+			val:    true,
+			expect: 0,
+		},
+		{
+			arr:    []int{4, 5, 6, 7},
+			val:    7,
+			expect: 3,
+		},
+		{
+			arr:    []int{},
+			val:    0,
+			expect: -1,
+		},
+		{
+			arr:    []float64{11.1, 12.4},
+			val:    11.1,
+			expect: 0,
+		},
+		{
+			arr:    []float64{11.1, 12.4},
+			val:    11.2,
+			expect: -1,
+		},
+	}
 
-		tcc = []fac{
-			{
-				arr:    []string{"1", "2", "3"},
-				val:    "3",
-				expect: 2,
-			},
-			{
-				arr:    []bool{true, false, true},
-				val:    true,
-				expect: 0,
-			},
-			{
-				arr:    []int{4, 5, 6, 7},
-				val:    7,
-				expect: 3,
-			},
-			{
-				arr:    []int{},
-				val:    0,
-				expect: -1,
-			},
-			{
-				arr:    []float64{11.1, 12.4},
-				val:    11.1,
-				expect: 0,
-			},
-			{
-				arr:    []float64{11.1, 12.4},
-				val:    11.2,
-				expect: -1,
-			},
-		}
-	)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req      = require.New(t)
+				loc, err = find(tc.arr, tc.val)
+			)
 
-	for _, tst := range tcc {
-		loc := find(tst.arr, tst.val)
-
-		req.Equal(tst.expect, loc)
+			req.NoError(err)
+			req.Equal(tc.expect, loc)
+		})
 	}
 }
 
 func Test_count(t *testing.T) {
-	var (
-		req = require.New(t)
+	tcc := []struct {
+		expect interface{}
+		arr    interface{}
+		val    []interface{}
+	}{
+		{
+			arr:    []string{"1", "2", "3"},
+			val:    []interface{}{"0", "3"},
+			expect: 1,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, false},
+			expect: 0,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, true},
+			expect: 1,
+		},
+		{
+			arr:    []int{4, 5, 6, 7},
+			val:    []interface{}{7, 4},
+			expect: 2,
+		},
+		{
+			arr:    []float64{11.1, 12.4},
+			val:    []interface{}{0.1, 1.1},
+			expect: 0,
+		},
+	}
 
-		tcc = []fac{
-			{
-				arr:    []string{"1", "2", "3"},
-				val:    []string{"0", "3"},
-				expect: 1,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, false},
-				expect: 0,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, true},
-				expect: 1,
-			},
-			{
-				arr:    []int{4, 5, 6, 7},
-				val:    []int{7, 4},
-				expect: 2,
-			},
-			{
-				arr:    []float64{11.1, 12.4},
-				val:    []float64{0.1, 1.1},
-				expect: 0,
-			},
-		}
-	)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req = require.New(t)
+				err error
+				loc int
+			)
 
-	for _, tst := range tcc {
-		var loc int
-
-		switch reflect.TypeOf(tst.val).Elem().Kind() {
-		case reflect.String:
-			loc = count(tst.arr, tst.val.([]string)[0], tst.val.([]string)[1])
-			break
-		case reflect.Bool:
-			loc = count(tst.arr, tst.val.([]bool)[0], tst.val.([]bool)[1])
-			break
-		case reflect.Int:
-			loc = count(tst.arr, tst.val.([]int)[0], tst.val.([]int)[1])
-			break
-		case reflect.Float64:
-			loc = count(tst.arr, tst.val.([]float64)[0], tst.val.([]float64)[1])
-			break
-		}
-
-		req.Equal(tst.expect, loc)
+			loc, err = count(tc.arr, tc.val...)
+			req.NoError(err)
+			req.Equal(tc.expect, loc)
+		})
 	}
 }
 
 func Test_has(t *testing.T) {
-	var (
-		req = require.New(t)
+	tcc := []struct {
+		expect interface{}
+		arr    interface{}
+		val    []interface{}
+	}{
+		{
+			arr:    []string{"1", "2", "3"},
+			val:    []interface{}{"0", "3"},
+			expect: true,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, false},
+			expect: false,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, true},
+			expect: true,
+		},
+		{
+			arr:    []int{4, 5, 6, 7},
+			val:    []interface{}{7, 4},
+			expect: true,
+		},
+		{
+			arr:    []float64{11.1, 12.4},
+			val:    []interface{}{0.1, 1.1},
+			expect: false,
+		},
+	}
 
-		tcc = []fac{
-			{
-				arr:    []string{"1", "2", "3"},
-				val:    []string{"0", "3"},
-				expect: true,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, false},
-				expect: false,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, true},
-				expect: true,
-			},
-			{
-				arr:    []int{4, 5, 6, 7},
-				val:    []int{7, 4},
-				expect: true,
-			},
-			{
-				arr:    []float64{11.1, 12.4},
-				val:    []float64{0.1, 1.1},
-				expect: false,
-			},
-		}
-	)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req = require.New(t)
+				loc bool
+				err error
+			)
 
-	for _, tst := range tcc {
-		var loc bool
-
-		switch reflect.TypeOf(tst.val).Elem().Kind() {
-		case reflect.String:
-			loc = has(tst.arr, tst.val.([]string)[0], tst.val.([]string)[1])
-			break
-		case reflect.Bool:
-			loc = has(tst.arr, tst.val.([]bool)[0], tst.val.([]bool)[1])
-			break
-		case reflect.Int:
-			loc = has(tst.arr, tst.val.([]int)[0], tst.val.([]int)[1])
-			break
-		case reflect.Float64:
-			loc = has(tst.arr, tst.val.([]float64)[0], tst.val.([]float64)[1])
-			break
-		}
-
-		req.Equal(tst.expect, loc)
+			loc, err = has(tc.arr, tc.val...)
+			req.NoError(err)
+			req.Equal(tc.expect, loc)
+		})
 	}
 }
 
 func Test_hasAll(t *testing.T) {
-	var (
-		req = require.New(t)
+	tcc := []struct {
+		arr      interface{}
+		val      []interface{}
+		hasAll   bool
+		expError bool
+	}{
+		{
+			arr:    []string{"1", "2", "3"},
+			val:    []interface{}{"0", "3"},
+			hasAll: false,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, false},
+			hasAll: false,
+		},
+		{
+			arr:    []bool{true, true},
+			val:    []interface{}{false, true},
+			hasAll: false,
+		},
+		{
+			arr:    []int{4, 5, 6, 7},
+			val:    []interface{}{7, 4},
+			hasAll: true,
+		},
+		{
+			arr:    []float64{11.1, 12.4},
+			val:    []interface{}{0.1, 1.1},
+			hasAll: false,
+		},
+	}
 
-		tcc = []fac{
-			{
-				arr:    []string{"1", "2", "3"},
-				val:    []string{"0", "3"},
-				expect: false,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, false},
-				expect: false,
-			},
-			{
-				arr:    []bool{true, true},
-				val:    []bool{false, true},
-				expect: false,
-			},
-			{
-				arr:    []int{4, 5, 6, 7},
-				val:    []int{7, 4},
-				expect: true,
-			},
-			{
-				arr:    []float64{11.1, 12.4},
-				val:    []float64{0.1, 1.1},
-				expect: false,
-			},
-		}
-	)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req       = require.New(t)
+				rval, err = hasAll(tc.arr, tc.val...)
+			)
 
-	for _, tst := range tcc {
-		var loc bool
+			if tc.expError {
+				req.Error(err)
+				return
+			}
 
-		switch reflect.TypeOf(tst.arr).Elem().Kind() {
-		case reflect.String:
-			loc = hasAll(tst.arr, tst.val.([]string)[0], tst.val.([]string)[1])
-			break
-		case reflect.Bool:
-			loc = hasAll(tst.arr, tst.val.([]bool)[0], tst.val.([]bool)[1])
-			break
-		case reflect.Int:
-			loc = hasAll(tst.arr, tst.val.([]int)[0], tst.val.([]int)[1])
-			break
-		case reflect.Float64:
-			loc = hasAll(tst.arr, tst.val.([]float64)[0], tst.val.([]float64)[1])
-			break
-		}
-
-		req.Equal(tst.expect, loc)
+			req.NoError(err)
+			req.Equal(tc.hasAll, rval)
+		})
 	}
 }
 
 func Test_slice(t *testing.T) {
-	type (
-		sct struct {
-			vals   []int
-			arr    interface{}
-			expect interface{}
-		}
-	)
+	tcc := []struct {
+		vals   []int
+		arr    interface{}
+		expect interface{}
+	}{
+		{
+			vals:   []int{0, 3},
+			arr:    []string{"1", "2", "3"},
+			expect: []string{"1", "2", "3"},
+		},
+		{
+			vals:   []int{0, 1},
+			arr:    []string{"1", "2", "3"},
+			expect: []string{"1"},
+		},
+		{
+			vals:   []int{2, 3},
+			arr:    []bool{true, true},
+			expect: []bool{true, true},
+		},
+		{
+			vals:   []int{1, -1},
+			arr:    []int{4, 5, 6, 7},
+			expect: []int{5, 6, 7},
+		},
+		{
+			vals:   []int{3, -1},
+			arr:    []float64{11.1, 12.4},
+			expect: []float64{11.1, 12.4},
+		},
+	}
 
-	var (
-		req = require.New(t)
+	for p, tc := range tcc {
+		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
+			var (
+				req = require.New(t)
+				ss  = slice(tc.arr, tc.vals[0], tc.vals[1])
+			)
 
-		tcc = []sct{
-			{
-				vals:   []int{0, 3},
-				arr:    []string{"1", "2", "3"},
-				expect: []string{"1", "2", "3"},
-			},
-			{
-				vals:   []int{0, 1},
-				arr:    []string{"1", "2", "3"},
-				expect: []string{"1"},
-			},
-			{
-				vals:   []int{2, 3},
-				arr:    []bool{true, true},
-				expect: []bool{true, true},
-			},
-			{
-				vals:   []int{1, -1},
-				arr:    []int{4, 5, 6, 7},
-				expect: []int{5, 6, 7},
-			},
-			{
-				vals:   []int{3, -1},
-				arr:    []float64{11.1, 12.4},
-				expect: []float64{11.1, 12.4},
-			},
-		}
-	)
-
-	for _, tst := range tcc {
-		new := slice(tst.arr, tst.vals[0], tst.vals[1])
-		req.Equal(tst.expect, new)
+			req.Equal(tc.expect, ss)
+		})
 	}
 }

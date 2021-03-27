@@ -71,7 +71,7 @@ func (i *collectionIterator) Next(context.Context, *Vars) (out *Vars, err error)
 	case TypedValue:
 		item = c
 	default:
-		if item, err = NewAny(c); err != nil {
+		if item, err = Cast(c); err != nil {
 			return
 		}
 	}

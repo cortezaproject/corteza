@@ -5,17 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/spf13/cast"
 	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/spf13/cast"
 )
 
 type (
@@ -27,6 +25,64 @@ type (
 
 func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
+}
+
+// cast intput into some well-known types
+func Cast(in interface{}) (tv TypedValue, err error) {
+	var is bool
+	if tv, is = in.(TypedValue); is {
+		return
+	}
+
+	switch c := in.(type) {
+	// @todo
+	//case map[string]interface{}:
+	//	return NewVars()
+	case []TypedValue:
+		return &Array{value: c}, nil
+	case bool:
+		return &Boolean{value: c}, nil
+	case uint8:
+		return &UnsignedInteger{value: uint64(c)}, nil
+	case uint16:
+		return &UnsignedInteger{value: uint64(c)}, nil
+	case uint32:
+		return &UnsignedInteger{value: uint64(c)}, nil
+	case uint64:
+		return &UnsignedInteger{value: c}, nil
+	case int8:
+		return &Integer{value: int64(c)}, nil
+	case int16:
+		return &Integer{value: int64(c)}, nil
+	case int32:
+		return &Integer{value: int64(c)}, nil
+	case int64:
+		return &Integer{value: c}, nil
+	case float32:
+		return &Float{value: float64(c)}, nil
+	case float64:
+		return &Float{value: c}, nil
+	case string:
+		return &String{value: c}, nil
+	case []byte:
+		return &String{value: string(c)}, nil
+	case *time.Time:
+		return &DateTime{value: c}, nil
+	case time.Time:
+		return &DateTime{value: &c}, nil
+	case *time.Duration:
+		return &Duration{value: *c}, nil
+	case time.Duration:
+		return &Duration{value: c}, nil
+	case map[string]string:
+		return &KV{value: c}, nil
+	case map[string][]string:
+		return &KVV{value: c}, nil
+	case io.Reader, io.ReadCloser, io.ReadSeeker, io.ReadSeekCloser, io.ReadWriteSeeker:
+		return &Reader{value: c.(io.Reader)}, nil
+	default:
+		return &Any{value: c}, nil
+	}
 }
 
 // Unresolved is a special type that holds value + type it needs to be resolved to
@@ -64,31 +120,51 @@ func CastToAny(val interface{}) (interface{}, error) {
 	return val, nil
 }
 
-func CastToArray(val interface{}) ([]TypedValue, error) {
+func CastToArray(val interface{}) (out []TypedValue, err error) {
 
 	switch val := val.(type) {
+	case nil:
+		return make([]TypedValue, 0), nil
 	case *Array:
 		return val.value, nil
 	}
 
 	ref := reflect.ValueOf(val)
 	if ref.Kind() == reflect.Slice {
-		out := make([]TypedValue, ref.Len())
+		out = make([]TypedValue, ref.Len())
 		for i := 0; i < ref.Len(); i++ {
 			item := ref.Index(i).Interface()
-			if tVal, is := item.(TypedValue); is {
-				out[i] = tVal
-			} else {
-				out[i] = &Any{value: item}
+			out[i], err = Cast(item)
+			if err != nil {
+				return
 			}
 		}
-		return out, nil
+
+		return
 	}
 
 	return nil, fmt.Errorf("unable to cast %T to []TypedValue", val)
 }
 
 var _ TypeValueDecoder = &Array{}
+
+func (t Array) MarshalJSON() ([]byte, error) {
+	var (
+		aux = make([]*typedValueWrap, len(t.value))
+	)
+
+	for i, v := range t.value {
+		aux[i] = &typedValueWrap{Type: v.Type()}
+
+		if _, is := v.(json.Marshaler); is {
+			aux[i].Value = v
+		} else {
+			aux[i].Value = v.Get()
+		}
+	}
+
+	return json.Marshal(aux)
+}
 
 func (t *Array) Decode(dst reflect.Value) error {
 	if dst.Kind() != reflect.Slice {
@@ -136,7 +212,7 @@ func (t Array) Has(k string) bool {
 	}
 }
 
-// Select is field accessor for *types.Record
+// Select is field accessor for *types.Array
 //
 // Similar to SelectGVal but returns typed values
 func (t Array) Select(k string) (TypedValue, error) {
@@ -261,7 +337,6 @@ func assignToKVV(t *KVV, key string, val TypedValue) error {
 		t.value = make(map[string][]string)
 	}
 
-	spew.Dump(val)
 	str, err := cast.ToStringSliceE(val.Get())
 	t.value[key] = str
 	return err

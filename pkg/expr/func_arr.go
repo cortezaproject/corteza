@@ -1,9 +1,9 @@
 package expr
 
 import (
-	"reflect"
-
+	"fmt"
 	"github.com/PaesslerAG/gval"
+	"reflect"
 )
 
 func ArrayFunctions() []gval.Language {
@@ -18,24 +18,55 @@ func ArrayFunctions() []gval.Language {
 }
 
 // push adds a value to the end of slice, returns copy
-func push(arr interface{}, p interface{}) (interface{}, error) {
-	if !isSlice(arr) {
-		return nil, &reflect.ValueError{Method: "Index", Kind: reflect.ValueOf(arr).Kind()}
+func push(arr interface{}, nn ...interface{}) (out interface{}, err error) {
+	if arr == nil {
+		// If base is empty, return pushed items directly
+		return nn, nil
+	} else if i, is := arr.([]interface{}); is {
+		// Simple append if we're dealing with []interface{} base
+		return append(i, nn...), nil
+	} else if arr, err = toSlice(arr); err != nil {
+		return
 	}
 
-	c := reflect.ValueOf(arr)
+	if stv, is := arr.([]TypedValue); is {
+		// slice of typed values, this will make things easier
+		for _, n := range nn {
+			if tv, is := n.(TypedValue); is {
+				stv = append(stv, tv)
+			} else {
+				// wrap unknown types...
+				stv = append(stv, Must(Cast(n)))
+			}
+		}
 
-	nval := reflect.MakeSlice(c.Type(), c.Len()+1, c.Cap()+1)
+		return stv, nil
+	}
+
+	var (
+		c    = reflect.ValueOf(arr)
+		nval = reflect.MakeSlice(c.Type(), c.Len()+len(nn), c.Cap()+len(nn))
+	)
+
 	reflect.Copy(nval, c)
-	nval.Index(c.Len()).Set(reflect.ValueOf(p))
+
+	for i, n := range nn {
+		nt := reflect.ValueOf(n).Type()
+		it := nval.Index(c.Len() + i).Type()
+		if nt != it {
+			return nil, fmt.Errorf("can not push %v to %v slice", nt, it)
+		}
+
+		nval.Index(c.Len() + i).Set(reflect.ValueOf(n))
+	}
 
 	return nval.Interface(), nil
 }
 
 // pop takes the last value in slice, does not modify original
-func pop(arr interface{}) (interface{}, error) {
-	if !isSlice(arr) {
-		return nil, &reflect.ValueError{Method: "Index", Kind: reflect.ValueOf(arr).Kind()}
+func pop(arr interface{}) (out interface{}, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
 	}
 
 	c := reflect.ValueOf(arr)
@@ -48,9 +79,9 @@ func pop(arr interface{}) (interface{}, error) {
 }
 
 // shifts takes the first value in slice, does not modify original
-func shift(arr interface{}) (interface{}, error) {
-	if !isSlice(arr) {
-		return nil, &reflect.ValueError{Method: "Index", Kind: reflect.ValueOf(arr).Kind()}
+func shift(arr interface{}) (out interface{}, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
 	}
 
 	c := reflect.ValueOf(arr)
@@ -62,51 +93,76 @@ func shift(arr interface{}) (interface{}, error) {
 	return c.Index(0).Interface(), nil
 }
 
-// cound gets the count of occurences in the slice
-func count(arr interface{}, v ...interface{}) int {
-	if !isSlice(arr) {
-		return 0
+// count gets the count of occurrences in the slice
+func count(arr interface{}, v ...interface{}) (count int, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
 	}
 
-	count := 0
-
+	var (
+		occ int
+	)
 	for _, vv := range v {
-		if find(arr, vv) != -1 {
+		if occ, err = find(arr, vv); err != nil {
+			return 0, err
+		} else if occ != -1 {
 			count++
 		}
 	}
 
-	return count
+	return
 }
 
-// has finds any occurence of the values in slice
-func has(arr interface{}, v ...interface{}) bool {
-	return count(arr, v...) > 0
+// has finds any occurrence of the values in slice
+func has(arr interface{}, v ...interface{}) (b bool, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
+	}
+
+	var c int
+	if c, err = count(arr, v...); err != nil {
+		return
+	}
+
+	return c > 0, nil
 }
 
-// hasAll finds all the occurences in the slice
-func hasAll(arr interface{}, v ...interface{}) bool { return count(arr, v...) == len(v) }
+// hasAll finds all the occurrences in the slice
+func hasAll(arr interface{}, v ...interface{}) (b bool, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
+	}
+
+	var c int
+	if c, err = count(arr, v...); err != nil {
+		return
+	}
+
+	return c == len(v), nil
+}
 
 // find takes a value and gets the position in slice
 // if no results, returns -1
-func find(arr interface{}, v interface{}) int {
-	if !isSlice(arr) {
-		return 0
+func find(arr interface{}, v interface{}) (p int, err error) {
+	if arr, err = toSlice(arr); err != nil {
+		return
 	}
 
-	for i := 0; i < reflect.ValueOf(arr).Len(); i++ {
+	for p = 0; p < reflect.ValueOf(arr).Len(); p++ {
 		c := reflect.ValueOf(arr)
 
-		if c.Index(i).Interface() == v {
-			return i
+		if c.Index(p).Interface() == v {
+			return
 		}
 	}
 
-	return -1
+	return -1, nil
 }
 
 // slice slices slices
 func slice(arr interface{}, start, end int) interface{} {
+	arr = UntypedValue(arr)
+
 	v := reflect.ValueOf(arr)
 
 	if start >= v.Len() {
