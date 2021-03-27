@@ -58,10 +58,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		settings: &settings.Settings{ /* all disabled by default. */ },
 	}
 
-	// use modified logger for the rest
-	if opt.LogEnabled {
-		log = log.WithOptions(zap.AddStacktrace(zap.PanicLevel))
-	} else {
+	if !opt.LogEnabled {
 		log = zap.NewNop()
 	}
 
@@ -69,6 +66,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 
 	oauth2Manager := oauth2.NewManager(
 		opt,
+		log,
 		&oauth2.ContextClientStore{},
 		&oauth2.CortezaTokenStore{Store: s},
 	)

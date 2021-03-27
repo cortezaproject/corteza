@@ -9,7 +9,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"go.uber.org/zap"
-	"net/url"
 	"strings"
 )
 
@@ -17,7 +16,7 @@ const (
 	RedirectUriSeparator = " "
 )
 
-func NewManager(opt options.AuthOpt, cs oauth2.ClientStore, ts oauth2.TokenStore) *manage.Manager {
+func NewManager(opt options.AuthOpt, log *zap.Logger, cs oauth2.ClientStore, ts oauth2.TokenStore) *manage.Manager {
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
@@ -29,27 +28,27 @@ func NewManager(opt options.AuthOpt, cs oauth2.ClientStore, ts oauth2.TokenStore
 	manager.MapClientStorage(cs)
 
 	manager.SetValidateURIHandler(func(baseURI, redirectURI string) (err error) {
+		if baseURI == "" {
+			log.Debug(
+				"redirect URI check for client is disabled (empty validation list)",
+				zap.String("sent", redirectURI),
+			)
+
+			return nil
+		}
+
 		var (
-			base, redirect *url.URL
+			valid = strings.Split(baseURI, RedirectUriSeparator)
 		)
 
-		redirect, err = url.Parse(redirectURI)
-		if err != nil {
-			return err
-		}
+		log.Debug(
+			"matching redirectURI",
+			zap.String("sent", redirectURI),
+			zap.Strings("valid", valid),
+		)
 
-		// allow port only when using localhost as redirect
-		if redirect.Port() != "" && redirect.Hostname() != "localhost" {
-			return errors.ErrInvalidRedirectURI
-		}
-
-		for _, baseURI = range strings.Split(baseURI, RedirectUriSeparator) {
-			base, err = url.Parse(baseURI)
-			if err != nil {
-				return err
-			}
-
-			if strings.HasPrefix(redirect.String(), base.String()) {
+		for _, baseURI = range valid {
+			if strings.HasPrefix(redirectURI, baseURI) {
 				return nil
 			}
 		}
