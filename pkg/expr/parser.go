@@ -96,6 +96,6 @@ func eval(e string, p interface{}) {
 	if err != nil {
 		fmt.Printf("error: %v", err)
 	} else {
-		fmt.Printf("%v", result)
+		fmt.Printf("%+v", result)
 	}
 }

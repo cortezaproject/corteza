@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/PaesslerAG/gval"
@@ -88,5 +89,19 @@ func getKind(v interface{}) reflect.Kind {
 }
 
 func isSlice(v interface{}) bool {
-	return reflect.TypeOf(v).Kind() == reflect.Slice
+	return reflect.TypeOf(v).Kind() == reflect.Slice || reflect.TypeOf(v).Kind() == reflect.Array
+}
+
+// toArray removes expr types (if wrapped) and checks if the variable is slice
+// internal only
+//
+//
+func toSlice(vv interface{}) (interface{}, error) {
+	vv = UntypedValue(vv)
+
+	if !isSlice(vv) {
+		return nil, fmt.Errorf("unexpected type: %T, expecting slice", vv)
+	}
+
+	return vv, nil
 }

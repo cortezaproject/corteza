@@ -26,13 +26,13 @@ func TestExprSet_Eval(t *testing.T) {
 			{
 				name:   "constant assignment",
 				set:    ExprSet{&Expr{Target: "foo", Expr: `"bar"`}},
-				output: RVars{"foo": Must(NewAny("bar"))},
+				output: RVars{"foo": Must(NewString("bar"))},
 			},
 			{
 				name:   "vars with path",
 				set:    ExprSet{&Expr{Target: "l1.l2", Expr: `"bar"`}},
 				input:  RVars{"l1": RVars{}.Vars()},
-				output: RVars{"l1": RVars{"l2": Must(NewAny("bar"))}.Vars()},
+				output: RVars{"l1": RVars{"l2": Must(Cast("bar"))}.Vars()},
 			},
 			{
 				name: "copy vars with same types",
@@ -84,6 +84,41 @@ func TestExprSet_Eval(t *testing.T) {
 				output: RVars{
 					"a": Must(NewKV(map[string]string{
 						"b": "c",
+					})),
+				},
+			},
+			{
+				name: "slice push",
+				set: ExprSet{
+					&Expr{Target: "arr", typ: &Array{}, Expr: `[]`},
+					&Expr{Target: "arr", typ: &Array{}, Expr: `push(arr, "foo")`},
+				},
+				output: RVars{
+					"arr": Must(NewArray([]string{
+						"foo",
+					})),
+				},
+			},
+			{
+				name: "slice push w/o type",
+				set: ExprSet{
+					&Expr{Target: "arr", typ: &Array{}, Expr: `[]`},
+					&Expr{Target: "arr", typ: &Any{}, Expr: `push(arr, "foo")`},
+				},
+				output: RVars{
+					"arr": Must(NewArray([]string{
+						"foo",
+					})),
+				},
+			},
+			{
+				name: "slice create & push w/o type",
+				set: ExprSet{
+					&Expr{Target: "arr", typ: &Array{}, Expr: `push([], "foo")`},
+				},
+				output: RVars{
+					"arr": Must(NewArray([]TypedValue{
+						Must(Cast("foo")),
 					})),
 				},
 			},

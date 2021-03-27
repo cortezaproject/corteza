@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -89,7 +90,7 @@ func TestVars_UnmarshalJSON(t *testing.T) {
 	}{
 		{"empty", "", &Vars{}},
 		{"empty", "{}", &Vars{}},
-		{"empty", `{"a":{"@value":"b"}}`, RVars{"a": &Unresolved{value: "b"}}.Vars()},
+		{"string", `{"a":{"@value":"b"}}`, RVars{"a": &Unresolved{value: "b"}}.Vars()},
 	}
 
 	for _, c := range cases {
@@ -101,6 +102,32 @@ func TestVars_UnmarshalJSON(t *testing.T) {
 
 			r.NoError(v.UnmarshalJSON([]byte(c.json)))
 			r.Equal(c.vars, v)
+		})
+	}
+}
+
+func TestVars_UMarshalJSON(t *testing.T) {
+	cases := []struct {
+		name string
+		json string
+		vars *Vars
+	}{
+		{"empty", "{}", &Vars{}},
+		{"string", `{"a":{"@value":"b","@type":"String"}}`, RVars{"a": &String{value: "b"}}.Vars()},
+		{"array",
+			`{"arr":{"@value":[{"@value":"foo","@type":"String"},{"@value":"bar","@type":"String"}],"@type":"Array"}}`,
+			RVars{"arr": &Array{value: []TypedValue{&String{value: "foo"}, &String{value: "bar"}}}}.Vars()},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				r = require.New(t)
+			)
+
+			j, err := json.Marshal(c.vars)
+			r.NoError(err)
+			r.Equal(c.json, string(j))
 		})
 	}
 }

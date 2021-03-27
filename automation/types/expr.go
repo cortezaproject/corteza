@@ -157,8 +157,22 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 
 		typedValue, is := value.(expr.TypedValue)
 		if !is {
-			if e.typ == nil {
-				typedValue, _ = expr.NewAny(value)
+			// value to be assigned (evaled, copied..) is not typed!
+			// try to figure out what we can do
+			if !knownType(e.typ) {
+				// Expression does not have type set
+				if out.Has(e.Target) {
+					t, _ := out.Select(e.Target)
+					typedValue, err = t.Cast(value)
+					if err != nil {
+						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+					}
+				} else {
+					typedValue, err = expr.Cast(value)
+					if err != nil {
+						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+					}
+				}
 			} else if typedValue, err = e.typ.Cast(value); err != nil {
 				return nil, fmt.Errorf("cannot cast value %T to %s (target %s)", value, e.typ.Type(), e.Target)
 			}
