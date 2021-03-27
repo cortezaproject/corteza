@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"time"
 )
 
 func (s Store) convertAuthSessionFilter(f types.AuthSessionFilter) (query squirrel.SelectBuilder, err error) {
@@ -20,5 +21,5 @@ func (s Store) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) er
 }
 
 func (s Store) DeleteExpiredAuthSessions(ctx context.Context) error {
-	return s.execDeleteAuthSessions(ctx, squirrel.Expr("ses.expires_at < NOW()"))
+	return s.execDeleteAuthSessions(ctx, squirrel.Lt{"ses.expires_at": time.Now()})
 }
