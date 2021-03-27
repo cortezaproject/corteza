@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"time"
 )
 
 func (s Store) convertAuthOa2tokenFilter(f types.AuthOa2tokenFilter) (query squirrel.SelectBuilder, err error) {
@@ -17,7 +18,7 @@ func (s Store) convertAuthOa2tokenFilter(f types.AuthOa2tokenFilter) (query squi
 }
 
 func (s Store) DeleteExpiredAuthOA2Tokens(ctx context.Context) error {
-	return s.execDeleteAuthOa2tokens(ctx, squirrel.Expr("tkn.expires_at < NOW()"))
+	return s.execDeleteAuthOa2tokens(ctx, squirrel.Lt{"tkn.expires_at": time.Now()})
 }
 
 func (s Store) DeleteAuthOA2TokenByCode(ctx context.Context, code string) error {
