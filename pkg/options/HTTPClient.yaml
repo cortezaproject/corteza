@@ -7,10 +7,10 @@ docs:
 props:
   - name: clientTSLInsecure
     type: bool
-    env: HTTP_CLIENT_TSL_INSECURE
+    env: HTTP_CLIENT_TLS_INSECURE
     default: false
     description: |-
-      Allow insecure (invalid, expired TSL/SSL certificates) connections.
+      Allow insecure (invalid, expired TLS/SSL certificates) connections.
 
       [IMPORTANT]
       ====
