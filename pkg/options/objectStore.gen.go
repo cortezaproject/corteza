@@ -17,6 +17,7 @@ type (
 		MinioSecretKey string `env:"MINIO_SECRET_KEY"`
 		MinioSSECKey   string `env:"MINIO_SSEC_KEY"`
 		MinioBucket    string `env:"MINIO_BUCKET"`
+		MinioBucketSep string `env:"MINIO_BUCKET_SEP"`
 		MinioStrict    bool   `env:"MINIO_STRICT"`
 	}
 )
@@ -24,9 +25,10 @@ type (
 // ObjectStore initializes and returns a ObjectStoreOpt with default values
 func ObjectStore() (o *ObjectStoreOpt) {
 	o = &ObjectStoreOpt{
-		Path:        "var/store",
-		MinioSecure: true,
-		MinioStrict: false,
+		Path:           "var/store",
+		MinioSecure:    true,
+		MinioBucketSep: "/",
+		MinioStrict:    false,
 	}
 
 	fill(o)
