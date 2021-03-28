@@ -111,7 +111,7 @@ func (app *CortezaApp) Setup() (err error) {
 
 	http.SetupDefaults(
 		app.Opt.HTTPClient.HttpClientTimeout,
-		app.Opt.HTTPClient.ClientTSLInsecure,
+		app.Opt.HTTPClient.ClientTLSInsecure,
 	)
 
 	monitor.Setup(app.Log, app.Opt.Monitor)
