@@ -135,7 +135,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		if c.Storage.MinioEndpoint != "" {
 			var bucket = svcPath
 			if c.Storage.MinioBucket != "" {
-				bucket = c.Storage.MinioBucket + "/" + svcPath
+				bucket = c.Storage.MinioBucket + c.Storage.MinioBucketSep + svcPath
 			}
 
 			DefaultObjectStore, err = minio.New(bucket, minio.Options{
