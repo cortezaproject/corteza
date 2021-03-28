@@ -14,7 +14,7 @@ import (
 
 type (
 	HTTPClientOpt struct {
-		ClientTSLInsecure bool          `env:"HTTP_CLIENT_TSL_INSECURE"`
+		ClientTSLInsecure bool          `env:"HTTP_CLIENT_TLS_INSECURE"`
 		HttpClientTimeout time.Duration `env:"HTTP_CLIENT_TIMEOUT"`
 	}
 )
