@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -27,7 +28,7 @@ func StringFunctions() []gval.Language {
 		gval.Function("isUrl", valid.IsURL),
 		gval.Function("isEmail", valid.IsEmail),
 		gval.Function("split", strings.Split),
-		gval.Function("join", strings.Join),
+		gval.Function("join", join),
 		gval.Function("hasSubstring", hasSubstring),
 		gval.Function("substring", substring),
 		gval.Function("hasPrefix", strings.HasPrefix),
@@ -75,6 +76,42 @@ func untitle(s string) string {
 	first := strings.ToLower(split[0][:1]) + split[0][1:]
 
 	return fmt.Sprintf("%s %s", first, strings.Join(split[1:], " "))
+}
+
+func join(arr interface{}, sep string) (out string, err error) {
+	if arr == nil {
+		// If base is empty, nothing to do
+		return "", nil
+	} else if i, is := arr.([]string); is {
+		// If string slice, we are good to go
+		return strings.Join(i, sep), nil
+	} else if i, is := arr.([]interface{}); is {
+		// If slice of interfaces, we can try to cast them
+		var aux []string
+		aux, err = CastStringSlice(i)
+		if err != nil {
+			return
+		}
+		return strings.Join(aux, sep), nil
+	} else if arr, err = toSlice(arr); err != nil {
+		return
+	}
+
+	// Make an aux string slice so the join operation can use it
+	stv, is := arr.([]TypedValue)
+	if !is {
+		return "", errors.New("could not cast array to string array")
+	}
+
+	aux := make([]string, len(stv))
+	for i, rv := range stv {
+		aux[i], err = CastToString(rv)
+		if err != nil {
+			return
+		}
+	}
+
+	return strings.Join(aux, sep), nil
 }
 
 // hasSubstring checks if a substring exists in original string

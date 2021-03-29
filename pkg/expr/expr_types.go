@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/handle"
-	"github.com/spf13/cast"
 	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/handle"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -233,6 +234,10 @@ func CastToBoolean(val interface{}) (out bool, err error) {
 
 func CastToString(val interface{}) (out string, err error) {
 	return cast.ToStringE(UntypedValue(val))
+}
+
+func CastStringSlice(val interface{}) (out []string, err error) {
+	return cast.ToStringSliceE(UntypedValue(val))
 }
 
 func CastToHandle(val interface{}) (string, error) {
