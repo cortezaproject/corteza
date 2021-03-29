@@ -55,6 +55,10 @@ func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 	}
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Record:
+		if val == nil {
+			val = &types.Record{}
+		}
+
 		if val.Values == nil {
 			val.Values = types.RecordValueSet{}
 		}
