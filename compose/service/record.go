@@ -483,6 +483,9 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		rve *types.RecordValueErrorSet
 	)
 
+	// ensure module ref is set before running through records workflows and scripts
+	new.SetModule(m)
+
 	if svc.optEmitEvents {
 		if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
@@ -513,6 +516,9 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	if err = label.Create(ctx, svc.store, new); err != nil {
 		return
 	}
+
+	// ensure module ref is set before running through records workflows and scripts
+	new.SetModule(m)
 
 	// At this point we can return the value
 	rec = new
@@ -727,6 +733,10 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		rve *types.RecordValueErrorSet
 	)
 
+	// ensure module ref is set before running through records workflows and scripts
+	upd.SetModule(m)
+	old.SetModule(m)
+
 	if svc.optEmitEvents {
 		// Handle input payload
 		if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
@@ -763,6 +773,10 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	if err != nil {
 		return nil, err
 	}
+
+	// ensure module ref is set before running through records workflows and scripts
+	upd.SetModule(m)
+	old.SetModule(m)
 
 	// Final value cleanup
 	// These (clean) values are returned (and sent to after-update handler)
@@ -897,6 +911,9 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 		return nil, RecordErrNotAllowedToDelete()
 	}
 
+	// ensure module ref is set before running through records workflows and scripts
+	del.SetModule(m)
+
 	if svc.optEmitEvents {
 		// Calling before-record-delete scripts
 		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil)); err != nil {
@@ -914,6 +931,9 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	if err != nil {
 		return nil, err
 	}
+
+	// ensure module ref is set before running through records workflows and scripts
+	del.SetModule(m)
 
 	if svc.optEmitEvents {
 		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil))
