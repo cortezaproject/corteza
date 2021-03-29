@@ -16,9 +16,16 @@ func migrateApplications(ctx context.Context, s store.Storer) error {
 	}
 
 	return set.Walk(func(app *types.Application) (err error) {
-		// Disable messaging app but only if it was not updated after 21.3 release date
+		// Disable and unlist messaging app
+		// but only if it was not updated after 21.3 release date
 		if app.Unify.Url == "/messaging" && (app.UpdatedAt == nil || app.UpdatedAt.Before(rd)) {
+			if app.Unify == nil {
+				app.Unify = &types.ApplicationUnify{}
+			}
+
+			app.Unify.Listed = false
 			app.Enabled = false
+
 			err = store.UpdateApplication(ctx, s, app)
 		}
 
