@@ -58,6 +58,9 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.ModuleField{Name: "s2", Multi: false, Kind: "String"},
 			&types.ModuleField{Name: "b0", Multi: false, Kind: "Bool"},
 			&types.ModuleField{Name: "b1", Multi: false, Kind: "Bool"},
+			&types.ModuleField{Name: "n1", Multi: false, Kind: "Number"},
+			&types.ModuleField{Name: "n2", Multi: false, Kind: "Number"},
+			&types.ModuleField{Name: "n3", Multi: false, Kind: "Number"},
 		}}
 
 		raw = &types.Record{Values: types.RecordValueSet{
@@ -67,10 +70,15 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "m1", Value: "mVal1.2", Place: 2},
 			&types.RecordValue{Name: "m2", Value: "mVal2.0", Place: 0},
 			&types.RecordValue{Name: "b1", Value: "1", Place: 0},
+			&types.RecordValue{Name: "n2", Value: "0", Place: 0},
+			&types.RecordValue{Name: "n3", Value: "2", Place: 0},
 		}}
 
 		tval  = &ComposeRecord{value: raw}
-		scope = expr.RVars{"rec": tval}.Vars()
+		scope = expr.RVars{
+			"rec": tval,
+			"nil": nil,
+		}.Vars()
 	)
 
 	// @todo see not above re. back-ref to record
@@ -108,6 +116,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			test bool
 			expr string
 		}{
+			{false, `nil`},
+
 			// interaction with set values
 			{true, `rec.values.s1 == "sVal1"`},
 			{false, `rec.values.s1 == "sVal2"`},
@@ -130,16 +140,37 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			{false, `rec.values.b0`},
 			{true, `rec.values.b1`},
 			{false, `!rec.values.b1`},
+
+			// numbers
+			{false, `rec.values.n1`},
+			{false, `rec.values.n2`},
+			{true, `rec.values.n3`},
+
+			{true, `rec.values.n1 == 0`},
+			{true, `rec.values.n2 == 0`},
+			{false, `rec.values.n3 == 0`},
+
+			{false, `rec.values.n1 == 2`},
+			{false, `rec.values.n2 == 2`},
+			{true, `rec.values.n3 == 2`},
+
+			//{true, `rec.values.n1 < 3`}, // invalid op <nil> < 3
+			{true, `rec.values.n2 < 3`},
+			{true, `rec.values.n3 < 3`},
+
+			//{false, `rec.values.n1 > 1`}, // invalid op <nil> > 3
+			{false, `rec.values.n2 > 2`},
+			{false, `rec.values.n3 > 2`},
 		}
 
 		for _, tc := range tcc {
-			var (
-				req    = require.New(t)
-				parser = expr.NewParser()
-			)
-
 			t.Run(tc.expr, func(t *testing.T) {
-				eval, err := parser.Parse(tc.expr)
+				var (
+					req       = require.New(t)
+					parser    = expr.NewParser()
+					eval, err = parser.Parse(tc.expr)
+				)
+
 				req.NoError(err)
 
 				test, err := eval.Test(context.Background(), scope)

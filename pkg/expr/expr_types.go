@@ -229,12 +229,27 @@ func (t Array) Select(k string) (TypedValue, error) {
 	}
 }
 
+// emptyStringFailsafe returns 0 on empty strings
+func emptyStringFailsafe(val interface{}) interface{} {
+	val = UntypedValue(val)
+	if aux, is := val.(string); is && len(strings.TrimSpace(aux)) == 0 {
+		return 0
+	} else {
+		return val
+	}
+}
+
 func (t ID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(fmt.Sprintf("%d", t.value))
 }
 
 func CastToBoolean(val interface{}) (out bool, err error) {
-	return cast.ToBoolE(UntypedValue(val))
+	val = UntypedValue(val)
+	if aux, is := val.(string); is && len(strings.TrimSpace(aux)) == 0 {
+		return false, nil
+	}
+
+	return cast.ToBoolE(val)
 }
 
 func CastToString(val interface{}) (out string, err error) {
@@ -258,7 +273,7 @@ func CastToHandle(val interface{}) (string, error) {
 }
 
 func CastToDuration(val interface{}) (out time.Duration, err error) {
-	return cast.ToDurationE(UntypedValue(val))
+	return cast.ToDurationE(emptyStringFailsafe(val))
 }
 
 func CastToDateTime(val interface{}) (out *time.Time, err error) {
@@ -279,21 +294,19 @@ func CastToDateTime(val interface{}) (out *time.Time, err error) {
 }
 
 func CastToFloat(val interface{}) (out float64, err error) {
-	return cast.ToFloat64E(UntypedValue(val))
+	return cast.ToFloat64E(emptyStringFailsafe(val))
 }
 
 func CastToID(val interface{}) (out uint64, err error) {
-	out, err = cast.ToUint64E(UntypedValue(val))
-
-	return
+	return cast.ToUint64E(emptyStringFailsafe(val))
 }
 
 func CastToInteger(val interface{}) (out int64, err error) {
-	return cast.ToInt64E(UntypedValue(val))
+	return cast.ToInt64E(emptyStringFailsafe(val))
 }
 
 func CastToUnsignedInteger(val interface{}) (out uint64, err error) {
-	return cast.ToUint64E(UntypedValue(val))
+	return cast.ToUint64E(emptyStringFailsafe(val))
 }
 
 func (t *KV) Has(k string) bool {
