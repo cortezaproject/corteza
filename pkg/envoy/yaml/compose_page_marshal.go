@@ -101,15 +101,16 @@ func (n *composePage) Encode(ctx context.Context, doc *Document, state *envoy.Re
 
 	// @todo skip eval?
 
-	if n.encoderConfig.CompactOutput {
-		if n.refParent != "" {
-			err = doc.nestComposePageChild(n.refParent, n)
-		} else {
-			err = doc.nestComposePage(n.refNamespace, n)
-		}
-	} else {
-		doc.addComposePage(n)
-	}
+	// if n.encoderConfig.CompactOutput {
+	// 	if n.refParent != "" {
+	// 		err = doc.nestComposePageChild(n.refParent, n)
+	// 	} else {
+	// 		err = doc.nestComposePage(n.refNamespace, n)
+	// 	}
+	// } else {
+	// 	doc.addComposePage(n)
+	// }
+	doc.addComposePage(n)
 
 	return err
 }

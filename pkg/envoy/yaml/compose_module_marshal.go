@@ -85,11 +85,12 @@ func (n *composeModule) Encode(ctx context.Context, doc *Document, state *envoy.
 
 	// @todo skip eval?
 
-	if n.encoderConfig.CompactOutput {
-		err = doc.nestComposeModule(n.refNamespace, n)
-	} else {
-		doc.addComposeModule(n)
-	}
+	// if n.encoderConfig.CompactOutput {
+	// 	err = doc.nestComposeModule(n.refNamespace, n)
+	// } else {
+	// 	doc.addComposeModule(n)
+	// }
+	doc.addComposeModule(n)
 
 	return err
 }

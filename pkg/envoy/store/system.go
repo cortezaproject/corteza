@@ -328,15 +328,15 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 		}
 
 		switch strings.ToLower(r) {
-		case "system:roles":
+		case "system:role":
 			df = df.Roles(&types.RoleFilter{
 				Query: id,
 			})
-		case "system:users":
+		case "system:user":
 			df = df.Users(&types.UserFilter{
 				Query: id,
 			})
-		case "system:templates":
+		case "system:template":
 			df = df.Templates(&types.TemplateFilter{
 				Handle: id,
 			})
@@ -346,11 +346,11 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 					TemplateID: []uint64{templateID},
 				})
 			}
-		case "system:applications":
+		case "system:application":
 			df = df.Applications(&types.ApplicationFilter{
 				Query: id,
 			})
-		case "system:settins":
+		case "system:setting":
 			df = df.Settings(&types.SettingsFilter{})
 		case "system:rbac":
 			df = df.Rbac(&rbac.RuleFilter{})

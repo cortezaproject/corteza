@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"io"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/spf13/cobra"
@@ -15,6 +18,10 @@ import (
 )
 
 func Export(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
+	var (
+		output string
+	)
+
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "Export",
@@ -32,15 +39,13 @@ func Export(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Co
 
 			f = f.FromResource(args...)
 
-			// Nothing to do here...
-
 			sd := su.Decoder()
 			nn, err := sd.Decode(ctx, s, f)
 			cli.HandleError(err)
 
 			ye := yaml.NewYamlEncoder(&yaml.EncoderConfig{
-				MappedOutput:  true,
-				CompactOutput: true,
+				MappedOutput: true,
+				// CompactOutput: true,
 			})
 			bld := envoy.NewBuilder(ye)
 			g, err := bld.Build(ctx, nn...)
@@ -48,15 +53,25 @@ func Export(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Co
 			err = envoy.Encode(ctx, g, ye)
 			cli.HandleError(err)
 			ss := ye.Stream()
+			_ = ss
 
-			// Std out
-			// @todo write to directory?
-			w := cmd.OutOrStdout()
+			makeFN := func(base, res string) string {
+				pp := strings.Split(strings.Trim(res, ":"), ":")
+				name := strings.Join(pp, "_") + ".yaml"
+				return path.Join(base, name)
+			}
+
 			for _, s := range ss {
-				io.Copy(w, s.Source)
+				f, err := os.Create(makeFN(output, s.Resource))
+				cli.HandleError(err)
+				defer f.Close()
+
+				io.Copy(f, s.Source)
 			}
 		},
 	}
+
+	cmd.Flags().StringVarP(&output, "out", "o", "./", "The directory to write output files to")
 
 	return cmd
 }

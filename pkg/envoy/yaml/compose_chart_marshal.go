@@ -71,11 +71,12 @@ func (n *composeChart) Encode(ctx context.Context, doc *Document, state *envoy.R
 
 	// @todo skip eval?
 
-	if n.encoderConfig.CompactOutput {
-		err = doc.nestComposeChart(n.refNamespace, n)
-	} else {
-		doc.addComposeChart(n)
-	}
+	// if n.encoderConfig.CompactOutput {
+	// 	err = doc.nestComposeChart(n.refNamespace, n)
+	// } else {
+	// 	doc.addComposeChart(n)
+	// }
+	doc.addComposeChart(n)
 
 	return err
 }

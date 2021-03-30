@@ -58,8 +58,8 @@ type (
 		// If not defined, RFC3339 is used (this one - 2006-01-02T15:04:05Z07:00)
 		TimeLayout string
 
-		// CompactOutput forces the output to be as compact as possible
-		CompactOutput bool
+		// // CompactOutput forces the output to be as compact as possible
+		// CompactOutput bool
 		// MappedOutput forces the sequences to encode as maps (where possible)
 		MappedOutput bool
 

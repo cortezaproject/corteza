@@ -32,13 +32,15 @@ type (
 	}
 
 	composeDecoder struct {
-		resourceID []uint64
+		resourceID  []uint64
+		namespaceID []uint64
 	}
 )
 
 func newComposeDecoder() *composeDecoder {
 	return &composeDecoder{
-		resourceID: make([]uint64, 0, 200),
+		resourceID:  make([]uint64, 0, 200),
+		namespaceID: make([]uint64, 0, 200),
 	}
 }
 
@@ -69,6 +71,7 @@ func (d *composeDecoder) decodeComposeNamespace(ctx context.Context, s composeSt
 			}
 
 			for _, n := range nn {
+				d.namespaceID = append(d.namespaceID, n.ID)
 				d.resourceID = append(d.resourceID, n.ID)
 
 				mm = append(mm, newComposeNamespace(n))
@@ -93,6 +96,18 @@ func (d *composeDecoder) decodeComposeModule(ctx context.Context, s composeStore
 		return &auxRsp{
 			mm: mm,
 		}
+	}
+
+	if len(d.namespaceID) > 0 {
+		ffNs := make([]*composeModuleFilter, 0, len(ff)+len(d.namespaceID))
+		for _, nsID := range d.namespaceID {
+			for _, f := range ff {
+				fNs := *f
+				fNs.NamespaceID = nsID
+				ffNs = append(ffNs, &fNs)
+			}
+		}
+		ff = ffNs
 	}
 
 	var nn types.ModuleSet
@@ -148,6 +163,18 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		return &auxRsp{
 			mm: mm,
 		}
+	}
+
+	if len(d.namespaceID) > 0 {
+		ffNs := make([]*composeRecordFilter, 0, len(ff)+len(d.namespaceID))
+		for _, nsID := range d.namespaceID {
+			for _, f := range ff {
+				fNs := *f
+				fNs.NamespaceID = nsID
+				ffNs = append(ffNs, &fNs)
+			}
+		}
+		ff = ffNs
 	}
 
 	// When decoding large amounts of records (milions) we can probably assume
@@ -265,6 +292,18 @@ func (d *composeDecoder) decodeComposePage(ctx context.Context, s composeStore, 
 		}
 	}
 
+	if len(d.namespaceID) > 0 {
+		ffNs := make([]*composePageFilter, 0, len(ff)+len(d.namespaceID))
+		for _, nsID := range d.namespaceID {
+			for _, f := range ff {
+				fNs := *f
+				fNs.NamespaceID = nsID
+				ffNs = append(ffNs, &fNs)
+			}
+		}
+		ff = ffNs
+	}
+
 	var nn types.PageSet
 	var fn types.PageFilter
 	var err error
@@ -308,6 +347,18 @@ func (d *composeDecoder) decodeComposeChart(ctx context.Context, s composeStore,
 		return &auxRsp{
 			mm: mm,
 		}
+	}
+
+	if len(d.namespaceID) > 0 {
+		ffNs := make([]*composeChartFilter, 0, len(ff)+len(d.namespaceID))
+		for _, nsID := range d.namespaceID {
+			for _, f := range ff {
+				fNs := *f
+				fNs.NamespaceID = nsID
+				ffNs = append(ffNs, &fNs)
+			}
+		}
+		ff = ffNs
 	}
 
 	var nn types.ChartSet
