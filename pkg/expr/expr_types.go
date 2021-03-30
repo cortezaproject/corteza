@@ -213,6 +213,11 @@ func (t Array) Has(k string) bool {
 	}
 }
 
+// Push appends value to array
+func (t *Array) Push(v TypedValue) {
+	t.value = append(t.value, v)
+}
+
 // Select is field accessor for *types.Array
 //
 // Similar to SelectGVal but returns typed values

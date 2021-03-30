@@ -23,6 +23,7 @@ var _ = context.Background
 var _ = fmt.Errorf
 
 {{ range $exprType, $def := .Types }}
+{{ if not $def.CustomType }}
 // {{ $exprType }} is an expression type, wrapper for {{ $def.As }} type
 type {{ $exprType }} struct{ value {{ $def.As }} }
 
@@ -81,12 +82,14 @@ func (t {{ $exprType }}) SelectGVal(ctx context.Context, k string) (interface{},
 }
 {{ end }}
 
+{{ if not $def.CustomSelector }}
 // Select is field accessor for {{ $def.As }}
 //
 // Similar to SelectGVal but returns typed values
 func (t {{ $exprType }}) Select(k string) (TypedValue, error) {
 	return {{ unexport $exprType "TypedValueSelector" }}(t.value, k)
 }
+{{ end }}
 
 func (t {{ $exprType }}) Has(k string) bool {
 	switch k {
@@ -150,7 +153,7 @@ func {{ $def.AssignerFn }}(res {{ $def.As }}, k string, val interface{}) (error)
 	return fmt.Errorf("unknown field '%s'", k)
 }
 {{ end }}
-{{ end }}
-
-{{ end }}
+{{ end }} {{/* if $def.Struct */}}
+{{ end }} {{/* if not $def.CustomType */}}
+{{ end }} {{/* types loop */}}
 

@@ -97,7 +97,7 @@ var _ expr.DeepFieldAssigner = &ComposeRecord{}
 func (t *ComposeRecord) AssignFieldValue(kk []string, val expr.TypedValue) error {
 	switch kk[0] {
 	case "values":
-		return assignToComposeRecordValues(&t.value.Values, kk[1:], val)
+		return assignToComposeRecordValues(t.value, kk[1:], val)
 		// @todo deep setting labels
 	default:
 		return assignToComposeRecord(t.value, kk[0], val)
@@ -122,6 +122,23 @@ func (t ComposeRecord) SelectGVal(ctx context.Context, k string) (interface{}, e
 
 	return composeRecordGValSelector(t.value, k)
 }
+
+// Select is field accessor for *types.ComposeRecord
+//
+// Similar to SelectGVal but returns typed values
+func (t ComposeRecord) Select(k string) (expr.TypedValue, error) {
+	if k == "values" {
+		if t.value.Values == nil {
+			t.value.Values = types.RecordValueSet{}
+		}
+
+		return &ComposeRecordValues{value: t.value}, nil
+	}
+
+	return composeRecordTypedValueSelector(t.value, k)
+}
+
+type ComposeRecordValues struct{ value *types.Record }
 
 func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err error) {
 	out = types.RecordValueSet{}
@@ -174,7 +191,7 @@ func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err e
 }
 
 func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue) error {
-	return assignToComposeRecordValues(&t.value, pp, val)
+	return assignToComposeRecordValues(t.value, pp, val)
 }
 
 // SelectGVal implements gval.Selector requirements
@@ -182,34 +199,60 @@ func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue)
 // It allows gval lib to access Record's underlying value (*types.RecordValues)
 // and it's fields
 //
-func (t ComposeRecordValues) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *ComposeRecordValues) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	return composeRecordValuesGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.Record
 //
 // Similar to SelectGVal but returns typed values
-func (t ComposeRecordValues) Select(k string) (expr.TypedValue, error) {
+func (t *ComposeRecordValues) Select(k string) (expr.TypedValue, error) {
 	return composeRecordValuesTypedValueSelector(t.value, k)
 }
 
 func (t ComposeRecordValues) Has(k string) bool {
-	return t.value.Get(k, 0) != nil
+	return t.value.Values.Get(k, 0) != nil
 }
 
 // recordGValSelector is field accessor for *types.RecordValueSet
-func composeRecordValuesGValSelector(res types.RecordValueSet, k string) (interface{}, error) {
-	vv := res.FilterByName(k)
+func composeRecordValuesGValSelector(res *types.Record, k string) (interface{}, error) {
+	var (
+		vv = res.Values.FilterByName(k)
 
-	switch len(vv) {
-	case 0:
+		multiValueField bool
+		field           *types.ModuleField
+	)
+
+	if mod := res.GetModule(); mod != nil {
+		fld := mod.Fields.FindByName(k)
+
+		if fld == nil {
+			return nil, fmt.Errorf("field '%s' does not exist on module %s", k, mod.Name)
+		}
+
+		multiValueField = fld.Multi
+	}
+
+	switch {
+	case len(vv) == 0:
+		if field != nil && field.IsBoolean() {
+			return false, nil
+		}
+
 		return nil, nil
-	case 1:
-		return vv[0].Value, nil
+
+	case len(vv) == 1 && !multiValueField:
+		return recordValueCast(field, vv[0])
+
 	default:
-		out := make([]string, 0, len(vv))
+		out := make([]interface{}, 0, len(vv))
 		return out, vv.Walk(func(v *types.RecordValue) error {
-			out = append(out, v.Value)
+			i, err := recordValueCast(field, v)
+			if err != nil {
+				return err
+			}
+
+			out = append(out, i)
 			return nil
 		})
 	}
@@ -218,34 +261,49 @@ func composeRecordValuesGValSelector(res types.RecordValueSet, k string) (interf
 // recordValuesTypedValueSelector is field accessor for *types.RecordValueSet
 //
 // @todo return appropriate types (atm all values are returned as String)
-func composeRecordValuesTypedValueSelector(res types.RecordValueSet, k string) (expr.TypedValue, error) {
-	vv := res.FilterByName(k)
+func composeRecordValuesTypedValueSelector(res *types.Record, k string) (expr.TypedValue, error) {
+	var (
+		vv = res.Values.FilterByName(k)
+
+		multiValueField bool
+		field           *types.ModuleField
+	)
+
+	if mod := res.GetModule(); mod != nil {
+		field = mod.Fields.FindByName(k)
+
+		if field == nil {
+			return nil, fmt.Errorf("field '%s' does not exist on module %s", k, mod.Name)
+		}
+
+		multiValueField = field.Multi
+	}
 
 	switch {
 	case len(vv) == 0:
-		return nil, nil
-	case len(vv) == 1:
-		return expr.NewString(vv[0].Value)
-	default:
-		mval := make([]expr.TypedValue, 0, len(vv))
-		_ = vv.Walk(func(v *types.RecordValue) error {
-			mval = append(mval, expr.Must(expr.NewString(v.Value)))
-			return nil
-		})
+		if field != nil && field.IsBoolean() {
+			return &expr.Boolean{}, nil
+		}
 
-		return expr.NewArray(mval)
+		return nil, nil
+	case len(vv) == 1 && !multiValueField:
+		return recordValueToExprTypedValue(field, vv[0])
+	default:
+		return recordValueSetoToExprArray(field, vv...)
 	}
 }
 
-// assignToRecordValuesSet is field value setter for *types.Record
-func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val interface{}) (err error) {
+// assignToRecordValuesSet is field value setter for *types.RecordValueSet
+//
+// We'll be using types.Record for the base (and not types.RecordValueSet)
+func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}) (err error) {
 	if len(pp) < 1 {
 		switch val := expr.UntypedValue(val).(type) {
 		case types.RecordValueSet:
-			*res = val
+			res.Values = val
 			return
 		case *types.Record:
-			*res = val.Values
+			*res = *val
 			return
 		}
 
@@ -273,7 +331,7 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 					return err
 				}
 
-				*res = res.Set(rv)
+				res.Values = res.Values.Set(rv)
 			}
 
 			return nil
@@ -317,9 +375,49 @@ func assignToComposeRecordValues(res *types.RecordValueSet, pp []string, val int
 		}
 	}
 
-	*res = res.Set(rv)
+	res.Values = res.Values.Set(rv)
 
 	return nil
+}
+
+// NewComposeRecordValues creates new instance of ComposeRecordValues expression type
+func NewComposeRecordValues(val interface{}) (*ComposeRecordValues, error) {
+	// Try to cast to ComposeRecord first
+	if rec, err := CastToComposeRecord(val); err == nil {
+		return &ComposeRecordValues{value: rec}, nil
+	}
+
+	if c, err := CastToComposeRecordValues(val); err != nil {
+		return nil, fmt.Errorf("unable to create ComposeRecordValues: %w", err)
+	} else {
+		return &ComposeRecordValues{value: &types.Record{Values: c}}, nil
+	}
+}
+
+// Return underlying value on ComposeRecordValues
+func (t ComposeRecordValues) Get() interface{} { return t.value }
+
+// Return underlying value on ComposeRecordValues
+func (t ComposeRecordValues) GetValue() types.RecordValueSet { return t.value.Values }
+
+// Return type name
+func (ComposeRecordValues) Type() string { return "ComposeRecordValues" }
+
+// Convert value to types.RecordValueSet
+func (ComposeRecordValues) Cast(val interface{}) (expr.TypedValue, error) {
+	return NewComposeRecordValues(val)
+}
+
+// Assign new value to ComposeRecordValues
+//
+// value is first passed through CastToComposeRecordValues
+func (t *ComposeRecordValues) Assign(val interface{}) error {
+	if c, err := CastToComposeRecordValues(val); err != nil {
+		return err
+	} else {
+		t.value.Values = c
+		return nil
+	}
 }
 
 func CastToComposeRecordValueErrorSet(val interface{}) (out *types.RecordValueErrorSet, err error) {
@@ -329,4 +427,81 @@ func CastToComposeRecordValueErrorSet(val interface{}) (out *types.RecordValueEr
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
+}
+
+func recordValueCast(field *types.ModuleField, rv *types.RecordValue) (interface{}, error) {
+	if field == nil {
+		// safe fallback to string
+		return rv.Value, nil
+	}
+
+	switch {
+	case field.IsRef():
+		return rv.Ref, nil
+
+	case field.IsDateTime():
+		return cast.ToTimeE(rv.Value)
+
+	case field.IsBoolean():
+		return cast.ToBoolE(rv.Value)
+
+	case field.IsNumeric():
+		if field.Options.Precision() == 0 {
+			return cast.ToInt64E(rv.Value)
+		}
+
+		return cast.ToFloat64E(rv.Value)
+
+	default:
+		return rv.Value, nil
+
+	}
+}
+
+func recordValueToExprTypedValue(field *types.ModuleField, rv *types.RecordValue) (expr.TypedValue, error) {
+	if field == nil {
+		// safe fallback to string
+		return expr.NewString(rv.Value)
+	}
+
+	switch {
+	case field.IsRef():
+		return expr.NewID(rv.Ref)
+
+	case field.IsDateTime():
+		return expr.NewDateTime(rv.Value)
+
+	case field.IsBoolean():
+		return expr.NewBoolean(rv.Value)
+
+	case field.IsNumeric():
+		if field.Options.Precision() == 0 {
+			return expr.NewInteger(rv.Value)
+		}
+
+		return expr.NewFloat(rv.Value)
+
+	default:
+		return expr.NewString(rv.Value)
+
+	}
+}
+
+func recordValueSetoToExprArray(field *types.ModuleField, vv ...*types.RecordValue) (arr *expr.Array, err error) {
+	var (
+		tv expr.TypedValue
+	)
+
+	arr = &expr.Array{}
+
+	for _, v := range vv {
+		tv, err = recordValueToExprTypedValue(field, v)
+		if err != nil {
+			return
+		}
+
+		arr.Push(tv)
+	}
+
+	return
 }

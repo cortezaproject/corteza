@@ -388,13 +388,6 @@ func (t *ComposeRecord) Assign(val interface{}) error {
 	}
 }
 
-// Select is field accessor for *types.Record
-//
-// Similar to SelectGVal but returns typed values
-func (t ComposeRecord) Select(k string) (TypedValue, error) {
-	return composeRecordTypedValueSelector(t.value, k)
-}
-
 func (t ComposeRecord) Has(k string) bool {
 	switch k {
 	case "ID", "recordID":
@@ -570,44 +563,6 @@ func (ComposeRecordValueErrorSet) Cast(val interface{}) (TypedValue, error) {
 // value is first passed through CastToComposeRecordValueErrorSet
 func (t *ComposeRecordValueErrorSet) Assign(val interface{}) error {
 	if c, err := CastToComposeRecordValueErrorSet(val); err != nil {
-		return err
-	} else {
-		t.value = c
-		return nil
-	}
-}
-
-// ComposeRecordValues is an expression type, wrapper for types.RecordValueSet type
-type ComposeRecordValues struct{ value types.RecordValueSet }
-
-// NewComposeRecordValues creates new instance of ComposeRecordValues expression type
-func NewComposeRecordValues(val interface{}) (*ComposeRecordValues, error) {
-	if c, err := CastToComposeRecordValues(val); err != nil {
-		return nil, fmt.Errorf("unable to create ComposeRecordValues: %w", err)
-	} else {
-		return &ComposeRecordValues{value: c}, nil
-	}
-}
-
-// Return underlying value on ComposeRecordValues
-func (t ComposeRecordValues) Get() interface{} { return t.value }
-
-// Return underlying value on ComposeRecordValues
-func (t ComposeRecordValues) GetValue() types.RecordValueSet { return t.value }
-
-// Return type name
-func (ComposeRecordValues) Type() string { return "ComposeRecordValues" }
-
-// Convert value to types.RecordValueSet
-func (ComposeRecordValues) Cast(val interface{}) (TypedValue, error) {
-	return NewComposeRecordValues(val)
-}
-
-// Assign new value to ComposeRecordValues
-//
-// value is first passed through CastToComposeRecordValues
-func (t *ComposeRecordValues) Assign(val interface{}) error {
-	if c, err := CastToComposeRecordValues(val); err != nil {
 		return err
 	} else {
 		t.value = c

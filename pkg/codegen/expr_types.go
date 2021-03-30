@@ -28,7 +28,9 @@ type (
 		AssignerFn          string `yaml:"assignerFn"`
 		BuiltInCastFn       bool
 		BuiltInAssignerFn   bool
+		CustomType          bool `yaml:"customType"`
 		CustomGValSelector  bool `yaml:"customGValSelector"`
+		CustomSelector      bool `yaml:"customSelector"`
 		CustomFieldAssigner bool `yaml:"customFieldAssigner"`
 		Struct              []*exprTypeStructDef
 
