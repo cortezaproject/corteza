@@ -2,6 +2,7 @@ package automation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -23,6 +24,12 @@ func CastToComposeNamespace(val interface{}) (out *types.Namespace, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Namespace:
 		return val, nil
+	case map[string]interface{}:
+		out = &types.Namespace{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+
+		return
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -40,6 +47,12 @@ func CastToComposeModule(val interface{}) (out *types.Module, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Module:
 		return val, nil
+	case map[string]interface{}:
+		out = &types.Module{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return
+
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -63,6 +76,13 @@ func CastToComposeRecord(val interface{}) (out *types.Record, err error) {
 			val.Values = types.RecordValueSet{}
 		}
 		return val, nil
+	case map[string]interface{}:
+		out = &types.Record{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+
+		return
+
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -93,6 +113,10 @@ var _ gval.Selector = &ComposeRecord{}
 //
 func (t ComposeRecord) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	if k == "values" {
+		if t.value.Values == nil {
+			t.value.Values = types.RecordValueSet{}
+		}
+
 		return t.value.Values.Dict(t.value.GetModule().Fields), nil
 	}
 
