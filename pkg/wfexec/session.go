@@ -18,6 +18,8 @@ type (
 		// Session identifier
 		id uint64
 
+		workflowID uint64
+
 		// steps graph
 		g *Graph
 
@@ -417,7 +419,12 @@ func (s *Session) worker(ctx context.Context) {
 				<-s.execLock
 
 				if st.err != nil {
-					st.err = fmt.Errorf("step %d execution failed: %w", st.step.ID(), st.err)
+					st.err = fmt.Errorf(
+						"workflow %d step %d execution failed: %w",
+						s.workflowID,
+						st.step.ID(),
+						st.err,
+					)
 				}
 
 				status := s.Status()
@@ -742,6 +749,12 @@ func SetWorkerInterval(i time.Duration) sessionOpt {
 func SetHandler(fn StateChangeHandler) sessionOpt {
 	return func(s *Session) {
 		s.eventHandler = fn
+	}
+}
+
+func SetWorkflowID(workflowID uint64) sessionOpt {
+	return func(s *Session) {
+		s.workflowID = workflowID
 	}
 }
 

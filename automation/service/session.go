@@ -29,9 +29,10 @@ type (
 	}
 
 	spawn struct {
-		session chan *wfexec.Session
-		graph   *wfexec.Graph
-		trace   bool
+		workflowID uint64
+		session    chan *wfexec.Session
+		graph      *wfexec.Graph
+		trace      bool
 	}
 
 	sessionAccessController interface {
@@ -161,7 +162,7 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 
 	var (
 		ctx = auth.SetIdentityToContext(context.Background(), i)
-		ses = svc.spawn(g, ssp.Trace)
+		ses = svc.spawn(g, ssp.WorkflowID, ssp.Trace)
 	)
 
 	ses.CreatedAt = *now()
@@ -203,8 +204,13 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 //
 // We need initial context for the session because we want to catch all cancellations or timeouts from there
 // and not from any potential HTTP requests or similar temporary context that can prematurely destroy a workflow session
-func (svc *session) spawn(g *wfexec.Graph, trace bool) (ses *types.Session) {
-	s := &spawn{make(chan *wfexec.Session, 1), g, trace}
+func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool) (ses *types.Session) {
+	s := &spawn{
+		workflowID: workflowID,
+		session:    make(chan *wfexec.Session, 1),
+		graph:      g,
+		trace:      trace,
+	}
 
 	// Send new-session request
 	svc.spawnQueue <- s
@@ -230,13 +236,16 @@ func (svc *session) Watch(ctx context.Context) {
 			case s := <-svc.spawnQueue:
 				wfexecSessLog := zap.NewNop()
 				if svc.opt.ExecDebug {
-					wfexecSessLog = svc.log.Named("exec")
+					wfexecSessLog = svc.log.
+						Named("exec").
+						With(zap.Uint64("workflowID", s.workflowID))
 				}
 
 				//
 				s.session <- wfexec.NewSession(ctx,
 					s.graph,
 					wfexec.SetHandler(svc.stateChangeHandler(ctx)),
+					wfexec.SetWorkflowID(s.workflowID),
 					wfexec.SetLogger(wfexecSessLog),
 					wfexec.SetDumpStacktraceOnPanic(svc.opt.ExecDebug),
 				)
