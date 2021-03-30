@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -223,6 +224,10 @@ func (t *Vars) Scan(value interface{}) error {
 
 func (t *Vars) Value() (driver.Value, error) {
 	return json.Marshal(t)
+}
+
+func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	return t.Select(k)
 }
 
 // UnmarshalJSON

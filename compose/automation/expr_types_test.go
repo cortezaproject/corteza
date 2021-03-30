@@ -52,10 +52,10 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 		v   expr.TypedValue
 
 		mod = &types.Module{Fields: types.ModuleFieldSet{
-			&types.ModuleField{Name: "s1", Multi: false},
-			&types.ModuleField{Name: "m1", Multi: true},
-			&types.ModuleField{Name: "m2", Multi: true},
-			&types.ModuleField{Name: "s2", Multi: false},
+			&types.ModuleField{Name: "s1", Multi: false, Kind: "String"},
+			&types.ModuleField{Name: "m1", Multi: true, Kind: "String"},
+			&types.ModuleField{Name: "m2", Multi: true, Kind: "String"},
+			&types.ModuleField{Name: "s2", Multi: false, Kind: "String"},
 			&types.ModuleField{Name: "b0", Multi: false, Kind: "Bool"},
 			&types.ModuleField{Name: "b1", Multi: false, Kind: "Bool"},
 		}}
@@ -108,18 +108,24 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			test bool
 			expr string
 		}{
+			// interaction with set values
 			{true, `rec.values.s1 == "sVal1"`},
 			{false, `rec.values.s1 == "sVal2"`},
 			{true, `rec.values.s1`},
-			{false, `rec.values.s2`},
 			{true, `rec.values.s1 != "foo"`},
-			{true, `rec.values.s2 != "foo"`},
-			{true, `!rec.values.s2`},
+
+			// interaction with unset (= nil) values
 			{true, `rec.values.s2 != "foo"`},
 			{false, `rec.values.s2 == "foo"`},
+			{true, `!rec.values.s2`},
+			{false, `rec.values.s2`},
+
+			// multival
 			{true, `rec.values.m1[0] == "mVal1.0"`},
 			{true, `rec.values.m1[1] == "mVal1.1"`},
 			{true, `rec.values.m2[0] == "mVal2.0"`},
+
+			// booleans
 			{true, `!rec.values.b0`},
 			{false, `rec.values.b0`},
 			{true, `rec.values.b1`},

@@ -32,7 +32,7 @@ func TestExprSet_Eval(t *testing.T) {
 				name:   "vars with path",
 				set:    ExprSet{&Expr{Target: "l1.l2", Expr: `"bar"`}},
 				input:  RVars{"l1": RVars{}.Vars()},
-				output: RVars{"l1": RVars{"l2": Must(Cast("bar"))}.Vars()},
+				output: RVars{"l1": RVars{"l2": Must(Typify("bar"))}.Vars()},
 			},
 			{
 				name: "copy vars with same types",
@@ -118,7 +118,7 @@ func TestExprSet_Eval(t *testing.T) {
 				},
 				output: RVars{
 					"arr": Must(NewArray([]TypedValue{
-						Must(Cast("foo")),
+						Must(Typify("foo")),
 					})),
 				},
 			},

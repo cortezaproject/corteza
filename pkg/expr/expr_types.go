@@ -28,8 +28,8 @@ func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
 }
 
-// cast intput into some well-known types
-func Cast(in interface{}) (tv TypedValue, err error) {
+// Typify detects input type and wraps it with expression type
+func Typify(in interface{}) (tv TypedValue, err error) {
 	var is bool
 	if tv, is = in.(TypedValue); is {
 		return
@@ -135,7 +135,7 @@ func CastToArray(val interface{}) (out []TypedValue, err error) {
 		out = make([]TypedValue, ref.Len())
 		for i := 0; i < ref.Len(); i++ {
 			item := ref.Index(i).Interface()
-			out[i], err = Cast(item)
+			out[i], err = Typify(item)
 			if err != nil {
 				return
 			}

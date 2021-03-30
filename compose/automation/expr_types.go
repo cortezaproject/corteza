@@ -111,7 +111,7 @@ var _ gval.Selector = &ComposeRecord{}
 // It allows gval lib to access Record's underlying value (*types.Record)
 // and it's fields
 //
-func (t ComposeRecord) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	if k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}
@@ -242,12 +242,12 @@ func composeRecordValuesGValSelector(res *types.Record, k string) (interface{}, 
 		return nil, nil
 
 	case len(vv) == 1 && !multiValueField:
-		return recordValueCast(field, vv[0])
+		return vv[0].Cast(field)
 
 	default:
 		out := make([]interface{}, 0, len(vv))
 		return out, vv.Walk(func(v *types.RecordValue) error {
-			i, err := recordValueCast(field, v)
+			i, err := v.Cast(field)
 			if err != nil {
 				return err
 			}
@@ -429,61 +429,20 @@ func CastToComposeRecordValueErrorSet(val interface{}) (out *types.RecordValueEr
 	}
 }
 
-func recordValueCast(field *types.ModuleField, rv *types.RecordValue) (interface{}, error) {
-	if field == nil {
-		// safe fallback to string
-		return rv.Value, nil
-	}
-
-	switch {
-	case field.IsRef():
-		return rv.Ref, nil
-
-	case field.IsDateTime():
-		return cast.ToTimeE(rv.Value)
-
-	case field.IsBoolean():
-		return cast.ToBoolE(rv.Value)
-
-	case field.IsNumeric():
-		if field.Options.Precision() == 0 {
-			return cast.ToInt64E(rv.Value)
-		}
-
-		return cast.ToFloat64E(rv.Value)
-
-	default:
-		return rv.Value, nil
-
-	}
-}
-
 func recordValueToExprTypedValue(field *types.ModuleField, rv *types.RecordValue) (expr.TypedValue, error) {
-	if field == nil {
-		// safe fallback to string
-		return expr.NewString(rv.Value)
-	}
-
 	switch {
+	case field == nil:
+		return expr.NewString(rv.Value)
+
 	case field.IsRef():
 		return expr.NewID(rv.Ref)
 
-	case field.IsDateTime():
-		return expr.NewDateTime(rv.Value)
-
-	case field.IsBoolean():
-		return expr.NewBoolean(rv.Value)
-
-	case field.IsNumeric():
-		if field.Options.Precision() == 0 {
-			return expr.NewInteger(rv.Value)
-		}
-
-		return expr.NewFloat(rv.Value)
-
 	default:
-		return expr.NewString(rv.Value)
-
+		if v, err := rv.Cast(field); err != nil {
+			return nil, err
+		} else {
+			return expr.Typify(v)
+		}
 	}
 }
 

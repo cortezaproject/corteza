@@ -36,7 +36,7 @@ func push(arr interface{}, nn ...interface{}) (out interface{}, err error) {
 				stv = append(stv, tv)
 			} else {
 				// wrap unknown types...
-				stv = append(stv, Must(Cast(n)))
+				stv = append(stv, Must(Typify(n)))
 			}
 		}
 

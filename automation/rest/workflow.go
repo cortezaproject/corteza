@@ -164,7 +164,6 @@ func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interfa
 			if err != nil {
 				return fmt.Errorf("failed to resolve ComposeRecord type: %w", err)
 			}
-
 			c.GetValue().SetModule(mod)
 		}
 
