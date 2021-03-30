@@ -66,11 +66,13 @@ func (p *gvalParser) ParseEvaluators(ee ...Evaluator) error {
 }
 
 func (e *gvalEval) Eval(ctx context.Context, scope *Vars) (interface{}, error) {
-	return e.evaluable(ctx, scope.Dict())
+	return e.evaluable(ctx, scope)
+	//return e.evaluable(ctx, scope.Dict())
 }
 
 func (e *gvalEval) Test(ctx context.Context, scope *Vars) (bool, error) {
-	r, err := e.evaluable(ctx, scope.Dict())
+	r, err := e.evaluable(ctx, scope)
+	//r, err := e.evaluable(ctx, scope.Dict())
 	if err != nil {
 		return false, err
 	}
