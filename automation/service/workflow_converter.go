@@ -602,8 +602,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 			case "join":
 				return append(checks, count(1, -1, inbound))
 
-			case "fork":
-			case "incl", "excl":
+			case "fork", "incl", "excl":
 				return append(checks, count(1, -1, outbound))
 			}
 
