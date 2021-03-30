@@ -113,6 +113,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		&expr.KV{},
 		&expr.KVV{},
 		&expr.Reader{},
+		&expr.Vars{},
 
 		&automation.EmailMessage{},
 	)

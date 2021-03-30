@@ -58,6 +58,22 @@ func TestVars_Decode(t *testing.T) {
 		req.NoError(vars.Decode(dst))
 	})
 
+	t.Run("vars-in-vars", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			dst = &struct {
+				Vars RVars `var:"vars"`
+			}{}
+
+			vars = RVars{
+				"vars": RVars{"foo": Must(NewString("bar"))}.Vars(),
+			}.Vars()
+		)
+
+		req.NoError(vars.Decode(dst))
+	})
+
 	t.Run("int-uint", func(t *testing.T) {
 		var (
 			req = require.New(t)

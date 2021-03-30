@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -19,7 +21,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/automation"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -173,7 +174,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		automation.User{},
 		automation.Role{},
 		automation.Template{},
-		automation.RenderVariables{},
 		automation.RenderOptions{},
 		automation.Document{},
 	)

@@ -61,7 +61,5 @@ types:
       - { name: 'document', exprType: 'Reader', goType: 'io.Reader' }
       - { name: 'name',     exprType: 'string', goType: 'string' }
       - { name: 'type',     exprType: 'string', goType: 'string' }
-  RenderVariables:
-    as: 'map[string]interface{}'
   RenderOptions:
     as: 'map[string]string'
