@@ -87,3 +87,24 @@ func Test_empty(t *testing.T) {
 		req.Equal(tst.expect, isEmpty(tst.value))
 	}
 }
+
+func Test_length(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		tcc = []struct {
+			len   int
+			value interface{}
+		}{
+			{0, []string{}},
+			{0, map[string]string{}},
+			{3, "foo"},
+			{0, make(chan string)},
+			{0, 34234},
+		}
+	)
+
+	for _, tst := range tcc {
+		req.Equal(tst.len, length(tst.value))
+	}
+}
