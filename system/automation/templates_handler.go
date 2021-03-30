@@ -163,12 +163,9 @@ func (h templatesHandler) recover(ctx context.Context, args *templatesRecoverArg
 func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (*templatesRenderResults, error) {
 	var err error
 
-	vars := make(map[string]interface{})
-	if args.hasVariables {
-		vars, err = cast.ToStringMapE(args.Variables)
-		if err != nil {
-			return nil, err
-		}
+	vars := args.Variables.Vars().Dict()
+	if vars == nil {
+		vars = make(map[string]interface{})
 	}
 
 	opts := make(map[string]string)

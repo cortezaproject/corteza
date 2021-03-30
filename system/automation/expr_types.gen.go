@@ -224,44 +224,6 @@ func (t *RenderOptions) Assign(val interface{}) error {
 	}
 }
 
-// RenderVariables is an expression type, wrapper for map[string]interface{} type
-type RenderVariables struct{ value map[string]interface{} }
-
-// NewRenderVariables creates new instance of RenderVariables expression type
-func NewRenderVariables(val interface{}) (*RenderVariables, error) {
-	if c, err := CastToRenderVariables(val); err != nil {
-		return nil, fmt.Errorf("unable to create RenderVariables: %w", err)
-	} else {
-		return &RenderVariables{value: c}, nil
-	}
-}
-
-// Return underlying value on RenderVariables
-func (t RenderVariables) Get() interface{} { return t.value }
-
-// Return underlying value on RenderVariables
-func (t RenderVariables) GetValue() map[string]interface{} { return t.value }
-
-// Return type name
-func (RenderVariables) Type() string { return "RenderVariables" }
-
-// Convert value to map[string]interface{}
-func (RenderVariables) Cast(val interface{}) (TypedValue, error) {
-	return NewRenderVariables(val)
-}
-
-// Assign new value to RenderVariables
-//
-// value is first passed through CastToRenderVariables
-func (t *RenderVariables) Assign(val interface{}) error {
-	if c, err := CastToRenderVariables(val); err != nil {
-		return err
-	} else {
-		t.value = c
-		return nil
-	}
-}
-
 // Role is an expression type, wrapper for *types.Role type
 type Role struct{ value *types.Role }
 

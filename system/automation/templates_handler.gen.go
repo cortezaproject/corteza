@@ -746,7 +746,7 @@ type (
 		DocumentType    string
 
 		hasVariables bool
-		Variables    map[string]interface{}
+		Variables    expr.RVars
 
 		hasOptions bool
 		Options    map[string]string
@@ -791,7 +791,7 @@ func (h templatesHandler) Render() *atypes.Function {
 			},
 			{
 				Name:  "variables",
-				Types: []string{"RenderVariables"},
+				Types: []string{"Vars"},
 			},
 			{
 				Name:  "options",
