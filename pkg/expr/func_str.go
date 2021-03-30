@@ -15,7 +15,6 @@ func StringFunctions() []gval.Language {
 		gval.Function("trim", strings.TrimSpace),
 		gval.Function("trimLeft", strings.TrimLeft),
 		gval.Function("trimRight", strings.TrimRight),
-		gval.Function("length", length),
 		gval.Function("toLower", strings.ToLower),
 		gval.Function("toUpper", strings.ToUpper),
 		gval.Function("shortest", shortest),
@@ -57,10 +56,6 @@ func longest(f string, aa ...string) string {
 	}
 
 	return f
-}
-
-func length(s string) int {
-	return len(s)
 }
 
 // title works similarly as strings.ToTitle, with the expception
