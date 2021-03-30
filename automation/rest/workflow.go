@@ -6,6 +6,9 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/rest/request"
 	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/compose/automation"
+	cmpService "github.com/cortezaproject/corteza-server/compose/service"
+	cmpTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -22,6 +25,11 @@ type (
 			DeleteByID(ctx context.Context, workflowID uint64) error
 			UndeleteByID(ctx context.Context, workflowID uint64) error
 			Exec(ctx context.Context, workflowID uint64, p types.WorkflowExecParams) (*expr.Vars, types.Stacktrace, error)
+		}
+
+		// cross-link with compose service to load module on resolved records
+		svcModule interface {
+			FindByID(ctx context.Context, namespaceID, moduleID uint64) (*cmpTypes.Module, error)
 		}
 	}
 
@@ -40,6 +48,7 @@ type (
 func (Workflow) New() *Workflow {
 	ctrl := &Workflow{}
 	ctrl.svc = service.DefaultWorkflow
+	ctrl.svcModule = cmpService.DefaultModule
 	return ctrl
 }
 
@@ -124,15 +133,45 @@ func (ctrl Workflow) Exec(ctx context.Context, r *request.WorkflowExec) (interfa
 	var (
 		wep = &workflowExecPayload{}
 		err error
+
+		execParams = types.WorkflowExecParams{
+			StepID: r.StepID,
+			Trace:  r.Trace,
+			Input:  r.Input,
+			Async:  r.Async,
+			Wait:   r.Wait,
+		}
 	)
 
-	wep.Results, wep.Trace, err = ctrl.svc.Exec(ctx, r.WorkflowID, types.WorkflowExecParams{
-		StepID: r.StepID,
-		Trace:  r.Trace,
-		Input:  r.Input,
-		Async:  r.Async,
-		Wait:   r.Wait,
+	if execParams.Input != nil {
+		if err = execParams.Input.ResolveTypes(service.Registry().Type); err != nil {
+			return nil, err
+		}
+	}
+
+	// Now that all types are resolved we have to load modules and link them to records
+	//
+	// Very naive approach for now.
+	execParams.Input.Each(func(k string, v expr.TypedValue) error {
+		switch c := v.(type) {
+		case *automation.ComposeRecord:
+			rec := c.GetValue()
+			if rec == nil {
+				return nil
+			}
+
+			mod, err := ctrl.svcModule.FindByID(ctx, rec.NamespaceID, rec.ModuleID)
+			if err != nil {
+				return fmt.Errorf("failed to resolve ComposeRecord type: %w", err)
+			}
+
+			c.GetValue().SetModule(mod)
+		}
+
+		return nil
 	})
+
+	wep.Results, wep.Trace, err = ctrl.svc.Exec(ctx, r.WorkflowID, execParams)
 
 	if err != nil && wep.Trace != nil && r.Trace {
 		// in case of an error & trace enabled (and stacktrace present)
