@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strconv"
 	"testing"
 	"time"
 
@@ -284,6 +285,111 @@ func TestRecordUpdate(t *testing.T) {
 		End()
 
 	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r)
+}
+
+func TestRecordUpdate_refUnchanged(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	namespace := h.makeNamespace("record testing namespace")
+
+	// mods
+	mRef := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace)
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace,
+		&types.ModuleField{
+			Name: "name",
+			Kind: "String",
+		},
+		&types.ModuleField{
+			Name: "ref",
+			Kind: "Record",
+			Options: types.ModuleFieldOptions{
+				"moduleID": mRef.ID,
+			},
+		},
+	)
+
+	// Records
+	rRef := h.makeRecord(mRef)
+	record := h.makeRecord(module,
+		&types.RecordValue{
+			Name:  "name",
+			Value: "value; name",
+		},
+		&types.RecordValue{
+			Name:  "ref",
+			Value: strconv.FormatUint(rRef.ID, 10),
+			Ref:   rRef.ID,
+		},
+	)
+
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}, {"name": "ref", "value": "%d"}]}`, rRef.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.Equal(rRef.ID, r.Values.Get("ref", 0).Ref)
+	h.a.Equal(strconv.FormatUint(rRef.ID, 10), r.Values.Get("ref", 0).Value)
+	h.a.NotNil(r)
+}
+
+func TestRecordUpdate_refChanged(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	namespace := h.makeNamespace("record testing namespace")
+
+	// mods
+	mRef := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace)
+	module := h.makeRecordModuleWithFieldsOnNs("record testing module", namespace,
+		&types.ModuleField{
+			Name: "name",
+			Kind: "String",
+		},
+		&types.ModuleField{
+			Name: "ref",
+			Kind: "Record",
+			Options: types.ModuleFieldOptions{
+				"moduleID": mRef.ID,
+			},
+		},
+	)
+
+	// Records
+	rRef := h.makeRecord(mRef)
+	rRef2 := h.makeRecord(mRef)
+	record := h.makeRecord(module,
+		&types.RecordValue{
+			Name:  "name",
+			Value: "value; name",
+		},
+		&types.RecordValue{
+			Name:  "ref",
+			Value: strconv.FormatUint(rRef.ID, 10),
+			Ref:   rRef.ID,
+		},
+	)
+
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}, {"name": "ref", "value": "%d"}]}`, rRef2.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.Equal(rRef2.ID, r.Values.Get("ref", 0).Ref)
+	h.a.Equal(strconv.FormatUint(rRef2.ID, 10), r.Values.Get("ref", 0).Value)
 	h.a.NotNil(r)
 }
 
