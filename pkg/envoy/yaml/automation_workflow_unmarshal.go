@@ -28,6 +28,9 @@ func (wset *automationWorkflowSet) UnmarshalYAML(n *yaml.Node) error {
 			return y7s.NodeErr(n, "Automation workflow reference must be a valid handle")
 		}
 
+		if wrap.res.Meta == nil {
+			wrap.res.Meta = &types.WorkflowMeta{}
+		}
 		if wrap.res.Meta.Name == "" {
 			// if name is not set, use handle
 			wrap.res.Meta.Name = wrap.res.Handle

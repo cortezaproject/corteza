@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/store"
@@ -15,6 +16,7 @@ func newComposePageFromResource(res *resource.ComposePage, cfg *EncoderConfig) r
 
 		res: res,
 
+		relWfs:    make(map[string]*atypes.Workflow),
 		relMods:   make(map[string]*types.Module),
 		relCharts: make(map[string]*types.Chart),
 	}
@@ -50,6 +52,20 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 		}
 		if n.relParent == nil {
 			return resource.ComposePageErrUnresolved(n.res.RefParent.Identifiers)
+		}
+	}
+
+	// Get related workflows
+	for _, wfr := range n.res.WfRefs {
+		wf, err := findAutomationWorkflow(ctx, pl.s, pl.state.ParentResources, wfr.Identifiers)
+		if err != nil {
+			return err
+		}
+		if wf == nil {
+			return resource.AutomationWorkflowErrUnresolved(wfr.Identifiers)
+		}
+		for id := range wfr.Identifiers {
+			n.relWfs[id] = wf
 		}
 	}
 
@@ -161,6 +177,16 @@ func (n *composePage) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 		return mod.ID
 	}
+	getWfID := func(id string) uint64 {
+		wf := n.relWfs[id]
+		if wf == nil || wf.ID <= 0 {
+			wf = resource.FindAutomationWorkflow(pl.state.ParentResources, resource.MakeIdentifiers(id))
+			if wf == nil || wf.ID <= 0 {
+				return 0
+			}
+		}
+		return wf.ID
+	}
 
 	getChartID := func(id string) uint64 {
 		chr := n.relCharts[id]
@@ -197,6 +223,22 @@ func (n *composePage) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 			b.Options["moduleID"] = strconv.FormatUint(mID, 10)
 			delete(b.Options, "module")
+
+		case "Automation":
+			bb, _ := b.Options["buttons"].([]interface{})
+			for _, b := range bb {
+				button, _ := b.(map[string]interface{})
+				id := ss(button, "workflow", "workflowID")
+				if id == "" {
+					continue
+				}
+				wfID := getWfID(id)
+				if wfID <= 0 {
+					return resource.AutomationWorkflowErrUnresolved(resource.MakeIdentifiers(id))
+				}
+				button["workflowID"] = strconv.FormatUint(wfID, 10)
+				delete(button, "workflow")
+			}
 
 		case "RecordOrganizer":
 			id := ss(b.Options, "module", "moduleID")

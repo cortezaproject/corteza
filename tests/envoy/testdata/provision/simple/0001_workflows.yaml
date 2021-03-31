@@ -1,0 +1,63 @@
+workflows:
+    test:
+        enabled: true
+        keepSessions: 0
+        triggers:
+            - resourceType: compose
+              eventType: onManual
+              constraints:
+                - name: ""
+                  op: =
+                  values:
+                    - ""
+              enabled: true
+              stepID: 3
+              meta:
+                visual:
+                    edges:
+                        - childID: "3"
+                          meta:
+                            description: ""
+                            label: ""
+                            visual:
+                                id: "4"
+                                parent: "1"
+                                points: null
+                                style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                                value: null
+                          parentID: "2"
+                    id: "2"
+                    parent: "1"
+                    value: null
+                    xywh:
+                        - 2080
+                        - 2000
+                        - 200
+                        - 80
+        steps:
+            - id: 3
+              kind: prompt
+              ref: notification
+              arguments:
+                - target: message
+                  source: ""
+                  expr: ""
+                  value: Nub
+                  type: String
+                  tests: []
+              results: []
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "3"
+                    parent: "1"
+                    value: '...'
+                    xywh:
+                        - 2360
+                        - 2000
+                        - 200
+                        - 80
+              labels: {}
+        createdAt: "2021-03-31T13:12:04Z"
+        updatedAt: "2021-03-31T13:13:48Z"

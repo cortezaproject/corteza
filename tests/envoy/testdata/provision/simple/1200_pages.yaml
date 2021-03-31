@@ -46,3 +46,18 @@ pages:
             fields:
             - name: f1
             - name: f2
+
+  pgA:
+    title: pga title
+    blocks:
+    - title: pg1 b1
+      kind: Automation
+      xywh: [0, 10, 1, 1]
+      options:
+        buttons:
+        - enabled: true
+          label: testko
+          resourceType: compose
+          stepID: 3
+          variant: danger
+          workflow: test

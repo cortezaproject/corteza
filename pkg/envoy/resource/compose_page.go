@@ -17,6 +17,7 @@ type (
 		RefMod    *Ref
 		RefParent *Ref
 
+		WfRefs    RefSet
 		ModRefs   RefSet
 		RefCharts RefSet
 
@@ -27,6 +28,7 @@ type (
 func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePage {
 	r := &ComposePage{
 		base:      &base{},
+		WfRefs:    make(RefSet, 0, 10),
 		ModRefs:   make(RefSet, 0, 10),
 		RefCharts: make(RefSet, 0, 10),
 		BlockRefs: make(map[int]RefSet),
@@ -72,6 +74,18 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
 				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
+			}
+
+		case "Automation":
+			bb, _ := b.Options["buttons"].([]interface{})
+			for _, b := range bb {
+				button, _ := b.(map[string]interface{})
+				id := ss(button, "workflow", "workflowID")
+				if id != "" {
+					ref := r.AddRef(AUTOMATION_WORKFLOW_RESOURCE_TYPE, id)
+					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+					r.WfRefs = append(r.WfRefs, ref)
+				}
 			}
 
 		case "RecordOrganizer":

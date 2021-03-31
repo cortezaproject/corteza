@@ -63,6 +63,14 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 					}
 					cpb.refMod = append(cpb.refMod, relModToRef(relMod))
 
+				case resource.AUTOMATION_WORKFLOW_RESOURCE_TYPE:
+					relWf := resource.FindAutomationWorkflow(state.ParentResources, ref.Identifiers)
+					cpb.relWf = append(cpb.relWf, relWf)
+					if cpb.relWf == nil {
+						return resource.AutomationWorkflowErrUnresolved(ref.Identifiers)
+					}
+					cpb.refWf = append(cpb.refWf, relWfToRef(relWf))
+
 				case resource.COMPOSE_CHART_RESOURCE_TYPE:
 					relChart := resource.FindComposeChart(state.ParentResources, ref.Identifiers)
 					cpb.relChart = append(cpb.relChart, relChart)
@@ -191,6 +199,21 @@ func (c *composePageBlock) MarshalYAML() (interface{}, error) {
 			fOpts, _ := (feed["options"]).(map[string]interface{})
 			fOpts["module"] = c.refMod[i]
 			delete(fOpts, "moduleID")
+		}
+		break
+
+	case "Automation":
+		bb, _ := opt["buttons"].([]interface{})
+		i := 0
+		for _, b := range bb {
+			button, _ := b.(map[string]interface{})
+			if _, has := button["workflowID"]; !has {
+				continue
+			}
+
+			button["workflow"] = c.refWf[i]
+			delete(button, "workflowID")
+			i++
 		}
 		break
 
