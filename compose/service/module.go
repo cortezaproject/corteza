@@ -601,7 +601,7 @@ func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Mo
 			return nil
 		})
 
-		if err = RecordValueSanitazion(m, vv); err != nil {
+		if err = RecordValueSanitization(m, vv); err != nil {
 			return nil, err
 		}
 
