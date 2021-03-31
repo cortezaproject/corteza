@@ -18,136 +18,6 @@ import (
 var _ = context.Background
 var _ = fmt.Errorf
 
-// Document is an expression type, wrapper for *RenderedDocument type
-type Document struct{ value *RenderedDocument }
-
-// NewDocument creates new instance of Document expression type
-func NewDocument(val interface{}) (*Document, error) {
-	if c, err := CastToDocument(val); err != nil {
-		return nil, fmt.Errorf("unable to create Document: %w", err)
-	} else {
-		return &Document{value: c}, nil
-	}
-}
-
-// Return underlying value on Document
-func (t Document) Get() interface{} { return t.value }
-
-// Return underlying value on Document
-func (t Document) GetValue() *RenderedDocument { return t.value }
-
-// Return type name
-func (Document) Type() string { return "Document" }
-
-// Convert value to *RenderedDocument
-func (Document) Cast(val interface{}) (TypedValue, error) {
-	return NewDocument(val)
-}
-
-// Assign new value to Document
-//
-// value is first passed through CastToDocument
-func (t *Document) Assign(val interface{}) error {
-	if c, err := CastToDocument(val); err != nil {
-		return err
-	} else {
-		t.value = c
-		return nil
-	}
-}
-
-func (t *Document) AssignFieldValue(key string, val TypedValue) error {
-	return assignToDocument(t.value, key, val)
-}
-
-// SelectGVal implements gval.Selector requirements
-//
-// It allows gval lib to access Document's underlying value (*RenderedDocument)
-// and it's fields
-//
-func (t Document) SelectGVal(ctx context.Context, k string) (interface{}, error) {
-	return documentGValSelector(t.value, k)
-}
-
-// Select is field accessor for *RenderedDocument
-//
-// Similar to SelectGVal but returns typed values
-func (t Document) Select(k string) (TypedValue, error) {
-	return documentTypedValueSelector(t.value, k)
-}
-
-func (t Document) Has(k string) bool {
-	switch k {
-	case "document":
-		return true
-	case "name":
-		return true
-	case "type":
-		return true
-	}
-	return false
-}
-
-// documentGValSelector is field accessor for *RenderedDocument
-func documentGValSelector(res *RenderedDocument, k string) (interface{}, error) {
-	switch k {
-	case "document":
-		return res.Document, nil
-	case "name":
-		return res.Name, nil
-	case "type":
-		return res.Type, nil
-	}
-
-	return nil, fmt.Errorf("unknown field '%s'", k)
-}
-
-// documentTypedValueSelector is field accessor for *RenderedDocument
-func documentTypedValueSelector(res *RenderedDocument, k string) (TypedValue, error) {
-	switch k {
-	case "document":
-		return NewReader(res.Document)
-	case "name":
-		return NewString(res.Name)
-	case "type":
-		return NewString(res.Type)
-	}
-
-	return nil, fmt.Errorf("unknown field '%s'", k)
-}
-
-// assignToDocument is field value setter for *RenderedDocument
-func assignToDocument(res *RenderedDocument, k string, val interface{}) error {
-	switch k {
-	case "document":
-		aux, err := CastToReader(val)
-		if err != nil {
-			return err
-		}
-
-		res.Document = aux
-		return nil
-	case "name":
-		aux, err := CastToString(val)
-		if err != nil {
-			return err
-		}
-
-		res.Name = aux
-		return nil
-	case "type":
-		aux, err := CastToString(val)
-		if err != nil {
-			return err
-		}
-
-		res.Type = aux
-		return nil
-	}
-
-	return fmt.Errorf("unknown field '%s'", k)
-}
-
 // DocumentType is an expression type, wrapper for types.DocumentType type
 type DocumentType struct{ value types.DocumentType }
 
@@ -222,6 +92,136 @@ func (t *RenderOptions) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
+}
+
+// RenderedDocument is an expression type, wrapper for *renderedDocument type
+type RenderedDocument struct{ value *renderedDocument }
+
+// NewRenderedDocument creates new instance of RenderedDocument expression type
+func NewRenderedDocument(val interface{}) (*RenderedDocument, error) {
+	if c, err := CastToRenderedDocument(val); err != nil {
+		return nil, fmt.Errorf("unable to create RenderedDocument: %w", err)
+	} else {
+		return &RenderedDocument{value: c}, nil
+	}
+}
+
+// Return underlying value on RenderedDocument
+func (t RenderedDocument) Get() interface{} { return t.value }
+
+// Return underlying value on RenderedDocument
+func (t RenderedDocument) GetValue() *renderedDocument { return t.value }
+
+// Return type name
+func (RenderedDocument) Type() string { return "RenderedDocument" }
+
+// Convert value to *renderedDocument
+func (RenderedDocument) Cast(val interface{}) (TypedValue, error) {
+	return NewRenderedDocument(val)
+}
+
+// Assign new value to RenderedDocument
+//
+// value is first passed through CastToRenderedDocument
+func (t *RenderedDocument) Assign(val interface{}) error {
+	if c, err := CastToRenderedDocument(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *RenderedDocument) AssignFieldValue(key string, val TypedValue) error {
+	return assignToRenderedDocument(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access RenderedDocument's underlying value (*renderedDocument)
+// and it's fields
+//
+func (t RenderedDocument) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return renderedDocumentGValSelector(t.value, k)
+}
+
+// Select is field accessor for *renderedDocument
+//
+// Similar to SelectGVal but returns typed values
+func (t RenderedDocument) Select(k string) (TypedValue, error) {
+	return renderedDocumentTypedValueSelector(t.value, k)
+}
+
+func (t RenderedDocument) Has(k string) bool {
+	switch k {
+	case "document":
+		return true
+	case "name":
+		return true
+	case "type":
+		return true
+	}
+	return false
+}
+
+// renderedDocumentGValSelector is field accessor for *renderedDocument
+func renderedDocumentGValSelector(res *renderedDocument, k string) (interface{}, error) {
+	switch k {
+	case "document":
+		return res.Document, nil
+	case "name":
+		return res.Name, nil
+	case "type":
+		return res.Type, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// renderedDocumentTypedValueSelector is field accessor for *renderedDocument
+func renderedDocumentTypedValueSelector(res *renderedDocument, k string) (TypedValue, error) {
+	switch k {
+	case "document":
+		return NewReader(res.Document)
+	case "name":
+		return NewString(res.Name)
+	case "type":
+		return NewString(res.Type)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToRenderedDocument is field value setter for *renderedDocument
+func assignToRenderedDocument(res *renderedDocument, k string, val interface{}) error {
+	switch k {
+	case "document":
+		aux, err := CastToReader(val)
+		if err != nil {
+			return err
+		}
+
+		res.Document = aux
+		return nil
+	case "name":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Name = aux
+		return nil
+	case "type":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Type = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
 }
 
 // Role is an expression type, wrapper for *types.Role type

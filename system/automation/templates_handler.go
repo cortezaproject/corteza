@@ -187,7 +187,7 @@ func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs)
 	}
 
 	rr := &templatesRenderResults{
-		Document: &RenderedDocument{
+		Document: &renderedDocument{
 			Document: doc,
 			Name:     args.DocumentName,
 			Type:     args.DocumentType,

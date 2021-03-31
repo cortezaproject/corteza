@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	RenderedDocument struct {
+	renderedDocument struct {
 		Document io.Reader
 		Name     string
 		Type     string
@@ -87,17 +87,17 @@ func CastToTemplateMeta(val interface{}) (out types.TemplateMeta, err error) {
 	}
 }
 
-func CastToDocument(val interface{}) (out *RenderedDocument, err error) {
+func CastToRenderedDocument(val interface{}) (out *renderedDocument, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:
-		out = &RenderedDocument{}
+		out = &renderedDocument{}
 		return out, val.Each(func(k string, v expr.TypedValue) error {
-			return assignToDocument(out, k, v)
+			return assignToRenderedDocument(out, k, v)
 		})
 	}
 
 	switch val := expr.UntypedValue(val).(type) {
-	case *RenderedDocument:
+	case *renderedDocument:
 		return val, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)

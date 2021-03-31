@@ -16,8 +16,8 @@ snippets:
   rvTemplate: &rvTemplate
     wf: Template
 
-  rvDocument: &rvDocument
-    wf: Document
+  rvRenderedDocument: &rvRenderedDocument
+    wf: RenderedDocument
 
   rvTotal: &rvTotal
     wf: UnsignedInteger
@@ -158,4 +158,4 @@ functions:
         types:
           - { wf: RenderOptions }
     results:
-      document: *rvDocument
+      document: *rvRenderedDocument

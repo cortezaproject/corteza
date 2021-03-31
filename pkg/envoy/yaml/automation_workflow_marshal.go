@@ -120,7 +120,6 @@ func (t *automationTrigger) MarshalYAML() (interface{}, error) {
 		"eventType", t.res.EventType,
 		"constraints", t.res.Constraints,
 		"enabled", t.res.Enabled,
-		"workflowID", t.res.WorkflowID,
 
 		"stepID", t.res.StepID,
 		"input", t.res.Input,

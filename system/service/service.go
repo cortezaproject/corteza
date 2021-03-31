@@ -175,7 +175,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		automation.Role{},
 		automation.Template{},
 		automation.RenderOptions{},
-		automation.Document{},
+		automation.RenderedDocument{},
 	)
 
 	automation.UsersHandler(
