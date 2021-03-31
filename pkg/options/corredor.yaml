@@ -7,7 +7,7 @@ docs:
 props:
   - name: enabled
     type: bool
-    default: true
+    default: false
     description: Enable/disable Corredor integration
 
   - name: addr
