@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -107,6 +108,76 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 				// provided as chartID
 				b = pg.Blocks[1]
 				req.Equal(strconv.FormatUint(chr.ID, 10), b.Options["chartID"])
+			},
+		},
+
+		{
+			name: "pageblock; automation",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+				wf := sTestAutomationWorkflow(ctx, t, s, "base")
+				sTestComposePageWithBlocks(ctx, t, s, ns.ID, "base",
+					types.PageBlocks{
+						{
+							Title: "automation",
+							Kind:  "Automation",
+							Options: map[string]interface{}{
+								"buttons": []map[string]interface{}{
+									{
+										"enabled":      true,
+										"label":        "test",
+										"resourceType": "compose",
+										"variant":      "danger",
+										"script":       "server-script/script1.js:default",
+									},
+									{
+										"enabled":      true,
+										"label":        "test",
+										"resourceType": "compose",
+										"stepID":       3,
+										"variant":      "danger",
+										"workflowID":   strconv.FormatUint(wf.ID, 10),
+									},
+								},
+							},
+						},
+					},
+				)
+
+				df := su.NewDecodeFilter().
+					ComposeNamespace(&types.NamespaceFilter{
+						Slug: "base_namespace",
+					}).
+					AutomationWorkflows(&atypes.WorkflowFilter{
+						WorkflowID: []uint64{wf.ID},
+					}).
+					ComposePage(&types.PageFilter{
+						NamespaceID: ns.ID,
+						Handle:      "base_page",
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				n, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+				wf, err := store.LookupAutomationWorkflowByHandle(ctx, s, "base_handle")
+				req.NoError(err)
+				req.NotNil(wf)
+
+				pg, err := store.LookupComposePageByNamespaceIDHandle(ctx, s, n.ID, "base_page")
+				req.NoError(err)
+				req.NotNil(pg)
+				block := pg.Blocks[0]
+
+				bb, _ := block.Options["buttons"].([]interface{})
+				req.Len(bb, 2)
+
+				b := (bb[0]).(map[string]interface{})
+				req.Equal("server-script/script1.js:default", b["script"])
+
+				b = (bb[1]).(map[string]interface{})
+				req.Equal(strconv.FormatUint(wf.ID, 10), b["workflowID"])
+				req.Equal(float64(3), b["stepID"])
 			},
 		},
 

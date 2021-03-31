@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -20,6 +21,7 @@ type (
 		relMod    *types.Module
 		relParent *types.Page
 
+		relWfs    map[string]*atypes.Workflow
 		relMods   map[string]*types.Module
 		relCharts map[string]*types.Chart
 	}

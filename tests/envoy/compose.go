@@ -176,28 +176,32 @@ func sTestComposeModuleFull(ctx context.Context, s store.Storer, t *testing.T, n
 }
 
 func sTestComposePage(ctx context.Context, t *testing.T, s store.Storer, nsID uint64, pfx string) *types.Page {
+	return sTestComposePageWithBlocks(ctx, t, s, nsID, pfx, types.PageBlocks{
+		types.PageBlock{
+			Title:       "page block content",
+			Description: "description",
+			Kind:        "Content",
+		},
+		types.PageBlock{
+			Title:       "page block qwerty",
+			Description: "description",
+			Kind:        "Qwerty",
+		},
+	})
+}
+
+func sTestComposePageWithBlocks(ctx context.Context, t *testing.T, s store.Storer, nsID uint64, pfx string, bb types.PageBlocks) *types.Page {
 	ns := &types.Page{
 		ID:          su.NextID(),
 		NamespaceID: nsID,
 		Handle:      pfx + "_page",
 		Title:       pfx + " page",
 		Description: "description",
-		Blocks: types.PageBlocks{
-			types.PageBlock{
-				Title:       "page block content",
-				Description: "description",
-				Kind:        "Content",
-			},
-			types.PageBlock{
-				Title:       "page block qwerty",
-				Description: "description",
-				Kind:        "Qwerty",
-			},
-		},
-		Visible:   true,
-		Weight:    0,
-		CreatedAt: createdAt,
-		UpdatedAt: &updatedAt,
+		Blocks:      bb,
+		Visible:     true,
+		Weight:      0,
+		CreatedAt:   createdAt,
+		UpdatedAt:   &updatedAt,
 	}
 
 	err := store.CreateComposePage(ctx, s, ns)

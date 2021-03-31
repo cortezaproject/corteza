@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
@@ -63,9 +64,12 @@ func TestYamlStore_provision(t *testing.T) {
 			m1   = &types.Module{}
 			m2   = &types.Module{}
 			m3   = &types.Module{}
+			wf   = &atypes.Workflow{}
+			tt   = atypes.TriggerSet{}
 			ch1  = &types.Chart{}
 			pg1  = &types.Page{}
 			pg2  = &types.Page{}
+			pgA  = &types.Page{}
 		)
 
 		prep(ctx, t, s)
@@ -120,6 +124,25 @@ func TestYamlStore_provision(t *testing.T) {
 			req.Equal([]interface{}{"f1"}, opt)
 		})
 
+		t.Run("workflows", func(t *testing.T) {
+			wf, err = store.LookupAutomationWorkflowByHandle(ctx, s, "test")
+			req.NoError(err)
+			req.NotNil(wf)
+			tt, _, err = store.SearchAutomationTriggers(ctx, s, atypes.TriggerFilter{
+				WorkflowID: []uint64{wf.ID},
+			})
+			req.NoError(err)
+			req.NotNil(tt)
+			req.Len(tt, 1)
+
+			req.Len(wf.Steps, 1)
+			s := wf.Steps[0]
+			req.Equal(uint64(3), s.ID)
+
+			tr := tt[0]
+			req.Equal(uint64(3), tr.StepID)
+		})
+
 		t.Run("charts", func(t *testing.T) {
 			ch1, err = store.LookupComposeChartByNamespaceIDHandle(ctx, s, ns.ID, "chr1")
 			req.NoError(err)
@@ -139,6 +162,9 @@ func TestYamlStore_provision(t *testing.T) {
 			pg2, err = store.LookupComposePageByNamespaceIDHandle(ctx, s, ns.ID, "rpg2")
 			req.NoError(err)
 			req.NotNil(pg2)
+			pgA, err = store.LookupComposePageByNamespaceIDHandle(ctx, s, ns.ID, "pgA")
+			req.NoError(err)
+			req.NotNil(pgA)
 
 			// pg1
 			req.Len(pg1.Blocks, 3)
@@ -157,6 +183,13 @@ func TestYamlStore_provision(t *testing.T) {
 			req.Equal(pg1.ID, pg2.SelfID)
 
 			req.Equal("Record", pg2.Blocks[0].Kind)
+
+			// pgA
+			b := pgA.Blocks[0].Options["buttons"].([]interface{})[0]
+			opts := b.(map[string]interface{})
+
+			req.Equal(strconv.FormatUint(wf.ID, 10), opts["workflowID"])
+			req.Equal(float64(3), opts["stepID"])
 		})
 
 		t.Run("setting records", func(t *testing.T) {
