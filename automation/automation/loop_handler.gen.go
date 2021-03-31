@@ -199,7 +199,7 @@ func (h loopHandler) Each() *atypes.Function {
 		Parameters: []*atypes.Param{
 			{
 				Name:  "items",
-				Types: []string{"Any"}, Required: true, IsArray: true,
+				Types: []string{"Array"}, Required: true,
 			},
 		},
 

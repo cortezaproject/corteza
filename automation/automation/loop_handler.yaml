@@ -41,8 +41,7 @@ functions:
     params:
       items:
         required: true
-        isArray: true
-        types: [ { wf: Any, go: 'expr.TypedValue' } ]
+        types: [ { wf: Array } ]
     results:
       item:
         wf: Any
