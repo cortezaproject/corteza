@@ -61,6 +61,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.ModuleField{Name: "n1", Multi: false, Kind: "Number"},
 			&types.ModuleField{Name: "n2", Multi: false, Kind: "Number"},
 			&types.ModuleField{Name: "n3", Multi: false, Kind: "Number"},
+			&types.ModuleField{Name: "ref1", Multi: false, Kind: "Record"},
+			&types.ModuleField{Name: "ref2", Multi: false, Kind: "Record"},
 		}}
 
 		raw = &types.Record{Values: types.RecordValueSet{
@@ -72,6 +74,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "b1", Value: "1", Place: 0},
 			&types.RecordValue{Name: "n2", Value: "0", Place: 0},
 			&types.RecordValue{Name: "n3", Value: "2", Place: 0},
+			&types.RecordValue{Name: "ref2", Value: "", Ref: 2, Place: 0},
 		}}
 
 		tval  = &ComposeRecord{value: raw}
@@ -161,6 +164,9 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			//{false, `rec.values.n1 > 1`}, // invalid op <nil> > 3
 			{false, `rec.values.n2 > 2`},
 			{false, `rec.values.n3 > 2`},
+
+			{true, `rec.values.ref1 != 2`},
+			{true, `rec.values.ref2 == 2`},
 		}
 
 		for _, tc := range tcc {
