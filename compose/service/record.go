@@ -861,6 +861,13 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
 
+	// First sanitization
+	//
+	// Before values are merged with existing data and
+	// sent to automation scripts (if any)
+	// we need to make sure it does not get sanitized data
+	upd.Values = svc.sanitizer.Run(m, upd.Values)
+
 	// Copy values to updated record
 	// to make sure nobody slips in something we do not want
 	upd.CreatedAt = old.CreatedAt
