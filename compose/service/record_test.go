@@ -34,36 +34,36 @@ func TestGeneralValueSetValidation(t *testing.T) {
 	)
 
 	rvs = types.RecordValueSet{{Name: "single1", Value: "single"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "unknown", Value: "single"}}
-	err = RecordValueSanitazion(module, rvs)
-	req.True(err != nil, "expecting RecordValueSanitazion() to return an error, got nil")
+	err = RecordValueSanitization(module, rvs)
+	req.True(err != nil, "expecting RecordValueSanitization() to return an error, got nil")
 
 	rvs = types.RecordValueSet{{Name: "single1", Value: "single"}, {Name: "single1", Value: "single2"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.Error(err)
 
 	rvs = types.RecordValueSet{{Name: "multi1", Value: "multi1"}, {Name: "multi1", Value: "multi1"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "non numeric value"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.Error(err)
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: "12345"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.NoError(err)
 
 	rvs = types.RecordValueSet{{Name: "multiRef1", Value: "12345"}, {Name: "multiRef1", Value: "67890"}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.NoError(err)
 	req.Len(rvs, 2, "expecting 2 record values after sanitization, got %d", len(rvs))
 
 	rvs = types.RecordValueSet{{Name: "ref1", Value: ""}}
-	err = RecordValueSanitazion(module, rvs)
+	err = RecordValueSanitization(module, rvs)
 	req.NoError(err)
 }
 

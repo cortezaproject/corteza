@@ -475,7 +475,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		return nil, RecordErrNotAllowedToCreate()
 	}
 
-	if err = RecordValueSanitazion(m, new.Values); err != nil {
+	if err = RecordValueSanitization(m, new.Values); err != nil {
 		return
 	}
 
@@ -531,7 +531,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	return
 }
 
-// RecordValueSanitazion does basic field and format validation
+// RecordValueSanitization does basic field and format validation
 //
 // Received values must fit the data model: on unknown fields
 // or multi/single value mismatch we return an error
@@ -540,7 +540,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 // we can assume that form builder (or whatever it was that assembled the record values)
 // was misconfigured and will most likely failed to properly parse the
 // record value errors payload too
-func RecordValueSanitazion(m *types.Module, vv types.RecordValueSet) (err error) {
+func RecordValueSanitization(m *types.Module, vv types.RecordValueSet) (err error) {
 	var (
 		aProps  = &recordActionProps{}
 		numeric = regexp.MustCompile(`^[1-9](\d+)$`)
@@ -725,7 +725,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		return nil, RecordErrStaleData()
 	}
 
-	if err = RecordValueSanitazion(m, upd.Values); err != nil {
+	if err = RecordValueSanitization(m, upd.Values); err != nil {
 		return
 	}
 

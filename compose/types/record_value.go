@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"strconv"
 	"time"
 )
 
@@ -59,6 +60,12 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 
 	switch {
 	case f.IsRef():
+		if v.Ref == 0 && len(v.Value) > 0 {
+			// Cover cases when we Ref is not set but Value is
+			// This happens when RVS is transferred as JSON
+			v.Ref, _ = strconv.ParseUint(v.Value, 10, 64)
+		}
+
 		return v.Ref, nil
 
 	case f.IsDateTime():

@@ -301,7 +301,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			rvs = append(rvs, rv)
 		}
 
-		if err = service.RecordValueSanitazion(mod, rvs); err != nil {
+		if err = service.RecordValueSanitization(mod, rvs); err != nil {
 			return err
 		}
 

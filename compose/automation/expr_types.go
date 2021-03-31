@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/spf13/cast"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -289,7 +290,7 @@ func composeRecordValuesTypedValueSelector(res *types.Record, k string) (expr.Ty
 	case len(vv) == 1 && !multiValueField:
 		return recordValueToExprTypedValue(field, vv[0])
 	default:
-		return recordValueSetoToExprArray(field, vv...)
+		return recordValueSetToExprArray(field, vv...)
 	}
 }
 
@@ -339,7 +340,7 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 	)
 
 	// @todo this needs to be implemented properly
-	//       we're just guessing here and puting out fires
+	//       we're just guessing here and putting out fires
 	switch utval := expr.UntypedValue(val).(type) {
 	case time.Time:
 		rv.Value = utval.Format(time.RFC3339)
@@ -435,7 +436,14 @@ func recordValueToExprTypedValue(field *types.ModuleField, rv *types.RecordValue
 		return expr.NewString(rv.Value)
 
 	case field.IsRef():
-		return expr.NewID(rv.Ref)
+		ref := rv.Ref
+		if ref == 0 && len(rv.Value) > 0 {
+			// Cover cases when we Ref is not set but Value is
+			// This happens when RVS is transferred as JSON
+			ref, _ = strconv.ParseUint(rv.Value, 10, 64)
+		}
+
+		return expr.NewID(ref)
 
 	default:
 		if v, err := rv.Cast(field); err != nil {
@@ -446,7 +454,7 @@ func recordValueToExprTypedValue(field *types.ModuleField, rv *types.RecordValue
 	}
 }
 
-func recordValueSetoToExprArray(field *types.ModuleField, vv ...*types.RecordValue) (arr *expr.Array, err error) {
+func recordValueSetToExprArray(field *types.ModuleField, vv ...*types.RecordValue) (arr *expr.Array, err error) {
 	var (
 		tv expr.TypedValue
 	)

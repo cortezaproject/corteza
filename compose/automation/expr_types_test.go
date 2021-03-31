@@ -99,6 +99,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			// expecting valid value (false)  even when boolean fields are not set
 			{false, "rec.values.b0"},
 			{true, "rec.values.b1"},
+			{uint64(2), "rec.values.ref2"},
 		}
 
 		for _, tc := range tcc {
@@ -167,6 +168,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 
 			{true, `rec.values.ref1 != 2`},
 			{true, `rec.values.ref2 == 2`},
+			{true, `rec.values.ref2 == "2"`},
 		}
 
 		for _, tc := range tcc {
