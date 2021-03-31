@@ -4,7 +4,7 @@ set -eu
 
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-BRANCH=${BRANCH:-"2020.12.x"}
+BRANCH=${BRANCH:-"2021.3.x"}
 ZIP="${BRANCH}.zip"
 URL=${URL:-"https://github.com/cortezaproject/corteza-ext/archive/${ZIP}"}
 DIR="corteza-ext-${BRANCH}"
