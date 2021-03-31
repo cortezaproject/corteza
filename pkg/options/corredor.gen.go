@@ -34,7 +34,7 @@ type (
 // Corredor initializes and returns a CorredorOpt with default values
 func Corredor() (o *CorredorOpt) {
 	o = &CorredorOpt{
-		Enabled:               true,
+		Enabled:               false,
 		Addr:                  "localhost:50051",
 		MaxBackoffDelay:       time.Minute,
 		MaxReceiveMessageSize: 2 << 23,
