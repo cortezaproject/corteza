@@ -553,10 +553,6 @@ func (t *UnsignedInteger) Assign(val interface{}) error {
 // Vars is an expression type, wrapper for map[string]TypedValue type
 type Vars struct{ value map[string]TypedValue }
 
-func EmptyVars() *Vars {
-	return &Vars{make(map[string]TypedValue)}
-}
-
 // NewVars creates new instance of Vars expression type
 func NewVars(val interface{}) (*Vars, error) {
 	if c, err := CastToVars(val); err != nil {
