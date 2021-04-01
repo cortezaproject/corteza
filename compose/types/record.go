@@ -136,6 +136,7 @@ func (r Record) DynamicRoles(userID uint64) []uint64 {
 func (r Record) Dict() map[string]interface{} {
 	dict := map[string]interface{}{
 		"ID":          r.ID,
+		"recordID":    r.ID,
 		"moduleID":    r.ModuleID,
 		"labels":      r.Labels,
 		"namespaceID": r.NamespaceID,
