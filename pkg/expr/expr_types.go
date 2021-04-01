@@ -24,6 +24,10 @@ type (
 	}
 )
 
+func EmptyVars() *Vars {
+	return &Vars{value: map[string]TypedValue{}}
+}
+
 func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
 }
@@ -36,9 +40,6 @@ func Typify(in interface{}) (tv TypedValue, err error) {
 	}
 
 	switch c := in.(type) {
-	// @todo
-	//case map[string]interface{}:
-	//	return NewVars()
 	case []TypedValue:
 		return &Array{value: c}, nil
 	case bool:
@@ -75,6 +76,14 @@ func Typify(in interface{}) (tv TypedValue, err error) {
 		return &Duration{value: *c}, nil
 	case time.Duration:
 		return &Duration{value: c}, nil
+	case map[string]interface{}:
+		if v, err := CastToVars(c); err != nil {
+			return nil, err
+		} else {
+			return &Vars{v}, nil
+		}
+	case map[string]TypedValue:
+		return &Vars{c}, nil
 	case map[string]string:
 		return &KV{value: c}, nil
 	case map[string][]string:

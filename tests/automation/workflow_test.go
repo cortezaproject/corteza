@@ -183,11 +183,15 @@ func TestWorkflowCreateFull(t *testing.T) {
 			Enabled:      true,
 			Trace:        true,
 			KeepSessions: 10000,
-			Scope:        expr.RVars{"foo": expr.Must(expr.NewString("bar"))}.Vars(),
-			Steps:        types.WorkflowStepSet{},
-			Paths:        types.WorkflowPathSet{},
-			RunAs:        0,
-			OwnedBy:      42,
+			Scope: func() *expr.Vars {
+				o := &expr.Vars{}
+				_ = o.Set("foo", "bar")
+				return o
+			}(),
+			Steps:   types.WorkflowStepSet{},
+			Paths:   types.WorkflowPathSet{},
+			RunAs:   0,
+			OwnedBy: 42,
 		}
 	)
 

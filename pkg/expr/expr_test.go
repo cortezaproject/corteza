@@ -39,19 +39,19 @@ func TestVars(t *testing.T) {
 	var (
 		req = require.New(t)
 
-		vars = RVars{
+		vars = Must(Typify(map[string]interface{}{
 			"int": Must(NewInteger(42)),
-			"sub": RVars{
+			"sub": map[string]interface{}{
 				"foo": Must(NewString("foo")),
-			}.Vars(),
-			"three": RVars{
-				"two": RVars{
-					"one": RVars{
+			},
+			"three": map[string]interface{}{
+				"two": map[string]interface{}{
+					"one": map[string]interface{}{
 						"go": Must(NewString("!")),
-					}.Vars(),
-				}.Vars(),
-			}.Vars(),
-		}.Vars()
+					},
+				},
+			},
+		}))
 
 		tv = func(in interface{}) TypedValue {
 			switch cnv := in.(type) {

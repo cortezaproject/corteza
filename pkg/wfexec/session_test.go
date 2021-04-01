@@ -33,20 +33,22 @@ func (s *sesTestStep) Exec(ctx context.Context, r *ExecRequest) (ExecResponse, e
 		return s.exec(ctx, r)
 	}
 
-	var args = &struct {
-		Path    string
-		Counter int64
-	}{}
+	var (
+		args = &struct {
+			Path    string
+			Counter int64
+		}{}
+	)
 
 	if err := r.Scope.Decode(args); err != nil {
 		return nil, err
 	}
 
-	return expr.RVars{
-		"counter": expr.Must(expr.NewInteger(args.Counter + 1)),
-		"path":    expr.Must(expr.NewString(args.Path + "/" + s.name)),
-		s.name:    expr.Must(expr.NewString("executed")),
-	}.Vars(), nil
+	return expr.NewVars(map[string]interface{}{
+		"counter": args.Counter + 1,
+		"path":    args.Path + "/" + s.name,
+		s.name:    "executed",
+	})
 }
 
 func (s *sesTestTemporal) Exec(ctx context.Context, r *ExecRequest) (ExecResponse, error) {
@@ -58,9 +60,9 @@ func (s *sesTestTemporal) Exec(ctx context.Context, r *ExecRequest) (ExecRespons
 		return Delay(s.until), nil
 	}
 
-	return expr.RVars{
-		"waitForMoment": expr.Must(expr.NewString("executed")),
-	}.Vars(), nil
+	return expr.NewVars(map[string]interface{}{
+		"waitForMoment": "executed",
+	})
 }
 
 func TestSession_TwoStepWorkflow(t *testing.T) {
@@ -72,11 +74,16 @@ func TestSession_TwoStepWorkflow(t *testing.T) {
 
 		s1 = &sesTestStep{name: "s1"}
 		s2 = &sesTestStep{name: "s2"}
+
+		scope = &expr.Vars{}
 	)
 
+	scope.Set("two", 1)
+	scope.Set("three", 1)
+
 	wf.AddStep(s1, s2) // 1st execute s1 then s2
-	ses.Exec(ctx, s1, expr.RVars{"two": expr.Must(expr.NewInteger(1)), "three": expr.Must(expr.NewInteger(1))}.Vars())
-	ses.Wait(ctx)
+	req.NoError(ses.Exec(ctx, s1, scope))
+	req.NoError(ses.Wait(ctx))
 	req.NoError(ses.Error())
 	req.NotNil(ses.Result())
 	req.Equal("/s1/s2", expr.Must(expr.Select(ses.Result(), "path")).Get())
@@ -140,10 +147,8 @@ func TestSession_Delays(t *testing.T) {
 				return Prompt(0, "", nil), nil
 			}
 
-			out := expr.RVars{
-				"waitForInput": expr.Must(expr.NewString("executed")),
-			}.Vars()
-
+			out := &expr.Vars{}
+			_ = out.Set("waitForInput", "executed")
 			r.Input.Copy(out, "input")
 
 			return out, nil
@@ -159,7 +164,7 @@ func TestSession_Delays(t *testing.T) {
 	req.NoError(ses.Exec(ctx, start, nil))
 
 	// wait-for-moment step needs to be executed before we can resume wait-for-input
-	ses.Wait(ctx)
+	req.NoError(ses.Wait(ctx))
 	time.Sleep(delay + unit)
 	req.NotZero(waitForInputStateId.Load())
 
@@ -168,10 +173,12 @@ func TestSession_Delays(t *testing.T) {
 	req.True(ses.Suspended())
 
 	// push in the input
-	req.NoError(ses.Resume(ctx, waitForInputStateId.Load(), expr.RVars{"input": expr.Must(expr.NewString("foo"))}.Vars()))
+	input := &expr.Vars{}
+	input.Set("inout", "foo")
+	req.NoError(ses.Resume(ctx, waitForInputStateId.Load(), input))
 
 	req.False(ses.Suspended())
-	ses.Wait(ctx)
+	req.NoError(ses.Wait(ctx))
 	time.Sleep(2 * unit)
 
 	// should not be completed yet...

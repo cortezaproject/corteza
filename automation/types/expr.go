@@ -111,7 +111,7 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 		scope = (&expr.Vars{}).Merge(in)
 
 		// Prepare output scope
-		out = &expr.Vars{}
+		out, _ = expr.NewVars(nil)
 
 		// Untyped evaluation result
 		value interface{}

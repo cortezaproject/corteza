@@ -58,7 +58,7 @@ func isEmpty(i interface{}) bool {
 	}
 
 	switch reflect.TypeOf(i).Kind() {
-	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map:
+	case reflect.Slice, reflect.Array, reflect.Map:
 		return reflect.ValueOf(i).Len() == 0
 	}
 

@@ -14,25 +14,25 @@ func TestExprSet_Eval(t *testing.T) {
 		cc = []struct {
 			name   string
 			set    ExprSet
-			input  RVars
-			output RVars
+			input  map[string]interface{}
+			output map[string]interface{}
 			err    string
 		}{
 			{
 				name:   "empty",
 				set:    ExprSet{},
-				output: nil,
+				output: make(map[string]interface{}),
 			},
 			{
 				name:   "constant assignment",
 				set:    ExprSet{&Expr{Target: "foo", Expr: `"bar"`}},
-				output: RVars{"foo": Must(NewString("bar"))},
+				output: map[string]interface{}{"foo": Must(NewString("bar"))},
 			},
 			{
 				name:   "vars with path",
 				set:    ExprSet{&Expr{Target: "l1.l2", Expr: `"bar"`}},
-				input:  RVars{"l1": RVars{}.Vars()},
-				output: RVars{"l1": RVars{"l2": Must(Typify("bar"))}.Vars()},
+				input:  map[string]interface{}{"l1": map[string]interface{}{}},
+				output: map[string]interface{}{"l1": map[string]interface{}{"l2": Must(Typify("bar"))}},
 			},
 			{
 				name: "copy vars with same types",
@@ -40,7 +40,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "aa", Value: "vv", typ: &String{}},
 					&Expr{Target: "bb", Source: "aa", typ: &String{}},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"aa": Must(NewString("vv")),
 					"bb": Must(NewString("vv")),
 				},
@@ -51,7 +51,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "aa", Value: "should be always String", typ: &String{}},
 					&Expr{Target: "bb", Source: "aa"},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"aa": Must(NewString("should be always String")),
 					"bb": Must(NewString("should be always String")),
 				},
@@ -62,7 +62,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "aa", Value: "42", typ: &String{}},
 					&Expr{Target: "bb", Source: "aa", typ: &Integer{}},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"aa": Must(NewString("42")),
 					"bb": Must(NewInteger(42)),
 				},
@@ -81,7 +81,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "a", typ: &KV{}},
 					&Expr{Target: "a.b", Value: "c", typ: &String{}},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"a": Must(NewKV(map[string]string{
 						"b": "c",
 					})),
@@ -93,7 +93,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "arr", typ: &Array{}, Expr: `[]`},
 					&Expr{Target: "arr", typ: &Array{}, Expr: `push(arr, "foo")`},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"arr": Must(NewArray([]string{
 						"foo",
 					})),
@@ -105,7 +105,7 @@ func TestExprSet_Eval(t *testing.T) {
 					&Expr{Target: "arr", typ: &Array{}, Expr: `[]`},
 					&Expr{Target: "arr", typ: &Any{}, Expr: `push(arr, "foo")`},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"arr": Must(NewArray([]string{
 						"foo",
 					})),
@@ -116,7 +116,7 @@ func TestExprSet_Eval(t *testing.T) {
 				set: ExprSet{
 					&Expr{Target: "arr", typ: &Array{}, Expr: `push([], "foo")`},
 				},
-				output: RVars{
+				output: map[string]interface{}{
 					"arr": Must(NewArray([]TypedValue{
 						Must(Typify("foo")),
 					})),
@@ -153,7 +153,7 @@ func TestExprSet_Eval(t *testing.T) {
 				return
 			}
 
-			req.Equal(c.output.Vars(), output)
+			req.Equal(Must(Typify(c.output)), output)
 		})
 	}
 }

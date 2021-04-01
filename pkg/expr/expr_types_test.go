@@ -9,13 +9,13 @@ import (
 )
 
 func TestTypedValueOperations(t *testing.T) {
-	scope := RVars{
-		"xUint":   Must(NewUnsignedInteger(1)),
-		"xInt":    Must(NewInteger(1)),
-		"xBoolT":  Must(NewBoolean(true)),
-		"xBoolF":  Must(NewBoolean(false)),
-		"xString": Must(NewString("foo")),
-	}.Vars()
+	scope, _ := NewVars(map[string]interface{}{
+		"xUint":   uint(1),
+		"xInt":    1,
+		"xBoolT":  true,
+		"xBoolF":  false,
+		"xString": "foo",
+	})
 
 	tcc := []struct {
 		expects interface{}
@@ -27,11 +27,11 @@ func TestTypedValueOperations(t *testing.T) {
 
 		// uint ops
 		{true, "xUint == 1"},
-		{uint64(1), "xUint"},
+		{uint(1), "xUint"},
 
 		// uint ops
 		{true, "xInt == 1"},
-		{int64(1), "xInt"},
+		{int(1), "xInt"},
 
 		// string ops
 		{true, `xString == "foo"`},
@@ -157,12 +157,16 @@ func TestArrayDecode(t *testing.T) {
 	})
 
 	req.NoError(err)
-	req.NoError(RVars{
+
+	vars, err := NewVars(map[string]interface{}{
 		"strings": &Array{arr},
 		"iface":   Must(NewString("typed")),
 		"typed":   Must(NewString("typed")),
 		"values":  &Array{arr},
-	}.Vars().Decode(&foo))
+	})
+
+	req.NoError(err)
+	req.NoError(vars.Decode(&foo))
 	req.Len(foo.Strings, 2)
 	req.Len(foo.Values, 2)
 }

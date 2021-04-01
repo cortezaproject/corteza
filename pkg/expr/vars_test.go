@@ -9,7 +9,6 @@ import (
 // extract typed-value
 
 func TestVars_Decode(t *testing.T) {
-
 	t.Run("mix", func(t *testing.T) {
 		var (
 			req = require.New(t)
@@ -23,12 +22,12 @@ func TestVars_Decode(t *testing.T) {
 				Unexisting byte
 			}{}
 
-			vars = RVars{
+			vars, _ = NewVars(map[string]interface{}{
 				"int":     Must(NewInteger(42)),
 				"STRING":  Must(NewString("foo")),
 				"bool":    Must(NewBoolean(true)),
 				"missing": Must(NewBoolean(true)),
-			}.Vars()
+			})
 		)
 
 		req.NoError(vars.Decode(dst))
@@ -48,11 +47,11 @@ func TestVars_Decode(t *testing.T) {
 				IBool    interface{} `var:"iBool"`
 			}{}
 
-			vars = RVars{
+			vars, _ = NewVars(map[string]interface{}{
 				"iString":  Must(NewString("foo")),
 				"iInteger": Must(NewInteger(42)),
 				"iBool":    Must(NewBoolean(true)),
-			}.Vars()
+			})
 		)
 
 		req.NoError(vars.Decode(dst))
@@ -63,12 +62,12 @@ func TestVars_Decode(t *testing.T) {
 			req = require.New(t)
 
 			dst = &struct {
-				Vars RVars `var:"vars"`
+				Vars *Vars `var:"vars"`
 			}{}
 
-			vars = RVars{
-				"vars": RVars{"foo": Must(NewString("bar"))}.Vars(),
-			}.Vars()
+			vars, _ = NewVars(map[string]interface{}{
+				"vars": map[string]interface{}{"foo": Must(NewString("bar"))},
+			})
 		)
 
 		req.NoError(vars.Decode(dst))
@@ -83,10 +82,10 @@ func TestVars_Decode(t *testing.T) {
 				Uint64 uint64
 			}{}
 
-			vars = RVars{
+			vars, _ = NewVars(map[string]TypedValue{
 				"uint64": Must(NewAny("42")),
 				"int":    Must(NewAny("42")),
-			}.Vars()
+			})
 		)
 
 		dst.Uint64 = 0
@@ -96,52 +95,66 @@ func TestVars_Decode(t *testing.T) {
 		req.Equal(uint64(42), dst.Uint64)
 		req.Equal(int64(42), dst.Int)
 	})
+
+}
+
+func TestVars_Assign(t *testing.T) {
+	var (
+		req  = require.New(t)
+		vars = &Vars{}
+	)
+
+	req.NoError(Assign(vars, "foo", &String{value: "foo"}))
+	req.NoError(Assign(vars, "vars", &Vars{}))
+	req.NoError(Assign(vars, "vars.foo", &String{value: "foo"}))
 }
 
 func TestVars_UnmarshalJSON(t *testing.T) {
 	cases := []struct {
 		name string
 		json string
-		vars *Vars
+		vars map[string]interface{}
 	}{
-		{"empty", "", &Vars{}},
-		{"empty", "{}", &Vars{}},
-		{"string", `{"a":{"@value":"b"}}`, RVars{"a": &Unresolved{value: "b"}}.Vars()},
+		{"empty", "", make(map[string]interface{})},
+		{"object", "{}", make(map[string]interface{})},
+		{"string", `{"a":{"@value":"b"}}`, map[string]interface{}{"a": &Unresolved{value: "b"}}},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var (
-				r = require.New(t)
-				v = &Vars{}
+				r           = require.New(t)
+				unmarshaled = &Vars{}
+				aux, _      = NewVars(c.vars)
 			)
 
-			r.NoError(v.UnmarshalJSON([]byte(c.json)))
-			r.Equal(c.vars, v)
+			r.NoError(unmarshaled.UnmarshalJSON([]byte(c.json)))
+			r.Equal(aux, unmarshaled)
 		})
 	}
 }
 
-func TestVars_UMarshalJSON(t *testing.T) {
+func TestVars_MarshalJSON(t *testing.T) {
 	cases := []struct {
 		name string
 		json string
-		vars *Vars
+		vars map[string]interface{}
 	}{
-		{"empty", "{}", &Vars{}},
-		{"string", `{"a":{"@value":"b","@type":"String"}}`, RVars{"a": &String{value: "b"}}.Vars()},
+		{"empty", "{}", nil},
+		{"string", `{"a":{"@value":"b","@type":"String"}}`, map[string]interface{}{"a": &String{value: "b"}}},
 		{"array",
 			`{"arr":{"@value":[{"@value":"foo","@type":"String"},{"@value":"bar","@type":"String"}],"@type":"Array"}}`,
-			RVars{"arr": &Array{value: []TypedValue{&String{value: "foo"}, &String{value: "bar"}}}}.Vars()},
+			map[string]interface{}{"arr": &Array{value: []TypedValue{&String{value: "foo"}, &String{value: "bar"}}}}},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			var (
-				r = require.New(t)
+				r      = require.New(t)
+				aux, _ = NewVars(c.vars)
 			)
 
-			j, err := json.Marshal(c.vars)
+			j, err := json.Marshal(aux)
 			r.NoError(err)
 			r.Equal(c.json, string(j))
 		})

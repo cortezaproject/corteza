@@ -425,14 +425,14 @@ func (res composeBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res composeBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res composeBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -849,26 +849,38 @@ func (res moduleBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res moduleBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res moduleBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["module"], err = automation.NewComposeModule(res.module); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeModule(res.module); err == nil {
+		err = out.Set("module", v)
 	}
 
-	if rvars["oldModule"], err = automation.NewComposeModule(res.oldModule); err != nil {
-		return nil, err
+	if err != nil {
+		return
 	}
 
-	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeModule(res.oldModule); err == nil {
+		err = out.Set("oldModule", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewComposeNamespace(res.namespace); err == nil {
+		err = out.Set("namespace", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -1277,22 +1289,30 @@ func (res namespaceBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res namespaceBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res namespaceBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeNamespace(res.namespace); err == nil {
+		err = out.Set("namespace", v)
 	}
 
-	if rvars["oldNamespace"], err = automation.NewComposeNamespace(res.oldNamespace); err != nil {
-		return nil, err
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewComposeNamespace(res.oldNamespace); err == nil {
+		err = out.Set("oldNamespace", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -1737,22 +1757,26 @@ func (res pageBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res pageBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res pageBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for *types.Page
 
 	// Could not found expression-type counterpart for *types.Page
 
-	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeNamespace(res.namespace); err == nil {
+		err = out.Set("namespace", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -2330,34 +2354,54 @@ func (res recordBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res recordBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res recordBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["record"], err = automation.NewComposeRecord(res.record); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeRecord(res.record); err == nil {
+		err = out.Set("record", v)
 	}
 
-	if rvars["oldRecord"], err = automation.NewComposeRecord(res.oldRecord); err != nil {
-		return nil, err
+	if err != nil {
+		return
 	}
 
-	if rvars["module"], err = automation.NewComposeModule(res.module); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeRecord(res.oldRecord); err == nil {
+		err = out.Set("oldRecord", v)
 	}
 
-	if rvars["namespace"], err = automation.NewComposeNamespace(res.namespace); err != nil {
-		return nil, err
+	if err != nil {
+		return
 	}
 
-	if rvars["recordValueErrors"], err = automation.NewComposeRecordValueErrorSet(res.recordValueErrors); err != nil {
-		return nil, err
+	if v, err = automation.NewComposeModule(res.module); err == nil {
+		err = out.Set("module", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewComposeNamespace(res.namespace); err == nil {
+		err = out.Set("namespace", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewComposeRecordValueErrorSet(res.recordValueErrors); err == nil {
+		err = out.Set("recordValueErrors", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
