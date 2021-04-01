@@ -66,7 +66,7 @@ type (
 
 	StateChangeHandler func(SessionStatus, *State, *Session)
 
-	sessionOpt func(*Session)
+	SessionOpt func(*Session)
 
 	Frame struct {
 		CreatedAt time.Time  `json:"createdAt"`
@@ -152,7 +152,7 @@ func (s SessionStatus) String() string {
 	return "UNKNOWN-SESSION-STATUS"
 }
 
-func NewSession(ctx context.Context, g *Graph, oo ...sessionOpt) *Session {
+func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 	s := &Session{
 		g:        g,
 		id:       nextID(),
@@ -399,6 +399,10 @@ func (s *Session) worker(ctx context.Context) {
 
 				// making sure result != nil
 				s.result = (&expr.Vars{}).Merge(st.scope)
+
+				// Call event handler with completed status
+				s.eventHandler(SessionCompleted, st, s)
+
 				return
 			}
 
@@ -418,6 +422,7 @@ func (s *Session) worker(ctx context.Context) {
 				// remove single
 				<-s.execLock
 
+				status := s.Status()
 				if st.err != nil {
 					st.err = fmt.Errorf(
 						"workflow %d step %d execution failed: %w",
@@ -425,9 +430,19 @@ func (s *Session) worker(ctx context.Context) {
 						st.step.ID(),
 						st.err,
 					)
+
+					s.mux.Lock()
+					s.mux.Unlock()
+
+					// We need to force failed session status
+					// because it's not set early enough to pick it up with s.Status()
+					status = SessionFailed
+
+					// pushing step execution error into error queue
+					// to break worker loop
+					s.qErr <- st.err
 				}
 
-				status := s.Status()
 				s.log.Debug(
 					"executed",
 					zap.Uint64("stateID", st.stateId),
@@ -437,12 +452,6 @@ func (s *Session) worker(ctx context.Context) {
 
 				// after exec lock is released call event handler with (new) session status
 				s.eventHandler(status, st, s)
-
-				if err != nil {
-					// pushing step execution error into error queue
-					// to break worker loop
-					s.qErr <- st.err
-				}
 			}()
 
 		case err := <-s.qErr:
@@ -461,7 +470,7 @@ func (s *Session) worker(ctx context.Context) {
 }
 
 func (s *Session) Stop() {
-	s.log.Debug("stopping session")
+	s.log.Debug("stopping session", zap.Stringer("status", s.Status()))
 	defer s.workerTicker.Stop()
 }
 
@@ -739,31 +748,31 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 	return
 }
 
-func SetWorkerInterval(i time.Duration) sessionOpt {
+func SetWorkerInterval(i time.Duration) SessionOpt {
 	return func(s *Session) {
 		s.workerInterval = i
 	}
 }
 
-func SetHandler(fn StateChangeHandler) sessionOpt {
+func SetHandler(fn StateChangeHandler) SessionOpt {
 	return func(s *Session) {
 		s.eventHandler = fn
 	}
 }
 
-func SetWorkflowID(workflowID uint64) sessionOpt {
+func SetWorkflowID(workflowID uint64) SessionOpt {
 	return func(s *Session) {
 		s.workflowID = workflowID
 	}
 }
 
-func SetLogger(log *zap.Logger) sessionOpt {
+func SetLogger(log *zap.Logger) SessionOpt {
 	return func(s *Session) {
 		s.log = log
 	}
 }
 
-func SetDumpStacktraceOnPanic(dump bool) sessionOpt {
+func SetDumpStacktraceOnPanic(dump bool) SessionOpt {
 	return func(s *Session) {
 		s.dumpStacktraceOnPanic = dump
 	}

@@ -106,12 +106,24 @@ func (svc *session) LookupByID(ctx context.Context, sessionID uint64) (res *type
 }
 
 func (svc *session) resumeAll(ctx context.Context) error {
+	// In theory we could resume active/pending/prompt sessions from persistent store
+	// so that they can survive server termination
+
 	// @todo resume active sessions from storage
+	//       load all active sessions from store and load them into the pool
+	//
 	return nil
 }
 
 func (svc *session) suspendAll(ctx context.Context) error {
-	// @todo suspend active sessions to storage
+	// In theory we could suspend active/pending/prompt sessions to persistent store
+	// so that they can survive server termination
+
+	// @todo suspend active sessions to storage:
+	//       stop watcher queue
+	//       run gc
+	//       stop worker on each session
+	//       flush session to store (like we're doing in the status handler
 	return nil
 }
 
@@ -169,8 +181,10 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 	ses.CreatedBy = i.Identity()
 	ses.Apply(ssp)
 
-	if err = store.CreateAutomationSession(context.TODO(), svc.store, ses); err != nil {
-		return
+	if ssp.Trace {
+		if err = store.CreateAutomationSession(context.TODO(), svc.store, ses); err != nil {
+			return
+		}
 	}
 
 	if err = ses.Exec(ctx, start, ssp.Input); err != nil {
@@ -225,8 +239,11 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool) (ses *
 }
 
 func (svc *session) Watch(ctx context.Context) {
+	gcTicker := time.NewTicker(time.Second)
+
 	go func() {
 		defer sentry.Recover()
+		defer gcTicker.Stop()
 		defer svc.log.Info("stopped")
 
 		for {
@@ -234,23 +251,25 @@ func (svc *session) Watch(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case s := <-svc.spawnQueue:
-				wfexecSessLog := zap.NewNop()
-				if svc.opt.ExecDebug {
-					wfexecSessLog = svc.log.
-						Named("exec").
-						With(zap.Uint64("workflowID", s.workflowID))
+				opts := []wfexec.SessionOpt{
+					wfexec.SetWorkflowID(s.workflowID),
+					wfexec.SetHandler(svc.stateChangeHandler(ctx)),
 				}
 
-				//
-				s.session <- wfexec.NewSession(ctx,
-					s.graph,
-					wfexec.SetHandler(svc.stateChangeHandler(ctx)),
-					wfexec.SetWorkflowID(s.workflowID),
-					wfexec.SetLogger(wfexecSessLog),
-					wfexec.SetDumpStacktraceOnPanic(svc.opt.ExecDebug),
-				)
+				if svc.opt.ExecDebug {
+					opts = append(
+						opts,
+						wfexec.SetLogger(svc.log.Named("exec").With(zap.Uint64("workflowID", s.workflowID))),
+						wfexec.SetDumpStacktraceOnPanic(true),
+					)
+				}
+
+				s.session <- wfexec.NewSession(ctx, s.graph, opts...)
 				// case time for a pool cleanup
 				// @todo cleanup pool when sessions are complete
+
+			case <-gcTicker.C:
+				svc.gc()
 			}
 		}
 
@@ -261,6 +280,50 @@ func (svc *session) Watch(ctx context.Context) {
 	svc.log.Debug("watcher initialized")
 }
 
+// garbage collection for stale sessions
+func (svc *session) gc() {
+	defer svc.mux.Unlock()
+	svc.mux.Lock()
+
+	var (
+		total = len(svc.pool)
+
+		removed, pending1m, pending1h, pending1d int
+	)
+
+	for _, s := range svc.pool {
+		switch {
+		case s.CreatedAt.Sub(*now()) > time.Minute:
+			pending1m++
+		case s.CreatedAt.Sub(*now()) > time.Hour:
+			pending1h++
+		case s.CreatedAt.Sub(*now()) > time.Hour*24:
+			pending1d++
+		}
+
+		if s.CompletedAt == nil {
+			continue
+		}
+
+		removed++
+
+		delete(svc.pool, s.ID)
+	}
+
+	if total > 0 {
+		svc.log.Info(
+			"workflow session garbage collector stats",
+			zap.Int("total", total),
+			zap.Int("removed", removed),
+			zap.Int("pending1m", pending1m),
+			zap.Int("pending1h", pending1h),
+			zap.Int("pending1d", pending1d),
+		)
+	}
+
+}
+
+// stateChangeHandler keeps track of session status changes and frequently stores session into db
 func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHandler {
 	return func(i wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
 		log := svc.log.With(zap.Uint64("sessionID", s.ID()))
@@ -273,14 +336,21 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			return
 		}
 
+		const (
+			// how often do we flush to store
+			flushFrequency = 10
+		)
+
 		var (
+			// By default we want to update session when new status is prompted, delayed, completed or failed
+			//
+			// But if status is active, we
 			update = true
 			frame  = state.MakeFrame()
 		)
 
 		// Stacktrace will be set to !nil if frame collection is needed
 		if ses.Stacktrace != nil {
-
 			if len(ses.Stacktrace) > 0 {
 				// calculate how long it took to get to this step
 				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.Stacktrace[0].CreatedAt) / time.Millisecond)
@@ -311,7 +381,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		default:
 			// force update on every 10 new frames but only when stacktrace is not nil
-			update = ses.Stacktrace != nil && len(ses.Stacktrace)%10 == 0
+			update = ses.Stacktrace != nil && len(ses.Stacktrace)%flushFrequency == 0
 		}
 
 		if !update {
