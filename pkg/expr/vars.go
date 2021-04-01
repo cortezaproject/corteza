@@ -135,7 +135,12 @@ func (t *Vars) Dict() map[string]interface{} {
 			dict[k] = v.Dict()
 
 		case TypedValue:
-			dict[k] = v.Get()
+			tmp := v.Get()
+			if d, is := tmp.(Dict); is {
+				dict[k] = d.Dict()
+			} else {
+				dict[k] = tmp
+			}
 
 		default:
 			dict[k] = v
