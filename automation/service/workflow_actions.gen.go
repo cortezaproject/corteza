@@ -504,6 +504,36 @@ func WorkflowErrInvalidID(mm ...*workflowActionProps) *errors.Error {
 	return e
 }
 
+// WorkflowErrDisabled returns "automation:workflow.disabled" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrDisabled(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("disabled workflow or trigger", nil),
+
+		errors.Meta("type", "disabled"),
+		errors.Meta("resource", "automation:workflow"),
+
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // WorkflowErrInvalidHandle returns "automation:workflow.invalidHandle" as *errors.Error
 //
 //

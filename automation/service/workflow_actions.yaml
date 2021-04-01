@@ -62,6 +62,9 @@ errors:
   - error: invalidID
     message: "invalid ID"
 
+  - error: disabled
+    message: "disabled workflow or trigger"
+
   - error: invalidHandle
     message: "invalid handle"
 
