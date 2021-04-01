@@ -65,7 +65,7 @@ func (i *collectionIterator) Start(context.Context, *Vars) error { i.ptr = 0; re
 
 func (i *collectionIterator) Next(context.Context, *Vars) (out *Vars, err error) {
 	out = &Vars{}
-	out.Set("line", i.set[i.ptr])
+	out.Set("item", i.set[i.ptr])
 	i.ptr++
 	return out, nil
 }
