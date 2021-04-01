@@ -147,25 +147,27 @@ func (res {{ camelCase .ResourceIdent "base" }}) Encode() (args map[string][]byt
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res {{ camelCase .ResourceIdent "base" }}) EncodeVars() (vars *expr.Vars, err error) {
+func (res {{ camelCase .ResourceIdent "base" }}) EncodeVars() (out *expr.Vars, err error) {
 	{{- if $r.Properties }}
-	var (
-		rvars = expr.RVars{}
-	)
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	{{ range $r.Properties }}
 	{{- if .ExprType }}
-	if rvars[{{ printf "%q" .Name }}], err = automation.{{ export "new" .ExprType }}(res.{{ .Name }}); err != nil {
-		return nil, err
+	if v, err = automation.{{ export "new" .ExprType }}(res.{{ .Name }}); err == nil {
+		err = out.Set({{ printf "%q" .Name }},v)
+	}
+
+	if err != nil {
+		return
 	}
 	{{- else }}
 	// Could not found expression-type counterpart for {{ .Type }}
 	{{- end }}
 	{{ end }}
-	return rvars.Vars(), err
-	{{ else }}
-	return
 	{{ end -}}
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props

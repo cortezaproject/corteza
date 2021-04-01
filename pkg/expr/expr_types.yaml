@@ -11,7 +11,7 @@ types:
     as: '[]TypedValue'
 
   Vars:
-    as: 'RVars'
+    as: 'map[string]TypedValue'
 
   Boolean:
     as: 'bool'

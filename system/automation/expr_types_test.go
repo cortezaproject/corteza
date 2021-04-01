@@ -23,16 +23,17 @@ func TestUser(t *testing.T) {
 
 func TestUser_Expr(t *testing.T) {
 	var (
-		req    = require.New(t)
-		u, err = NewUser(&types.User{Handle: "hendl"})
+		req   = require.New(t)
+		u, _  = NewUser(&types.User{Handle: "hendl"})
+		scope = &expr.Vars{}
 	)
 
-	req.NoError(err)
+	req.NoError(scope.Set("user", u))
 
 	eval, err := expr.NewParser().Parse("user.handle")
 	req.NoError(err)
 
-	res, err := eval.Eval(context.Background(), expr.RVars{"user": u}.Vars())
+	res, err := eval.Eval(context.Background(), scope)
 	req.NoError(err)
 
 	req.Equal("hendl", res.(string))

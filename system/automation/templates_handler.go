@@ -163,11 +163,6 @@ func (h templatesHandler) recover(ctx context.Context, args *templatesRecoverArg
 func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (*templatesRenderResults, error) {
 	var err error
 
-	vars := args.Variables.Vars().Dict()
-	if vars == nil {
-		vars = make(map[string]interface{})
-	}
-
 	opts := make(map[string]string)
 	if args.hasOptions {
 		opts, err = cast.ToStringMapStringE(args.Options)
@@ -181,7 +176,7 @@ func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs)
 		return nil, err
 	}
 
-	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts)
+	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, args.Variables.Dict(), opts)
 	if err != nil {
 		return nil, err
 	}
@@ -204,13 +199,13 @@ func (i *templateSetIterator) More(context.Context, *Vars) (bool, error) {
 func (i *templateSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
 func (i *templateSetIterator) Next(context.Context, *Vars) (*Vars, error) {
-	out := RVars{
-		"template": Must(NewTemplate(i.set[i.ptr])),
-		"total":    Must(NewUnsignedInteger(i.filter.Total)),
-	}
+	out := &Vars{}
+	out.Set("template", Must(NewTemplate(i.set[i.ptr])))
+	out.Set("index", i.ptr)
+	out.Set("total", i.filter.Total)
 
 	i.ptr++
-	return out.Vars(), nil
+	return out, nil
 }
 
 func lookupTemplate(ctx context.Context, svc templateService, args templateLookup) (*types.Template, error) {

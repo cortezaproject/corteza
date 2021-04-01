@@ -3,18 +3,21 @@ package wfexec
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func gt(key string, val int64) pathTester {
 	return func(ctx context.Context, variables *expr.Vars) (bool, error) {
-		return expr.Must(expr.Select(variables, key)).Get().(int64) > val, nil
+		return cast.ToInt64(expr.Must(expr.Select(variables, key)).Get()) > val, nil
 	}
 }
 
 func makeIntVars(k string, num int) *expr.Vars {
-	return expr.RVars{k: expr.Must(expr.NewInteger(num))}.Vars()
+	o := &expr.Vars{}
+	_ = o.Set(k, num)
+	return o
 }
 
 func TestJoinGateway(t *testing.T) {

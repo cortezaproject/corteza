@@ -746,7 +746,7 @@ type (
 		DocumentType    string
 
 		hasVariables bool
-		Variables    expr.RVars
+		Variables    *expr.Vars
 
 		hasOptions bool
 		Options    map[string]string

@@ -483,10 +483,9 @@ func (s *Session) queueScheduledSuspended() {
 		delete(s.delayed, id)
 
 		// Set state input when step is resumed
-		sus.state.input = expr.RVars{
-			"resumed":  expr.Must(expr.NewBoolean(true)),
-			"resumeAt": expr.Must(expr.NewDateTime(sus.resumeAt)),
-		}.Vars()
+		sus.state.input = &expr.Vars{}
+		sus.state.input.Set("resumed", true)
+		sus.state.input.Set("resumeAt", sus.resumeAt)
 		s.qState <- sus.state
 	}
 }

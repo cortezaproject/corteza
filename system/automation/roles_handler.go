@@ -218,11 +218,11 @@ func (i *roleSetIterator) More(context.Context, *Vars) (bool, error) {
 func (i *roleSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
 func (i *roleSetIterator) Next(context.Context, *Vars) (*Vars, error) {
-	out := RVars{
-		"role":  Must(NewRole(i.set[i.ptr])),
-		"total": Must(NewUnsignedInteger(i.filter.Total)),
-	}
+	out := &Vars{}
+	out.Set("role", Must(NewRole(i.set[i.ptr])))
+	out.Set("index", i.ptr)
+	out.Set("total", i.filter.Total)
 
 	i.ptr++
-	return out.Vars(), nil
+	return out, nil
 }

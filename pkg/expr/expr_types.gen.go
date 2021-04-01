@@ -550,8 +550,12 @@ func (t *UnsignedInteger) Assign(val interface{}) error {
 	}
 }
 
-// Vars is an expression type, wrapper for RVars type
-type Vars struct{ value RVars }
+// Vars is an expression type, wrapper for map[string]TypedValue type
+type Vars struct{ value map[string]TypedValue }
+
+func EmptyVars() *Vars {
+	return &Vars{make(map[string]TypedValue)}
+}
 
 // NewVars creates new instance of Vars expression type
 func NewVars(val interface{}) (*Vars, error) {
@@ -566,12 +570,12 @@ func NewVars(val interface{}) (*Vars, error) {
 func (t Vars) Get() interface{} { return t.value }
 
 // Return underlying value on Vars
-func (t Vars) GetValue() RVars { return t.value }
+func (t Vars) GetValue() map[string]TypedValue { return t.value }
 
 // Return type name
 func (Vars) Type() string { return "Vars" }
 
-// Convert value to RVars
+// Convert value to map[string]TypedValue
 func (Vars) Cast(val interface{}) (TypedValue, error) {
 	return NewVars(val)
 }

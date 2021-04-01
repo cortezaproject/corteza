@@ -151,7 +151,7 @@ func TestTriggerCreateFull(t *testing.T) {
 			WorkflowID:   wf.ID,
 			ResourceType: "wf-full-test",
 			Enabled:      true,
-			Input:        &expr.Vars{},
+			Input:        expr.EmptyVars(),
 			OwnedBy:      42,
 		}
 	)

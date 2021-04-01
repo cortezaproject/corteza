@@ -24,14 +24,12 @@ func (i *sequenceIterator) more() bool {
 func (i *sequenceIterator) Start(context.Context, *Vars) error { return nil }
 
 func (i *sequenceIterator) Next(context.Context, *Vars) (*Vars, error) {
-	scope := RVars{
-		"counter": Must(NewInteger(i.counter)),
-		"isFirst": Must(NewBoolean(i.counter == i.cFirst)),
-		"isLast":  Must(NewBoolean(!i.more())),
-	}.Vars()
-
+	out := &Vars{}
+	out.Set("counter", i.counter)
+	out.Set("isFirst", i.counter == i.cFirst)
+	out.Set("isLast", !i.more())
 	i.counter = i.counter + i.cStep
-	return scope, nil
+	return out, nil
 }
 
 type (
@@ -66,19 +64,10 @@ func (i *collectionIterator) More(context.Context, *Vars) (bool, error) {
 func (i *collectionIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
 func (i *collectionIterator) Next(context.Context, *Vars) (out *Vars, err error) {
-	var item TypedValue
-	switch c := i.set[i.ptr].(type) {
-	case TypedValue:
-		item = c
-	default:
-		if item, err = Typify(c); err != nil {
-			return
-		}
-	}
-
+	out = &Vars{}
+	out.Set("line", i.set[i.ptr])
 	i.ptr++
-
-	return RVars{"item": item}.Vars(), nil
+	return out, nil
 }
 
 type (
@@ -101,6 +90,7 @@ func (i *lineIterator) Next(context.Context, *Vars) (*Vars, error) {
 		return nil, err
 	}
 
-	return RVars{"line": Must(NewString(i.s.Text()))}.Vars(), nil
-
+	out := &Vars{}
+	out.Set("line", i.s.Text())
+	return out, nil
 }

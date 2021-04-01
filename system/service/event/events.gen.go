@@ -536,14 +536,14 @@ func (res systemBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res systemBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res systemBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -921,10 +921,9 @@ func (res applicationBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res applicationBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res applicationBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for *types.Application
 
@@ -932,7 +931,8 @@ func (res applicationBase) EncodeVars() (vars *expr.Vars, err error) {
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -1214,20 +1214,24 @@ func (res authBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res authBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res authBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["user"], err = automation.NewUser(res.user); err != nil {
-		return nil, err
+	if v, err = automation.NewUser(res.user); err == nil {
+		err = out.Set("user", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for *types.AuthProvider
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -1639,10 +1643,9 @@ func (res authClientBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res authClientBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res authClientBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for *types.AuthClient
 
@@ -1650,7 +1653,8 @@ func (res authClientBase) EncodeVars() (vars *expr.Vars, err error) {
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -1861,16 +1865,16 @@ func (res mailBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res mailBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res mailBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for *types.MailMessage
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -2265,22 +2269,30 @@ func (res roleBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res roleBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res roleBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["role"], err = automation.NewRole(res.role); err != nil {
-		return nil, err
+	if v, err = automation.NewRole(res.role); err == nil {
+		err = out.Set("role", v)
 	}
 
-	if rvars["oldRole"], err = automation.NewRole(res.oldRole); err != nil {
-		return nil, err
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewRole(res.oldRole); err == nil {
+		err = out.Set("oldRole", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -2570,22 +2582,30 @@ func (res roleMemberBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res roleMemberBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res roleMemberBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["user"], err = automation.NewUser(res.user); err != nil {
-		return nil, err
+	if v, err = automation.NewUser(res.user); err == nil {
+		err = out.Set("user", v)
 	}
 
-	if rvars["role"], err = automation.NewRole(res.role); err != nil {
-		return nil, err
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewRole(res.role); err == nil {
+		err = out.Set("role", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -2759,10 +2779,9 @@ func (res sinkBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res sinkBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res sinkBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
 	// Could not found expression-type counterpart for *types.SinkResponse
 
@@ -2770,7 +2789,8 @@ func (res sinkBase) EncodeVars() (vars *expr.Vars, err error) {
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props
@@ -3168,22 +3188,30 @@ func (res userBase) Encode() (args map[string][]byte, err error) {
 }
 
 // Encode internal data to be passed as event params & arguments to workflow
-func (res userBase) EncodeVars() (vars *expr.Vars, err error) {
-	var (
-		rvars = expr.RVars{}
-	)
+func (res userBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
 
-	if rvars["user"], err = automation.NewUser(res.user); err != nil {
-		return nil, err
+	if v, err = automation.NewUser(res.user); err == nil {
+		err = out.Set("user", v)
 	}
 
-	if rvars["oldUser"], err = automation.NewUser(res.oldUser); err != nil {
-		return nil, err
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewUser(res.oldUser); err == nil {
+		err = out.Set("oldUser", v)
+	}
+
+	if err != nil {
+		return
 	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
-	return rvars.Vars(), err
+	_ = v
+	return
 }
 
 // Decode return values from Corredor script into struct props

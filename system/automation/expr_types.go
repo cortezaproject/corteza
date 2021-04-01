@@ -3,6 +3,7 @@ package automation
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -130,17 +131,7 @@ func CastToRenderOptions(val interface{}) (out map[string]string, err error) {
 	}
 }
 
-func CastToRenderVariables(val interface{}) (out map[string]interface{}, err error) {
-	switch val := expr.UntypedValue(val).(type) {
-	case map[string]interface{}:
-		return val, nil
-	case nil:
-		return make(map[string]interface{}), nil
-	default:
-		out, err = cast.ToStringMapE(val)
-		if err != nil {
-			return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
-		}
-		return out, nil
-	}
+func (doc renderedDocument) String() string {
+	aux, _ := ioutil.ReadAll(doc.Document)
+	return string(aux)
 }

@@ -77,11 +77,11 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "ref2", Value: "", Ref: 2, Place: 0},
 		}}
 
-		tval  = &ComposeRecord{value: raw}
-		scope = expr.RVars{
+		tval     = &ComposeRecord{value: raw}
+		scope, _ = expr.NewVars(map[string]interface{}{
 			"rec": tval,
 			"nil": nil,
-		}.Vars()
+		})
 	)
 
 	// @todo see not above re. back-ref to record
@@ -121,6 +121,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			expr string
 		}{
 			{false, `nil`},
+			{true, `rec`},
+			{true, `rec.values`},
 
 			// interaction with set values
 			{true, `rec.values.s1 == "sVal1"`},

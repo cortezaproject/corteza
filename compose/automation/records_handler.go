@@ -318,12 +318,11 @@ func (i *recordSetIterator) More(context.Context, *Vars) (bool, error) {
 func (i *recordSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
 func (i *recordSetIterator) Next(context.Context, *Vars) (*Vars, error) {
-	out := RVars{
-		"record": Must(NewComposeRecord(i.set[i.ptr])),
-		"index":  Must(NewUnsignedInteger(i.ptr)),
-		"total":  Must(NewUnsignedInteger(i.filter.Total)),
-	}
+	out := &Vars{}
+	out.Set("record", Must(NewComposeRecord(i.set[i.ptr])))
+	out.Set("index", i.ptr)
+	out.Set("total", i.filter.Total)
 
 	i.ptr++
-	return out.Vars(), nil
+	return out, nil
 }
