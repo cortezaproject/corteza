@@ -48,12 +48,12 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		defClient *types.AuthClient
 	)
 
-	log = log.Named("auth")
+	log = log.Named("auth").WithOptions(zap.AddStacktrace(zap.PanicLevel))
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_Auth)
 
 	svc = &service{
 		opt:      opt,
-		log:      log.WithOptions(zap.AddStacktrace(zap.PanicLevel)),
+		log:      log,
 		store:    s,
 		settings: &settings.Settings{ /* all disabled by default. */ },
 	}

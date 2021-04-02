@@ -68,6 +68,10 @@ func (au *authUser) Update(s *settings.Settings, u *types.User) {
 }
 
 func (au *authUser) set(s *settings.Settings, u *types.User) {
+	if u == nil || s == nil {
+		return
+	}
+
 	if u.Meta == nil {
 		u.Meta = &types.UserMeta{}
 	}
