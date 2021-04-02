@@ -553,7 +553,7 @@ func RecordValueSanitization(m *types.Module, vv types.RecordValueSet) (err erro
 		}
 
 		if field.IsRef() {
-			if v.Value == "" {
+			if v.Value == "" || v.Value == "0" {
 				return nil
 			}
 
