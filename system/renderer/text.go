@@ -4,6 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
 )
 
 func preprocPlainTemplate(tpl io.Reader, pp map[string]io.Reader) (*template.Template, error) {
@@ -12,7 +14,8 @@ func preprocPlainTemplate(tpl io.Reader, pp map[string]io.Reader) (*template.Tem
 		return nil, err
 	}
 
-	gtpl := template.New("text/plain_render")
+	gtpl := template.New("text/plain_render").
+		Funcs(sprig.TxtFuncMap())
 
 	// Prep the original template
 	t, err := gtpl.Parse(string(bb))
