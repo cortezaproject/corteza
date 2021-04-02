@@ -227,6 +227,32 @@ func (t *Array) Push(v TypedValue) {
 	t.value = append(t.value, v)
 }
 
+func (t *Array) Slice() []interface{} {
+	rr := make([]interface{}, len(t.GetValue()))
+	for i, v := range t.GetValue() {
+		switch v := v.(type) {
+		case Dict:
+			rr[i] = v.Dict()
+
+		case Slice:
+			rr[i] = v.Slice()
+
+		case TypedValue:
+			tmp := v.Get()
+			if d, is := tmp.(Dict); is {
+				rr[i] = d.Dict()
+			} else {
+				rr[i] = tmp
+			}
+
+		default:
+			rr[i] = v
+		}
+	}
+
+	return rr
+}
+
 // Select is field accessor for *types.Array
 //
 // Similar to SelectGVal but returns typed values

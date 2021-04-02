@@ -5,11 +5,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/spf13/cast"
-	"reflect"
-	"strings"
 )
 
 func (t Vars) Len() int {
@@ -133,6 +134,9 @@ func (t *Vars) Dict() map[string]interface{} {
 		switch v := v.(type) {
 		case Dict:
 			dict[k] = v.Dict()
+
+		case Slice:
+			dict[k] = v.Slice()
 
 		case TypedValue:
 			tmp := v.Get()
