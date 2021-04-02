@@ -80,7 +80,7 @@ var (
 )
 
 // NewYamlEncoder initializes a fresh yaml encoder
-func NewYamlEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreammer {
+func NewYamlEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreamer {
 	if cfg == nil {
 		cfg = &EncoderConfig{}
 	}
