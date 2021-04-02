@@ -57,7 +57,7 @@ templates:
   record_table:
     type: text/html
     partial: true
-    template: "<table width=\"800\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\">\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Value</th>\n    </tr>\n  </thead>\n  <tbody>\n{{range $key, $value := .values}}\n    <tr>\n      <td>{{ $key }}</td>\n{{if $value }}\n      <td>{{ $value }}</td>\n{{else}}\n      <td>&nbsp;</td>\n{{end}}\n    </tr>\n{{end}}\n    \n  </tbody>\n</table>\n"
+    template: "<table width=\"800\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" style=\"margin: 0 auto;\">\n  <thead>\n    <tr>\n      <th>Field</th>\n      <th>Value</th>\n    </tr>\n  </thead>\n  <tbody>\n{{range $key, $value := .values}}\n    <tr>\n      <td>{{ $key }}</td>\n{{if $value }}\n  {{if typeIs \"[]interface {}\" $value}}\n      <td>{{ $value | join \", \"  }}</td>\n  {{else}}\n      <td>{{ $value }}</td>\n  {{end}}\n{{else}}\n      <td>&nbsp;</td>\n{{end}}\n    </tr>\n{{end}}\n    \n  </tbody>\n</table>\n"
     meta:
         short: Tablefy Record
         description: Displays the provided record as a table.
