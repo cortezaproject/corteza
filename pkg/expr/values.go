@@ -47,6 +47,10 @@ type (
 	Dict interface {
 		Dict() map[string]interface{}
 	}
+
+	Slice interface {
+		Slice() []interface{}
+	}
 )
 
 func UntypedValue(val interface{}) interface{} {
