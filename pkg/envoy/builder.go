@@ -29,8 +29,8 @@ type (
 		Encode(ctx context.Context, p Provider) error
 	}
 
-	// Streammer provides a set of streams of encoded documents
-	Streammer interface {
+	// Streamer provides a set of streams of encoded documents
+	Streamer interface {
 		Stream() []*Stream
 	}
 
@@ -38,10 +38,10 @@ type (
 		Preparer
 		Encoder
 	}
-	PrepareEncodeStreammer interface {
+	PrepareEncodeStreamer interface {
 		Preparer
 		Encoder
-		Streammer
+		Streamer
 	}
 )
 

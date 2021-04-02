@@ -53,7 +53,7 @@ var (
 	ErrResourceStateUndefined = errors.New("undefined resource state")
 )
 
-func NewBulkRecordEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreammer {
+func NewBulkRecordEncoder(cfg *EncoderConfig) envoy.PrepareEncodeStreamer {
 	if cfg == nil {
 		cfg = &EncoderConfig{}
 	}
