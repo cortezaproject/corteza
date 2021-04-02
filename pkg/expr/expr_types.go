@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -288,7 +289,16 @@ func CastToBoolean(val interface{}) (out bool, err error) {
 }
 
 func CastToString(val interface{}) (out string, err error) {
-	return cast.ToStringE(UntypedValue(val))
+	switch v := val.(type) {
+	case io.Reader:
+		bb, err := ioutil.ReadAll(v)
+		if err != nil {
+			return "", err
+		}
+		return string(bb), nil
+	default:
+		return cast.ToStringE(UntypedValue(val))
+	}
 }
 
 func CastStringSlice(val interface{}) (out []string, err error) {
