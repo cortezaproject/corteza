@@ -52,3 +52,12 @@ applications:
       icon: /applications/admin-area.png
       logo: /applications/admin-area.png
       url: /admin
+
+  - name: Workflows
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: /applications/workflows.png
+      logo: /applications/workflows.png
+      url: /workflow
