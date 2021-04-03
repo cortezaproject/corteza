@@ -166,6 +166,9 @@ func (t RenderedDocument) Has(k string) bool {
 
 // renderedDocumentGValSelector is field accessor for *renderedDocument
 func renderedDocumentGValSelector(res *renderedDocument, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "document":
 		return res.Document, nil
@@ -180,6 +183,9 @@ func renderedDocumentGValSelector(res *renderedDocument, k string) (interface{},
 
 // renderedDocumentTypedValueSelector is field accessor for *renderedDocument
 func renderedDocumentTypedValueSelector(res *renderedDocument, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "document":
 		return NewReader(res.Document)
@@ -306,6 +312,9 @@ func (t Role) Has(k string) bool {
 
 // roleGValSelector is field accessor for *types.Role
 func roleGValSelector(res *types.Role, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "roleID":
 		return res.ID, nil
@@ -330,6 +339,9 @@ func roleGValSelector(res *types.Role, k string) (interface{}, error) {
 
 // roleTypedValueSelector is field accessor for *types.Role
 func roleTypedValueSelector(res *types.Role, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "roleID":
 		return NewID(res.ID)
@@ -486,6 +498,9 @@ func (t Template) Has(k string) bool {
 
 // templateGValSelector is field accessor for *types.Template
 func templateGValSelector(res *types.Template, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "templateID":
 		return res.ID, nil
@@ -520,6 +535,9 @@ func templateGValSelector(res *types.Template, k string) (interface{}, error) {
 
 // templateTypedValueSelector is field accessor for *types.Template
 func templateTypedValueSelector(res *types.Template, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "templateID":
 		return NewID(res.ID)
@@ -832,6 +850,9 @@ func (t User) Has(k string) bool {
 
 // userGValSelector is field accessor for *types.User
 func userGValSelector(res *types.User, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "userID":
 		return res.ID, nil
@@ -862,6 +883,9 @@ func userGValSelector(res *types.User, k string) (interface{}, error) {
 
 // userTypedValueSelector is field accessor for *types.User
 func userTypedValueSelector(res *types.User, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "userID":
 		return NewID(res.ID)

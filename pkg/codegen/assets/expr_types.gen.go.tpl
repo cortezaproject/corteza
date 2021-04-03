@@ -105,6 +105,12 @@ func (t {{ $exprType }}) Has(k string) bool {
 
 // {{ unexport $exprType "GValSelector" }} is field accessor for {{ $def.As }}
 func {{ unexport $exprType "GValSelector" }}(res {{ $def.As }}, k string) (interface{}, error) {
+	{{- if hasPtr $def.As }}
+	if res == nil {
+		return nil, nil
+	}
+
+	{{- end }}
 	switch k {
 	{{- range $def.Struct }}
 		{{- if .ExprType }}
@@ -118,6 +124,12 @@ func {{ unexport $exprType "GValSelector" }}(res {{ $def.As }}, k string) (inter
 
 // {{ unexport $exprType "TypedValueSelector" }} is field accessor for {{ $def.As }}
 func {{ unexport $exprType "TypedValueSelector" }}(res {{ $def.As }}, k string) (TypedValue, error) {
+	{{- if hasPtr $def.As }}
+	if res == nil {
+		return nil, nil
+	}
+
+	{{- end }}
 	switch k {
 	{{- range $def.Struct }}
 		{{- if .ExprType }}
