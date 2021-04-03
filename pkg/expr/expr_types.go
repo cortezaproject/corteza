@@ -339,6 +339,14 @@ func CastToDateTime(val interface{}) (out *time.Time, err error) {
 }
 
 func CastToFloat(val interface{}) (out float64, err error) {
+	val = UntypedValue(val)
+	switch val := val.(type) {
+	case nil:
+		return 0, nil
+	case *Float:
+		return val.value, nil
+	}
+
 	return cast.ToFloat64E(emptyStringFailsafe(val))
 }
 
