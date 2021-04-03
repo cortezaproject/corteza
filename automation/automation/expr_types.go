@@ -23,6 +23,8 @@ func CastToEmailMessage(val interface{}) (out *emailMessage, err error) {
 		}
 
 		return val, nil
+	case nil:
+		return &emailMessage{msg: mail.NewMessage()}, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
