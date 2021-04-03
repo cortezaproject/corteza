@@ -386,6 +386,10 @@ func (svc auth) InternalSignUp(ctx context.Context, input *types.User, password 
 			return err
 		}
 
+		if err = svc.LoadRoleMemberships(ctx, nUser); err != nil {
+			return err
+		}
+
 		if len(password) > 0 {
 			err = svc.SetPassword(ctx, nUser.ID, password)
 			if err != nil {
