@@ -1657,7 +1657,7 @@ pages:
             buttons:
             - enabled: true
               label: Send this Quote via email to the primary contact
-              resourceType: compose:record,
+              resourceType: compose:record
               workflow: CRM-Quote-SendToPriContact
               stepID: 3
             - enabled: true
