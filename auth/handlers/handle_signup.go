@@ -36,7 +36,11 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 				Text: "Sign-up successful.",
 			})
 
-			h.Log.Info("signup successful")
+			h.Log.Info(
+				"signup successful",
+				zap.String("email", newUser.Email),
+				zap.Uint64s("roles", newUser.Roles()),
+			)
 			req.RedirectTo = GetLinks().Profile
 
 			req.AuthUser = request.NewAuthUser(h.Settings, newUser, false, 0)
