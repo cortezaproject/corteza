@@ -32,17 +32,21 @@ function cleanup {
 
 download
 
+copyExtConfig 700 crm 0001_templates
 copyExtConfig 700 crm 1000_namespace
 copyExtConfig 700 crm 1100_modules
 copyExtConfig 700 crm 1200_charts
 copyExtConfig 700 crm 1400_pages
 copyExtConfig 700 crm 1500_record_settings
+copyExtConfig 700 crm 1600_workflows
 
+copyExtConfig 701 service-solution 0001_templates
 copyExtConfig 701 service-solution 1000_namespace
 copyExtConfig 701 service-solution 1100_modules
 copyExtConfig 701 service-solution 1200_charts
 copyExtConfig 701 service-solution 1400_pages
 copyExtConfig 701 service-solution 1500_record_settings
+copyExtConfig 701 service-solution 1600_workflows
 
 cleanup
 

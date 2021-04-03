@@ -157,10 +157,11 @@ pages:
           options:
             fields:
             - name: Subject
+            - name: CaseSysTemplate
           style:
             variants: {bodyBg: white, border: success, headerBg: white, headerText: success}
           kind: Record
-          xywh: [3, 0, 6, 3]
+          xywh: [3, 0, 6, 5]
         - title: Updates
           options:
             fields:
@@ -184,7 +185,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [3, 5, 6, 13]
+          xywh: [3, 5, 6, 11]
         - title: Related Attachments
           options:
             fields:
@@ -230,11 +231,13 @@ pages:
             - enabled: true
               label: Add Update to this Case
               resourceType: compose:record
-              script: /client-scripts/compose/service-solution/Case/AddUpdate.js:default
+              workflow: ServiceSolution-Case-AddUpdate
+              stepID: 3
             - enabled: true
-              label: Create email for this Case
+              label: Send Email for this Case with custom reason
               resourceType: compose:record
-              script: /client-scripts/compose/service-solution/Case/CreateEmail.js:default
+              workflow: ServiceSolution-Case-SendEmail
+              stepID: 3
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -630,92 +633,6 @@ pages:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: RecordList
               xywh: [0, 11, 9, 9]
-            - title: Emails
-              options:
-                allowExport: true
-                fields:
-                - name: ToAddress
-                - name: Subject
-                - name: HtmlBody
-                - name: EmailTemplateId
-                - name: Status
-                - name: MessageDate
-                - name: createdAt
-                module: EmailMessage
-                page: RecordPageForModuleEmailMessage
-                perPage: 20
-                prefilter: ContactId = ${recordID}
-                presort: createdAt DESC
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: RecordList
-              xywh: [0, 20, 9, 9]
-            pages:
-              - handle: RecordPageForModuleEmailMessage
-                (envoy): { onExisting: "skip" }
-                module: EmailMessage
-                title: Record page for module "Email Message"
-                blocks:
-                - title: Message
-                  options:
-                    fields:
-                    - name: Subject
-                    - name: HtmlBody
-                  style:
-                    variants: {bodyBg: white, border: primary, headerBg: white,
-                      headerText: primary}
-                  kind: Record
-                  xywh: [0, 0, 6, 16]
-                - title: To
-                  options:
-                    fields:
-                    - name: ContactId
-                    - name: CaseId
-                  style:
-                    variants: {bodyBg: white, border: primary, headerBg: white,
-                      headerText: primary}
-                  kind: Record
-                  xywh: [6, 0, 3, 8]
-                - title: Template
-                  options:
-                    fields:
-                    - name: EmailTemplateId
-                  style:
-                    variants: {bodyBg: white, border: primary, headerBg: white,
-                      headerText: primary}
-                  kind: Record
-                  xywh: [6, 8, 3, 8]
-                - title: Status
-                  options:
-                    fields:
-                    - name: Status
-                    - name: MessageDate
-                    - name: createdBy
-                    - name: createdAt
-                  style:
-                    variants: {bodyBg: white, border: primary, headerBg: white,
-                      headerText: primary}
-                  kind: Record
-                  xywh: [9, 0, 3, 8]
-                - title: Actions
-                  options:
-                    buttons:
-                    - enabled: true
-                      label: Load selected template in to email message
-                      variant: primary
-                      resourceType: compose:record
-                      script: /client-scripts/compose/service-solution/EmailMessage/TemplateLoad.js:default
-                    - enabled: true
-                      label: Send email to the contact
-                      variant: success
-                      resourceType: compose:record
-                      script: /client-scripts/compose/service-solution/EmailMessage/SendEmail.js:default
-                  style:
-                    variants: {bodyBg: white, border: primary, headerBg: white,
-                      headerText: primary}
-                  kind: Automation
-                  xywh: [9, 8, 3, 8]
-                visible: false
             visible: false
         visible: true
       - handle: Entitlements
@@ -1365,9 +1282,7 @@ pages:
         - name: DefaultCostPerHour
         - name: DefaultDepartment
         - name: DefaultTimeUpdate
-        - name: DefaultSupportChannel
         - name: DefaultCaseRecordLink
-        - name: DefaultCaseEmailTemplate
         hideAddButton: true
         hidePaging: true
         hideSearch: true
@@ -1392,91 +1307,10 @@ pages:
             - name: DefaultCostPerHour
             - name: DefaultDepartment
             - name: DefaultTimeUpdate
-            - name: DefaultSupportChannel
             - name: DefaultCaseRecordLink
-            - name: DefaultCaseEmailTemplate
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
           xywh: [0, 0, 6, 17]
         visible: false
-      - handle: EmailTemplates
-        (envoy): { onExisting: "skip" }
-        title: Email Templates
-        blocks:
-        - title: Email Templates
-          options:
-            allowExport: true
-            draggable: false
-            editFields: []
-            editable: false
-            fields:
-            - name: Name
-            - name: Subject
-            - name: Description
-            - name: createdAt
-            hideRecordCloneButton: true
-            hideRecordEditButton: false
-            hideRecordReminderButton: true
-            hideRecordViewButton: true
-            module: EmailTemplate
-            perPage: 20
-            prefilter: ""
-            presort: Name ASC
-            selectMode: multi
-            selectable: true
-            selectionButtons: []
-          style:
-            variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-          kind: RecordList
-          xywh: [0, 0, 12, 16]
-        pages:
-          - handle: RecordPageForModuleEmailTemplate
-            (envoy): { onExisting: "skip" }
-            module: EmailTemplate
-            title: Record page for module "Email Template"
-            blocks:
-            - title: Template
-              options:
-                fields:
-                - name: Name
-                - name: Description
-                - name: Subject
-                - name: Body
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [0, 0, 8, 12]
-            - title: Other Information
-              options:
-                fields:
-                - name: createdBy
-                - name: createdAt
-                - name: updatedBy
-                - name: updatedAt
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: Record
-              xywh: [8, 0, 4, 12]
-            - title: Template is used in following emails
-              options:
-                allowExport: true
-                fields:
-                - name: Subject
-                - name: CaseId
-                - name: ContactId
-                - name: ToAddress
-                - name: Status
-                - name: MessageDate
-                module: EmailMessage
-                page: RecordPageForModuleEmailMessage
-                perPage: 20
-                prefilter: EmailTemplateId = ${recordID}
-                presort: createdAt DESC
-              style:
-                variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
-              kind: RecordList
-              xywh: [0, 12, 12, 10]
-            visible: false
-        visible: true
     visible: true
