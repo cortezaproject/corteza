@@ -878,6 +878,15 @@ modules:
       PreviousStatus:
         label: PreviousStatus
         kind: String
+      CaseSysTemplate:
+        label: Case Email Template
+        kind: Select
+        default: case_update
+        options:
+          options:
+          - text: Default Case update template
+            value: case_update
+          selectType: default
   Contact:
     (envoy): { onExisting: "skip" }
     name: Contact
@@ -1618,83 +1627,6 @@ modules:
           format: "0.00"
           precision: "2"
           prefix: $
-  EmailMessage:
-    (envoy): { onExisting: "skip" }
-    name: EmailMessage
-    meta: '{}'
-    fields:
-      HtmlBody:
-        label: Body
-        kind: String
-        options:
-          multiLine: true
-          useRichTextEditor: true
-      MessageDate:
-        label: Message Sent Date
-        kind: String
-      ContactId:
-        label: Contact
-        kind: Record
-        options:
-          labelField: RecordLabel
-          module: Contact
-          queryFields:
-          - RecordLabel
-          selectType: default
-      Status:
-        label: Status
-        kind: Select
-        options:
-          options:
-          - Draft
-          - Sent
-          selectType: default
-      ToAddress:
-        label: To Address
-        kind: Email
-      Subject:
-        label: Subject
-        kind: String
-      EmailTemplateId:
-        label: Email Template
-        kind: Record
-        options:
-          labelField: Name
-          module: EmailTemplate
-          queryFields:
-          - Name
-          selectType: default
-      CaseId:
-        label: Case
-        kind: Record
-        options:
-          labelField: Number
-          module: Case
-          queryFields:
-          - Number
-          selectType: default
-  EmailTemplate:
-    (envoy): { onExisting: "skip" }
-    name: EmailTemplate
-    meta: '{}'
-    fields:
-      Name:
-        label: Email Template Name
-        kind: String
-      Subject:
-        label: Subject
-        kind: String
-      Body:
-        label: Body
-        kind: String
-        options:
-          multiLine: true
-          useRichTextEditor: true
-      Description:
-        label: Description
-        kind: String
-        options:
-          multiLine: true
   Entitlement:
     (envoy): { onExisting: "skip" }
     name: Entitlement
@@ -1991,21 +1923,9 @@ modules:
           format: "0.00"
           precision: 2
           suffix: ' hour(s)'
-      DefaultSupportChannel:
-        label: Default support channel id
-        kind: String
       DefaultCaseRecordLink:
         label: Default case link
         kind: String
-      DefaultCaseEmailTemplate:
-        label: Default case email template
-        kind: Record
-        options:
-          labelField: Name
-          module: EmailTemplate
-          queryFields:
-          - Name
-          selectType: default
   Update:
     (envoy): { onExisting: "skip" }
     name: Update

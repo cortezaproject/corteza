@@ -415,11 +415,13 @@ pages:
             - enabled: true
               label: Convert this Lead into an Account
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Lead/ToAccount.js:default
+              workflow: CRM-Lead-ToAccount
+              stepID: 3
             - enabled: true
               label: Convert this Lead into an Account and Opportunity
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Lead/ToAccountAndOpportunity.js:default
+              workflow: CRM-Lead-ToAccountAndOpportunity
+              stepID: 77
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -790,16 +792,19 @@ pages:
             - enabled: true
               label: Create new Opportunity from this Account
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Account/CreateNewOpportunity.js:default
+              workflow: CRM-Account-CreateNewOpportunity
+              stepID: 3
             - enabled: true
               label: Create new Contract from this Account
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Account/CreateNewContract.js:default
+              workflow: CRM-Account-CreateNewContract
+              stepID: 3
             - enabled: true
               label: Create new Case from this Account
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Account/CreateNewCase.js:default
-            sealed: false
+              workflow: CRM-Account-CreateNewCase
+              stepID: 14
+          sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
@@ -1033,7 +1038,8 @@ pages:
             - enabled: true
               label: Create a new Case for this Contact and Account
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Contact/CreateNewCase.js:default
+              workflow: CRM-Contact-CreateNewCase
+              stepID: 3
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -1310,11 +1316,13 @@ pages:
               label: Update prices of Products by applying the selected Price
                 Book and inserted discounts
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Opportunity/ApplyPriceBook.js:default
+              workflow: CRM-Opportunity-ApplyPriceBook
+              stepID: 3
             - enabled: true
               label: Create a new Quote for this Opportunity
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Opportunity/NewQuote.js:default
+              workflow: CRM-Opportunity-NewQuote
+              stepID: 3
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -1649,12 +1657,14 @@ pages:
             buttons:
             - enabled: true
               label: Send this Quote via email to the primary contact
-              resourceType: compose:record
-              script: /client-scripts/compose/crm/Quote/SendToPriContact.js:default
+              resourceType: compose:record,
+              workflow: CRM-Quote-SendToPriContact
+              stepID: 3
             - enabled: true
               label: Send this Quote to a custom email
               resourceType: compose:record
-              script: /client-scripts/compose/crm/Quote/SendToCustomEmail.js:default
+              workflow: CRM-Quote-SendToCustomEmail
+              stepID: 3
             sealed: false
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
@@ -3787,15 +3797,18 @@ pages:
                 - enabled: true
                   label: Set Case status to Working
                   resourceType: compose:record
-                  script: /client-scripts/compose/crm/Case/SetStatusToWorking.js:default
+                  workflow: CRM-Case-SetStatusToWorking
+                  stepID: 21
                 - enabled: true
                   label: Set Case status to Closed
                   resourceType: compose:record
-                  script: /client-scripts/compose/crm/Case/SetStatusToClosed.js:default
+                  workflow: CRM-Case-SetStatusToClosed
+                  stepID: 3
                 - enabled: true
                   label: Inform the contact via email of the Case solution
                   resourceType: compose:record
-                  script: /client-scripts/compose/crm/Case/InformContact.js:default
+                  workflow: CRM-Case-InformContact
+                  stepID: 14
                 sealed: false
               style:
                 variants: {border: primary, headerText: primary}

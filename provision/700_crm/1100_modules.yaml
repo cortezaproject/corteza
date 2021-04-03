@@ -6055,6 +6055,7 @@ modules:
       CampaignId:
         label: Primary Campaign Source
         kind: Record
+        multi: true
         options:
           labelField: Name
           module: Campaigns
@@ -7541,7 +7542,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Discount cannot be a negative number
+              error: Discount can not be a negative number
       Email:
         label: Email
         kind: Email
@@ -8616,7 +8617,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Shipping and Handling cannot be a negative number
+              error: Shipping and Handling can not be a negative number
 
       Status:
         label: Status
@@ -8650,7 +8651,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Sub total cannot be a negative number
+              error: Sub total can not be a negative number
       Tax:
         label: Tax
         kind: Number
@@ -8661,7 +8662,7 @@ modules:
         expressions:
           validators:
             - test: "value < 0"
-              error: Tax cannot be a negative number
+              error: Tax can not be a negative number
       TotalPrice:
         label: Total Price (calculated)
         kind: Number
