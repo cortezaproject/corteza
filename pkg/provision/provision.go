@@ -80,7 +80,12 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 			return err
 		}
 
-		log.Info("Added OAuth2 client", zap.String("name", c.Meta.Name), zap.Uint64("clientId", c.ID))
+		log.Info(
+			"Added OAuth2 client",
+			zap.String("name", c.Meta.Name),
+			zap.String("redirectURI", c.RedirectURI),
+			zap.Uint64("clientId", c.ID),
+		)
 	}
 
 	return nil
