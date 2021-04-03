@@ -3798,7 +3798,7 @@ pages:
                   label: Set Case status to Working
                   resourceType: compose:record
                   workflow: CRM-Case-SetStatusToWorking
-                  stepID: 21
+                  stepID: 14
                 - enabled: true
                   label: Set Case status to Closed
                   resourceType: compose:record
@@ -3808,7 +3808,7 @@ pages:
                   label: Inform the contact via email of the Case solution
                   resourceType: compose:record
                   workflow: CRM-Case-InformContact
-                  stepID: 14
+                  stepID: 21
                 sealed: false
               style:
                 variants: {border: primary, headerText: primary}
