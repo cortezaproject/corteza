@@ -113,12 +113,17 @@ var _ gval.Selector = &ComposeRecord{}
 // and it's fields
 //
 func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, error) {
-	if k == "values" {
+	if t.value != nil && k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}
 		}
 
-		return t.value.Values.Dict(t.value.GetModule().Fields), nil
+		var ff types.ModuleFieldSet
+		if t.value.GetModule() != nil {
+			ff = t.value.GetModule().Fields
+		}
+
+		return t.value.Values.Dict(ff), nil
 	}
 
 	return composeRecordGValSelector(t.value, k)
@@ -128,7 +133,7 @@ func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, err
 //
 // Similar to SelectGVal but returns typed values
 func (t ComposeRecord) Select(k string) (expr.TypedValue, error) {
-	if k == "values" {
+	if t.value != nil && k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}
 		}

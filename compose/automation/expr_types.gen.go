@@ -100,6 +100,9 @@ func (t ComposeModule) Has(k string) bool {
 
 // composeModuleGValSelector is field accessor for *types.Module
 func composeModuleGValSelector(res *types.Module, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "moduleID":
 		return res.ID, nil
@@ -124,6 +127,9 @@ func composeModuleGValSelector(res *types.Module, k string) (interface{}, error)
 
 // composeModuleTypedValueSelector is field accessor for *types.Module
 func composeModuleTypedValueSelector(res *types.Module, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "moduleID":
 		return NewID(res.ID)
@@ -268,6 +274,9 @@ func (t ComposeNamespace) Has(k string) bool {
 
 // composeNamespaceGValSelector is field accessor for *types.Namespace
 func composeNamespaceGValSelector(res *types.Namespace, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "namespaceID":
 		return res.ID, nil
@@ -290,6 +299,9 @@ func composeNamespaceGValSelector(res *types.Namespace, k string) (interface{}, 
 
 // composeNamespaceTypedValueSelector is field accessor for *types.Namespace
 func composeNamespaceTypedValueSelector(res *types.Namespace, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "namespaceID":
 		return NewID(res.ID)
@@ -420,6 +432,9 @@ func (t ComposeRecord) Has(k string) bool {
 
 // composeRecordGValSelector is field accessor for *types.Record
 func composeRecordGValSelector(res *types.Record, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "recordID":
 		return res.ID, nil
@@ -452,6 +467,9 @@ func composeRecordGValSelector(res *types.Record, k string) (interface{}, error)
 
 // composeRecordTypedValueSelector is field accessor for *types.Record
 func composeRecordTypedValueSelector(res *types.Record, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
 	switch k {
 	case "ID", "recordID":
 		return NewID(res.ID)

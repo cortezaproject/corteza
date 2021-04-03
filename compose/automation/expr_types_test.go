@@ -2,6 +2,7 @@ package automation
 
 import (
 	"context"
+	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
@@ -77,10 +78,21 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "ref2", Value: "", Ref: 2, Place: 0},
 		}}
 
-		tval     = &ComposeRecord{value: raw}
 		scope, _ = expr.NewVars(map[string]interface{}{
-			"rec": tval,
+			"rec": &ComposeRecord{value: raw},
+
+			// nis is only for testing, gval does not recognise nil (or null) as a keyword!
 			"nil": nil,
+
+			// typed value but empty (this happens when you assign next value in expression but do not set a value to it
+			"initRec": &ComposeRecord{},
+
+			// same as &ComposeRecord{value: &types.Record{}},
+			"validRecZero":    &ComposeRecord{value: &types.Record{ID: 0, Values: types.RecordValueSet{}}},
+			"validRecValidID": &ComposeRecord{&types.Record{ID: 42, Values: types.RecordValueSet{}}},
+
+			// "record" (not really) set to nil
+			"fooRec": nil,
 		})
 	)
 
@@ -117,12 +129,41 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 
 	t.Run("via gval selector", func(t *testing.T) {
 		tcc := []struct {
-			test bool
+			test interface{}
 			expr string
 		}{
 			{false, `nil`},
 			{true, `rec`},
 			{true, `rec.values`},
+
+			// not set, so false
+			{fmt.Errorf("failed to select 'notSetRec' on *expr.Vars: no such key 'notSetRec'"), `notSetRec`},
+
+			// set but nil
+			{false, `fooRec`},
+
+			// set, initialized
+			{true, `initRec`},
+
+			// set, initialized, but recordID is empty
+			{false, `initRec.recordID`},
+
+			// set, initialized, but recordID (ID is alias) is empty
+			{false, `initRec.ID`},
+
+			// set, initialized, but values are empty
+			{false, `initRec.values`},
+
+			{true, `validRecZero`},
+			{false, `validRecZero.recordID`},
+			{false, `validRecZero.values`},
+
+			{true, `validRecValidID`},
+			{true, `validRecValidID.recordID`},
+			{false, `validRecValidID.values`},
+
+			// but we can not access the values below...
+			{fmt.Errorf("unknown parameter initRec.values.foo"), `initRec.values.foo`},
 
 			// interaction with set values
 			{true, `rec.values.s1 == "sVal1"`},
@@ -184,8 +225,18 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 				req.NoError(err)
 
 				test, err := eval.Test(context.Background(), scope)
-				req.NoError(err)
-				req.Equal(tc.test, test)
+				switch tct := tc.test.(type) {
+				case error:
+					req.EqualError(err, tct.Error())
+
+				case bool:
+					req.NoError(err)
+					req.Equal(tc.test, test)
+
+				default:
+					panic("unexpected test case type")
+				}
+
 			})
 		}
 	})
