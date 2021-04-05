@@ -21,7 +21,7 @@ templates:
     type: text/plain
     meta:
       short: Email confirmation subject
-    template: Reset your password
+    template: Confirm your email address
 
   auth_email_confirm_content:
     type: text/html
