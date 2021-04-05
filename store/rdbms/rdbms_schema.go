@@ -24,6 +24,9 @@ const (
 
 	// https://www.rfc-editor.org/errata/eid1690
 	emailLength = 254
+
+	// Enough for IPv6, ports, delimiters, IPv4-mapped IPV6 addresses...
+	ipAddrLength = 64
 )
 
 // Upgrades schema
@@ -158,7 +161,7 @@ func (Schema) AuthSessions() *Table {
 		ColumnDef("rel_user", ColumnTypeIdentifier),
 		ColumnDef("created_at", ColumnTypeTimestamp),
 		ColumnDef("expires_at", ColumnTypeTimestamp),
-		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(15)),
+		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(ipAddrLength)),
 		ColumnDef("user_agent", ColumnTypeText),
 
 		AddIndex("expires_at", IColumn("expires_at")),
@@ -175,7 +178,7 @@ func (Schema) AuthOA2Tokens() *Table {
 		ColumnDef("access", ColumnTypeVarchar, ColumnTypeLength(2048)),
 		ColumnDef("refresh", ColumnTypeVarchar, ColumnTypeLength(48)),
 		ColumnDef("data", ColumnTypeJson),
-		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(15)),
+		ColumnDef("remote_addr", ColumnTypeVarchar, ColumnTypeLength(ipAddrLength)),
 		ColumnDef("user_agent", ColumnTypeText),
 
 		ColumnDef("rel_client", ColumnTypeIdentifier),
@@ -261,7 +264,7 @@ func (Schema) ActionLog() *Table {
 	return TableDef("actionlog",
 		ID,
 		ColumnDef("ts", ColumnTypeTimestamp),
-		ColumnDef("actor_ip_addr", ColumnTypeVarchar, ColumnTypeLength(15)),
+		ColumnDef("actor_ip_addr", ColumnTypeVarchar, ColumnTypeLength(ipAddrLength)),
 		ColumnDef("actor_id", ColumnTypeIdentifier),
 		ColumnDef("request_origin", ColumnTypeVarchar, ColumnTypeLength(32)),
 		ColumnDef("request_id", ColumnTypeVarchar, ColumnTypeLength(256)),
