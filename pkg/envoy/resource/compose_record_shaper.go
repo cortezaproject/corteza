@@ -40,6 +40,10 @@ func (crt *composeRecordShaper) Shape(rr []Interface) ([]Interface, error) {
 
 func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *ResourceDataset) Interface {
 	w := func(f func(r *ComposeRecordRaw) error) error {
+		if err := dt.P.Reset(); err != nil {
+			return err
+		}
+
 		for {
 			mr, err := dt.P.Next()
 			if err != nil {

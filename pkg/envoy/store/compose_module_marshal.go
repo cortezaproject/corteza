@@ -92,6 +92,15 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		res.ID = NextID()
 	}
 
+	res.NamespaceID = n.relNS.ID
+	if res.NamespaceID <= 0 {
+		ns := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
+		res.NamespaceID = ns.ID
+	}
+	if res.NamespaceID <= 0 {
+		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
+	}
+
 	if pl.state.Conflicting {
 		return nil
 	}
@@ -109,16 +118,6 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		if ts.DeletedAt != nil {
 			res.DeletedAt = ts.DeletedAt.T
 		}
-	}
-
-	// Namespace
-	res.NamespaceID = n.relNS.ID
-	if res.NamespaceID <= 0 {
-		ns := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
-		res.NamespaceID = ns.ID
-	}
-	if res.NamespaceID <= 0 {
-		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
 	}
 
 	// Fields

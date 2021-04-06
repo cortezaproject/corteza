@@ -1,0 +1,65 @@
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    fields:
+      f_bool:
+        label: f_bool label
+        kind: Bool
+      f_datetime:
+        label: f_datetime label
+        kind: DateTime
+      f_email:
+        label: f_email label
+        kind: Email
+      f_number:
+        label: f_number label
+        kind: Number
+        options:
+          precision: 2
+      f_select:
+        label: f_select label
+        kind: Select
+        options:
+          options:
+            - text: opt1 label
+              value: opt_1
+            - text: opt2 label
+              value: opt_2
+            - text: opt3 label
+              value: opt_3
+      f_string:
+        label: f_string label
+        kind: String
+      f_url:
+        label: f_url label
+        kind: Url
+
+    records:
+      source: mod1.jsonl
+      key: id
+      mapping:
+        id: /
+        c_bool:
+          field: f_bool
+        c_datetime:
+          field: f_datetime
+        c_email:
+          field: f_email
+        c_number:
+          field: f_number
+        c_select:
+          field: f_select
+        c_string:
+          field: f_string
+        c_url:
+          field: f_url
+        c1:
+          field: f1
+        c2:
+          field: f2
+
+
+

@@ -372,7 +372,12 @@ func (vldtr validator) vSelect(v *types.RecordValue, f *types.ModuleField, r *ty
 						sbm[value] = true
 					}
 				}
-
+			case types.ModuleFieldOptions:
+				if value, has := c["value"]; has {
+					if value, ok := value.(string); ok {
+						sbm[value] = true
+					}
+				}
 			}
 		}
 	}

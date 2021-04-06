@@ -224,6 +224,19 @@ func storeRole(ctx context.Context, s store.Storer, rID uint64, ss ...string) er
 	return store.CreateRole(ctx, s, r)
 }
 
+func storeUser(ctx context.Context, s store.Storer, rID uint64, ss ...string) error {
+	u := &stypes.User{
+		ID: rID,
+	}
+	if len(ss) > 0 {
+		u.Handle = ss[0]
+	}
+	if len(ss) > 1 {
+		u.Name = ss[1]
+	}
+	return store.CreateUser(ctx, s, u)
+}
+
 // // // // // // Misc. helpers
 
 // collect collects all errors from different call responses

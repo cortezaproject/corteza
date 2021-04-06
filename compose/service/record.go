@@ -109,6 +109,7 @@ type (
 
 		OnError  string                `json:"onError"`
 		Fields   map[string]string     `json:"fields"`
+		Key      string                `json:"key"`
 		Progress *RecordImportProgress `json:"progress"`
 
 		CreatedAt time.Time `json:"createdAt"`

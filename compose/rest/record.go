@@ -335,6 +335,7 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 			ses.Name,
 			false,
 			resource.MapToMappingTplSet(ses.Fields),
+			ses.Key,
 		)
 
 		// Shape the data

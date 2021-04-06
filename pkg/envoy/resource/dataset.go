@@ -4,6 +4,7 @@ type (
 	provider interface {
 		Fields() []string
 		Count() uint64
+		Reset() error
 		Next() (map[string]string, error)
 	}
 

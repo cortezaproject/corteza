@@ -21,6 +21,8 @@ type (
 		c      *csv.Reader
 		header []string
 		count  uint64
+
+		buff bytes.Buffer
 	}
 )
 
@@ -54,13 +56,12 @@ func (c *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts
 	var buff bytes.Buffer
 
 	// So we can reset to the start of the reader
-	tr := io.TeeReader(r, &buff)
-	err := cr.prepare(tr)
+	err := cr.prepare(io.TeeReader(r, &buff))
 	if err != nil {
 		return nil, err
 	}
 
-	cr.c = csv.NewReader(&buff)
+	cr.c = csv.NewReader(io.TeeReader(&buff, &cr.buff))
 
 	// The first one is a header, so let's just get rid of it
 	_, err = cr.c.Read()
@@ -98,6 +99,24 @@ func (cr *reader) prepare(r io.Reader) (err error) {
 // Fields returns every available field in this dataset
 func (cr *reader) Fields() []string {
 	return cr.header
+}
+
+func (cr *reader) Reset() error {
+	if len(cr.buff.Bytes()) == 0 {
+		return nil
+	}
+
+	buff := cr.buff
+	cr.buff = bytes.Buffer{}
+
+	cr.c = csv.NewReader(io.TeeReader(&buff, &cr.buff))
+	// The first one is a header, so let's just get rid of it
+	_, err := cr.c.Read()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Next returns the field: value mapping for the next row
