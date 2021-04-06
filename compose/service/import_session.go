@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -102,9 +103,19 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
 	}
 
+	prepKey := func(k string) string {
+		return strings.TrimSpace(strings.ToLower(k))
+	}
+
 	sh.Progress.EntryCount = n.P.Count()
 	for _, f := range n.P.Fields() {
 		sh.Fields[f] = ""
+
+		// @todo improve this bit
+		k := prepKey(f)
+		if k == "id" || k == "recordid" {
+			sh.Key = f
+		}
 	}
 
 	// Create it

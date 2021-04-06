@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -157,9 +158,15 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 		u := ur.U
 
 		ux[strconv.FormatUint(u.ID, 10)] = u.ID
-		ux[u.Handle] = u.ID
-		ux[u.Name] = u.ID
-		ux[u.Email] = u.ID
+		if u.Handle != "" {
+			ux[u.Handle] = u.ID
+		}
+		if u.Name != "" {
+			ux[u.Name] = u.ID
+		}
+		if u.Email != "" {
+			ux[u.Email] = u.ID
+		}
 	}
 	// Next all of the encoded users.
 	// If identifiers overwrite eachother, that's fine.
@@ -179,7 +186,18 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	createAcChecked := false
 	updateAcChecked := false
 
+	getKey := func(i int, k string) string {
+		if k == "" {
+			return strconv.FormatInt(int64(i), 10)
+		}
+
+		return k
+	}
+
+	i := -1
 	return n.res.Walker(func(r *resource.ComposeRecordRaw) error {
+		i++
+
 		// So we don't have to worry about nil
 		cfg := r.Config
 		if cfg == nil {
@@ -223,7 +241,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 
 		rec := &types.Record{
-			ID:          im[r.ID],
+			ID:          im[getKey(i, r.ID)],
 			NamespaceID: nsID,
 			ModuleID:    mod.ID,
 			CreatedAt:   time.Now(),
@@ -236,13 +254,14 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			exists = old != nil
 		}
 
-		if rec.ID <= 0 && exists {
+		if rec.ID == 0 && exists {
 			rec.ID = rm[r.ID].ID
-		} else {
+		}
+		if rec.ID == 0 {
 			rec.ID = NextID()
 		}
 
-		im[r.ID] = rec.ID
+		im[getKey(i, r.ID)] = rec.ID
 
 		if pl.state.Conflicting {
 			return nil
@@ -289,13 +308,31 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 
 			f := mod.Fields.FindByName(k)
-			if f != nil && f.Kind == "User" {
-				uID := ux[v]
-				if uID == 0 {
-					return resource.UserErrUnresolved(resource.MakeIdentifiers(v))
+			if f != nil {
+				switch f.Kind {
+				case "User":
+					uID := ux[v]
+					if uID == 0 {
+						return resource.UserErrUnresolved(resource.MakeIdentifiers(v))
+					}
+					rv.Value = strconv.FormatUint(uID, 10)
+					rv.Ref = uID
+
+				case "Record":
+					// if self...
+					if n.res.RefMod.Identifiers.HasAny(resource.MakeIdentifiers(f.Options.String("module"))) {
+						rID := im[v]
+						if rID == 0 {
+							return resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v))
+						}
+						rv.Value = strconv.FormatUint(rID, 10)
+						rv.Ref = rID
+					} else {
+						// not self...
+						// @todo...
+						return errors.New("record cross referencing not yet supported")
+					}
 				}
-				rv.Value = strconv.FormatUint(uID, 10)
-				rv.Ref = uID
 			}
 
 			rvs = append(rvs, rv)

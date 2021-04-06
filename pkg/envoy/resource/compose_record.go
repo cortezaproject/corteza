@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -68,4 +70,8 @@ func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
 
 	// Set user refs as wildflag, indicating it refers to any user resource
 	r.AddRef(USER_RESOURCE_TYPE, "*")
+}
+
+func ComposeRecordErrUnresolved(ii Identifiers) error {
+	return fmt.Errorf("compose record unresolved %v", ii.StringSlice())
 }

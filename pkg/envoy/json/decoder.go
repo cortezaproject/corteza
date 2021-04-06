@@ -21,6 +21,8 @@ type (
 		d      *json.Decoder
 		header []string
 		count  uint64
+
+		buff bytes.Buffer
 	}
 )
 
@@ -58,13 +60,12 @@ func (d *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts
 	var buff bytes.Buffer
 
 	// So we can reset to the start of the reader
-	tr := io.TeeReader(r, &buff)
-	err := jr.prepare(tr)
+	err := jr.prepare(io.TeeReader(r, &buff))
 	if err != nil {
 		return nil, err
 	}
 
-	jr.d = json.NewDecoder(&buff)
+	jr.d = json.NewDecoder(io.TeeReader(&buff, &jr.buff))
 
 	return []resource.Interface{resource.NewResourceDataset(do.Name, jr)}, nil
 }
@@ -98,6 +99,19 @@ func (jr *reader) prepare(r io.Reader) (err error) {
 
 		jr.count++
 	}
+
+	return nil
+}
+
+func (jr *reader) Reset() error {
+	if len(jr.buff.Bytes()) == 0 {
+		return nil
+	}
+
+	buff := jr.buff
+	jr.buff = bytes.Buffer{}
+
+	jr.d = json.NewDecoder(io.TeeReader(&buff, &jr.buff))
 
 	return nil
 }
