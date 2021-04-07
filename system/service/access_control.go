@@ -135,7 +135,7 @@ func (svc accessControl) CanDeleteApplication(ctx context.Context, app *types.Ap
 }
 
 func (svc accessControl) CanReadAuthClient(ctx context.Context, c *types.AuthClient) bool {
-	return svc.can(ctx, c.RBACResource(), "read", rbac.Allowed)
+	return svc.can(ctx, c.RBACResource(), "read")
 }
 
 func (svc accessControl) CanUpdateAuthClient(ctx context.Context, c *types.AuthClient) bool {
