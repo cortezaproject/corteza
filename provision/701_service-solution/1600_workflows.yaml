@@ -1367,7 +1367,7 @@ workflows:
                   value: null
                   type: ID
                   tests: []
-                - target: update.values.Integer
+                - target: update.values.TimeSpend
                   source: ""
                   expr: settings.values.DefaultTimeUpdate
                   value: null
@@ -1419,13 +1419,31 @@ workflows:
               labels: {}
             - id: 13
               kind: prompt
-              ref: reroute
+              ref: recordPage
               arguments:
-                - target: name
+                - target: module
                   source: ""
                   expr: ""
-                  value: pages.record.edit
-                  type: String
+                  value: Update
+                  type: Handle
+                  tests: []
+                - target: namespace
+                  source: ""
+                  expr: namespace
+                  value: null
+                  type: ComposeNamespace
+                  tests: []
+                - target: record
+                  source: ""
+                  expr: update
+                  value: null
+                  type: ComposeRecord
+                  tests: []
+                - target: edit
+                  source: ""
+                  expr: "true"
+                  value: null
+                  type: Boolean
                   tests: []
               results: []
               meta:
@@ -1435,6 +1453,42 @@ workflows:
                     id: "13"
                     parent: "1"
                     value: Go to Case Update record editor
+                    xywh:
+                        - 2880
+                        - 2160
+                        - 200
+                        - 80
+              labels: {}
+            - id: 14
+              kind: prompt
+              ref: notification
+              arguments:
+                - target: title
+                  source: ""
+                  expr: ""
+                  value: Success
+                  type: String
+                  tests: []
+                - target: message
+                  source: ""
+                  expr: ""
+                  value: Update created
+                  type: String
+                  tests: []
+                - target: variant
+                  source: ""
+                  expr: ""
+                  value: success
+                  type: String
+                  tests: []
+              results: []
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "14"
+                    parent: "1"
+                    value: 'Success: Update created'
                     xywh:
                         - 2600
                         - 2160
@@ -1480,12 +1534,24 @@ workflows:
                     value: null
             - expr: ""
               parentid: 11
+              childid: 14
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "15"
+                    parent: "1"
+                    points: []
+                    style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
+                    value: null
+            - expr: ""
+              parentid: 14
               childid: 13
               meta:
                 name: ""
                 description: ""
                 visual:
-                    id: "14"
+                    id: "16"
                     parent: "1"
                     points: []
                     style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
@@ -2162,7 +2228,7 @@ workflows:
                             description: ""
                             label: ""
                             visual:
-                                id: "5"
+                                id: "106"
                                 parent: "1"
                                 points: []
                                 style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
@@ -3155,7 +3221,7 @@ workflows:
                   tests: []
                 - target: query
                   source: ""
-                  expr: '"(Department = " + record.values.Department + ") AND (" + recordID + " != " + record.recordID +")"'
+                  expr: '"(Department = " + record.values.Department + ") AND (recordID != " + record.recordID +")"'
                   value: null
                   type: String
                   tests: []
@@ -3365,8 +3431,32 @@ workflows:
                         - 200
                         - 80
               labels: {}
+            - id: 107
+              kind: expressions
+              ref: ""
+              arguments:
+                - target: departmentRecord
+                  source: ""
+                  expr: "false"
+                  value: null
+                  type: Boolean
+                  tests: []
+              results: []
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "107"
+                    parent: "1"
+                    value: Init departmentRecord
+                    xywh:
+                        - 2760
+                        - 2160
+                        - 200
+                        - 80
+              labels: {}
         paths:
-            - expr: 'record.values.Department ? true : false'
+            - expr: record.values.Department
               parentid: 4
               childid: 8
               meta:
@@ -3417,18 +3507,6 @@ workflows:
                     parent: "1"
                     points: []
                     style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;
-                    value: null
-            - expr: ""
-              parentid: 11
-              childid: 17
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "19"
-                    parent: "1"
-                    points: []
-                    style: exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
                     value: null
             - expr: ""
               parentid: 17
@@ -3742,7 +3820,7 @@ workflows:
                     points: []
                     style: exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;
                     value: null
-            - expr: ""
+            - expr: 'departmentRecord ? true : false'
               parentid: 58
               childid: 86
               meta:
@@ -3849,6 +3927,30 @@ workflows:
                     parent: "1"
                     points: []
                     style: exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;
+                    value: null
+            - expr: ""
+              parentid: 11
+              childid: 107
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "108"
+                    parent: "1"
+                    points: []
+                    style: exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
+                    value: null
+            - expr: ""
+              parentid: 107
+              childid: 17
+              meta:
+                name: ""
+                description: ""
+                visual:
+                    id: "109"
+                    parent: "1"
+                    points: []
+                    style: exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;
                     value: null
     ServiceSolution-Case-SendEmail:
         meta:

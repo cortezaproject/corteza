@@ -1468,9 +1468,9 @@ workflows:
                   tests: []
                 - target: namespace
                   source: ""
-                  expr: crm
+                  expr: namespace
                   value: null
-                  type: Handle
+                  type: ComposeNamespace
                   tests: []
                 - target: record
                   source: ""
@@ -2838,7 +2838,7 @@ workflows:
                   tests: []
                 - target: to
                   source: ""
-                  expr: '"a@m"'
+                  expr: 'record.values.Email'
                   value: null
                   type: String
                   tests: []
@@ -6092,6 +6092,18 @@ workflows:
                   value: null
                   type: String
                   tests: []
+                - target: account.values.OwnerId
+                  source: ""
+                  expr: record.values.OwnerId
+                  value: null
+                  type: ID
+                  tests: []
+                - target: account.values.CampaignId
+                  source: ""
+                  expr: record.values.CampaignId
+                  value: null
+                  type: Array
+                  tests: []
               results: []
               meta:
                 name: ""
@@ -6248,6 +6260,12 @@ workflows:
                   value: null
                   type: String
                   tests: []
+                - target: contact.values.Website
+                  source: ""
+                  expr: record.values.Website
+                  value: null
+                  type: String
+                  tests: []
                 - target: contact.values.Twitter
                   source: ""
                   expr: record.values.Twitter
@@ -6308,11 +6326,23 @@ workflows:
                   value: null
                   type: Boolean
                   tests: []
+                - target: contact.values.AccountId
+                  source: ""
+                  expr: account.recordID
+                  value: null
+                  type: ID
+                  tests: []
+                - target: contact.values.OwnerId
+                  source: ""
+                  expr: record.values.OwnerId
+                  value: null
+                  type: ID
+                  tests: []
                 - target: contact.values.CampaignId
                   source: ""
                   expr: record.values.CampaignId
                   value: null
-                  type: Any
+                  type: Array
                   tests: []
               results: []
               meta:
@@ -8071,7 +8101,7 @@ workflows:
                   value: null
                   type: ""
                   tests: []
-                - target: contectCount
+                - target: contactCount
                   source: ""
                   expr: total
                   value: null
@@ -8462,7 +8492,7 @@ workflows:
                   tests: []
                 - target: quote.values.ExpirationDate
                   source: ""
-                  expr: modDate(now(), settings.values.OpportunityCloseDateDays)
+                  expr: modDate(now(), settings.values.QuoteExpirationDays)
                   value: null
                   type: DateTime
                   tests: []
@@ -10074,7 +10104,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'record.recordID != 0 ? record.values.CampaignId : []'
+                  expr: 'record.recordID != "0" ? record.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
@@ -10164,7 +10194,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'oldRecord.recordID != 0 ? oldRecord.values.CampaignId : []'
+                  expr: 'oldRecord.recordID != "0" ? oldRecord.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
@@ -10722,7 +10752,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'record.recordID != 0 ? record.values.CampaignId : []'
+                  expr: 'record.recordID != "0" ? record.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
@@ -10812,7 +10842,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'oldRecord.recordID != 0 ? oldRecord .values.CampaignId : []'
+                  expr: 'oldRecord.recordID != "0" ? oldRecord.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
@@ -11460,6 +11490,18 @@ workflows:
                   value: null
                   type: String
                   tests: []
+                - target: account.values.OwnerId
+                  source: ""
+                  expr: record.values.OwnerId
+                  value: null
+                  type: ID
+                  tests: []
+                - target: account.values.CampaignId
+                  source: ""
+                  expr: record.values.CampaignId
+                  value: null
+                  type: Array
+                  tests: []
               results: []
               meta:
                 name: ""
@@ -11622,6 +11664,12 @@ workflows:
                   value: null
                   type: String
                   tests: []
+                - target: contact.values.Website
+                  source: ""
+                  expr: record.values.Website
+                  value: null
+                  type: String
+                  tests: []
                 - target: contact.values.Twitter
                   source: ""
                   expr: record.values.Twitter
@@ -11687,6 +11735,18 @@ workflows:
                   expr: account.recordID
                   value: null
                   type: ID
+                  tests: []
+                - target: contact.values.OwnerId
+                  source: ""
+                  expr: record.values.OwnerId
+                  value: null
+                  type: ID
+                  tests: []
+                - target: contact.values.CampaignId
+                  source: ""
+                  expr: record.values.CampaignId
+                  value: null
+                  type: Array
                   tests: []
               results: []
               meta:
@@ -11900,9 +11960,9 @@ workflows:
                   tests: []
                 - target: opportunity.values.CloseDate
                   source: ""
-                  expr: ""
+                  expr: modDate(now(), settings.values.OpportunityCloseDateDays)
                   value: null
-                  type: String
+                  type: DateTime
                   tests: []
                 - target: opportunity.values.Probability
                   source: ""
@@ -11921,6 +11981,12 @@ workflows:
                   expr: settings.values.OpportunityStagename
                   value: null
                   type: String
+                  tests: []
+                - target: opportunity.values.CampaignId
+                  source: ""
+                  expr: record.values.CampaignId
+                  value: null
+                  type: Array
                   tests: []
               results: []
               meta:
@@ -12291,19 +12357,19 @@ workflows:
                 - target: lookup
                   source: ""
                   expr: ""
-                  value: lead_converted_content
+                  value: lead_converted_subject
                   type: Handle
                   tests: []
                 - target: documentName
                   source: ""
                   expr: ""
-                  value: body
+                  value: subject
                   type: String
                   tests: []
                 - target: documentType
                   source: ""
                   expr: ""
-                  value: text/html
+                  value: text/plain
                   type: String
                   tests: []
                 - target: variables
@@ -12339,19 +12405,19 @@ workflows:
                 - target: lookup
                   source: ""
                   expr: ""
-                  value: lead_converted_subject
+                  value: lead_converted_content
                   type: Handle
                   tests: []
                 - target: documentName
                   source: ""
                   expr: ""
-                  value: subject
+                  value: content
                   type: String
                   tests: []
                 - target: documentType
                   source: ""
                   expr: ""
-                  value: text/plain
+                  value: text/html
                   type: String
                   tests: []
                 - target: variables
@@ -12361,7 +12427,7 @@ workflows:
                   type: Vars
                   tests: []
               results:
-                - target: subject
+                - target: content
                   source: ""
                   expr: document
                   value: null
@@ -13338,7 +13404,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'record.recordID != 0 ? record.values.CampaignId : []'
+                  expr: 'record.recordID != "0" ? record.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
@@ -13428,7 +13494,7 @@ workflows:
               arguments:
                 - target: items
                   source: ""
-                  expr: 'oldRecord.recordID != 0 ? oldRecord.values.CampaignId : []'
+                  expr: 'oldRecord.recordID != "0" ? oldRecord.values.CampaignId : []'
                   value: null
                   type: Array
                   tests: []
