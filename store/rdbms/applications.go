@@ -23,7 +23,7 @@ func (s Store) convertApplicationFilter(f types.ApplicationFilter) (query squirr
 	}
 
 	if f.Query != "" {
-		qs := f.Query + "%"
+		qs := "%" + f.Query + "%"
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"app.name": qs},
 		})
