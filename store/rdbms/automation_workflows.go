@@ -21,7 +21,7 @@ func (s Store) convertAutomationWorkflowFilter(f types.WorkflowFilter) (query sq
 	}
 
 	if f.Query != "" {
-		qs := f.Query + "%"
+		qs := "%" + f.Query + "%"
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"atmwf.handle": qs},
 		})

@@ -34,7 +34,7 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 	}
 
 	if f.Query != "" {
-		qs := f.Query + "%"
+		qs := "%" + f.Query + "%"
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"usr.username": qs},
 			squirrel.Like{"usr.handle": qs},

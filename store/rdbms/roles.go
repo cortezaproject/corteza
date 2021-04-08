@@ -26,7 +26,7 @@ func (s Store) convertRoleFilter(f types.RoleFilter) (query squirrel.SelectBuild
 	}
 
 	if f.Query != "" {
-		qs := f.Query + "%"
+		qs := "%" + f.Query + "%"
 		query = query.Where(squirrel.Or{
 			squirrel.Like{"rl.name": qs},
 			squirrel.Like{"rl.handle": qs},
