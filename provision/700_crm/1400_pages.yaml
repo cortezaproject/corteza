@@ -1497,7 +1497,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 11]
+          xywh: [4, 0, 4, 9]
         - title: Bill To
           options:
             fields:
@@ -1669,7 +1669,7 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [4, 11, 4, 1]
+          xywh: [4, 9, 4, 3]
         pages:
           - handle: RecordPageForModuleQuoteLineItem
             (envoy): { onExisting: "skip" }
