@@ -39,7 +39,7 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee = rbac.EffectiveSet{}
 
 	ee.Push(types.SystemRBACResource, "grant", svc.CanGrant(ctx))
-	ee.Push(types.SystemRBACResource, "client.create", svc.CanCreateAuthClient(ctx))
+	ee.Push(types.SystemRBACResource, "auth-client.create", svc.CanCreateAuthClient(ctx))
 	ee.Push(types.SystemRBACResource, "settings.read", svc.CanReadSettings(ctx))
 	ee.Push(types.SystemRBACResource, "settings.manage", svc.CanManageSettings(ctx))
 	ee.Push(types.SystemRBACResource, "application.create", svc.CanCreateApplication(ctx))
@@ -84,7 +84,7 @@ func (svc accessControl) CanGlobalFlagApplication(ctx context.Context) bool {
 }
 
 func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
-	return svc.can(ctx, types.SystemRBACResource, "authClient.create")
+	return svc.can(ctx, types.SystemRBACResource, "auth-client.create")
 }
 
 func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
