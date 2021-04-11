@@ -43,50 +43,52 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 	return nil
 }
 
+// defaultAuthClient checks if default client exists (handle = AUTH_DEFAULT_CLIENT) and adds it
 func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients, authOpt options.AuthOpt) error {
-	clients := types.AuthClientSet{
-		&types.AuthClient{
-			ID:     id.Next(),
-			Handle: "corteza-webapp",
-			Meta: &types.AuthClientMeta{
-				Name: "Corteza Web Applications",
-			},
-			ValidGrant: "authorization_code",
-			RedirectURI: func() string {
-				baseURL, _ := url.Parse(authOpt.BaseURL)
-				return fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Hostname())
-			}(),
-			Secret:    string(rand.Bytes(64)),
-			Scope:     "profile api",
-			Enabled:   true,
-			Trusted:   true,
-			Security:  &types.AuthClientSecurity{},
-			Labels:    nil,
-			CreatedAt: time.Now(),
+	if authOpt.DefaultClient == "" {
+		// Default client not set
+		return nil
+	}
+
+	c := &types.AuthClient{
+		ID:     id.Next(),
+		Handle: authOpt.DefaultClient,
+		Meta: &types.AuthClientMeta{
+			Name: "Corteza Web Applications",
 		},
+		ValidGrant: "authorization_code",
+		RedirectURI: func() string {
+			baseURL, _ := url.Parse(authOpt.BaseURL)
+			return fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Hostname())
+		}(),
+		Secret:    string(rand.Bytes(64)),
+		Scope:     "profile api",
+		Enabled:   true,
+		Trusted:   true,
+		Security:  &types.AuthClientSecurity{},
+		Labels:    nil,
+		CreatedAt: time.Now(),
 	}
 
-	for _, c := range clients {
-		_, err := store.LookupAuthClientByHandle(ctx, s, c.Handle)
-		if err == nil {
-			continue
-		}
-
-		if !errors.IsNotFound(err) {
-			return err
-		}
-
-		if err = store.CreateAuthClient(ctx, s, c); err != nil {
-			return err
-		}
-
-		log.Info(
-			"Added OAuth2 client",
-			zap.String("name", c.Meta.Name),
-			zap.String("redirectURI", c.RedirectURI),
-			zap.Uint64("clientId", c.ID),
-		)
+	_, err := store.LookupAuthClientByHandle(ctx, s, c.Handle)
+	if err == nil {
+		return nil
 	}
+
+	if !errors.IsNotFound(err) {
+		return err
+	}
+
+	if err = store.CreateAuthClient(ctx, s, c); err != nil {
+		return err
+	}
+
+	log.Info(
+		"Added OAuth2 client",
+		zap.String("name", c.Meta.Name),
+		zap.String("redirectURI", c.RedirectURI),
+		zap.Uint64("clientId", c.ID),
+	)
 
 	return nil
 }
