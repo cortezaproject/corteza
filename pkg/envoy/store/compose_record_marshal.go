@@ -271,24 +271,6 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 		}
 
-		// Simple wrapper to do some post-processing steps
-		dfr := func(err error) error {
-			if n.cfg.Defer != nil {
-				n.cfg.Defer()
-			}
-
-			if err != nil {
-				if n.cfg.DeferNok != nil {
-					return n.cfg.DeferNok(err)
-				}
-				return err
-			} else if n.cfg.DeferOk != nil {
-				n.cfg.DeferOk()
-			}
-
-			return nil
-		}
-
 		rec := &types.Record{
 			ID:          im[getKey(i, r.ID)],
 			NamespaceID: nsID,
@@ -316,162 +298,179 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			return nil
 		}
 
-		// Timestamps
-		if r.Ts != nil {
-			if r.Ts.CreatedAt != nil {
-				rec.CreatedAt = *r.Ts.CreatedAt.T
-			} else {
-				rec.CreatedAt = *now()
-			}
-			if r.Ts.UpdatedAt != nil {
-				rec.UpdatedAt = r.Ts.UpdatedAt.T
-			}
-			if r.Ts.DeletedAt != nil {
-				rec.DeletedAt = r.Ts.DeletedAt.T
-			}
-		}
-
-		// Userstamps
-		rec.CreatedBy = pl.invokerID
-		if r.Us != nil {
-			if r.Us.CreatedBy != nil {
-				rec.CreatedBy = ux[r.Us.CreatedBy.Ref]
-			}
-			if r.Us.UpdatedBy != nil {
-				rec.UpdatedBy = ux[r.Us.UpdatedBy.Ref]
-			}
-			if r.Us.DeletedBy != nil {
-				rec.DeletedBy = ux[r.Us.DeletedBy.Ref]
-			}
-			if r.Us.OwnedBy != nil {
-				rec.OwnedBy = ux[r.Us.OwnedBy.Ref]
-			}
-		}
-
-		rvs := make(types.RecordValueSet, 0, len(r.Values))
-		for k, v := range r.Values {
-			rv := &types.RecordValue{
-				RecordID: rec.ID,
-				Name:     k,
-				Value:    v,
-				Updated:  true,
-			}
-
-			f := mod.Fields.FindByName(k)
-			if f != nil && v != "" {
-				switch f.Kind {
-				case "User":
-					uID := ux[v]
-					if uID == 0 {
-						return resource.UserErrUnresolved(resource.MakeIdentifiers(v))
-					}
-					rv.Value = strconv.FormatUint(uID, 10)
-					rv.Ref = uID
-
-				case "Record":
-					refIdentifiers, ok := n.fieldModRef[f.Name]
-					if !ok {
-						return fmt.Errorf("module field record reference not resoled: %s", f.Name)
-					}
-
-					// if self...
-					if n.res.RefMod.Identifiers.HasAny(refIdentifiers) {
-						rID := im[v]
-
-						// Check if its in the store
-						if rID == 0 {
-							// Check if we have an xref
-							rID, err = checkXRef(refIdentifiers, v)
-							if err != nil {
-								return err
-							}
-						}
-
-						if rID == 0 {
-							return resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v))
-						}
-						rv.Value = strconv.FormatUint(rID, 10)
-						rv.Ref = rID
-					} else {
-						// not self...
-						rID := uint64(0)
-						refRes := resource.FindComposeRecordResource(pl.state.ParentResources, refIdentifiers)
-
-						if refRes != nil {
-							// check if parent has it
-							rID = refRes.IDMap[v]
-						}
-
-						if rID == 0 {
-							// Check if we have an xref
-							rID, err = checkXRef(refIdentifiers, v)
-							if err != nil {
-								return err
-							}
-						}
-
-						if rID == 0 {
-							return fmt.Errorf("referenced record not resolved: %s", resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v)))
-						}
-
-						rv.Value = strconv.FormatUint(rID, 10)
-						rv.Ref = rID
-					}
+		err := func() error {
+			// Timestamps
+			if r.Ts != nil {
+				if r.Ts.CreatedAt != nil {
+					rec.CreatedAt = *r.Ts.CreatedAt.T
+				} else {
+					rec.CreatedAt = *now()
+				}
+				if r.Ts.UpdatedAt != nil {
+					rec.UpdatedAt = r.Ts.UpdatedAt.T
+				}
+				if r.Ts.DeletedAt != nil {
+					rec.DeletedAt = r.Ts.DeletedAt.T
 				}
 			}
 
-			rvs = append(rvs, rv)
-		}
+			// Userstamps
+			rec.CreatedBy = pl.invokerID
+			if r.Us != nil {
+				if r.Us.CreatedBy != nil {
+					rec.CreatedBy = ux[r.Us.CreatedBy.Ref]
+				}
+				if r.Us.UpdatedBy != nil {
+					rec.UpdatedBy = ux[r.Us.UpdatedBy.Ref]
+				}
+				if r.Us.DeletedBy != nil {
+					rec.DeletedBy = ux[r.Us.DeletedBy.Ref]
+				}
+				if r.Us.OwnedBy != nil {
+					rec.OwnedBy = ux[r.Us.OwnedBy.Ref]
+				}
+			}
 
-		if err = service.RecordValueSanitization(mod, rvs); err != nil {
+			rvs := make(types.RecordValueSet, 0, len(r.Values))
+			for k, v := range r.Values {
+				rv := &types.RecordValue{
+					RecordID: rec.ID,
+					Name:     k,
+					Value:    v,
+					Updated:  true,
+				}
+
+				f := mod.Fields.FindByName(k)
+				if f != nil && v != "" {
+					switch f.Kind {
+					case "User":
+						uID := ux[v]
+						if uID == 0 {
+							return resource.UserErrUnresolved(resource.MakeIdentifiers(v))
+						}
+						rv.Value = strconv.FormatUint(uID, 10)
+						rv.Ref = uID
+
+					case "Record":
+						refIdentifiers, ok := n.fieldModRef[f.Name]
+						if !ok {
+							return fmt.Errorf("module field record reference not resoled: %s", f.Name)
+						}
+
+						// if self...
+						if n.res.RefMod.Identifiers.HasAny(refIdentifiers) {
+							rID := im[v]
+
+							// Check if its in the store
+							if rID == 0 {
+								// Check if we have an xref
+								rID, err = checkXRef(refIdentifiers, v)
+								if err != nil {
+									return err
+								}
+							}
+
+							if rID == 0 {
+								return resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v))
+							}
+							rv.Value = strconv.FormatUint(rID, 10)
+							rv.Ref = rID
+						} else {
+							// not self...
+							rID := uint64(0)
+							refRes := resource.FindComposeRecordResource(pl.state.ParentResources, refIdentifiers)
+
+							if refRes != nil {
+								// check if parent has it
+								rID = refRes.IDMap[v]
+							}
+
+							if rID == 0 {
+								// Check if we have an xref
+								rID, err = checkXRef(refIdentifiers, v)
+								if err != nil {
+									return err
+								}
+							}
+
+							if rID == 0 {
+								return fmt.Errorf("referenced record not resolved: %s", resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v)))
+							}
+
+							rv.Value = strconv.FormatUint(rID, 10)
+							rv.Ref = rID
+						}
+					}
+				}
+
+				rvs = append(rvs, rv)
+			}
+
+			if err = service.RecordValueSanitization(mod, rvs); err != nil {
+				return err
+			}
+
+			rec.Values = rvs
+			rec.Values.SetUpdatedFlag(true)
+
+			// @todo owner?
+			var rve *types.RecordValueErrorSet
+			if old != nil {
+				rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, old.Values)
+			} else {
+				rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, nil)
+			}
+			if !rve.IsValid() {
+				return rve
+			}
+
+			rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec)
+			if !rve.IsValid() {
+				return rve
+			}
+
+			// AC
+			//
+			// AC needs to happen down here, because we are either creating or updating
+			// records and we don't know that for sure in the Prepare method.
+			//
+			// @todo expand this when we allow record based AC
+			if !exists && !createAcChecked {
+				createAcChecked = true
+				if !pl.composeAccessControl.CanCreateRecord(ctx, mod) {
+					return fmt.Errorf("not allowed to create records for module %d", mod.ID)
+				}
+			} else if exists && !updateAcChecked {
+				updateAcChecked = true
+				if !pl.composeAccessControl.CanUpdateRecord(ctx, mod) {
+					return fmt.Errorf("not allowed to update records for module %d", mod.ID)
+				}
+			}
+
+			// Create a new record
+			if !exists {
+				err = store.CreateComposeRecord(ctx, pl.s, mod, rec)
+				return err
+			}
+
+			// Update existing
+			err = store.UpdateComposeRecord(ctx, pl.s, mod, rec)
 			return err
+		}()
+
+		if n.cfg.Defer != nil {
+			n.cfg.Defer()
 		}
 
-		rec.Values = rvs
-		rec.Values.SetUpdatedFlag(true)
-
-		// @todo owner?
-		var rve *types.RecordValueErrorSet
-		if old != nil {
-			rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, old.Values)
-		} else {
-			rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, nil)
-		}
-		if !rve.IsValid() {
-			return rve
-		}
-
-		rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec)
-		if !rve.IsValid() {
-			return dfr(rve)
-		}
-
-		// AC
-		//
-		// AC needs to happen down here, because we are either creating or updating
-		// records and we don't know that for sure in the Prepare method.
-		//
-		// @todo expand this when we allow record based AC
-		if !exists && !createAcChecked {
-			createAcChecked = true
-			if !pl.composeAccessControl.CanCreateRecord(ctx, mod) {
-				return fmt.Errorf("not allowed to create records for module %d", mod.ID)
+		if err != nil {
+			if n.cfg.DeferNok != nil {
+				return n.cfg.DeferNok(err)
 			}
-		} else if exists && !updateAcChecked {
-			updateAcChecked = true
-			if !pl.composeAccessControl.CanUpdateRecord(ctx, mod) {
-				return fmt.Errorf("not allowed to update records for module %d", mod.ID)
-			}
+			return err
+		} else if n.cfg.DeferOk != nil {
+			n.cfg.DeferOk()
 		}
 
-		// Create a new record
-		if !exists {
-			err = store.CreateComposeRecord(ctx, pl.s, mod, rec)
-			return dfr(err)
-		}
-
-		// Update existing
-		err = store.UpdateComposeRecord(ctx, pl.s, mod, rec)
-		return dfr(err)
+		return nil
 	})
 }
