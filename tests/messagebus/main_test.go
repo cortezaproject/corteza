@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
@@ -24,7 +25,6 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 type (
@@ -73,8 +73,8 @@ func InitTestApp() {
 
 			eventbus.Set(eventBus)
 
-			messageBus := messagebus.New(zap.NewNop(), eventbus.Service())
-			// messageBus := messagebus.New(logger.Default(), eventbus.Service())
+			// messageBus := messagebus.New(&options.MessagebusOpt{LogEnabled: false}, zap.NewNop(), eventbus.Service())
+			messageBus := messagebus.New(&options.MessagebusOpt{LogEnabled: false}, logger.Default(), eventbus.Service())
 			messagebus.Set(messageBus)
 
 			return nil

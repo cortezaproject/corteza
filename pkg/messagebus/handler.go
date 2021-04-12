@@ -6,14 +6,14 @@ import (
 )
 
 const (
-	HandlerCorteza handler = "corteza"
-	HandlerNoop    handler = "noop"
-	HandlerRedis   handler = "redis"
-	HandlerSql     handler = "sql"
+	HandlerCorteza HandlerType = "corteza"
+	HandlerNoop    HandlerType = "noop"
+	HandlerRedis   HandlerType = "redis"
+	HandlerSql     HandlerType = "sql"
 )
 
 type (
-	handler string
+	HandlerType string
 
 	Handler interface {
 		ReadHandler
@@ -53,3 +53,11 @@ type (
 		Process(context.Context, QueueMessage) error
 	}
 )
+
+func HandlerTypes() []HandlerType {
+	return []HandlerType{
+		HandlerCorteza,
+		HandlerRedis,
+		HandlerSql,
+	}
+}

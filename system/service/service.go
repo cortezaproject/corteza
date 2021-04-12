@@ -75,6 +75,7 @@ var (
 	DefaultReminder    ReminderService
 	DefaultAttachment  AttachmentService
 	DefaultRenderer    TemplateService
+	DefaultQueue       QueueService
 
 	DefaultStatistics *statistics
 
@@ -167,6 +168,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
+	DefaultQueue = Queue()
 
 	automationService.DefaultUser = DefaultUser
 

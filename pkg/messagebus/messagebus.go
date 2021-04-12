@@ -9,6 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"go.uber.org/zap"
 )
@@ -20,6 +21,7 @@ var (
 
 type (
 	messageBus struct {
+		opts     *options.MessagebusOpt
 		logger   *zap.Logger
 		eventbus dispatcher
 		mutex    sync.Mutex
@@ -50,17 +52,19 @@ func Set(m *messageBus) {
 }
 
 // Setup handles the singleton service
-func Setup(logger *zap.Logger, d dispatcher) {
+func Setup(opts *options.MessagebusOpt, log *zap.Logger, d dispatcher) {
 	if gMbus != nil {
 		return
 	}
 
-	gMbus = New(logger, d)
+	gMbus = New(opts, log, d)
 }
 
-func New(logger *zap.Logger, d dispatcher) *messageBus {
+func New(opts *options.MessagebusOpt, logger *zap.Logger, d dispatcher) *messageBus {
+	// force logger debug
 	return &messageBus{
 		eventbus: d,
+		opts:     opts,
 		logger:   logger,
 		queues:   QueueSet{},
 		w:        make(chan bool),
@@ -163,6 +167,7 @@ func (mb *messageBus) dispatchEvents(ctx context.Context, queues ...*Queue) {
 				select {
 				case p := <-q.dispatch:
 					if !q.settings.CanDispatch() {
+						mb.logger.Debug("NOT dispatching queue with payload, dispatch disabled in queue settings", zap.String("queue", q.settings.Queue))
 						break
 					}
 
@@ -194,7 +199,7 @@ func (mb *messageBus) updateProcessedMessages(ctx context.Context, queues ...*Qu
 					err := q.handler.Process(ctx, *message)
 
 					if err != nil {
-						mb.logger.Debug("could not mark message as processed", zap.String("queue", message.Queue), zap.Error(err))
+						mb.logger.Warn("could not mark message as processed", zap.String("queue", message.Queue), zap.Error(err))
 					} else {
 						mb.logger.Debug("message processed", zap.String("queue", message.Queue))
 					}
@@ -262,18 +267,18 @@ func (mb *messageBus) writeToQueue(ctx context.Context, q *Queue) {
 			err := q.handler.Write(ctx, p)
 
 			if err != nil {
-				mb.logger.Info("could not add message to queue", zap.String("queue", q.settings.Queue), zap.Error(err))
+				mb.logger.Warn("could not add message to queue", zap.String("queue", q.settings.Queue), zap.Error(err))
 				break
 			}
 
 			mb.logger.Debug("wrote payload to queue", zap.String("queue", q.settings.Queue))
 
 		case <-q.err:
-			mb.logger.Info("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
+			mb.logger.Debug("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
 			return
 
 		case <-ctx.Done():
-			mb.logger.Info("closing message queue listener", zap.String("queue", q.settings.Queue))
+			mb.logger.Debug("closing message queue listener", zap.String("queue", q.settings.Queue))
 			return
 		}
 	}
@@ -291,7 +296,7 @@ func (mb *messageBus) readFromQueue(ctx context.Context, q *Queue) {
 			list, err := q.handler.Read(ctx)
 
 			if err != nil {
-				mb.logger.Info("could not read message from queue", zap.String("queue", q.settings.Queue), zap.Error(err))
+				mb.logger.Warn("could not read message from queue", zap.String("queue", q.settings.Queue), zap.Error(err))
 				break
 			}
 
@@ -311,11 +316,11 @@ func (mb *messageBus) readFromQueue(ctx context.Context, q *Queue) {
 			}
 
 		case <-q.err:
-			mb.logger.Info("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
+			mb.logger.Debug("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
 			return
 
 		case <-ctx.Done():
-			mb.logger.Info("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
+			mb.logger.Debug("closing message queue listener", zap.String("queue", q.settings.Queue), zap.Int("processed", len(q.processed)))
 			return
 		}
 	}
@@ -337,7 +342,7 @@ func (mb *messageBus) initQueues(ctx context.Context, storer QueueStorer) error 
 		mb.logger.Debug("initializing queue", zap.String("queue", qs.Queue))
 
 		if err != nil {
-			mb.logger.Info("could not init handler for queue", zap.String("queue", qs.Queue), zap.Error(err))
+			mb.logger.Warn("could not init handler for queue", zap.String("queue", qs.Queue), zap.Error(err))
 			continue
 		}
 

@@ -16,6 +16,8 @@ import (
 type (
 	MessagebusQueuesettings interface {
 		SearchMessagebusQueuesettings(ctx context.Context, f messagebus.QueueSettingsFilter) (messagebus.QueueSettingsSet, messagebus.QueueSettingsFilter, error)
+		LookupMessagebusQueuesettingByID(ctx context.Context, id uint64) (*messagebus.QueueSettings, error)
+		LookupMessagebusQueuesettingByQueue(ctx context.Context, queue string) (*messagebus.QueueSettings, error)
 
 		CreateMessagebusQueuesetting(ctx context.Context, rr ...*messagebus.QueueSettings) error
 
@@ -36,6 +38,16 @@ var _ context.Context
 // SearchMessagebusQueuesettings returns all matching MessagebusQueuesettings from store
 func SearchMessagebusQueuesettings(ctx context.Context, s MessagebusQueuesettings, f messagebus.QueueSettingsFilter) (messagebus.QueueSettingsSet, messagebus.QueueSettingsFilter, error) {
 	return s.SearchMessagebusQueuesettings(ctx, f)
+}
+
+// LookupMessagebusQueuesettingByID searches for queue by ID
+func LookupMessagebusQueuesettingByID(ctx context.Context, s MessagebusQueuesettings, id uint64) (*messagebus.QueueSettings, error) {
+	return s.LookupMessagebusQueuesettingByID(ctx, id)
+}
+
+// LookupMessagebusQueuesettingByQueue searches for queue by queue name
+func LookupMessagebusQueuesettingByQueue(ctx context.Context, s MessagebusQueuesettings, queue string) (*messagebus.QueueSettings, error) {
+	return s.LookupMessagebusQueuesettingByQueue(ctx, queue)
 }
 
 // CreateMessagebusQueuesetting creates one or more MessagebusQueuesettings in store
