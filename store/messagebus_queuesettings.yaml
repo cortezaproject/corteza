@@ -18,11 +18,18 @@ fields:
   - { field: UpdatedAt }
   - { field: DeletedAt }
 
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for queue by ID
+  - fields: [ Queue ]
+    description: |-
+      searches for queue by queue name
 
 rdbms:
   alias: mqs
   table: queue_settings
-  customFilterConverter: false
+  customFilterConverter: true
 
 search:
   enablePaging: true

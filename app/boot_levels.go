@@ -23,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/provision"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
@@ -134,7 +135,7 @@ func (app *CortezaApp) Setup() (err error) {
 		return err
 	}
 
-	messagebus.Setup(app.Log, eventbus.Service())
+	messagebus.Setup(options.Messagebus(), app.Log, eventbus.Service())
 
 	app.lvl = bootLevelSetup
 	return

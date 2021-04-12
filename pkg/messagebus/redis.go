@@ -10,7 +10,7 @@ import (
 type (
 	RedisQueueHandler struct {
 		queue  string
-		handle handler
+		handle HandlerType
 		client *redis.Client
 		poll   *time.Ticker
 	}

@@ -8,7 +8,7 @@ import (
 type (
 	SqlQueueHandler struct {
 		queue  string
-		handle handler
+		handle HandlerType
 		client SqlClient
 		poll   *time.Ticker
 	}

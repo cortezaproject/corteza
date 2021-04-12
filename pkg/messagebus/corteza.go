@@ -18,7 +18,7 @@ type (
 	}
 
 	CortezaQueueHandler struct {
-		handle   handler
+		handle   HandlerType
 		messages CortezaMessageStore
 		poll     *time.Ticker
 	}

@@ -18,10 +18,10 @@ type (
 	}
 
 	QueueSettings struct {
-		ID      uint64
-		Handler string
-		Queue   string
-		Meta    QueueSettingsMeta
+		ID      uint64            `json:"queueID,string"`
+		Handler string            `json:"handler"`
+		Queue   string            `json:"queue"`
+		Meta    QueueSettingsMeta `json:"meta"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -32,6 +32,11 @@ type (
 	}
 
 	QueueSettingsFilter struct {
+		Queue   string      `json:"queue"`
+		Handler HandlerType `json:"handler"`
+
+		Deleted filter.State `json:"deleted"`
+
 		filter.Sorting
 		filter.Paging
 	}
@@ -66,11 +71,17 @@ func (m QueueSettingsMeta) Value() (driver.Value, error) {
 }
 
 func (m QueueSettingsMeta) MarshalJSON() ([]byte, error) {
+
+	pollDelay := ""
+	if m.PollDelay != nil {
+		pollDelay = m.PollDelay.String()
+	}
+
 	return json.Marshal(struct {
 		PollDelay      string `json:"poll_delay"`
 		DispatchEvents bool   `json:"dispatch_events,omitempty"`
 	}{
-		PollDelay:      m.PollDelay.String(),
+		PollDelay:      pollDelay,
 		DispatchEvents: m.DispatchEvents,
 	})
 }

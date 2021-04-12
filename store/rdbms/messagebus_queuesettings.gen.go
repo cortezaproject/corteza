@@ -33,7 +33,10 @@ func (s Store) SearchMessagebusQueuesettings(ctx context.Context, f messagebus.Q
 	)
 
 	return set, f, func() error {
-		q = s.messagebusQueuesettingsSelectBuilder()
+		q, err = s.convertMessagebusQueuesettingFilter(f)
+		if err != nil {
+			return err
+		}
 
 		// Paging enabled
 		// {search: {enablePaging:true}}
@@ -255,6 +258,20 @@ func (s Store) QueryMessagebusQueuesettings(
 	}
 
 	return set, rows.Err()
+}
+
+// LookupMessagebusQueuesettingByID searches for queue by ID
+func (s Store) LookupMessagebusQueuesettingByID(ctx context.Context, id uint64) (*messagebus.QueueSettings, error) {
+	return s.execLookupMessagebusQueuesetting(ctx, squirrel.Eq{
+		s.preprocessColumn("mqs.id", ""): store.PreprocessValue(id, ""),
+	})
+}
+
+// LookupMessagebusQueuesettingByQueue searches for queue by queue name
+func (s Store) LookupMessagebusQueuesettingByQueue(ctx context.Context, queue string) (*messagebus.QueueSettings, error) {
+	return s.execLookupMessagebusQueuesetting(ctx, squirrel.Eq{
+		s.preprocessColumn("mqs.queue", ""): store.PreprocessValue(queue, ""),
+	})
 }
 
 // CreateMessagebusQueuesetting creates one or more rows in queue_settings table

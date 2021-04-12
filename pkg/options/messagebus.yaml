@@ -1,0 +1,15 @@
+docs:
+  title: Messaging queue
+
+props:
+  - name: Enabled
+    type: bool
+    default: true
+    description: |-
+      Enable messagebus
+
+  - name: logEnabled
+    type: bool
+    default: false
+    description: |-
+      Enable extra logging for messagebus watchers
