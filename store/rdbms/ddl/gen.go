@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go.uber.org/zap"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -21,22 +22,22 @@ type (
 const (
 	// table creation
 	genericCreateTable = `
-CREATE TABLE {{ .Name }} (
-{{ range $n, $c := .Columns -}}
-{{ if $n }}, {{ else }}  {{ end }}{{ template "create-table-column" . }}
-{{ end -}}
-{{- if .PrimaryKey }}
-, PRIMARY KEY {{ template "index-fields" .PrimaryKey.Fields }}
-{{- end }}
-) {{- template "create-table-suffix" . -}}
-`
+	CREATE TABLE {{template "if-not-exists-clause" .}} {{ .Name }} (
+	{{ range $n, $c := .Columns -}}
+	{{ if $n }}, {{ else }}  {{ end }}{{ template "create-table-column" . }}
+	{{ end -}}
+	{{- if .PrimaryKey }}
+	, PRIMARY KEY {{ template "index-fields" .PrimaryKey.Fields }}
+	{{- end }}
+	) {{- template "create-table-suffix" . -}}
+	`
 	genericCreateTableSuffix = ``
 
 	genericCreateTableColumn = `
 	{{- .Name }} {{ columnType .Type }}
 	{{- if not .IsNull }} NOT NULL{{end}}
 	{{- if .DefaultValue }} DEFAULT {{ .DefaultValue }} {{end}}
-`
+	`
 
 	genericAddColumn     = `ALTER TABLE {{ .Table }} ADD {{ template "create-table-column" .Column }}`
 	genericAddPrimaryKey = `ALTER TABLE {{ .Table }} ADD CONSTRAINT PRIMARY KEY {{ template "index-fields" .PrimaryKey.Fields }}`
@@ -44,21 +45,23 @@ CREATE TABLE {{ .Name }} (
 	genericRenameColumn  = `ALTER TABLE {{ .Table }} RENAME COLUMN {{ .OldName }} TO {{ .NewName }}`
 
 	// index creation
-	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
+	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "if-not-exists-clause" . }} {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
 
 	genericIndexName      = `{{ .Table }}_{{ .Name }}`
 	genericIndexCondition = `{{- if .Condition }} WHERE ({{ .Condition }}){{ end }}`
 
 	// index creation
 	genericIndexFields = `
-({{ range $n, $f := . -}}
-	{{ if $n }}, {{ end }}
-	{{- if .Expr}}({{ end }}
-	{{- .Field }}
-	{{- if .Expr}}){{ end }}
-	{{- if .Desc }} DESC{{ end }}
-{{- end }})
-`
+	({{ range $n, $f := . -}}
+		{{ if $n }}, {{ end }}
+		{{- if .Expr}}({{ end }}
+		{{- .Field }}
+		{{- if .Expr}}){{ end }}
+		{{- if .Desc }} DESC{{ end }}
+	{{- end }})
+	`
+	// table/index exist or not clause
+	genericIfNotExistsClause = ``
 )
 
 func NewGenerator(log *zap.Logger) *Generator {
@@ -75,6 +78,7 @@ func NewGenerator(log *zap.Logger) *Generator {
 	g.AddTemplate("index-condition", genericIndexCondition)
 	g.AddTemplate("index-name", genericIndexName)
 	g.AddTemplate("index-fields", genericIndexFields)
+	g.AddTemplate("if-not-exists-clause", genericIfNotExistsClause)
 
 	return g
 }
@@ -93,7 +97,16 @@ func (g *Generator) AddTemplateFunc(name string, fn interface{}) {
 }
 
 func (g *Generator) AddTemplate(name, tpl string) {
-	template.Must(g.tpl.New(name).Parse(strings.TrimSpace(tpl)))
+	funcMap := template.FuncMap{
+		"trimExpression": func(s string) string {
+			re := regexp.MustCompile(`^.*\((\w+)\).*$`)
+			if str := re.FindAllStringSubmatch(s, 1); len(str) > 0 && len(str[0]) > 0 && len(str[0][1]) > 0 {
+				return str[0][1]
+			}
+			return s
+		},
+	}
+	template.Must(g.tpl.Funcs(funcMap).New(name).Parse(strings.TrimSpace(tpl)))
 }
 
 func (g *Generator) CreateTable(t *Table) string {
