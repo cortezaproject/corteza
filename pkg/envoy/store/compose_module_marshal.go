@@ -29,6 +29,8 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
 	}
 
+	n.res.Res.NamespaceID = n.relNS.ID
+
 	// Get related record field modules
 	for _, refMod := range n.res.RefMods {
 		var mod *types.Module

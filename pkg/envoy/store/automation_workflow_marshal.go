@@ -99,6 +99,7 @@ func (n *automationWorkflow) encodeWorkflow(ctx context.Context, pl *payload) (e
 		}
 	}
 
+	res.CreatedBy = pl.invokerID
 	if us != nil {
 		if us.OwnedBy != nil {
 			res.OwnedBy = us.OwnedBy.UserID
@@ -191,6 +192,7 @@ func (n *automationWorkflow) encodeTriggers(ctx context.Context, pl *payload) (e
 				res.DeletedAt = ts.DeletedAt.T
 			}
 		}
+		res.CreatedBy = pl.invokerID
 		if us != nil {
 			if us.OwnedBy != nil {
 				res.OwnedBy = us.OwnedBy.UserID

@@ -39,8 +39,7 @@ type (
 		RefMod *Ref
 		RelMod *types.Module
 
-		IDMap  map[string]uint64
-		RecMap map[string]*types.Record
+		IDMap map[string]uint64
 		// UserFlakes help the system by predefining a set of potential sys user references.
 		// This should make the operation cheaper for larger datasets.
 		UserFlakes UserstampIndex
@@ -49,9 +48,8 @@ type (
 
 func NewComposeRecordSet(w CrsWalker, nsRef, modRef string) *ComposeRecord {
 	r := &ComposeRecord{
-		base:   &base{},
-		IDMap:  make(map[string]uint64),
-		RecMap: make(map[string]*types.Record),
+		base:  &base{},
+		IDMap: make(map[string]uint64),
 	}
 
 	r.SetResourceType(COMPOSE_RECORD_RESOURCE_TYPE)
@@ -70,6 +68,22 @@ func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
 
 	// Set user refs as wildflag, indicating it refers to any user resource
 	r.AddRef(USER_RESOURCE_TYPE, "*")
+}
+
+func FindComposeRecordResource(rr InterfaceSet, ii Identifiers) (rec *ComposeRecord) {
+	rr.Walk(func(r Interface) error {
+		crr, ok := r.(*ComposeRecord)
+		if !ok {
+			return nil
+		}
+
+		if crr.Identifiers().HasAny(ii) {
+			rec = crr
+		}
+		return nil
+	})
+
+	return rec
 }
 
 func ComposeRecordErrUnresolved(ii Identifiers) error {

@@ -24,6 +24,11 @@ type (
 		relNS  *types.Namespace
 		relMod *types.Module
 
+		fieldModRef map[string]resource.Identifiers
+		// module identifier -> record identifier -> recordID
+		externalRef map[string]map[string]uint64
+		recMap      map[string]*types.Record
+
 		// Little helper flag for conditional encoding
 		missing bool
 	}
