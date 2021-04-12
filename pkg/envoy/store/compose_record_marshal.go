@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -24,7 +23,10 @@ var (
 
 func NewComposeRecordFromResource(res *resource.ComposeRecord, cfg *EncoderConfig) resourceState {
 	return &composeRecord{
-		cfg: cfg,
+		cfg:         cfg,
+		fieldModRef: make(map[string]resource.Identifiers),
+		externalRef: make(map[string]map[string]uint64),
+		recMap:      make(map[string]*types.Record),
 
 		res: res,
 	}
@@ -77,6 +79,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Add missing refs
+	preloadRefs := make(resource.RefSet, 0, int(len(n.relMod.Fields)/2)+1)
 	for _, f := range n.relMod.Fields {
 		switch f.Kind {
 		case "Record":
@@ -86,49 +89,79 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 			}
 			if refM != "" && refM != "0" {
 				// Make a reference with that module's records
-				n.res.AddRef(resource.COMPOSE_RECORD_RESOURCE_TYPE, refM).Constraint(n.res.RefNs)
+				ref := n.res.AddRef(resource.COMPOSE_RECORD_RESOURCE_TYPE, refM).Constraint(n.res.RefNs)
+
+				n.fieldModRef[f.Name] = ref.Identifiers
+				preloadRefs = append(preloadRefs, ref)
 			}
 		}
 	}
 
 	// Can't do anything else, since the NS doesn't yet exist
-	if n.relNS.ID <= 0 {
+	if n.relNS.ID == 0 {
 		return nil
 	}
 
-	// Check if empty
+	// Preload potential references
+	//
+	// This is a fairly primitive approach, try to think of something a bit nicer
+	for _, ref := range preloadRefs {
+		mod, err := findComposeModuleStore(ctx, pl.s, n.relNS.ID, makeGenericFilter(ref.Identifiers))
+		if err != nil && err != store.ErrNotFound {
+			return err
+		}
+		auxMap := make(map[string]uint64)
+		for i := range ref.Identifiers {
+			n.externalRef[i] = auxMap
+		}
+
+		// Preload all records
+		rr, _, err := store.SearchComposeRecords(ctx, pl.s, mod, types.RecordFilter{
+			ModuleID:    mod.ID,
+			NamespaceID: mod.NamespaceID,
+			Paging: filter.Paging{
+				Limit: 0,
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, r := range rr {
+			auxMap[strconv.FormatUint(r.ID, 10)] = r.ID
+		}
+	}
+
+	// Can't work with own record because the module doesn't yet exist
+	if n.relMod.ID == 0 {
+		return nil
+	}
+
+	// Preload own records
 	rr, _, err := store.SearchComposeRecords(ctx, pl.s, n.relMod, types.RecordFilter{
 		ModuleID:    n.relMod.ID,
 		NamespaceID: n.relNS.ID,
-		Paging:      filter.Paging{Limit: 1},
+		Paging: filter.Paging{
+			Limit: 0,
+		},
 	})
 	if err != nil && err != store.ErrNotFound {
 		return err
 	}
 	n.missing = len(rr) == 0
 
-	// Try to get existing records
-	//
-	// @todo handle large amounts of
-	for rID := range n.res.IDMap {
-		var r *types.Record
-		// @todo support for labels
-		if refy.MatchString(rID) {
-			id, _ := strconv.ParseUint(rID, 10, 64)
-			r, err = store.LookupComposeRecordByID(ctx, pl.s, n.relMod, id)
-			if err == store.ErrNotFound {
-				continue
-			} else if err != nil {
-				return err
-			}
-			if r != nil {
-				n.res.RecMap[rID] = r
-			}
-		} else {
-			continue
-		}
+	// Map existing records so we can perform updates
+	// Map to xref map for easier use later
+	auxMap := make(map[string]uint64)
+	for i := range n.res.RefMod.Identifiers {
+		n.externalRef[i] = auxMap
+	}
+	for _, r := range rr {
+		key := strconv.FormatUint(r.ID, 10)
+		n.recMap[key] = r
 
-		n.res.RecMap[rID] = r
+		// Map IDs to xref map
+		auxMap[key] = r.ID
 	}
 
 	return nil
@@ -180,7 +213,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Some pointing
-	rm := n.res.RecMap
+	rm := n.recMap
 	im := n.res.IDMap
 
 	createAcChecked := false
@@ -192,6 +225,22 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 
 		return k
+	}
+
+	checkXRef := func(ii resource.Identifiers, ref string) (uint64, error) {
+		var auxMap map[string]uint64
+		for ri := range ii {
+			if mp, ok := n.externalRef[ri]; ok {
+				auxMap = mp
+				break
+			}
+		}
+
+		if auxMap == nil || len(auxMap) == 0 {
+			return 0, fmt.Errorf("referenced record not resolved: %s", resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(ref)))
+		}
+
+		return auxMap[ref], nil
 	}
 
 	i := -1
@@ -283,6 +332,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 
 		// Userstamps
+		rec.CreatedBy = pl.invokerID
 		if r.Us != nil {
 			if r.Us.CreatedBy != nil {
 				rec.CreatedBy = ux[r.Us.CreatedBy.Ref]
@@ -308,7 +358,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 
 			f := mod.Fields.FindByName(k)
-			if f != nil {
+			if f != nil && v != "" {
 				switch f.Kind {
 				case "User":
 					uID := ux[v]
@@ -319,9 +369,24 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 					rv.Ref = uID
 
 				case "Record":
+					refIdentifiers, ok := n.fieldModRef[f.Name]
+					if !ok {
+						return fmt.Errorf("module field record reference not resoled: %s", f.Name)
+					}
+
 					// if self...
-					if n.res.RefMod.Identifiers.HasAny(resource.MakeIdentifiers(f.Options.String("module"))) {
+					if n.res.RefMod.Identifiers.HasAny(refIdentifiers) {
 						rID := im[v]
+
+						// Check if its in the store
+						if rID == 0 {
+							// Check if we have an xref
+							rID, err = checkXRef(refIdentifiers, v)
+							if err != nil {
+								return err
+							}
+						}
+
 						if rID == 0 {
 							return resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v))
 						}
@@ -329,8 +394,28 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 						rv.Ref = rID
 					} else {
 						// not self...
-						// @todo...
-						return errors.New("record cross referencing not yet supported")
+						rID := uint64(0)
+						refRes := resource.FindComposeRecordResource(pl.state.ParentResources, refIdentifiers)
+
+						if refRes != nil {
+							// check if parent has it
+							rID = refRes.IDMap[v]
+						}
+
+						if rID == 0 {
+							// Check if we have an xref
+							rID, err = checkXRef(refIdentifiers, v)
+							if err != nil {
+								return err
+							}
+						}
+
+						if rID == 0 {
+							return fmt.Errorf("referenced record not resolved: %s", resource.ComposeRecordErrUnresolved(resource.MakeIdentifiers(v)))
+						}
+
+						rv.Value = strconv.FormatUint(rID, 10)
+						rv.Ref = rID
 					}
 				}
 			}

@@ -1,0 +1,33 @@
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    fields:
+      f_record:
+        label: f_record label
+        kind: Record
+        options:
+          module: mod2
+
+    records:
+      source: mod1.csv
+      key: id
+      mapping:
+        id: /
+        c_record:
+          field: f_record
+  mod2:
+    fields:
+      f_label:
+        label: label label
+        kind: String
+
+    records:
+      source: mod2.csv
+      key: id
+      mapping:
+        id: /
+        c_label:
+          field: f_label

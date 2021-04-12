@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -66,6 +67,7 @@ type (
 
 		composeAccessControl composeAccessController
 		systemAC             accessControlRBACServicer
+		invokerID            uint64
 	}
 
 	// resourceState allows each conforming struct to be initialized and encoded
@@ -106,7 +108,7 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 // It initializes and prepares the resource state for each provided resource
 func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) (err error) {
 	f := func(rs resourceState, ers *envoy.ResourceState) error {
-		err = rs.Prepare(ctx, se.makePayload(ers))
+		err = rs.Prepare(ctx, se.makePayload(ctx, ers))
 		if err != nil {
 			return err
 		}
@@ -176,7 +178,7 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 			if state == nil {
 				err = ErrResourceStateUndefined
 			} else {
-				err = state.Encode(ctx, se.makePayload(ers))
+				err = state.Encode(ctx, se.makePayload(ctx, ers))
 			}
 
 			if err != nil {
@@ -186,11 +188,12 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	})
 }
 
-func (se *storeEncoder) makePayload(ers *envoy.ResourceState) *payload {
+func (se *storeEncoder) makePayload(ctx context.Context, ers *envoy.ResourceState) *payload {
 	return &payload{
 		s:                    se.s,
 		state:                ers,
 		composeAccessControl: service.AccessControl(rbac.Global()),
+		invokerID:            auth.GetIdentityFromContext(ctx).Identity(),
 	}
 }
 
