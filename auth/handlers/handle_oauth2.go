@@ -234,6 +234,10 @@ func (h AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err er
 		params.Set("scope", scope[0])
 	}
 
+	if state, has := req.Request.Form["state"]; has && len(state) > 0 {
+		params.Set("state", state[0])
+	}
+
 	req.RedirectTo = GetLinks().OAuth2Authorize + "?" + params.Encode()
 	return
 }
