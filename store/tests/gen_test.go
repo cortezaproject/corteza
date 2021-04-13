@@ -28,6 +28,8 @@ package tests
 //  - store/federation_shared_modules.yaml
 //  - store/flags.yaml
 //  - store/labels.yaml
+//  - store/messagebus_queuemessage.yaml
+//  - store/messagebus_queuesettings.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/role_members.yaml
@@ -175,6 +177,16 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Labels
 	t.Run("Labels", func(t *testing.T) {
 		testLabels(t, s)
+	})
+
+	// Run generated tests for MessagebusQueuemessage
+	t.Run("MessagebusQueuemessage", func(t *testing.T) {
+		testMessagebusQueuemessage(t, s)
+	})
+
+	// Run generated tests for MessagebusQueuesettings
+	t.Run("MessagebusQueuesettings", func(t *testing.T) {
+		testMessagebusQueuesettings(t, s)
 	})
 
 	// Run generated tests for RbacRules

@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
+	github.com/DataDog/sketches-go v0.0.0-20190923095040-43f19ad77ff7 // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -13,6 +14,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/benbjohnson/clock v1.0.0 // indirect
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1 // indirect
@@ -29,9 +31,11 @@ require (
 	github.com/go-chi/httprate v0.4.0
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
 	github.com/go-oauth2/oauth2/v4 v4.2.0
+	github.com/go-redis/redis/v8 v8.8.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
+	github.com/google/gofuzz v1.0.0 // indirect
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/mux v1.7.1 // indirect
@@ -52,6 +56,7 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
@@ -64,13 +69,12 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/steinfletcher/apitest v1.3.8
 	github.com/steinfletcher/apitest-jsonpath v1.3.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/strftime v0.1.5 // indirect
 	go.uber.org/atomic v1.6.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
-	golang.org/x/sys v0.0.0-20200918174421-af09f7315aff // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

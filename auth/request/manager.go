@@ -2,12 +2,13 @@ package request
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type (
@@ -48,12 +49,12 @@ func (m *SessionManager) Search(ctx context.Context, userID uint64) (set []*type
 	return
 }
 
-// Returns all users sessions
+// DeleteByUserID removes session by user ID
 func (m *SessionManager) DeleteByUserID(ctx context.Context, userID uint64) (err error) {
 	return m.cstore.DeleteAuthSessionsByUserID(ctx, userID)
 }
 
-// Returns all users sessions
+// DeleteByID removes session by it's ID
 func (m *SessionManager) DeleteByID(ctx context.Context, sessionID string) (err error) {
 	return m.cstore.DeleteAuthSessionByID(ctx, sessionID)
 }
