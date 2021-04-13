@@ -2,7 +2,6 @@ package provision
 
 import (
 	"context"
-	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -11,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	url "net/url"
 	"time"
 )
 
@@ -58,9 +56,12 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 		},
 		ValidGrant: "authorization_code",
 		RedirectURI: func() string {
-			baseURL, _ := url.Parse(authOpt.BaseURL)
-			return fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Hostname())
+			// Disabling protection by redirection URL for now, it caused too much confusion on simple setups
+			//baseURL, _ := url.Parse(authOpt.BaseURL)
+			//return fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Hostname())
+			return ""
 		}(),
+
 		Secret:    string(rand.Bytes(64)),
 		Scope:     "profile api",
 		Enabled:   true,
