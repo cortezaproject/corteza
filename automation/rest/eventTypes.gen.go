@@ -2007,6 +2007,25 @@ func getEventTypeDefinitions() []eventTypeDef {
 		},
 
 		{
+			ResourceType: "system:queue",
+			EventType:    "onMessage",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "payload",
+					Type:      "",
+					Immutable: false,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "message.queue",
+				},
+			},
+		},
+
+		{
 			ResourceType: "system:role",
 			EventType:    "onManual",
 			Properties: []eventTypePropertyDef{

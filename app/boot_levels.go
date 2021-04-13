@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
+
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	autService "github.com/cortezaproject/corteza-server/automation/service"
@@ -19,6 +21,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
 	"github.com/cortezaproject/corteza-server/pkg/provision"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -30,7 +33,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
-	"strings"
 )
 
 const (
@@ -131,6 +133,8 @@ func (app *CortezaApp) Setup() (err error) {
 	if err = corredor.Setup(app.Log, app.Opt.Corredor); err != nil {
 		return err
 	}
+
+	messagebus.Setup(app.Log, eventbus.Service())
 
 	app.lvl = bootLevelSetup
 	return
@@ -250,6 +254,14 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		}
 
 		rbac.Global().Reload(ctx)
+	}
+
+	{
+		// initialize all the queue handlers
+		messagebus.Service().Init(ctx, app.Store)
+
+		// set messagebus watchers
+		messagebus.Service().Listen(ctx)
 	}
 
 	// Initializes system services
@@ -377,6 +389,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	monitor.Watcher(ctx)
 
 	rbac.Global().Watch(ctx)
+
+	messagebus.Service().Watch(ctx, app.Store)
 
 	if err = sysService.Activate(ctx); err != nil {
 		return err

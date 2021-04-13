@@ -1,0 +1,18 @@
+imports:
+  - io
+
+functions:
+  write:
+    meta:
+      short: Queue message send
+    params:
+      payload:
+        required: true
+        types:
+          - { wf: String,   suffix: String }
+          - { wf: Reader,   suffix: Stream }
+      queue:
+        required: true
+        types:
+          - { wf: String }
+

@@ -1,0 +1,30 @@
+import:
+  - github.com/cortezaproject/corteza-server/pkg/messagebus
+
+types:
+  package: messagebus
+  type: messagebus.QueueSettings
+  filterType: messagebus.QueueSettingsFilter
+
+fields:
+  - { field: ID, sortable: false  }
+  - { field: Handler }
+  - { field: Queue }
+  - { field: Meta, type: "json.Text" }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt }
+  - { field: UpdatedAt }
+  - { field: DeletedAt }
+
+
+rdbms:
+  alias: mqs
+  table: queue_settings
+  customFilterConverter: false
+
+search:
+  enablePaging: true
+  enableSorting: false
+  enableFilterCheckFunction: false
