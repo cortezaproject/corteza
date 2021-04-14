@@ -456,7 +456,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			http.Error(w, fmt.Sprintf("failed to fetch records: %s", err.Error()), http.StatusBadRequest)
 		}
 
-		var encoder envoy.PrepareEncodeStreammer
+		var encoder envoy.PrepareEncodeStreamer
 
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
