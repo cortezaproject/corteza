@@ -179,13 +179,8 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 
 	ses.CreatedAt = *now()
 	ses.CreatedBy = i.Identity()
+	ses.Status = types.SessionStarted
 	ses.Apply(ssp)
-
-	if ssp.Trace {
-		if err = store.CreateAutomationSession(context.TODO(), svc.store, ses); err != nil {
-			return
-		}
-	}
 
 	if err = ses.Exec(ctx, start, ssp.Input); err != nil {
 		return
@@ -344,20 +339,19 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		var (
 			// By default we want to update session when new status is prompted, delayed, completed or failed
 			//
-			// But if status is active, we
+			// But if status is active, we'll flush it every X frames (flushFrquency)
 			update = true
-			frame  = state.MakeFrame()
+
+			frame = state.MakeFrame()
 		)
 
 		// Stacktrace will be set to !nil if frame collection is needed
-		if ses.Stacktrace != nil {
-			if len(ses.Stacktrace) > 0 {
-				// calculate how long it took to get to this step
-				frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.Stacktrace[0].CreatedAt) / time.Millisecond)
-			}
-
-			ses.Stacktrace = append(ses.Stacktrace, frame)
+		if len(ses.RuntimeStacktrace) > 0 {
+			// calculate how long it took to get to this step
+			frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
 		}
+
+		ses.RuntimeStacktrace = append(ses.RuntimeStacktrace, frame)
 
 		switch i {
 		case wfexec.SessionPrompted:
@@ -381,14 +375,19 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		default:
 			// force update on every 10 new frames but only when stacktrace is not nil
-			update = ses.Stacktrace != nil && len(ses.Stacktrace)%flushFrequency == 0
+			update = ses.RuntimeStacktrace != nil && len(ses.RuntimeStacktrace)%flushFrequency == 0
 		}
 
 		if !update {
 			return
 		}
 
-		if err := svc.store.UpdateAutomationSession(ctx, ses); err != nil {
+		if ses.Stacktrace != nil || ses.Error != "" {
+			// Save stacktrace when we know we're tracing workflows OR whenever there is an error...
+			ses.Stacktrace = ses.RuntimeStacktrace
+		}
+
+		if err := svc.store.UpsertAutomationSession(ctx, ses); err != nil {
 			log.Error("failed to update session", zap.Error(err))
 		} else {
 			log.Debug("session updated", zap.Stringer("status", ses.Status))

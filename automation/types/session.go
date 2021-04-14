@@ -25,6 +25,7 @@ type (
 		Input  *expr.Vars `json:"input"`
 		Output *expr.Vars `json:"output"`
 
+		// Stacktrace that gets stored (if/when configured)
 		Stacktrace Stacktrace `json:"stacktrace"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -38,6 +39,13 @@ type (
 		Error       string     `json:"error,omitempty"`
 
 		session *wfexec.Session
+
+		// For keeping runtime stacktrace,
+		// even if we do not want to store it on every update
+		//
+		// This will aid us when session fails and we can access
+		// the whole stacktrace
+		RuntimeStacktrace Stacktrace `json:"-"`
 	}
 
 	SessionStartParams struct {
@@ -124,7 +132,8 @@ func (s *Session) Apply(ssp SessionStartParams) {
 	}
 
 	if ssp.Trace {
-		// set prop
+		// set Stacktrace prop to signal status handler
+		// that we're interested in storing stacktrace
 		s.Stacktrace = Stacktrace{}
 	}
 }
