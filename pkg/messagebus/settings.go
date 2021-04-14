@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 )
 
@@ -37,10 +39,21 @@ type (
 
 		Deleted filter.State `json:"deleted"`
 
+		// Check fn is called by store backend for each resource found function can
+		// modify the resource and return false if store should not return it
+		//
+		// Store then loads additional resources to satisfy the paging parameters
+		Check func(*QueueSettings) (bool, error) `json:"-"`
+
 		filter.Sorting
 		filter.Paging
 	}
 )
+
+// Resource returns a system resource ID for this type
+func (s QueueSettings) RBACResource() rbac.Resource {
+	return types.MessagebusQueueRBACResource.AppendID(s.ID)
+}
 
 func (h *QueueSettingsMeta) UnmarshalJSON(s []byte) error {
 	type Alias QueueSettingsMeta
@@ -53,7 +66,7 @@ func (h *QueueSettingsMeta) UnmarshalJSON(s []byte) error {
 	}
 
 	// set default
-	h.DispatchEvents = true
+	h.DispatchEvents = false
 
 	if err := json.Unmarshal(s, aux); err != nil {
 		return err
@@ -79,7 +92,7 @@ func (m QueueSettingsMeta) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(struct {
 		PollDelay      string `json:"poll_delay"`
-		DispatchEvents bool   `json:"dispatch_events,omitempty"`
+		DispatchEvents bool   `json:"dispatch_events"`
 	}{
 		PollDelay:      pollDelay,
 		DispatchEvents: m.DispatchEvents,
@@ -101,4 +114,14 @@ func (m *QueueSettingsMeta) Scan(value interface{}) error {
 
 func (s *QueueSettings) CanDispatch() bool {
 	return s.Meta.DispatchEvents
+}
+
+func ParseQueueSettingsMeta(ss []string) (p QueueSettingsMeta, err error) {
+	p = QueueSettingsMeta{}
+
+	if len(ss) == 0 {
+		return
+	}
+
+	return p, json.Unmarshal([]byte(ss[0]), &p)
 }

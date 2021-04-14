@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -47,6 +48,7 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "application.flag.global", svc.CanGlobalFlagApplication(ctx))
 	ee.Push(types.SystemRBACResource, "template.create", svc.CanCreateTemplate(ctx))
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
+	ee.Push(types.SystemRBACResource, "messagebus-queue.create", svc.CanCreateMessagebusQueue(ctx))
 
 	return
 }
@@ -93,6 +95,10 @@ func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "reminder.assign")
+}
+
+func (svc accessControl) CanCreateMessagebusQueue(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "messagebus-queue.create")
 }
 
 func (svc accessControl) CanReadRole(ctx context.Context, rl *types.Role) bool {
@@ -208,6 +214,26 @@ func (svc accessControl) CanUnmaskName(ctx context.Context, u *types.User) bool 
 	return svc.can(ctx, u.RBACResource(), "unmask.name")
 }
 
+func (svc accessControl) CanReadMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool {
+	return svc.can(ctx, c.RBACResource(), "read")
+}
+
+func (svc accessControl) CanUpdateMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool {
+	return svc.can(ctx, c.RBACResource(), "update")
+}
+
+func (svc accessControl) CanDeleteMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool {
+	return svc.can(ctx, c.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanReadFromMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool {
+	return svc.can(ctx, c.RBACResource(), "queue.read")
+}
+
+func (svc accessControl) CanWriteToMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool {
+	return svc.can(ctx, c.RBACResource(), "queue.write")
+}
+
 func (svc accessControl) can(ctx context.Context, res rbac.Resource, op rbac.Operation, ff ...rbac.CheckAccessFunc) bool {
 	var (
 		u     = internalAuth.GetIdentityFromContext(ctx)
@@ -276,6 +302,7 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"application.flag.global",
 		"template.create",
 		"reminder.assign",
+		"messagebus-queue.create",
 	)
 
 	wl.Set(
@@ -319,6 +346,15 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"update",
 		"delete",
 		"authorize",
+	)
+
+	wl.Set(
+		types.MessagebusQueueRBACResource,
+		"read",
+		"update",
+		"delete",
+		"queue.read",
+		"queue.write",
 	)
 
 	return wl

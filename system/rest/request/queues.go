@@ -11,6 +11,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -104,7 +105,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta data for queue
-		Meta sqlxTypes.JSONText
+		Meta messagebus.QueueSettingsMeta
 	}
 
 	QueuesDelete struct {
@@ -339,7 +340,7 @@ func (r QueuesUpdate) GetHandler() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesUpdate) GetMeta() sqlxTypes.JSONText {
+func (r QueuesUpdate) GetMeta() messagebus.QueueSettingsMeta {
 	return r.Meta
 }
 
@@ -378,8 +379,13 @@ func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
-			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
 			if err != nil {
 				return err
 			}

@@ -1479,6 +1479,7 @@ endpoints:
   entrypoint: queues
   path: "/queues"
   imports:
+    - github.com/cortezaproject/corteza-server/pkg/messagebus
     - sqlxTypes github.com/jmoiron/sqlx/types
   apis:
   - name: list
@@ -1537,7 +1538,7 @@ endpoints:
         title: Queue ID
   - name: update
     method: POST
-    title: Update role details
+    title: Update queue details
     path: "/{queueID}"
     parameters:
       path:
@@ -1554,7 +1555,8 @@ endpoints:
         name: handler
         required: true
         title: Queue handler
-      - type: sqlxTypes.JSONText
+      - type: "messagebus.QueueSettingsMeta"
+        parser: "messagebus.ParseQueueSettingsMeta"
         name: meta
         required: false
         title: Meta data for queue
