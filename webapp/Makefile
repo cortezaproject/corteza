@@ -5,7 +5,7 @@ TAR_FLAGS    ?= -xzmok
 RELEASE_PAGE ?= https://releases.cortezaproject.org/files
 APPS         ?= admin compose workflow
 ALL_APPS     ?= $(APPS) one
-VERSION      ?= 2021.3.0-rc.1
+VERSION      ?= $(shell git describe --tags --abbrev=0)
 PACKAGES      = $(addprefix corteza-webapp-,$(addsuffix -$(VERSION).tar.gz,$(ALL_APPS)))
 
 all: install
