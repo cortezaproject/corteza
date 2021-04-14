@@ -15,6 +15,10 @@ func (s Store) convertAutomationSessionFilter(f types.SessionFilter) (query squi
 		query = query.Where(squirrel.Eq{"atms.id": f.SessionID})
 	}
 
+	if len(f.CreatedBy) > 0 {
+		query = query.Where(squirrel.Eq{"atms.created_by": f.CreatedBy})
+	}
+
 	if len(f.Status) > 0 {
 		query = query.Where(squirrel.Eq{"atms.status": f.Status})
 	}

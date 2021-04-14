@@ -46,6 +46,11 @@ type (
 		// Filter by workflow ID
 		WorkflowID []string
 
+		// CreatedBy GET parameter
+		//
+		// Filter by creators ID
+		CreatedBy []string
+
 		// Completed GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) completed sessions
@@ -146,6 +151,7 @@ func (r SessionList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"sessionID":    r.SessionID,
 		"workflowID":   r.WorkflowID,
+		"createdBy":    r.CreatedBy,
 		"completed":    r.Completed,
 		"status":       r.Status,
 		"eventType":    r.EventType,
@@ -164,6 +170,11 @@ func (r SessionList) GetSessionID() []string {
 // Auditable returns all auditable/loggable parameters
 func (r SessionList) GetWorkflowID() []string {
 	return r.WorkflowID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r SessionList) GetCreatedBy() []string {
+	return r.CreatedBy
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -226,6 +237,17 @@ func (r *SessionList) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := tmp["workflowID"]; ok {
 			r.WorkflowID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["createdBy[]"]; ok {
+			r.CreatedBy, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["createdBy"]; ok {
+			r.CreatedBy, err = val, nil
 			if err != nil {
 				return err
 			}
