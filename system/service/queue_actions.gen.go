@@ -514,6 +514,38 @@ func QueueErrAlreadyExists(mm ...*queueActionProps) *errors.Error {
 	return e
 }
 
+// QueueErrNotAllowedToCreate returns "system:queue.notAllowedToCreate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToCreate(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create a queue", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to create a queue; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // QueueErrNotAllowedToRead returns "system:queue.notAllowedToRead" as *errors.Error
 //
 //
@@ -535,6 +567,166 @@ func QueueErrNotAllowedToRead(mm ...*queueActionProps) *errors.Error {
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(queueLogMetaKey{}, "failed to read {queue.queue}; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// QueueErrNotAllowedToUpdate returns "system:queue.notAllowedToUpdate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToUpdate(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this queue", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to update {queue.queue}; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// QueueErrNotAllowedToDelete returns "system:queue.notAllowedToDelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToDelete(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this queue", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to delete {queue.queue}; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// QueueErrNotAllowedToUndelete returns "system:queue.notAllowedToUndelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToUndelete(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this queue", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to undelete {queue.queue}; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// QueueErrNotAllowedToWriteTo returns "system:queue.notAllowedToWriteTo" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToWriteTo(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to add messages to this queue", nil),
+
+		errors.Meta("type", "notAllowedToWriteTo"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to add message to {queue.queue}; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// QueueErrNotAllowedToReadFrom returns "system:queue.notAllowedToReadFrom" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToReadFrom(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read messages from this queue", nil),
+
+		errors.Meta("type", "notAllowedToReadFrom"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to read message from {queue.queue}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

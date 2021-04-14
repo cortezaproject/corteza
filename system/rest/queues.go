@@ -8,7 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -51,6 +50,7 @@ func (ctrl *Queue) List(ctx context.Context, r *request.QueuesList) (interface{}
 	}
 
 	set, filter, err := ctrl.svc.Search(ctx, f)
+
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
@@ -80,7 +80,7 @@ func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interfa
 			ID:      r.QueueID,
 			Handler: r.Handler,
 			Queue:   r.Queue,
-			// Meta:    r.Meta,
+			Meta:    r.Meta,
 		}
 	)
 
@@ -90,7 +90,6 @@ func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interfa
 }
 
 func (ctrl *Queue) Delete(ctx context.Context, r *request.QueuesDelete) (interface{}, error) {
-	spew.Dump("DELETE", r)
 	return api.OK(), ctrl.svc.DeleteByID(ctx, r.QueueID)
 }
 

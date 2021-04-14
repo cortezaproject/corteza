@@ -9,5 +9,6 @@ import (
 func (s Store) convertMessagebusQueuesettingFilter(f messagebus.QueueSettingsFilter) (query squirrel.SelectBuilder, err error) {
 	query = s.messagebusQueuesettingsSelectBuilder()
 	query = filter.StateCondition(query, "mqs.deleted_at", f.Deleted)
+
 	return
 }
