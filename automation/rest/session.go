@@ -28,7 +28,18 @@ type (
 
 	sessionSetPayload struct {
 		Filter types.SessionFilter `json:"filter"`
-		Set    types.SessionSet    `json:"set"`
+		Set    []*sessionSetItem   `json:"set"`
+	}
+
+	sessionSetItem struct {
+		*types.Session
+
+		// Make sure stacktrace is not included in the list
+		Stacktrace *struct{} `json:"stacktrace,omitempty"`
+		// Make sure output values are not included in the list
+		Output *struct{} `json:"output,omitempty"`
+		// Make sure input values are not included in the list
+		Input *struct{} `json:"input,omitempty"`
 	}
 )
 
@@ -44,6 +55,7 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 		f   = types.SessionFilter{
 			WorkflowID:   payload.ParseUint64s(r.WorkflowID),
 			SessionID:    payload.ParseUint64s(r.SessionID),
+			CreatedBy:    payload.ParseUint64s(r.CreatedBy),
 			EventType:    r.EventType,
 			ResourceType: r.ResourceType,
 			Completed:    filter.State(r.Completed),
@@ -91,14 +103,17 @@ func (ctrl Session) DeleteState(ctx context.Context, r *request.SessionDeleteSta
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (ctrl Session) makeFilterPayload(ctx context.Context, uu types.SessionSet, f types.SessionFilter, err error) (*sessionSetPayload, error) {
+func (ctrl Session) makeFilterPayload(ctx context.Context, ss types.SessionSet, f types.SessionFilter, err error) (*sessionSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	if len(uu) == 0 {
-		uu = make([]*types.Session, 0)
+	out := &sessionSetPayload{Filter: f, Set: make([]*sessionSetItem, len(ss))}
+
+	for i, s := range ss {
+		s.Stacktrace = nil
+		out.Set[i] = &sessionSetItem{Session: s}
 	}
 
-	return &sessionSetPayload{Filter: f, Set: uu}, nil
+	return out, nil
 }

@@ -508,7 +508,16 @@ func (Store) automationSessionColumns(aa ...string) []string {
 // With optional string arg, all columns are returned aliased
 func (Store) sortableAutomationSessionColumns() map[string]string {
 	return map[string]string{
-		"id": "id",
+		"id": "id", "event_type": "event_type",
+		"eventtype":     "event_type",
+		"resource_type": "resource_type",
+		"resourcetype":  "resource_type",
+		"status":        "status", "created_at": "created_at",
+		"createdat":    "created_at",
+		"completed_at": "completed_at",
+		"completedat":  "completed_at",
+		"suspended_at": "suspended_at",
+		"suspendedat":  "suspended_at",
 	}
 }
 
@@ -561,6 +570,23 @@ func (s Store) collectAutomationSessionCursorValues(res *types.Session, cc ...*f
 					cursor.Set(c.Column, res.ID, c.Descending)
 
 					pkId = true
+				case "event_type":
+					cursor.Set(c.Column, res.EventType, c.Descending)
+
+				case "resource_type":
+					cursor.Set(c.Column, res.ResourceType, c.Descending)
+
+				case "status":
+					cursor.Set(c.Column, res.Status, c.Descending)
+
+				case "created_at":
+					cursor.Set(c.Column, res.CreatedAt, c.Descending)
+
+				case "completed_at":
+					cursor.Set(c.Column, res.CompletedAt, c.Descending)
+
+				case "suspended_at":
+					cursor.Set(c.Column, res.SuspendedAt, c.Descending)
 
 				}
 			}

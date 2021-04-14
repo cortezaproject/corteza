@@ -193,6 +193,7 @@ endpoints:
       get:
       - { name: sessionID,    type: "[]string",            title: "Filter by session ID" }
       - { name: workflowID,   type: "[]string",            title: "Filter by workflow ID" }
+      - { name: createdBy,    type: "[]string",            title: "Filter by creators ID" }
       - { name: completed,    type: "uint",                title: "Exclude (0, default), include (1) or return only (2) completed sessions" }
       - { name: status,       type: "[]uint",              title: "Filter by status: started (0), prompted (1), suspended (2), failed (3) and completed (4)" }
       - { name: eventType,    type: "string",              title: "Filter event type" }

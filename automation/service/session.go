@@ -73,7 +73,7 @@ func (svc *session) Search(ctx context.Context, filter types.SessionFilter) (rr 
 		return nil
 	}()
 
-	return rr, filter, svc.recordAction(ctx, sap, SessionActionSearch, err)
+	return rr, f, svc.recordAction(ctx, sap, SessionActionSearch, err)
 }
 
 func (svc *session) LookupByID(ctx context.Context, sessionID uint64) (res *types.Session, err error) {

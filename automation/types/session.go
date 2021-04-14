@@ -53,6 +53,7 @@ type (
 	SessionFilter struct {
 		SessionID    []uint64 `json:"sessionID"`
 		WorkflowID   []uint64 `json:"workflowID"`
+		CreatedBy    []uint64 `json:"createdBy"`
 		EventType    string   `json:"eventType"`
 		ResourceType string   `json:"resourceType"`
 

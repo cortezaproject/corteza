@@ -7,17 +7,17 @@ types:
 fields:
   - { field: ID }
   - { field: WorkflowID }
-  - { field: EventType }
-  - { field: ResourceType }
-  - { field: Status,     type: int }
+  - { field: EventType,                           sortable: true }
+  - { field: ResourceType,                        sortable: true }
+  - { field: Status,     type: int,               sortable: true }
   - { field: Input,      type: "expr.Vars" }
   - { field: Output,     type: "expr.Vars" }
   - { field: Stacktrace, type: "types.Stacktrace" }
   - { field: CreatedBy }
-  - { field: CreatedAt }
+  - { field: CreatedAt,                           sortable: true }
   - { field: PurgeAt }
-  - { field: CompletedAt }
-  - { field: SuspendedAt }
+  - { field: CompletedAt,                         sortable: true }
+  - { field: SuspendedAt,                         sortable: true }
   - { field: Error }
 
 rdbms:
