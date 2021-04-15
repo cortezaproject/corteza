@@ -54,7 +54,7 @@ func Auth() (o *AuthOpt) {
 		SessionLifetime:          24 * time.Hour,
 		SessionPermLifetime:      360 * 24 * time.Hour,
 		GarbageCollectorInterval: 15 * time.Minute,
-		RequestRateLimit:         30,
+		RequestRateLimit:         60,
 		RequestRateWindowLength:  time.Minute,
 		CsrfSecret:               getSecretFromEnv("csrf secret"),
 		CsrfEnabled:              true,
