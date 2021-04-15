@@ -24,15 +24,17 @@ type (
 		Read(context.Context, *request.QueuesRead) (interface{}, error)
 		Update(context.Context, *request.QueuesUpdate) (interface{}, error)
 		Delete(context.Context, *request.QueuesDelete) (interface{}, error)
+		Undelete(context.Context, *request.QueuesUndelete) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Queues struct {
-		List   func(http.ResponseWriter, *http.Request)
-		Create func(http.ResponseWriter, *http.Request)
-		Read   func(http.ResponseWriter, *http.Request)
-		Update func(http.ResponseWriter, *http.Request)
-		Delete func(http.ResponseWriter, *http.Request)
+		List     func(http.ResponseWriter, *http.Request)
+		Create   func(http.ResponseWriter, *http.Request)
+		Read     func(http.ResponseWriter, *http.Request)
+		Update   func(http.ResponseWriter, *http.Request)
+		Delete   func(http.ResponseWriter, *http.Request)
+		Undelete func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -118,6 +120,22 @@ func NewQueues(h QueuesAPI) *Queues {
 
 			api.Send(w, r, value)
 		},
+		Undelete: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewQueuesUndelete()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Undelete(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -129,5 +147,6 @@ func (h Queues) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Get("/queues/{queueID}", h.Read)
 		r.Post("/queues/{queueID}", h.Update)
 		r.Delete("/queues/{queueID}", h.Delete)
+		r.Post("/queues/{queueID}/undelete", h.Undelete)
 	})
 }

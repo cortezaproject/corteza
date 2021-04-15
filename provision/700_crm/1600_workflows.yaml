@@ -5157,520 +5157,520 @@ workflows:
                         - 80
         steps:
           - id: 56
-              kind: expressions
-              ref: ""
-              arguments:
-                - target: primaryContact
-                  source: ""
-                  expr: "false"
-                  value: null
-                  type: Boolean
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "56"
-                    parent: "1"
-                    value: Init primaryContact
-                    xywh:
-                        - 2320
-                        - 2160
-                        - 200
-                        - 80
-            - id: 14
-              kind: iterator
-              ref: composeRecordsEach
-              arguments:
-                - target: module
-                  source: ""
-                  expr: ""
-                  value: Contact
-                  type: Handle
-                  tests: []
-                - target: namespace
-                  source: ""
-                  expr: namespace.namespaceID
-                  value: null
-                  type: ID
-                  tests: []
-                - target: query
-                  source: ""
-                  expr: '"AccountId=" + record.recordID'
-                  value: null
-                  type: String
-                  tests: []
-              results:
-                - target: contact
-                  source: ""
-                  expr: record
-                  value: null
-                  type: ""
-                  tests: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "14"
-                    parent: "1"
-                    value: Find primary contact
-                    xywh:
-                        - 2560
-                        - 2160
-                        - 200
-                        - 80
-              labels: {}
-            - id: 17
-              kind: gateway
-              ref: excl
-              arguments: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "17"
-                    parent: "1"
-                    value: Is primary contact?
-                    xywh:
-                        - 2960
-                        - 2160
-                        - 200
-                        - 80
-              labels: {}
-            - id: 18
-              kind: break
-              ref: ""
-              arguments: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "18"
-                    parent: "1"
-                    value: Found it!
-                    xywh:
-                        - 3584
-                        - 2160
-                        - 200
-                        - 80
-              labels: {}
-            - id: 19
-              kind: expressions
-              ref: ""
-              arguments:
-                - target: primaryContact
-                  source: ""
-                  expr: contact
-                  value: null
-                  type: ComposeRecord
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "19"
-                    parent: "1"
-                    value: Set primary contact
-                    xywh:
-                        - 3320
-                        - 2160
-                        - 200
-                        - 80
-              labels: {}
-            - id: 20
-              kind: continue
-              ref: ""
-              arguments: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "20"
-                    parent: "1"
-                    value: Keep looking
-                    xywh:
-                        - 2960
-                        - 2400
-                        - 200
-                        - 80
-              labels: {}
-            - id: 28
-              kind: gateway
-              ref: excl
-              arguments: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "28"
-                    parent: "1"
-                    value: Found primary contact?
-                    xywh:
-                        - 2560
-                        - 2600
-                        - 200
-                        - 80
-              labels: {}
-            - id: 29
-              kind: prompt
-              ref: notification
-              arguments:
-                - target: title
-                  source: ""
-                  expr: ""
-                  value: Warning
-                  type: String
-                  tests: []
-                - target: message
-                  source: ""
-                  expr: ""
-                  value: The primary contact is not defined
-                  type: String
-                  tests: []
-                - target: variant
-                  source: ""
-                  expr: ""
-                  value: warning
-                  type: String
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "29"
-                    parent: "1"
-                    value: No primary contact
-                    xywh:
-                        - 2560
-                        - 2760
-                        - 200
-                        - 80
-              labels: {}
-            - id: 34
-              kind: function
-              ref: composeRecordsNew
-              arguments:
-                - target: module
-                  source: ""
-                  expr: ""
-                  value: Case
-                  type: Handle
-                  tests: []
-                - target: namespace
-                  source: ""
-                  expr: namespace.namespaceID
-                  value: null
-                  type: ID
-                  tests: []
-              results:
-                - target: case
-                  source: ""
-                  expr: record
-                  value: null
-                  type: ""
-                  tests: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "34"
-                    parent: "1"
-                    value: Prepare record
-                    xywh:
-                        - 3240
-                        - 2600
-                        - 200
-                        - 80
-              labels: {}
-            - id: 36
-              kind: expressions
-              ref: ""
-              arguments:
-                - target: case.values.Subject
-                  source: ""
-                  expr: '"(no subject)"'
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.ContactId
-                  source: ""
-                  expr: primaryContact.recordID
-                  value: null
-                  type: ID
-                  tests: []
-                - target: case.values.AccountId
-                  source: ""
-                  expr: record.recordID
-                  value: null
-                  type: ID
-                  tests: []
-                - target: case.values.Status
-                  source: ""
-                  expr: '"New"'
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.Priority
-                  source: ""
-                  expr: '"Low"'
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.SuppliedName
-                  source: ""
-                  expr: trim(format("%s %s", primaryContact.values.FirstName, primaryContact.values.LastName))
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.SuppliedEmail
-                  source: ""
-                  expr: primaryContact.values.Email
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.SuppliedPhone
-                  source: ""
-                  expr: primaryContact.values.Phone
-                  value: null
-                  type: String
-                  tests: []
-                - target: case.values.OwnerId
-                  source: ""
-                  expr: record.values.OwnerId
-                  value: null
-                  type: ID
-                  tests: []
-                - target: case.values.CaseNumber
-                  source: ""
-                  expr: nextCaseNumber
-                  value: null
-                  type: Integer
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "36"
-                    parent: "1"
-                    value: Set record values
-                    xywh:
-                        - 3240
-                        - 2760
-                        - 200
-                        - 80
-              labels: {}
-            - id: 38
-              kind: function
-              ref: composeRecordsCreate
-              arguments:
-                - target: record
-                  source: ""
-                  expr: case
-                  value: null
-                  type: ComposeRecord
-                  tests: []
-              results:
-                - target: case
-                  source: ""
-                  expr: record
-                  value: null
-                  type: ""
-                  tests: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "38"
-                    parent: "1"
-                    value: Create case
-                    xywh:
-                        - 3520
-                        - 2600
-                        - 200
-                        - 80
-              labels: {}
-            - id: 40
-              kind: prompt
-              ref: notification
-              arguments:
-                - target: title
-                  source: ""
-                  expr: ""
-                  value: Success
-                  type: String
-                  tests: []
-                - target: message
-                  source: ""
-                  expr: ""
-                  value: The new case has been created
-                  type: String
-                  tests: []
-                - target: variant
-                  source: ""
-                  expr: ""
-                  value: success
-                  type: String
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "40"
-                    parent: "1"
-                    value: Notify Case created
-                    xywh:
-                        - 3800
-                        - 2600
-                        - 200
-                        - 80
-              labels: {}
-            - id: 42
-              kind: prompt
-              ref: recordPage
-              arguments:
-                - target: module
-                  source: ""
-                  expr: ""
-                  value: Case
-                  type: Handle
-                  tests: []
-                - target: namespace
-                  source: ""
-                  expr: namespace
-                  value: null
-                  type: ComposeNamespace
-                  tests: []
-                - target: record
-                  source: ""
-                  expr: case
-                  value: null
-                  type: ComposeRecord
-                  tests: []
-                - target: edit
-                  source: ""
-                  expr: "true"
-                  value: null
-                  type: Boolean
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "42"
-                    parent: "1"
-                    value: Go to record editor
-                    xywh:
-                        - 3800
-                        - 2760
-                        - 200
-                        - 80
-              labels: {}
-            - id: 44
-              kind: function
-              ref: composeRecordsLast
-              arguments:
-                - target: module
-                  source: ""
-                  expr: ""
-                  value: Settings
-                  type: Handle
-                  tests: []
-                - target: namespace
-                  source: ""
-                  expr: namespace
-                  value: null
-                  type: ComposeNamespace
-                  tests: []
-              results:
-                - target: settings
-                  source: ""
-                  expr: record
-                  value: null
-                  type: ""
-                  tests: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "44"
-                    parent: "1"
-                    value: Fetch settings
-                    xywh:
-                        - 2960
-                        - 2600
-                        - 200
-                        - 80
-              labels: {}
-            - id: 45
-              kind: expressions
-              ref: ""
-              arguments:
-                - target: nextCaseNumber
-                  source: ""
-                  expr: 'settings.values.CaseNextNumber ? settings.values.CaseNextNumber : 0'
-                  value: null
-                  type: Integer
-                  tests: []
-                - target: settings.values.CaseNextNumber
-                  source: ""
-                  expr: settings.values.CaseNextNumber + 1
-                  value: null
-                  type: Integer
-                  tests: []
-              results: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "45"
-                    parent: "1"
-                    value: Set nextCaseNumber
-                    xywh:
-                        - 2960
-                        - 2760
-                        - 200
-                        - 80
-              labels: {}
-            - id: 50
-              kind: function
-              ref: composeRecordsUpdate
-              arguments:
-                - target: record
-                  source: ""
-                  expr: settings
-                  value: null
-                  type: ComposeRecord
-                  tests: []
-              results:
-                - target: settings
-                  source: ""
-                  expr: record
-                  value: null
-                  type: ""
-                  tests: []
-              meta:
-                name: ""
-                description: ""
-                visual:
-                    id: "50"
-                    parent: "1"
-                    value: Save settings
-                    xywh:
-                        - 3520
-                        - 2760
-                        - 200
-                        - 80
-              labels: {}
+            kind: expressions
+            ref: ""
+            arguments:
+              - target: primaryContact
+                source: ""
+                expr: "false"
+                value: null
+                type: Boolean
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "56"
+                  parent: "1"
+                  value: Init primaryContact
+                  xywh:
+                      - 2320
+                      - 2160
+                      - 200
+                      - 80
+          - id: 14
+            kind: iterator
+            ref: composeRecordsEach
+            arguments:
+              - target: module
+                source: ""
+                expr: ""
+                value: Contact
+                type: Handle
+                tests: []
+              - target: namespace
+                source: ""
+                expr: namespace.namespaceID
+                value: null
+                type: ID
+                tests: []
+              - target: query
+                source: ""
+                expr: '"AccountId=" + record.recordID'
+                value: null
+                type: String
+                tests: []
+            results:
+              - target: contact
+                source: ""
+                expr: record
+                value: null
+                type: ""
+                tests: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "14"
+                  parent: "1"
+                  value: Find primary contact
+                  xywh:
+                      - 2560
+                      - 2160
+                      - 200
+                      - 80
+            labels: {}
+          - id: 17
+            kind: gateway
+            ref: excl
+            arguments: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "17"
+                  parent: "1"
+                  value: Is primary contact?
+                  xywh:
+                      - 2960
+                      - 2160
+                      - 200
+                      - 80
+            labels: {}
+          - id: 18
+            kind: break
+            ref: ""
+            arguments: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "18"
+                  parent: "1"
+                  value: Found it!
+                  xywh:
+                      - 3584
+                      - 2160
+                      - 200
+                      - 80
+            labels: {}
+          - id: 19
+            kind: expressions
+            ref: ""
+            arguments:
+              - target: primaryContact
+                source: ""
+                expr: contact
+                value: null
+                type: ComposeRecord
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "19"
+                  parent: "1"
+                  value: Set primary contact
+                  xywh:
+                      - 3320
+                      - 2160
+                      - 200
+                      - 80
+            labels: {}
+          - id: 20
+            kind: continue
+            ref: ""
+            arguments: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "20"
+                  parent: "1"
+                  value: Keep looking
+                  xywh:
+                      - 2960
+                      - 2400
+                      - 200
+                      - 80
+            labels: {}
+          - id: 28
+            kind: gateway
+            ref: excl
+            arguments: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "28"
+                  parent: "1"
+                  value: Found primary contact?
+                  xywh:
+                      - 2560
+                      - 2600
+                      - 200
+                      - 80
+            labels: {}
+          - id: 29
+            kind: prompt
+            ref: notification
+            arguments:
+              - target: title
+                source: ""
+                expr: ""
+                value: Warning
+                type: String
+                tests: []
+              - target: message
+                source: ""
+                expr: ""
+                value: The primary contact is not defined
+                type: String
+                tests: []
+              - target: variant
+                source: ""
+                expr: ""
+                value: warning
+                type: String
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "29"
+                  parent: "1"
+                  value: No primary contact
+                  xywh:
+                      - 2560
+                      - 2760
+                      - 200
+                      - 80
+            labels: {}
+          - id: 34
+            kind: function
+            ref: composeRecordsNew
+            arguments:
+              - target: module
+                source: ""
+                expr: ""
+                value: Case
+                type: Handle
+                tests: []
+              - target: namespace
+                source: ""
+                expr: namespace.namespaceID
+                value: null
+                type: ID
+                tests: []
+            results:
+              - target: case
+                source: ""
+                expr: record
+                value: null
+                type: ""
+                tests: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "34"
+                  parent: "1"
+                  value: Prepare record
+                  xywh:
+                      - 3240
+                      - 2600
+                      - 200
+                      - 80
+            labels: {}
+          - id: 36
+            kind: expressions
+            ref: ""
+            arguments:
+              - target: case.values.Subject
+                source: ""
+                expr: '"(no subject)"'
+                value: null
+                type: String
+                tests: []
+              - target: case.values.ContactId
+                source: ""
+                expr: primaryContact.recordID
+                value: null
+                type: ID
+                tests: []
+              - target: case.values.AccountId
+                source: ""
+                expr: record.recordID
+                value: null
+                type: ID
+                tests: []
+              - target: case.values.Status
+                source: ""
+                expr: '"New"'
+                value: null
+                type: String
+                tests: []
+              - target: case.values.Priority
+                source: ""
+                expr: '"Low"'
+                value: null
+                type: String
+                tests: []
+              - target: case.values.SuppliedName
+                source: ""
+                expr: trim(format("%s %s", primaryContact.values.FirstName, primaryContact.values.LastName))
+                value: null
+                type: String
+                tests: []
+              - target: case.values.SuppliedEmail
+                source: ""
+                expr: primaryContact.values.Email
+                value: null
+                type: String
+                tests: []
+              - target: case.values.SuppliedPhone
+                source: ""
+                expr: primaryContact.values.Phone
+                value: null
+                type: String
+                tests: []
+              - target: case.values.OwnerId
+                source: ""
+                expr: record.values.OwnerId
+                value: null
+                type: ID
+                tests: []
+              - target: case.values.CaseNumber
+                source: ""
+                expr: nextCaseNumber
+                value: null
+                type: Integer
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "36"
+                  parent: "1"
+                  value: Set record values
+                  xywh:
+                      - 3240
+                      - 2760
+                      - 200
+                      - 80
+            labels: {}
+          - id: 38
+            kind: function
+            ref: composeRecordsCreate
+            arguments:
+              - target: record
+                source: ""
+                expr: case
+                value: null
+                type: ComposeRecord
+                tests: []
+            results:
+              - target: case
+                source: ""
+                expr: record
+                value: null
+                type: ""
+                tests: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "38"
+                  parent: "1"
+                  value: Create case
+                  xywh:
+                      - 3520
+                      - 2600
+                      - 200
+                      - 80
+            labels: {}
+          - id: 40
+            kind: prompt
+            ref: notification
+            arguments:
+              - target: title
+                source: ""
+                expr: ""
+                value: Success
+                type: String
+                tests: []
+              - target: message
+                source: ""
+                expr: ""
+                value: The new case has been created
+                type: String
+                tests: []
+              - target: variant
+                source: ""
+                expr: ""
+                value: success
+                type: String
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "40"
+                  parent: "1"
+                  value: Notify Case created
+                  xywh:
+                      - 3800
+                      - 2600
+                      - 200
+                      - 80
+            labels: {}
+          - id: 42
+            kind: prompt
+            ref: recordPage
+            arguments:
+              - target: module
+                source: ""
+                expr: ""
+                value: Case
+                type: Handle
+                tests: []
+              - target: namespace
+                source: ""
+                expr: namespace
+                value: null
+                type: ComposeNamespace
+                tests: []
+              - target: record
+                source: ""
+                expr: case
+                value: null
+                type: ComposeRecord
+                tests: []
+              - target: edit
+                source: ""
+                expr: "true"
+                value: null
+                type: Boolean
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "42"
+                  parent: "1"
+                  value: Go to record editor
+                  xywh:
+                      - 3800
+                      - 2760
+                      - 200
+                      - 80
+            labels: {}
+          - id: 44
+            kind: function
+            ref: composeRecordsLast
+            arguments:
+              - target: module
+                source: ""
+                expr: ""
+                value: Settings
+                type: Handle
+                tests: []
+              - target: namespace
+                source: ""
+                expr: namespace
+                value: null
+                type: ComposeNamespace
+                tests: []
+            results:
+              - target: settings
+                source: ""
+                expr: record
+                value: null
+                type: ""
+                tests: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "44"
+                  parent: "1"
+                  value: Fetch settings
+                  xywh:
+                      - 2960
+                      - 2600
+                      - 200
+                      - 80
+            labels: {}
+          - id: 45
+            kind: expressions
+            ref: ""
+            arguments:
+              - target: nextCaseNumber
+                source: ""
+                expr: 'settings.values.CaseNextNumber ? settings.values.CaseNextNumber : 0'
+                value: null
+                type: Integer
+                tests: []
+              - target: settings.values.CaseNextNumber
+                source: ""
+                expr: settings.values.CaseNextNumber + 1
+                value: null
+                type: Integer
+                tests: []
+            results: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "45"
+                  parent: "1"
+                  value: Set nextCaseNumber
+                  xywh:
+                      - 2960
+                      - 2760
+                      - 200
+                      - 80
+            labels: {}
+          - id: 50
+            kind: function
+            ref: composeRecordsUpdate
+            arguments:
+              - target: record
+                source: ""
+                expr: settings
+                value: null
+                type: ComposeRecord
+                tests: []
+            results:
+              - target: settings
+                source: ""
+                expr: record
+                value: null
+                type: ""
+                tests: []
+            meta:
+              name: ""
+              description: ""
+              visual:
+                  id: "50"
+                  parent: "1"
+                  value: Save settings
+                  xywh:
+                      - 3520
+                      - 2760
+                      - 200
+                      - 80
+            labels: {}
         paths:
             - expr: contact.values.IsPrimary
               parentid: 17

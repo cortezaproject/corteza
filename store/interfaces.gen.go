@@ -30,8 +30,8 @@ package store
 //  - store/federation_shared_modules.yaml
 //  - store/flags.yaml
 //  - store/labels.yaml
-//  - store/messagebus_queuemessage.yaml
-//  - store/messagebus_queuesettings.yaml
+//  - store/messagebus_queue_message.yaml
+//  - store/messagebus_queue_settings.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/role_members.yaml
@@ -73,8 +73,8 @@ type (
 		FederationSharedModules
 		Flags
 		Labels
-		MessagebusQueuemessages
-		MessagebusQueuesettings
+		MessagebusQueueMessages
+		MessagebusQueueSettings
 		RbacRules
 		Reminders
 		RoleMembers

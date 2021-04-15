@@ -110,10 +110,11 @@ system:application:
   constraints:
     - name: application.name
 
+
 system:queue:
   on: ['message']
   props:
     - name: 'payload'
-      type: '*expr.String'
+      type: '*types.QueueMessage'
   constraints:
-    - name: message.queue
+    - name: payload.queue

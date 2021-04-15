@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"reflect"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -15,8 +18,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"reflect"
-	"sync"
 )
 
 type (
@@ -651,13 +652,13 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 		})
 
 		if err != nil {
-			return err
+			return
 		}
 
 		if wf.CheckDeferred() {
 			// deferred workflow, return right away and keep the workflow session
 			// running without waiting for the execution
-			return nil
+			return
 		}
 
 		// wait for the workflow to complete
@@ -672,7 +673,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			return dec.DecodeVars(scope)
 		}
 
-		return nil
+		return
 	}
 }
 

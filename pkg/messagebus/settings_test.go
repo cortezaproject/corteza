@@ -20,7 +20,7 @@ func Test_settingsUnmarshal(t *testing.T) {
 				name:    "settings defaults",
 				payload: `{}`,
 				err:     nil,
-				expect:  QueueSettingsMeta{PollDelay: nil, DispatchEvents: true},
+				expect:  QueueSettingsMeta{PollDelay: nil, DispatchEvents: false},
 			},
 			{
 				name:    "settings enabled dispatch events",

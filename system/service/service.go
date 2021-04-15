@@ -75,7 +75,7 @@ var (
 	DefaultReminder    ReminderService
 	DefaultAttachment  AttachmentService
 	DefaultRenderer    TemplateService
-	DefaultQueue       QueueService
+	DefaultQueue       *queue
 
 	DefaultStatistics *statistics
 

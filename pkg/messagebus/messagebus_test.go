@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -32,14 +33,15 @@ type (
 		ticker       func(ctx context.Context) <-chan time.Time
 		read         func(ctx context.Context) (QueueMessageSet, error)
 		write        func(ctx context.Context, p []byte) error
-		setStorer    func(qs QueueStorer)
+		setStore     func(qs QueueStorer)
 		process      func(ctx context.Context, qm QueueMessage) error
 	}
 )
 
 var (
-	sqlQueueSettings    = QueueSettings{ID: 1, Handler: "sql", Queue: "sql"}
-	foobarQueueSettings = QueueSettings{ID: 1, Handler: "foobar", Queue: "foobar"}
+	mOptions            = &options.MessagebusOpt{Enabled: true, LogEnabled: true}
+	sqlQueueSettings    = QueueSettings{ID: 1, Consumer: "sql", Queue: "sql"}
+	foobarQueueSettings = QueueSettings{ID: 1, Consumer: "foobar", Queue: "foobar"}
 	foobarQueueMessage  = QueueMessage{ID: 1, Queue: "foobar", Payload: []byte(`{}`), Created: now()}
 	logger              = zap.NewNop()
 )
@@ -48,132 +50,20 @@ func Test_messageBusRegister(t *testing.T) {
 	req := require.New(t)
 	ctx := context.Background()
 
-	mb := New(logger, mockDispatcher{})
-	mb.Register(ctx, &QueueSettings{Handler: "foobar", Queue: "foobar"}, &mockQueueHandler{})
+	mb := New(mOptions, logger)
+	mb.Register(ctx, &QueueSettings{Consumer: "foobar", Queue: "foobar"}, &mockQueueHandler{})
 
 	req.NotEmpty(mb.queues)
 	req.NotEmpty(mb.queues["foobar"])
 	req.Empty(mb.queues["non_existing_queue"])
 }
 
-func Test_dispatchEvents(t *testing.T) {
-	var (
-		ctx = context.Background()
-		tcc = []struct {
-			name   string
-			expect string
-			fn     func(mb *messageBus)
-		}{
-			{
-				name:   "dispatch enabled",
-				expect: "dispatched",
-				fn: func(mb *messageBus) {
-					foobarQueueSettings.Meta.DispatchEvents = true
-				},
-			},
-			{
-				name:   "dispatch disabled",
-				expect: "",
-				fn: func(mb *messageBus) {
-					foobarQueueSettings.Meta.DispatchEvents = false
-				},
-			},
-		}
-	)
-
-	for _, tc := range tcc {
-		t.Run(tc.name, func(t *testing.T) {
-			req := require.New(t)
-			tst := ""
-
-			mb := New(logger, mockDispatcher{dispatch: func(ctx context.Context, ev eventbus.Event) {
-				tst = "dispatched"
-			}})
-
-			// prepare
-			tc.fn(mb)
-
-			mb.queues["foobar"] = &Queue{
-				settings: foobarQueueSettings,
-				dispatch: make(chan []byte),
-			}
-
-			mb.dispatchEvents(ctx)
-			mb.queues["foobar"].dispatch <- []byte("trigger this chan")
-
-			req.Equal(0, len(mb.queues["foobar"].dispatch))
-			req.Equal(tc.expect, tst)
-		})
-	}
-
-}
-
-func Test_updateProcessedMessages(t *testing.T) {
-
-	req := require.New(t)
-	ctx := context.Background()
-
-	mb := New(logger, mockDispatcher{})
-
-	numProcessed := 0
-
-	mb.queues["foobar"] = &Queue{
-		settings: foobarQueueSettings,
-		dispatch: make(chan []byte),
-	}
-
-	mb.updateProcessedMessages(ctx)
-
-	mb.queues["foobar"].processed <- &foobarQueueMessage
-
-	req.Equal(1, numProcessed)
-}
-
-func Test_readListenerPoll(t *testing.T) {
-	req := require.New(t)
-	ctx := context.Background()
-
-	mb := New(logger, mockDispatcher{dispatch: func(ctx context.Context, ev eventbus.Event) {}})
-
-	ticker := time.NewTicker(time.Millisecond)
-
-	go func() {
-		for ; true; <-ticker.C {
-		}
-	}()
-
-	mb.queues["foobar"] = &Queue{
-		dispatch:  make(chan []byte),
-		out:       make(chan []byte),
-		settings:  foobarQueueSettings,
-		processed: make(chan *QueueMessage),
-		handler: &mockQueueHandler{
-			read: func(ctx context.Context) (QueueMessageSet, error) {
-				ticker.Stop()
-				return QueueMessageSet{&foobarQueueMessage}, nil
-			},
-			ticker: func(ctx context.Context) <-chan time.Time {
-				return ticker.C
-			},
-			notification: func(ctx context.Context) <-chan interface{} {
-				return make(<-chan interface{})
-			},
-		},
-	}
-
-	mb.Listen(ctx)
-
-	req.Equal(foobarQueueMessage.Payload, <-mb.queues["foobar"].out)
-	req.Equal(&foobarQueueMessage, <-mb.queues["foobar"].processed)
-	req.Equal(foobarQueueMessage.Payload, <-mb.queues["foobar"].dispatch)
-}
-
-func Test_writeListener(t *testing.T) {
+func Test_consume(t *testing.T) {
 	req := require.New(t)
 	ctx := context.Background()
 	w := sync.WaitGroup{}
 
-	mb := New(logger, mockDispatcher{dispatch: func(ctx context.Context, ev eventbus.Event) {}})
+	mb := New(mOptions, logger)
 
 	mockDb := [][]byte{}
 	expectedDb := [][]byte{
@@ -181,20 +71,13 @@ func Test_writeListener(t *testing.T) {
 		[]byte("second mock payload"),
 	}
 
-	mb.queues["foobar"] = &Queue{
-		in:       make(chan []byte),
+	mb.queues[foobarQueueSettings.Queue] = &Queue{
 		settings: foobarQueueSettings,
-		handler: &mockQueueHandler{
+		consumer: &mockQueueHandler{
 			write: func(ctx context.Context, p []byte) error {
 				mockDb = append(mockDb, p)
 				w.Done()
 				return nil
-			},
-			ticker: func(ctx context.Context) <-chan time.Time {
-				return make(<-chan time.Time)
-			},
-			notification: func(ctx context.Context) <-chan interface{} {
-				return make(<-chan interface{})
 			},
 		},
 	}
@@ -202,8 +85,8 @@ func Test_writeListener(t *testing.T) {
 	mb.Listen(ctx)
 
 	w.Add(2)
-	mb.queues["foobar"].in <- expectedDb[0]
-	mb.queues["foobar"].in <- expectedDb[1]
+	mb.Push("foobar", expectedDb[0])
+	mb.Push("foobar", expectedDb[1])
 	w.Wait()
 
 	req.Equal(expectedDb, mockDb)
@@ -221,8 +104,8 @@ func (mh *mockQueueHandler) Read(ctx context.Context) (QueueMessageSet, error) {
 func (mh *mockQueueHandler) Write(ctx context.Context, p []byte) error {
 	return mh.write(ctx, p)
 }
-func (mh *mockQueueHandler) SetStorer(qs QueueStorer) {
-	mh.setStorer(qs)
+func (mh *mockQueueHandler) SetStore(qs QueueStorer) {
+	mh.setStore(qs)
 }
 func (mh *mockQueueHandler) Process(ctx context.Context, qm QueueMessage) error {
 	return mh.process(ctx, qm)

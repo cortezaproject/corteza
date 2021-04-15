@@ -12,7 +12,7 @@ import (
 
 type (
 	Queue struct {
-		svc service.QueueService
+		svc queueService
 		ac  templateAccessController
 	}
 
@@ -23,6 +23,15 @@ type (
 	queueSetPayload struct {
 		Filter messagebus.QueueSettingsFilter `json:"filter"`
 		Set    []*queuePayload                `json:"set"`
+	}
+
+	queueService interface {
+		FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueSettings, err error)
+		Create(ctx context.Context, new *messagebus.QueueSettings) (q *messagebus.QueueSettings, err error)
+		Update(ctx context.Context, upd *messagebus.QueueSettings) (q *messagebus.QueueSettings, err error)
+		DeleteByID(ctx context.Context, ID uint64) (err error)
+		UndeleteByID(ctx context.Context, ID uint64) (err error)
+		Search(ctx context.Context, filter messagebus.QueueSettingsFilter) (q messagebus.QueueSettingsSet, f messagebus.QueueSettingsFilter, err error)
 	}
 )
 
@@ -58,9 +67,9 @@ func (ctrl *Queue) Create(ctx context.Context, r *request.QueuesCreate) (interfa
 	var (
 		err error
 		q   = &messagebus.QueueSettings{
-			Handler: r.Handler,
-			Queue:   r.Queue,
-			// Meta:    r.Meta,
+			Consumer: r.Consumer,
+			Queue:    r.Queue,
+			Meta:     r.Meta,
 		}
 	)
 
@@ -77,10 +86,10 @@ func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interfa
 	var (
 		err error
 		q   = &messagebus.QueueSettings{
-			ID:      r.QueueID,
-			Handler: r.Handler,
-			Queue:   r.Queue,
-			Meta:    r.Meta,
+			ID:       r.QueueID,
+			Consumer: r.Consumer,
+			Queue:    r.Queue,
+			Meta:     r.Meta,
 		}
 	)
 
@@ -93,8 +102,8 @@ func (ctrl *Queue) Delete(ctx context.Context, r *request.QueuesDelete) (interfa
 	return api.OK(), ctrl.svc.DeleteByID(ctx, r.QueueID)
 }
 
-func (ctrl *Queue) Undelete(ctx context.Context, r *request.TemplateUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.TemplateID)
+func (ctrl *Queue) Undelete(ctx context.Context, r *request.QueuesUndelete) (interface{}, error) {
+	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.QueueID)
 }
 
 func (ctrl *Queue) makePayload(ctx context.Context, q *messagebus.QueueSettings, err error) (*queuePayload, error) {
