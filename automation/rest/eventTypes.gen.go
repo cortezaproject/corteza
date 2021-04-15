@@ -2013,14 +2013,14 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "payload",
-					Type:      "",
+					Type:      "QueueMessage",
 					Immutable: false,
 				},
 			},
 			Constraints: []eventTypeConstraintDef{
 
 				{
-					Name: "message.queue",
+					Name: "payload.queue",
 				},
 			},
 		},

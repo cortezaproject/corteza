@@ -651,7 +651,7 @@ func (Schema) MessagebusQueuemessage() *Table {
 func (Schema) MessagebusQueueSettings() *Table {
 	return TableDef("queue_settings",
 		ID,
-		ColumnDef("handler", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("consumer", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("queue", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("meta", ColumnTypeJson),
 		CUDTimestamps,

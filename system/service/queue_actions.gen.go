@@ -110,12 +110,12 @@ func (p queueActionProps) Serialize() actionlog.Meta {
 	}
 	if p.new != nil {
 		m.Set("new.queue", p.new.Queue, true)
-		m.Set("new.handler", p.new.Handler, true)
+		m.Set("new.consumer", p.new.Consumer, true)
 		m.Set("new.ID", p.new.ID, true)
 	}
 	if p.update != nil {
 		m.Set("update.queue", p.update.Queue, true)
-		m.Set("update.handler", p.update.Handler, true)
+		m.Set("update.consumer", p.update.Consumer, true)
 		m.Set("update.ID", p.update.ID, true)
 	}
 	if p.search != nil {
@@ -170,12 +170,12 @@ func (p queueActionProps) Format(in string, err error) string {
 			"{new}",
 			fns(
 				p.new.Queue,
-				p.new.Handler,
+				p.new.Consumer,
 				p.new.ID,
 			),
 		)
 		pairs = append(pairs, "{new.queue}", fns(p.new.Queue))
-		pairs = append(pairs, "{new.handler}", fns(p.new.Handler))
+		pairs = append(pairs, "{new.consumer}", fns(p.new.Consumer))
 		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
 	}
 
@@ -186,12 +186,12 @@ func (p queueActionProps) Format(in string, err error) string {
 			"{update}",
 			fns(
 				p.update.Queue,
-				p.update.Handler,
+				p.update.Consumer,
 				p.update.ID,
 			),
 		)
 		pairs = append(pairs, "{update.queue}", fns(p.update.Queue))
-		pairs = append(pairs, "{update.handler}", fns(p.update.Handler))
+		pairs = append(pairs, "{update.consumer}", fns(p.update.Consumer))
 		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
 	}
 
@@ -454,12 +454,12 @@ func QueueErrInvalidID(mm ...*queueActionProps) *errors.Error {
 	return e
 }
 
-// QueueErrInvalidHandler returns "system:queue.invalidHandler" as *errors.Error
+// QueueErrInvalidConsumer returns "system:queue.invalidConsumer" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func QueueErrInvalidHandler(mm ...*queueActionProps) *errors.Error {
+func QueueErrInvalidConsumer(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -468,9 +468,9 @@ func QueueErrInvalidHandler(mm ...*queueActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("invalid handler", nil),
+		p.Format("invalid consumer", nil),
 
-		errors.Meta("type", "invalidHandler"),
+		errors.Meta("type", "invalidConsumer"),
 		errors.Meta("resource", "system:queue"),
 
 		errors.Meta(queuePropsMetaKey{}, p),

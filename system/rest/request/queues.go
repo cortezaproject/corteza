@@ -14,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
 	"github.com/go-chi/chi"
-	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -58,7 +57,7 @@ type (
 
 		// Deleted GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) deleted queues
+		// Exclude (0
 		Deleted uint
 	}
 
@@ -68,15 +67,15 @@ type (
 		// Name of queue
 		Queue string
 
-		// Handler POST parameter
+		// Consumer POST parameter
 		//
-		// Queue handler
-		Handler string
+		// Queue consumer
+		Consumer string
 
 		// Meta POST parameter
 		//
 		// Meta data for queue
-		Meta sqlxTypes.JSONText
+		Meta messagebus.QueueSettingsMeta
 	}
 
 	QueuesRead struct {
@@ -97,10 +96,10 @@ type (
 		// Name of queue
 		Queue string
 
-		// Handler POST parameter
+		// Consumer POST parameter
 		//
-		// Queue handler
-		Handler string
+		// Queue consumer
+		Consumer string
 
 		// Meta POST parameter
 		//
@@ -109,6 +108,13 @@ type (
 	}
 
 	QueuesDelete struct {
+		// QueueID PATH parameter
+		//
+		// Queue ID
+		QueueID uint64 `json:",string"`
+	}
+
+	QueuesUndelete struct {
 		// QueueID PATH parameter
 		//
 		// Queue ID
@@ -207,9 +213,9 @@ func NewQueuesCreate() *QueuesCreate {
 // Auditable returns all auditable/loggable parameters
 func (r QueuesCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"queue":   r.Queue,
-		"handler": r.Handler,
-		"meta":    r.Meta,
+		"queue":    r.Queue,
+		"consumer": r.Consumer,
+		"meta":     r.Meta,
 	}
 }
 
@@ -219,12 +225,12 @@ func (r QueuesCreate) GetQueue() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesCreate) GetHandler() string {
-	return r.Handler
+func (r QueuesCreate) GetConsumer() string {
+	return r.Consumer
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesCreate) GetMeta() sqlxTypes.JSONText {
+func (r QueuesCreate) GetMeta() messagebus.QueueSettingsMeta {
 	return r.Meta
 }
 
@@ -256,15 +262,20 @@ func (r *QueuesCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["handler"]; ok && len(val) > 0 {
-			r.Handler, err = val[0], nil
+		if val, ok := req.Form["consumer"]; ok && len(val) > 0 {
+			r.Consumer, err = val[0], nil
 			if err != nil {
 				return err
 			}
 		}
 
-		if val, ok := req.Form["meta"]; ok && len(val) > 0 {
-			r.Meta, err = payload.ParseJSONTextWithErr(val[0])
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
 			if err != nil {
 				return err
 			}
@@ -317,10 +328,10 @@ func NewQueuesUpdate() *QueuesUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r QueuesUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"queueID": r.QueueID,
-		"queue":   r.Queue,
-		"handler": r.Handler,
-		"meta":    r.Meta,
+		"queueID":  r.QueueID,
+		"queue":    r.Queue,
+		"consumer": r.Consumer,
+		"meta":     r.Meta,
 	}
 }
 
@@ -335,8 +346,8 @@ func (r QueuesUpdate) GetQueue() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesUpdate) GetHandler() string {
-	return r.Handler
+func (r QueuesUpdate) GetConsumer() string {
+	return r.Consumer
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -372,8 +383,8 @@ func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["handler"]; ok && len(val) > 0 {
-			r.Handler, err = val[0], nil
+		if val, ok := req.Form["consumer"]; ok && len(val) > 0 {
+			r.Consumer, err = val[0], nil
 			if err != nil {
 				return err
 			}
@@ -426,6 +437,41 @@ func (r QueuesDelete) GetQueueID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *QueuesDelete) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "queueID")
+		r.QueueID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewQueuesUndelete request
+func NewQueuesUndelete() *QueuesUndelete {
+	return &QueuesUndelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r QueuesUndelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"queueID": r.QueueID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r QueuesUndelete) GetQueueID() uint64 {
+	return r.QueueID
+}
+
+// Fill processes request and fills internal variables
+func (r *QueuesUndelete) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

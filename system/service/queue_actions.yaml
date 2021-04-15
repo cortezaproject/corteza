@@ -18,10 +18,10 @@ props:
     fields: [ queue, ID ]
   - name: new
     type: "*messagebus.QueueSettings"
-    fields: [ queue, handler, ID ]
+    fields: [ queue, consumer, ID ]
   - name: update
     type: "*messagebus.QueueSettings"
-    fields: [ queue, handler, ID ]
+    fields: [ queue, consumer, ID ]
   - name: search
     type: "*messagebus.QueueSettingsFilter"
     fields: [ ]
@@ -56,8 +56,8 @@ errors:
     message: "invalid ID"
     severity: warning
 
-  - error: invalidHandler
-    message: "invalid handler"
+  - error: invalidConsumer
+    message: "invalid consumer"
     severity: warning
 
   - error: alreadyExists

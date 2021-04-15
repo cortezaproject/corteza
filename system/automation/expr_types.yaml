@@ -63,3 +63,9 @@ types:
       - { name: 'type',     exprType: 'string', goType: 'string' }
   RenderOptions:
     as: 'map[string]string'
+  
+  QueueMessage:
+    as: '*types.QueueMessage'
+    struct:
+      - { name: 'Queue',   exprType: 'String', goType: 'string' }
+      - { name: 'Payload', exprType: 'String', goType: '[]byte' }

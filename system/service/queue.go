@@ -15,17 +15,6 @@ type (
 		ac        queueAccessController
 	}
 
-	QueueService interface {
-		FindByID(ctx context.Context, ID uint64) (*messagebus.QueueSettings, error)
-		Search(context.Context, messagebus.QueueSettingsFilter) (messagebus.QueueSettingsSet, messagebus.QueueSettingsFilter, error)
-
-		Create(ctx context.Context, q *messagebus.QueueSettings) (*messagebus.QueueSettings, error)
-		Update(ctx context.Context, q *messagebus.QueueSettings) (*messagebus.QueueSettings, error)
-
-		DeleteByID(ctx context.Context, ID uint64) error
-		UndeleteByID(ctx context.Context, ID uint64) error
-	}
-
 	queueAccessController interface {
 		CanCreateMessagebusQueue(ctx context.Context) bool
 		CanReadMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
@@ -37,7 +26,7 @@ type (
 	}
 )
 
-func Queue() QueueService {
+func Queue() *queue {
 	return (&queue{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
@@ -55,7 +44,7 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueS
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueuesettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
 			return TemplateErrInvalidID().Wrap(err)
 		}
 
@@ -81,19 +70,22 @@ func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q 
 			return QueueErrNotAllowedToCreate(qProps)
 		}
 
-		if !svc.isValidHandler(messagebus.HandlerType(new.Handler)) {
-			return QueueErrInvalidHandler(qProps)
+		if !svc.isValidHandler(messagebus.ConsumerType(new.Consumer)) {
+			return QueueErrInvalidConsumer(qProps)
 		}
 
 		// Set new values after beforeCreate events are emitted
 		new.ID = nextID()
 		new.CreatedAt = *now()
 
-		if err = store.CreateMessagebusQueuesetting(ctx, svc.store, new); err != nil {
+		if err = store.CreateMessagebusQueueSetting(ctx, svc.store, new); err != nil {
 			return
 		}
 
 		q = new
+
+		// send the signal to reload all queues
+		messagebus.Service().ReloadQueues()
 
 		return nil
 	}()
@@ -113,27 +105,30 @@ func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q 
 			return QueueErrNotAllowedToUpdate(qProps)
 		}
 
-		if qq, e = store.LookupMessagebusQueuesettingByID(ctx, svc.store, upd.ID); e != nil {
+		if qq, e = store.LookupMessagebusQueueSettingByID(ctx, svc.store, upd.ID); e != nil {
 			return QueueErrNotFound(qProps)
 		}
 
-		if qq, e := store.LookupMessagebusQueuesettingByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
+		if qq, e := store.LookupMessagebusQueueSettingByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
 			return QueueErrAlreadyExists(qProps)
 		}
 
-		if !svc.isValidHandler(messagebus.HandlerType(upd.Handler)) {
-			return QueueErrInvalidHandler(qProps)
+		if !svc.isValidHandler(messagebus.ConsumerType(upd.Consumer)) {
+			return QueueErrInvalidConsumer(qProps)
 		}
 
 		// Set new values after beforeCreate events are emitted
 		upd.UpdatedAt = now()
 		upd.CreatedAt = qq.CreatedAt
 
-		if err = store.UpdateMessagebusQueuesetting(ctx, svc.store, upd); err != nil {
+		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, upd); err != nil {
 			return
 		}
 
 		q = upd
+
+		// send the signal to reload all queues
+		messagebus.Service().ReloadQueues()
 
 		return nil
 	}()
@@ -152,7 +147,7 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueuesettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -163,9 +158,12 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		q.DeletedAt = now()
-		if err = store.UpdateMessagebusQueuesetting(ctx, svc.store, q); err != nil {
+		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, q); err != nil {
 			return
 		}
+
+		// send the signal to reload all queues
+		messagebus.Service().ReloadQueues()
 
 		return nil
 	}()
@@ -184,7 +182,7 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueuesettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -195,9 +193,12 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		q.DeletedAt = nil
-		if err = store.UpdateMessagebusQueuesetting(ctx, svc.store, q); err != nil {
+		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, q); err != nil {
 			return
 		}
+
+		// send the signal to reload all queues
+		messagebus.Service().ReloadQueues()
 
 		return nil
 	}()
@@ -220,7 +221,7 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 	}
 
 	err = func() error {
-		if q, f, err = store.SearchMessagebusQueuesettings(ctx, svc.store, filter); err != nil {
+		if q, f, err = store.SearchMessagebusQueueSettings(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
@@ -230,8 +231,8 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 	return q, f, svc.recordAction(ctx, aProps, QueueActionSearch, err)
 }
 
-func (svc *queue) isValidHandler(h messagebus.HandlerType) bool {
-	for _, hh := range messagebus.HandlerTypes() {
+func (svc *queue) isValidHandler(h messagebus.ConsumerType) bool {
+	for _, hh := range messagebus.ConsumerTypes() {
 		if h == hh {
 			return true
 		}

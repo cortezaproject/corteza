@@ -73,8 +73,7 @@ func InitTestApp() {
 
 			eventbus.Set(eventBus)
 
-			// messageBus := messagebus.New(&options.MessagebusOpt{LogEnabled: false}, zap.NewNop(), eventbus.Service())
-			messageBus := messagebus.New(&options.MessagebusOpt{LogEnabled: false}, logger.Default(), eventbus.Service())
+			messageBus := messagebus.New(&options.MessagebusOpt{Enabled: true, LogEnabled: false}, logger.Default())
 			messagebus.Set(messageBus)
 
 			return nil
@@ -152,16 +151,16 @@ func (h helper) noError(err error) {
 func (h helper) prepareRBAC() {}
 
 func (h helper) prepareQueues(ctx context.Context, qs ...*messagebus.QueueSettings) {
-	h.noError(testApp.Store.TruncateMessagebusQueuesettings(ctx))
-	h.noError(testApp.Store.CreateMessagebusQueuesetting(ctx, qs...))
+	h.noError(testApp.Store.TruncateMessagebusQueueSettings(ctx))
+	h.noError(testApp.Store.CreateMessagebusQueueSetting(ctx, qs...))
 }
 
 func (h helper) prepareMessages(ctx context.Context, qs ...*messagebus.QueueSettings) {
-	h.noError(testApp.Store.TruncateMessagebusQueuemessages(ctx))
+	h.noError(testApp.Store.TruncateMessagebusQueueMessages(ctx))
 }
 
 func (h helper) checkPersistedMessages(ctx context.Context, f messagebus.QueueMessageFilter) messagebus.QueueMessageSet {
-	s, f, err := service.DefaultStore.SearchMessagebusQueuemessages(ctx, f)
+	s, f, err := service.DefaultStore.SearchMessagebusQueueMessages(ctx, f)
 	h.noError(err)
 
 	return s

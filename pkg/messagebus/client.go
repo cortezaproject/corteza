@@ -10,12 +10,12 @@ import (
 
 type (
 	Client interface {
-		add(ctx context.Context, q string, p []byte) (err error)
-		get(ctx context.Context, q string) (list QueueMessageSet, err error)
-		process(ctx context.Context, m QueueMessage) (err error)
+		Add(ctx context.Context, q string, p []byte) (err error)
+		Get(ctx context.Context, q string) (list QueueMessageSet, err error)
+		Process(ctx context.Context, m QueueMessage) (err error)
 	}
 
-	SqlClient interface {
+	StoreClient interface {
 		Client
 
 		SetStorer(QueueStorer)
@@ -27,8 +27,8 @@ type (
 	}
 )
 
-func (c *sClient) process(ctx context.Context, m QueueMessage) (err error) {
-	err = c.GetStorer().UpdateMessagebusQueuemessage(ctx, &QueueMessage{
+func (c *sClient) Process(ctx context.Context, m QueueMessage) (err error) {
+	err = c.GetStorer().UpdateMessagebusQueueMessage(ctx, &QueueMessage{
 		ID:        m.ID,
 		Queue:     m.Queue,
 		Payload:   m.Payload,
@@ -39,8 +39,8 @@ func (c *sClient) process(ctx context.Context, m QueueMessage) (err error) {
 	return
 }
 
-func (c *sClient) add(ctx context.Context, q string, payload []byte) (err error) {
-	err = c.storer.CreateMessagebusQueuemessage(ctx, &QueueMessage{
+func (c *sClient) Add(ctx context.Context, q string, payload []byte) (err error) {
+	err = c.storer.CreateMessagebusQueueMessage(ctx, &QueueMessage{
 		ID:      nextID(),
 		Queue:   q,
 		Created: now(),
@@ -50,8 +50,8 @@ func (c *sClient) add(ctx context.Context, q string, payload []byte) (err error)
 	return
 }
 
-func (c *sClient) get(ctx context.Context, q string) (list QueueMessageSet, err error) {
-	list, _, err = c.storer.SearchMessagebusQueuemessages(ctx, QueueMessageFilter{
+func (c *sClient) Get(ctx context.Context, q string) (list QueueMessageSet, err error) {
+	list, _, err = c.storer.SearchMessagebusQueueMessages(ctx, QueueMessageFilter{
 		Queue:     q,
 		Processed: filter.StateExcluded})
 

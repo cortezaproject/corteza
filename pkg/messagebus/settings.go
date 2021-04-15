@@ -20,10 +20,10 @@ type (
 	}
 
 	QueueSettings struct {
-		ID      uint64            `json:"queueID,string"`
-		Handler string            `json:"handler"`
-		Queue   string            `json:"queue"`
-		Meta    QueueSettingsMeta `json:"meta"`
+		ID       uint64            `json:"queueID,string"`
+		Consumer string            `json:"consumer"`
+		Queue    string            `json:"queue"`
+		Meta     QueueSettingsMeta `json:"meta"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -34,8 +34,8 @@ type (
 	}
 
 	QueueSettingsFilter struct {
-		Queue   string      `json:"queue"`
-		Handler HandlerType `json:"handler"`
+		Queue    string       `json:"queue"`
+		Consumer ConsumerType `json:"handler"`
 
 		Deleted filter.State `json:"deleted"`
 

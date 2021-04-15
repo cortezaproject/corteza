@@ -241,7 +241,7 @@ type (
 	// This type is auto-generated.
 	queueBase struct {
 		immutable bool
-		payload   *expr.String
+		payload   *types.QueueMessage
 		invoker   auth.Identifiable
 	}
 
@@ -1954,7 +1954,7 @@ func (queueOnMessage) EventType() string {
 //
 // This function is auto-generated.
 func QueueOnMessage(
-	argPayload *expr.String,
+	argPayload *types.QueueMessage,
 ) *queueOnMessage {
 	return &queueOnMessage{
 		queueBase: &queueBase{
@@ -1970,7 +1970,7 @@ func QueueOnMessage(
 //
 // This function is auto-generated.
 func QueueOnMessageImmutable(
-	argPayload *expr.String,
+	argPayload *types.QueueMessage,
 ) *queueOnMessage {
 	return &queueOnMessage{
 		queueBase: &queueBase{
@@ -1983,14 +1983,14 @@ func QueueOnMessageImmutable(
 // SetPayload sets new payload value
 //
 // This function is auto-generated.
-func (res *queueBase) SetPayload(argPayload *expr.String) {
+func (res *queueBase) SetPayload(argPayload *types.QueueMessage) {
 	res.payload = argPayload
 }
 
 // Payload returns payload
 //
 // This function is auto-generated.
-func (res queueBase) Payload() *expr.String {
+func (res queueBase) Payload() *types.QueueMessage {
 	return res.payload
 }
 
@@ -2028,7 +2028,13 @@ func (res queueBase) EncodeVars() (out *expr.Vars, err error) {
 	out = &expr.Vars{}
 	var v expr.TypedValue
 
-	// Could not found expression-type counterpart for *expr.String
+	if v, err = automation.NewQueueMessage(res.payload); err == nil {
+		err = out.Set("payload", v)
+	}
+
+	if err != nil {
+		return
+	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
@@ -2073,7 +2079,15 @@ func (res *queueBase) DecodeVars(vars *expr.Vars) (err error) {
 		// Respect immutability
 		return
 	}
-	// Could not find expression-type counterpart for *expr.String
+	if res.payload != nil && vars.Has("payload") {
+		var aux *automation.QueueMessage
+		aux, err = automation.NewQueueMessage(expr.Must(vars.Select("payload")))
+		if err != nil {
+			return
+		}
+
+		res.payload = aux.GetValue()
+	}
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return
