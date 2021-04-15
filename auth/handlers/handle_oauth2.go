@@ -11,6 +11,7 @@ import (
 	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
+	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"go.uber.org/zap"
 	"html/template"
 	"net/http"
@@ -180,14 +181,24 @@ func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 	ti, err := h.OAuth2.ValidationBearerToken(r)
 	if err != nil {
-		data, code, header := h.OAuth2.GetErrorData(err)
+		var (
+			data   = make(map[string]interface{})
+			code   int
+			header http.Header
+		)
+
+		if errors.Is(err, oauth2errors.ErrInvalidAccessToken) {
+			code = http.StatusForbidden
+			data["error"] = err.Error()
+		} else {
+			data, code, header = h.OAuth2.GetErrorData(err)
+		}
 
 		_ = header.Write(w)
 		w.WriteHeader(code)
 
 		data["active"] = false
 		_ = json.NewEncoder(w).Encode(data)
-
 		return
 	}
 
