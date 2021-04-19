@@ -12,7 +12,6 @@ import (
 )
 
 type (
-	// AuthClient - An organisation may have many authClients. AuthClients may have many channels available. Access to channels may be shared between authClients.
 	AuthClient struct {
 		ID uint64 `json:"authClientID,string"`
 
@@ -70,7 +69,7 @@ type (
 	AuthClientSecurity struct {
 		// Impersonates a specific user;
 		// ignored when non client-credentials grant is used
-		//ImpersonateUser uint64 `json:"impersonateUser,string,omitempty"`
+		ImpersonateUser uint64 `json:"impersonateUser,string,omitempty"`
 
 		// Subset of roles, permitted to be used with this client
 		// IDs are intentionally stored as strings to support JS (int64 only)
@@ -146,7 +145,7 @@ func (set AuthClientSet) FindByHandle(handle string) *AuthClient {
 
 func (r *AuthClient) Verify() error {
 	switch {
-	case !r.Enabled:
+	case r == nil || !r.Enabled:
 		return fmt.Errorf("disabled")
 	case r.ExpiresAt != nil && r.ExpiresAt.After(time.Now()):
 		return fmt.Errorf("expired")

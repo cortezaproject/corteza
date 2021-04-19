@@ -83,7 +83,7 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 	if info.GetUserID() != "" {
 		if oa2t.UserID = auth.ExtractUserIDFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
 			// UserID stores collection of IDs: user's ID and set of all roles user is member of
-			return fmt.Errorf("could not parse user ID from token info: %w", err)
+			return fmt.Errorf("could not parse user ID from token info")
 		}
 	}
 

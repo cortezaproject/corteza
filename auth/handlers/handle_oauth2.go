@@ -160,22 +160,10 @@ func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 	client, err := h.loadRequestedClient(req)
 
 	if err != nil {
-		return
+		return h.tokenError(req.Response, err)
 	}
 
-	if err = client.Verify(); err != nil {
-		return fmt.Errorf("invalid client: %w", err)
-	} else {
-		// add client to context so we can reach it from client store via context.Value() fn
-		//
-		// this way we work around the limitations we have with the oauth2 lib.
-		r := req.Request.Clone(context.WithValue(req.Context(), &oauth2.ContextClientStore{}, client))
-
-		// handle token request with extended context that now holds client!
-		err = h.OAuth2.HandleTokenRequest(req.Response, r)
-	}
-
-	return
+	return h.handleTokenRequest(req, client)
 }
 
 func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
@@ -289,8 +277,9 @@ func (h AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (er
 		h.DefaultClient.Secret,
 	)
 
-	req.Status = -1
-	return h.OAuth2.HandleTokenRequest(req.Response, r)
+	req.Request = r
+
+	return h.handleTokenRequest(req, h.DefaultClient)
 }
 
 func (h AuthHandlers) verifyDefaultClient() error {
@@ -356,6 +345,58 @@ func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.A
 	}()
 }
 
+func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.AuthClient) error {
+	req.Status = -1
+
+	var (
+		r   = req.Request
+		w   = req.Response
+		ctx = req.Context()
+	)
+
+	req.Status = -1
+
+	if err := client.Verify(); err != nil {
+		return h.tokenError(w, fmt.Errorf("invalid client: %w", err))
+	}
+
+	// add client to context so we can reach it from client store via context.Value() fn
+	// this way we work around the limitations we have with the oauth2 lib.
+	ctx = context.WithValue(ctx, &oauth2.ContextClientStore{}, client)
+	r = req.Request.Clone(ctx)
+
+	gt, tgr, err := h.OAuth2.ValidationTokenRequest(r)
+	if err != nil {
+		return h.tokenError(w, err)
+	}
+
+	if gt == oauth2def.ClientCredentials {
+		// Authenticated with client credentials!
+		//
+		// We'll use info from client security
+		if client.Security == nil || client.Security.ImpersonateUser == 0 {
+			return h.tokenError(w, errors.Internal("auth client security configuration invalid"))
+		}
+
+		tgr.UserID = strings.Join(append(
+			[]string{fmt.Sprintf("%d", client.Security.ImpersonateUser)},
+			client.Security.ForcedRoles...,
+		), " ")
+	}
+
+	ti, err := h.OAuth2.GetAccessToken(ctx, gt, tgr)
+	if err != nil {
+		return h.tokenError(w, err)
+	}
+
+	return token(w, h.OAuth2.GetTokenData(ti), nil)
+}
+
+func (h AuthHandlers) tokenError(w http.ResponseWriter, err error) error {
+	data, statusCode, header := h.OAuth2.GetErrorData(err)
+	return token(w, data, header, statusCode)
+}
+
 func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {
 	userIdWithRoles := strings.SplitN(ti.GetUserID(), " ", 2)
 	data["sub"] = userIdWithRoles[0]
@@ -394,4 +435,22 @@ func Profile(ctx context.Context, ti oauth2def.TokenInfo, data map[string]interf
 	data["email"] = user.Email
 
 	return nil
+}
+
+func token(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error {
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	for key := range header {
+		w.Header().Set(key, header.Get(key))
+	}
+
+	status := http.StatusOK
+	if len(statusCode) > 0 && statusCode[0] > 0 {
+		status = statusCode[0]
+	}
+
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(data)
 }
