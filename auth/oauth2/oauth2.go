@@ -71,8 +71,7 @@ func NewServer(manager *manage.Manager) *server.Server {
 			oauth2.Refreshing,
 			// before enabling ClientCredentials grant type, we need to know how to modify released token
 			// using client's security info; how to enforce impersonated user and his roles.
-			//
-			// oauth2.ClientCredentials,
+			oauth2.ClientCredentials,
 		},
 		AllowedCodeChallengeMethods: []oauth2.CodeChallengeMethod{
 			oauth2.CodeChallengePlain,

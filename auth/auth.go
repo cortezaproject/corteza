@@ -81,13 +81,12 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		handlers.GetLinks().OAuth2AuthorizeClient,
 	))
 
-	oauth2Server.SetClientAuthorizedHandler(func(id string, grant oauth2def.GrantType) (bool, error) {
+	oauth2Server.SetClientAuthorizedHandler(func(id string, grant oauth2def.GrantType) (allowed bool, err error) {
 		// this is a bit silly and a bad design of the oauth2 server lib
 		// why do we need to keep on load the client??
 		var (
 			clientID uint64
 			client   *types.AuthClient
-			err      error
 		)
 
 		clientID, err = strconv.ParseUint(id, 10, 64)
@@ -108,7 +107,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		return true, nil
 	})
 
-	oauth2Server.SetClientScopeHandler(func(id, ss string) (allowed bool, err error) {
+	oauth2Server.SetClientScopeHandler(func(tgr *oauth2def.TokenGenerateRequest) (allowed bool, err error) {
 		// this is a bit silly and a bad design of the oauth2 server lib
 		// why do we need to keep on load the client??
 		var (
@@ -116,7 +115,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 			client   *types.AuthClient
 		)
 
-		clientID, err = strconv.ParseUint(id, 10, 64)
+		clientID, err = strconv.ParseUint(tgr.ClientID, 10, 64)
 		if err != nil {
 			return false, fmt.Errorf("could not authorize client: %w", err)
 		}
@@ -127,7 +126,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		}
 
 		// ensure all requested scopes are allowed on a client
-		for _, scope := range strings.Split(ss, " ") {
+		for _, scope := range strings.Split(tgr.Scope, " ") {
 			if !auth.CheckScope(client.Scope, scope) {
 				return false, fmt.Errorf("client does not allow use of '%s' scope", scope)
 			}

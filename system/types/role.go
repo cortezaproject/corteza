@@ -8,7 +8,6 @@ import (
 )
 
 type (
-	// Role - An organisation may have many roles. Roles may have many channels available. Access to channels may be shared between roles.
 	Role struct {
 		ID     uint64 `json:"roleID,string"`
 		Name   string `json:"name"`
