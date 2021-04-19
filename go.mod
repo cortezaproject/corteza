@@ -28,7 +28,7 @@ require (
 	github.com/go-chi/cors v1.0.0
 	github.com/go-chi/httprate v0.4.0
 	github.com/go-chi/jwtauth v0.0.0-20190109153619-47840abb19b3
-	github.com/go-oauth2/oauth2/v4 v4.2.0
+	github.com/go-oauth2/oauth2/v4 v4.3.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
@@ -55,7 +55,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
-	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/sony/sonyflake v0.0.0-20181109022403-6d5bd6181009
 	github.com/spf13/afero v1.2.2

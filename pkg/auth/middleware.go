@@ -7,19 +7,29 @@ import (
 )
 
 func MiddlewareValidOnly(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var ctx = r.Context()
+	return AccessTokenCheck("api")(next)
+}
 
-		if !CheckScope(ctx.Value(scopeCtxKey{}), "api") {
-			api.Send(w, r, errors.New("Unauthorized scope"))
-			return
-		}
+func AccessTokenCheck(scope ...string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var ctx = r.Context()
 
-		if !GetIdentityFromContext(ctx).Valid() {
-			api.Send(w, r, errors.New("Unauthorized"))
-			return
-		}
+			for _, s := range scope {
+				if !CheckScope(ctx.Value(scopeCtxKey{}), s) {
+					w.WriteHeader(http.StatusUnauthorized)
+					api.Send(w, r, errors.New("unauthorized scope"))
+					return
+				}
+			}
 
-		next.ServeHTTP(w, r)
-	})
+			if !GetIdentityFromContext(ctx).Valid() {
+				w.WriteHeader(http.StatusUnauthorized)
+				api.Send(w, r, errors.New("unauthorized"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }

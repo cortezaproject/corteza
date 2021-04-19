@@ -9,6 +9,7 @@ import (
 
 func NewUserAuthorizer(sm *request.SessionManager, loginURL, clientAuthURL string) server.UserAuthorizationHandler {
 	return func(w http.ResponseWriter, r *http.Request) (identity string, err error) {
+
 		var (
 			ses    = sm.Get(r)
 			au     = request.GetAuthUser(ses)
