@@ -1,0 +1,19 @@
+imports:
+  - time
+
+docs:
+  title: Websocket server
+
+props:
+  - name: Timeout
+    type: time.Duration
+    default: 15 * time.Second
+    description: Time before `WsServer` gets timed out.
+
+  - name: PingTimeout
+    type: time.Duration
+    default: 120 * time.Second
+
+  - name: PingPeriod
+    type: time.Duration
+    default: ((120 * time.Second) * 9) / 10

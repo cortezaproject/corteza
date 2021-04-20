@@ -33,6 +33,7 @@ import (
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/cortezaproject/corteza-server/websocket"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 )
@@ -317,6 +318,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
+
+	app.WsServer = websocket.New(&websocket.Config{
+		Timeout:     app.Opt.Websocket.Timeout,
+		PingTimeout: app.Opt.Websocket.PingTimeout,
+		PingPeriod:  app.Opt.Websocket.PingPeriod,
+	})
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
