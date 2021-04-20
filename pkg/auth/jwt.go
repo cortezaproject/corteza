@@ -140,3 +140,7 @@ func claimsToIdentity(c jwt.MapClaims) (i *Identity) {
 
 	return
 }
+
+func ClaimsToIdentity(c jwt.MapClaims) (i *Identity) {
+	return claimsToIdentity(c)
+}
