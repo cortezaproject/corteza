@@ -21,6 +21,7 @@ type (
 		Monitor     options.MonitorOpt
 		WaitFor     options.WaitForOpt
 		HTTPServer  options.HTTPServerOpt
+		Websocket   options.WebsocketOpt
 		Eventbus    options.EventbusOpt
 		Messagebus  options.MessagebusOpt
 		Federation  options.FederationOpt
@@ -46,6 +47,7 @@ func NewOptions() *Options {
 		Monitor:     *options.Monitor(),
 		WaitFor:     *options.WaitFor(),
 		HTTPServer:  *options.HTTPServer(),
+		Websocket:   *options.Websocket(),
 		Eventbus:    *options.Eventbus(),
 		Messagebus:  *options.Messagebus(),
 		Federation:  *options.Federation(),

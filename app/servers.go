@@ -99,6 +99,8 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/automation", automationRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
 
+			app.WsServer.MountRoutes(r)
+
 			if app.Opt.Federation.Enabled {
 				r.Route("/federation", federationRest.MountRoutes)
 			}
