@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/websocket"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -20,6 +19,10 @@ type (
 	grpcServer interface {
 		RegisterServices(func(server *grpc.Server))
 		Serve(ctx context.Context)
+	}
+
+	wsServer interface {
+		MountRoutes(chi.Router)
 	}
 
 	authServicer interface {
@@ -48,7 +51,7 @@ type (
 		// Servers
 		HttpServer httpApiServer
 		GrpcServer grpcServer
-		WsServer   *websocket.Websocket
+		WsServer   wsServer
 
 		AuthService authServicer
 	}

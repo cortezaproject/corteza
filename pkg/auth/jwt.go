@@ -45,7 +45,7 @@ func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
 	return tkn, nil
 }
 
-// Verifies JWT and stores it into context
+// HttpVerifier verifies JWT and stores it into context
 func (t *token) HttpVerifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
 }
@@ -91,7 +91,7 @@ func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 					return
 				}
 
-				ctx = SetIdentityToContext(ctx, claimsToIdentity(claims))
+				ctx = SetIdentityToContext(ctx, ClaimsToIdentity(claims))
 				ctx = context.WithValue(ctx, scopeCtxKey{}, claims["scope"])
 
 				r = r.WithContext(ctx)
@@ -102,8 +102,8 @@ func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 	}
 }
 
-// decodes sub & roles claims into identity
-func claimsToIdentity(c jwt.MapClaims) (i *Identity) {
+// ClaimsToIdentity decodes sub & roles claims into identity
+func ClaimsToIdentity(c jwt.MapClaims) (i *Identity) {
 	var (
 		aux       interface{}
 		ok        bool
@@ -139,8 +139,4 @@ func claimsToIdentity(c jwt.MapClaims) (i *Identity) {
 	}
 
 	return
-}
-
-func ClaimsToIdentity(c jwt.MapClaims) (i *Identity) {
-	return claimsToIdentity(c)
 }

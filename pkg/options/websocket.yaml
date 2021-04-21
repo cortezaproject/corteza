@@ -3,6 +3,7 @@ imports:
 
 docs:
   title: Websocket server
+  description: A Websocket server emphasize the trigger events and actions.
 
 props:
   - name: Timeout

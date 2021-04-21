@@ -315,11 +315,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
-	app.WsServer = websocket.New(&websocket.Config{
+	app.WsServer = websocket.Websocket(&websocket.Config{
 		Timeout:     app.Opt.Websocket.Timeout,
 		PingTimeout: app.Opt.Websocket.PingTimeout,
 		PingPeriod:  app.Opt.Websocket.PingPeriod,
-	})
+	}, app.Log)
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
