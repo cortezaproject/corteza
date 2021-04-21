@@ -2,25 +2,15 @@ package websocket
 
 import (
 	"github.com/go-chi/chi"
-	"net/http"
 )
 
-func middlewareAllowedAccess(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//if !service.DefaultAccessControl.CanAccess(r.Context()) {
-		//	http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		//	return
-		//}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (ws Websocket) MountRoutes(r chi.Router) {
+// MountRoutes initialize route for websocket
+// No middleware used, since anyone can open connection and
+// send first message with valid JWT token,
+// If it's valid then we keep the connection open or close it
+func (ws *websocket) MountRoutes(r chi.Router) {
+	// Initialize handlers & controllers.
 	r.Group(func(r chi.Router) {
-		r.Route("/websocket", func(r chi.Router) {
-			//r.Use(middlewareAllowedAccess)
-			r.Get("/", ws.Open)
-		})
+		r.Get("/", ws.Open)
 	})
 }

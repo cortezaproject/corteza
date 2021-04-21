@@ -2,25 +2,27 @@ package websocket
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/payload/outgoing"
 	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
+	gWebsocket "github.com/gorilla/websocket"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
+var sessions = make(map[uint64]*session)
+
 type (
-	Session struct {
+	session struct {
 		id   uint64
 		once sync.Once
-		Conn *websocket.Conn
+		conn *gWebsocket.Conn
 
 		ctx       context.Context
 		ctxCancel context.CancelFunc
@@ -38,9 +40,9 @@ type (
 	}
 )
 
-func (*Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *Session {
-	s := &Session{
-		Conn:   conn,
+func Session(ctx context.Context, config *Config, conn *gWebsocket.Conn) *session {
+	s := &session{
+		conn:   conn,
 		config: config,
 		send:   make(chan []byte, 512),
 		stop:   make(chan []byte, 1),
@@ -53,15 +55,19 @@ func (*Session) New(ctx context.Context, config *Config, conn *websocket.Conn) *
 	return s
 }
 
-func (s *Session) log(fields ...zapcore.Field) *zap.Logger {
+func (s *session) log(fields ...zapcore.Field) *zap.Logger {
 	return s.logger.With(fields...)
 }
 
-func (s *Session) Context() context.Context {
+func (s *session) Context() context.Context {
 	return s.ctx
 }
 
-func (s *Session) connected() (err error) {
+func (s *session) User() auth.Identifiable {
+	return s.user
+}
+
+func (s *session) connected() (err error) {
 	// Tell everyone that user has connected
 	if err = s.sendPresence("connected"); err != nil {
 		return
@@ -77,7 +83,7 @@ func (s *Session) connected() (err error) {
 			case <-s.ctx.Done():
 				return
 			case <-t.C:
-				s.sendPresence("")
+				_ = s.sendPresence("")
 			}
 		}
 	}()
@@ -85,7 +91,7 @@ func (s *Session) connected() (err error) {
 	return nil
 }
 
-func (s *Session) disconnected() {
+func (s *session) disconnected() {
 	// Tell everyone that user has disconnected
 	_ = s.sendPresence("disconnected")
 
@@ -93,68 +99,68 @@ func (s *Session) disconnected() {
 	s.ctxCancel()
 
 	// Close connection
-	s.Conn.Close()
-	s.Conn = nil
+	s.conn.Close()
+	s.conn = nil
 }
 
-// Sends user presence information to all subscribers
-//
-// It sends "connected", "disconnected" and "" activity kinds
-func (s *Session) sendPresence(kind string) error {
-	connections := store.CountConnections(s.user.Identity())
-	if kind == "disconnected" {
-		connections--
-	}
+// sendPresence sends user presence: "connected", "disconnected" and "" activity kinds
+func (s *session) sendPresence(kind string) error {
+	//connections := store.CountConnections(s.user.Identity())
+	//if kind == "disconnected" {
+	//	connections--
+	//}
 
 	return nil
 }
 
-func (s *Session) Handle() (err error) {
+func (s *session) Handle() (err error) {
 	if err = s.connected(); err != nil {
 		s.Close()
 		return
 	}
 
-	go s.readLoop()
+	go func() {
+		_ = s.readLoop()
+	}()
 	return s.writeLoop()
 }
 
-func (s *Session) Close() {
+func (s *session) Close() {
 	s.once.Do(func() {
 		s.disconnected()
-		store.Delete(s.id)
+		s.Delete()
 	})
 }
 
-func (s *Session) readLoop() (err error) {
+func (s *session) readLoop() (err error) {
 	defer func() {
 		s.Close()
 	}()
 
-	if err = s.Conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout)); err != nil {
+	if err = s.conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout)); err != nil {
 		return
 	}
 
-	s.Conn.SetPongHandler(func(string) error {
-		return s.Conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout))
+	s.conn.SetPongHandler(func(string) error {
+		return s.conn.SetReadDeadline(time.Now().Add(s.config.PingTimeout))
 	})
 
-	s.remoteAddr = s.Conn.RemoteAddr().String()
+	s.remoteAddr = s.conn.RemoteAddr().String()
 
 	for {
-		_, raw, err := s.Conn.ReadMessage()
+		_, raw, err := s.conn.ReadMessage()
 		if err != nil {
 			return errors.Wrap(err, "s.readLoop")
 		}
 
 		if err = s.dispatch(raw); err != nil {
 			s.log(zap.Error(err)).Error("could not dispatch")
-			_ = s.sendReply(outgoing.NewError(err))
+			//_ = s.send(outgoing.NewError(err))
 		}
 	}
 }
 
-func (s *Session) writeLoop() error {
+func (s *session) writeLoop() error {
 	ticker := time.NewTicker(s.config.PingPeriod)
 
 	defer func() {
@@ -163,34 +169,34 @@ func (s *Session) writeLoop() error {
 	}()
 
 	write := func(msg []byte) (err error) {
-		if s.Conn == nil {
+		if s.conn == nil {
 			// Connection closed, nowhere to write
 			return
 		}
 
-		if err = s.Conn.SetWriteDeadline(time.Now().Add(s.config.Timeout)); err != nil {
+		if err = s.conn.SetWriteDeadline(time.Now().Add(s.config.Timeout)); err != nil {
 			return
 		}
 
-		if msg != nil && s.Conn != nil {
-			return s.Conn.WriteMessage(websocket.TextMessage, msg)
+		if msg != nil && s.conn != nil {
+			return s.conn.WriteMessage(gWebsocket.TextMessage, msg)
 		}
 
 		return
 	}
 
 	ping := func() (err error) {
-		if s.Conn == nil {
+		if s.conn == nil {
 			// Connection closed, nothing to ping
 			return
 		}
 
-		if err = s.Conn.SetWriteDeadline(time.Now().Add(s.config.Timeout)); err != nil {
+		if err = s.conn.SetWriteDeadline(time.Now().Add(s.config.Timeout)); err != nil {
 			return
 		}
 
-		if s.Conn != nil {
-			return s.Conn.WriteMessage(websocket.PingMessage, nil)
+		if s.conn != nil {
+			return s.conn.WriteMessage(gWebsocket.PingMessage, nil)
 		}
 
 		return
@@ -219,4 +225,91 @@ func (s *Session) writeLoop() error {
 			}
 		}
 	}
+}
+
+func (s *session) dispatch(raw []byte) error {
+	var p, err = Unmarshal(raw)
+	if err != nil {
+		return errors.Wrap(err, "Session.incoming: payload malformed")
+	}
+
+	ctx := s.Context()
+
+	if p.Auth != nil {
+		return s.authenticate(ctx, p.Auth)
+	}
+
+	return nil
+}
+
+func (s *session) Save() *session {
+	if s.id == 0 {
+		s.id = id.Next()
+	}
+
+	if s.user != nil {
+		if _, ok := sessions[s.user.Identity()]; !ok {
+			sessions[s.user.Identity()] = s
+		}
+	}
+
+	return s
+}
+
+func (s *session) Get(userID uint64) *session {
+	if sess, ok := sessions[userID]; ok {
+		return sess
+	}
+
+	return nil
+}
+
+func (s *session) Delete() error {
+	if s.id == 0 {
+		return nil
+	}
+
+	if s.user != nil {
+		delete(sessions, s.user.Identity())
+	}
+
+	return nil
+}
+
+// Send sends message to user to ones we want to
+// if len(userIDs) == 0 -- it sends to everyone
+func (s *session) Send(m *message, userIDs ...uint64) error {
+	pb, err := m.EncodeMessage()
+	if err != nil {
+		return err
+	}
+
+	sendsToAll := len(userIDs) == 0
+	userIDMap := make(map[uint64]uint64)
+	for _, userID := range userIDs {
+		userIDMap[userID] = userID
+	}
+
+	for _, sess := range sessions {
+		_, validUser := userIDMap[sess.user.Identity()]
+		if sendsToAll || (!sendsToAll && validUser) {
+			_ = sess.sendBytes(pb)
+		}
+	}
+
+	return nil
+}
+
+// sendBytes sends byte to channel or timout
+func (s *session) sendBytes(p []byte) error {
+	select {
+	case s.send <- p:
+	case <-time.After(2 * time.Millisecond):
+		s.logger.Warn("websocket.sendBytes send timeout")
+	}
+	return nil
+}
+
+func GetActiveSessions() map[uint64]*session {
+	return sessions
 }

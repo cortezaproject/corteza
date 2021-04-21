@@ -11,7 +11,7 @@ import (
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
 )
 
-// CLI function initializes basic Corteza subsystems
+// InitCLI function initializes basic Corteza subsystems
 // and sets-up the command line interface
 func (app *CortezaApp) InitCLI() {
 	ctx := cli.Context()
