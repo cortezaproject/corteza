@@ -94,7 +94,9 @@ func TestAuthClientCreate(t *testing.T) {
 
 	h.apiInit().
 		Post("/auth/clients/").
+		Header("Accept", "application/json").
 		FormData("handle", handle).
+		FormData("scope", "profile api").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).

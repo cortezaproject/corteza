@@ -30,6 +30,7 @@ require (
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 	github.com/evanw/esbuild v0.12.16
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/getsentry/sentry-go v0.1.1
@@ -58,6 +59,7 @@ require (
 	github.com/lestrrat-go/strftime v1.0.5
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
+	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/microcosm-cc/bluemonday v1.0.16
 	github.com/minio/minio-go/v6 v6.0.39
@@ -66,6 +68,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_golang v0.9.3
+	github.com/rakyll/gotest v0.0.6 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.2.2
@@ -81,6 +84,7 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0

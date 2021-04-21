@@ -53,11 +53,15 @@ func ResourceComponent(r string) string {
 func matchResource(matcher, resource string) (m bool) {
 	if matcher == resource {
 		// if resources match make sure no wildcards are resent
-		return strings.Index(resource, wildcard) == -1
+		return !hasWildcards(resource)
 	}
 
 	m, _ = path.Match(matcher, resource)
 	return
+}
+
+func hasWildcards(resource string) bool {
+	return strings.Index(resource, wildcard) != -1
 }
 
 // returns level for the given resource match

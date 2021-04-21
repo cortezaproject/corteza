@@ -37,6 +37,7 @@ package store
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/reports.yaml
+//  - store/resource_activity_log.yaml
 //  - store/resource_translation.yaml
 //  - store/role_members.yaml
 //  - store/roles.yaml
@@ -84,6 +85,7 @@ type (
 		RbacRules
 		Reminders
 		Reports
+		ResourceActivityLogs
 		ResourceTranslations
 		RoleMembers
 		Roles
