@@ -100,6 +100,7 @@ func (s Schema) Tables() []*Table {
 		s.MessagebusQueuemessage(),
 		s.ApigwRoute(),
 		s.ApigwFilter(),
+		s.ResourceActivityLog(),
 	}
 }
 
@@ -738,5 +739,19 @@ func (Schema) ApigwFilter() *Table {
 		ColumnDef("params", ColumnTypeJson),
 		CUDTimestamps,
 		CUDUsers,
+	)
+}
+
+func (Schema) ResourceActivityLog() *Table {
+	return TableDef("resource_activity_log",
+		ID,
+		ColumnDef("rel_resource", ColumnTypeIdentifier),
+		ColumnDef("resource_type", ColumnTypeText),
+		ColumnDef("resource_action", ColumnTypeVarchar, ColumnTypeLength(64)),
+		ColumnDef("ts", ColumnTypeTimestamp),
+
+		AddIndex("rel_resource", IColumn("rel_resource")),
+		AddIndex("resource_type", IColumn("resource_type")),
+		AddIndex("ts", IColumn("ts")),
 	)
 }
