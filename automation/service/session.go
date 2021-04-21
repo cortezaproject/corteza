@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/websocket"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -235,6 +236,7 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool) (ses *
 
 func (svc *session) Watch(ctx context.Context) {
 	gcTicker := time.NewTicker(time.Second)
+	promptTicker := time.NewTicker(time.Second)
 
 	go func() {
 		defer sentry.Recover()
@@ -270,6 +272,29 @@ func (svc *session) Watch(ctx context.Context) {
 
 		// @todo serialize sessions & suspended states
 		//svc.suspendAll(ctx)
+	}()
+
+	// Prompt routine
+	go func() {
+		defer sentry.Recover()
+		defer promptTicker.Stop()
+		defer svc.log.Info("stopped")
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-promptTicker.C:
+				activeSessions := websocket.GetActiveSessions()
+				for _, s := range activeSessions {
+					var ctxr = context.Background()
+					pp := svc.PendingPrompts(auth.SetIdentityToContext(ctxr, s.User()))
+					if len(pp) > 0 {
+						_ = s.Send(websocket.Message(websocket.StatusOK, websocket.WorkflowApplication, pp), s.User().Identity())
+					}
+				}
+			}
+		}
 	}()
 
 	svc.log.Debug("watcher initialized")

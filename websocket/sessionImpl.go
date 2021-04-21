@@ -3,10 +3,9 @@ package websocket
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/payload/incoming"
 )
 
-func (s *Session) authenticate(ctx context.Context, p *incoming.Token) error {
+func (s *session) authenticate(ctx context.Context, p *Auth) error {
 	// Get JWT claims
 	claims, err := p.ParseWithClaims()
 	if err != nil {
@@ -18,13 +17,11 @@ func (s *Session) authenticate(ctx context.Context, p *incoming.Token) error {
 	identity := auth.ClaimsToIdentity(claims)
 
 	// Update the existing ws sessions if exists or create new one
-	if store.CountConnections(identity.Identity()) > 0 {
-		store.Walk(func(session *Session) {
-			session.user = identity
-		})
-	} else {
+	if existingSession := s.Get(identity.Identity()); existingSession == nil {
 		s.user = identity
-		store.Save(s)
+		s.Save()
+	} else {
+		existingSession.user = identity
 	}
 
 	return nil
