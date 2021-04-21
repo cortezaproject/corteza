@@ -15,6 +15,7 @@ import (
 	autService "github.com/cortezaproject/corteza-server/automation/service"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
+	discoveryService "github.com/cortezaproject/corteza-server/discovery/service"
 	fedService "github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
@@ -440,6 +441,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// will most likely be merged in the future
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
+		Discovery: app.Opt.Discovery,
 		Storage:   app.Opt.ObjStore,
 		Template:  app.Opt.Template,
 		Auth:      app.Opt.Auth,
@@ -476,6 +478,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
 		ActionLog:  app.Opt.ActionLog,
+		Discovery: app.Opt.Discovery,
 		Storage:    app.Opt.ObjStore,
 		UserFinder: sysService.DefaultUser,
 	})
@@ -505,6 +508,14 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 		if err != nil {
 			return
+		}
+	}
+
+	// Initializing discovery
+	if app.Opt.Discovery.Enabled {
+		err = discoveryService.Initialize(ctx, app.Opt.Discovery, app.Store)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -601,6 +612,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		updatePasswdSettings(app.Opt.Auth, sysService.CurrentSettings)
 	})
 
+	updateDiscoverySettings(app.Opt.Discovery, service.CurrentSettings)
 	updateLocaleSettings(app.Opt.Locale)
 
 	app.AuthService.Watch(ctx)
@@ -706,6 +718,11 @@ func updateFederationSettings(opt options.FederationOpt, current *types.AppSetti
 // Checks if password security is enabled in the options
 func updatePasswdSettings(opt options.AuthOpt, current *types.AppSettings) {
 	current.Auth.Internal.PasswordConstraints.PasswordSecurity = opt.PasswordSecurity
+}
+
+// Checks if discovery is enabled in the options
+func updateDiscoverySettings(opt options.DiscoveryOpt, current *types.AppSettings) {
+	current.Discovery.Enabled = opt.Enabled
 }
 
 // Sanitizes application (current) settings with languages from options

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/cortezaproject/corteza-server/pkg/discovery"
 	"time"
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
@@ -29,6 +30,7 @@ type (
 
 	Config struct {
 		ActionLog options.ActionLogOpt
+		Discovery options.DiscoveryOpt
 		Storage   options.ObjectStoreOpt
 		Template  options.TemplateOpt
 		Auth      options.AuthOpt
@@ -118,6 +120,23 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		}
 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+	}
+
+	// Activity log for user
+	{
+		log := zap.NewNop()
+		if c.Discovery.Debug {
+			log = logger.MakeDebugLogger()
+		}
+
+		DefaultResourceActivityLog := discovery.Service(log, c.Discovery, DefaultStore, eventbus.Service())
+		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
+			//(types.User{}).RbacResource(), // @todo user?? suppose to be system:user
+			"system:user",
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	DefaultAccessControl = AccessControl()

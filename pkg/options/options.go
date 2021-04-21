@@ -27,6 +27,7 @@ type (
 		Locale      LocaleOpt
 		Limit       LimitOpt
 		Plugins     PluginsOpt
+		Discovery   DiscoveryOpt
 	}
 )
 
@@ -57,5 +58,6 @@ func Init() *Options {
 		Locale:      *Locale(),
 		Limit:       *Limit(),
 		Plugins:     *Plugins(),
+		Discovery:   *Discovery(),
 	}
 }

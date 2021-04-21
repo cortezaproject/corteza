@@ -41,6 +41,7 @@ corteza: schema.#platform & {
 		options.waitFor,
 		options.websocket,
 		options.workflow,
+		options.discovery,
 	]
 
 	components: [

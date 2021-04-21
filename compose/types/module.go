@@ -1,11 +1,14 @@
 package types
 
 import (
-	"time"
-
+	"database/sql/driver"
+	"encoding/json"
+	discovery "github.com/cortezaproject/corteza-server/discovery/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/jmoiron/sqlx/types"
+	"github.com/pkg/errors"
+	"time"
 )
 
 type (
@@ -27,6 +30,10 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Name string `json:"name"`
+	}
+
+	ModuleMeta struct {
+		Discovery discovery.ModuleMeta `json:"discovery"`
 	}
 
 	ModuleFilter struct {
@@ -78,4 +85,23 @@ func (set ModuleSet) FindByHandle(handle string) *Module {
 	}
 
 	return nil
+}
+
+func (nm *ModuleMeta) Scan(value interface{}) error {
+	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
+	switch value.(type) {
+	case nil:
+		*nm = ModuleMeta{}
+	case []uint8:
+		b := value.([]byte)
+		if err := json.Unmarshal(b, nm); err != nil {
+			return errors.Wrapf(err, "cannot scan '%v' into ModuleMeta", string(b))
+		}
+	}
+
+	return nil
+}
+
+func (nm ModuleMeta) Value() (driver.Value, error) {
+	return json.Marshal(nm)
 }

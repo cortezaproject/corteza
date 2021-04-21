@@ -3,6 +3,7 @@ package seeder
 import (
 	"context"
 	"fmt"
+	cService "github.com/cortezaproject/corteza-server/compose/service"
 	"time"
 
 	cTypes "github.com/cortezaproject/corteza-server/compose/types"
@@ -17,6 +18,8 @@ type (
 		ctx   context.Context
 		store storeService
 		faker fakerService
+
+		modSvc moduleService
 	}
 	Params struct {
 		// (optional) no record to be generate; Default value will be 1
@@ -46,10 +49,17 @@ type (
 		LookupComposeNamespaceByID(ctx context.Context, id uint64) (*cTypes.Namespace, error)
 		LookupComposeModuleByNamespaceIDHandle(ctx context.Context, namespaceID uint64, name string) (*cTypes.Module, error)
 		LookupComposeModuleByID(ctx context.Context, id uint64) (*cTypes.Module, error)
+		SearchComposeModuleFields(ctx context.Context, f cTypes.ModuleFieldFilter) (cTypes.ModuleFieldSet, cTypes.ModuleFieldFilter, error)
 
 		SearchComposeRecords(ctx context.Context, _mod *cTypes.Module, f cTypes.RecordFilter) (cTypes.RecordSet, cTypes.RecordFilter, error)
 		CreateComposeRecord(ctx context.Context, mod *cTypes.Module, rr ...*cTypes.Record) error
 		DeleteComposeRecord(ctx context.Context, m *cTypes.Module, rr ...*cTypes.Record) error
+	}
+
+	moduleService interface {
+		FindByID(ctx context.Context, namespaceID uint64, moduleID uint64) (*cTypes.Module, error)
+		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*cTypes.Module, error)
+		Find(ctx context.Context, filter cTypes.ModuleFilter) (set cTypes.ModuleSet, f cTypes.ModuleFilter, err error)
 	}
 )
 
@@ -63,7 +73,13 @@ const (
 
 func Seeder(ctx context.Context, store store.Storer, faker fakerService) *seeder {
 	DefaultStore = store
-	return &seeder{ctx, store, faker}
+
+	return &seeder{
+		ctx:    ctx,
+		store:  store,
+		faker:  faker,
+		modSvc: cService.DefaultModule,
+	}
 }
 
 // getLimit return data generation limit; It will return Default(1) if limit is 0
@@ -185,6 +201,11 @@ func (s seeder) LookupModuleByID(ID uint64) (mod *cTypes.Module, err error) {
 	if mod == nil {
 		return mod, fmt.Errorf("module not found")
 	}
+
+	mod.Fields, _, err = s.store.SearchComposeModuleFields(s.ctx, cTypes.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -199,6 +220,53 @@ func (s seeder) LookupModuleByHandle(nsID uint64, handle string) (mod *cTypes.Mo
 		return
 	}
 	mod, err = s.store.LookupComposeModuleByNamespaceIDHandle(s.ctx, nsID, handle)
+	if err != nil {
+		return
+	}
+	if mod == nil {
+		return mod, fmt.Errorf("module not found")
+	}
+
+	mod.Fields, _, err = s.store.SearchComposeModuleFields(s.ctx, cTypes.ModuleFieldFilter{ModuleID: []uint64{mod.ID}})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// FindModuleByID will get module by ID
+func (s seeder) FindModuleByID(nsID, mID uint64) (mod *cTypes.Module, err error) {
+	if nsID == 0 {
+		err = fmt.Errorf("invalid namespace ID")
+		return
+	}
+	if mID == 0 {
+		err = fmt.Errorf("invalid module ID")
+		return
+	}
+	mod, err = s.modSvc.FindByID(s.ctx, nsID, mID)
+	if err != nil {
+		return
+	}
+	if mod == nil {
+		return mod, fmt.Errorf("module not found")
+	}
+
+	return
+}
+
+// FindModuleByHandle will get module by handle
+func (s seeder) FindModuleByHandle(nsID uint64, handle string) (mod *cTypes.Module, err error) {
+	if nsID == 0 {
+		err = fmt.Errorf("invalid namespace for module")
+		return nil, err
+	}
+	if len(handle) == 0 {
+		err = fmt.Errorf("invalid handle for module")
+		return
+	}
+	mod, err = s.modSvc.FindByHandle(s.ctx, nsID, handle)
 	if err != nil {
 		return
 	}
@@ -268,8 +336,8 @@ func (s seeder) CreateRecord(params RecordParams) (IDs []uint64, err error) {
 			CreatedAt:   time.Now(),
 		}
 
-		for i, f := range m.Fields {
-			err := s.setRecordValues(rec, uint(i), f)
+		for j, f := range m.Fields {
+			err = s.setRecordValues(rec, uint(j), f)
 			if err != nil {
 				return nil, err
 			}
@@ -305,10 +373,11 @@ func (s seeder) setRecordValues(rec *cTypes.Record, place uint, field *cTypes.Mo
 
 	// skip the non required fields
 	if !field.Required {
+		fmt.Println("Skipping it due to not required")
 		return
 	}
 
-	// skip the non required fields
+	// return err for fields without name
 	if len(field.Name) == 0 {
 		return fmt.Errorf("invalid field name")
 	}

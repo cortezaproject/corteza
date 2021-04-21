@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza-server/pkg/discovery"
 	"strconv"
 	"time"
 
@@ -33,6 +34,7 @@ type (
 
 	Config struct {
 		ActionLog  options.ActionLogOpt
+		Discovery options.DiscoveryOpt
 		Storage    options.ObjectStoreOpt
 		UserFinder userFinder
 	}
@@ -81,7 +83,7 @@ var (
 )
 
 // Initialize compose-only services
-func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
@@ -102,6 +104,24 @@ func Initialize(_ context.Context, log *zap.Logger, s store.Storer, c Config) (e
 		}
 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
+	}
+
+	// Activity log for record
+	{
+		log := zap.NewNop()
+		if c.Discovery.Debug {
+			log = logger.MakeDebugLogger()
+		}
+
+		DefaultResourceActivityLog := discovery.Service(log, c.Discovery, DefaultStore, eventbus.Service())
+		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
+			(types.Namespace{}).LabelResourceKind(),
+			(types.Module{}).LabelResourceKind(),
+			(types.Record{}).LabelResourceKind(),
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	DefaultAccessControl = AccessControl()
