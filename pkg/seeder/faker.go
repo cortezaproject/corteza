@@ -1,6 +1,7 @@
 package seeder
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -70,6 +71,10 @@ func (f faker) fakeValue(name, kind string, opt valueOptions) (val string, err e
 		val = gofakeit.LoremIpsumWord()
 		break
 	case valueKind == "int":
+		break
+	case valueKind == "Geometry":
+		// @todo need to update once we support all type of point for geo location
+		val = fmt.Sprintf("{\"coordinates\":[%f,%f]}", gofakeit.Longitude(), gofakeit.Latitude())
 		break
 	}
 	return

@@ -1,0 +1,42 @@
+import:
+  - github.com/cortezaproject/corteza-server/pkg/discovery/types
+
+types:
+  type: types.ResourceActivity
+  filterType: types.ResourceActivityFilter
+
+fields:
+  - { field: ID }
+  - { field: ResourceID }
+  - { field: ResourceType }
+  - { field: ResourceAction }
+  - { field: Timestamp,       type: "time.Time" }
+
+lookups:
+  - fields: [ ID ]
+    export: true
+    description: |-
+      searches for corteza resource activity by ID
+      It returns corteza resource activity even if deleted
+
+rdbms:
+  alias: ral
+  table: resource_activity_log
+  mapFields:
+    Timestamp: { column: ts }
+
+create:
+  export: true
+
+update:
+  export: true
+
+upsert:
+  export: true
+
+delete:
+  export: true
+
+truncate:
+  export: true
+

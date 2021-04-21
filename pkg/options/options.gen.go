@@ -254,6 +254,13 @@ type (
 		ExecDebug     bool `env:"WORKFLOW_EXEC_DEBUG"`
 		CallStackSize int  `env:"WORKFLOW_CALL_STACK_SIZE"`
 	}
+
+	DiscoveryOpt struct {
+		Enabled       bool   `env:"DISCOVERY_ENABLED"`
+		Debug         bool   `env:"DISCOVERY_DEBUG"`
+		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
+	}
 )
 
 // DB initializes and returns a DBOpt with default values
@@ -1057,6 +1064,34 @@ func Workflow() (o *WorkflowOpt) {
 	o = &WorkflowOpt{
 		Register:      true,
 		CallStackSize: 16,
+	}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Discovery initializes and returns a DiscoveryOpt with default values
+//
+// This function is auto-generated
+func Discovery() (o *DiscoveryOpt) {
+	o = &DiscoveryOpt{
+		Enabled: false,
+		Debug:   false,
 	}
 
 	// Custom defaults
