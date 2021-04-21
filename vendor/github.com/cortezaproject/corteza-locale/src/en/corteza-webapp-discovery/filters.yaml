@@ -5,3 +5,6 @@ types:
   module: Module
   user: User
   record: Record
+aggregationGroups: 
+  modules: Modules
+  namespaces: Namespaces

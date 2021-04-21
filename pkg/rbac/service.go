@@ -250,6 +250,16 @@ func (svc *service) flush(ctx context.Context) (err error) {
 	return
 }
 
+// SignificantRoles returns two list of significant roles.
+//
+// See sigRoles on rules for more details
+func (svc *service) SignificantRoles(res Resource, op string) (aRR, dRR []uint64) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+
+	return svc.rules.sigRoles(res.RbacResource(), op)
+}
+
 func (svc service) String() (out string) {
 	tpl := "%-5v %-20s to %-20s %-30s\n"
 	out += strings.Repeat("-", 120) + "\n"
