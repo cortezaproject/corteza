@@ -3,11 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"time"
-
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-
 	"github.com/pkg/errors"
+	"time"
 )
 
 type (
@@ -31,9 +29,10 @@ type (
 
 	NamespaceFilter struct {
 		NamespaceID []uint64 `json:"namespaceID"`
-		Query       string   `json:"query"`
-		Slug        string   `json:"slug"`
-		Name        string   `json:"name"`
+
+		Query string `json:"query"`
+		Slug  string `json:"slug"`
+		Name  string `json:"name"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
@@ -52,6 +51,10 @@ type (
 	}
 
 	NamespaceMeta struct {
+		Discovery struct {
+			//ResponseMeta discovery.ResponseMeta `json:"response_meta"`
+		} `json:"discovery"`
+
 		// Temporary icon & logo URLs
 		// @todo rework this when we rework attachment management
 		Icon        string `json:"icon,omitempty"`
