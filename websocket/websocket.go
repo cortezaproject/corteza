@@ -27,6 +27,10 @@ type (
 )
 
 func Websocket(config *Config, logger *zap.Logger) *websocket {
+	if !config.LogEnabled {
+		logger = zap.NewNop()
+	}
+
 	return &websocket{
 		config: config,
 		logger: logger,

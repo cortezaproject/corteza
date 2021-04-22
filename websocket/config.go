@@ -6,6 +6,7 @@ import (
 
 type (
 	Config struct {
+		LogEnabled  bool
 		Timeout     time.Duration
 		PingTimeout time.Duration
 		PingPeriod  time.Duration

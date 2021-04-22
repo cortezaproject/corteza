@@ -310,6 +310,16 @@ func (s *session) sendBytes(p []byte) error {
 	return nil
 }
 
-func GetActiveSessions() map[uint64]*session {
-	return sessions
+func (s *session) Walk(callback func(*session)) {
+	for _, sess := range sessions {
+		callback(sess)
+	}
+}
+
+// GetActiveUserIDs return userIDs from active ws sessions
+func (s *session) GetActiveUserIDs() (ids []uint64) {
+	s.Walk(func(sess *session) {
+		ids = append(ids, sess.user.Identity())
+	})
+	return
 }

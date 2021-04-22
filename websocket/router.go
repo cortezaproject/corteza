@@ -10,7 +10,5 @@ import (
 // If it's valid then we keep the connection open or close it
 func (ws *websocket) MountRoutes(r chi.Router) {
 	// Initialize handlers & controllers.
-	r.Group(func(r chi.Router) {
-		r.Get("/", ws.Open)
-	})
+	r.Get("/", ws.Open)
 }
