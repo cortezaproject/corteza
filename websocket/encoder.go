@@ -7,14 +7,12 @@ import (
 const (
 	StatusOK    = "ok"
 	StatusError = "error"
-
-	WorkflowApplication = "Workflow"
 )
 
 type (
 	message struct {
 		Status      string      `json:"status"`
-		Application string      `json:"application"`
+		Application uint64      `json:"application"`
 		Data        interface{} `json:"data"`
 	}
 
@@ -23,7 +21,7 @@ type (
 	}
 )
 
-func Message(status, application string, data interface{}) *message {
+func Message(status string, application uint64, data interface{}) *message {
 	return &message{
 		Status:      status,
 		Application: application,

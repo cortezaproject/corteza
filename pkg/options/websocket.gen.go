@@ -14,6 +14,7 @@ import (
 
 type (
 	WebsocketOpt struct {
+		LogEnabled  bool          `env:"WEBSOCKET_LOG_ENABLED"`
 		Timeout     time.Duration `env:"WEBSOCKET_TIMEOUT"`
 		PingTimeout time.Duration `env:"WEBSOCKET_PING_TIMEOUT"`
 		PingPeriod  time.Duration `env:"WEBSOCKET_PING_PERIOD"`
