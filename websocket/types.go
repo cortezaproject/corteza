@@ -31,6 +31,7 @@ func (a *Auth) ParseWithClaims() (jwt.MapClaims, error) {
 	}
 }
 
-func Unmarshal(raw []byte) (p *Payload, err error) {
-	return p, json.Unmarshal(raw, p)
+func Unmarshal(raw []byte) (*Payload, error) {
+	var p Payload
+	return &p, json.Unmarshal(raw, &p)
 }

@@ -320,6 +320,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
 
 	app.WsServer = websocket.Websocket(&websocket.Config{
+		LogEnabled:  app.Opt.Websocket.LogEnabled,
 		Timeout:     app.Opt.Websocket.Timeout,
 		PingTimeout: app.Opt.Websocket.PingTimeout,
 		PingPeriod:  app.Opt.Websocket.PingPeriod,

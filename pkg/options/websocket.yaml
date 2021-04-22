@@ -6,6 +6,10 @@ docs:
   description: A Websocket server emphasize the trigger events and actions.
 
 props:
+  - name: LogEnabled
+    type: bool
+    description: Enable extra logging for authentication flows
+
   - name: Timeout
     type: time.Duration
     default: 15 * time.Second
