@@ -23,6 +23,7 @@ type (
 
 	wsServer interface {
 		MountRoutes(chi.Router)
+		Send(kind string, payload interface{}, userIDs ...uint64) error
 	}
 
 	authServicer interface {
