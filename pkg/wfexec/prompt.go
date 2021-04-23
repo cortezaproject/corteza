@@ -27,6 +27,7 @@ type (
 		CreatedAt time.Time  `json:"createdAt"`
 		StateID   uint64     `json:"stateID,string"`
 		Payload   *expr.Vars `json:"payload"`
+		OwnerId   uint64     `json:"-"`
 	}
 )
 
@@ -40,5 +41,6 @@ func (p *prompted) toPending() *PendingPrompt {
 		CreatedAt: p.state.created,
 		StateID:   p.state.stateId,
 		Payload:   p.payload,
+		OwnerId:   p.ownerId,
 	}
 }

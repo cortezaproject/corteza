@@ -248,8 +248,8 @@ func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
 	return s.enqueue(ctx, NewState(s, auth.GetIdentityFromContext(ctx), nil, step, scope))
 }
 
-// Prompts fn returns all owner's pending prompts on this session
-func (s *Session) PendingPrompts(ownerId uint64) (out []*PendingPrompt) {
+// UserPendingPrompts prompts fn returns all owner's pending prompts on this session
+func (s *Session) UserPendingPrompts(ownerId uint64) (out []*PendingPrompt) {
 	if ownerId == 0 {
 		return
 	}
@@ -264,6 +264,22 @@ func (s *Session) PendingPrompts(ownerId uint64) (out []*PendingPrompt) {
 			continue
 		}
 
+		pending := p.toPending()
+		pending.SessionID = s.id
+		out = append(out, pending)
+	}
+
+	return
+}
+
+// AllPendingPrompts returns all pending prompts for all user
+func (s *Session) AllPendingPrompts() (out []*PendingPrompt) {
+	defer s.mux.RUnlock()
+	s.mux.RLock()
+
+	out = make([]*PendingPrompt, 0, len(s.prompted))
+
+	for _, p := range s.prompted {
 		pending := p.toPending()
 		pending.SessionID = s.id
 		out = append(out, pending)

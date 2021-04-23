@@ -18,6 +18,10 @@ import (
 )
 
 type (
+	websocketSender interface {
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	RBACServicer interface {
 		accessControlRBACServicer
 		Watch(ctx context.Context)
@@ -65,7 +69,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, c Config) (err error) {
 	var (
 	//hcd = healthcheck.Defaults()
 	)
@@ -92,7 +96,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 
 	DefaultAccessControl = AccessControl(rbac.Global())
 
-	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow)
+	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow, ws)
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"))
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 

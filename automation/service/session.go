@@ -18,15 +18,20 @@ import (
 )
 
 type (
+	promptSender interface {
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	session struct {
-		store      store.Storer
-		actionlog  actionlog.Recorder
-		ac         sessionAccessController
-		opt        options.WorkflowOpt
-		log        *zap.Logger
-		mux        *sync.RWMutex
-		pool       map[uint64]*types.Session
-		spawnQueue chan *spawn
+		store        store.Storer
+		actionlog    actionlog.Recorder
+		ac           sessionAccessController
+		opt          options.WorkflowOpt
+		log          *zap.Logger
+		mux          *sync.RWMutex
+		pool         map[uint64]*types.Session
+		spawnQueue   chan *spawn
+		promptSender promptSender
 	}
 
 	spawn struct {
@@ -44,16 +49,17 @@ type (
 	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
 )
 
-func Session(log *zap.Logger, opt options.WorkflowOpt) *session {
+func Session(log *zap.Logger, opt options.WorkflowOpt, ps promptSender) *session {
 	return &session{
-		log:        log,
-		opt:        opt,
-		actionlog:  DefaultActionlog,
-		store:      DefaultStore,
-		ac:         DefaultAccessControl,
-		mux:        &sync.RWMutex{},
-		pool:       make(map[uint64]*types.Session),
-		spawnQueue: make(chan *spawn),
+		log:          log,
+		opt:          opt,
+		actionlog:    DefaultActionlog,
+		store:        DefaultStore,
+		ac:           DefaultAccessControl,
+		mux:          &sync.RWMutex{},
+		pool:         make(map[uint64]*types.Session),
+		spawnQueue:   make(chan *spawn),
+		promptSender: ps,
 	}
 }
 
@@ -265,18 +271,6 @@ func (svc *session) Watch(ctx context.Context) {
 				// @todo cleanup pool when sessions are complete
 
 			case <-gcTicker.C:
-				// Sends pending prompt via websocket
-				ws := websocket.Session(ctx, nil, nil)
-				userIds := ws.GetActiveUserIDs()
-				for _, s := range svc.pool {
-					for _, u := range userIds {
-						pp := s.PendingPrompts(u)
-						if len(pp) > 0 {
-							_ = ws.Send(websocket.Message(websocket.StatusOK, s.WorkflowID, pp), u)
-						}
-					}
-				}
-
 				svc.gc()
 			}
 		}
@@ -370,6 +364,15 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		case wfexec.SessionPrompted:
 			ses.SuspendedAt = now()
 			ses.Status = types.SessionPrompted
+
+			// Send the pending prompts to user
+			if svc.promptSender != nil {
+				for _, pp := range s.AllPendingPrompts() {
+					if err := svc.promptSender.Send(websocket.StatusOK, pp, pp.OwnerId); err != nil {
+						svc.log.Error("failed to send prompt to user", zap.Error(err))
+					}
+				}
+			}
 
 		case wfexec.SessionDelayed:
 			ses.SuspendedAt = now()
