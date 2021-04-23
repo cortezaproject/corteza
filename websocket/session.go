@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
@@ -16,7 +16,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
-var sessions = make(map[uint64]*session)
+// active sessions of users
+var sessions = make(map[uint64][]*session)
 
 type (
 	session struct {
@@ -34,13 +35,13 @@ type (
 
 		remoteAddr string
 
-		config *Config
+		config options.WebsocketOpt
 
 		user auth.Identifiable
 	}
 )
 
-func Session(ctx context.Context, config *Config, conn *gWebsocket.Conn) *session {
+func Session(ctx context.Context, logger *zap.Logger, config options.WebsocketOpt, conn *gWebsocket.Conn) *session {
 	s := &session{
 		conn:   conn,
 		config: config,
@@ -50,7 +51,7 @@ func Session(ctx context.Context, config *Config, conn *gWebsocket.Conn) *sessio
 
 	s.ctx, s.ctxCancel = context.WithCancel(ctx)
 
-	s.logger = logger.AddRequestID(s.ctx, logger.Default().Named("websocket"))
+	s.logger = logger
 
 	return s
 }
@@ -99,7 +100,7 @@ func (s *session) disconnected() {
 	s.ctxCancel()
 
 	// Close connection
-	s.conn.Close()
+	_ = s.conn.Close()
 	s.conn = nil
 }
 
@@ -128,7 +129,7 @@ func (s *session) Handle() (err error) {
 func (s *session) Close() {
 	s.once.Do(func() {
 		s.disconnected()
-		s.Delete()
+		_ = s.Delete()
 	})
 }
 
@@ -233,34 +234,55 @@ func (s *session) dispatch(raw []byte) error {
 		return errors.Wrap(err, "Session.incoming: payload malformed")
 	}
 
-	ctx := s.Context()
-
 	if p.Auth != nil {
-		return s.authenticate(ctx, p.Auth)
+		return s.authenticate(p.Auth)
 	}
 
 	return nil
 }
 
-func (s *session) Save() *session {
+func (s *session) authenticate(p *Auth) error {
+	// Get JWT claims
+	claims, err := p.ParseWithClaims()
+	if err != nil {
+		s.Close()
+		return err
+	}
+
+	// Get identity using JWT claims
+	identity := auth.ClaimsToIdentity(claims)
+	s.Save(identity)
+
+	return nil
+}
+
+func (s *session) Save(identity *auth.Identity) *session {
 	if s.id == 0 {
 		s.id = id.Next()
 	}
 
-	if s.user != nil {
-		if _, ok := sessions[s.user.Identity()]; !ok {
-			sessions[s.user.Identity()] = s
+	if identity != nil {
+		userID := identity.Identity()
+		existingSessions, ok := sessions[userID]
+		// Add sessions for user
+		if !ok {
+			s.user = identity
+			sessions[userID] = append(sessions[userID], s)
+		}
+
+		// Update the identity in existing sessions
+		for _, sess := range existingSessions {
+			sess.user = identity
 		}
 	}
 
 	return s
 }
 
-func (s *session) Get(userID uint64) *session {
+func (s *session) Get(userID uint64) []*session {
 	if sess, ok := sessions[userID]; ok {
 		return sess
 	}
-
 	return nil
 }
 
@@ -276,30 +298,6 @@ func (s *session) Delete() error {
 	return nil
 }
 
-// Send sends message to user to ones we want to
-// if len(userIDs) == 0 -- it sends to everyone
-func (s *session) Send(m *message, userIDs ...uint64) error {
-	pb, err := m.EncodeMessage()
-	if err != nil {
-		return err
-	}
-
-	sendsToAll := len(userIDs) == 0
-	userIDMap := make(map[uint64]uint64)
-	for _, userID := range userIDs {
-		userIDMap[userID] = userID
-	}
-
-	for _, sess := range sessions {
-		_, validUser := userIDMap[sess.user.Identity()]
-		if sendsToAll || (!sendsToAll && validUser) {
-			_ = sess.sendBytes(pb)
-		}
-	}
-
-	return nil
-}
-
 // sendBytes sends byte to channel or timout
 func (s *session) sendBytes(p []byte) error {
 	select {
@@ -308,18 +306,4 @@ func (s *session) sendBytes(p []byte) error {
 		s.logger.Warn("websocket.sendBytes send timeout")
 	}
 	return nil
-}
-
-func (s *session) Walk(callback func(*session)) {
-	for _, sess := range sessions {
-		callback(sess)
-	}
-}
-
-// GetActiveUserIDs return userIDs from active ws sessions
-func (s *session) GetActiveUserIDs() (ids []uint64) {
-	s.Walk(func(sess *session) {
-		ids = append(ids, sess.user.Identity())
-	})
-	return
 }

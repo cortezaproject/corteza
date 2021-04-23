@@ -248,6 +248,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
+	app.WsServer = websocket.Websocket(app.Log, app.Opt.Websocket)
+
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 	defer sentry.Recover()
 
@@ -290,7 +292,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = autService.Initialize(ctx, app.Log, app.Store, autService.Config{
+	err = autService.Initialize(ctx, app.Log, app.Store, app.WsServer, autService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Workflow:  app.Opt.Workflow,
 	})
@@ -314,13 +316,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	corredor.Service().SetUserFinder(sysService.DefaultUser)
 	corredor.Service().SetRoleFinder(sysService.DefaultRole)
-
-	app.WsServer = websocket.Websocket(&websocket.Config{
-		LogEnabled:  app.Opt.Websocket.LogEnabled,
-		Timeout:     app.Opt.Websocket.Timeout,
-		PingTimeout: app.Opt.Websocket.PingTimeout,
-		PingPeriod:  app.Opt.Websocket.PingPeriod,
-	}, app.Log)
 
 	if app.Opt.Federation.Enabled {
 		// Initializes federation services
