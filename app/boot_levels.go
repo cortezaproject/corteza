@@ -281,7 +281,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = sysService.Initialize(ctx, app.Log, app.Store, sysService.Config{
+	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Storage:   app.Opt.ObjStore,
 		Template:  app.Opt.Template,
