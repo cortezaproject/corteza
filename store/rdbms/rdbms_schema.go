@@ -84,6 +84,8 @@ func (s Schema) Tables() []*Table {
 		s.AutomationTriggers(),
 		s.AutomationSessions(),
 		//s.AutomationState(),
+		s.MessagebusQueuemessage(),
+		s.MessagebusQueueSettings(),
 	}
 }
 
@@ -631,5 +633,28 @@ func (Schema) AutomationTriggers() *Table {
 		CUDUsers,
 
 		AddIndex("workflow", IColumn("rel_workflow")),
+	)
+}
+
+func (Schema) MessagebusQueuemessage() *Table {
+	return TableDef("queue_messages",
+		ID,
+		ColumnDef("queue", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("payload", ColumnTypeBinary),
+		ColumnDef("created", ColumnTypeTimestamp),
+		ColumnDef("processed", ColumnTypeTimestamp, Null),
+
+		// AddIndex("processed", IColumn("processed")),
+	)
+}
+
+func (Schema) MessagebusQueueSettings() *Table {
+	return TableDef("queue_settings",
+		ID,
+		ColumnDef("consumer", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("queue", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
+		CUDTimestamps,
+		CUDUsers,
 	)
 }

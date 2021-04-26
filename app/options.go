@@ -22,6 +22,7 @@ type (
 		WaitFor     options.WaitForOpt
 		HTTPServer  options.HTTPServerOpt
 		Eventbus    options.EventbusOpt
+		Messagebus  options.MessagebusOpt
 		Federation  options.FederationOpt
 		SCIM        options.SCIMOpt
 		Workflow    options.WorkflowOpt
@@ -46,6 +47,7 @@ func NewOptions() *Options {
 		WaitFor:     *options.WaitFor(),
 		HTTPServer:  *options.HTTPServer(),
 		Eventbus:    *options.Eventbus(),
+		Messagebus:  *options.Messagebus(),
 		Federation:  *options.Federation(),
 		SCIM:        *options.SCIM(),
 		Workflow:    *options.Workflow(),

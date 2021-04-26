@@ -236,6 +236,22 @@ type (
 		*mailBase
 	}
 
+	// queueBase
+	//
+	// This type is auto-generated.
+	queueBase struct {
+		immutable bool
+		payload   *types.QueueMessage
+		invoker   auth.Identifiable
+	}
+
+	// queueOnMessage
+	//
+	// This type is auto-generated.
+	queueOnMessage struct {
+		*queueBase
+	}
+
 	// roleBase
 	//
 	// This type is auto-generated.
@@ -1915,6 +1931,163 @@ func (res *mailBase) DecodeVars(vars *expr.Vars) (err error) {
 		return
 	}
 	// Could not find expression-type counterpart for *types.MailMessage
+	// Could not find expression-type counterpart for auth.Identifiable
+
+	return
+}
+
+// ResourceType returns "system:queue"
+//
+// This function is auto-generated.
+func (queueBase) ResourceType() string {
+	return "system:queue"
+}
+
+// EventType on queueOnMessage returns "onMessage"
+//
+// This function is auto-generated.
+func (queueOnMessage) EventType() string {
+	return "onMessage"
+}
+
+// QueueOnMessage creates onMessage for system:queue resource
+//
+// This function is auto-generated.
+func QueueOnMessage(
+	argPayload *types.QueueMessage,
+) *queueOnMessage {
+	return &queueOnMessage{
+		queueBase: &queueBase{
+			immutable: false,
+			payload:   argPayload,
+		},
+	}
+}
+
+// QueueOnMessageImmutable creates onMessage for system:queue resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func QueueOnMessageImmutable(
+	argPayload *types.QueueMessage,
+) *queueOnMessage {
+	return &queueOnMessage{
+		queueBase: &queueBase{
+			immutable: true,
+			payload:   argPayload,
+		},
+	}
+}
+
+// SetPayload sets new payload value
+//
+// This function is auto-generated.
+func (res *queueBase) SetPayload(argPayload *types.QueueMessage) {
+	res.payload = argPayload
+}
+
+// Payload returns payload
+//
+// This function is auto-generated.
+func (res queueBase) Payload() *types.QueueMessage {
+	return res.payload
+}
+
+// SetInvoker sets new invoker value
+//
+// This function is auto-generated.
+func (res *queueBase) SetInvoker(argInvoker auth.Identifiable) {
+	res.invoker = argInvoker
+}
+
+// Invoker returns invoker
+//
+// This function is auto-generated.
+func (res queueBase) Invoker() auth.Identifiable {
+	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res queueBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["payload"], err = json.Marshal(res.payload); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Encode internal data to be passed as event params & arguments to workflow
+func (res queueBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
+
+	if v, err = automation.NewQueueMessage(res.payload); err == nil {
+		err = out.Set("payload", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	_ = v
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *queueBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.payload != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.payload); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.payload != nil {
+		if r, ok := results["payload"]; ok {
+			if err = json.Unmarshal(r, res.payload); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+func (res *queueBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.payload != nil && vars.Has("payload") {
+		var aux *automation.QueueMessage
+		aux, err = automation.NewQueueMessage(expr.Must(vars.Select("payload")))
+		if err != nil {
+			return
+		}
+
+		res.payload = aux.GetValue()
+	}
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return
