@@ -1,0 +1,26 @@
+import:
+  - github.com/cortezaproject/corteza-server/pkg/messagebus
+
+types:
+  package: messagebus
+  type: messagebus.QueueMessage
+  filterType: messagebus.QueueMessageFilter
+
+fields:
+  - { field: ID,        sortable: false }
+  - { field: Queue }
+  - { field: Payload }
+  - { field: Processed, type: "time.Time" }
+  - { field: Created,   type: "time.Time" }
+
+rdbms:
+  alias: mqm
+  table: queue_messages
+  customFilterConverter: true
+
+search:
+  enablePaging: true
+  enableFilterCheckFunction: false
+
+upsert:
+  enable: false

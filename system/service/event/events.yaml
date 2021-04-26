@@ -109,3 +109,12 @@ system:application:
       immutable: true
   constraints:
     - name: application.name
+
+
+system:queue:
+  on: ['message']
+  props:
+    - name: 'payload'
+      type: '*types.QueueMessage'
+  constraints:
+    - name: payload.queue

@@ -56,6 +56,128 @@ func (t *DocumentType) Assign(val interface{}) error {
 	}
 }
 
+// QueueMessage is an expression type, wrapper for *types.QueueMessage type
+type QueueMessage struct{ value *types.QueueMessage }
+
+// NewQueueMessage creates new instance of QueueMessage expression type
+func NewQueueMessage(val interface{}) (*QueueMessage, error) {
+	if c, err := CastToQueueMessage(val); err != nil {
+		return nil, fmt.Errorf("unable to create QueueMessage: %w", err)
+	} else {
+		return &QueueMessage{value: c}, nil
+	}
+}
+
+// Return underlying value on QueueMessage
+func (t QueueMessage) Get() interface{} { return t.value }
+
+// Return underlying value on QueueMessage
+func (t QueueMessage) GetValue() *types.QueueMessage { return t.value }
+
+// Return type name
+func (QueueMessage) Type() string { return "QueueMessage" }
+
+// Convert value to *types.QueueMessage
+func (QueueMessage) Cast(val interface{}) (TypedValue, error) {
+	return NewQueueMessage(val)
+}
+
+// Assign new value to QueueMessage
+//
+// value is first passed through CastToQueueMessage
+func (t *QueueMessage) Assign(val interface{}) error {
+	if c, err := CastToQueueMessage(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *QueueMessage) AssignFieldValue(key string, val TypedValue) error {
+	return assignToQueueMessage(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access QueueMessage's underlying value (*types.QueueMessage)
+// and it's fields
+//
+func (t QueueMessage) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	return queueMessageGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.QueueMessage
+//
+// Similar to SelectGVal but returns typed values
+func (t QueueMessage) Select(k string) (TypedValue, error) {
+	return queueMessageTypedValueSelector(t.value, k)
+}
+
+func (t QueueMessage) Has(k string) bool {
+	switch k {
+	case "Queue":
+		return true
+	case "Payload":
+		return true
+	}
+	return false
+}
+
+// queueMessageGValSelector is field accessor for *types.QueueMessage
+func queueMessageGValSelector(res *types.QueueMessage, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "Queue":
+		return res.Queue, nil
+	case "Payload":
+		return res.Payload, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// queueMessageTypedValueSelector is field accessor for *types.QueueMessage
+func queueMessageTypedValueSelector(res *types.QueueMessage, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "Queue":
+		return NewString(res.Queue)
+	case "Payload":
+		return NewString(res.Payload)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToQueueMessage is field value setter for *types.QueueMessage
+func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) error {
+	switch k {
+	case "Queue":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Queue = aux
+		return nil
+	case "Payload":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Payload = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // RenderOptions is an expression type, wrapper for map[string]string type
 type RenderOptions struct{ value map[string]string }
 

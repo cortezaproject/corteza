@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
+
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	autService "github.com/cortezaproject/corteza-server/automation/service"
@@ -19,7 +21,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/http"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/monitor"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/provision"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
@@ -30,7 +34,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
-	"strings"
 )
 
 const (
@@ -130,6 +133,16 @@ func (app *CortezaApp) Setup() (err error) {
 
 	if err = corredor.Setup(app.Log, app.Opt.Corredor); err != nil {
 		return err
+	}
+
+	{
+		// load only setup even if disabled, so we can fail gracefuly
+		// on queue push
+		messagebus.Setup(options.Messagebus(), app.Log)
+
+		if !app.Opt.Messagebus.Enabled {
+			app.Log.Debug("messagebus disabled (MESSAGEBUS_ENABLED=false)")
+		}
 	}
 
 	app.lvl = bootLevelSetup
@@ -250,6 +263,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		}
 
 		rbac.Global().Reload(ctx)
+	}
+
+	if app.Opt.Messagebus.Enabled {
+		// initialize all the queue handlers
+		messagebus.Service().Init(ctx, app.Store)
 	}
 
 	// Initializes system services
@@ -405,6 +423,16 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	})
 
 	app.AuthService.Watch(ctx)
+
+	// messagebus reloader and consumer listeners
+	if app.Opt.Messagebus.Enabled {
+
+		// set messagebus listener on input channel
+		messagebus.Service().Listen(ctx)
+
+		// watch for queue changes and restart on update
+		messagebus.Service().Watch(ctx, app.Store)
+	}
 
 	app.lvl = bootLevelActivated
 	return nil

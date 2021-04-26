@@ -1,0 +1,93 @@
+# List of loggable service actions
+
+resource: system:queue
+service: queue
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/pkg/messagebus
+
+props:
+  - name: queue
+    type: "*messagebus.QueueSettings"
+    fields: [ queue, ID ]
+  - name: new
+    type: "*messagebus.QueueSettings"
+    fields: [ queue, consumer, ID ]
+  - name: update
+    type: "*messagebus.QueueSettings"
+    fields: [ queue, consumer, ID ]
+  - name: search
+    type: "*messagebus.QueueSettingsFilter"
+    fields: [ ]
+
+actions:
+  - action: search
+    log: "searched for queues"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {queue}"
+    severity: info
+
+  - action: create
+    log: "created {queue}"
+
+  - action: update
+    log: "updated {queue}"
+
+  - action: delete
+    log: "deleted {queue}"
+
+  - action: undelete
+    log: "undeleted {queue}"
+
+errors:
+  - error: notFound
+    message: "queue not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidConsumer
+    message: "invalid consumer"
+    severity: warning
+
+  - error: alreadyExists
+    message: "queue by that name already exists"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a queue"
+    log: "failed to create a queue; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this queue"
+    log: "failed to read {queue.queue}; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this queue"
+    log: "failed to update {queue.queue}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this queue"
+    log: "failed to delete {queue.queue}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this queue"
+    log: "failed to undelete {queue.queue}; insufficient permissions"
+
+  - error: notAllowedToWriteTo
+    message: "not allowed to add messages to this queue"
+    log: "failed to add message to {queue.queue}; insufficient permissions"
+
+  - error: notAllowedToReadFrom
+    message: "not allowed to read messages from this queue"
+    log: "failed to read message from {queue.queue}; insufficient permissions"
