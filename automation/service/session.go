@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/websocket"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -368,7 +367,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			// Send the pending prompts to user
 			if svc.promptSender != nil {
 				for _, pp := range s.AllPendingPrompts() {
-					if err := svc.promptSender.Send(websocket.StatusOK, pp, pp.OwnerId); err != nil {
+					if err := svc.promptSender.Send("ok", pp, pp.OwnerId); err != nil {
 						svc.log.Error("failed to send prompt to user", zap.Error(err))
 					}
 				}
