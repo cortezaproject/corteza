@@ -3,15 +3,15 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
 	"go.uber.org/zap"
-	"net/http"
-	"strings"
 )
 
 func copyProviderToContext(r *http.Request) *http.Request {
@@ -22,25 +22,25 @@ func (h AuthHandlers) externalInit(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("starting external authentication flow")
 
-	gothic.BeginAuthHandler(w, r)
+	beginUserAuth(w, r, external.NewDefaultExternalHandler())
 }
 
 func (h AuthHandlers) externalCallback(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("external authentication callback")
 
-	if user, err := gothic.CompleteUserAuth(w, r); err != nil {
+	if user, err := completeUserAuth(w, r, external.NewDefaultExternalHandler()); err != nil {
 		h.Log.Error("failed to complete user auth", zap.Error(err))
 		h.handleFailedExternalAuth(w, r, err)
 	} else {
-		h.handleSuccessfulExternalAuth(w, r, user)
+		h.handleSuccessfulExternalAuth(w, r, *user)
 	}
 }
 
 // Handles authentication via external auth providers of
 // unknown an user + appending authentication on external providers
 // to a current user
-func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred goth.User) {
+func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *http.Request, cred types.ExternalAuthUser) {
 	var (
 		user *types.User
 		err  error
@@ -90,4 +90,12 @@ func (h AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, r *http.Re
 
 	fmt.Fprintf(w, "SSO Error: %v", err.Error())
 	w.WriteHeader(http.StatusOK)
+}
+
+func beginUserAuth(w http.ResponseWriter, r *http.Request, eh external.ExternalAuthHandler) {
+	eh.BeginUserAuth(w, r)
+}
+
+func completeUserAuth(w http.ResponseWriter, r *http.Request, eh external.ExternalAuthHandler) (u *types.ExternalAuthUser, err error) {
+	return eh.CompleteUserAuth(w, r)
 }

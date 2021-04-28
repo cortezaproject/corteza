@@ -9,6 +9,27 @@ type (
 		ExternalEnabled           bool
 		Providers                 []Provider
 
+		Saml struct {
+			Enabled bool
+
+			// SAML certificate
+			Cert string
+
+			// SAML certificate private key
+			Key string
+
+			// Identity provider hostname
+			IDP struct {
+				URL  string
+				Name string
+
+				// identifier payload from idp
+				IdentName       string
+				IdentHandle     string
+				IdentIdentifier string
+			}
+		}
+
 		MultiFactor struct {
 			EmailOTP struct {
 				// Can users use email for MFA

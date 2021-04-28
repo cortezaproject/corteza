@@ -57,6 +57,7 @@ func NewAuthUser(s *settings.Settings, u *types.User, perm bool, permLifetime ti
 		User:         u,
 		PermSession:  perm,
 		PermLifetime: permLifetime,
+		MFAStatus:    make(map[authType]authStatus),
 	}
 
 	au.set(s, u)

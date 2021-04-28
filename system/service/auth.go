@@ -60,8 +60,13 @@ var (
 )
 
 func defaultProviderValidator(provider string) error {
-	_, err := goth.GetProvider(provider)
-	return err
+	switch provider {
+	case "saml":
+		return nil
+	default:
+		_, err := goth.GetProvider(provider)
+		return err
+	}
 }
 
 func Auth() *auth {
@@ -95,7 +100,7 @@ func Auth() *auth {
 //
 // External login/signup does not:
 //  - validate provider on profile, only uses it for matching credentials
-func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User, err error) {
+func (svc auth) External(ctx context.Context, profile types.ExternalAuthUser) (u *types.User, err error) {
 	var (
 		authProvider = &types.AuthProvider{Provider: profile.Provider}
 
@@ -123,6 +128,7 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 			cc types.CredentialsSet
 			f  = types.CredentialsFilter{Kind: profile.Provider, Credentials: profile.UserID}
 		)
+
 		if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err == nil {
 			// Credentials found, load user
 			for _, c := range cc {
@@ -190,7 +196,6 @@ func (svc auth) External(ctx context.Context, profile goth.User) (u *types.User,
 		// Find user via his email
 		if u, err = store.LookupUserByEmail(ctx, svc.store, profile.Email); errors.IsNotFound(err) {
 			// @todo check if it is ok to auto-create a user here
-
 			// In case we do not have this email, create a new user
 			u = &types.User{
 				Email:          profile.Email,

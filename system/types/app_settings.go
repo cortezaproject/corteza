@@ -51,6 +51,28 @@ type (
 				// Is external authentication
 				Enabled bool
 
+				// Saml
+				Saml struct {
+					Enabled bool
+
+					// SAML certificate
+					Cert string `kv:"cert"`
+
+					// SAML certificate private key
+					Key string `kv:"key"`
+
+					// Identity provider settings
+					IDP struct {
+						URL  string `kv:"url"`
+						Name string
+
+						// identifier payload from idp
+						IdentName       string `kv:"ident-name"`
+						IdentHandle     string `kv:"ident-handle"`
+						IdentIdentifier string `kv:"ident-identifier"`
+					} `kv:"idp"`
+				}
+
 				// all external providers we know
 				Providers ExternalAuthProviderSet
 			}
