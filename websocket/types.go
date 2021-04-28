@@ -25,11 +25,6 @@ type (
 	}
 )
 
-const (
-	StatusOK    = "ok"
-	StatusError = "error"
-)
-
 func (a *Auth) ParseWithClaims() (jwt.MapClaims, error) {
 	token, err := jwt.Parse(*a.AccessToken, nil)
 	if token == nil {
