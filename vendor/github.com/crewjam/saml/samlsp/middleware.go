@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/crewjam/saml"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // Middleware implements middleware than allows a web application
@@ -51,15 +50,12 @@ type Middleware struct {
 // on the URIs specified by m.ServiceProvider.MetadataURL and
 // m.ServiceProvider.AcsURL.
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	spew.Dump("SERVE", r.URL.Path, m.ServiceProvider.MetadataURL)
 	if r.URL.Path == m.ServiceProvider.MetadataURL.Path {
-		spew.Dump("1")
 		m.serveMetadata(w, r)
 		return
 	}
 
 	if r.URL.Path == m.ServiceProvider.AcsURL.Path {
-		spew.Dump("2")
 		m.serveACS(w, r)
 		return
 	}

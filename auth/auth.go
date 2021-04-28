@@ -4,11 +4,20 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/Masterminds/sprig"
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/auth/saml"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -20,12 +29,6 @@ import (
 	"github.com/go-chi/chi"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
-	"html/template"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type (
@@ -227,6 +230,60 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 	return
 }
 
+// LoadSamlService takes care of certificate preloading, fetching of the
+// IDP metadata once the auth settings are loaded and registers the
+// SAML middleware
+func (svc *service) LoadSamlService(ctx context.Context, s *settings.Settings) (srvc *saml.SamlSPService, err error) {
+	links := handlers.GetLinks()
+
+	certManager := saml.NewCertManager(&saml.CertStoreLoader{Storer: svc.store})
+
+	cert, err := certManager.Parse([]byte(s.Saml.Cert), []byte(s.Saml.Key))
+	if err != nil {
+		return
+	}
+
+	idpUrl, err := url.Parse(s.Saml.IDP.URL)
+	if err != nil {
+		return
+	}
+
+	// idp metadata needs to be loaded before
+	// the internal samlsp package
+	md, err := saml.FetchIDPMetadata(ctx, *idpUrl)
+	ru, err := url.Parse(svc.opt.BaseURL)
+
+	rootURL := &url.URL{
+		Scheme: ru.Scheme,
+		User:   ru.User,
+		Host:   ru.Host,
+	}
+
+	if err != nil {
+		return
+	}
+
+	srvc, err = saml.NewSamlSPService(saml.SamlSPArgs{
+		AcsURL:  links.SamlCallback,
+		MetaURL: links.SamlMetadata,
+		SloURL:  links.SamlLogout,
+
+		IdpURL: *idpUrl,
+		Host:   *rootURL,
+
+		Cert:    cert,
+		IdpMeta: md,
+
+		IdentityPayload: saml.IdpIdentityPayload{
+			Name:       s.Saml.IDP.IdentName,
+			Handle:     s.Saml.IDP.IdentHandle,
+			Identifier: s.Saml.IDP.IdentIdentifier,
+		},
+	})
+
+	return
+}
+
 func (svc *service) UpdateSettings(s *settings.Settings) {
 	if svc.settings.LocalEnabled != s.LocalEnabled {
 		svc.log.Debug("setting changed", zap.Bool("localEnabled", s.LocalEnabled))
@@ -250,6 +307,36 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 
 	if svc.settings.MultiFactor != s.MultiFactor {
 		svc.log.Debug("setting changed", zap.Any("mfa", s.MultiFactor))
+	}
+
+	if svc.settings.Saml != s.Saml {
+		var (
+			log = svc.log.Named("saml")
+			ss  *saml.SamlSPService
+			err error
+		)
+
+		switch true {
+		case s.Saml.Cert == "", s.Saml.Key == "":
+			log.Warn("certificate private/public keys empty (see 'auth.external.saml' settings)")
+			break
+
+		case s.Saml.IDP.URL == "":
+			log.Warn("could not get IDP url (see 'auth.external.saml.idp')")
+			break
+
+		default:
+			ss, err = svc.LoadSamlService(context.Background(), s)
+
+			if err != nil {
+				log.Warn("could not reload service", zap.Error(err))
+			}
+		}
+
+		if ss != nil {
+			log.Debug("settings changed, reloading")
+			svc.handlers.SamlSPService = *ss
+		}
 	}
 
 	if len(svc.settings.Providers) != len(s.Providers) {
