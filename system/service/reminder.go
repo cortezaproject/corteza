@@ -6,7 +6,6 @@ import (
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/websocket"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
 	"time"
@@ -309,7 +308,7 @@ func (svc reminder) Watch(ctx context.Context) {
 					// Send scheduled reminders to users
 					_ = rr.Walk(func(r *types.Reminder) error {
 						if r.RemindAt != nil && sendReminderNow(*r.RemindAt) {
-							if err := svc.reminderSender.Send(websocket.StatusOK, r, r.AssignedTo); err != nil {
+							if err := svc.reminderSender.Send("ok", r, r.AssignedTo); err != nil {
 								svc.log.Error("failed to send reminder to user", zap.Error(err))
 							}
 						}
