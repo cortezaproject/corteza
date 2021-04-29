@@ -14,13 +14,6 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		l = GetLinks()
 	)
 
-	r.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := actionlog.RequestOriginToContext(r.Context(), actionlog.RequestOrigin_Auth)
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	})
-
 	if h.Opt.DevelopmentMode {
 		r.Get("/auth/dev", h.handle(h.devView))
 		r.Get("/auth/dev/scenarios", h.devSceneView)
@@ -28,6 +21,13 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 
 	r.Handle("/auth/", http.RedirectHandler("/auth", http.StatusSeeOther))
 	r.Group(func(r chi.Router) {
+		r.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ctx := actionlog.RequestOriginToContext(r.Context(), actionlog.RequestOrigin_Auth)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			})
+		})
+
 		if h.Opt.RequestRateLimit > 0 {
 			r.Use(httprate.LimitByIP(h.Opt.RequestRateLimit, h.Opt.RequestRateWindowLength)) // @todo make configurable
 		}
