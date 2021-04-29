@@ -12,22 +12,33 @@ import (
 // ServeHTTP Prepares and encodes given error for HTTP transport
 //
 // mask arg hides extra/debug info
+//
+// Proper HTTP status codes are generally not used in the API due to compatibility issues
+// This should be addressed in the future versions when/if we restructure the API
 func ServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
+	// due to backward compatibility,
+	// custom HTTP statuses are disabled for now.
+	serveHTTP(w, r, http.StatusOK, err, mask)
+}
+
+// ProperlyServeHTTP Prepares and encodes given error for HTTP transport, same as ServeHTTP but with proper status codes
+func ProperlyServeHTTP(w http.ResponseWriter, r *http.Request, err error, mask bool) {
+	var (
+		code = http.StatusInternalServerError
+	)
+
+	if e, is := err.(*Error); is {
+		code = e.kind.httpStatus()
+	}
+
+	serveHTTP(w, r, code, err, mask)
+}
+
+func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask bool) {
 	var (
 		// Very naive approach on parsing accept headers
 		acceptsJson = strings.Contains(r.Header.Get("accept"), "application/json")
-
-		// due to backward compatibility,
-		// proper use of HTTP statuses is disabled for now.
-		code = http.StatusOK
-		//code = http.StatusInternalServerError
 	)
-
-	// due to backward compatibility,
-	// custom HTTP statuses are disabled for now.
-	//if e, is := err.(*Error); is {
-	//	code = e.kind.httpStatus()
-	//}
 
 	if !mask && !acceptsJson {
 		// Prettify error for plain text debug output
