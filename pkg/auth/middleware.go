@@ -1,8 +1,7 @@
 package auth
 
 import (
-	"errors"
-	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"net/http"
 )
 
@@ -17,15 +16,13 @@ func AccessTokenCheck(scope ...string) func(http.Handler) http.Handler {
 
 			for _, s := range scope {
 				if !CheckScope(ctx.Value(scopeCtxKey{}), s) {
-					w.WriteHeader(http.StatusUnauthorized)
-					api.Send(w, r, errors.New("unauthorized scope"))
+					errors.ProperlyServeHTTP(w, r, errors.Unauthorized("unauthorized scope"), false)
 					return
 				}
 			}
 
 			if !GetIdentityFromContext(ctx).Valid() {
-				w.WriteHeader(http.StatusUnauthorized)
-				api.Send(w, r, errors.New("unauthorized"))
+				errors.ProperlyServeHTTP(w, r, errors.Unauthorized("unauthorized"), false)
 				return
 			}
 
