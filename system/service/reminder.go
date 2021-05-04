@@ -308,7 +308,7 @@ func (svc reminder) Watch(ctx context.Context) {
 					// Send scheduled reminders to users
 					_ = rr.Walk(func(r *types.Reminder) error {
 						if r.RemindAt != nil && sendReminderNow(*r.RemindAt) {
-							if err := svc.reminderSender.Send("ok", r, r.AssignedTo); err != nil {
+							if err := svc.reminderSender.Send("reminder", r, r.AssignedTo); err != nil {
 								svc.log.Error("failed to send reminder to user", zap.Error(err))
 							}
 						}

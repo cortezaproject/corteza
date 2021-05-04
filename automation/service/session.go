@@ -212,7 +212,16 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 		return errors.NotFound("session not found")
 	}
 
-	return ses.Resume(ctx, stateID, input)
+	resPrompt, err := ses.Resume(ctx, stateID, input)
+	if err != nil {
+		return err
+	}
+
+	if err = svc.promptSender.Send("workflowSessionResumed", resPrompt, resPrompt.OwnerId); err != nil {
+		svc.log.Error("failed to send prompt resume status to user", zap.Error(err))
+	}
+
+	return nil
 }
 
 // spawns a new session
@@ -367,7 +376,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			// Send the pending prompts to user
 			if svc.promptSender != nil {
 				for _, pp := range s.AllPendingPrompts() {
-					if err := svc.promptSender.Send("ok", pp, pp.OwnerId); err != nil {
+					if err := svc.promptSender.Send("workflowSessionPrompt", pp, pp.OwnerId); err != nil {
 						svc.log.Error("failed to send prompt to user", zap.Error(err))
 					}
 				}
