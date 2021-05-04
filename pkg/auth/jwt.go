@@ -45,12 +45,48 @@ func JWT(secret string, expiry time.Duration) (tkn *token, err error) {
 	return tkn, nil
 }
 
-// HttpVerifier verifies JWT and stores it into context
+func (t *token) Authenticate(token string) (jwt.MapClaims, error) {
+	dt, err := t.tokenAuth.Decode(token)
+	if err != nil {
+		return nil, err
+	}
+
+	if dt == nil || !dt.Valid {
+		return nil, jwtauth.ErrUnauthorized
+	}
+
+	if dt.Method != jwt.SigningMethodHS512 {
+		return nil, jwtauth.ErrAlgoInvalid
+	}
+
+	if mc, is := dt.Claims.(jwt.MapClaims); is {
+		return mc, nil
+	}
+
+	return nil, nil
+}
+
+// HttpVerifier returns a HTTP handler that verifies JWT and stores it into context
 func (t *token) HttpVerifier() func(http.Handler) http.Handler {
 	return jwtauth.Verifier(t.tokenAuth)
 }
 
-func (t *token) Encode(i Identifiable) string {
+func (t *token) Encode(i Identifiable, scope ...string) string {
+	var (
+		// when possible, extend this with the client
+		clientID uint64 = 0
+	)
+
+	if len(scope) == 0 {
+		// for backward compatibility we default
+		// unset scope to profile & api
+		scope = []string{"profile", "api"}
+	}
+
+	return t.encode(i, clientID, scope...)
+}
+
+func (t *token) encode(i Identifiable, clientID uint64, scope ...string) string {
 
 	roles := ""
 	for _, r := range i.Roles() {
@@ -58,17 +94,10 @@ func (t *token) Encode(i Identifiable) string {
 	}
 
 	_, tkn, _ := t.tokenAuth.Encode(jwt.MapClaims{
-		"sub": i.String(),
-		"exp": time.Now().Add(t.expiry).Unix(),
-
-		// when possible, extend this with the client
-		"aud": "0", // we should be more strict here and provide a client!
-
-		// at some point, we'll need to do this a bit more carefully;
-		// for now, we just add all necessary scopes so that users of this (cli, corredor)
-		// can create a useful JWT
-		"scope": "profile api",
-
+		"sub":   i.String(),
+		"exp":   time.Now().Add(t.expiry).Unix(),
+		"aud":   fmt.Sprintf("%d", clientID),
+		"scope": strings.Join(scope, " "),
 		"roles": strings.TrimSpace(roles),
 	})
 
