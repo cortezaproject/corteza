@@ -284,6 +284,10 @@ func (t *Vars) Set(k string, v interface{}) (err error) {
 func (t Vars) MarshalJSON() ([]byte, error) {
 	aux := make(map[string]*typedValueWrap)
 	for k, v := range t.value {
+		if v == nil {
+			continue
+		}
+
 		aux[k] = &typedValueWrap{Type: v.Type()}
 
 		if _, is := v.(json.Marshaler); is {
