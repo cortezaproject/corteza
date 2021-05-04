@@ -288,7 +288,7 @@ func (s *Session) AllPendingPrompts() (out []*PendingPrompt) {
 	return
 }
 
-func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) error {
+func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) (*ResumedPrompt, error) {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
@@ -297,11 +297,11 @@ func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) 
 		p, has = s.prompted[stateId]
 	)
 	if !has {
-		return fmt.Errorf("unexisting state")
+		return nil, fmt.Errorf("unexisting state")
 	}
 
 	if i == nil || p.ownerId != i.Identity() {
-		return fmt.Errorf("state access denied")
+		return nil, fmt.Errorf("state access denied")
 	}
 
 	delete(s.prompted, stateId)
@@ -309,7 +309,11 @@ func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) 
 	// setting received input to state
 	p.state.input = input
 
-	return s.enqueue(ctx, p.state)
+	if err := s.enqueue(ctx, p.state); err != nil {
+		return nil, err
+	}
+
+	return p.toResumed(), nil
 }
 
 func (s *Session) enqueue(ctx context.Context, st *State) error {

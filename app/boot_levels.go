@@ -29,11 +29,11 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza-server/pkg/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/cortezaproject/corteza-server/websocket"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 )
@@ -252,7 +252,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
-	app.WsServer = websocket.Websocket(app.Log, app.Opt.Websocket)
+	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
 
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 	defer sentry.Recover()

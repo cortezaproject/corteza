@@ -103,7 +103,7 @@ func (s Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) e
 	return s.session.Exec(ctx, step, input)
 }
 
-func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) error {
+func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) (*wfexec.ResumedPrompt, error) {
 	return s.session.Resume(ctx, stateID, input)
 }
 

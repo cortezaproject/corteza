@@ -278,7 +278,10 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 
 func (svc reminder) Watch(ctx context.Context) {
 	if svc.reminderSender != nil {
-		rTicker := time.NewTicker(time.Second)
+		var (
+			interval = time.Second
+			rTicker  = time.NewTicker(interval)
+		)
 
 		go func() {
 			defer sentry.Recover()
@@ -289,26 +292,21 @@ func (svc reminder) Watch(ctx context.Context) {
 				select {
 				case <-ctx.Done():
 					return
-				case t := <-rTicker.C:
+				case <-rTicker.C:
 					// Get scheduled reminders of users
 					rr, _, err := svc.Find(ctx, types.ReminderFilter{
 						ExcludeDismissed: true,
 						ScheduledOnly:    true,
 					})
+
 					if err != nil {
 						svc.log.Error("failed to get reminders of users", zap.Error(err))
 					}
 
-					// sendReminderNow checks time is equal to current time or not
-					sendReminderNow := func(tt time.Time) bool {
-						timeLayout := time.RFC3339
-						return tt.Format(timeLayout) == t.Format(timeLayout)
-					}
-
 					// Send scheduled reminders to users
 					_ = rr.Walk(func(r *types.Reminder) error {
-						if r.RemindAt != nil && sendReminderNow(*r.RemindAt) {
-							if err := svc.reminderSender.Send("ok", r, r.AssignedTo); err != nil {
+						if r.RemindAt != nil && now().Round(interval) == r.RemindAt.Round(interval) {
+							if err := svc.reminderSender.Send("reminder", r, r.AssignedTo); err != nil {
 								svc.log.Error("failed to send reminder to user", zap.Error(err))
 							}
 						}
