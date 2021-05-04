@@ -56,7 +56,16 @@ func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *htt
 	}
 
 	h.handle(func(req *request.AuthReq) error {
-		req.AuthUser = request.NewAuthUser(h.Settings, user, false, 0)
+		req.AuthUser = request.NewAuthUser(
+			h.Settings,
+			user,
+
+			// external logins are never permanent!
+			false,
+
+			// set def. lifetime for this session
+			h.Opt.SessionLifetime,
+		)
 
 		// auto-complete EmailOTP and TOTP when authenticating via external identity provider
 		req.AuthUser.CompleteEmailOTP()
