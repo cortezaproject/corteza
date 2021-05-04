@@ -29,6 +29,11 @@ type (
 		Payload   *expr.Vars `json:"payload"`
 		OwnerId   uint64     `json:"-"`
 	}
+
+	ResumedPrompt struct {
+		StateID uint64 `json:"stateID,string"`
+		OwnerId uint64 `json:"-"`
+	}
 )
 
 func Prompt(ownerId uint64, ref string, payload *expr.Vars) *prompted {
@@ -42,5 +47,12 @@ func (p *prompted) toPending() *PendingPrompt {
 		StateID:   p.state.stateId,
 		Payload:   p.payload,
 		OwnerId:   p.ownerId,
+	}
+}
+
+func (p *prompted) toResumed() *ResumedPrompt {
+	return &ResumedPrompt{
+		StateID: p.state.stateId,
+		OwnerId: p.ownerId,
 	}
 }
