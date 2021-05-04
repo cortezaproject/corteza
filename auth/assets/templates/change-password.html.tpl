@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "security" }}
 <div class="card-body p-0">
-	<h4 class="card-title p-3 border-bottom">Change your password</h4>
+	<h1 class="h4 card-title p-3 border-bottom">Change your password</h1>
 	<form
 		method="POST"
 		action="{{ links.ChangePassword }}"

@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h4 class="card-title p-3 border-bottom">Confirm your email</h4>
+	<h1 class="h4 card-title p-3 border-bottom">Confirm your email</h1>
 	<div class="p-3" role="alert">
 		You should receive email confirmation link to your inbox in a few moments.
 	</div>

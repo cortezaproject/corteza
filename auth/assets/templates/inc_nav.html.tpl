@@ -1,7 +1,7 @@
 <div class="card-header border-0 p-0">
     <div class="text-center w-100">
         <a href="{{ links.Profile }}">
-            <img class="logo m-3" src="{{ links.Assets }}/logo.png">
+            <img class="logo m-3" alt="Company logo" src="{{ links.Assets }}/logo.png">
         </a>
     </div>
 

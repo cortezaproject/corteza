@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "profile" }}
 <div class="card-body p-0">
-	<h4 class="card-title p-3 border-bottom">Your profile</h4>
+	<h1 class="h4 card-title p-3 border-bottom">Your profile</h1>
 	<form
 		method="POST"
 		action="{{ links.Profile }}"
