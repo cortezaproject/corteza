@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 )
 
@@ -13,11 +14,12 @@ type (
 	}
 
 	TokenEncoder interface {
-		Encode(identity Identifiable) string
+		Encode(identity Identifiable, scope ...string) string
 	}
 
 	TokenHandler interface {
 		TokenEncoder
+		Authenticate(token string) (jwt.MapClaims, error)
 		HttpVerifier() func(http.Handler) http.Handler
 		HttpAuthenticator() func(http.Handler) http.Handler
 	}
