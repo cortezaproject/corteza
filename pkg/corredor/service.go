@@ -105,7 +105,7 @@ type (
 	}
 
 	authTokenMaker interface {
-		Encode(auth.Identifiable) string
+		Encode(auth.Identifiable, ...string) string
 	}
 
 	permissionRuleChecker interface {
