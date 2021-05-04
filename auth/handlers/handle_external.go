@@ -64,14 +64,7 @@ func (h AuthHandlers) handleSuccessfulExternalAuth(w http.ResponseWriter, r *htt
 
 		req.AuthUser.Save(req.Session)
 
-		if request.GetOAuth2AuthParams(req.Session) != nil {
-			// If we have oauth2 auth params stored in the session,
-			// try and continue with the oauth2 flow
-			req.RedirectTo = GetLinks().OAuth2Authorize
-			return nil
-		}
-
-		req.RedirectTo = GetLinks().Profile
+		handleSuccessfulAuth(req)
 		return nil
 	})(w, r)
 }
