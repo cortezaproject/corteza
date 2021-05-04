@@ -12,7 +12,7 @@
             <a href="https://cortezaproject.org/" target="_blank" class="text-white mr-2">cortezaproject.org</a>
             <a href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
         </div>
-		<small class="p-1 text-secondary position-absolute version mr-3">
+		<i class="p-1 small text-white position-absolute version mr-3 mb-3">
 			version {{ version }}
 		</small>
 	</body>

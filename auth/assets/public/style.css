@@ -18,7 +18,8 @@ body {
 }
 
 .logo {
-  height: 45px;
+  max-height: 45px;
+  max-width: 75%;
 }
 
 .version {
