@@ -192,6 +192,9 @@ type (
 		TemplateID uint64 `json:",string"`
 	}
 
+	TemplateRenderDrivers struct {
+	}
+
 	TemplateRender struct {
 		// TemplateID PATH parameter
 		//
@@ -775,6 +778,22 @@ func (r *TemplateUndelete) Fill(req *http.Request) (err error) {
 		}
 
 	}
+
+	return err
+}
+
+// NewTemplateRenderDrivers request
+func NewTemplateRenderDrivers() *TemplateRenderDrivers {
+	return &TemplateRenderDrivers{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TemplateRenderDrivers) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *TemplateRenderDrivers) Fill(req *http.Request) (err error) {
 
 	return err
 }

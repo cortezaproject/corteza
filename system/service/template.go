@@ -36,6 +36,7 @@ type (
 
 	rendererService interface {
 		Render(ctx context.Context, p *renderer.RendererPayload) (io.ReadSeeker, error)
+		Drivers() []renderer.DriverDefinition
 	}
 
 	TemplateService interface {
@@ -50,6 +51,7 @@ type (
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
 
+		Drivers() []renderer.DriverDefinition
 		Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (io.ReadSeeker, error)
 	}
 )
@@ -328,6 +330,10 @@ func (svc template) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, tplProps, TemplateActionUndelete, err)
+}
+
+func (svc template) Drivers() []renderer.DriverDefinition {
+	return svc.renderer.Drivers()
 }
 
 func (svc template) Render(ctx context.Context, templateID uint64, dstType string, variables map[string]interface{}, options map[string]string) (document io.ReadSeeker, err error) {

@@ -10,7 +10,9 @@ import (
 )
 
 type (
-	genericText       struct{}
+	genericText struct {
+		def DriverDefinition
+	}
 	genericTextDriver struct{}
 )
 
@@ -19,15 +21,40 @@ var (
 )
 
 func newGenericText() driverFactory {
-	return &genericText{}
+	return &genericText{
+		def: DriverDefinition{
+			Name: "genericText",
+			InputTypes: []types.DocumentType{
+				types.DocumentTypePlain,
+				types.DocumentTypeHTML,
+			},
+			OutputTypes: []types.DocumentType{
+				types.DocumentTypePlain,
+			},
+		},
+	}
+}
+
+func (d *genericText) Define() DriverDefinition {
+	return d.def
 }
 
 func (d *genericText) CanRender(t types.DocumentType) bool {
-	return t == types.DocumentTypePlain || t == types.DocumentTypeHTML
+	for _, i := range d.def.InputTypes {
+		if i == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *genericText) CanProduce(t types.DocumentType) bool {
-	return t == types.DocumentTypePlain
+	for _, o := range d.def.OutputTypes {
+		if o == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *genericText) Driver() driver {

@@ -25,18 +25,20 @@ type (
 		Update(context.Context, *request.TemplateUpdate) (interface{}, error)
 		Delete(context.Context, *request.TemplateDelete) (interface{}, error)
 		Undelete(context.Context, *request.TemplateUndelete) (interface{}, error)
+		RenderDrivers(context.Context, *request.TemplateRenderDrivers) (interface{}, error)
 		Render(context.Context, *request.TemplateRender) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Template struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Create   func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Update   func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
-		Render   func(http.ResponseWriter, *http.Request)
+		List          func(http.ResponseWriter, *http.Request)
+		Create        func(http.ResponseWriter, *http.Request)
+		Read          func(http.ResponseWriter, *http.Request)
+		Update        func(http.ResponseWriter, *http.Request)
+		Delete        func(http.ResponseWriter, *http.Request)
+		Undelete      func(http.ResponseWriter, *http.Request)
+		RenderDrivers func(http.ResponseWriter, *http.Request)
+		Render        func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -138,6 +140,22 @@ func NewTemplate(h TemplateAPI) *Template {
 
 			api.Send(w, r, value)
 		},
+		RenderDrivers: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewTemplateRenderDrivers()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.RenderDrivers(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Render: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewTemplateRender()
@@ -166,6 +184,7 @@ func (h Template) MountRoutes(r chi.Router, middlewares ...func(http.Handler) ht
 		r.Put("/template/{templateID}", h.Update)
 		r.Delete("/template/{templateID}", h.Delete)
 		r.Post("/template/{templateID}/undelete", h.Undelete)
+		r.Get("/template/render/drivers", h.RenderDrivers)
 		r.Post("/template/{templateID}/render/{filename}.{ext}", h.Render)
 	})
 }
