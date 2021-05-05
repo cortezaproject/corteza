@@ -1,7 +1,6 @@
 package csv
 
 import (
-	"bytes"
 	"context"
 	"encoding/csv"
 	"io"
@@ -18,11 +17,11 @@ type (
 
 	// csv decoder wrapper for additional bits
 	reader struct {
-		c      *csv.Reader
 		header []string
 		count  uint64
 
-		buff bytes.Buffer
+		cache      []map[string]string
+		cacheIndex int
 	}
 )
 
@@ -52,19 +51,12 @@ func (y *decoder) CanDecodeExt(ext string) bool {
 
 // Decode decodes the given io.Reader into a generic resource dataset
 func (c *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts) ([]resource.Interface, error) {
-	cr := &reader{}
-	var buff bytes.Buffer
-
-	// So we can reset to the start of the reader
-	err := cr.prepare(io.TeeReader(r, &buff))
-	if err != nil {
-		return nil, err
+	cr := &reader{
+		cacheIndex: 0,
+		cache:      make([]map[string]string, 0, 1000),
 	}
 
-	cr.c = csv.NewReader(io.TeeReader(&buff, &cr.buff))
-
-	// The first one is a header, so let's just get rid of it
-	_, err = cr.c.Read()
+	err := cr.prepare(r)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +64,10 @@ func (c *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts
 	return []resource.Interface{resource.NewResourceDataset(do.Name, cr)}, nil
 }
 
+// The prepare step caches all of the rows into a cache array that will be used
+// to access already visited CSV rows.
+//
+// @todo implement FS cache file for larger files
 func (cr *reader) prepare(r io.Reader) (err error) {
 	cReader := csv.NewReader(r)
 
@@ -81,19 +77,24 @@ func (cr *reader) prepare(r io.Reader) (err error) {
 		return err
 	}
 
-	// Entry count
 	for {
-		_, err := cReader.Read()
+		aux := make(map[string]string)
+		rr, err := cReader.Read()
 		if err == io.EOF {
-			break
+			return nil
 		} else if err != nil {
 			return err
 		}
 
+		// Entry count
 		cr.count++
-	}
 
-	return nil
+		// Cache entry
+		for i, h := range cr.header {
+			aux[h] = rr[i]
+		}
+		cr.cache = append(cr.cache, aux)
+	}
 }
 
 // Fields returns every available field in this dataset
@@ -102,37 +103,18 @@ func (cr *reader) Fields() []string {
 }
 
 func (cr *reader) Reset() error {
-	if len(cr.buff.Bytes()) == 0 {
-		return nil
-	}
-
-	buff := cr.buff
-	cr.buff = bytes.Buffer{}
-
-	cr.c = csv.NewReader(io.TeeReader(&buff, &cr.buff))
-	// The first one is a header, so let's just get rid of it
-	_, err := cr.c.Read()
-	if err != nil {
-		return err
-	}
-
+	cr.cacheIndex = 0
 	return nil
 }
 
 // Next returns the field: value mapping for the next row
 func (cr *reader) Next() (map[string]string, error) {
-	mr := make(map[string]string)
-	rr, err := cr.c.Read()
-	if err == io.EOF {
+	if cr.cacheIndex >= len(cr.cache) {
 		return nil, nil
-	} else if err != nil {
-		return nil, err
 	}
 
-	for i, h := range cr.header {
-		mr[h] = rr[i]
-	}
-
+	mr := cr.cache[cr.cacheIndex]
+	cr.cacheIndex++
 	return mr, nil
 }
 

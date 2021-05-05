@@ -86,6 +86,72 @@ func TestDataShaping(t *testing.T) {
 	}
 }
 
+func TestDataShaping_large(t *testing.T) {
+	var (
+		ctx = auth.SetSuperUserContext(context.Background())
+		s   = initStore(ctx, t)
+		err error
+
+		cases = []string{
+			"csv_large",
+			"jsonl_large",
+		}
+	)
+
+	ni := uint64(10)
+	su.NextID = func() uint64 {
+		ni++
+		return ni
+	}
+
+	for _, c := range cases {
+		t.Run(fmt.Sprintf("record shaping; data_shaping; large datasets/%s", c), func(t *testing.T) {
+			var (
+				req = require.New(t)
+			)
+
+			truncateStore(ctx, s, t)
+			err = collect(
+				err,
+				storeRole(ctx, s, 1, "everyone"),
+				storeRole(ctx, s, 2, "admins"),
+			)
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+
+			nn, err := decodeDirectory(ctx, path.Join("data_shaping", c))
+			req.NoError(err)
+
+			crs := resource.ComposeRecordShaper()
+			nn, err = resource.Shape(nn, crs)
+			req.NoError(err)
+
+			req.NoError(encode(ctx, s, nn))
+
+			ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "ns1")
+			req.NotNil(ns)
+			ms, err := loadComposeModuleFull(ctx, s, req, ns.ID, "mod1")
+			req.NotNil(ms)
+
+			rr, _, err := store.SearchComposeRecords(ctx, s, ms, types.RecordFilter{})
+			req.NoError(err)
+			req.Len(rr, 2000)
+
+			for i, r := range rr {
+				req.Equal(fmt.Sprintf("r%df1", i+1), r.Values.Get("f1", 0).Value)
+				req.Equal(fmt.Sprintf("r%df2", i+1), r.Values.Get("f2", 0).Value)
+				req.Equal(fmt.Sprintf("r%df3", i+1), r.Values.Get("f3", 0).Value)
+				req.Equal(fmt.Sprintf("r%df4", i+1), r.Values.Get("f4", 0).Value)
+				req.Equal(fmt.Sprintf("r%df5", i+1), r.Values.Get("f5", 0).Value)
+				req.Equal(fmt.Sprintf("r%df6", i+1), r.Values.Get("f6", 0).Value)
+			}
+
+			s.TruncateComposeRecords(ctx, ms)
+		})
+	}
+}
+
 func TestDataShaping_fieldTypes(t *testing.T) {
 	var (
 		ctx = auth.SetSuperUserContext(context.Background())
