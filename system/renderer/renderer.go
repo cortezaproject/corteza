@@ -47,3 +47,11 @@ func (r *renderer) Render(ctx context.Context, pl *RendererPayload) (io.ReadSeek
 
 	return nil, errors.New("rendering failed: driver not found")
 }
+
+func (r *renderer) Drivers() []DriverDefinition {
+	dd := make([]DriverDefinition, len(r.factories))
+	for i, f := range r.factories {
+		dd[i] = f.Define()
+	}
+	return dd
+}

@@ -9,20 +9,47 @@ import (
 )
 
 type (
-	genericHTML       struct{}
+	genericHTML struct {
+		def DriverDefinition
+	}
 	genericHTMLDriver struct{}
 )
 
 func newGenericHTML() driverFactory {
-	return &genericHTML{}
+	return &genericHTML{
+		def: DriverDefinition{
+			Name: "genericHTML",
+			InputTypes: []types.DocumentType{
+				types.DocumentTypePlain,
+				types.DocumentTypeHTML,
+			},
+			OutputTypes: []types.DocumentType{
+				types.DocumentTypeHTML,
+			},
+		},
+	}
+}
+
+func (d *genericHTML) Define() DriverDefinition {
+	return d.def
 }
 
 func (d *genericHTML) CanRender(t types.DocumentType) bool {
-	return t == types.DocumentTypeHTML || t == types.DocumentTypePlain
+	for _, i := range d.def.InputTypes {
+		if i == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *genericHTML) CanProduce(t types.DocumentType) bool {
-	return t == types.DocumentTypeHTML
+	for _, o := range d.def.OutputTypes {
+		if o == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *genericHTML) Driver() driver {

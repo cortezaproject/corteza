@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/system/renderer"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -38,6 +39,14 @@ type (
 		CanDeleteTemplate bool `json:"canDeleteTemplate"`
 	}
 
+	driverSetPayload struct {
+		Set []*driverPayload `json:"set"`
+	}
+
+	driverPayload struct {
+		renderer.DriverDefinition
+	}
+
 	templateAccessController interface {
 		CanGrant(context.Context) bool
 		CanCreateTemplate(context.Context) bool
@@ -56,7 +65,7 @@ func (Template) New() *Template {
 
 func (ctrl *Template) Read(ctx context.Context, r *request.TemplateRead) (interface{}, error) {
 	tpl, err := ctrl.renderer.FindByID(ctx, r.TemplateID)
-	return ctrl.makePayload(ctx, tpl, err)
+	return ctrl.makeTemplatePayload(ctx, tpl, err)
 }
 
 func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interface{}, error) {
@@ -80,7 +89,7 @@ func (ctrl *Template) List(ctx context.Context, r *request.TemplateList) (interf
 	}
 
 	set, filter, err := ctrl.renderer.Search(ctx, f)
-	return ctrl.makeFilterPayload(ctx, set, filter, err)
+	return ctrl.makeFilterTemplatePayload(ctx, set, filter, err)
 }
 
 func (ctrl *Template) Create(ctx context.Context, r *request.TemplateCreate) (interface{}, error) {
@@ -98,7 +107,7 @@ func (ctrl *Template) Create(ctx context.Context, r *request.TemplateCreate) (in
 	)
 
 	app, err = ctrl.renderer.Create(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+	return ctrl.makeTemplatePayload(ctx, app, err)
 }
 
 func (ctrl *Template) Update(ctx context.Context, r *request.TemplateUpdate) (interface{}, error) {
@@ -117,7 +126,7 @@ func (ctrl *Template) Update(ctx context.Context, r *request.TemplateUpdate) (in
 	)
 
 	app, err = ctrl.renderer.Update(ctx, app)
-	return ctrl.makePayload(ctx, app, err)
+	return ctrl.makeTemplatePayload(ctx, app, err)
 }
 
 func (ctrl *Template) Delete(ctx context.Context, r *request.TemplateDelete) (interface{}, error) {
@@ -126,6 +135,10 @@ func (ctrl *Template) Delete(ctx context.Context, r *request.TemplateDelete) (in
 
 func (ctrl *Template) Undelete(ctx context.Context, r *request.TemplateUndelete) (interface{}, error) {
 	return api.OK(), ctrl.renderer.UndeleteByID(ctx, r.TemplateID)
+}
+
+func (ctrl *Template) RenderDrivers(ctx context.Context, r *request.TemplateRenderDrivers) (interface{}, error) {
+	return ctrl.makeSetRenderDriverPayload(ctx, ctrl.renderer.Drivers()), nil
 }
 
 func (ctrl *Template) Render(ctx context.Context, r *request.TemplateRender) (interface{}, error) {
@@ -151,7 +164,7 @@ func (ctrl *Template) Render(ctx context.Context, r *request.TemplateRender) (in
 
 // Utilities
 
-func (ctrl Template) makeFilterPayload(ctx context.Context, nn types.TemplateSet, f types.TemplateFilter, err error) (*templateSetPayload, error) {
+func (ctrl Template) makeFilterTemplatePayload(ctx context.Context, nn types.TemplateSet, f types.TemplateFilter, err error) (*templateSetPayload, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +172,13 @@ func (ctrl Template) makeFilterPayload(ctx context.Context, nn types.TemplateSet
 	msp := &templateSetPayload{Filter: f, Set: make([]*templatePayload, len(nn))}
 
 	for i := range nn {
-		msp.Set[i], _ = ctrl.makePayload(ctx, nn[i], nil)
+		msp.Set[i], _ = ctrl.makeTemplatePayload(ctx, nn[i], nil)
 	}
 
 	return msp, nil
 }
 
-func (ctrl Template) makePayload(ctx context.Context, tpl *types.Template, err error) (*templatePayload, error) {
+func (ctrl Template) makeTemplatePayload(ctx context.Context, tpl *types.Template, err error) (*templatePayload, error) {
 	if err != nil || tpl == nil {
 		return nil, err
 	}
@@ -179,6 +192,18 @@ func (ctrl Template) makePayload(ctx context.Context, tpl *types.Template, err e
 	}
 
 	return pl, nil
+}
+
+func (ctrl Template) makeSetRenderDriverPayload(ctx context.Context, nn []renderer.DriverDefinition) *driverSetPayload {
+	msp := &driverSetPayload{Set: make([]*driverPayload, len(nn))}
+
+	for i := range nn {
+		msp.Set[i] = &driverPayload{
+			DriverDefinition: nn[i],
+		}
+	}
+
+	return msp
 }
 
 func (ctrl *Template) serve(doc io.ReadSeeker, ct string, r *request.TemplateRender, err error) (interface{}, error) {
