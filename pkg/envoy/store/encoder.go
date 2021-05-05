@@ -108,7 +108,7 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 // It initializes and prepares the resource state for each provided resource
 func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState) (err error) {
 	f := func(rs resourceState, ers *envoy.ResourceState) error {
-		err = rs.Prepare(ctx, se.makePayload(ctx, ers))
+		err = rs.Prepare(ctx, se.makePayload(ctx, se.s, ers))
 		if err != nil {
 			return err
 		}
@@ -178,7 +178,7 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 			if state == nil {
 				err = ErrResourceStateUndefined
 			} else {
-				err = state.Encode(ctx, se.makePayload(ctx, ers))
+				err = state.Encode(ctx, se.makePayload(ctx, s, ers))
 			}
 
 			if err != nil {
@@ -188,9 +188,9 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 	})
 }
 
-func (se *storeEncoder) makePayload(ctx context.Context, ers *envoy.ResourceState) *payload {
+func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, ers *envoy.ResourceState) *payload {
 	return &payload{
-		s:                    se.s,
+		s:                    s,
 		state:                ers,
 		composeAccessControl: service.AccessControl(rbac.Global()),
 		invokerID:            auth.GetIdentityFromContext(ctx).Identity(),

@@ -18,11 +18,11 @@ type (
 
 	// json decoder wrapper for additional bits
 	reader struct {
-		d      *json.Decoder
 		header []string
 		count  uint64
 
-		buff bytes.Buffer
+		cache      []map[string]string
+		cacheIndex int
 	}
 )
 
@@ -56,20 +56,23 @@ func (d *decoder) CanDecodeExt(ext string) bool {
 
 // Decode decodes the given io.Reader into a generic resource dataset
 func (d *decoder) Decode(ctx context.Context, r io.Reader, do *envoy.DecoderOpts) ([]resource.Interface, error) {
-	jr := &reader{}
-	var buff bytes.Buffer
+	jr := &reader{
+		cacheIndex: 0,
+		cache:      make([]map[string]string, 0, 1000),
+	}
 
-	// So we can reset to the start of the reader
-	err := jr.prepare(io.TeeReader(r, &buff))
+	err := jr.prepare(r)
 	if err != nil {
 		return nil, err
 	}
 
-	jr.d = json.NewDecoder(io.TeeReader(&buff, &jr.buff))
-
 	return []resource.Interface{resource.NewResourceDataset(do.Name, jr)}, nil
 }
 
+// The prepare step caches all of the rows into a cache array that will be used
+// to access already visited json rows.
+//
+// @todo implement FS cache file for larger files
 func (jr *reader) prepare(r io.Reader) (err error) {
 	jReader := json.NewDecoder(r)
 
@@ -79,8 +82,8 @@ func (jr *reader) prepare(r io.Reader) (err error) {
 	hx := make(map[string]bool)
 	jr.header = make([]string, 0, 100)
 
-	aux := make(map[string]interface{})
 	for jReader.More() {
+		aux := make(map[string]string)
 		err = jReader.Decode(&aux)
 		if err == io.EOF {
 			break
@@ -89,7 +92,6 @@ func (jr *reader) prepare(r io.Reader) (err error) {
 		}
 
 		// Get all the header fields
-		// @todo do we want to preserve order?
 		for h := range aux {
 			if !hx[h] {
 				jr.header = append(jr.header, h)
@@ -97,22 +99,18 @@ func (jr *reader) prepare(r io.Reader) (err error) {
 			}
 		}
 
+		// Entry count
 		jr.count++
+
+		// Cache entry
+		jr.cache = append(jr.cache, aux)
 	}
 
 	return nil
 }
 
 func (jr *reader) Reset() error {
-	if len(jr.buff.Bytes()) == 0 {
-		return nil
-	}
-
-	buff := jr.buff
-	jr.buff = bytes.Buffer{}
-
-	jr.d = json.NewDecoder(io.TeeReader(&buff, &jr.buff))
-
+	jr.cacheIndex = 0
 	return nil
 }
 
@@ -123,19 +121,12 @@ func (jr *reader) Fields() []string {
 
 // Next returns the field: value mapping for the next row
 func (jr *reader) Next() (map[string]string, error) {
-	// It's over
-	if !jr.d.More() {
+	if jr.cacheIndex >= len(jr.cache) {
 		return nil, nil
 	}
 
-	mr := make(map[string]string)
-	err := jr.d.Decode(&mr)
-	if err == io.EOF {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-
+	mr := jr.cache[jr.cacheIndex]
+	jr.cacheIndex++
 	return mr, nil
 }
 
