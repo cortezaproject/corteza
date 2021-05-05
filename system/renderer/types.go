@@ -39,7 +39,15 @@ type (
 		Name   string
 	}
 
+	DriverDefinition struct {
+		Name        string               `json:"name"`
+		InputTypes  []types.DocumentType `json:"inputTypes"`
+		OutputTypes []types.DocumentType `json:"outputTypes"`
+	}
+
 	driverFactory interface {
+		Define() DriverDefinition
+
 		CanRender(t types.DocumentType) bool
 		CanProduce(t types.DocumentType) bool
 		Driver() driver

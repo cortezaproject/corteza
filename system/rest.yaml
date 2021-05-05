@@ -1343,6 +1343,10 @@ endpoints:
         type: uint64
         required: true
         title: Template ID
+  - name: renderDrivers
+    method: GET
+    title: Render drivers
+    path: "/render/drivers"
   - name: render
     method: POST
     title: Render template

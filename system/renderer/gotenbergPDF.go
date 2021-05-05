@@ -15,6 +15,7 @@ import (
 type (
 	gotenbergPDF struct {
 		url string
+		def DriverDefinition
 	}
 	gotenbergPDFDriver struct {
 		url string
@@ -25,15 +26,40 @@ type (
 func newGotenbergPDF(url string) driverFactory {
 	return &gotenbergPDF{
 		url: url,
+
+		def: DriverDefinition{
+			Name: "gotenbergPDF",
+			InputTypes: []types.DocumentType{
+				types.DocumentTypePlain,
+				types.DocumentTypeHTML,
+			},
+			OutputTypes: []types.DocumentType{
+				types.DocumentTypePDF,
+			},
+		},
 	}
 }
 
+func (d *gotenbergPDF) Define() DriverDefinition {
+	return d.def
+}
+
 func (d *gotenbergPDF) CanRender(t types.DocumentType) bool {
-	return t == types.DocumentTypeHTML || t == types.DocumentTypePlain
+	for _, i := range d.def.InputTypes {
+		if i == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *gotenbergPDF) CanProduce(t types.DocumentType) bool {
-	return t == types.DocumentTypePDF
+	for _, o := range d.def.OutputTypes {
+		if o == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *gotenbergPDF) Driver() driver {
