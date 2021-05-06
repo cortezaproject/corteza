@@ -653,8 +653,8 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 		log = svc.log.With(
 			zap.String("script", script),
 			zap.String("runAs", runAs),
-			zap.String("args", args.EventType()),
-			zap.String("resource", args.ResourceType()),
+			zap.String("eventType", args.EventType()),
+			zap.String("resourceType", args.ResourceType()),
 		).WithOptions(zap.AddStacktrace(zap.FatalLevel))
 	)
 
@@ -740,10 +740,10 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 	// Additional (string) arguments
 
 	// basic args/event info
-	if err = encodeArguments(req.Args, "args", args.EventType()); err != nil {
+	if err = encodeArguments(req.Args, "eventType", args.EventType()); err != nil {
 		return
 	}
-	if err = encodeArguments(req.Args, "resource", args.ResourceType()); err != nil {
+	if err = encodeArguments(req.Args, "resourceType", args.ResourceType()); err != nil {
 		return
 	}
 
