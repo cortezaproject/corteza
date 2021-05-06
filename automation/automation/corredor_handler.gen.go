@@ -36,11 +36,11 @@ type (
 		Script    string
 
 		hasArgs bool
-		Args    interface{}
+		Args    *expr.Vars
 	}
 
 	corredorExecResults struct {
-		Results interface{}
+		Results *expr.Vars
 	}
 )
 
@@ -67,7 +67,7 @@ func (h corredorHandler) Exec() *atypes.Function {
 			},
 			{
 				Name:  "args",
-				Types: []string{"Any"},
+				Types: []string{"Vars"},
 			},
 		},
 
@@ -75,7 +75,7 @@ func (h corredorHandler) Exec() *atypes.Function {
 
 			{
 				Name:  "results",
-				Types: []string{"Any"},
+				Types: []string{"Vars"},
 			},
 		},
 
@@ -99,12 +99,12 @@ func (h corredorHandler) Exec() *atypes.Function {
 			out = &expr.Vars{}
 
 			{
-				// converting results.Results (interface{}) to Any
+				// converting results.Results (*expr.Vars) to Vars
 				var (
 					tval expr.TypedValue
 				)
 
-				if tval, err = h.reg.Type("Any").Cast(results.Results); err != nil {
+				if tval, err = h.reg.Type("Vars").Cast(results.Results); err != nil {
 					return
 				} else if err = expr.Assign(out, "results", tval); err != nil {
 					return
