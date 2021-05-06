@@ -8,7 +8,8 @@ functions:
       description: Executes script in Corredor Automation server
     params:
       script: { types: [ { wf: String } ], required: true }
-      args:  { types: [ { wf: Any } ] }
+      args:  { types: [ { wf: Vars, go: '*expr.Vars' } ] }
     results:
       results:
-        wf: Any
+        wf: Vars
+        go: '*expr.Vars'

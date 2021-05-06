@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/system/service/event"
-	"github.com/spf13/cast"
 )
 
 type (
@@ -41,18 +41,20 @@ func (h corredorHandler) exec(ctx context.Context, args *corredorExecArgs) (r *c
 		return
 	}
 
-	return &corredorExecResults{Results: sArgs.payload}, nil
+	r = &corredorExecResults{}
+	if r.Results, err = expr.NewVars(sArgs.payload); err != nil {
+		return nil, err
+	}
+
+	return
 
 }
 
-func makeScriptArgs(in interface{}) *scriptArgs {
-	return &scriptArgs{
-		payload: cast.ToStringMap(in),
-	}
+func makeScriptArgs(in *expr.Vars) *scriptArgs {
+	return &scriptArgs{payload: in.Dict()}
 }
 
 // mimic onManual event on system:
-
 func (scriptArgs) ResourceType() string                  { return event.SystemOnManual().ResourceType() }
 func (scriptArgs) EventType() string                     { return event.SystemOnManual().EventType() }
 func (scriptArgs) Match(eventbus.ConstraintMatcher) bool { return false }
