@@ -106,6 +106,20 @@ func genExprTypes(tpl *template.Template, dd ...*exprTypesDef) (err error) {
 	return nil
 }
 
+// genExprTypeDocs look for expr_types.gen.adoc.tpl and generates expr_types.gen.adoc from it
+func genExprTypeDocs(tpl *template.Template, docsPath string, dd ...*exprTypesDef) (err error) {
+	var (
+		typeGenAdoc = tpl.Lookup("expr_types.gen.adoc.tpl")
+
+		dst string
+	)
+
+	dst = path.Join(docsPath, "expr-types.gen.adoc")
+	return plainTemplate(dst, typeGenAdoc, map[string]interface{}{
+		"Definitions": dd,
+	})
+}
+
 func (s exprTypeDef) Default() string {
 	if s.RawDefault == "" {
 		return "nil"

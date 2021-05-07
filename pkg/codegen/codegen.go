@@ -14,7 +14,7 @@ import (
 
 func Proc() {
 	const (
-		docGenBase = "/partials/generated"
+		docGenBase = "/generated/partials"
 	)
 
 	var (
@@ -129,7 +129,7 @@ func Proc() {
 	}()
 
 	if len(docPath) > 0 {
-		docPath = strings.TrimRight(docPath, "/") + "/src/modules/ROOT"
+		docPath = strings.TrimRight(docPath, "/") + "/src/modules"
 		if i, err := os.Stat(docPath); err != nil {
 			handleError(err)
 		} else if !i.IsDir() {
@@ -211,6 +211,9 @@ func Proc() {
 			if exprTypeDefs, err = procExprTypes(exprTypeSrc...); err == nil {
 				if genCode {
 					err = genExprTypes(tpls, exprTypeDefs...)
+				}
+				if genDocs && err == nil {
+					err = genExprTypeDocs(tpls, docPath+docGenBase, exprTypeDefs...)
 				}
 			}
 
