@@ -34,7 +34,7 @@ props:
     description: |-
       Redirect URL to be sent with OAuth2 authentication request to provider
 
-      `{provider}` placeholder is replaced with the actual value when used.
+      `provider` placeholder is replaced with the actual value when used.
 
   - name: externalCookieSecret
     default: getSecretFromEnv("external cookie secret")
