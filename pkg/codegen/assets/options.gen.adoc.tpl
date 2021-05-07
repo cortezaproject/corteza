@@ -7,6 +7,7 @@
 {{- range .Definitions }}
 //  - {{ .Source }}
 {{- end }}
+include::ROOT:partial$variables.adoc[]
 
 {{ range .Definitions }}
 = {{ .Docs.Title }}
@@ -24,7 +25,10 @@
 {{ if .Default -}}
 === Default
 
-`{{ .Default }}`
+[source]
+----
+{{ .Default }}
+----
 
 {{ end -}}
 {{ if .Description -}}
