@@ -10,11 +10,12 @@
 
 = Types
 
-[%header, cols="1,2a"]
+[%header, cols="1m,2a,2m"]
 |===
-| Type | DataType
+| Type | DataType | Function
 {{- range .Definitions }}
 {{- range $tName, $tDef := .Types }}
+{{- if gt (len $tDef.Struct) 0}}
 | *{{ $tName }}*
 | `{{ $tDef.As }}`
 
@@ -23,10 +24,13 @@
 ----
 {{ $tDef.As }}{
 {{- range $s := .Struct }}
-   {{ $s.Name }} {{ $s.GoType }}
+   {{ $s.Name }} {{ $s.ExprType }}
 {{- end }}
 }
 ----
+{{- end }}
+| {{ $tDef.AssignerFn }}
+
 {{- end }}
 
 {{- end }}

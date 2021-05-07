@@ -285,6 +285,9 @@ func Proc() {
 
 					err = genAutomationFunctions(tpls, aFuncsDefs...)
 				}
+				if genDocs && err == nil {
+					err = genAutomationFunctionDocs(tpls, docPath+docGenBase, aFuncsDefs...)
+				}
 			}
 
 			if outputErr(err, "failed to process automation functions:\n") {
