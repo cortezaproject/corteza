@@ -216,3 +216,17 @@ func genAutomationFunctions(tpl *template.Template, dd ...*aFuncDefs) (err error
 
 	return nil
 }
+
+// genAutomationFunctionDocs look for afunc.gen.adoc.tpl and generates afunc.gen.adoc from it
+func genAutomationFunctionDocs(tpl *template.Template, docsPath string, dd ...*aFuncDefs) (err error) {
+	var (
+		typeGenAdoc = tpl.Lookup("afunc.gen.adoc.tpl")
+
+		dst string
+	)
+
+	dst = path.Join(docsPath, "afunc.gen.adoc")
+	return plainTemplate(dst, typeGenAdoc, map[string]interface{}{
+		"Definitions": dd,
+	})
+}
