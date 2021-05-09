@@ -1,13 +1,51 @@
 = Web applications
 
-Rationale behind `/webapp/...` tools is to allow backend developers to quicky test server with frontend applications.
+Rationale behind `/webapp/...` tools is to allow backend developers to quickly test server with frontend applications.
 Tools (see Makefile) download and install unstable (can be changed with `VERSION` var).
 
-.Downloads and installs unstable packages under webapp/public
+.Downloads and installs packages under webapp/public using current version
 [source,shell]
 ----
 make
 ----
+
+.Downloads and installs packages under webapp/public using specific version
+[source,shell]
+----
+make VERSION=2021.3.3
+----
+
+. All available make targets
+[cols="2m,5a"]
+|===
+|target|
+
+| all
+| default target alias for install-packages
+
+| install-package
+| installs all packages
+
+| download
+| downloads all packages
+
+| install-fresh
+| builds and installs all packages from source
+
+| install-fresh
+| builds and installs all web applications from source
+
+| build
+| builds all web applications from source
+
+| clean
+| removes packages of the current versions
+
+| cleaner
+| removes all
+
+|===
+
 
 To enable serving of webapps from the server, make sure `HTTP_WEBAPP_ENABLED` is set to `true`.
 This will prefix all API endpoints with `/api/`.

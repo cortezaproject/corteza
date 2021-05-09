@@ -27,7 +27,6 @@ props:
     env: HTTP_ERROR_TRACING
     default: false
 
-
   - name: enableHealthcheckRoute
     type: bool
     env: HTTP_ENABLE_HEALTHCHECK_ROUTE
@@ -72,6 +71,12 @@ props:
     default: true
     description: Report HTTP panic to Sentry.
 
+  - name: baseUrl
+    env: HTTP_BASE_URL
+    default: "/"
+    description: |-
+      Base URL (prefix) for all routes (<baseUrl>/auth, <baseUrl>/api, ...)
+
   - name: apiEnabled
     type: bool
     env: HTTP_API_ENABLED
@@ -79,6 +84,11 @@ props:
 
   - name: apiBaseUrl
     env: HTTP_API_BASE_URL
+    default: "/"
+    description: |-
+      When webapps are enabled (HTTP_WEBAPP_ENABLED) this is moved to '/api' if not explicitly set otherwise.
+      API base URL is prefixed with baseUrl
+
 
   - name: webappEnabled
     type: bool
@@ -88,6 +98,8 @@ props:
   - name: webappBaseUrl
     env: HTTP_WEBAPP_BASE_URL
     default: "/"
+    description: |-
+      Webapp base URL is prefixed with baseUrl
 
   - name: webappBaseDir
     env: HTTP_WEBAPP_BASE_DIR
@@ -96,3 +108,12 @@ props:
   - name: webappList
     env: HTTP_WEBAPP_LIST
     default: "admin,compose,workflow"
+
+  - name: sslTerminated
+    env: HTTP_SSL_TERMINATED
+    type: bool
+    default: isSecure()
+    description: |-
+      Is SSL termination enabled in ingres, proxy or load balancer that is in front of Corteza?
+      By default, Corteza checks for presence of LETSENCRYPT_HOST environmental variable.
+      This DOES NOT enable SSL termination in Cortreza!

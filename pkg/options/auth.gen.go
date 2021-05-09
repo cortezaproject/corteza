@@ -9,7 +9,6 @@ package options
 // pkg/options/auth.yaml
 
 import (
-	"strings"
 	"time"
 )
 
@@ -44,13 +43,13 @@ func Auth() (o *AuthOpt) {
 	o = &AuthOpt{
 		Secret:                   getSecretFromEnv("jwt secret"),
 		Expiry:                   time.Hour * 24 * 30,
-		ExternalRedirectURL:      guessBaseURL() + "/auth/external/{provider}/callback",
+		ExternalRedirectURL:      fullURL() + "/auth/external/{provider}/callback",
 		ExternalCookieSecret:     getSecretFromEnv("external cookie secret"),
-		BaseURL:                  guessBaseURL() + "/auth",
+		BaseURL:                  fullURL() + "/auth",
 		SessionCookieName:        "session",
-		SessionCookiePath:        "/auth",
+		SessionCookiePath:        pathPrefix() + "/auth",
 		SessionCookieDomain:      guessHostname(),
-		SessionCookieSecure:      strings.HasPrefix(guessBaseURL(), "https://"),
+		SessionCookieSecure:      isSecure(),
 		SessionLifetime:          24 * time.Hour,
 		SessionPermLifetime:      360 * 24 * time.Hour,
 		GarbageCollectorInterval: 15 * time.Minute,

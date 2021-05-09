@@ -1,5 +1,7 @@
 package handlers
 
+import "strings"
+
 type (
 	Links struct {
 		Profile,
@@ -36,35 +38,49 @@ type (
 	}
 )
 
+var BasePath string = "/"
+
 func GetLinks() Links {
+	var b = BasePath + "/"
+
 	return Links{
-		Profile:                  "/auth",
-		Signup:                   "/auth/signup",
-		ConfirmEmail:             "/auth/confirm-email",
-		PendingEmailConfirmation: "/auth/pending-email-confirmation",
-		Login:                    "/auth/login",
-		Security:                 "/auth/security",
-		ChangePassword:           "/auth/change-password",
-		RequestPasswordReset:     "/auth/request-password-reset",
-		PasswordResetRequested:   "/auth/password-reset-requested",
-		ResetPassword:            "/auth/reset-password",
-		Sessions:                 "/auth/sessions",
-		AuthorizedClients:        "/auth/authorized-clients",
-		Logout:                   "/auth/logout",
+		Profile:                  b + "auth",
+		Signup:                   b + "auth/signup",
+		ConfirmEmail:             b + "auth/confirm-email",
+		PendingEmailConfirmation: b + "auth/pending-email-confirmation",
+		Login:                    b + "auth/login",
+		Security:                 b + "auth/security",
+		ChangePassword:           b + "auth/change-password",
+		RequestPasswordReset:     b + "auth/request-password-reset",
+		PasswordResetRequested:   b + "auth/password-reset-requested",
+		ResetPassword:            b + "auth/reset-password",
+		Sessions:                 b + "auth/sessions",
+		AuthorizedClients:        b + "auth/authorized-clients",
+		Logout:                   b + "auth/logout",
 
-		OAuth2Authorize:       "/auth/oauth2/authorize",
-		OAuth2AuthorizeClient: "/auth/oauth2/authorize-client",
-		OAuth2Token:           "/auth/oauth2/token",
-		OAuth2Info:            "/auth/oauth2/info",
-		OAuth2DefaultClient:   "/auth/oauth2/default-client",
+		OAuth2Authorize:       b + "auth/oauth2/authorize",
+		OAuth2AuthorizeClient: b + "auth/oauth2/authorize-client",
+		OAuth2Token:           b + "auth/oauth2/token",
+		OAuth2Info:            b + "auth/oauth2/info",
+		OAuth2DefaultClient:   b + "auth/oauth2/default-client",
 
-		Mfa:              "/auth/mfa",
-		MfaTotpNewSecret: "/auth/mfa/totp/setup",
-		MfaTotpQRImage:   "/auth/mfa/totp/qr.png",
-		MfaTotpDisable:   "/auth/mfa/totp/disable",
+		Mfa:              b + "auth/mfa",
+		MfaTotpNewSecret: b + "auth/mfa/totp/setup",
+		MfaTotpQRImage:   b + "auth/mfa/totp/qr.png",
+		MfaTotpDisable:   b + "auth/mfa/totp/disable",
 
-		External: "/auth/external",
+		External: b + "auth/external",
 
-		Assets: "/auth/assets/public",
+		Assets: b + "auth/assets/public",
 	}
+}
+
+// trim base path
+func tbp(s string) string {
+	s = strings.TrimPrefix(s, BasePath)
+	if !strings.HasPrefix(s, "/") {
+		s = "/" + s
+	}
+
+	return s
 }

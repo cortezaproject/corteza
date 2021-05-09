@@ -4,60 +4,60 @@ applications:
     enabled: true
     unify:
       listed: true
-      icon: /applications/low-code-platform.png
-      logo: /applications/low-code-platform.png
-      url: /compose
+      icon: applications/low-code-platform.png
+      logo: applications/low-code-platform.png
+      url: compose/
 
   - name: CRM Suite
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/low-code-crm-app.png
-      logo: /applications/low-code-crm-app.png
-      url: /compose/ns/crm/pages
+      icon: applications/low-code-crm-app.png
+      logo: applications/low-code-crm-app.png
+      url: compose/ns/crm/pages
 
   - name: Service Solution
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/low-code-service-solution-app.png
-      logo: /applications/low-code-service-solution-app.png
-      url: /compose/ns/service-solution/pages
+      icon: applications/low-code-service-solution-app.png
+      logo: applications/low-code-service-solution-app.png
+      url: compose/ns/service-solution/pages
 
   - name: Jitsi Bridge
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/video-conference.png
-      logo: /applications/video-conference.png
-      url: /bridge/jitsi/
+      icon: applications/video-conference.png
+      logo: applications/video-conference.png
+      url: bridge/jitsi/
 
   - name: Google Maps
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/google-maps.png
-      logo: /applications/google-maps.png
-      url: /bridge/google-maps/
+      icon: applications/google-maps.png
+      logo: applications/google-maps.png
+      url: bridge/google-maps/
 
   - name: Admin Area
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/admin-area.png
-      logo: /applications/admin-area.png
-      url: /admin
+      icon: applications/admin-area.png
+      logo: applications/admin-area.png
+      url: admin/
 
   - name: Workflows
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
       listed: true
-      icon: /applications/workflows.png
-      logo: /applications/workflows.png
-      url: /workflow
+      icon: applications/workflows.png
+      logo: applications/workflows.png
+      url: workflow/

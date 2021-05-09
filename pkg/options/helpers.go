@@ -2,6 +2,7 @@ package options
 
 import (
 	"os"
+	"path"
 	"reflect"
 	"strings"
 	"time"
@@ -80,17 +81,49 @@ func guessHostname() string {
 	return "local.cortezaproject.org"
 }
 
-func guessBaseURL() string {
+// returns path prefix
+func pathPrefix() string {
+	return CleanBase(EnvString("HTTP_BASE_URL", ""))
+}
+
+// will return base URL with domain and prefix path
+func fullURL() string {
 	var (
-		host        = guessHostname()
-		_, isSecure = os.LookupEnv("LETSENCRYPT_HOST")
+		full string
+		host = guessHostname()
 	)
 
-	if strings.Contains(host, "local.") || strings.Contains(host, "localhost") || !isSecure {
-		return "http://" + host
+	if strings.Contains(host, "local.") || strings.Contains(host, "localhost") || !isSecure() {
+		full = "http://" + host
 	} else {
-		return "https://" + host
+		full = "https://" + host
 	}
+
+	if pp := pathPrefix(); pp != "" {
+		return full + pp
+	}
+
+	return full
+}
+
+// Checks value of HTTP_SSL_TERMINATED and fallbacks to checking existence of LETSENCRYPT_HOST
+// to determinate we are behind a SSL termination infrastructure
+func isSecure() bool {
+	var _, is = os.LookupEnv("LETSENCRYPT_HOST")
+
+	// We're accessing to HTTP_SSL_TERMINATED directly here and not via HttpServerOpt.SslTerminated
+	// because we need to get to this value early and directly
+	return EnvBool("HTTP_SSL_TERMINATED", is)
+}
+
+// Path joins all parts with / and prefixes result (if not empty) with /
+func CleanBase(pp ...string) string {
+	if p := strings.Trim(path.Join(pp...), "/"); p != "" {
+		// prefix base with slash
+		return "/" + p
+	}
+
+	return ""
 }
 
 func EnvString(key string, def string) string {

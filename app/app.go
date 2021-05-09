@@ -22,7 +22,7 @@ type (
 	}
 
 	authServicer interface {
-		MountHttpRoutes(chi.Router)
+		MountHttpRoutes(string, chi.Router)
 		UpdateSettings(*settings.Settings)
 		Watch(ctx context.Context)
 	}

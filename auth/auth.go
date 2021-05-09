@@ -218,6 +218,12 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 
 	external.Init(log, sesManager.Store())
 
+	svc.log.Info(
+		"auth server ready",
+		zap.String("AUTH_BASE_URL", svc.opt.BaseURL),
+		zap.String("AUTH_EXTERNAL_REDIRECT_URL", svc.opt.ExternalRedirectURL),
+	)
+
 	return
 }
 
@@ -300,7 +306,8 @@ func (svc service) gcOAuth2Tokens(ctx context.Context) {
 	}
 }
 
-func (svc service) MountHttpRoutes(r chi.Router) {
+func (svc service) MountHttpRoutes(basePath string, r chi.Router) {
+	basePath = strings.TrimRight(basePath, "/")
 	svc.handlers.MountHttpRoutes(r)
 
 	const uriRoot = "/auth/assets/public"
@@ -314,13 +321,13 @@ func (svc service) MountHttpRoutes(r chi.Router) {
 				zap.String("AUTH_ASSETS_PATH", svc.opt.AssetsPath),
 			)
 		} else {
-			r.Handle(uriRoot+"/*", http.StripPrefix(uriRoot, http.FileServer(http.Dir(root))))
+			r.Handle(uriRoot+"/*", http.StripPrefix(basePath+uriRoot, http.FileServer(http.Dir(root))))
 			return
 		}
 	}
 
 	// fallback to embedded assets
-	r.Handle(uriRoot+"/*", http.StripPrefix("/auth/", http.FileServer(http.FS(PublicAssets))))
+	r.Handle(uriRoot+"/*", http.StripPrefix(basePath+"/auth/", http.FileServer(http.FS(PublicAssets))))
 }
 
 // checks if directory exists & is readable
