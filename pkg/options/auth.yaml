@@ -1,6 +1,5 @@
 imports:
   - time
-  - strings
 
 docs:
   title: Authentication
@@ -50,7 +49,8 @@ props:
   - name: baseURL
     default: guessBaseURL() + "/auth"
     description: |-
-      Frontend base URL. Must be an absolute URL
+      Frontend base URL. Must be an absolute URL, with the domain.
+      This is used for some redirects and links in auth emails.
 
   - name: sessionCookieName
     default: "session"
@@ -58,7 +58,7 @@ props:
       Session cookie name
 
   - name: sessionCookiePath
-    default: "/auth"
+    default: pathPrefix() + "/auth"
     description: |-
       Session cookie path
 
@@ -69,9 +69,9 @@ props:
 
   - name: sessionCookieSecure
     type: bool
-    default: strings.HasPrefix(guessBaseURL(), "https://")
+    default: isSecure()
     description: |-
-      Defaults to true when HTTPS is used.
+      Defaults to true when HTTPS is used. Corteza will try to guess the this setting by
 
   - name: sessionLifetime
     type: time.Duration

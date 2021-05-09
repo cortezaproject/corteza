@@ -26,12 +26,14 @@ type (
 		MetricsUsername        string `env:"HTTP_METRICS_USERNAME"`
 		MetricsPassword        string `env:"HTTP_METRICS_PASSWORD"`
 		EnablePanicReporting   bool   `env:"HTTP_REPORT_PANIC"`
+		BaseUrl                string `env:"HTTP_BASE_URL"`
 		ApiEnabled             bool   `env:"HTTP_API_ENABLED"`
 		ApiBaseUrl             string `env:"HTTP_API_BASE_URL"`
 		WebappEnabled          bool   `env:"HTTP_WEBAPP_ENABLED"`
 		WebappBaseUrl          string `env:"HTTP_WEBAPP_BASE_URL"`
 		WebappBaseDir          string `env:"HTTP_WEBAPP_BASE_DIR"`
 		WebappList             string `env:"HTTP_WEBAPP_LIST"`
+		SslTerminated          bool   `env:"HTTP_SSL_TERMINATED"`
 	}
 )
 
@@ -50,11 +52,14 @@ func HTTPServer() (o *HTTPServerOpt) {
 		MetricsUsername:        "metrics",
 		MetricsPassword:        string(rand.Bytes(5)),
 		EnablePanicReporting:   true,
+		BaseUrl:                "/",
 		ApiEnabled:             true,
+		ApiBaseUrl:             "/",
 		WebappEnabled:          false,
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "webapp/public",
 		WebappList:             "admin,compose,workflow",
+		SslTerminated:          isSecure(),
 	}
 
 	fill(o)

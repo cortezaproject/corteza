@@ -9,12 +9,14 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/webapp"
 	systemRest "github.com/cortezaproject/corteza-server/system/rest"
 	"github.com/cortezaproject/corteza-server/system/scim"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"net/http"
+	"path"
 	"regexp"
 	"strings"
 	"sync"
@@ -50,15 +52,48 @@ func (app *CortezaApp) Serve(ctx context.Context) (err error) {
 
 func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	var (
-		apiBaseUrl    = strings.Trim(app.Opt.HTTPServer.ApiBaseUrl, "/")
-		webappBaseUrl = strings.Trim(app.Opt.HTTPServer.WebappBaseUrl, "/")
+		ho = app.Opt.HTTPServer
 	)
 
-	app.AuthService.MountHttpRoutes(r)
+	func() {
+		if ho.ApiEnabled && ho.ApiBaseUrl == ho.WebappBaseUrl {
+			app.Log.
+				WithOptions(zap.AddStacktrace(zap.PanicLevel)).
+				Warn("client web applications and api can not use the same base URL: " + ho.WebappBaseUrl)
+			ho.WebappEnabled = false
+		}
 
-	if app.Opt.HTTPServer.ApiEnabled {
+		if !ho.WebappEnabled {
+			app.Log.Info("client web applications disabled")
+			return
+		}
 
-		r.Route("/"+apiBaseUrl, func(r chi.Router) {
+		r.Route("/"+ho.WebappBaseUrl, webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth))
+
+		app.Log.Info(
+			"client web applications enabled",
+			zap.String("baseUrl", options.CleanBase(ho.BaseUrl, ho.WebappBaseUrl)),
+			zap.String("baseDir", ho.WebappBaseDir),
+			zap.Strings("apps", strings.Split(ho.WebappList, ",")),
+		)
+	}()
+
+	// Auth server
+	app.AuthService.MountHttpRoutes(ho.BaseUrl, r)
+
+	func() {
+		if !ho.ApiEnabled {
+			app.Log.Info("JSON REST API disabled")
+		}
+
+		r.Route(ho.ApiBaseUrl, func(r chi.Router) {
+			var fullpathAPI = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl)
+
+			app.Log.Info(
+				"JSON REST API enabled",
+				zap.String("baseUrl", fullpathAPI),
+			)
+
 			r.Route("/system", systemRest.MountRoutes)
 			r.Route("/automation", automationRest.MountRoutes)
 			r.Route("/compose", composeRest.MountRoutes)
@@ -67,22 +102,16 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 				r.Route("/federation", federationRest.MountRoutes)
 			}
 
-			r.Handle("/docs", http.RedirectHandler("/"+apiBaseUrl+"/docs/", http.StatusPermanentRedirect))
-			r.Handle("/docs*", http.StripPrefix("/"+apiBaseUrl+"/docs", http.FileServer(docs.GetFS())))
+			var fullpathDocs = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "docs")
+			app.Log.Info(
+				"API docs enabled",
+				zap.String("baseUrl", fullpathDocs),
+			)
+
+			r.Handle("/docs", http.RedirectHandler(fullpathDocs+"/", http.StatusPermanentRedirect))
+			r.Handle("/docs*", http.StripPrefix(fullpathDocs, http.FileServer(docs.GetFS())))
 		})
-
-		app.Log.Info(
-			"JSON REST API enabled",
-			zap.String("baseUrl", app.Opt.HTTPServer.ApiBaseUrl),
-		)
-
-		app.Log.Info(
-			"API docs enabled",
-			zap.String("baseUrl", app.Opt.HTTPServer.ApiBaseUrl+"/docs"),
-		)
-	} else {
-		app.Log.Info("JSON REST API disabled")
-	}
+	}()
 
 	func() {
 		if !app.Opt.SCIM.Enabled {
@@ -96,7 +125,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 		}
 
 		var (
-			baseUrl         = "/" + strings.Trim(app.Opt.SCIM.BaseURL, "/")
+			baseUrl         = app.Opt.SCIM.BaseURL
 			extIdValidation *regexp.Regexp
 			err             error
 		)
@@ -112,7 +141,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 
 		app.Log.Debug(
 			"SCIM enabled",
-			zap.String("baseUrl", baseUrl),
+			zap.String("baseUrl", path.Join(app.Opt.HTTPServer.BaseUrl, baseUrl)),
 			logger.Mask("secret", app.Opt.SCIM.Secret),
 		)
 
@@ -127,17 +156,4 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			})
 		})
 	}()
-
-	if app.Opt.HTTPServer.WebappEnabled {
-		r.Route("/"+webappBaseUrl, webapp.MakeWebappServer(app.Opt.HTTPServer, app.Opt.Auth, app.Opt.Federation))
-
-		app.Log.Info(
-			"client web applications enabled",
-			zap.String("baseUrl", app.Opt.HTTPServer.WebappBaseUrl),
-			zap.String("baseDir", app.Opt.HTTPServer.WebappBaseDir),
-			zap.Strings("apps", strings.Split(app.Opt.HTTPServer.WebappList, ",")),
-		)
-	} else {
-		app.Log.Info("client web applications disabled")
-	}
 }

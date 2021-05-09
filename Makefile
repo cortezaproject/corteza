@@ -143,7 +143,7 @@ provision:
 	$(MAKE) --directory=provision clean all
 
 webapp:
-	$(MAKE) --directory=webapp install
+	@ $(MAKE) --directory=webapp
 
 
 #######################################################################################################################

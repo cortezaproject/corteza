@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"strings"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
@@ -86,6 +87,9 @@ func (app *CortezaApp) Setup() (err error) {
 	// Use Sentry right away to handle any panics
 	// that might occur inside auth, mail setup...
 	defer sentry.Recover()
+
+	// set base path for links&routes in auth server
+	authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
 
 	auth.SetupDefault(app.Opt.Auth.Secret, app.Opt.Auth.Expiry)
 
