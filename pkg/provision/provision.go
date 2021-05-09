@@ -14,6 +14,8 @@ import (
 )
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
+	log = log.WithOptions(zap.AddStacktrace(zap.PanicLevel))
+
 	ffn := []func() error{
 		func() error { return roles(ctx, s) },
 

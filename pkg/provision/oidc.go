@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
+	"os"
 	"strings"
 )
 
@@ -81,7 +82,7 @@ func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
 			"oidc",
 		}
 
-		env, p, name string
+		key, name string
 
 		pp []string
 
@@ -89,24 +90,35 @@ func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
 	)
 
 	for _, kind := range kinds {
-		env = "PROVISION_SETTINGS_AUTH_FEDERATED_" + strings.ToUpper(kind)
+		key = "PROVISION_SETTINGS_AUTH_EXTERNAL_" + strings.ToUpper(kind)
+		val, has := os.LookupEnv(key)
 
-		p = strings.TrimSpace(options.EnvString(env, ""))
-		if len(p) == 0 {
+		if !has {
 			continue
+		}
+
+		if val = strings.TrimSpace(val); val == "" {
+			log.Warn(fmt.Sprintf("found empty value for %s", key))
+			continue
+		} else {
+			log.Info(fmt.Sprintf("provosioning external auth provider from %s", key))
 		}
 
 		eap = &types.ExternalAuthProvider{Enabled: true}
 
 		if kind == "oidc" {
-			pp = strings.SplitN(p, " ", 4)
+			pp = strings.SplitN(val, " ", 4)
+
+			if len(pp) < 4 {
+				log.Warn(fmt.Sprintf("expecting 4 values (name, issuer-url, ket, secret) in %s", key))
+			}
 
 			// Spread name, issuer-url, key and secret from provision string for OIDC provider
 			name, eap.IssuerUrl, eap.Key, eap.Secret = pp[0], pp[1], pp[2], pp[3]
 
 			eap.Handle = external.OIDC_PROVIDER_PREFIX + name
 		} else {
-			pp = strings.SplitN(p, " ", 2)
+			pp = strings.SplitN(val, " ", 2)
 
 			// Spread key and secret from provision string
 			eap.Key, eap.Secret = pp[0], pp[1]
