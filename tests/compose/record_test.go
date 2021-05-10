@@ -135,8 +135,13 @@ func (h helper) repoMakeRecordModuleWithFieldsRequired(name string, ff ...*types
 }
 
 func (h helper) makeRecord(module *types.Module, rvs ...*types.RecordValue) *types.Record {
+	recID := id.Next()
+	for _, rv := range rvs {
+		rv.RecordID = recID
+	}
+
 	rec := &types.Record{
-		ID:          id.Next(),
+		ID:          recID,
 		CreatedAt:   time.Now(),
 		ModuleID:    module.ID,
 		NamespaceID: module.NamespaceID,
@@ -181,9 +186,59 @@ func TestRecordList(t *testing.T) {
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("incTotal", "true").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.filter.total`, float64(2))).
+		End()
+}
+
+func TestRecordListForbidenRecords(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	h.deny(types.ModuleRBACResource.AppendWildcard(), "record.read")
+
+	h.makeRecord(module)
+	h.makeRecord(module)
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("incTotal", "true").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		// not present because omitted when empty
+		Assert(jsonpath.NotPresent(`$.response.filter.total`)).
+		End()
+}
+
+func TestRecordListForbidenFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module")
+	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[0].ID), "record.value.read")
+
+	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_0"}, &types.RecordValue{Name: "email", Value: "v_email_0"})
+	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_1"}, &types.RecordValue{Name: "email", Value: "v_email_1"})
+
+	h.apiInit().
+		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Query("incTotal", "true").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Equal(`$.response.filter.total`, float64(2))).
+		Assert(jsonpath.Len(`$.response.set`, 2)).
+		// rec 1
+		Assert(jsonpath.Len(`$.response.set[0].values`, 1)).
+		Assert(jsonpath.Equal(`$.response.set[0].values[0].name`, "email")).
+		// rec 2
+		Assert(jsonpath.Len(`$.response.set[1].values`, 1)).
+		Assert(jsonpath.Equal(`$.response.set[1].values[0].name`, "email")).
 		End()
 }
 

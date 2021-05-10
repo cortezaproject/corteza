@@ -226,7 +226,7 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 			return RecordErrNotAllowedToRead()
 		}
 
-		trimUnreadableRecordFields(ctx, svc.ac, m, r)
+		ComposeRecordFilterAC(ctx, svc.ac, m, r)
 
 		if err = label.Load(ctx, svc.store, r); err != nil {
 			return err
@@ -281,13 +281,7 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			return err
 		}
 
-		filter.Check = func(res *types.Record) (bool, error) {
-			if !svc.ac.CanReadRecord(ctx, m) {
-				return false, nil
-			}
-
-			return true, nil
-		}
+		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
@@ -321,7 +315,7 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 			return nil
 		})
 
-		trimUnreadableRecordFields(ctx, svc.ac, m, set...)
+		ComposeRecordFilterAC(ctx, svc.ac, m, set...)
 
 		return nil
 	}()
@@ -1353,8 +1347,18 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 
 }
 
+func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
+	return func(res *types.Record) (bool, error) {
+		if !ac.CanReadRecord(ctx, m) {
+			return false, nil
+		}
+
+		return true, nil
+	}
+}
+
 // checks record-value-read access permissions for all module fields and removes unreadable fields from all records
-func trimUnreadableRecordFields(ctx context.Context, ac recordValueAccessController, m *types.Module, rr ...*types.Record) {
+func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, m *types.Module, rr ...*types.Record) {
 	var (
 		readableFields = map[string]bool{}
 	)

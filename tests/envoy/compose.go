@@ -284,3 +284,35 @@ func sTestComposeRecord(ctx context.Context, t *testing.T, s store.Storer, nsID,
 
 	return rec
 }
+
+func sTestComposeRecordRaw(ctx context.Context, t *testing.T, s store.Storer, nsID, modID, usrID uint64, vv ...*types.RecordValue) *types.Record {
+	recID := su.NextID()
+	for _, v := range vv {
+		v.RecordID = recID
+	}
+
+	rec := &types.Record{
+		ID:          recID,
+		NamespaceID: nsID,
+		ModuleID:    modID,
+		Values:      vv,
+
+		CreatedAt: createdAt,
+		UpdatedAt: &updatedAt,
+		OwnedBy:   usrID,
+		CreatedBy: usrID,
+		UpdatedBy: usrID,
+	}
+
+	mod := &types.Module{
+		ID:          modID,
+		NamespaceID: nsID,
+	}
+
+	err := store.CreateComposeRecord(ctx, s, mod, rec)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return rec
+}
