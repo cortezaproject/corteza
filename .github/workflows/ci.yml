@@ -1,0 +1,196 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+
+jobs:
+
+  test_unit:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Test Docker Image
+        run: docker build -t test-image --target run-stage .
+
+      - name: Test Code in Container
+        run: |
+          docker run test-image go test ./pkg/... \
+                                        ./compose/... \
+                                        ./system/... \
+                                        ./federation/... \
+                                        ./auth/... \
+                                        ./automation/...
+
+      - name: Docker Logout
+        run: docker logout
+
+
+  test_integration:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Test Docker Image
+        run: docker build -t test-image --target run-stage .
+
+      - name: Test Code in Container
+        run: |
+          docker run \
+            -e AUTH_OIDC_ENABLED="0" \
+            -e AUTH_JWT_SECRET=FBjddkvwQib0d4usifnEGVr1bncuVeD7 \
+            -e CORREDOR_CLIENT_CERTIFICATES_ENABLED="false" \
+            -e CORREDOR_ENABLED="false" \
+            -e DB_DSN="sqlite3://file::memory:?cache=shared&mode=memory" \
+            -e RDBMS_SQLITE_DSN="sqlite3://file::memory:?cache=shared&mode=memory" \
+            test-image go test ./tests/...
+
+      - name: Docker Logout
+        run: docker logout
+
+
+  test_store:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Test Docker Image
+        run: docker build -t test-image --target run-stage .
+
+      - name: Test Code in Container
+        run: |
+          docker run \
+            -e AUTH_OIDC_ENABLED="0" \
+            -e AUTH_JWT_SECRET=FBjddkvwQib0d4usifnEGVr1bncuVeD7 \
+            -e CORREDOR_CLIENT_CERTIFICATES_ENABLED="false" \
+            -e CORREDOR_ENABLED="false" \
+            -e DB_DSN="sqlite3://file::memory:?cache=shared&mode=memory" \
+            -e RDBMS_SQLITE_DSN="sqlite3://file::memory:?cache=shared&mode=memory" \
+            test-image go test ./store/tests/...
+
+      - name: Docker Logout
+        run: docker logout
+
+
+  tar:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/')
+    env:
+      APP: corteza-server
+    needs:
+      - test_unit
+      - test_integration
+      - test_store
+    steps:
+
+      - name: Set ENV Variables
+        run: |
+          BRANCH_ESCAPED_NAME=$( echo ${GITHUB_REF} | sed 's/refs\/heads\///g' | sed 's/\//-/g' )
+          echo "APP_NAME_WITH_SHA=${{ env.APP }}-${GITHUB_SHA}-linux-amd64" >> $GITHUB_ENV
+          echo "APP_NAME_WITH_BRANCH=${{ env.APP }}-${BRANCH_ESCAPED_NAME}-linux-amd64" >> $GITHUB_ENV
+          echo "APP_ARTIFACT_NAME_WITH_SHA=${{ env.APP }}-${GITHUB_SHA}-linux-amd64.tar.gz" >> $GITHUB_ENV
+          echo "APP_ARTIFACT_NAME_WITH_BRANCH=${{ env.APP }}-${BRANCH_ESCAPED_NAME}-linux-amd64.tar.gz" >> $GITHUB_ENV
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image
+        run: docker build -t build-image --target build-stage .
+
+      - name: Create Artifacts
+        run: |
+          CONTAINER=$(docker create build-image)
+          mkdir -p ${{ env.APP_NAME_WITH_SHA }}/bin
+          mkdir -p ${{ env.APP_NAME_WITH_BRANCH }}/bin
+          docker cp ${CONTAINER}:/corteza/provision ${{ env.APP_NAME_WITH_SHA }}
+          docker cp ${CONTAINER}:/corteza/corteza-server ${{ env.APP_NAME_WITH_SHA }}/bin
+          docker cp ${CONTAINER}:/corteza/provision ${{ env.APP_NAME_WITH_BRANCH }}/bin
+          docker cp ${CONTAINER}:/corteza/corteza-server ${{ env.APP_NAME_WITH_BRANCH }}
+          cp CONTRIBUTING.* DCO LICENSE README.* ${{ env.APP_NAME_WITH_SHA }}
+          cp CONTRIBUTING.* DCO LICENSE README.* ${{ env.APP_NAME_WITH_BRANCH }}
+          tar -czvf ${{ env.APP_ARTIFACT_NAME_WITH_SHA }} ${{ env.APP_NAME_WITH_SHA }}
+          tar -czvf ${{ env.APP_ARTIFACT_NAME_WITH_BRANCH }} ${{ env.APP_NAME_WITH_BRANCH }}
+
+      - name: Upload Arfifacts
+        run: |
+          docker run -v $(pwd):/root/volume \
+                     mcr.microsoft.com/azure-cli az storage blob upload \
+                        --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+                        --container-name ${{ env.APP }} \
+                        --file /root/volume/${{ env.APP_ARTIFACT_NAME_WITH_SHA }} \
+                        --name ${{ env.APP_ARTIFACT_NAME_WITH_SHA }}
+
+          docker run -v $(pwd):/root/volume \
+                     mcr.microsoft.com/azure-cli az storage blob upload \
+                        --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+                        --container-name ${{ env.APP }} \
+                        --file /root/volume/${{ env.APP_ARTIFACT_NAME_WITH_BRANCH }} \
+                        --name ${{ env.APP_ARTIFACT_NAME_WITH_BRANCH }}
+
+      - name: Docker Logout
+        run: docker logout
+
+
+  docker:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/')
+    env:
+      REGISTRY: corteza.azurecr.io
+      REPOSITORY: corteza-server
+    needs:
+      - test_unit
+      - test_integration
+      - test_store
+    steps:
+
+      - name: Set ENV Variables
+        run: |
+          BRANCH_ESCAPED_NAME=$( echo ${GITHUB_REF} | sed 's/refs\/heads\///g' | sed 's/\//-/g' )
+          echo "IMAGE_NAME_WITH_SHA=${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "IMAGE_NAME_WITH_BRANCH=${{ env.REGISTRY }}/${{ env.REPOSITORY }}:$BRANCH_ESCAPED_NAME" >> $GITHUB_ENV
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Docker Login
+        run: docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Images
+        run: docker build -t ${{ env.IMAGE_NAME_WITH_SHA }} -t ${{ env.IMAGE_NAME_WITH_BRANCH }} .
+
+      - name: ACR Login
+        run: |
+          docker login ${{ env.REGISTRY }} --username ${{ secrets.AZURE_ACR_USERNAME }} \
+                                           --password "${{ secrets.AZURE_ACR_PASSWORD }}"
+
+      - name: Push Docker Images
+        run: |
+          docker push ${{ env.IMAGE_NAME_WITH_SHA }}
+          docker push ${{ env.IMAGE_NAME_WITH_BRANCH }}
+
+      - name: Docker Logout
+        run: docker logout
