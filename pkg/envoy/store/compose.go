@@ -5,10 +5,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	stypes "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -165,6 +167,8 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		}
 	}
 
+	ac := service.AccessControl(rbac.Global())
+
 	if len(d.namespaceID) > 0 {
 		ffNs := make([]*composeRecordFilter, 0, len(ff)+len(d.namespaceID))
 		for _, nsID := range d.namespaceID {
@@ -232,6 +236,8 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		}
 		mod.Fields = ff
 
+		aux.Check = service.ComposeRecordFilterChecker(ctx, ac, mod)
+
 		// Refs
 		auxRecord := &composeRecordAux{
 			refMod:   strconv.FormatUint(f.ModuleID, 10),
@@ -242,17 +248,19 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 
 		// Walker
 		auxRecord.walker = func(cb func(r *resource.ComposeRecordRaw) error) error {
-			var nn types.RecordSet
+			var rr types.RecordSet
 			var fn types.RecordFilter
 			var err error
 
 			for {
-				nn, fn, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter(aux))
+				rr, fn, err = s.SearchComposeRecords(ctx, mod, types.RecordFilter(aux))
 				if err != nil {
 					return err
 				}
 
-				for _, n := range nn {
+				service.ComposeRecordFilterAC(ctx, ac, mod, rr...)
+
+				for _, n := range rr {
 					// Create a raw record
 					r := &resource.ComposeRecordRaw{
 						ID:     strconv.FormatUint(n.ID, 10),
@@ -267,7 +275,7 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 					}
 				}
 
-				if f.NextPage != nil {
+				if fn.NextPage != nil {
 					aux.PageCursor = fn.NextPage
 				} else {
 					break
