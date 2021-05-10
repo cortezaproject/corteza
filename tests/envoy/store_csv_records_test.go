@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
 )
@@ -93,6 +95,63 @@ func TestStoreCsv_records(t *testing.T) {
 				vv = rec.Values.FilterByName("module_field_number")
 				req.Len(vv, 1)
 				req.Equal("10", vv[0].Value)
+			},
+		},
+
+		{
+			name: "paged",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				truncateStore(ctx, s, t)
+
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+				mod := sTestComposeModule(ctx, t, s, ns.ID, "base")
+				usr := sTestUser(ctx, t, s, "base")
+				sTestComposeRecordRaw(ctx, t, s, ns.ID, mod.ID, usr.ID, &types.RecordValue{Name: "module_field_number", Value: "10"}, &types.RecordValue{Name: "module_field_string", Value: "v"})
+				sTestComposeRecordRaw(ctx, t, s, ns.ID, mod.ID, usr.ID, &types.RecordValue{Name: "module_field_number", Value: "11"}, &types.RecordValue{Name: "module_field_string", Value: "v"})
+				sTestComposeRecordRaw(ctx, t, s, ns.ID, mod.ID, usr.ID, &types.RecordValue{Name: "module_field_number", Value: "12"}, &types.RecordValue{Name: "module_field_string", Value: "v"})
+				sTestComposeRecordRaw(ctx, t, s, ns.ID, mod.ID, usr.ID, &types.RecordValue{Name: "module_field_number", Value: "13"}, &types.RecordValue{Name: "module_field_string", Value: "v"})
+				sTestComposeRecordRaw(ctx, t, s, ns.ID, mod.ID, usr.ID, &types.RecordValue{Name: "module_field_number", Value: "14"}, &types.RecordValue{Name: "module_field_string", Value: "v"})
+
+				df := su.NewDecodeFilter().
+					ComposeRecord(&types.RecordFilter{
+						NamespaceID: ns.ID,
+						ModuleID:    mod.ID,
+						Paging: filter.Paging{
+							Limit: 2,
+						},
+					})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, ns.ID, "base_module")
+				req.NoError(err)
+				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
+				req.NoError(err)
+				_ = usr
+
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: ns.ID,
+				})
+				req.NoError(err)
+				req.Len(rr, 5)
+
+				for i, rec := range rr {
+					req.Equal(ns.ID, rec.NamespaceID)
+					req.Equal(mod.ID, rec.ModuleID)
+
+					req.Equal(createdAt.Format(time.RFC3339), rec.CreatedAt.Format(time.RFC3339))
+					req.Equal(updatedAt.Format(time.RFC3339), rec.UpdatedAt.Format(time.RFC3339))
+					req.Equal(usr.ID, rec.OwnedBy)
+					req.Equal(usr.ID, rec.CreatedBy)
+					req.Equal(usr.ID, rec.UpdatedBy)
+
+					vv := rec.Values.FilterByName("module_field_number")
+					req.Len(vv, 1)
+					req.Equal(fmt.Sprintf("1%d", i), vv[0].Value)
+				}
 			},
 		},
 	}
