@@ -349,7 +349,7 @@ func TestScimPatchingGroupMembership(t *testing.T) {
 	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
 		Patch(fmt.Sprintf("/Groups/%s", groupId)).
 		JSON(fmt.Sprintf(
-			`{"Operations":[{"op":"add","path":"members","value":[{"value":%q}]}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
+			`{"Operations":[{"op":"add","path":"members[value eq \"%s\"]"}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
 			user1Id,
 		)).
 		Expect(t).
@@ -363,7 +363,7 @@ func TestScimPatchingGroupMembership(t *testing.T) {
 	h.scimApiInit(scimSetWithExternalId, scimSetWithUUIDValidator).
 		Patch(fmt.Sprintf("/Groups/%s", groupId)).
 		JSON(fmt.Sprintf(
-			`{"Operations":[{"op":"add","path":"members","value":[{"value":%q}]},{"op":"remove","path":"members","value":[{"value":%q}]}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
+			`{"Operations":[{"op":"add","path":"members[value eq \"%[1]s\"]"},{"op":"remove","path":"members[value eq \"%[2]s\"]"}],"schemas":["urn:ietf:params:scim:schemas:core:2.0:PatchOp"]}`,
 			user2Id,
 			user1Id,
 		)).
