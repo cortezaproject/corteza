@@ -159,22 +159,22 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 
 	// validate and collect operations
 	for _, op := range payload.Operations {
-		if op.Path != "members" {
-			// allow only "members" path
-			sendError(w, newErrorfResponse(http.StatusBadRequest, "unsupported path: %q", op.Path))
-			return
-		}
-
 		// iterate through operation's values, load user and schedule op
-		for _, userExternalId := range op.Value {
-			u, err = lookupUserByExternalId(ctx, h.userSvc, h.externalIdValidator, userExternalId.Value)
+		for path, userExternalId := range op.Value {
+			if path != "members" {
+				// allow only "members" path
+				sendError(w, newErrorfResponse(http.StatusBadRequest, "unsupported path: %q", op.Path))
+				return
+			}
+
+			u, err = lookupUserByExternalId(ctx, h.userSvc, h.externalIdValidator, userExternalId)
 			if err != nil {
 				sendError(w, err)
 				return
 			}
 
 			if u == nil {
-				sendError(w, newErrorfResponse(http.StatusBadRequest, "no such user: %q", userExternalId.Value))
+				sendError(w, newErrorfResponse(http.StatusBadRequest, "no such user: %q", userExternalId))
 				return
 			}
 
