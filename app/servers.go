@@ -56,10 +56,10 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	)
 
 	func() {
-		if ho.ApiEnabled && ho.ApiBaseUrl == ho.WebappBaseUrl {
+		if ho.WebappEnabled && ho.ApiEnabled && ho.ApiBaseUrl == ho.WebappBaseUrl {
 			app.Log.
 				WithOptions(zap.AddStacktrace(zap.PanicLevel)).
-				Warn("client web applications and api can not use the same base URL: " + ho.WebappBaseUrl)
+				Warn("client web applications and api can not use the same base URL: '" + ho.WebappBaseUrl + "'")
 			ho.WebappEnabled = false
 		}
 
@@ -84,10 +84,11 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	func() {
 		if !ho.ApiEnabled {
 			app.Log.Info("JSON REST API disabled")
+			return
 		}
 
-		r.Route(ho.ApiBaseUrl, func(r chi.Router) {
-			var fullpathAPI = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl)
+		r.Route("/"+strings.TrimPrefix(ho.ApiBaseUrl, "/"), func(r chi.Router) {
+			var fullpathAPI = "/" + strings.TrimPrefix(options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl), "/")
 
 			app.Log.Info(
 				"JSON REST API enabled",
