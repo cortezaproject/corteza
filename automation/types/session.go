@@ -60,6 +60,8 @@ type (
 		StepID       uint64
 		EventType    string
 		ResourceType string
+
+		CallStack []uint64
 	}
 
 	SessionFilter struct {
