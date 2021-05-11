@@ -92,7 +92,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAccessControl = AccessControl()
 
 	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow, ws)
-	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Corredor)
+	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Corredor, c.Workflow)
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
 	DefaultWorkflow.triggers = DefaultTrigger
