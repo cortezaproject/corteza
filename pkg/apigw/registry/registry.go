@@ -73,5 +73,7 @@ func (r *Registry) Preload() {
 }
 
 func NewWorkflow() (wf filter.WfExecer) {
-	return service.Workflow(&zap.Logger{}, options.CorredorOpt{})
+	// implementation assumes that Corredor & Workflow options can not be changed
+	// in the run-time.
+	return service.Workflow(&zap.Logger{}, *options.Corredor(), *options.Workflow())
 }
