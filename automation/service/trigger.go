@@ -414,7 +414,7 @@ func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, per
 // registers all triggers on all given workflows
 // before registering triggers on a workflow, all workflow triggers are unregistered
 func (svc *trigger) registerWorkflows(ctx context.Context, workflows ...*types.Workflow) error {
-	// load ALL workflows directly from store
+	// load ALL triggers directly from store
 	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
 		WorkflowID: types.WorkflowSet(workflows).IDs(),
 		Deleted:    filter.StateInclusive,

@@ -32,6 +32,8 @@ type (
 		triggers  *trigger
 		session   *session
 
+		opt options.WorkflowOpt
+
 		log *zap.Logger
 
 		// maps resolved workflow graphs to workflow ID (key, uint64)
@@ -79,9 +81,10 @@ const (
 	workflowDefChanged    workflowChanges = 4
 )
 
-func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt) *workflow {
+func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.WorkflowOpt) *workflow {
 	return &workflow{
 		log:         log,
+		opt:       opt,
 		actionlog:   DefaultActionlog,
 		store:       DefaultStore,
 		ac:          DefaultAccessControl,
@@ -552,11 +555,18 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// Start with workflow scope
 		scope := wf.Scope.MustMerge()
 
+		callStack := wfexec.GetContextCallStack(ctx)
+		if len(callStack) > svc.opt.CallStackSize {
+			return WorkflowErrMaximumCallStackSizeExceeded()
+		}
+
 		ssp := types.SessionStartParams{
 			WorkflowID: wf.ID,
 			KeepFor:    wf.KeepSessions,
 			Trace:      wf.Trace || p.Trace,
 			StepID:     p.StepID,
+
+			CallStack: callStack,
 		}
 
 		if !p.Trace {
@@ -697,6 +707,11 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			return WorkflowErrNotAllowedToExecute()
 		}
 
+		callStack := wfexec.GetContextCallStack(ctx)
+		if len(callStack) > s.opt.CallStackSize {
+			return WorkflowErrMaximumCallStackSizeExceeded()
+		}
+
 		wait, err = s.Start(g, runAs, types.SessionStartParams{
 			WorkflowID:   wf.ID,
 			KeepFor:      wf.KeepSessions,
@@ -705,6 +720,8 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			StepID:       t.StepID,
 			EventType:    t.EventType,
 			ResourceType: t.ResourceType,
+
+			CallStack: callStack,
 		})
 
 		if err != nil {
