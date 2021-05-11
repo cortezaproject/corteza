@@ -979,6 +979,42 @@ func WorkflowErrNotAllowedToExecuteCorredorStep(mm ...*workflowActionProps) *err
 	return e
 }
 
+// WorkflowErrMaximumCallStackSizeExceeded returns "automation:workflow.maximumCallStackSizeExceeded" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrMaximumCallStackSizeExceeded(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("maximum call stack size exceeded", nil),
+
+		errors.Meta("type", "maximumCallStackSizeExceeded"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "maximum call stack size exceeded"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.maximumCallStackSizeExceeded"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
