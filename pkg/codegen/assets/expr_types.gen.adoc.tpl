@@ -8,31 +8,25 @@
 //  - {{ .Source }}
 {{- end }}
 
-= Types
-
-[%header, cols="1m,2a,2m"]
+[cols="2m,3a"]
 |===
-| Type | DataType | Function
+| Type | Structure
 {{- range .Definitions }}
 {{- range $tName, $tDef := .Types }}
-{{- if gt (len $tDef.Struct) 0}}
-| *{{ $tName }}*
-| `{{ $tDef.As }}`
-
-{{ if $tDef.Struct }}
-[source, go]
+   {{- if gt (len $tDef.Struct) 0}}
+| [#objref-{{ toLower $tName }}]#<<objref-{{ toLower $tName }},{{ $tName }}>>#
+|
+      {{- if $tDef.Struct }}
+[source]
 ----
-{{ $tDef.As }}{
-{{- range $s := .Struct }}
-   {{ $s.Name }} {{ $s.ExprType }}
-{{- end }}
+{
+         {{- range $s := .Struct }}
+   {{ $s.Name }} ({{ $s.ExprType }})
+         {{- end }}
 }
 ----
+{{ end }}
+   {{- end }}
 {{- end }}
-| {{ $tDef.AssignerFn }}
-
-{{- end }}
-
-{{- end }}
-{{- end }}
+{{ end }}
 |===
