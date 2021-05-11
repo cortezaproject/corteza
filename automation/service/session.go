@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -12,8 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"sync"
-	"time"
 )
 
 type (
@@ -33,6 +34,7 @@ type (
 		session    chan *wfexec.Session
 		graph      *wfexec.Graph
 		trace      bool
+		callStack  []uint64
 	}
 
 	sessionAccessController interface {
@@ -174,7 +176,7 @@ func (svc *session) Start(g *wfexec.Graph, i auth.Identifiable, ssp types.Sessio
 
 	var (
 		ctx = auth.SetIdentityToContext(context.Background(), i)
-		ses = svc.spawn(g, ssp.WorkflowID, ssp.Trace)
+		ses = svc.spawn(g, ssp.WorkflowID, ssp.Trace, ssp.CallStack)
 	)
 
 	ses.CreatedAt = *now()
@@ -213,12 +215,13 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 //
 // We need initial context for the session because we want to catch all cancellations or timeouts from there
 // and not from any potential HTTP requests or similar temporary context that can prematurely destroy a workflow session
-func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool) (ses *types.Session) {
+func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callStack []uint64) (ses *types.Session) {
 	s := &spawn{
 		workflowID: workflowID,
 		session:    make(chan *wfexec.Session, 1),
 		graph:      g,
 		trace:      trace,
+		callStack:  callStack,
 	}
 
 	// Send new-session request
@@ -248,6 +251,7 @@ func (svc *session) Watch(ctx context.Context) {
 			case s := <-svc.spawnQueue:
 				opts := []wfexec.SessionOpt{
 					wfexec.SetWorkflowID(s.workflowID),
+					wfexec.SetCallStack(s.callStack...),
 					wfexec.SetHandler(svc.stateChangeHandler(ctx)),
 				}
 

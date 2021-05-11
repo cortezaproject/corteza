@@ -11,3 +11,8 @@ props:
     type: bool
     default: false
     description: Enables verbose logging for workflow execution
+
+  - name: callStackSize
+    type: int
+    default: 16
+    description: Defines the maximum call stack size between workflows

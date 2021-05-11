@@ -93,7 +93,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultAccessControl = AccessControl(rbac.Global())
 
 	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow)
-	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"))
+	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Workflow)
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
 	DefaultWorkflow.triggers = DefaultTrigger

@@ -3,14 +3,15 @@ package wfexec
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
-	"runtime/debug"
-	"sync"
-	"time"
 )
 
 type (
@@ -62,6 +63,8 @@ type (
 		dumpStacktraceOnPanic bool
 
 		eventHandler StateChangeHandler
+
+		callStack []uint64
 	}
 
 	StateChangeHandler func(SessionStatus, *State, *Session)
@@ -107,6 +110,8 @@ type (
 	}
 
 	SessionStatus int
+
+	callStackCtxKey struct{}
 )
 
 const (
@@ -183,6 +188,8 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 	s.log = s.log.
 		WithOptions(zap.AddStacktrace(zap.ErrorLevel)).
 		With(zap.Uint64("sessionID", s.id))
+
+	s.callStack = append(s.callStack, s.id)
 
 	go s.worker(ctx)
 
@@ -551,9 +558,10 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			// Context received in exec() wil not have the identity we're expecting
 			// so we need to pull it from state owner and add it to new context
 			// that is set to step exec function
-			ctxWithIdentity := auth.SetIdentityToContext(ctx, st.owner)
+			stepCtx := auth.SetIdentityToContext(ctx, st.owner)
+			stepCtx = SetContextCallStack(stepCtx, s.callStack)
 
-			result, st.err = st.step.Exec(ctxWithIdentity, st.MakeRequest())
+			result, st.err = st.step.Exec(stepCtx, st.MakeRequest())
 
 			if iterator, isIterator := result.(Iterator); isIterator && st.err == nil {
 				// Exec fn returned an iterator, adding loop to stack
@@ -778,6 +786,12 @@ func SetDumpStacktraceOnPanic(dump bool) SessionOpt {
 	}
 }
 
+func SetCallStack(id ...uint64) SessionOpt {
+	return func(s *Session) {
+		s.callStack = id
+	}
+}
+
 func (ss Steps) hash() map[Step]bool {
 	out := make(map[Step]bool)
 	for _, s := range ss {
@@ -809,4 +823,17 @@ func (ss Steps) IDs() []uint64 {
 	}
 
 	return ids
+}
+
+func SetContextCallStack(ctx context.Context, ss []uint64) context.Context {
+	return context.WithValue(ctx, callStackCtxKey{}, ss)
+}
+
+func GetContextCallStack(ctx context.Context) []uint64 {
+	v := ctx.Value(callStackCtxKey{})
+	if v == nil {
+		return nil
+	}
+
+	return v.([]uint64)
 }
