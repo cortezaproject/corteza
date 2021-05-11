@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"reflect"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -11,12 +14,11 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
-	"reflect"
-	"sync"
 )
 
 type (
@@ -27,6 +29,8 @@ type (
 		ac        workflowAccessController
 		triggers  *trigger
 		session   *session
+
+		opt options.WorkflowOpt
 
 		log *zap.Logger
 
@@ -76,9 +80,10 @@ const (
 	workflowDefChanged    workflowChanges = 4
 )
 
-func Workflow(log *zap.Logger) *workflow {
+func Workflow(log *zap.Logger, opt options.WorkflowOpt) *workflow {
 	return &workflow{
 		log:       log,
+		opt:       opt,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
@@ -539,11 +544,18 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// Start with workflow scope
 		scope := wf.Scope.Merge()
 
+		callStack := wfexec.GetContextCallStack(ctx)
+		if len(callStack) > svc.opt.CallStackSize {
+			return WorkflowErrMaximumCallStackSizeExceeded()
+		}
+
 		ssp := types.SessionStartParams{
 			WorkflowID: wf.ID,
 			KeepFor:    wf.KeepSessions,
 			Trace:      wf.Trace || p.Trace,
 			StepID:     p.StepID,
+
+			CallStack: callStack,
 		}
 
 		if !p.Trace {
@@ -640,6 +652,11 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			runAs = intAuth.GetIdentityFromContext(ctx)
 		}
 
+		callStack := wfexec.GetContextCallStack(ctx)
+		if len(callStack) > s.opt.CallStackSize {
+			return WorkflowErrMaximumCallStackSizeExceeded()
+		}
+
 		wait, err = s.Start(g, runAs, types.SessionStartParams{
 			WorkflowID:   wf.ID,
 			KeepFor:      wf.KeepSessions,
@@ -648,6 +665,8 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			StepID:       t.StepID,
 			EventType:    t.EventType,
 			ResourceType: t.ResourceType,
+
+			CallStack: callStack,
 		})
 
 		if err != nil {

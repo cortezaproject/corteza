@@ -5,10 +5,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
-	"time"
 )
 
 type (
@@ -56,6 +57,8 @@ type (
 		StepID       uint64
 		EventType    string
 		ResourceType string
+
+		CallStack []uint64
 	}
 
 	SessionFilter struct {
