@@ -29,7 +29,7 @@ props:
     description: Experation time for the auth JWT tokens.
 
   - name: externalRedirectURL
-    default: guessBaseURL() + "/auth/external/{provider}/callback"
+    default: fullURL() + "/auth/external/{provider}/callback"
     description: |-
       Redirect URL to be sent with OAuth2 authentication request to provider
 
@@ -47,7 +47,7 @@ props:
       ====
 
   - name: baseURL
-    default: guessBaseURL() + "/auth"
+    default: fullURL() + "/auth"
     description: |-
       Frontend base URL. Must be an absolute URL, with the domain.
       This is used for some redirects and links in auth emails.
