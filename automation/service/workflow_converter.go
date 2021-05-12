@@ -450,7 +450,7 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 			return wfexec.Prompt(ownerId, s.Ref, payload), nil
 		}
 
-		results, err := res.Eval(ctx, r.Scope.Merge(r.Input))
+		results, err := res.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
 			return nil, err
 		}

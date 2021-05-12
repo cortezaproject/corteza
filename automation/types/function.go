@@ -98,7 +98,7 @@ func (f functionStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.E
 	if len(f.arguments) > 0 {
 		// Arguments defined, get values from scope and use them when calling
 		// function/handler
-		args, err = f.arguments.Eval(ctx, r.Scope.Merge(r.Input))
+		args, err = f.arguments.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +171,7 @@ func (f *iteratorStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.
 	if len(f.arguments) > 0 {
 		// Arguments defined, get values from scope and use them when calling
 		// iterator/handler
-		args, err = f.arguments.Eval(ctx, r.Scope.Merge(r.Input))
+		args, err = f.arguments.Eval(ctx, r.Scope.MustMerge(r.Input))
 		if err != nil {
 			return nil, err
 		}

@@ -87,7 +87,7 @@ func (set ExprSet) Validate(ctx context.Context, in *expr.Vars) (TestSet, error)
 		err error
 
 		// Copy/create scope
-		scope = (&expr.Vars{}).Merge(in)
+		scope = (&expr.Vars{}).MustMerge(in)
 	)
 
 	for _, e := range set {
@@ -108,7 +108,7 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 		err error
 
 		// Copy input to scope
-		scope = (&expr.Vars{}).Merge(in)
+		scope = (&expr.Vars{}).MustMerge(in)
 
 		// Prepare output scope
 		out, _ = expr.NewVars(nil)
@@ -223,7 +223,7 @@ func ExpressionsStep(ee ...*Expr) *expressionsStep {
 }
 
 func (s expressionsStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.ExecResponse, error) {
-	result, err := s.Set.Eval(ctx, r.Scope.Merge(r.Input))
+	result, err := s.Set.Eval(ctx, r.Scope.MustMerge(r.Input))
 	if err != nil {
 		return nil, err
 	}

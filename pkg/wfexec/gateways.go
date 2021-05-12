@@ -66,7 +66,7 @@ func (gw *joinGateway) Exec(_ context.Context, r *ExecRequest) (ExecResponse, er
 	var merged *expr.Vars
 	for _, p := range gw.paths {
 		if gw.scopes[p] != nil {
-			merged = merged.Merge(gw.scopes[p])
+			merged = merged.MustMerge(gw.scopes[p])
 		}
 	}
 
