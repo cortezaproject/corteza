@@ -538,7 +538,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		}()
 
 		// Start with workflow scope
-		scope := wf.Scope.Merge()
+		scope := wf.Scope.MustMerge()
 
 		ssp := types.SessionStartParams{
 			WorkflowID: wf.ID,
@@ -559,7 +559,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 			wap.setTrigger(t)
 
 			// Add trigger's input to scope
-			scope = scope.Merge(t.Input)
+			scope = scope.MustMerge(t.Input)
 			_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(t.EventType)))
 			_ = scope.AssignFieldValue("resourceType", expr.Must(expr.NewString(t.ResourceType)))
 
@@ -572,7 +572,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		}
 
 		// Finally, assign input values
-		ssp.Input = scope.Merge(p.Input)
+		ssp.Input = scope.MustMerge(p.Input)
 
 		if wf.RunAs > 0 {
 			if runAs, err = DefaultUser.FindByID(ctx, wf.RunAs); err != nil {
@@ -617,7 +617,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 
 		var (
 			// create session scope from predefined workflow scope and trigger input
-			scope   = wf.Scope.Merge(t.Input)
+			scope   = wf.Scope.MustMerge(t.Input)
 			evScope *expr.Vars
 			wait    WaitFn
 		)
@@ -627,7 +627,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 				return
 			}
 
-			scope = scope.Merge(evScope)
+			scope = scope.MustMerge(evScope)
 		}
 
 		_ = scope.AssignFieldValue("eventType", expr.Must(expr.NewString(ev.EventType())))

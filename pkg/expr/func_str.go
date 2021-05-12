@@ -83,7 +83,7 @@ func join(arr interface{}, sep string) (out string, err error) {
 	} else if i, is := arr.([]interface{}); is {
 		// If slice of interfaces, we can try to cast them
 		var aux []string
-		aux, err = CastStringSlice(i)
+		aux, err = CastToStringSlice(i)
 		if err != nil {
 			return
 		}

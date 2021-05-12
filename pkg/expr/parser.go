@@ -87,9 +87,11 @@ func AllFunctions() []gval.Language {
 
 	//ff = append(ff, GenericFunctions()...)
 	ff = append(ff, StringFunctions()...)
+	ff = append(ff, JsonFunctions()...)
 	ff = append(ff, NumericFunctions()...)
 	ff = append(ff, TimeFunctions()...)
 	ff = append(ff, ArrayFunctions()...)
+	ff = append(ff, KvFunctions()...)
 
 	return ff
 }

@@ -2,11 +2,179 @@ package expr
 
 import (
 	"context"
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
 )
+
+func Example_set_kv() {
+	var (
+		kv = &KV{}
+		p  = map[string]interface{}{
+			"kv":    kv,
+			"key":   "k1",
+			"value": Must(NewString("v11")),
+		}
+	)
+
+	eval(`set(kv, key, value)`, p)
+	fmt.Printf("\nOriginal KV should be %v", kv)
+
+	// output:
+	// &{value:map[k1:v11]}
+	// Original KV should be &{map[]}
+}
+
+func Example_merge_kv() {
+	var (
+		kv = &KV{}
+		p  = map[string]interface{}{
+			"kv": kv,
+			"foo": &KV{value: map[string]string{
+				"k1": "v1",
+			}},
+			"bar": &KV{value: map[string]string{
+				"k2": "v2",
+			}},
+		}
+	)
+
+	eval(`merge(kv, foo, bar)`, p)
+	fmt.Printf("\nOriginal KV should be %v", kv)
+
+	// output:
+	// &{value:map[k1:v1 k2:v2]}
+	// Original KV should be &{map[]}
+}
+
+func Example_filter_kv() {
+	var (
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+		p = map[string]interface{}{
+			"kv":   kv,
+			"key1": "k1",
+			"key2": "k3",
+		}
+	)
+
+	eval(`filter(kv, key1, key2)`, p)
+	fmt.Printf("\nOriginal KV should be %v", kv)
+
+	// output:
+	// &{value:map[k1:v1]}
+	// Original KV should be &{map[k1:v1 k2:v2]}
+}
+
+func Example_omit_kv() {
+	var (
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+			"k3": "v3",
+		}}
+		p = map[string]interface{}{
+			"kv":   kv,
+			"key1": "k1",
+			"key2": "k3",
+		}
+	)
+
+	eval(`omit(kv, key1, key2)`, p)
+	fmt.Printf("\nOriginal KV should be %v", kv)
+
+	// output:
+	// &{value:map[k2:v2]}
+	// Original KV should be &{map[k1:v1 k2:v2 k3:v3]}
+}
+
+func Example_set_kvv() {
+	var (
+		kvv = &KVV{}
+		p   = map[string]interface{}{
+			"kvv":   kvv,
+			"key":   "foo",
+			"value": Must(NewString("bar")),
+		}
+	)
+
+	eval(`set(kvv, key, value)`, p)
+	fmt.Printf("\nOriginal KVV should be %v", kvv)
+
+	// output:
+	// &{value:map[foo:[bar]]}
+	// Original KVV should be &{map[]}
+}
+
+func Example_merge_kvv() {
+	var (
+		kvv = &KVV{}
+		p   = map[string]interface{}{
+			"kvv": kvv,
+			"foo": &KVV{value: map[string][]string{
+				"k1": {"v1"},
+			}},
+			"bar": &KVV{value: map[string][]string{
+				"k1": {"v11"},
+				"k2": {"v2"},
+			}},
+		}
+	)
+
+	eval(`merge(kvv, foo, bar)`, p)
+	fmt.Printf("\nOriginal KVV should be %v", kvv)
+
+	// output:
+	// &{value:map[k1:[v1 v11] k2:[v2]]}
+	// Original KVV should be &{map[]}
+}
+
+func Example_filter_kvv() {
+	var (
+		kvv = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+			"k2": {"v2"},
+		}}
+		p = map[string]interface{}{
+			"kv":   kvv,
+			"key1": "k1",
+			"key2": "k3",
+		}
+	)
+
+	eval(`filter(kv, key1, key2)`, p)
+	fmt.Printf("\nOriginal KVV should be %v", kvv)
+
+	// output:
+	// &{value:map[k1:[v1]]}
+	// Original KVV should be &{map[k1:[v1] k2:[v2]]}
+}
+
+func Example_omit_kvv() {
+	var (
+		kvv = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+			"k2": {"v2"},
+			"k3": {"v3"},
+		}}
+		p = map[string]interface{}{
+			"kvv":  kvv,
+			"key1": "k1",
+			"key2": "k3",
+		}
+	)
+
+	eval(`omit(kvv, key1, key2)`, p)
+	fmt.Printf("\nOriginal KVV should be %v", kvv)
+
+	// output:
+	// &{value:map[k2:[v2]]}
+	// Original KVV should be &{map[k1:[v1] k2:[v2] k3:[v3]]}
+}
 
 func TestTypedValueOperations(t *testing.T) {
 	scope, _ := NewVars(map[string]interface{}{
@@ -55,7 +223,7 @@ func TestTypedValueOperations(t *testing.T) {
 
 }
 
-func TestKV_Set(t *testing.T) {
+func TestKV_Assign(t *testing.T) {
 	var (
 		req = require.New(t)
 
@@ -71,7 +239,108 @@ func TestKV_Set(t *testing.T) {
 
 }
 
-func TestKVV_Set(t *testing.T) {
+func TestKV_Set(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+	)
+
+	out, err := set(kv, "k1", Must(NewString("v11")))
+	req.NoError(err)
+	req.Equal("v11", out.(*KV).GetValue()["k1"])
+
+	// Making sure empty KV updates without error
+	kv = &KV{}
+	out, err = set(kv, "k1", Must(NewString("v11")))
+	req.NoError(err)
+	req.Equal("v11", out.(*KV).GetValue()["k1"])
+}
+
+func TestKV_Merge(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kv  = &KV{}
+		foo = &KV{value: map[string]string{
+			"k1": "v1",
+		}}
+		bar = &KV{value: map[string]string{
+			"k2": "v2",
+		}}
+		expected = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+	)
+
+	out, err := merge(kv, foo, bar)
+	req.NoError(err)
+	req.Equal(expected, out)
+}
+
+func TestKV_Clone(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+		expected = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+	)
+
+	out, err := kv.Merge()
+	req.NoError(err)
+	req.Equal(expected, out)
+}
+
+func TestKV_Filter(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+		}}
+		expected = &KV{value: map[string]string{
+			"k1": "v1",
+		}}
+	)
+
+	out, err := filter(kv, "k1", "k3")
+	req.NoError(err)
+	req.Equal(expected, out)
+	req.NotEqual(kv, out)
+}
+
+func TestKV_Omit(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kv = &KV{value: map[string]string{
+			"k1": "v1",
+			"k2": "v2",
+			"k3": "v3",
+		}}
+		expected = &KV{value: map[string]string{
+			"k2": "v2",
+		}}
+	)
+
+	out, err := omit(kv, "k1", "k3")
+	req.NoError(err)
+	req.Equal(expected, out)
+	req.NotEqual(kv, out)
+}
+
+func TestKVV_Assign(t *testing.T) {
 	var (
 		req = require.New(t)
 		kvv KVV
@@ -92,6 +361,105 @@ func TestKVV_Set(t *testing.T) {
 	req.NoError(kvv.Assign(url.Values{"foo": []string{"bar"}}))
 	req.Contains(kvv.value, "foo")
 	req.Equal([]string{"bar"}, kvv.value["foo"])
+}
+
+func TestKVV_Set(t *testing.T) {
+	var (
+		req = require.New(t)
+		kvv = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+			"k2": {"v2"},
+		}}
+	)
+
+	out, err := set(kvv, "k1", Must(NewString("v11")))
+	req.NoError(err)
+	req.Equal([]string{"v11"}, out.(*KVV).GetValue()["k1"])
+
+	// Making sure empty KV updates without error
+	kvv = &KVV{}
+	out, err = set(kvv, "foo", Must(NewString("bar")))
+	req.NoError(err)
+	req.Equal([]string{"bar"}, out.(*KVV).GetValue()["foo"])
+}
+
+func TestKVV_Merge(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kvv *KVV
+		foo = KVV{value: map[string][]string{
+			"k1": {"v1"},
+		}}
+		bar = KVV{value: map[string][]string{
+			"k1": {"v11"},
+			"k2": {"v2"},
+		}}
+		expected = &KVV{value: map[string][]string{
+			"k1": {"v1", "v11"},
+			"k2": {"v2"},
+		}}
+	)
+
+	out, err := merge(kvv, &foo, &bar)
+	req.NoError(err)
+	req.Equal(expected, out)
+}
+
+func TestKVV_Clone(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kvv = KVV{value: map[string][]string{
+			"k1": {"v1", "v11"},
+			"k2": {"v2"},
+		}}
+		expected = &KVV{value: map[string][]string{
+			"k1": {"v1", "v11"},
+			"k2": {"v2"},
+		}}
+	)
+
+	out, err := kvv.Merge()
+	req.NoError(err)
+	req.Equal(expected, out)
+}
+
+func TestKVV_Filter(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kvv = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+			"k2": {"v2"},
+		}}
+		expected = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+		}}
+	)
+
+	out, err := filter(kvv, "k1", "k3")
+	req.NoError(err)
+	req.Equal(expected, out)
+}
+
+func TestKVV_Omit(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		kvv = &KVV{value: map[string][]string{
+			"k1": {"v1"},
+			"k2": {"v2"},
+			"k3": {"v3"},
+		}}
+		expected = &KVV{value: map[string][]string{
+			"k2": {"v2"},
+		}}
+	)
+
+	out, err := omit(kvv, "k1", "k3")
+	req.NoError(err)
+	req.Equal(expected, out)
 }
 
 func TestCastEmptyString(t *testing.T) {

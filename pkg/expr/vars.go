@@ -58,8 +58,25 @@ func (t Vars) ResolveTypes(res func(typ string) Type) (err error) {
 	return nil
 }
 
-// Assign takes base variables and assigns all new variables
-func (t *Vars) Merge(nn ...Iterator) *Vars {
+// Merge combines the given Vars(es) into Vars
+// NOTE: It will return CLONE of the original Vars, if its called without any parameters
+func (t *Vars) Merge(nn ...Iterator) (out TypedValue, err error) {
+	vars := EmptyVars()
+
+	nn = append([]Iterator{t}, nn...)
+
+	for _, i := range nn {
+		_ = i.Each(func(k string, v TypedValue) error {
+			vars.value[k] = v
+			return nil
+		})
+	}
+
+	return vars, nil
+}
+
+// MustMerge returns Vars after merging the given Vars(es) into it
+func (t *Vars) MustMerge(nn ...Iterator) *Vars {
 	var (
 		out = &Vars{value: make(map[string]TypedValue)}
 	)
@@ -76,7 +93,7 @@ func (t *Vars) Merge(nn ...Iterator) *Vars {
 	return out
 }
 
-// Assign takes base variables and assigns all new variables
+// Copy takes base variables and copies all to dst
 func (t *Vars) Copy(dst *Vars, kk ...string) {
 	if t == nil {
 		return
@@ -91,12 +108,12 @@ func (t *Vars) Copy(dst *Vars, kk ...string) {
 	}
 }
 
-// Returns true key is present
+// Has returns true key is present
 func (t *Vars) Has(key string) bool {
 	return t.HasAll(key)
 }
 
-// Returns true if all keys are present
+// HasAll returns true if all keys are present
 func (t *Vars) HasAll(key string, kk ...string) bool {
 	if t == nil {
 		return false
@@ -111,7 +128,7 @@ func (t *Vars) HasAll(key string, kk ...string) bool {
 	return true
 }
 
-// Returns true if all keys are present
+// HasAny returns true if all keys are present
 func (t *Vars) HasAny(key string, kk ...string) bool {
 	if t == nil {
 		return false
@@ -230,7 +247,7 @@ func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	}
 }
 
-// UnmarshalJSON
+// UnmarshalJSON unmarshal JSON value into Vars
 func (t *Vars) UnmarshalJSON(in []byte) (err error) {
 	var (
 		aux = make(map[string]*typedValueWrap)
@@ -271,6 +288,7 @@ func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
 	return
 }
 
+// Set set/update the specific key value in KV
 func (t *Vars) Set(k string, v interface{}) (err error) {
 	if t.value == nil {
 		t.value = make(map[string]TypedValue)
@@ -280,7 +298,7 @@ func (t *Vars) Set(k string, v interface{}) (err error) {
 	return
 }
 
-// UnmarshalJSON parses sort expression when passed inside JSON
+// MarshalJSON returns JSON encoding of expression
 func (t Vars) MarshalJSON() ([]byte, error) {
 	aux := make(map[string]*typedValueWrap)
 	for k, v := range t.value {
@@ -408,4 +426,43 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 	}
 
 	return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+}
+
+// Filter take keys returns KV with only those key value pair
+func (t *Vars) Filter(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+	vars := EmptyVars()
+
+	for _, k := range keys {
+		_, has := t.value[k]
+		if has {
+			vars.value[k] = t.value[k]
+		}
+	}
+
+	return vars, nil
+}
+
+// Delete take keys returns KV without those key value pair
+func (t *Vars) Delete(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+
+	// get cloned Vars
+	out, err = t.Merge()
+	if err != nil {
+		return
+	}
+
+	vars := out.(*Vars)
+
+	// Delete key from t.value if exist
+	for _, k := range keys {
+		delete(vars.value, k)
+	}
+
+	return vars, nil
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/PaesslerAG/gval"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -23,14 +24,69 @@ type (
 		Type
 		ResolveTypes(func(string) Type) error
 	}
+
+	merger interface {
+		Merge(...Iterator) (TypedValue, error)
+	}
+
+	filterer interface {
+		Filter(...string) (TypedValue, error)
+	}
+
+	deleter interface {
+		Delete(...string) (TypedValue, error)
+	}
 )
 
+func KvFunctions() []gval.Language {
+	return []gval.Language{
+		gval.Function("set", set),
+		gval.Function("merge", merge),
+		gval.Function("filter", filter),
+		gval.Function("omit", omit),
+	}
+}
+
+func EmptyKV() *KV {
+	return &KV{value: make(map[string]string)}
+}
+
+func EmptyKVV() *KVV {
+	return &KVV{value: make(map[string][]string)}
+}
+
 func EmptyVars() *Vars {
-	return &Vars{value: map[string]TypedValue{}}
+	return &Vars{value: make(map[string]TypedValue)}
 }
 
 func ResolveTypes(rt resolvableType, resolver func(typ string) Type) error {
 	return rt.ResolveTypes(resolver)
+}
+
+func set(m merger, key string, val TypedValue) (out TypedValue, err error) {
+	out, err = m.Merge()
+	if err != nil {
+		return
+	}
+
+	err = Assign(out, key, val)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func merge(m merger, nn ...Iterator) (TypedValue, error) {
+	return m.Merge(nn...)
+}
+
+func filter(f filterer, ss ...string) (TypedValue, error) {
+	return f.Filter(ss...)
+}
+
+func omit(d deleter, ss ...string) (TypedValue, error) {
+	return d.Delete(ss...)
 }
 
 // Typify detects input type and wraps it with expression type
@@ -301,7 +357,7 @@ func CastToString(val interface{}) (out string, err error) {
 	}
 }
 
-func CastStringSlice(val interface{}) (out []string, err error) {
+func CastToStringSlice(val interface{}) (out []string, err error) {
 	return cast.ToStringSliceE(UntypedValue(val))
 }
 
@@ -404,6 +460,86 @@ func CastToKV(val interface{}) (out map[string]string, err error) {
 	}
 }
 
+func (t *KV) Each(fn func(k string, v TypedValue) error) (err error) {
+	if t == nil || t.value == nil {
+		return
+	}
+
+	for k, v := range t.value {
+		var val TypedValue
+		val, err = Typify(v)
+		if err != nil {
+			return err
+		}
+
+		if err = fn(k, val); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Merge combines the given KVs into KV
+// NOTE: It will return CLONE of the original KV, if its called without any parameters
+func (t *KV) Merge(nn ...Iterator) (out TypedValue, err error) {
+	kv := EmptyKV()
+
+	nn = append([]Iterator{t}, nn...)
+
+	for _, i := range nn {
+		err = i.Each(func(k string, v TypedValue) error {
+			str, err := cast.ToStringE(v.Get())
+			kv.value[k] = str
+			return err
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	return kv, nil
+}
+
+// Filter take keys returns KV with only those key value pair
+func (t *KV) Filter(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+	kv := EmptyKV()
+
+	for _, k := range keys {
+		_, has := t.value[k]
+		if has {
+			kv.value[k] = t.value[k]
+		}
+	}
+
+	return kv, nil
+}
+
+// Delete take keys returns KV without those key value pair
+func (t *KV) Delete(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+
+	// get cloned KV
+	out, err = t.Merge()
+	if err != nil {
+		return
+	}
+
+	kv := out.(*KV)
+
+	// Delete key from out.value if exist
+	for _, k := range keys {
+		delete(kv.value, k)
+	}
+
+	return kv, nil
+}
+
 func (t *KVV) AssignFieldValue(key string, val TypedValue) error {
 	return assignToKVV(t, key, val)
 }
@@ -448,4 +584,93 @@ func CastToReader(val interface{}) (out io.Reader, err error) {
 	default:
 		return nil, fmt.Errorf("unable to cast %T to io.Reader", val)
 	}
+}
+
+func (t *KVV) Each(fn func(k string, v TypedValue) error) (err error) {
+	if t == nil || t.value == nil {
+		return
+	}
+
+	for k, v := range t.value {
+		var val TypedValue
+		val, err = Typify(v)
+		if err != nil {
+			return err
+		}
+
+		if err = fn(k, val); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Merge combines the given KVVs into KVV
+// NOTE: It will return CLONE of the original KVV, if its called without any parameters
+func (t *KVV) Merge(nn ...Iterator) (out TypedValue, err error) {
+	kvv := EmptyKVV()
+
+	nn = append([]Iterator{t}, nn...)
+
+	for _, i := range nn {
+		err = i.Each(func(k string, v TypedValue) error {
+			ss, err := cast.ToStringSliceE(v.Get())
+			if err != nil {
+				return err
+			}
+
+			_, has := kvv.value[k]
+			if has {
+				kvv.value[k] = append(kvv.value[k], ss...)
+			} else {
+				kvv.value[k] = ss
+			}
+			return nil
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	return kvv, nil
+}
+
+// Filter take keys returns KVV with only those key value pair
+func (t *KVV) Filter(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+	kvv := EmptyKVV()
+
+	for _, k := range keys {
+		_, has := t.value[k]
+		if has {
+			kvv.value[k] = t.value[k]
+		}
+	}
+
+	return kvv, nil
+}
+
+// Delete take keys returns KVV without those key value pair
+func (t *KVV) Delete(keys ...string) (out TypedValue, err error) {
+	if t.value == nil {
+		return
+	}
+
+	// get cloned KVV
+	out, err = t.Merge()
+	if err != nil {
+		return
+	}
+
+	kvv := out.(*KVV)
+
+	// Delete key from t.value if exist
+	for _, k := range keys {
+		delete(kvv.value, k)
+	}
+
+	return kvv, nil
 }
