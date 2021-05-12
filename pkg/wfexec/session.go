@@ -418,7 +418,7 @@ func (s *Session) worker(ctx context.Context) {
 				defer s.mux.Unlock()
 
 				// making sure result != nil
-				s.result = (&expr.Vars{}).Merge(st.scope)
+				s.result = (&expr.Vars{}).MustMerge(st.scope)
 
 				// Call event handler with completed status
 				s.eventHandler(SessionCompleted, st, s)
@@ -549,7 +549,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 
 	var (
 		result ExecResponse
-		scope  = (&expr.Vars{}).Merge(st.scope)
+		scope  = (&expr.Vars{}).MustMerge(st.scope)
 
 		currLoop = st.loopCurr()
 
@@ -635,7 +635,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			// most common (successful) result
 			// session will continue with configured child steps
 			st.results = result
-			scope = scope.Merge(st.results)
+			scope = scope.MustMerge(st.results)
 
 		case *errHandler:
 			st.action = "error handler initialized"
