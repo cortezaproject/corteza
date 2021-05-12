@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+	oauth2def "github.com/go-oauth2/oauth2/v4"
 )
 
 type (
@@ -188,6 +190,13 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (app *
 			new.Meta = &types.AuthClientMeta{}
 		}
 
+		// Validate impersonated user
+		if new.ValidGrant == oauth2def.ClientCredentials.String() {
+			if new.Security == nil || new.Security.ImpersonateUser == 0 {
+				return errors.Internal("auth client security configuration invalid")
+			}
+		}
+
 		if err = store.CreateAuthClient(ctx, svc.store, new); err != nil {
 			return
 		}
@@ -217,6 +226,13 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (app *
 
 		if app, err = store.LookupAuthClientByID(ctx, svc.store, upd.ID); err != nil {
 			return
+		}
+
+		// Validate impersonated user
+		if app.ValidGrant == oauth2def.ClientCredentials.String() {
+			if app.Security == nil || app.Security.ImpersonateUser == 0 {
+				return errors.Internal("auth client security configuration invalid")
+			}
 		}
 
 		aaProps.setAuthClient(app)
