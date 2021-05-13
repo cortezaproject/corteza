@@ -248,8 +248,8 @@ func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
 	return s.enqueue(ctx, NewState(s, auth.GetIdentityFromContext(ctx), nil, step, scope))
 }
 
-// Prompts fn returns all owner's pending prompts on this session
-func (s *Session) PendingPrompts(ownerId uint64) (out []*PendingPrompt) {
+// UserPendingPrompts prompts fn returns all owner's pending prompts on this session
+func (s *Session) UserPendingPrompts(ownerId uint64) (out []*PendingPrompt) {
 	if ownerId == 0 {
 		return
 	}
@@ -272,7 +272,23 @@ func (s *Session) PendingPrompts(ownerId uint64) (out []*PendingPrompt) {
 	return
 }
 
-func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) error {
+// AllPendingPrompts returns all pending prompts for all user
+func (s *Session) AllPendingPrompts() (out []*PendingPrompt) {
+	defer s.mux.RUnlock()
+	s.mux.RLock()
+
+	out = make([]*PendingPrompt, 0, len(s.prompted))
+
+	for _, p := range s.prompted {
+		pending := p.toPending()
+		pending.SessionID = s.id
+		out = append(out, pending)
+	}
+
+	return
+}
+
+func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) (*ResumedPrompt, error) {
 	defer s.mux.Unlock()
 	s.mux.Lock()
 
@@ -281,11 +297,11 @@ func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) 
 		p, has = s.prompted[stateId]
 	)
 	if !has {
-		return fmt.Errorf("unexisting state")
+		return nil, fmt.Errorf("unexisting state")
 	}
 
 	if i == nil || p.ownerId != i.Identity() {
-		return fmt.Errorf("state access denied")
+		return nil, fmt.Errorf("state access denied")
 	}
 
 	delete(s.prompted, stateId)
@@ -293,7 +309,11 @@ func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) 
 	// setting received input to state
 	p.state.input = input
 
-	return s.enqueue(ctx, p.state)
+	if err := s.enqueue(ctx, p.state); err != nil {
+		return nil, err
+	}
+
+	return p.toResumed(), nil
 }
 
 func (s *Session) enqueue(ctx context.Context, st *State) error {

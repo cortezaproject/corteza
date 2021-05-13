@@ -29,6 +29,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"github.com/cortezaproject/corteza-server/pkg/websocket"
 	"github.com/cortezaproject/corteza-server/store"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
@@ -251,6 +252,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
+	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
+
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Init)
 	defer sentry.Recover()
 
@@ -278,7 +281,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = sysService.Initialize(ctx, app.Log, app.Store, sysService.Config{
+	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Storage:   app.Opt.ObjStore,
 		Template:  app.Opt.Template,
@@ -293,7 +296,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = autService.Initialize(ctx, app.Log, app.Store, autService.Config{
+	err = autService.Initialize(ctx, app.Log, app.Store, app.WsServer, autService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Workflow:  app.Opt.Workflow,
 	})
