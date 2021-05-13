@@ -17,15 +17,20 @@ import (
 )
 
 type (
+	promptSender interface {
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	session struct {
-		store      store.Storer
-		actionlog  actionlog.Recorder
-		ac         sessionAccessController
-		opt        options.WorkflowOpt
-		log        *zap.Logger
-		mux        *sync.RWMutex
-		pool       map[uint64]*types.Session
-		spawnQueue chan *spawn
+		store        store.Storer
+		actionlog    actionlog.Recorder
+		ac           sessionAccessController
+		opt          options.WorkflowOpt
+		log          *zap.Logger
+		mux          *sync.RWMutex
+		pool         map[uint64]*types.Session
+		spawnQueue   chan *spawn
+		promptSender promptSender
 	}
 
 	spawn struct {
@@ -43,16 +48,17 @@ type (
 	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
 )
 
-func Session(log *zap.Logger, opt options.WorkflowOpt) *session {
+func Session(log *zap.Logger, opt options.WorkflowOpt, ps promptSender) *session {
 	return &session{
-		log:        log,
-		opt:        opt,
-		actionlog:  DefaultActionlog,
-		store:      DefaultStore,
-		ac:         DefaultAccessControl,
-		mux:        &sync.RWMutex{},
-		pool:       make(map[uint64]*types.Session),
-		spawnQueue: make(chan *spawn),
+		log:          log,
+		opt:          opt,
+		actionlog:    DefaultActionlog,
+		store:        DefaultStore,
+		ac:           DefaultAccessControl,
+		mux:          &sync.RWMutex{},
+		pool:         make(map[uint64]*types.Session),
+		spawnQueue:   make(chan *spawn),
+		promptSender: ps,
 	}
 }
 
@@ -206,7 +212,16 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 		return errors.NotFound("session not found")
 	}
 
-	return ses.Resume(ctx, stateID, input)
+	resPrompt, err := ses.Resume(ctx, stateID, input)
+	if err != nil {
+		return err
+	}
+
+	if err = svc.promptSender.Send("workflowSessionResumed", resPrompt, resPrompt.OwnerId); err != nil {
+		svc.log.Error("failed to send prompt resume status to user", zap.Error(err))
+	}
+
+	return nil
 }
 
 // spawns a new session
@@ -357,6 +372,15 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		case wfexec.SessionPrompted:
 			ses.SuspendedAt = now()
 			ses.Status = types.SessionPrompted
+
+			// Send the pending prompts to user
+			if svc.promptSender != nil {
+				for _, pp := range s.AllPendingPrompts() {
+					if err := svc.promptSender.Send("workflowSessionPrompt", pp, pp.OwnerId); err != nil {
+						svc.log.Error("failed to send prompt to user", zap.Error(err))
+					}
+				}
+			}
 
 		case wfexec.SessionDelayed:
 			ses.SuspendedAt = now()

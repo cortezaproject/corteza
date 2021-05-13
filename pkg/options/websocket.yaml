@@ -1,0 +1,24 @@
+imports:
+  - time
+
+docs:
+  title: Websocket server
+  description: A Websocket server emphasize the trigger events and actions.
+
+props:
+  - name: LogEnabled
+    type: bool
+    description: Enable extra logging for authentication flows
+
+  - name: Timeout
+    type: time.Duration
+    default: 15 * time.Second
+    description: Time before `WsServer` gets timed out.
+
+  - name: PingTimeout
+    type: time.Duration
+    default: 120 * time.Second
+
+  - name: PingPeriod
+    type: time.Duration
+    default: ((120 * time.Second) * 9) / 10

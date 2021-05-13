@@ -103,15 +103,15 @@ func (s Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) e
 	return s.session.Exec(ctx, step, input)
 }
 
-func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) error {
+func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) (*wfexec.ResumedPrompt, error) {
 	return s.session.Resume(ctx, stateID, input)
 }
 
 func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
-	return s.session.PendingPrompts(ownerId)
+	return s.session.UserPendingPrompts(ownerId)
 }
 
-// Wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
+// WaitResults wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
 func (s *Session) WaitResults(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, Stacktrace, error) {
 	if err := s.session.WaitUntil(ctx, wfexec.SessionFailed, wfexec.SessionCompleted); err != nil {
 		return nil, -1, s.Stacktrace, err

@@ -6,15 +6,23 @@ import (
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/getsentry/sentry-go"
+	"go.uber.org/zap"
 	"time"
 )
 
 type (
+	reminderSender interface {
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	reminder struct {
 		ac reminderAccessController
 
-		actionlog actionlog.Recorder
-		store     store.Reminders
+		log            *zap.Logger
+		actionlog      actionlog.Recorder
+		store          store.Reminders
+		reminderSender reminderSender
 	}
 
 	reminderAccessController interface {
@@ -33,13 +41,17 @@ type (
 		Snooze(context.Context, uint64, *time.Time) error
 
 		Delete(context.Context, uint64) error
+
+		Watch(ctx context.Context)
 	}
 )
 
-func Reminder(ctx context.Context) ReminderService {
+func Reminder(ctx context.Context, log *zap.Logger, rs reminderSender) ReminderService {
 	return &reminder{
-		ac:    DefaultAccessControl,
-		store: DefaultStore,
+		ac:             DefaultAccessControl,
+		log:            log,
+		store:          DefaultStore,
+		reminderSender: rs,
 	}
 }
 
@@ -262,4 +274,46 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, raProps, ReminderActionDelete, err)
+}
+
+func (svc reminder) Watch(ctx context.Context) {
+	if svc.reminderSender != nil {
+		var (
+			interval = time.Second
+			rTicker  = time.NewTicker(interval)
+		)
+
+		go func() {
+			defer sentry.Recover()
+			defer rTicker.Stop()
+			defer svc.log.Info("stopped")
+
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-rTicker.C:
+					// Get scheduled reminders of users
+					rr, _, err := svc.Find(ctx, types.ReminderFilter{
+						ExcludeDismissed: true,
+						ScheduledOnly:    true,
+					})
+
+					if err != nil {
+						svc.log.Error("failed to get reminders of users", zap.Error(err))
+					}
+
+					// Send scheduled reminders to users
+					_ = rr.Walk(func(r *types.Reminder) error {
+						if r.RemindAt != nil && now().Round(interval) == r.RemindAt.Round(interval) {
+							if err := svc.reminderSender.Send("reminder", r, r.AssignedTo); err != nil {
+								svc.log.Error("failed to send reminder to user", zap.Error(err))
+							}
+						}
+						return nil
+					})
+				}
+			}
+		}()
+	}
 }

@@ -21,6 +21,11 @@ type (
 		Serve(ctx context.Context)
 	}
 
+	wsServer interface {
+		MountRoutes(chi.Router)
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	authServicer interface {
 		MountHttpRoutes(string, chi.Router)
 		UpdateSettings(*settings.Settings)
@@ -47,6 +52,7 @@ type (
 		// Servers
 		HttpServer httpApiServer
 		GrpcServer grpcServer
+		WsServer   wsServer
 
 		AuthService authServicer
 	}

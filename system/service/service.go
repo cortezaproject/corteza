@@ -24,6 +24,10 @@ import (
 )
 
 type (
+	websocketSender interface {
+		Send(kind string, payload interface{}, userIDs ...uint64) error
+	}
+
 	RBACServicer interface {
 		accessControlRBACServicer
 		Watch(ctx context.Context)
@@ -91,7 +95,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, c Config) (err error) {
 	var (
 		hcd = healthcheck.Defaults()
 	)
@@ -164,7 +168,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultUser = User(ctx)
 	DefaultRole = Role(ctx)
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
-	DefaultReminder = Reminder(ctx)
+	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
@@ -209,7 +213,8 @@ func Activate(ctx context.Context) (err error) {
 }
 
 func Watchers(ctx context.Context) {
-	//
+	DefaultReminder.Watch(ctx)
+	return
 }
 
 // isGeneric returns true if given error is generic
