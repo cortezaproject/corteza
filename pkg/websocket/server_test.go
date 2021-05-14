@@ -46,18 +46,18 @@ func TestWebsocketSend_ExistingSessions(t *testing.T) {
 	req.Empty(s2)
 
 	req.NoError(ws.Send("msg", "msg1", s1User))
-	req.Equal(s1.String(), `{"msg":"msg1"}`)
+	req.Equal(s1.String(), `{"@type":"msg","@value":"msg1"}`)
 	req.Equal(s2.String(), "")
 
 	req.NoError(ws.Send("msg", "msg2", s2User))
-	req.Equal(s1.String(), `{"msg":"msg1"}`)
-	req.Equal(s2.String(), `{"msg":"msg2"}`)
+	req.Equal(s1.String(), `{"@type":"msg","@value":"msg1"}`)
+	req.Equal(s2.String(), `{"@type":"msg","@value":"msg2"}`)
 
 	req.NoError(ws.Send("both", "msg3", s1User, s2User))
-	req.Equal(s1.String(), `{"msg":"msg1"}{"both":"msg3"}`)
-	req.Equal(s2.String(), `{"msg":"msg2"}{"both":"msg3"}`)
+	req.Equal(s1.String(), `{"@type":"msg","@value":"msg1"}{"@type":"both","@value":"msg3"}`)
+	req.Equal(s2.String(), `{"@type":"msg","@value":"msg2"}{"@type":"both","@value":"msg3"}`)
 
 	req.NoError(ws.Send("all", "msg4"))
-	req.Equal(s1.String(), `{"msg":"msg1"}{"both":"msg3"}{"all":"msg4"}`)
-	req.Equal(s2.String(), `{"msg":"msg2"}{"both":"msg3"}{"all":"msg4"}`)
+	req.Equal(s1.String(), `{"@type":"msg","@value":"msg1"}{"@type":"both","@value":"msg3"}{"@type":"all","@value":"msg4"}`)
+	req.Equal(s2.String(), `{"@type":"msg","@value":"msg2"}{"@type":"both","@value":"msg3"}{"@type":"all","@value":"msg4"}`)
 }
