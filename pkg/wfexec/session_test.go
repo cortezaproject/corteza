@@ -175,7 +175,8 @@ func TestSession_Delays(t *testing.T) {
 	// push in the input
 	input := &expr.Vars{}
 	input.Set("inout", "foo")
-	req.NoError(ses.Resume(ctx, waitForInputStateId.Load(), input))
+	_, err := ses.Resume(ctx, waitForInputStateId.Load(), input)
+	req.NoError(err)
 
 	req.False(ses.Suspended())
 	req.NoError(ses.Wait(ctx))
