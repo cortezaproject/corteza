@@ -14,7 +14,7 @@ func TestPermissionsDelete(t *testing.T) {
 	p := rbac.Global()
 
 	// Make sure our user can grant
-	h.allow(types.SystemRBACResource, "grant")
+	h.allow(types.ComponentRbacResource(), "grant")
 
 	// New role.
 	permDelRole := h.roleID + 1
@@ -23,8 +23,8 @@ func TestPermissionsDelete(t *testing.T) {
 
 	// Setup a few fake rules for new roke
 	h.mockPermissions(
-		rbac.DenyRule(permDelRole, types.SystemRBACResource, "application.create"),
-		rbac.DenyRule(permDelRole, types.SystemRBACResource, "user.create"),
+		rbac.DenyRule(permDelRole, types.ComponentRbacResource(), "application.create"),
+		rbac.DenyRule(permDelRole, types.ComponentRbacResource(), "user.create"),
 	)
 
 	h.a.Len(p.FindRulesByRoleID(permDelRole), 2)
@@ -37,9 +37,7 @@ func TestPermissionsDelete(t *testing.T) {
 		End()
 
 	// Make sure everything is deleted
-	rr, _ := p.FindRulesByRoleID(permDelRole).Filter(func(r *rbac.Rule) (b bool, e error) {
-		return r.Access != rbac.Inherit, nil
-	})
-
-	h.a.Empty(rr)
+	for _, r := range p.FindRulesByRoleID(permDelRole) {
+		h.a.True(r.Access == rbac.Inherit)
+	}
 }

@@ -32,7 +32,7 @@ type (
 		CanReadRole(context.Context, *types.Role) bool
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
-		CanManageRoleMembers(context.Context, *types.Role) bool
+		CanManageMembersOnRole(context.Context, *types.Role) bool
 	}
 
 	RoleService interface {
@@ -57,8 +57,8 @@ type (
 	}
 )
 
-func Role(ctx context.Context) RoleService {
-	return (&role{
+func Role(ctx context.Context) *role {
+	return &role{
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
 
@@ -66,7 +66,7 @@ func Role(ctx context.Context) RoleService {
 
 		user:  DefaultUser,
 		store: DefaultStore,
-	})
+	}
 }
 
 func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.RoleSet, f types.RoleFilter, err error) {
@@ -535,7 +535,7 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 			return
 		}
 
-		if !svc.ac.CanManageRoleMembers(ctx, r) {
+		if !svc.ac.CanManageMembersOnRole(ctx, r) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 
@@ -582,7 +582,7 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 			return
 		}
 
-		if !svc.ac.CanManageRoleMembers(ctx, r) {
+		if !svc.ac.CanManageMembersOnRole(ctx, r) {
 			return RoleErrNotAllowedToManageMembers()
 		}
 

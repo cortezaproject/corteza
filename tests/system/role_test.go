@@ -116,7 +116,7 @@ func TestRoleList_filterForbidden(t *testing.T) {
 	h.repoMakeRole("role")
 	f := h.repoMakeRole()
 
-	h.deny(types.RoleRBACResource.AppendID(f.ID), "read")
+	h.deny(f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/roles/").
@@ -143,7 +143,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 
 func TestRoleCreateNotUnique(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "role.create")
+	h.allow(types.ComponentRbacResource(), "role.create")
 
 	role := h.repoMakeRole()
 	h.apiInit().
@@ -170,7 +170,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 
 func TestRoleCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "role.create")
+	h.allow(types.ComponentRbacResource(), "role.create")
 
 	h.apiInit().
 		Post("/roles/").
@@ -199,7 +199,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 func TestRoleUpdate(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeRole()
-	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
+	h.allow(types.RoleRbacResource(0), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -234,7 +234,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 
 func TestRoleDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	h.allow(types.RoleRbacResource(0), "delete")
 
 	res := h.repoMakeRole()
 
@@ -308,10 +308,10 @@ func TestRoleLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoles()
 
-	h.allow(types.SystemRBACResource, "role.create")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "read")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ComponentRbacResource(), "role.create")
+	h.allow(types.RoleRbacResource(0), "read")
+	h.allow(types.RoleRbacResource(0), "update")
+	h.allow(types.RoleRbacResource(0), "delete")
 
 	var (
 		ID uint64

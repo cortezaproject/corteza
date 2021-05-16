@@ -443,13 +443,13 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			// @todo expand this when we allow record based AC
 			if !exists && !createAcChecked {
 				createAcChecked = true
-				if !pl.composeAccessControl.CanCreateRecord(ctx, mod) {
+				if !pl.composeAccessControl.CanCreateRecordOnModule(ctx, mod) {
 					return fmt.Errorf("not allowed to create records for module %d", mod.ID)
 				}
 			} else if exists && !updateAcChecked {
 				updateAcChecked = true
-				if !pl.composeAccessControl.CanUpdateRecord(ctx, mod) {
-					return fmt.Errorf("not allowed to update records for module %d", mod.ID)
+				if !pl.composeAccessControl.CanUpdateRecord(ctx, rec) {
+					return fmt.Errorf("not allowed to update record")
 				}
 			}
 

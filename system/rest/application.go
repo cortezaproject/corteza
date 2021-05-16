@@ -209,15 +209,16 @@ func (ctrl *Application) FlagCreate(ctx context.Context, r *request.ApplicationF
 		return nil, err
 	}
 
-	if r.OwnedBy == 0 {
-		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
-		}
-	} else {
-		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlag()
-		}
-	}
+	// @todo RBACv2
+	//if r.OwnedBy == 0 {
+	//	if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
+	//		return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
+	//	}
+	//} else {
+	//	if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
+	//		return nil, service.ApplicationErrNotAllowedToManageFlag()
+	//	}
+	//}
 
 	return api.OK(), flag.Create(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
 }
@@ -228,15 +229,16 @@ func (ctrl *Application) FlagDelete(ctx context.Context, r *request.ApplicationF
 		return nil, err
 	}
 
-	if r.OwnedBy == 0 {
-		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
-		}
-	} else {
-		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlag()
-		}
-	}
+	// @todo RBACv2
+	//	if r.OwnedBy == 0 {
+	//		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
+	//			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
+	//		}
+	//	} else {
+	//		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
+	//			return nil, service.ApplicationErrNotAllowedToManageFlag()
+	//		}
+	//	}
 
 	return api.OK(), flag.Delete(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
 }

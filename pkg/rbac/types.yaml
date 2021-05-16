@@ -1,6 +1,0 @@
-package: rbac
-types:
-  Rule:
-    noIdField: true
-  Resource:
-    noIdField: true

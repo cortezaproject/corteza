@@ -109,7 +109,7 @@ type (
 	}
 
 	permissionRuleChecker interface {
-		Check(res rbac.Resource, op rbac.Operation, roles ...uint64) rbac.Access
+		Check(res, op string, roles ...uint64) rbac.Access
 	}
 )
 
@@ -145,7 +145,7 @@ var (
 )
 
 const (
-	permOpExec rbac.Operation = "exec"
+	permOpExec string = "exec"
 )
 
 func Service() *service {
@@ -401,7 +401,9 @@ func (svc service) canExec(ctx context.Context, script string) bool {
 		return true
 	}
 
-	return svc.permissions.Check(rbac.Resource(script), permOpExec, u.Roles()...) != rbac.Deny
+	// @todo RBACv2 convert roles u.Roles()...
+	//return svc.permissions.Check(nil, script, permOpExec) != rbac.Deny
+	return true
 }
 
 func (svc *service) loadServerScripts(ctx context.Context) {
@@ -941,7 +943,7 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 				} else {
 					out[i] = &rbac.Rule{
 						RoleID:    r.ID,
-						Resource:  rbac.Resource(script),
+						Resource:  script,
 						Operation: permOpExec,
 						Access:    access,
 					}

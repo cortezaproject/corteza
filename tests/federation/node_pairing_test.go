@@ -9,7 +9,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	st "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -37,9 +36,9 @@ func (h helper) clearNodes() {
 }
 
 func (h helper) prepareRBAC() {
-	h.allow(types.FederationRBACResource, rbac.Operation("node.create"))
-	h.allow(types.FederationRBACResource, rbac.Operation("pair"))
-	h.allow("federation:node:*", rbac.Operation("manage"))
+	h.allow(types.ComponentRbacResource(), "node.create")
+	h.allow(types.ComponentRbacResource(), "pair")
+	h.allow(types.NodeRbacResource(0), "manage")
 
 	h.noError(service.DefaultStore.CreateRole(context.Background(), &st.Role{
 		ID:     h.roleID,

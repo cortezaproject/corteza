@@ -16,31 +16,30 @@ type (
 	}
 )
 
-func (ServiceAllowAll) Can([]uint64, Resource, Operation, ...CheckAccessFunc) bool {
+func (ServiceAllowAll) Can([]uint64, string, Resource) bool {
 	return true
 }
 
-func (ServiceAllowAll) Check(Resource, Operation, ...uint64) (v Access) {
+func (ServiceAllowAll) Check([]uint64, string, Resource) (v Access) {
 	return Allow
 }
 
-func (ServiceAllowAll) Grant(context.Context, Whitelist, ...*Rule) (err error) {
+func (ServiceAllowAll) FindRulesByRoleID(uint64) (rr RuleSet) {
+	return
+}
+func (ServiceAllowAll) Grant(context.Context, ...*Rule) error {
 	return nil
 }
 
-func (ServiceAllowAll) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
-	return
-}
-
-func (ServiceDenyAll) Can([]uint64, Resource, Operation, ...CheckAccessFunc) bool {
+func (ServiceDenyAll) Can([]uint64, string, string) bool {
 	return false
 }
 
-func (ServiceDenyAll) Check(Resource, Operation, ...uint64) (v Access) {
+func (ServiceDenyAll) Check(string, string, ...uint64) (v Access) {
 	return Deny
 }
 
-func (ServiceDenyAll) Grant(context.Context, Whitelist, ...*Rule) (err error) {
+func (ServiceDenyAll) Grant(context.Context, ...*Rule) error {
 	return nil
 }
 
@@ -58,10 +57,9 @@ func (svc *TestService) String() (out string) {
 	out = fmt.Sprintf(tpl, "role", "res", "op", "access")
 	out += strings.Repeat("-", 120) + "\n"
 
-	_ = svc.rules.Walk(func(r *Rule) error {
+	for _, r := range svc.rules {
 		out += fmt.Sprintf(tpl, r.RoleID, r.Resource, r.Operation, r.Access)
-		return nil
-	})
+	}
 
 	out += strings.Repeat("-", 120) + "\n"
 

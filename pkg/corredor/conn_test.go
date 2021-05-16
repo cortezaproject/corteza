@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
@@ -31,8 +30,6 @@ func TestNewConnectionWithDisabled(t *testing.T) {
 func TestNewConnection(t *testing.T) {
 	var (
 		ctx = context.Background()
-
-		dbgLog = logger.MakeDebugLogger()
 
 		a  = assert.New(t)
 		wg = &sync.WaitGroup{}
@@ -58,7 +55,7 @@ func TestNewConnection(t *testing.T) {
 		}
 	}()
 
-	grpcClientConn, err := NewConnection(ctx, opt, dbgLog)
+	grpcClientConn, err := NewConnection(ctx, opt, zap.NewNop())
 	a.NoError(err)
 
 	// NewService(dbgLog, opt)

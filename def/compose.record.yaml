@@ -1,0 +1,11 @@
+rbac:
+  resource:
+    elements: [ namespaceID, moduleID, ID ]
+
+  operations:
+    read:
+      description: Read record
+    update:
+      description: Update record
+    delete:
+      description: Delete record

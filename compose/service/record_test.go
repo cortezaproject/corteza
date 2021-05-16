@@ -175,7 +175,7 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 	var (
 		rbacService = rbac.NewService(zap.NewNop(), s)
-		ac          = AccessControl(rbacService)
+		ac          = &accessControl{rbac: rbacService}
 
 		svc = record{
 			sanitizer: values.Sanitizer(),
@@ -210,18 +210,18 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 	req.NoError(store.CreateComposeModule(ctx, s, mod))
 	req.NoError(store.CreateComposeModuleField(ctx, s, stringField, boolField))
 
-	rbacService.Grant(ctx, ac.Whitelist(),
-		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.read"),
-		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.create"),
-		rbac.AllowRule(readerRole.ID, mod.RBACResource(), "record.update"),
-		rbac.AllowRule(readerRole.ID, stringField.RBACResource(), "record.value.read"),
-		rbac.DenyRule(readerRole.ID, boolField.RBACResource(), "record.value.update"),
+	rbacService.Grant(ctx,
+		rbac.AllowRule(readerRole.ID, mod.RbacResource(), "record.read"),
+		rbac.AllowRule(readerRole.ID, mod.RbacResource(), "record.create"),
+		rbac.AllowRule(readerRole.ID, mod.RbacResource(), "record.update"),
+		rbac.AllowRule(readerRole.ID, stringField.RbacResource(), "record.value.read"),
+		rbac.DenyRule(readerRole.ID, boolField.RbacResource(), "record.value.update"),
 
-		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.read"),
-		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.create"),
-		rbac.AllowRule(writerRole.ID, mod.RBACResource(), "record.update"),
-		rbac.AllowRule(writerRole.ID, stringField.RBACResource(), "record.value.read"),
-		rbac.AllowRule(writerRole.ID, stringField.RBACResource(), "record.value.update"),
+		rbac.AllowRule(writerRole.ID, mod.RbacResource(), "record.read"),
+		rbac.AllowRule(writerRole.ID, mod.RbacResource(), "record.create"),
+		rbac.AllowRule(writerRole.ID, mod.RbacResource(), "record.update"),
+		rbac.AllowRule(writerRole.ID, stringField.RbacResource(), "record.value.read"),
+		rbac.AllowRule(writerRole.ID, stringField.RbacResource(), "record.value.update"),
 	)
 
 	{

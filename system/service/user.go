@@ -51,8 +51,8 @@ type (
 		CanDeleteUser(context.Context, *types.User) bool
 		CanSuspendUser(context.Context, *types.User) bool
 		CanUnsuspendUser(context.Context, *types.User) bool
-		CanUnmaskEmail(context.Context, *types.User) bool
-		CanUnmaskName(context.Context, *types.User) bool
+		CanUnmaskEmailOnUser(context.Context, *types.User) bool
+		CanUnmaskNameOnUser(context.Context, *types.User) bool
 	}
 
 	// Temp types to support user.Preloader
@@ -88,7 +88,7 @@ type (
 	}
 )
 
-func User(ctx context.Context) UserService {
+func User(ctx context.Context) *user {
 	return &user{
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
@@ -696,11 +696,11 @@ func (svc user) handlePrivateData(ctx context.Context, u *types.User) {
 }
 
 func (svc user) maskEmail(ctx context.Context, u *types.User) bool {
-	return svc.settings.Privacy.Mask.Email && !svc.ac.CanUnmaskEmail(ctx, u)
+	return svc.settings.Privacy.Mask.Email && !svc.ac.CanUnmaskEmailOnUser(ctx, u)
 }
 
 func (svc user) maskName(ctx context.Context, u *types.User) bool {
-	return svc.settings.Privacy.Mask.Name && !svc.ac.CanUnmaskName(ctx, u)
+	return svc.settings.Privacy.Mask.Name && !svc.ac.CanUnmaskNameOnUser(ctx, u)
 }
 
 // Preloader collects all ids of users, loads them and sets them back

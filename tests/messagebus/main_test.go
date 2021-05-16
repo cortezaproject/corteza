@@ -113,8 +113,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 	h.a.NoError(rbac.Global().Grant(
 		// TestService we use does not have any backend storage,
 		context.Background(),
-		// We want to make sure we did not make a mistake with any of the mocked resources or actions
-		service.DefaultAccessControl.Whitelist(),
 		rules...,
 	))
 }
@@ -123,19 +121,19 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	rules = append(
 		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.AutomationRBACResource, "access"),
+		rbac.AllowRule(rbac.EveryoneRoleID, types.ComponentRbacResource(), "access"),
 	)
 
 	h.mockPermissions(rules...)
 }
 
 // Set allow permision for test role
-func (h helper) allow(r rbac.Resource, o rbac.Operation) {
+func (h helper) allow(r, o string) {
 	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
 }
 
 // set deny permission for test role
-func (h helper) deny(r rbac.Resource, o rbac.Operation) {
+func (h helper) deny(r, o string) {
 	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 

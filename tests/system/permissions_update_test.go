@@ -11,7 +11,7 @@ import (
 
 func TestPermissionsUpdate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "grant")
+	h.allow(types.ComponentRbacResource(), "grant")
 
 	h.apiInit().
 		Patch(fmt.Sprintf("/permissions/%d/rules", h.roleID)).

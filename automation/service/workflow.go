@@ -44,15 +44,13 @@ type (
 	}
 
 	workflowAccessController interface {
-		CanAccess(context.Context) bool
-
 		CanCreateWorkflow(context.Context) bool
 		CanReadWorkflow(context.Context, *types.Workflow) bool
 		CanUpdateWorkflow(context.Context, *types.Workflow) bool
 		CanDeleteWorkflow(context.Context, *types.Workflow) bool
 		CanUndeleteWorkflow(context.Context, *types.Workflow) bool
-
-		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
+		CanSearchWorkflows(context.Context) bool
+		CanManageSessionsOnWorkflow(context.Context, *types.Workflow) bool
 
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
 
@@ -111,13 +109,10 @@ func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (r
 	}
 
 	err = func() (err error) {
-		if filter.Deleted > 0 {
-			// If list with deleted or suspended users is requested
-			// user must have access permissions to system (ie: is admin)
-			//
-			// not the best solution but ATM it allows us to have at least
-			// some kind of control over who can see deleted or archived workflows
-			if !svc.ac.CanAccess(ctx) {
+		if filter.Deleted > 0 || filter.Disabled > 0 {
+			// If list with deleted or disabled workflows is requested
+			// user must be allowed to search workflows
+			if !svc.ac.CanSearchWorkflows(ctx) {
 				return WorkflowErrNotAllowedToSearch()
 			}
 		}
@@ -506,7 +501,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		// User wants to trace workflow execution
 		// This means we'll allow him to specify any (orphaned) step
 		// even if it's not linked to onManual trigger
-		if p.Trace && !svc.ac.CanManageWorkflowSessions(ctx, wf) {
+		if p.Trace && !svc.ac.CanManageSessionsOnWorkflow(ctx, wf) {
 			return WorkflowErrNotAllowedToExecute()
 		}
 

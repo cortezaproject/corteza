@@ -10,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	stypes "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -167,7 +166,7 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 		}
 	}
 
-	ac := service.AccessControl(rbac.Global())
+	ac := service.AccessControl()
 
 	if len(d.namespaceID) > 0 {
 		ffNs := make([]*composeRecordFilter, 0, len(ff)+len(d.namespaceID))

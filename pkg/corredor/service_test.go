@@ -222,6 +222,9 @@ func TestService_canExec(t *testing.T) {
 
 	a.Len(svc.sScripts, 3)
 	a.Len(svc.permissions, 3)
+
+	// @todo RBACv2
+	t.Skip()
 	a.True(svc.canExec(ctx, script1.Name))
 	a.False(svc.canExec(ctx, script2.Name))
 }

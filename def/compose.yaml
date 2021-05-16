@@ -1,0 +1,12 @@
+rbac:
+  resource: { elements: [] }
+
+  operations:
+    grant:
+      description: Manage Compose permissions
+    namespace.create:
+      description: Create namespace
+    settings.read:
+      description: Read settings
+    settings.manage:
+      description: Manage settings

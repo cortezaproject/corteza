@@ -69,7 +69,7 @@ func TestReminderAssign(t *testing.T) {
 	h := newHelper(t)
 	h.clearReminders()
 
-	h.allow(types.SystemRBACResource, "reminder.assign")
+	h.allow(types.ComponentRbacResource(), "reminder.assign")
 
 	h.apiInit().
 		Post("/reminder/").
@@ -134,7 +134,7 @@ func TestReminderUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearReminders()
 
-	h.allow(types.SystemRBACResource, "reminder.assign")
+	h.allow(types.ComponentRbacResource(), "reminder.assign")
 
 	rm := h.makeReminder()
 

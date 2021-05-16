@@ -288,24 +288,21 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 
 			for _, n := range nn {
 				// If not wildcard or is a system rule; check if resource is allowed
-				if n.Resource.HasWildcard() || !n.Resource.IsAppendable() {
-					// strict mode prevents non-resource specific roles from being exported.
-					// mainly used for NS duplication
-					if !f.strict {
-						mm = append(mm, newRbacRule(n))
-					}
-				} else {
-					id, err := n.Resource.GetID()
-					if err != nil {
-						return &auxRsp{
-							err: err,
-						}
-					}
-					if f.resourceID[id] {
-						mm = append(mm, newRbacRule(n))
-					}
-				}
-
+				_ = n
+				// @todo RBACv2
+				//if n.Resource.HasWildcard() || !n.Resource.IsAppendable() {
+				//	mm = append(mm, newRbacRule(n))
+				//} else {
+				//	id, err := n.Resource.GetID()
+				//	if err != nil {
+				//		return &auxRsp{
+				//			err: err,
+				//		}
+				//	}
+				//	if f.resourceID[id] {
+				//		mm = append(mm, newRbacRule(n))
+				//	}
+				//}
 			}
 
 			break

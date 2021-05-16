@@ -66,12 +66,12 @@ type (
 	}
 
 	recordAccessController interface {
-		CanCreateRecord(context.Context, *types.Module) bool
+		CanCreateRecordOnModule(context.Context, *types.Module) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
-		CanReadRecord(context.Context, *types.Module) bool
-		CanUpdateRecord(context.Context, *types.Module) bool
-		CanDeleteRecord(context.Context, *types.Module) bool
+		CanReadRecord(context.Context, *types.Record) bool
+		CanUpdateRecord(context.Context, *types.Record) bool
+		CanDeleteRecord(context.Context, *types.Record) bool
 
 		recordValueAccessController
 	}
@@ -223,7 +223,7 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 
 		aProps.setRecord(r)
 
-		if !svc.ac.CanReadRecord(ctx, m) {
+		if !svc.ac.CanReadRecord(ctx, r) {
 			return RecordErrNotAllowedToRead()
 		}
 
@@ -469,7 +469,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	aProps.setNamespace(ns)
 	aProps.setModule(m)
 
-	if !svc.ac.CanCreateRecord(ctx, m) {
+	if !svc.ac.CanCreateRecordOnModule(ctx, m) {
 		return nil, RecordErrNotAllowedToCreate()
 	}
 
@@ -721,7 +721,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	aProps.setModule(m)
 	aProps.setRecord(old)
 
-	if !svc.ac.CanUpdateRecord(ctx, m) {
+	if !svc.ac.CanUpdateRecord(ctx, upd) {
 		return nil, RecordErrNotAllowedToUpdate()
 	}
 
@@ -919,7 +919,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 		return nil, err
 	}
 
-	if !svc.ac.CanDeleteRecord(ctx, m) {
+	if !svc.ac.CanDeleteRecord(ctx, del) {
 		return nil, RecordErrNotAllowedToDelete()
 	}
 
@@ -988,10 +988,6 @@ func (svc record) DeleteByID(ctx context.Context, namespaceID, moduleID uint64, 
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
-		if !svc.ac.CanDeleteRecord(ctx, m) {
-			return RecordErrNotAllowedToDelete()
-		}
-
 		return nil
 	}()
 
@@ -1045,7 +1041,7 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 		aProps.setModule(m)
 		aProps.setRecord(r)
 
-		if !svc.ac.CanUpdateRecord(ctx, m) {
+		if !svc.ac.CanUpdateRecord(ctx, r) {
 			return RecordErrNotAllowedToUpdate()
 		}
 
@@ -1263,27 +1259,6 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 			return err
 		}
 
-		if !svc.ac.CanReadRecord(ctx, m) {
-			return RecordErrNotAllowedToRead()
-		}
-
-		switch action {
-		case "clone":
-			if !svc.ac.CanCreateRecord(ctx, m) {
-				return RecordErrNotAllowedToCreate()
-			}
-
-		case "update":
-			if !svc.ac.CanUpdateRecord(ctx, m) {
-				return RecordErrNotAllowedToUpdate()
-			}
-
-		case "delete":
-			if !svc.ac.CanDeleteRecord(ctx, m) {
-				return RecordErrNotAllowedToDelete()
-			}
-		}
-
 		// @todo might be good to split set into smaller chunks
 		set, f, err = store.SearchComposeRecords(ctx, svc.store, m, f)
 		if err != nil {
@@ -1291,7 +1266,27 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 		}
 
 		for _, rec := range set {
+			switch action {
+			case "clone":
+				if !svc.ac.CanCreateRecordOnModule(ctx, m) {
+					return RecordErrNotAllowedToCreate()
+				}
+
+			case "update":
+				if !svc.ac.CanUpdateRecord(ctx, rec) {
+					return RecordErrNotAllowedToUpdate()
+				}
+
+			case "delete":
+				if !svc.ac.CanDeleteRecord(ctx, rec) {
+					return RecordErrNotAllowedToDelete()
+				}
+			}
 			recordableAction := RecordActionIteratorIteration
+
+			if !svc.ac.CanReadRecord(ctx, rec) {
+				return RecordErrNotAllowedToRead()
+			}
 
 			err = func() error {
 				if err = fn(ctx, event.RecordOnIteration(rec, nil, m, ns, nil)); err != nil {
@@ -1359,7 +1354,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 
 func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
 	return func(res *types.Record) (bool, error) {
-		if !ac.CanReadRecord(ctx, m) {
+		if !ac.CanReadRecord(ctx, res) {
 			return false, nil
 		}
 

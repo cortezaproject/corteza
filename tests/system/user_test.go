@@ -70,7 +70,7 @@ func TestUserRead(t *testing.T) {
 		End()
 
 	u = h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRBACResource.AppendWildcard(), "unmask.email")
+	h.allow(types.UserRbacResource(0), "unmask.email")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/users/%d", u.ID)).
@@ -92,7 +92,7 @@ func TestUserListAll(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -115,7 +115,7 @@ func TestUserListWithPaging(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	var aux = struct {
 		Response struct {
@@ -163,12 +163,12 @@ func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	h.createUserWithEmail("usr")
 	f := h.createUserWithEmail(h.randEmail())
 
-	h.deny(types.UserRBACResource.AppendID(f.ID), "read")
+	h.deny(f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -186,7 +186,7 @@ func TestUserListQuery(t *testing.T) {
 
 	h.secCtx()
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -207,8 +207,8 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
-	h.allow(types.UserRBACResource.AppendWildcard(), "unmask.email")
+	h.allow(types.UserRbacResource(0), "read")
+	h.allow(types.UserRbacResource(0), "unmask.email")
 
 	ee := h.randEmail()
 	h.createUserWithEmail(ee)
@@ -228,7 +228,7 @@ func TestUserListQueryUsername(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	ee := h.randEmail()
 	h.createUser(&types.User{
@@ -251,7 +251,7 @@ func TestUserListQueryHandle(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
+	h.allow(types.UserRbacResource(0), "read")
 
 	h.createUser(&types.User{
 		Email:  "test@test.tld",
@@ -275,7 +275,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 	h.secCtx()
 
 	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
-	h.allow(newUserWeCanAccess.RBACResource(), "read")
+	h.allow(newUserWeCanAccess.RbacResource(), "read")
 
 	// And one we cannot access
 	h.createUserWithEmail(h.randEmail())
@@ -316,7 +316,7 @@ func TestUserCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.SystemRBACResource, "user.create")
+	h.allow(types.ComponentRbacResource(), "user.create")
 
 	email := h.randEmail()
 
@@ -350,7 +350,7 @@ func TestUserUpdate(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRBACResource.AppendWildcard(), "update")
+	h.allow(types.UserRbacResource(0), "update")
 
 	newEmail := h.randEmail()
 
@@ -436,7 +436,7 @@ func TestUserDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "delete")
+	h.allow(types.UserRbacResource(0), "delete")
 
 	u := h.createUserWithEmail(h.randEmail())
 
@@ -472,10 +472,10 @@ func TestUserLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.SystemRBACResource, "user.create")
-	h.allow(types.UserRBACResource.AppendWildcard(), "read")
-	h.allow(types.UserRBACResource.AppendWildcard(), "update")
-	h.allow(types.UserRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ComponentRbacResource(), "user.create")
+	h.allow(types.UserRbacResource(0), "read")
+	h.allow(types.UserRbacResource(0), "update")
+	h.allow(types.UserRbacResource(0), "delete")
 
 	var (
 		ID uint64

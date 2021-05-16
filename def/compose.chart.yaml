@@ -1,0 +1,11 @@
+rbac:
+  resource:
+    elements: [ namespaceID, ID ]
+
+  operations:
+    read:
+      description: Read chart
+    update:
+      description: Update chart
+    delete:
+      description: Delete chart

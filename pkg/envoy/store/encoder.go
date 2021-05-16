@@ -46,7 +46,7 @@ type (
 	}
 
 	accessControlRBACServicer interface {
-		Can([]uint64, rbac.Resource, rbac.Operation, ...rbac.CheckAccessFunc) bool
+		Can([]uint64, string, rbac.Resource) bool
 	}
 
 	composeAccessController interface {
@@ -59,9 +59,9 @@ type (
 	}
 
 	composeRecordAccessController interface {
-		CanCreateRecord(context.Context, *types.Module) bool
-		CanUpdateRecord(context.Context, *types.Module) bool
-		CanDeleteRecord(context.Context, *types.Module) bool
+		CanCreateRecordOnModule(context.Context, *types.Module) bool
+		CanUpdateRecord(context.Context, *types.Record) bool
+		CanDeleteRecord(context.Context, *types.Record) bool
 	}
 
 	payload struct {
@@ -195,7 +195,7 @@ func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, ers *en
 	return &payload{
 		s:                    s,
 		state:                ers,
-		composeAccessControl: service.AccessControl(rbac.Global()),
+		composeAccessControl: service.AccessControl(),
 		invokerID:            auth.GetIdentityFromContext(ctx).Identity(),
 	}
 }

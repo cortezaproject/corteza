@@ -10,9 +10,9 @@ import (
 
 func TestPermissionsRead(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.AutomationRBACResource, "access")
-	h.allow(types.AutomationRBACResource, "grant")
-	h.deny(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "access")
+	h.allow(types.ComponentRbacResource(), "grant")
+	h.deny(types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/permissions/%d/rules", h.roleID)).

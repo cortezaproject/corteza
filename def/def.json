@@ -1,0 +1,19 @@
+{
+  "$id": "https://schemas.cortezaproject.org/def.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "title": "Component of the definition",
+      "description": "By default, component is taken from the filename of the definition: from start of the filename to the first dot"
+    },
+    "resource": {
+      "type": "string",
+      "title": "Resource of the definition",
+      "description": "By default, resource is taken from the filename of the definition: from the first dot to the end of the filename without extension"
+    },
+    "rbac": { "$ref": "def-rbac.json" }
+  },
+  "additionalProperties": false
+}

@@ -43,7 +43,7 @@ type (
 
 	sessionAccessController interface {
 		CanSearchSessions(context.Context) bool
-		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
+		CanManageSessionsOnWorkflow(context.Context, *types.Workflow) bool
 	}
 
 	WaitFn func(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, types.Stacktrace, error)
@@ -101,7 +101,7 @@ func (svc *session) LookupByID(ctx context.Context, sessionID uint64) (res *type
 			return err
 		}
 
-		if !svc.ac.CanManageWorkflowSessions(ctx, wf) {
+		if !svc.ac.CanManageSessionsOnWorkflow(ctx, wf) {
 			return SessionErrNotAllowedToManage()
 		}
 

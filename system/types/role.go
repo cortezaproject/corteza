@@ -3,8 +3,6 @@ package types
 import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -58,11 +56,6 @@ type (
 		DailyArchived []uint `json:"dailyArchived"`
 	}
 )
-
-// Resource returns a resource ID for this type
-func (r *Role) RBACResource() rbac.Resource {
-	return RoleRBACResource.AppendID(r.ID)
-}
 
 func (r *Role) DynamicRoles(userID uint64) []uint64 {
 	return nil

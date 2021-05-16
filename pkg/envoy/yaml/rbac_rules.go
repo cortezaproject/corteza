@@ -13,7 +13,7 @@ type (
 		res *rbac.Rule
 
 		// To help us construct the resource
-		resource rbac.Resource
+		resource string
 
 		refResource string
 		refRes      *resource.Ref
@@ -74,7 +74,8 @@ func (rr rbacRuleSet) groupByResource() []rbacRuleSet {
 	rolx := make(map[string]rbacRuleSet)
 
 	for _, r := range rr {
-		k := r.res.Resource.String()
+		// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
+		k := r.res.Resource
 		if r.relResource != nil {
 			if ri, is := r.relResource.(resource.RefableInterface); is {
 				k += ri.Ref()

@@ -1,0 +1,13 @@
+rbac:
+  resource:
+    elements: [ namespaceID, ID ]
+
+  operations:
+    read:
+      description: Read module
+    update:
+      description: Update module
+    delete:
+      description: Delete module
+    record.create:
+      description: Create record

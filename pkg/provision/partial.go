@@ -27,15 +27,13 @@ func provisionPartialAuthClients(ctx context.Context, s store.Storer, log *zap.L
 		return false
 	}
 
-	set, _ = set.Filter(func(r *rbac.Rule) (bool, error) {
-		// check only auth client rbac rules
-		if r.Resource.String() != "system:auth-client:*" {
-			return false, nil
+	for _, r := range set {
+		if r.Resource == types.AuthClientRbacResourceSchema {
+			return false
 		}
-		return true, nil
-	})
+	}
 
-	return len(set) == 0
+	return true
 }
 
 // provisionPartialTemplates checks if any templates are in the store at all

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	ctypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
@@ -87,7 +87,7 @@ func TestStoreYaml_base(t *testing.T) {
 			name: "base namespace",
 			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
 				sTestComposeNamespace(ctx, t, s, "base")
-				df := su.NewDecodeFilter().ComposeNamespace(&types.NamespaceFilter{
+				df := su.NewDecodeFilter().ComposeNamespace(&ctypes.NamespaceFilter{
 					Slug: "base_namespace",
 				})
 				return nil, df
@@ -113,10 +113,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeModule(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					})
@@ -128,7 +128,7 @@ func TestStoreYaml_base(t *testing.T) {
 
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, n.ID, "base_module")
 				req.NoError(err)
-				mff, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{
+				mff, _, err := store.SearchComposeModuleFields(ctx, s, ctypes.ModuleFieldFilter{
 					ModuleID: []uint64{mod.ID},
 				})
 				req.NoError(err)
@@ -174,10 +174,10 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposePage(ctx, t, s, ns.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposePage(&types.PageFilter{
+					ComposePage(&ctypes.PageFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_page",
 					})
@@ -222,14 +222,14 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeChart(ctx, t, s, ns.ID, mod.ID, "base")
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
-					ComposeChart(&types.ChartFilter{
+					ComposeChart(&ctypes.ChartFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_chart",
 					})
@@ -271,17 +271,17 @@ func TestStoreYaml_base(t *testing.T) {
 				sTestComposeRecord(ctx, t, s, ns.ID, mod.ID, usr.ID)
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&types.RecordFilter{
+					ComposeRecord(&ctypes.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -295,7 +295,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})
@@ -331,12 +331,12 @@ func TestStoreYaml_base(t *testing.T) {
 				usr := sTestUser(ctx, t, s, "base")
 
 				recID := su.NextID()
-				rec := &types.Record{
+				rec := &ctypes.Record{
 					ID:          recID,
 					NamespaceID: ns.ID,
 					ModuleID:    mod.ID,
 
-					Values: types.RecordValueSet{
+					Values: ctypes.RecordValueSet{
 						{
 							RecordID: recID,
 							Name:     "BoolTrue",
@@ -391,17 +391,17 @@ func TestStoreYaml_base(t *testing.T) {
 				}
 
 				df := su.NewDecodeFilter().
-					ComposeNamespace(&types.NamespaceFilter{
+					ComposeNamespace(&ctypes.NamespaceFilter{
 						Slug: "base_namespace",
 					}).
-					ComposeModule(&types.ModuleFilter{
+					ComposeModule(&ctypes.ModuleFilter{
 						NamespaceID: ns.ID,
 						Handle:      "base_module",
 					}).
 					Users(&stypes.UserFilter{
 						Email: "base_user@test.tld",
 					}).
-					ComposeRecord(&types.RecordFilter{
+					ComposeRecord(&ctypes.RecordFilter{
 						NamespaceID: ns.ID,
 						ModuleID:    mod.ID,
 					})
@@ -415,7 +415,7 @@ func TestStoreYaml_base(t *testing.T) {
 				usr, err := store.LookupUserByHandle(ctx, s, "base_user")
 				req.NoError(err)
 
-				rr, _, err := store.SearchComposeRecords(ctx, s, mod, types.RecordFilter{
+				rr, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{
 					ModuleID:    mod.ID,
 					NamespaceID: ns.ID,
 				})
@@ -607,29 +607,27 @@ func TestStoreYaml_base(t *testing.T) {
 				req.NoError(err)
 				req.Len(rr, 4)
 
-				rr.Walk(func(r *rbac.Rule) error {
-					rs := r.Resource.String()
-					switch true {
-					case rs == "compose":
+				for _, r := range rr {
+					switch r.Resource {
+					case ctypes.ComponentRbacResource():
 						req.Equal(rl.ID, r.RoleID)
-						req.Equal("read", r.Operation.String())
+						req.Equal("read", r.Operation)
 						req.Equal(rbac.Allow, r.Access)
-					case rs == "system":
+					case stypes.ComponentRbacResource():
 						req.Equal(rl.ID, r.RoleID)
-						req.Equal("read", r.Operation.String())
+						req.Equal("read", r.Operation)
 						req.Equal(rbac.Deny, r.Access)
-					case rs == "system:role:*":
+					case stypes.RoleRbacResource(0):
 						req.Equal(rl.ID, r.RoleID)
-						req.Equal("read", r.Operation.String())
+						req.Equal("read", r.Operation)
 						req.Equal(rbac.Deny, r.Access)
 					default:
 						req.Equal(rl.ID, r.RoleID)
-						req.Equal(fmt.Sprintf("system:role:%d", rl.ID), r.Resource.String())
-						req.Equal("read", r.Operation.String())
+						req.Equal(fmt.Sprintf("system:role:%d", rl.ID), r.Resource)
+						req.Equal("read", r.Operation)
 						req.Equal(rbac.Deny, r.Access)
 					}
-					return nil
-				})
+				}
 			},
 		},
 	}

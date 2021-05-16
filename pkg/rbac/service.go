@@ -2,15 +2,15 @@ package rbac
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/sentry"
+	"go.uber.org/zap"
 	"sync"
 	"time"
-
-	"github.com/cortezaproject/corteza-server/pkg/sentry"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 type (
+	resourceValidator func(string, ...string) error
+
 	service struct {
 		l      *sync.Mutex
 		logger *zap.Logger
@@ -18,7 +18,8 @@ type (
 		//  service will flush values on TRUE or just reload on FALSE
 		f chan bool
 
-		rules RuleSet
+		rules   RuleSet
+		indexed OptRuleSet
 
 		store rbacRulesStore
 	}
@@ -26,10 +27,10 @@ type (
 	// RuleFilter is a dummy struct to satisfy store codegen
 	RuleFilter struct{}
 
-	Controller interface {
-		Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool
-		Check(res Resource, op Operation, roles ...uint64) (v Access)
-		Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error)
+	ControllerV2 interface {
+		Can(roles []uint64, op string, res Resource) bool
+		Check(roles []uint64, op string, res Resource) (v Access)
+		Grant(ctx context.Context, rules ...*Rule) (err error)
 		Watch(ctx context.Context)
 		FindRulesByRoleID(roleID uint64) (rr RuleSet)
 		Rules() (rr RuleSet)
@@ -39,7 +40,7 @@ type (
 
 var (
 	// Global RBAC service
-	gRBAC Controller
+	gRBAC ControllerV2
 )
 
 const (
@@ -47,11 +48,11 @@ const (
 )
 
 // Global returns global RBAC service
-func Global() Controller {
+func Global() ControllerV2 {
 	return gRBAC
 }
 
-func SetGlobal(svc Controller) {
+func SetGlobal(svc ControllerV2) {
 	gRBAC = svc
 }
 
@@ -93,63 +94,38 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 // System user is always allowed to do everything
 //
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
-func (svc service) Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool {
-	// Checking rules
-	var v = svc.Check(res.RBACResource(), op, roles...)
-	if v != Inherit {
-		return v == Allow
-	}
-
-	// Checking fallback functions
-	for _, f := range ff {
-		v = f()
-
-		if v != Inherit {
-			return v == Allow
-		}
-	}
-
-	return false
+func (svc service) Can(roles []uint64, op string, res Resource) bool {
+	return svc.Check(roles, op, res) == Allow
 }
 
 // Check verifies if role has access to perform an operation on a resource
 //
 // See RuleSet's Check() func for details
-func (svc service) Check(res Resource, op Operation, roles ...uint64) (v Access) {
+func (svc service) Check(roles []uint64, op string, res Resource) (v Access) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	return svc.rules.Check(res, op, roles...)
+	// @todo roles => securityContext
+	// @todo get context roles!
+
+	return checkOptimised(svc.indexed, nil, op, res.RbacResource())
 }
 
 // Grant appends and/or overwrites internal rules slice
 //
 // All rules with Inherit are removed
-func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error) {
+func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
-
-	if err = svc.checkRules(wl, rules...); err != nil {
-		return err
-	}
 
 	svc.grant(rules...)
 
 	return svc.flush(ctx)
 }
 
-func (svc service) checkRules(wl Whitelist, rules ...*Rule) error {
-	for _, r := range rules {
-		if !wl.Check(r) {
-			return errors.Errorf("invalid rule: '%s' on '%s'", r.Operation, r.Resource)
-		}
-	}
-
-	return nil
-}
-
 func (svc *service) grant(rules ...*Rule) {
-	svc.rules = svc.rules.Merge(rules...)
+	svc.rules = merge(svc.rules, rules...)
+	// @todo reindex
 }
 
 // Watches for changes
@@ -178,11 +154,7 @@ func (svc service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	rr, _ = svc.rules.Filter(func(rule *Rule) (b bool, e error) {
-		return rule.RoleID == roleID, nil
-	})
-
-	return
+	return ruleByRole(svc.rules, roleID)
 }
 
 func (svc service) Rules() (rr RuleSet) {
@@ -209,7 +181,7 @@ func (svc *service) Reload(ctx context.Context) {
 }
 
 func (svc service) flush(ctx context.Context) (err error) {
-	d, u := svc.rules.Dirty()
+	d, u := flushable(svc.rules)
 
 	err = svc.store.DeleteRbacRule(ctx, d...)
 	if err != nil {
@@ -221,7 +193,7 @@ func (svc service) flush(ctx context.Context) (err error) {
 		return
 	}
 
-	u.Clear()
+	clear(u)
 	svc.rules = u
 	svc.logger.Debug("flushed rules",
 		zap.Int("updated", len(u)),

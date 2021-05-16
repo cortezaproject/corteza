@@ -106,9 +106,9 @@ func TestComposeModule_UnmarshalYAML(t *testing.T) {
 		req.Len(mod.rbac, 2)
 		a := mod.rbac[0]
 		b := mod.rbac[1]
-		req.Equal(a.res.Operation, rbac.Operation("read"))
+		req.Equal(a.res.Operation, "read")
 		req.Equal(a.res.Access, rbac.Allow)
-		req.Equal(b.res.Operation, rbac.Operation("delete"))
+		req.Equal(b.res.Operation, "delete")
 		req.Equal(b.res.Access, rbac.Deny)
 	})
 }

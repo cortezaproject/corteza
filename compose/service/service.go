@@ -17,7 +17,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/minio"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"go.uber.org/zap"
 	"strconv"
@@ -25,11 +24,6 @@ import (
 )
 
 type (
-	RBACServicer interface {
-		accessControlRBACServicer
-		Watch(ctx context.Context)
-	}
-
 	Config struct {
 		ActionLog options.ActionLogOpt
 		Storage   options.ObjectStoreOpt
@@ -60,8 +54,8 @@ var (
 	DefaultImportSession ImportSessionService
 	DefaultRecord        RecordService
 	DefaultModule        ModuleService
-	DefaultChart         ChartService
-	DefaultPage          PageService
+	DefaultChart         *chart
+	DefaultPage          *page
 	DefaultAttachment    AttachmentService
 	DefaultNotification  *notification
 
@@ -101,7 +95,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl(rbac.Global())
+	DefaultAccessControl = AccessControl()
 
 	if DefaultObjectStore == nil {
 		const svcPath = "compose"
