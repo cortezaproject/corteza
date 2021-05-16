@@ -50,7 +50,7 @@ func TestModules(t *testing.T) {
 		req := require.New(t)
 		svc := module{
 			store:    s,
-			ac:       AccessControl(&rbac.ServiceAllowAll{}),
+			ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
 			eventbus: eventbus.New(),
 		}
 		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: namespaceID})
@@ -93,7 +93,7 @@ func TestModules(t *testing.T) {
 			req := require.New(t)
 			svc := module{
 				store:    s,
-				ac:       AccessControl(&rbac.ServiceAllowAll{}),
+				ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
 				eventbus: eventbus.New(),
 			}
 
@@ -155,7 +155,7 @@ func TestModules(t *testing.T) {
 			req := require.New(t)
 			svc := module{
 				store:    s,
-				ac:       AccessControl(&rbac.ServiceAllowAll{}),
+				ac:       &accessControl{rbac: &rbac.ServiceAllowAll{}},
 				eventbus: eventbus.New(),
 			}
 

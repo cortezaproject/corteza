@@ -30,7 +30,20 @@ type (
 	}
 
 	Page struct {
-		page       service.PageService
+		page interface {
+			FindByID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
+			FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Page, error)
+			FindByPageID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
+			FindBySelfID(ctx context.Context, namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
+			Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
+			Tree(ctx context.Context, namespaceID uint64) (pages types.PageSet, err error)
+
+			Create(ctx context.Context, page *types.Page) (*types.Page, error)
+			Update(ctx context.Context, page *types.Page) (*types.Page, error)
+			DeleteByID(ctx context.Context, namespaceID, pageID uint64) error
+
+			Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
+		}
 		namespace  service.NamespaceService
 		attachment service.AttachmentService
 		ac         pageAccessController

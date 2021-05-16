@@ -1,0 +1,7 @@
+rbac:
+  resource:
+    elements: [ NodeID, ID ]
+
+  operations:
+    map:
+      description: Map shared module

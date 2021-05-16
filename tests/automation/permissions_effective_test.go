@@ -9,8 +9,8 @@ import (
 
 func TestPermissionsEffective(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.AutomationRBACResource, "access")
-	h.deny(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "access")
+	h.deny(types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().
 		Get("/permissions/effective").

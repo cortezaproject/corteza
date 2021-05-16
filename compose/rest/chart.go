@@ -28,8 +28,16 @@ type (
 	}
 
 	Chart struct {
-		chart service.ChartService
-		ac    chartAccessController
+		chart interface {
+			FindByID(ctx context.Context, namespaceID, chartID uint64) (*types.Chart, error)
+			FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Chart, error)
+			Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
+
+			Create(ctx context.Context, chart *types.Chart) (*types.Chart, error)
+			Update(ctx context.Context, chart *types.Chart) (*types.Chart, error)
+			DeleteByID(ctx context.Context, namespaceID, chartID uint64) error
+		}
+		ac chartAccessController
 	}
 
 	chartAccessController interface {

@@ -1,86 +1,77 @@
 package rbac
 
-// Check verifies if role has access to perform an operation on a resource
-//
-// Overall flow:
-//  - invalid resource, no access
-//  - can this combination of roles perform an operation on this specific resource
-//  - can this combination of roles perform an operation on any resource of the type (wildcard)
-//  - can anyone/everyone perform an operation on this specific resource
-//  - can anyone/everyone perform an operation on any resource of the type (wildcard)
-func (set RuleSet) Check(res Resource, op Operation, roles ...uint64) (v Access) {
-
-	if !res.IsValid() {
-		return Deny
-	}
-
-	if len(roles) > 0 {
-		if v = set.checkResource(res, op, roles...); v != Inherit {
-			return
-		}
-	}
-
-	if v = set.checkResource(res, op, EveryoneRoleID); v != Inherit {
-		return
-	}
-
-	return
-}
-
-// Check ability to perform an operation on a specific and wildcard resource
-func (set RuleSet) checkResource(res Resource, op Operation, roles ...uint64) (v Access) {
-	if v = set.check(res, op, roles...); v != Inherit {
-		return
-	}
-
-	if res.IsAppendable() {
-		// Is this a specific resource and can we turn it into a wild-carded resource?
-		if v = set.check(res.AppendWildcard(), op, roles...); v != Inherit {
-			return
-		}
-	}
-
-	return
-}
-
-// Check verifies if any of given roles has permission to perform an operation over a resource
-//
-// Will return Inherit when:
-//  - no roles are given
-//  - more than 1 role is given and one of the given roles is Everyone
-//
-// Will return Deny when:
-//  - there is one rule with Deny value
-//
-// Will return Allow when:
-//  - there is at least one rule with Allow value (and no Deny rules)
-func (set RuleSet) check(res Resource, op Operation, roles ...uint64) (v Access) {
-	v = Inherit
-
-	for i := range set {
-		// Ignore resources & operations that do not match
-		if set[i].Resource != res || set[i].Operation != op {
+func (set RuleSet) Check(rolesByKind partRoles, res, op string) Access {
+	for _, kind := range roleKindsByPriority() {
+		if len(rolesByKind[kind]) == 0 {
 			continue
 		}
 
-		// Check for every role
-		for _, roleID := range roles {
-			// Skip rules that do not match
-			if set[i].RoleID != roleID || set[i].Access == Inherit {
-				continue
-			}
+		if kind == BypassRole {
+			return Allow
+		}
 
-			v = set[i].Access // set to Allow
-
-			// Return on first Deny
-			if v == Deny {
-				return
-			}
+		access := checkRulesByResource(filterRules(set, rolesByKind[kind], op), res, op)
+		if access != Inherit {
+			return access
 		}
 	}
 
-	// If none of the rules matched, return Inherit (see 1st line)
-	// if at least one of the rules allowed this op over a resource,
-	// return Allow.
-	return v
+	return Inherit
+}
+
+func checkOptimised(indexedRules OptRuleSet, rolesByKind partRoles, res, op string) Access {
+	if len(rolesByKind) == 0 || len(indexedRules) == 0 {
+		return Inherit
+	}
+
+	var rules []*Rule
+
+	// looping through all role kinds
+	for _, kind := range roleKindsByPriority() {
+		// no roles if this kind
+		if len(rolesByKind[kind]) == 0 {
+			continue
+		}
+
+		// user has at least one bypass role
+		if kind == BypassRole {
+			return Allow
+		}
+
+		rules = nil
+		for roleID, r := range indexedRules[op] {
+			if !rolesByKind[kind][roleID] {
+				continue
+			}
+			rules = append(rules, r...)
+		}
+
+		access := checkRulesByResource(rules, res, op)
+		if access != Inherit {
+			return access
+		}
+	}
+
+	return Inherit
+}
+
+// Check given resource match and operation on all given rules
+//
+// Function expects sorted rules!
+func checkRulesByResource(set []*Rule, res, op string) Access {
+	for _, r := range set {
+		if !matchResource(res, r.Resource) {
+			continue
+		}
+
+		if op != r.Operation {
+			continue
+		}
+
+		if r.Access != Inherit {
+			return r.Access
+		}
+	}
+
+	return Inherit
 }

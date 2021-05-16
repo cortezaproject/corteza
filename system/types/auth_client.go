@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"strconv"
 	"time"
@@ -115,11 +114,6 @@ type (
 		UserID uint64
 	}
 )
-
-// Resource returns a resource ID for this type
-func (r *AuthClient) RBACResource() rbac.Resource {
-	return AuthClientRBACResource.AppendID(r.ID)
-}
 
 func (r *AuthClient) String() string {
 	switch {

@@ -1,0 +1,14 @@
+rbac:
+  resource: { elements: [] }
+
+  operations:
+    grant:
+      description: Manage automation permissions
+    workflow.create:
+      description: Create workflows
+    triggers.search:
+      description: Search triggers
+    sessions.search:
+      description: Search sessions
+    workflows.search:
+      description: Search workflows

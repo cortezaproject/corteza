@@ -57,8 +57,8 @@ func TestNamespaceReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.NamespaceRbacResource(0), "read")
+	h.allow(types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
 	nsbh, err := service.DefaultNamespace.FindByHandle(h.secCtx(), ns.Slug)
@@ -91,7 +91,7 @@ func TestNamespaceList_filterForbiden(t *testing.T) {
 	h.makeNamespace("namespace")
 	f := h.makeNamespace("namespace_forbiden")
 
-	h.deny(types.NamespaceRBACResource.AppendID(f.ID), "read")
+	h.deny(types.NamespaceRbacResource(f.ID), "read")
 
 	h.apiInit().
 		Get("/namespace/").
@@ -120,7 +120,7 @@ func TestNamespaceCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.ComposeRBACResource, "namespace.create")
+	h.allow(types.ComponentRbacResource(), "namespace.create")
 
 	h.apiInit().
 		Post("/namespace/").
@@ -152,7 +152,7 @@ func TestNamespaceUpdate(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "update")
+	h.allow(types.NamespaceRbacResource(0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -186,7 +186,7 @@ func TestNamespaceDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "delete")
+	h.allow(types.NamespaceRbacResource(0), "delete")
 
 	ns := h.makeNamespace("some-namespace")
 
@@ -205,10 +205,10 @@ func TestNamespaceLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.ComposeRBACResource, "namespace.create")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "update")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ComponentRbacResource(), "namespace.create")
+	h.allow(types.NamespaceRbacResource(0), "read")
+	h.allow(types.NamespaceRbacResource(0), "update")
+	h.allow(types.NamespaceRbacResource(0), "delete")
 
 	var (
 		ID uint64

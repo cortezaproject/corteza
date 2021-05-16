@@ -27,11 +27,11 @@ type (
 )
 
 func Queue() *queue {
-	return (&queue{
-		ac:        DefaultAccessControl,
+	return &queue{
+		//ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueSettings, err error) {

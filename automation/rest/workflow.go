@@ -42,8 +42,8 @@ type (
 		CanDeleteWorkflow(context.Context, *types.Workflow) bool
 		CanUndeleteWorkflow(context.Context, *types.Workflow) bool
 		CanExecuteWorkflow(context.Context, *types.Workflow) bool
-		CanManageWorkflowTriggers(context.Context, *types.Workflow) bool
-		CanManageWorkflowSessions(context.Context, *types.Workflow) bool
+		CanManageTriggersOnWorkflow(context.Context, *types.Workflow) bool
+		CanManageSessionsOnWorkflow(context.Context, *types.Workflow) bool
 	}
 
 	workflowPayload struct {
@@ -238,7 +238,7 @@ func (ctrl Workflow) makePayload(ctx context.Context, wf *types.Workflow, err er
 		CanDeleteWorkflow:         ctrl.ac.CanDeleteWorkflow(ctx, wf),
 		CanUndeleteWorkflow:       ctrl.ac.CanUndeleteWorkflow(ctx, wf),
 		CanExecuteWorkflow:        ctrl.ac.CanExecuteWorkflow(ctx, wf),
-		CanManageWorkflowTriggers: ctrl.ac.CanManageWorkflowTriggers(ctx, wf),
-		CanManageWorkflowSessions: ctrl.ac.CanManageWorkflowSessions(ctx, wf),
+		CanManageWorkflowTriggers: ctrl.ac.CanManageTriggersOnWorkflow(ctx, wf),
+		CanManageWorkflowSessions: ctrl.ac.CanManageSessionsOnWorkflow(ctx, wf),
 	}, nil
 }

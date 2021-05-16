@@ -2,15 +2,15 @@ package rbac
 
 type (
 	effective struct {
-		Resource  Resource  `json:"resource"`
-		Operation Operation `json:"operation"`
-		Allow     bool      `json:"allow"`
+		Resource  string `json:"resource"`
+		Operation string `json:"operation"`
+		Allow     bool   `json:"allow"`
 	}
 
 	EffectiveSet []effective
 )
 
-func (ee *EffectiveSet) Push(res Resource, op Operation, allow bool) {
+func (ee *EffectiveSet) Push(res, op string, allow bool) {
 	*ee = append(*ee, effective{
 		Resource:  res,
 		Operation: op,

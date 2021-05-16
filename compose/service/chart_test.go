@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	"github.com/stretchr/testify/require"
@@ -47,7 +47,7 @@ func TestCharts(t *testing.T) {
 		req := require.New(t)
 		svc := chart{
 			store: s,
-			ac:    AccessControl(&rbac.ServiceAllowAll{}),
+			ac:    &accessControl{rbac: &rbac.ServiceAllowAll{}},
 		}
 		res, err := svc.Create(ctx, &types.Chart{Name: "My first chart", NamespaceID: namespaceID})
 		req.NoError(unwrapChartInternal(err))

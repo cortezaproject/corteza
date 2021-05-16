@@ -8,8 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -81,11 +79,6 @@ func (a *Application) Valid() bool {
 
 func (r *Application) DynamicRoles(userID uint64) []uint64 {
 	return nil
-}
-
-// Resource returns a resource ID for this type
-func (r Application) RBACResource() rbac.Resource {
-	return ApplicationRBACResource.AppendID(r.ID)
 }
 
 func (au *ApplicationUnify) Scan(value interface{}) error {

@@ -11,6 +11,16 @@ func TestRuleSet_merge(t *testing.T) {
 	var (
 		req = require.New(t)
 
+		role1 uint64 = 1
+		role2 uint64 = 2
+		role3 uint64 = 3
+
+		resService1 = "res1"
+		resService2 = "res2"
+		opAccess    = "access"
+		resThing42  = "42"
+		resThingWc  = "*"
+
 		sCases = []struct {
 			old RuleSet
 			new RuleSet
@@ -45,12 +55,12 @@ func TestRuleSet_merge(t *testing.T) {
 				RuleSet{
 					AllowRule(role1, resService1, opAccess),
 					DenyRule(role2, resService1, opAccess),
-					DenyRule(EveryoneRoleID, resService2, opAccess),
+					DenyRule(role3, resService2, opAccess),
 					AllowRule(role1, resService2, opAccess),
 					AllowRule(role2, resThing42, opAccess),
 				},
 				RuleSet{
-					DenyRule(EveryoneRoleID, resThingWc, opAccess),
+					DenyRule(role3, resThingWc, opAccess),
 					AllowRule(role1, resService2, opAccess),
 					AllowRule(role1, resThing42, opAccess),
 					InheritRule(role2, resThing42, opAccess),
@@ -63,7 +73,7 @@ func TestRuleSet_merge(t *testing.T) {
 					// DenyRule(role2, resService1, opAccess),
 					// DenyRule(EveryoneRoleID, resService2, opAccess),
 					// AllowRule(role1, resService2, opAccess),
-					DenyRule(EveryoneRoleID, resThingWc, opAccess),
+					DenyRule(role3, resThingWc, opAccess),
 					AllowRule(role1, resThing42, opAccess),
 				},
 			},
@@ -72,12 +82,12 @@ func TestRuleSet_merge(t *testing.T) {
 
 	for _, sc := range sCases {
 		// Apply changed and get update candidates
-		mrg := sc.old.Merge(sc.new...)
-		del, upd := mrg.Dirty()
+		mrg := merge(sc.old, sc.new...)
+		del, upd := flushable(mrg)
 
 		// Clear dirty flag so that we do not confuse DeepEqual
-		del.Clear()
-		upd.Clear()
+		clear(del)
+		clear(upd)
 
 		req.Equal(len(sc.del), len(del))
 		req.Equal(len(sc.upd), len(upd))

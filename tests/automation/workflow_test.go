@@ -65,7 +65,7 @@ func TestWorkflowRead(t *testing.T) {
 	h.clearWorkflows()
 
 	wf := h.repoMakeWorkflow()
-	h.allow(types.WorkflowRBACResource.AppendID(wf.ID), "read")
+	h.allow(wf.RbacResource(), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/workflows/%d", wf.ID)).
@@ -82,7 +82,7 @@ func TestWorkflowList(t *testing.T) {
 	h := newHelper(t)
 	h.clearWorkflows()
 
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "read")
+	h.allow(types.WorkflowRbacResource(0), "read")
 
 	h.repoMakeWorkflow()
 	h.repoMakeWorkflow()
@@ -107,7 +107,7 @@ func TestWorkflowList_filterForbidden(t *testing.T) {
 	h.repoMakeWorkflow("workflow")
 	f := h.repoMakeWorkflow()
 
-	h.deny(types.WorkflowRBACResource.AppendID(f.ID), "read")
+	h.deny(f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/workflows/").
@@ -135,7 +135,7 @@ func TestWorkflowCreateForbidden(t *testing.T) {
 
 func TestWorkflowCreateNotUnique(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "workflow.create")
 
 	workflow := h.repoMakeWorkflow()
 	h.apiInit().
@@ -151,7 +151,7 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 
 func TestWorkflowCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().
 		Post("/workflows/").
@@ -167,7 +167,7 @@ func TestWorkflowCreate(t *testing.T) {
 func TestWorkflowCreateFull(t *testing.T) {
 	h := newHelper(t)
 
-	h.allow(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "workflow.create")
 
 	h.clearWorkflows()
 	var (
@@ -219,7 +219,7 @@ func TestWorkflowCreateFull(t *testing.T) {
 
 	h.a.Equal(input, output)
 
-	h.allow(types.WorkflowRBACResource.AppendID(output.ID), "read")
+	h.allow(output.RbacResource(), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/workflows/%d", output.ID)).
@@ -252,7 +252,7 @@ func TestWorkflowUpdateForbidden(t *testing.T) {
 func TestWorkflowUpdate(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeWorkflow()
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "update")
+	h.allow(types.WorkflowRbacResource(0), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -287,7 +287,7 @@ func TestWorkflowDeleteForbidden(t *testing.T) {
 
 func TestWorkflowDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "delete")
+	h.allow(types.WorkflowRbacResource(0), "delete")
 
 	res := h.repoMakeWorkflow()
 
@@ -327,10 +327,10 @@ func TestWorkflowLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearWorkflows()
 
-	h.allow(types.AutomationRBACResource, "workflow.create")
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "read")
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "update")
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ComponentRbacResource(), "workflow.create")
+	h.allow(types.WorkflowRbacResource(0), "read")
+	h.allow(types.WorkflowRbacResource(0), "update")
+	h.allow(types.WorkflowRbacResource(0), "delete")
 
 	var (
 		ID uint64
@@ -411,7 +411,7 @@ func TestWorkflowLabels(t *testing.T) {
 func TestWorkflowStepsPayload(t *testing.T) {
 	wf := &types.Workflow{}
 	h := newHelper(t)
-	h.allow(types.AutomationRBACResource, "workflow.create")
+	h.allow(types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().
 		Post("/workflows/").

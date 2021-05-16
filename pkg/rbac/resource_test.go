@@ -1,63 +1,28 @@
 package rbac
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
-func TestResource(t *testing.T) {
+func TestResourceMatch(t *testing.T) {
 	var (
-		req = require.New(t)
-
-		sCases = []struct {
-			r Resource
-			s string
+		tcc = []struct {
+			m string
+			r string
+			e bool
 		}{
-			{
-				Resource("a:b:c"),
-				"a:b:c"},
-			{
-				Resource("a:b:c").RBACResource(),
-				"a:b:c"},
-			{
-				Resource("a:b:").AppendID(1),
-				"a:b:1"},
-			{
-				Resource("a:b:").AppendWildcard(),
-				"a:b:*"},
-			{
-				Resource("a:b:1").TrimID(),
-				"a:b:"},
-			{
-				Resource("a:b:1").GetService(),
-				"a"},
+			{"a:b:c", "a:b:c", true},
+			{"a:b:*", "a:b:c", true},
+			{"a:*:*", "a:b:c", true},
+			{"*:*:*", "a:b:c", true},
+			{"a:*:*", "1:2:3", false},
 		}
 	)
 
-	for _, sc := range sCases {
-		req.Equal(sc.s, sc.r.String())
+	for _, tc := range tcc {
+		t.Run(tc.m, func(t *testing.T) {
+			require.Equal(t, tc.e, matchResource(tc.m, tc.r))
+		})
 	}
-
-	var r string
-	r = "a:"
-	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
-	r = "a:1"
-	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
-	r = "a:*"
-	req.True(Resource(r).IsAppendable(), "Expecting resource %q to be appendable", r)
-
-	r = "a"
-	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
-	r = "a:"
-	req.False(Resource(r).IsValid(), "Expecting resource %q not to be valid", r)
-	r = "a:1"
-	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
-	r = "a:*"
-	req.True(Resource(r).IsValid(), "Expecting resource %q to be valid", r)
-
-	r = "a:1"
-	req.False(Resource(r).HasWildcard(), "Expecting resource %q to not have wildcard", r)
-	r = "a:*"
-	req.True(Resource(r).HasWildcard(), "Expecting resource %q to have wildcard", r)
 }

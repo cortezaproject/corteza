@@ -81,27 +81,28 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Related resource
-	refRes := n.res.RefResource
-	if refRes != nil && len(refRes.Identifiers) > 0 {
-		var relRes resource.Interface
-		for _, r := range pl.state.ParentResources {
-			if n.res.RefResource.ResourceType == r.ResourceType() && r.Identifiers().HasAny(n.res.RefResource.Identifiers) {
-				relRes = r
-				break
-			}
-		}
-		relResI, ok := relRes.(resource.IdentifiableInterface)
-		if !ok {
-			return rbacResourceErrUnidentifiable(relRes.Identifiers())
-		}
-		res.Resource = res.Resource.AppendID(relResI.SysID())
-	} else if res.Resource.IsAppendable() {
-		res.Resource = res.Resource.AppendWildcard()
-	}
-
-	if _, exists := gRbacRules[rbacRuleIndex(res)]; !exists {
-		return store.CreateRbacRule(ctx, pl.s, res)
-	}
+	// @todo RBACv2
+	//refRes := n.res.RefResource
+	//if refRes != nil && len(refRes.Identifiers) > 0 {
+	//	var relRes resource.Interface
+	//	for _, r := range pl.state.ParentResources {
+	//		if n.res.RefResource.ResourceType == r.ResourceType() && r.Identifiers().HasAny(n.res.RefResource.Identifiers) {
+	//			relRes = r
+	//			break
+	//		}
+	//	}
+	//	relResI, ok := relRes.(resource.IdentifiableInterface)
+	//	if !ok {
+	//		return rbacResourceErrUnidentifiable(relRes.Identifiers())
+	//	}
+	//	res.Resource = res.Resource.AppendID(relResI.SysID())
+	//} else if res.Resource.IsAppendable() {
+	//	res.Resource = res.Resource.AppendWildcard()
+	//}
+	//
+	//if _, exists := gRbacRules[rbacRuleIndex(res)]; !exists {
+	//	return store.CreateRbacRule(ctx, pl.s, res)
+	//}
 
 	// On existing rbac rule, replace/merge right basically overwrites the existing rule;
 	// otherwise, the new rule is ignored.

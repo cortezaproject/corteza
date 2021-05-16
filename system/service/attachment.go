@@ -49,13 +49,13 @@ type (
 	}
 )
 
-func Attachment(store files.Store) AttachmentService {
-	return (&attachment{
+func Attachment(store files.Store) *attachment {
+	return &attachment{
 		files:     store,
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc attachment) FindByID(ctx context.Context, ID uint64) (att *types.Attachment, err error) {

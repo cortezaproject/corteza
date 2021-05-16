@@ -148,7 +148,7 @@ func sTestRbac(ctx context.Context, t *testing.T, s store.Storer, roleID uint64)
 		},
 		{
 			RoleID:    roleID,
-			Resource:  types.RoleRBACResource.AppendID(roleID),
+			Resource:  types.RoleRbacResource(roleID),
 			Operation: "read",
 			Access:    rbac.Deny,
 		},

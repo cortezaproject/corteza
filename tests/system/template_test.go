@@ -87,7 +87,7 @@ func TestTemplateList_filterForbidden(t *testing.T) {
 	h.repoMakeTemplate("template")
 	f := h.repoMakeTemplate()
 
-	h.deny(types.TemplateRBACResource.AppendID(f.ID), "read")
+	h.deny(f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/template/").
@@ -116,7 +116,7 @@ func TestTemplateCreateForbidden(t *testing.T) {
 func TestTemplateCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.SystemRBACResource, "template.create")
+	h.allow(types.ComponentRbacResource(), "template.create")
 
 	h.apiInit().
 		Post("/template/").
@@ -147,7 +147,7 @@ func TestTemplateUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 	res := h.repoMakeTemplate()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "update")
+	h.allow(types.TemplateRbacResource(0), "update")
 
 	newHandle := "updated-" + rs()
 
@@ -182,7 +182,7 @@ func TestTemplateDeleteForbidden(t *testing.T) {
 func TestTemplateDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "delete")
+	h.allow(types.TemplateRbacResource(0), "delete")
 
 	res := h.repoMakeTemplate()
 
@@ -222,7 +222,7 @@ func TestTemplateUndelete(t *testing.T) {
 func TestTemplateRenderForbiden(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.deny(types.TemplateRBACResource.AppendWildcard(), "render")
+	h.deny(types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/plain")
 
@@ -239,7 +239,7 @@ func TestTemplateRenderForbiden(t *testing.T) {
 func TestTemplateRenderDriverUndefined(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "render")
+	h.allow(types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/notexisting")
 
@@ -256,7 +256,7 @@ func TestTemplateRenderDriverUndefined(t *testing.T) {
 func TestTemplateRenderPlain(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "render")
+	h.allow(types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/plain")
 
@@ -272,7 +272,7 @@ func TestTemplateRenderPlain(t *testing.T) {
 func TestTemplateRenderHTML(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "render")
+	h.allow(types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "<h1>Hello, {{.interpolate}}</h1>", "text/html")
 

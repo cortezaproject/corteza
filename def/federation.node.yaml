@@ -1,0 +1,6 @@
+rbac:
+  operations:
+    manage:
+      description: Manage federation node
+    module.create:
+      description: Create shared module

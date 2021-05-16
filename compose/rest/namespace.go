@@ -40,12 +40,11 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
-		CanManageNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 
-		CanCreateModule(context.Context, *types.Namespace) bool
-		CanCreateChart(context.Context, *types.Namespace) bool
-		CanCreatePage(context.Context, *types.Namespace) bool
+		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
+		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
+		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
 	}
 )
 
@@ -177,11 +176,10 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		CanGrant:           ctrl.ac.CanGrant(ctx),
 		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
-		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
-		CanCreateModule: ctrl.ac.CanCreateModule(ctx, ns),
-		CanCreateChart:  ctrl.ac.CanCreateChart(ctx, ns),
-		CanCreatePage:   ctrl.ac.CanCreatePage(ctx, ns),
+		CanCreateModule: ctrl.ac.CanCreateModuleOnNamespace(ctx, ns),
+		CanCreateChart:  ctrl.ac.CanCreateChartOnNamespace(ctx, ns),
+		CanCreatePage:   ctrl.ac.CanCreatePageOnNamespace(ctx, ns),
 	}, nil
 }
 

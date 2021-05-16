@@ -121,7 +121,7 @@ func TestApplicationList_filterForbidden(t *testing.T) {
 	h.repoMakeApplication("application")
 	f := h.repoMakeApplication()
 
-	h.deny(types.ApplicationRBACResource.AppendID(f.ID), "read")
+	h.deny(f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/application/").
@@ -148,7 +148,7 @@ func TestApplicationCreateForbidden(t *testing.T) {
 
 func TestApplicationCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "application.create")
+	h.allow(types.ComponentRbacResource(), "application.create")
 
 	h.apiInit().
 		Post("/application/").
@@ -162,7 +162,7 @@ func TestApplicationCreate(t *testing.T) {
 
 func TestApplicationCreate_weight(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "application.create")
+	h.allow(types.ComponentRbacResource(), "application.create")
 	name := "name_weight_create_" + rs()
 
 	h.apiInit().
@@ -196,7 +196,7 @@ func TestApplicationUpdateForbidden(t *testing.T) {
 func TestApplicationUpdate(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeApplication()
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	h.allow(types.ApplicationRbacResource(0), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -219,7 +219,7 @@ func TestApplicationUpdate(t *testing.T) {
 func TestApplicationUpdate_weight(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeApplication()
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	h.allow(types.ApplicationRbacResource(0), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -242,11 +242,11 @@ func TestApplicationUpdate_weight(t *testing.T) {
 
 func TestApplicationReorder_forbiden(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	h.allow(types.ApplicationRbacResource(0), "update")
 	a := h.repoMakeApplication()
 	b := h.repoMakeApplication()
 	c := h.repoMakeApplication()
-	h.deny(types.ApplicationRBACResource.AppendID(b.ID), "update")
+	h.deny(b.RbacResource(), "update")
 
 	h.apiInit().
 		Post("/application/reorder").
@@ -260,7 +260,7 @@ func TestApplicationReorder_forbiden(t *testing.T) {
 
 func TestApplicationReorder(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
+	h.allow(types.ApplicationRbacResource(0), "update")
 	a := h.repoMakeApplication()
 	b := h.repoMakeApplication()
 	c := h.repoMakeApplication()
@@ -300,7 +300,7 @@ func TestApplicationDeleteForbidden(t *testing.T) {
 
 func TestApplicationDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ApplicationRbacResource(0), "delete")
 
 	res := h.repoMakeApplication()
 
@@ -340,10 +340,10 @@ func TestApplicationLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()
 
-	h.allow(types.SystemRBACResource, "application.create")
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "update")
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "delete")
+	h.allow(types.ComponentRbacResource(), "application.create")
+	h.allow(types.ApplicationRbacResource(0), "read")
+	h.allow(types.ApplicationRbacResource(0), "update")
+	h.allow(types.ApplicationRbacResource(0), "delete")
 
 	var (
 		ID uint64
@@ -421,10 +421,10 @@ func TestApplicationFlags(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()
 
-	h.allow(types.SystemRBACResource, "application.create")
+	h.allow(types.ComponentRbacResource(), "application.create")
 
 	t.Run("create", func(t *testing.T) {
-		h.allow(types.SystemRBACResource, "application.flag.global")
+		h.allow(types.ComponentRbacResource(), "application.flag.global")
 		res := h.repoMakeApplication()
 
 		h.apiInit().
@@ -441,7 +441,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("create; not allowed", func(t *testing.T) {
-		h.deny(types.SystemRBACResource, "application.flag.global")
+		h.deny(types.ComponentRbacResource(), "application.flag.global")
 		res := h.repoMakeApplication()
 
 		h.apiInit().
@@ -454,7 +454,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("create own", func(t *testing.T) {
-		h.allow(types.SystemRBACResource, "application.flag.self")
+		h.allow(types.ComponentRbacResource(), "application.flag.self")
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
 
@@ -476,7 +476,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("create own; not allowed", func(t *testing.T) {
-		h.deny(types.SystemRBACResource, "application.flag.self")
+		h.deny(types.ComponentRbacResource(), "application.flag.self")
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
 
@@ -490,7 +490,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("read application", func(t *testing.T) {
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
 
@@ -506,7 +506,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("list applications", func(t *testing.T) {
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		h.clearApplications()
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
@@ -523,7 +523,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("read application; with own flag", func(t *testing.T) {
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
 		h.repoFlagApplication(res.ID, h.cUser.ID, "testFlagOwn", true)
@@ -539,7 +539,7 @@ func TestApplicationFlags(t *testing.T) {
 	})
 
 	t.Run("read application; overwrite global", func(t *testing.T) {
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		res := h.repoMakeApplication()
 		h.repoFlagApplication(res.ID, 0, "testFlag", true)
 		h.repoFlagApplication(res.ID, h.cUser.ID, "testFlag", false)
@@ -555,7 +555,7 @@ func TestApplicationFlags(t *testing.T) {
 
 	t.Run("filter by flags", func(t *testing.T) {
 		flag := rs()
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		h.repoMakeApplication()
 		h.repoMakeApplication()
 		res := h.repoMakeApplication()
@@ -573,7 +573,7 @@ func TestApplicationFlags(t *testing.T) {
 
 	t.Run("filter by flags; self inactive", func(t *testing.T) {
 		flag := rs()
-		h.allow(types.ApplicationRBACResource.AppendWildcard(), "read")
+		h.allow(types.ApplicationRbacResource(0), "read")
 		h.repoMakeApplication()
 		h.repoMakeApplication()
 		res := h.repoMakeApplication()
@@ -595,11 +595,11 @@ func TestApplicationFlags_Flow1(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()
 
-	h.allow(types.SystemRBACResource, "application.create")
+	h.allow(types.ComponentRbacResource(), "application.create")
 
 	t.Run("create", func(t *testing.T) {
-		h.allow(types.SystemRBACResource, "application.flag.global")
-		h.allow(types.SystemRBACResource, "application.flag.self")
+		h.allow(types.ComponentRbacResource(), "application.flag.global")
+		h.allow(types.ComponentRbacResource(), "application.flag.self")
 		res := h.repoMakeApplication()
 		a := h.apiInit()
 

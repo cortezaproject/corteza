@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/jmoiron/sqlx/types"
 )
 
@@ -48,15 +47,6 @@ type (
 		filter.Paging
 	}
 )
-
-// Resource returns a system resource ID for this type
-func (m Module) RBACResource() rbac.Resource {
-	return ModuleRBACResource.AppendID(m.ID)
-}
-
-func (m Module) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
 
 func (m Module) Clone() *Module {
 	c := &m

@@ -120,7 +120,7 @@ func (ctrl Node) makePayload(ctx context.Context, m *types.Node, err error) (*no
 	return &nodePayload{
 		Node: m,
 
-		CanCreateModule: service.DefaultAccessControl.CanCreateModule(ctx, m),
+		CanCreateModule: service.DefaultAccessControl.CanCreateModuleOnNode(ctx, m),
 		CanManageNode:   service.DefaultAccessControl.CanManageNode(ctx, m),
 	}, nil
 }

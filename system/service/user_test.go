@@ -23,7 +23,7 @@ func makeMockUserService() *user {
 
 		svc = &user{
 			settings: &types.AppSettings{},
-			ac:       AccessControl(rbac.NewService(zap.NewNop(), mem)),
+			ac:       &accessControl{rbac: rbac.NewService(zap.NewNop(), mem)},
 			eventbus: eventbus.New(),
 		}
 	)
@@ -62,12 +62,12 @@ func TestUser_ProtectedSearch(t *testing.T) {
 
 	svc := makeMockUserService()
 
-	svc.ac.(*accessControl).permissions.Grant(ctx, svc.ac.(*accessControl).Whitelist(),
-		rbac.AllowRule(testRoleID, (&types.User{}).RBACResource().AppendWildcard(), "read"),
-		rbac.DenyRule(testRoleID, masked.RBACResource(), "unmask.email"),
-		rbac.AllowRule(testRoleID, unmasked.RBACResource(), "unmask.email"),
-		rbac.DenyRule(testRoleID, masked.RBACResource(), "unmask.name"),
-		rbac.AllowRule(testRoleID, unmasked.RBACResource(), "unmask.name"),
+	svc.ac.(*accessControl).rbac.Grant(ctx,
+		rbac.AllowRule(testRoleID, (&types.User{}).RbacResource(), "read"),
+		rbac.DenyRule(testRoleID, masked.RbacResource(), "unmask.email"),
+		rbac.AllowRule(testRoleID, unmasked.RbacResource(), "unmask.email"),
+		rbac.DenyRule(testRoleID, masked.RbacResource(), "unmask.name"),
+		rbac.AllowRule(testRoleID, unmasked.RbacResource(), "unmask.name"),
 	)
 	req.NoError(store.CreateUser(ctx, svc.store, masked, unmasked))
 

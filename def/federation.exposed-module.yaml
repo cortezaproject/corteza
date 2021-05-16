@@ -1,0 +1,7 @@
+rbac:
+  resource:
+    elements: [ NodeID, ID ]
+
+  operations:
+    manage:
+      description: Manage shared module

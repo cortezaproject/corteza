@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 func (n *rbacRule) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
@@ -62,8 +61,10 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 		return nil, nil
 	}
 
-	addRef := func(r *rbacRule, base rbac.Resource) string {
-		rtr := base.TrimID().String()
+	addRef := func(r *rbacRule, base string) string {
+		// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
+		rtr := base
+		// rtr := base.TrimID().String()
 
 		if r.relResource == nil {
 			return rtr
@@ -89,7 +90,10 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 				opNode, _ := makeSeq()
 
 				for _, rule := range resRules {
-					opNode, err = addSeq(opNode, rule.res.Operation.String())
+					// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
+					opNode, err = addSeq(opNode, rule.res.Operation)
+					//opNode, err = addSeq(opNode, rule.res.Operation.String())
+
 					if err != nil {
 						return nil, err
 					}
@@ -134,5 +138,5 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 }
 
 func (r *rbacRule) MarshalYAML() (interface{}, error) {
-	return r.res.Operation.String(), nil
+	return r.res.Operation, nil
 }

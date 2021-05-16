@@ -54,13 +54,13 @@ const (
 	namespaceLabelsChanged namespaceChanges = 2
 )
 
-func Namespace() NamespaceService {
-	return (&namespace{
+func Namespace() *namespace {
+	return &namespace{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 // search fn() orchestrates pages search, namespace preload and check

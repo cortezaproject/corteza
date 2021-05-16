@@ -45,7 +45,7 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 			rule := &rbacRule{
 				res: &rbac.Rule{
 					Access:    a,
-					Operation: rbac.Operation(op.Value),
+					Operation: op.Value,
 				},
 				refRole: roleRef,
 			}
@@ -87,9 +87,9 @@ func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
 	return rtr
 }
 
-func (rr rbacRuleSet) setResource(res rbac.Resource) error {
+func (rr rbacRuleSet) setResource(res string) error {
 	for _, r := range rr {
-		if r.resource.String() != "" && res != r.resource {
+		if r.resource != "" && res != r.resource {
 			return fmt.Errorf("cannot override resource %s with %s", r.resource, res)
 		}
 
@@ -133,13 +133,14 @@ func (r *rbacRule) SetResource(res string) {
 
 	// When len is 1; only top-level defined (system, compose, ...)
 	if len(rr) == 1 {
-		r.res.Resource = rbac.Resource(res)
+		r.res.Resource = res
 		return
 	}
 
 	// When len is 2; top-level and sub level defined (compose:namespace, system:user, ...)
 	if len(rr) == 2 {
-		r.res.Resource = rbac.Resource(res + sp)
+		// @todo RBACv2
+		r.res.Resource = res + sp
 		return
 	}
 
@@ -150,6 +151,6 @@ func (r *rbacRule) SetResource(res string) {
 			ResourceType: strings.Join(rr[0:2], sp) + sp,
 			Identifiers:  resource.MakeIdentifiers(rr[2]),
 		}
-		r.res.Resource = rbac.Resource(res)
+		r.res.Resource = res
 	}
 }

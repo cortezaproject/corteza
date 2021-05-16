@@ -29,7 +29,7 @@ type (
 
 	moduleAccessController interface {
 		CanReadNamespace(context.Context, *types.Namespace) bool
-		CanCreateModule(context.Context, *types.Namespace) bool
+		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
@@ -59,13 +59,13 @@ const (
 	moduleFieldsChanged moduleChanges = 4
 )
 
-func Module() ModuleService {
-	return (&module{
+func Module() *module {
+	return &module{
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
@@ -198,7 +198,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 
 		aProps.setNamespace(ns)
 
-		if !svc.ac.CanCreateModule(ctx, ns) {
+		if !svc.ac.CanCreateModuleOnNamespace(ctx, ns) {
 			return ModuleErrNotAllowedToCreate()
 		}
 
@@ -220,6 +220,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			_ = new.Fields.Walk(func(f *types.ModuleField) error {
 				f.ID = nextID()
 				f.ModuleID = new.ID
+				f.NamespaceID = new.NamespaceID
 				f.CreatedAt = *now()
 				f.UpdatedAt = nil
 				f.DeletedAt = nil
@@ -495,6 +496,9 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 		if f.ModuleID == 0 {
 			f.ModuleID = new.ID
 		}
+		if f.NamespaceID == 0 {
+			f.NamespaceID = new.NamespaceID
+		}
 
 		if f.ModuleID != new.ID {
 			return fmt.Errorf("module id of field %q does not match the module", f.Name)
@@ -653,6 +657,11 @@ func loadModuleFields(ctx context.Context, s store.Storer, mm ...*types.Module) 
 
 	for _, m := range mm {
 		m.Fields = ff.FilterByModule(m.ID)
+		m.Fields.Walk(func(f *types.ModuleField) error {
+			f.NamespaceID = m.NamespaceID
+			return nil
+		})
+
 		sort.Sort(m.Fields)
 	}
 
