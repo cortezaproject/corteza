@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -12,8 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"testing"
-	"time"
 )
 
 // Mock auth service with nil for current time, dummy provider validator and mock db
@@ -80,23 +81,23 @@ func TestAuth_External(t *testing.T) {
 
 		cases = []struct {
 			name    string
-			profile goth.User
+			profile types.ExternalAuthUser
 			user    *types.User
 			err     error
 		}{
 			{
 				"matching by user email",
-				goth.User{UserID: freshProfileID(), Provider: "-", Email: validUser.Email},
+				types.ExternalAuthUser{goth.User{UserID: freshProfileID(), Provider: "-", Email: validUser.Email}},
 				validUser,
 				nil},
 			{
 				"unknown profile",
-				goth.User{UserID: freshProfileID(), Provider: "-", Email: "fresh-from-foo@test.cortezaproject.org"},
+				types.ExternalAuthUser{goth.User{UserID: freshProfileID(), Provider: "-", Email: "fresh-from-foo@test.cortezaproject.org"}},
 				&types.User{Email: "fresh-from-foo@test.cortezaproject.org"},
 				nil},
 			{
 				"profile match by provider ID",
-				goth.User{UserID: fooCredentials.Credentials, Provider: fooCredentials.Kind, Email: "valid+2nd+email@test.cortezaproject.org"},
+				types.ExternalAuthUser{goth.User{UserID: fooCredentials.Credentials, Provider: fooCredentials.Kind, Email: "valid+2nd+email@test.cortezaproject.org"}},
 				validUser,
 				nil},
 		}
