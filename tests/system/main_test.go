@@ -2,15 +2,19 @@ package system
 
 import (
 	"context"
+	"embed"
 	"errors"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
+	handlers "github.com/cortezaproject/corteza-server/auth/handlers"
+	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/auth/saml"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	label "github.com/cortezaproject/corteza-server/pkg/label"
 	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
@@ -32,21 +36,25 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:embed static
+var mockData embed.FS
+
 type (
 	helper struct {
-		t *testing.T
-		a *require.Assertions
+		t  *testing.T
+		a  *require.Assertions
+		sp *saml.SamlSPService
 
 		cUser  *types.User
 		roleID uint64
+		data   embed.FS
 	}
 )
 
 var (
 	testApp *app.CortezaApp
 	r       chi.Router
-
-	eventBus = eventbus.New()
+	hh      *handlers.AuthHandlers
 )
 
 func init() {
@@ -64,10 +72,14 @@ func rs(a ...int) string {
 }
 
 func InitTestApp() {
+	var sm *request.SessionManager
+
 	if testApp == nil {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+			service.CurrentSettings.Auth.External.Enabled = true
+
 			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
@@ -79,16 +91,28 @@ func InitTestApp() {
 				return err
 			}
 
-			eventbus.Set(eventBus)
+			sm = request.NewSessionManager(service.DefaultStore, app.Opt.Auth, service.DefaultLogger)
+
 			return nil
 		})
+	}
+
+	sp, _ := loadSAMLService(context.Background())
+
+	hh = &handlers.AuthHandlers{
+		SamlSPService:  *sp,
+		Log:            zap.NewNop(),
+		AuthService:    service.DefaultAuth,
+		SessionManager: sm,
 	}
 
 	if r == nil {
 		r = chi.NewRouter()
 		r.Use(server.BaseMiddleware(false, logger.Default())...)
+
 		helpers.BindAuthMiddleware(r)
 		rest.MountRoutes(r)
+		hh.MountHttpRoutes(r)
 	}
 }
 
@@ -105,6 +129,7 @@ func newHelper(t *testing.T) helper {
 		cUser: &types.User{
 			ID: id.Next(),
 		},
+		data: mockData,
 	}
 
 	h.cUser.SetRoles([]uint64{h.roleID})
@@ -174,6 +199,17 @@ func (h helper) setLabel(res label.LabeledResource, name, value string) {
 	}))
 }
 
+func (h helper) assertBody(e string, s io.ReadCloser) {
+	b, err := io.ReadAll(s)
+	h.a.NoError(err)
+	h.a.Equal(e, string(b))
+}
+
 func (h helper) clearTemplates() {
 	h.noError(store.TruncateTemplates(context.Background(), service.DefaultStore))
+}
+
+func readStaticFile(f string) []byte {
+	c, _ := mockData.ReadFile(f)
+	return c
 }
