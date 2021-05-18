@@ -50,19 +50,19 @@ func (r Chart) RbacResource() string {
 // RBAC resource is in the corteza+compose.chart:/... format
 //
 // This function is auto-generated
-func ChartRbacResource(NamespaceID uint64, ID uint64) string {
+func ChartRbacResource(namespaceID uint64, iD uint64) string {
 	out := ChartRbacResourceSchema + ":"
 	out += "/"
 
-	if NamespaceID != 0 {
-		out += strconv.FormatUint(NamespaceID, 10)
+	if namespaceID != 0 {
+		out += strconv.FormatUint(namespaceID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -83,26 +83,26 @@ func (r ModuleField) RbacResource() string {
 // RBAC resource is in the corteza+compose.module-field:/... format
 //
 // This function is auto-generated
-func ModuleFieldRbacResource(NamespaceID uint64, ModuleID uint64, ID uint64) string {
+func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, iD uint64) string {
 	out := ModuleFieldRbacResourceSchema + ":"
 	out += "/"
 
-	if NamespaceID != 0 {
-		out += strconv.FormatUint(NamespaceID, 10)
+	if namespaceID != 0 {
+		out += strconv.FormatUint(namespaceID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ModuleID != 0 {
-		out += strconv.FormatUint(ModuleID, 10)
+	if moduleID != 0 {
+		out += strconv.FormatUint(moduleID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -123,19 +123,19 @@ func (r Module) RbacResource() string {
 // RBAC resource is in the corteza+compose.module:/... format
 //
 // This function is auto-generated
-func ModuleRbacResource(NamespaceID uint64, ID uint64) string {
+func ModuleRbacResource(namespaceID uint64, iD uint64) string {
 	out := ModuleRbacResourceSchema + ":"
 	out += "/"
 
-	if NamespaceID != 0 {
-		out += strconv.FormatUint(NamespaceID, 10)
+	if namespaceID != 0 {
+		out += strconv.FormatUint(namespaceID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -156,12 +156,12 @@ func (r Namespace) RbacResource() string {
 // RBAC resource is in the corteza+compose.namespace:/... format
 //
 // This function is auto-generated
-func NamespaceRbacResource(ID uint64) string {
+func NamespaceRbacResource(iD uint64) string {
 	out := NamespaceRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -182,19 +182,19 @@ func (r Page) RbacResource() string {
 // RBAC resource is in the corteza+compose.page:/... format
 //
 // This function is auto-generated
-func PageRbacResource(NamespaceID uint64, ID uint64) string {
+func PageRbacResource(namespaceID uint64, iD uint64) string {
 	out := PageRbacResourceSchema + ":"
 	out += "/"
 
-	if NamespaceID != 0 {
-		out += strconv.FormatUint(NamespaceID, 10)
+	if namespaceID != 0 {
+		out += strconv.FormatUint(namespaceID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -215,26 +215,26 @@ func (r Record) RbacResource() string {
 // RBAC resource is in the corteza+compose.record:/... format
 //
 // This function is auto-generated
-func RecordRbacResource(NamespaceID uint64, ModuleID uint64, ID uint64) string {
+func RecordRbacResource(namespaceID uint64, moduleID uint64, iD uint64) string {
 	out := RecordRbacResourceSchema + ":"
 	out += "/"
 
-	if NamespaceID != 0 {
-		out += strconv.FormatUint(NamespaceID, 10)
+	if namespaceID != 0 {
+		out += strconv.FormatUint(namespaceID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ModuleID != 0 {
-		out += strconv.FormatUint(ModuleID, 10)
+	if moduleID != 0 {
+		out += strconv.FormatUint(moduleID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}

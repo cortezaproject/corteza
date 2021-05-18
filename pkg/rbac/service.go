@@ -9,8 +9,6 @@ import (
 )
 
 type (
-	resourceValidator func(string, ...string) error
-
 	service struct {
 		l      *sync.Mutex
 		logger *zap.Logger
@@ -21,6 +19,8 @@ type (
 		rules   RuleSet
 		indexed OptRuleSet
 
+		roles []*role
+
 		store rbacRulesStore
 	}
 
@@ -28,8 +28,8 @@ type (
 	RuleFilter struct{}
 
 	ControllerV2 interface {
-		Can(roles []uint64, op string, res Resource) bool
-		Check(roles []uint64, op string, res Resource) (v Access)
+		Can(ses Session, op string, res Resource) bool
+		Check(ses Session, op string, res Resource) (v Access)
 		Grant(ctx context.Context, rules ...*Rule) (err error)
 		Watch(ctx context.Context)
 		FindRulesByRoleID(roleID uint64) (rr RuleSet)
@@ -94,21 +94,23 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 // System user is always allowed to do everything
 //
 // When not explicitly allowed through rules or fallbacks, function will return FALSE.
-func (svc service) Can(roles []uint64, op string, res Resource) bool {
-	return svc.Check(roles, op, res) == Allow
+func (svc service) Can(ses Session, op string, res Resource) bool {
+	return svc.Check(ses, op, res) == Allow
 }
 
 // Check verifies if role has access to perform an operation on a resource
 //
 // See RuleSet's Check() func for details
-func (svc service) Check(roles []uint64, op string, res Resource) (v Access) {
+func (svc service) Check(ses Session, op string, res Resource) (v Access) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	// @todo roles => securityContext
-	// @todo get context roles!
-
-	return checkOptimised(svc.indexed, nil, op, res.RbacResource())
+	return checkOptimised(
+		svc.indexed,
+		getContextRoles(ses.Roles(), res, svc.roles),
+		op,
+		res.RbacResource(),
+	)
 }
 
 // Grant appends and/or overwrites internal rules slice

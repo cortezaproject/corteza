@@ -27,7 +27,8 @@ type (
 	}
 
 	rbacResource struct {
-		Elements []string
+		Elements   []string
+		Attributes *rbacAttributes
 	}
 
 	rbacOperations []*rbacOperation
@@ -36,6 +37,10 @@ type (
 		Operation   string
 		CanFnName   string `yaml:"canFnName"`
 		Description string
+	}
+
+	rbacAttributes struct {
+		Fields []string `yaml:"-"`
 	}
 )
 
@@ -62,6 +67,16 @@ func (op *rbacOperation) UnmarshalYAML(n *yaml.Node) error {
 	type auxType rbacOperation
 	var aux = (*auxType)(op)
 	return n.Decode(aux)
+}
+
+func (a *rbacAttributes) UnmarshalYAML(n *yaml.Node) error {
+	if y7s.IsKind(n, yaml.ScalarNode) {
+		return nil
+	}
+
+	// if not scalar, assume we will get list of fields
+	a.Fields = make([]string, 0)
+	return n.Decode(&a.Fields)
 }
 
 func RbacOperationCanFnName(res, op string) string {

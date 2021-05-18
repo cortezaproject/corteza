@@ -48,12 +48,12 @@ func (r Application) RbacResource() string {
 // RBAC resource is in the corteza+system.application:/... format
 //
 // This function is auto-generated
-func ApplicationRbacResource(ID uint64) string {
+func ApplicationRbacResource(iD uint64) string {
 	out := ApplicationRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -74,12 +74,12 @@ func (r AuthClient) RbacResource() string {
 // RBAC resource is in the corteza+system.auth-client:/... format
 //
 // This function is auto-generated
-func AuthClientRbacResource(ID uint64) string {
+func AuthClientRbacResource(iD uint64) string {
 	out := AuthClientRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -100,12 +100,12 @@ func (r Role) RbacResource() string {
 // RBAC resource is in the corteza+system.role:/... format
 //
 // This function is auto-generated
-func RoleRbacResource(ID uint64) string {
+func RoleRbacResource(iD uint64) string {
 	out := RoleRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -126,12 +126,12 @@ func (r Template) RbacResource() string {
 // RBAC resource is in the corteza+system.template:/... format
 //
 // This function is auto-generated
-func TemplateRbacResource(ID uint64) string {
+func TemplateRbacResource(iD uint64) string {
 	out := TemplateRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -152,12 +152,12 @@ func (r User) RbacResource() string {
 // RBAC resource is in the corteza+system.user:/... format
 //
 // This function is auto-generated
-func UserRbacResource(ID uint64) string {
+func UserRbacResource(iD uint64) string {
 	out := UserRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
