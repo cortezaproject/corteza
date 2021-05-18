@@ -32,7 +32,7 @@ const (
 //
 // This function is auto-generated
 func (r {{ .Resource }}) RbacResource() string {
-	return {{ .Resource }}RbacResource({{ if .RBAC.Resource }}{{ range .RBAC.Resource.Elements }}r.{{ unexport . }},{{ end }}{{ end }})
+	return {{ .Resource }}RbacResource({{ if .RBAC.Resource }}{{ range .RBAC.Resource.Elements }}r.{{ export . }},{{ end }}{{ end }})
 }
 
 // {{ .Resource }}RbacResource returns string representation of RBAC resource for {{ .Resource }}
@@ -53,4 +53,31 @@ func {{ .Resource }}RbacResource({{ if .RBAC.Resource }}{{ range .RBAC.Resource.
 	{{- end }}
 	return out
 }
+
+{{ if .RBAC.Resource.Attributes }}
+	// RbacAttributes returns resource attributes used for generating list of contextual roles
+	//
+	// This function is auto-generated
+	func (r {{ .Resource }}) RbacAttributes() map[string]interface{} {
+		return {{ unexport .Resource }}RbacAttributes(r)
+	}
+
+		{{ if .RBAC.Resource.Attributes.Fields }}
+		// {{ .Resource }}RbacResource returns string representation of RBAC resource for {{ .Resource }}
+		//
+		// RBAC resource is in the {{ .RBAC.Schema }}:/... format
+		//
+		// This function is auto-generated
+		func {{ unexport .Resource }}RbacAttributes(r {{ .Resource }}) map[string]interface{} {
+			return map[string]interface{}{
+			{{- range .RBAC.Resource.Attributes.Fields }}
+				{{ printf "%q" . }}: r.{{ export . }},
+			{{- end }}
+			}
+		}
+	{{- end }}
 {{- end }}
+
+
+{{- end }}
+

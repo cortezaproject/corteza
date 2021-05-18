@@ -57,7 +57,7 @@ func checkOptimised(indexedRules OptRuleSet, rolesByKind partRoles, res, op stri
 
 // Check given resource match and operation on all given rules
 //
-// Function expects sorted rules!
+// Function expects rules, sorted by level!
 func checkRulesByResource(set []*Rule, res, op string) Access {
 	for _, r := range set {
 		if !matchResource(res, r.Resource) {

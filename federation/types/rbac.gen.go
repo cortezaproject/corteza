@@ -44,19 +44,19 @@ func (r ExposedModule) RbacResource() string {
 // RBAC resource is in the corteza+federation.exposed-module:/... format
 //
 // This function is auto-generated
-func ExposedModuleRbacResource(NodeID uint64, ID uint64) string {
+func ExposedModuleRbacResource(nodeID uint64, iD uint64) string {
 	out := ExposedModuleRbacResourceSchema + ":"
 	out += "/"
 
-	if NodeID != 0 {
-		out += strconv.FormatUint(NodeID, 10)
+	if nodeID != 0 {
+		out += strconv.FormatUint(nodeID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -77,12 +77,12 @@ func (r Node) RbacResource() string {
 // RBAC resource is in the corteza+federation.node:/... format
 //
 // This function is auto-generated
-func NodeRbacResource(ID uint64) string {
+func NodeRbacResource(iD uint64) string {
 	out := NodeRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}
@@ -103,19 +103,19 @@ func (r SharedModule) RbacResource() string {
 // RBAC resource is in the corteza+federation.shared-module:/... format
 //
 // This function is auto-generated
-func SharedModuleRbacResource(NodeID uint64, ID uint64) string {
+func SharedModuleRbacResource(nodeID uint64, iD uint64) string {
 	out := SharedModuleRbacResourceSchema + ":"
 	out += "/"
 
-	if NodeID != 0 {
-		out += strconv.FormatUint(NodeID, 10)
+	if nodeID != 0 {
+		out += strconv.FormatUint(nodeID, 10)
 	} else {
 		out += "*"
 	}
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}

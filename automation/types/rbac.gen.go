@@ -40,12 +40,12 @@ func (r Workflow) RbacResource() string {
 // RBAC resource is in the corteza+automation.workflow:/... format
 //
 // This function is auto-generated
-func WorkflowRbacResource(ID uint64) string {
+func WorkflowRbacResource(iD uint64) string {
 	out := WorkflowRbacResourceSchema + ":"
 	out += "/"
 
-	if ID != 0 {
-		out += strconv.FormatUint(ID, 10)
+	if iD != 0 {
+		out += strconv.FormatUint(iD, 10)
 	} else {
 		out += "*"
 	}

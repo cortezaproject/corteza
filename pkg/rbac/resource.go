@@ -9,6 +9,10 @@ type (
 	Resource interface {
 		RbacResource() string
 	}
+
+	resourceDicter interface {
+		Dict() map[string]interface{}
+	}
 )
 
 func ResourceSchema(r string) string {

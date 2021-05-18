@@ -44,7 +44,7 @@ func Export(pp ...string) (out string) {
 
 func Unexport(pp ...string) (out string) {
 	out = Export(pp...)
-	if len(out) > 0 {
+	if len(out) == 0 {
 		return
 	}
 

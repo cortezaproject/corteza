@@ -15,7 +15,21 @@
         "elements": {
           "type": "array",
           "title": "Resource elements",
-          "description": "When not explicitly defined it fallsback to one item array with 'ID'"
+          "description": "When not explicitly defined it fallbacks to one item array with 'ID'"
+        },
+        "attributes": {
+          "anyOf": [
+            {
+              "type": "boolean",
+              "enum": [ "true" ],
+              "title": "Custom implementation of resource attributes",
+            },
+            {
+              "type": "array",
+              "title": "List of resource attributes",
+              "description": "Attributes are used for generating list of contextual roles"
+            }
+          ]
         }
       }
     },

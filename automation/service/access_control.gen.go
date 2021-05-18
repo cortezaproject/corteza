@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/spf13/cast"
 	"strings"
@@ -26,7 +25,7 @@ type (
 		actionlog actionlog.Recorder
 
 		rbac interface {
-			Can([]uint64, string, rbac.Resource) bool
+			Can(rbac.Session, string, rbac.Resource) bool
 			Grant(context.Context, ...*rbac.Rule) error
 			FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
 		}
@@ -41,15 +40,7 @@ func AccessControl() *accessControl {
 }
 
 func (svc accessControl) can(ctx context.Context, op string, res rbac.Resource) bool {
-	var (
-		identity = internalAuth.GetIdentityFromContext(ctx)
-	)
-
-	if identity == nil {
-		panic("expecting identity in context")
-	}
-
-	return svc.rbac.Can(identity.Roles(), op, res)
+	return svc.rbac.Can(rbac.ContextToSession(ctx), op, res)
 }
 
 // Effective returns a list of effective permissions for all given resource
