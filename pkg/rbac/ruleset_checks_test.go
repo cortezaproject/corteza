@@ -15,7 +15,7 @@ func Test_check(t *testing.T) {
 			exp  Access
 			res  string
 			op   string
-			rr   []*role
+			rr   []*Role
 			set  RuleSet
 		}{
 			{"inherit when no roles or rules",
@@ -25,7 +25,7 @@ func Test_check(t *testing.T) {
 				Allow,
 				"",
 				"",
-				[]*role{
+				[]*Role{
 					{id: 1, kind: BypassRole},
 				},
 				nil,
@@ -35,7 +35,7 @@ func Test_check(t *testing.T) {
 				Inherit,
 				"",
 				"",
-				[]*role{
+				[]*Role{
 					{id: 1, kind: CommonRole},
 				},
 				[]*Rule{
@@ -47,7 +47,7 @@ func Test_check(t *testing.T) {
 				Allow,
 				"",
 				"",
-				[]*role{
+				[]*Role{
 
 					{id: 1, kind: CommonRole},
 				},
@@ -72,12 +72,12 @@ func benchmarkCheck(b *testing.B, c int) {
 		rules = make(RuleSet, 0, c)
 
 		pr = partitionRoles(
-			&role{id: 1, kind: CommonRole},
-			&role{id: 2, kind: CommonRole},
-			&role{id: 3, kind: CommonRole},
-			&role{id: 4, kind: CommonRole},
-			&role{id: 5, kind: CommonRole},
-			&role{id: 6, kind: CommonRole},
+			&Role{id: 1, kind: CommonRole},
+			&Role{id: 2, kind: CommonRole},
+			&Role{id: 3, kind: CommonRole},
+			&Role{id: 4, kind: CommonRole},
+			&Role{id: 5, kind: CommonRole},
+			&Role{id: 6, kind: CommonRole},
 		)
 	)
 

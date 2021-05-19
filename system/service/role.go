@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -9,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -25,6 +25,12 @@ type (
 		user UserService
 
 		store store.Storer
+
+		// list of all system roles
+		system map[string]bool
+
+		// list of all closed roles
+		closed map[string]bool
 	}
 
 	roleAccessController interface {
@@ -57,7 +63,7 @@ type (
 	}
 )
 
-func Role(ctx context.Context) *role {
+func Role() *role {
 	return &role{
 		ac:       DefaultAccessControl,
 		eventbus: eventbus.Service(),
@@ -66,7 +72,26 @@ func Role(ctx context.Context) *role {
 
 		user:  DefaultUser,
 		store: DefaultStore,
+
+		system: make(map[string]bool),
+		closed: make(map[string]bool),
 	}
+}
+
+// SetImmutable sets list of handles for all system roles
+//
+// System roles can not be changed or deleted
+func (svc role) SetSystem(hh ...string) {
+	svc.system = slice.ToStringBoolMap(hh)
+	delete(svc.system, "")
+}
+
+// SetClosed sets list of handles for all closed roles
+//
+// Closed roles can not have members
+func (svc role) SetClosed(hh ...string) {
+	svc.closed = slice.ToStringBoolMap(hh)
+	delete(svc.closed, "")
 }
 
 func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.RoleSet, f types.RoleFilter, err error) {
@@ -291,6 +316,10 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return
 		}
 
+		if svc.system[r.Handle] {
+			return RoleErrNotAllowedToUpdate()
+		}
+
 		raProps.setRole(r)
 
 		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
@@ -359,6 +388,10 @@ func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
+		if svc.system[r.Handle] {
+			return RoleErrNotAllowedToDelete()
+		}
+
 		raProps.setRole(r)
 
 		if !svc.ac.CanDeleteRole(ctx, r) {
@@ -394,6 +427,10 @@ func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
+		if svc.system[r.Handle] {
+			return RoleErrNotAllowedToUndelete()
+		}
+
 		raProps.setRole(r)
 
 		if !svc.ac.CanDeleteRole(ctx, r) {
@@ -421,6 +458,10 @@ func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 	err = func() (err error) {
 		if r, err = svc.findByID(ctx, roleID); err != nil {
 			return err
+		}
+
+		if svc.system[r.Handle] {
+			return RoleErrNotAllowedToArchive()
 		}
 
 		raProps.setRole(r)
@@ -451,10 +492,14 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
+		if svc.system[r.Handle] {
+			return RoleErrNotAllowedToUnarchive()
+		}
+
 		raProps.setRole(r)
 
 		if !svc.ac.CanDeleteRole(ctx, r) {
-			return RoleErrNotAllowedToDelete()
+			return RoleErrNotAllowedToUndelete()
 		}
 
 		r.ArchivedAt = nil
@@ -483,8 +528,12 @@ func (svc role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMem
 	)
 
 	err = func() error {
-		if roleID == rbac.EveryoneRoleID || roleID == 0 {
+		if roleID == 0 {
 			return RoleErrInvalidID()
+		}
+
+		if svc.closed[r.Handle] {
+			return RoleErrNotAllowedToManageMembers()
 		}
 
 		if r, err = svc.findByID(ctx, roleID); err != nil {
@@ -515,8 +564,12 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 	)
 
 	err = func() (err error) {
-		if roleID == rbac.EveryoneRoleID || roleID == 0 || memberID == 0 {
+		if roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
+		}
+
+		if svc.closed[r.Handle] {
+			return RoleErrNotAllowedToManageMembers()
 		}
 
 		if r, err = svc.findByID(ctx, roleID); err != nil {
@@ -562,8 +615,12 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 	)
 
 	err = func() (err error) {
-		if roleID == rbac.EveryoneRoleID || roleID == 0 || memberID == 0 {
+		if roleID == 0 || memberID == 0 {
 			return RoleErrInvalidID()
+		}
+
+		if svc.closed[r.Handle] {
+			return RoleErrNotAllowedToManageMembers()
 		}
 
 		if r, err = svc.findByID(ctx, roleID); err != nil {

@@ -8,7 +8,7 @@ type (
 	ctxRoleCheckFn func(map[string]interface{}) bool
 
 	// role information, adapted for the needs of RBAC package
-	role struct {
+	Role struct {
 		// all RBAC rules refer to role ID
 		id uint64
 
@@ -34,8 +34,25 @@ const (
 	BypassRole
 )
 
+func (k roleKind) Make(id uint64, handle string) *Role {
+	return &Role{
+		kind:   k,
+		id:     id,
+		handle: handle,
+	}
+}
+
+func MakeContextRole(id uint64, handle string, fn ctxRoleCheckFn) *Role {
+	return &Role{
+		kind:   ContextRole,
+		id:     id,
+		handle: handle,
+		check:  fn,
+	}
+}
+
 // partitions roles by kind
-func partitionRoles(rr ...*role) partRoles {
+func partitionRoles(rr ...*Role) partRoles {
 	out := make([]map[uint64]bool, len(roleKindsByPriority()))
 	for _, r := range rr {
 		if out[r.kind] == nil {
@@ -66,7 +83,7 @@ func roleKindsByPriority() []roleKind {
 }
 
 // compare list of session roles (ids) with preloaded roles and calculate the final list
-func getContextRoles(sRoles []uint64, res Resource, preloadedRoles []*role) (out partRoles) {
+func getContextRoles(sRoles []uint64, res Resource, preloadedRoles []*Role) (out partRoles) {
 	var (
 		mm   = slice.ToUint64BoolMap(sRoles)
 		attr = make(map[string]interface{})

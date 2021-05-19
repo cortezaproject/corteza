@@ -23,6 +23,7 @@ type (
 		Federation  FederationOpt
 		SCIM        SCIMOpt
 		Workflow    WorkflowOpt
+		RBAC        RBACOpt
 	}
 )
 
@@ -49,5 +50,6 @@ func Init() *Options {
 		Federation:  *Federation(),
 		SCIM:        *SCIM(),
 		Workflow:    *Workflow(),
+		RBAC:        *RBAC(),
 	}
 }

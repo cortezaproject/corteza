@@ -288,6 +288,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Storage:   app.Opt.ObjStore,
 		Template:  app.Opt.Template,
 		Auth:      app.Opt.Auth,
+		RBAC:      app.Opt.RBAC,
 	})
 
 	if err != nil {

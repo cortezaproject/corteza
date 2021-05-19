@@ -1,0 +1,37 @@
+docs:
+  title: RBAC options
+
+props:
+#  - name: enabled
+#    type: bool
+#    default: true
+#    description: When disabled all operations on all resources are allowed
+
+  - name: serviceUser
+    default: "corteza"
+    description: |-
+      Used at boot time, for provisioning and other service-level operations.
+      Service user is automatically member of all bypass roles.
+
+  - name: bypassRoles
+    default: "superadmin"
+    description: |-
+      Space delimited list of role handles.
+      These roles causes short-circuiting access control check and allowing all operations.
+      System will refuse to start if check-bypassing roles are also listed as authenticated or anonymous auto-assigned roles.
+
+  - name: authenticatedRoles
+    default: "authenticated"
+    description: |-
+      Space delimited list of role handles.
+      These roles are automatically assigned to authenticated user.
+      Memberships can not be managed for these roles.
+      System will refuse to start if roles listed here are also listed under anonymous roles
+
+  - name: anonymousRoles
+    default: "anonymous"
+    description: |-
+      Space delimited list of role handles.
+      These roles are automatically assigned to anonymous user.
+      Memberships can not be managed for these roles.
+
