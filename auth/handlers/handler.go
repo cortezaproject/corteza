@@ -11,6 +11,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/auth/saml"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -19,13 +20,12 @@ import (
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/markbates/goth"
 	"go.uber.org/zap"
 )
 
 type (
 	authService interface {
-		External(ctx context.Context, profile goth.User) (u *types.User, err error)
+		External(ctx context.Context, profile types.ExternalAuthUser) (u *types.User, err error)
 		InternalSignUp(ctx context.Context, input *types.User, password string) (u *types.User, err error)
 		InternalLogin(ctx context.Context, email string, password string) (u *types.User, err error)
 		SetPassword(ctx context.Context, userID uint64, password string) (err error)
@@ -97,6 +97,7 @@ type (
 		DefaultClient  *types.AuthClient
 		Opt            options.AuthOpt
 		Settings       *settings.Settings
+		SamlSPService  saml.SamlSPService
 	}
 
 	handlerFn func(req *request.AuthReq) error
@@ -276,6 +277,11 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	sort.Sort(providers)
 
 	var pp = make([]provider, 0, len(providers))
+
+	if h.Settings.Saml.Enabled {
+		pp = append(pp, provider(saml.TemplateProvider(h.Settings.Saml.IDP.URL, h.Settings.Saml.IDP.Name)))
+	}
+
 	for i := range providers {
 		if !providers[i].Enabled {
 			continue

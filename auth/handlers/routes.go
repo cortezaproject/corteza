@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
-	"net/http"
 )
 
 func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
@@ -92,6 +93,12 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.OAuth2AuthorizeClient), h.handle(authOnly(h.oauth2AuthorizeClientProc)))
 			r.Get(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClient))
 			r.Post(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClientProc))
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Handle(tbp(l.SamlMetadata), h.SamlSPService)
+			r.Handle(tbp(l.SamlCallback), h.SamlSPService)
+			r.HandleFunc(tbp(l.SamlInit), h.samlInit)
 		})
 
 		r.Route(tbp(l.External)+"/{provider}", func(r chi.Router) {
