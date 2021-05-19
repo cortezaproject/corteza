@@ -19,7 +19,7 @@ type (
 		rules   RuleSet
 		indexed OptRuleSet
 
-		roles []*role
+		roles []*Role
 
 		store rbacRulesStore
 	}
@@ -27,7 +27,7 @@ type (
 	// RuleFilter is a dummy struct to satisfy store codegen
 	RuleFilter struct{}
 
-	ControllerV2 interface {
+	Controller interface {
 		Can(ses Session, op string, res Resource) bool
 		Check(ses Session, op string, res Resource) (v Access)
 		Grant(ctx context.Context, rules ...*Rule) (err error)
@@ -35,12 +35,19 @@ type (
 		FindRulesByRoleID(roleID uint64) (rr RuleSet)
 		Rules() (rr RuleSet)
 		Reload(ctx context.Context)
+		UpdateRoles(rr ...*Role)
+	}
+
+	RoleSettings struct {
+		Bypass        []uint64
+		Authenticated []uint64
+		Anonymous     []uint64
 	}
 )
 
 var (
 	// Global RBAC service
-	gRBAC ControllerV2
+	gRBAC Controller
 )
 
 const (
@@ -48,11 +55,11 @@ const (
 )
 
 // Global returns global RBAC service
-func Global() ControllerV2 {
+func Global() Controller {
 	return gRBAC
 }
 
-func SetGlobal(svc ControllerV2) {
+func SetGlobal(svc Controller) {
 	gRBAC = svc
 }
 
@@ -168,7 +175,10 @@ func (svc service) Rules() (rr RuleSet) {
 func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
+	svc.reloadRules(ctx)
+}
 
+func (svc *service) reloadRules(ctx context.Context) {
 	rr, _, err := svc.store.SearchRbacRules(ctx, RuleFilter{})
 	svc.logger.Debug(
 		"reloading rules",
@@ -180,6 +190,17 @@ func (svc *service) Reload(ctx context.Context) {
 	if err == nil {
 		svc.rules = rr
 	}
+}
+
+func (svc *service) UpdateRoles(rr ...*Role) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+	svc.logger.Debug(
+		"updating roles",
+		zap.Int("before", len(svc.rules)),
+		zap.Int("after", len(rr)),
+	)
+	svc.roles = rr
 }
 
 func (svc service) flush(ctx context.Context) (err error) {
