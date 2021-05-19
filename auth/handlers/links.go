@@ -34,6 +34,11 @@ type (
 
 		External,
 
+		SamlInit,
+		SamlCallback,
+		SamlMetadata,
+		SamlLogout,
+
 		Assets string
 	}
 )
@@ -70,6 +75,11 @@ func GetLinks() Links {
 		MfaTotpDisable:   b + "auth/mfa/totp/disable",
 
 		External: b + "auth/external",
+
+		SamlInit:     b + "auth/external/saml/init",
+		SamlCallback: b + "auth/external/saml/callback",
+		SamlMetadata: b + "auth/external/saml/metadata",
+		SamlLogout:   b + "auth/external/saml/slo",
 
 		Assets: b + "auth/assets/public",
 	}

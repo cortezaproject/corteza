@@ -15,7 +15,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/gorilla/sessions"
-	"github.com/markbates/goth"
 	"go.uber.org/zap"
 )
 
@@ -81,7 +80,7 @@ type (
 	}
 
 	authServiceMocked struct {
-		external                          func(context.Context, goth.User) (u *types.User, err error)
+		external                          func(context.Context, types.ExternalAuthUser) (u *types.User, err error)
 		internalSignUp                    func(context.Context, *types.User, string) (u *types.User, err error)
 		internalLogin                     func(context.Context, string, string) (u *types.User, err error)
 		setPassword                       func(context.Context, uint64, string) (err error)
@@ -110,7 +109,7 @@ func (u userServiceMocked) Update(ctx context.Context, user *types.User) (*types
 //
 // Mocking authService
 //
-func (s authServiceMocked) External(ctx context.Context, profile goth.User) (u *types.User, err error) {
+func (s authServiceMocked) External(ctx context.Context, profile types.ExternalAuthUser) (u *types.User, err error) {
 	return s.external(ctx, profile)
 }
 

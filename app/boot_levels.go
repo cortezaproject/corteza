@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"strings"
+
+	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
+	"github.com/cortezaproject/corteza-server/auth/saml"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
@@ -481,6 +483,9 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	as.MultiFactor.TOTP.Issuer = cas.MultiFactor.TOTP.Issuer
 	as.MultiFactor.EmailOTP.Enabled = cas.MultiFactor.EmailOTP.Enabled
 	as.MultiFactor.EmailOTP.Enforced = cas.MultiFactor.EmailOTP.Enforced
+
+	// SAML
+	saml.UpdateSettings(current, as)
 
 	svc.UpdateSettings(as)
 }

@@ -31,10 +31,20 @@ github.com/SentimensRG/ctx/sigctx
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit
 github.com/asaskevich/govalidator
+# github.com/beevik/etree v1.1.0
+github.com/beevik/etree
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
+# github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da
+github.com/crewjam/httperr
+# github.com/crewjam/saml v0.4.5
+## explicit
+github.com/crewjam/saml
+github.com/crewjam/saml/logger
+github.com/crewjam/saml/samlsp
+github.com/crewjam/saml/xmlenc
 # github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 ## explicit
 github.com/crusttech/go-oidc
@@ -143,6 +153,8 @@ github.com/jmoiron/sqlx/types
 ## explicit
 github.com/joho/godotenv
 github.com/joho/godotenv/autoload
+# github.com/jonboulle/clockwork v0.2.1
+github.com/jonboulle/clockwork
 # github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 ## explicit
 github.com/lann/builder
@@ -165,6 +177,8 @@ github.com/markbates/goth/providers/github
 github.com/markbates/goth/providers/google
 github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
+# github.com/mattermost/xml-roundtrip-validator v0.0.0-20201213122252-bcd7e1b9601e
+github.com/mattermost/xml-roundtrip-validator
 # github.com/mattn/go-sqlite3 v1.14.0
 ## explicit
 github.com/mattn/go-sqlite3
@@ -215,6 +229,12 @@ github.com/prometheus/common/model
 # github.com/prometheus/procfs v0.0.0-20190507164030-5867b95ac084
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
+# github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
+## explicit
+# github.com/russellhaering/goxmldsig v1.1.0
+github.com/russellhaering/goxmldsig
+github.com/russellhaering/goxmldsig/etreeutils
+github.com/russellhaering/goxmldsig/types
 # github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 ## explicit
 github.com/rwcarlsen/goexif/exif
@@ -270,6 +290,7 @@ golang.org/x/crypto/blowfish
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/pbkdf2
+golang.org/x/crypto/ripemd160
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a
