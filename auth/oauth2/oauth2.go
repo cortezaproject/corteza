@@ -1,6 +1,8 @@
 package oauth2
 
 import (
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/dgrijalva/jwt-go"
@@ -9,7 +11,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"go.uber.org/zap"
-	"strings"
 )
 
 const (
@@ -90,7 +91,6 @@ func NewServer(manager *manage.Manager) *server.Server {
 		}
 
 		logger.Default().
-			WithOptions(zap.AddStacktrace(zap.PanicLevel)).
 			Error(msg)
 	})
 

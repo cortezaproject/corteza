@@ -1,12 +1,13 @@
 package values
 
 import (
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 type (
@@ -25,7 +26,6 @@ func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordVal
 		exprParser = expr.Parser()
 
 		log = logger.Default().
-			WithOptions(zap.AddStacktrace(zap.PanicLevel)).
 			With(zap.Uint64("module", m.ID))
 	)
 
