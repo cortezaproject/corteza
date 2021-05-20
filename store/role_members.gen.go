@@ -27,6 +27,11 @@ type (
 		DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error
 
 		TruncateRoleMembers(ctx context.Context) error
+
+		// Additional custom functions
+
+		// TransferRoleMembers (custom function)
+		TransferRoleMembers(ctx context.Context, _srcRole uint64, _dstRole uint64) error
 	}
 )
 
@@ -66,4 +71,8 @@ func DeleteRoleMemberByUserIDRoleID(ctx context.Context, s RoleMembers, userID u
 // TruncateRoleMembers Deletes all RoleMembers from store
 func TruncateRoleMembers(ctx context.Context, s RoleMembers) error {
 	return s.TruncateRoleMembers(ctx)
+}
+
+func TransferRoleMembers(ctx context.Context, s RoleMembers, _srcRole uint64, _dstRole uint64) error {
+	return s.TransferRoleMembers(ctx, _srcRole, _dstRole)
 }

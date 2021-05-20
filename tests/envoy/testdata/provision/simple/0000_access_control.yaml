@@ -1,5 +1,5 @@
 allow:
-  everyone:
+  authenticated:
     compose:
       - op1
 
@@ -16,7 +16,7 @@ allow:
       - op1.sub
 
 deny:
-  everyone:
+  authenticated:
     compose:
       - op2
 

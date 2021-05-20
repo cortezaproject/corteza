@@ -121,7 +121,7 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	rules = append(
 		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.ComponentRbacResource(), "access"),
+		rbac.AllowRule(1, types.ComponentRbacResource(), "access"),
 	)
 
 	h.mockPermissions(rules...)

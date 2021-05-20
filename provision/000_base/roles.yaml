@@ -3,5 +3,4 @@ roles:
   # These are created in provision/roles.go
   admins:
     name: Administrators
-  everyone:
-    name: Everyone
+

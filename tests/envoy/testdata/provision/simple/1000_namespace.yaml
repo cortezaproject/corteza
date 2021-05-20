@@ -3,8 +3,8 @@ namespaces:
     name: ns1 name
 
     allow:
-      everyone:
+      authenticated:
       - op1
     deny:
-      everyone:
+      authenticated:
       - op2

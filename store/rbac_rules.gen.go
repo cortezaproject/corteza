@@ -27,6 +27,11 @@ type (
 		DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, roleID uint64, resource string, operation string) error
 
 		TruncateRbacRules(ctx context.Context) error
+
+		// Additional custom functions
+
+		// TransferRbacRules (custom function)
+		TransferRbacRules(ctx context.Context, _srcRole uint64, _dstRole uint64) error
 	}
 )
 
@@ -66,4 +71,8 @@ func DeleteRbacRuleByRoleIDResourceOperation(ctx context.Context, s RbacRules, r
 // TruncateRbacRules Deletes all RbacRules from store
 func TruncateRbacRules(ctx context.Context, s RbacRules) error {
 	return s.TruncateRbacRules(ctx)
+}
+
+func TransferRbacRules(ctx context.Context, s RbacRules, _srcRole uint64, _dstRole uint64) error {
+	return s.TransferRbacRules(ctx, _srcRole, _dstRole)
 }
