@@ -61,7 +61,7 @@ func (app *CortezaApp) Setup() (err error) {
 
 	{
 		// Raise warnings about experimental parts that are enabled
-		log := app.Log.WithOptions(zap.AddStacktrace(zap.PanicLevel), zap.WithCaller(false))
+		log := app.Log.WithOptions(zap.WithCaller(false))
 
 		if app.Opt.Federation.Enabled {
 			log.Warn("Record Federation is still in EXPERIMENTAL phase")

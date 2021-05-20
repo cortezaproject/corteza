@@ -1,6 +1,10 @@
 package websocket
 
 import (
+	"io"
+	"net/http"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -8,9 +12,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"sync"
 )
 
 var (
@@ -48,7 +49,7 @@ func Server(logger *zap.Logger, config options.WebsocketOpt) *server {
 
 	return &server{
 		config:      config,
-		logger:      logger.WithOptions(zap.AddStacktrace(zap.PanicLevel)).Named("websocket"),
+		logger:      logger.Named("websocket"),
 		accessToken: auth.DefaultJwtHandler,
 		sessions:    make(map[uint64]map[uint64]io.Writer),
 	}

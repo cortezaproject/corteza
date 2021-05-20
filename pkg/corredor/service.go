@@ -655,7 +655,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 			zap.String("runAs", runAs),
 			zap.String("eventType", args.EventType()),
 			zap.String("resourceType", args.ResourceType()),
-		).WithOptions(zap.AddStacktrace(zap.FatalLevel))
+		)
 	)
 
 	log.Debug("triggered")

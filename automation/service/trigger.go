@@ -486,7 +486,6 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		g         *wfexec.Graph
 		issues    types.WorkflowIssueSet
 		wfLog     = svc.log.
-				WithOptions(zap.AddStacktrace(zap.DPanicLevel)).
 				With(zap.Uint64("workflowID", wf.ID))
 
 			// register only enabled, undeleted workflows

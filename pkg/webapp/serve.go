@@ -3,16 +3,17 @@ package webapp
 import (
 	"bytes"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/go-chi/chi"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 )
 
 var (
@@ -90,7 +91,7 @@ func serveIndex(opt options.HTTPServerOpt, indexHTML []byte, serve http.Handler)
 			return
 		}
 
-		logger.Default().WithOptions(zap.AddStacktrace(zap.PanicLevel)).Error(
+		logger.Default().Error(
 			"failed to serve static file",
 			zap.Error(err),
 			zap.Stringer("url", r.URL),

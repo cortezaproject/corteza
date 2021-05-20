@@ -2,12 +2,13 @@ package values
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"go.uber.org/zap"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
@@ -60,7 +61,6 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		kind string
 
 		log = logger.Default().
-			WithOptions(zap.AddStacktrace(zap.PanicLevel)).
 			With(zap.Uint64("module", m.ID))
 	)
 

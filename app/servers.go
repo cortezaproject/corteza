@@ -2,6 +2,12 @@ package app
 
 import (
 	"context"
+	"net/http"
+	"path"
+	"regexp"
+	"strings"
+	"sync"
+
 	automationRest "github.com/cortezaproject/corteza-server/automation/rest"
 	composeRest "github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/docs"
@@ -15,11 +21,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/scim"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
-	"net/http"
-	"path"
-	"regexp"
-	"strings"
-	"sync"
 )
 
 func (app *CortezaApp) Serve(ctx context.Context) (err error) {
@@ -58,7 +59,6 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	func() {
 		if ho.WebappEnabled && ho.ApiEnabled && ho.ApiBaseUrl == ho.WebappBaseUrl {
 			app.Log.
-				WithOptions(zap.AddStacktrace(zap.PanicLevel)).
 				Warn("client web applications and api can not use the same base URL: '" + ho.WebappBaseUrl + "'")
 			ho.WebappEnabled = false
 		}
@@ -122,7 +122,6 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 
 		if app.Opt.SCIM.Secret == "" {
 			app.Log.
-				WithOptions(zap.AddStacktrace(zap.PanicLevel)).
 				Error("SCIM secret empty")
 		}
 
