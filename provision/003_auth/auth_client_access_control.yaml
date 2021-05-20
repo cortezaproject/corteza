@@ -1,5 +1,5 @@
 allow:
-  everyone:
+  authenticated:
     system:auth-client:
       - authorize
 

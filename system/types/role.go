@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 )
 
 type (
@@ -13,8 +14,8 @@ type (
 		ID     uint64 `json:"roleID,string"`
 		Name   string `json:"name"`
 		Handle string `json:"handle"`
-		Meta   *RoleMeta
 
+		Meta   *RoleMeta         `json:"meta"`
 		Labels map[string]string `json:"labels,omitempty"`
 
 		CreatedAt  time.Time  `json:"createdAt,omitempty"`
@@ -24,8 +25,13 @@ type (
 	}
 
 	RoleMeta struct {
-		Description string
-		ContextExpr string
+		Description string       `json:"description,omitempty"`
+		Context     *RoleContext `json:"context,omitempty"`
+	}
+
+	RoleContext struct {
+		Resource []string `json:"resource,omitempty"`
+		Expr     string   `json:"expr,omitempty"`
 	}
 
 	RoleFilter struct {

@@ -65,6 +65,15 @@ func partitionRoles(rr ...*Role) partRoles {
 	return out
 }
 
+func statRoles(rr ...*Role) (stats map[roleKind]int) {
+	stats = make(map[roleKind]int)
+	for _, r := range rr {
+		stats[r.kind]++
+	}
+
+	return
+}
+
 // Returns slice of role types by priority
 //
 // Priority is important here. We want to have
@@ -93,8 +102,9 @@ func getContextRoles(sRoles []uint64, res Resource, preloadedRoles []*Role) (out
 		// if resource implements Dict() fn, we can use it to
 		// collect attributes, used for expr. evaluation and contextual role gathering
 		attr = ar.Dict()
-
 	}
+
+	attr["userID"] = 0 // @todo RBACv2
 
 	out = make([]map[uint64]bool, len(roleKindsByPriority()))
 	for _, r := range preloadedRoles {

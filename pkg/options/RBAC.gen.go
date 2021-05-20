@@ -21,7 +21,7 @@ type (
 func RBAC() (o *RBACOpt) {
 	o = &RBACOpt{
 		ServiceUser:        "corteza",
-		BypassRoles:        "superadmin",
+		BypassRoles:        "super-admin",
 		AuthenticatedRoles: "authenticated",
 		AnonymousRoles:     "anonymous",
 	}

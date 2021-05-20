@@ -35,7 +35,7 @@ func (v *RecordValueErrorSet) Error() string {
 		no = len(v.Set)
 	}
 
-	return fmt.Sprintf("%d issue(s) found", no)
+	return fmt.Sprintf("%d issue(s) found: %+v", no, v.Set)
 }
 
 func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {

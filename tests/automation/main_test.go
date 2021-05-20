@@ -3,6 +3,9 @@ package automation
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/automation/rest"
 	"github.com/cortezaproject/corteza-server/automation/service"
@@ -26,8 +29,6 @@ import (
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"os"
-	"testing"
 )
 
 type (
@@ -137,7 +138,7 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	rules = append(
 		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.ComponentRbacResource(), "access"),
+		rbac.AllowRule(1, types.ComponentRbacResource(), "access"),
 	)
 
 	h.mockPermissions(rules...)

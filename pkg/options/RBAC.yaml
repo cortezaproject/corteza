@@ -14,7 +14,7 @@ props:
       Service user is automatically member of all bypass roles.
 
   - name: bypassRoles
-    default: "superadmin"
+    default: "super-admin"
     description: |-
       Space delimited list of role handles.
       These roles causes short-circuiting access control check and allowing all operations.

@@ -10,6 +10,13 @@ fields:
   - { field: Operation, isPrimaryKey: true }
   - { field: Access }
 
+functions:
+  - name: TransferRbacRules
+    return: [ error ]
+    arguments:
+    - { name: srcRole, type: uint64 }
+    - { name: dstRole, type: uint64 }
+
 rdbms:
   alias: rls
   table: rbac_rules

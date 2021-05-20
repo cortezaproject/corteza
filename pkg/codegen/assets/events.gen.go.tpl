@@ -84,12 +84,12 @@ func {{ camelCase "" $r.ResourceIdent $event }}(
 	}
 }
 
-// {{ camelCase "" $r.ResourceIdent $event "System" }} creates {{ $event }} for {{ $r.ResourceString }} resource
+// {{ camelCase "" $r.ResourceIdent $event "Immutable" }} creates {{ $event }} for {{ $r.ResourceString }} resource
 //
 // None of the arguments will be mutable!
 //
 // This function is auto-generated.
-func {{ camelCase "" $r.ResourceIdent $event "System" }}(
+func {{ camelCase "" $r.ResourceIdent $event "Immutable" }}(
 {{- range $r.Properties }}
 	{{- if not .Internal }}
 		{{ camelCase "arg" .Name }} {{ .Type }},

@@ -20,14 +20,6 @@ const (
 	Inherit Access = -1
 )
 
-const (
-	// EveryoneRoleID -- everyone
-	EveryoneRoleID uint64 = 1
-
-	// AdminsRoleID - admins
-	AdminsRoleID uint64 = 2
-)
-
 func (a Access) String() string {
 	switch a {
 	case Allow:
