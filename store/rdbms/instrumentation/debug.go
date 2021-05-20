@@ -5,10 +5,11 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -44,8 +45,6 @@ func (ld debug) log(ctx context.Context) *zap.Logger {
 			//       have the same stack trace, might
 			//       need adjustment on individual fn bellow
 			zap.AddCallerSkip(9),
-			// never add stacktrace to these logs
-			zap.AddStacktrace(zap.FatalLevel),
 		)
 }
 

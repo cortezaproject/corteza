@@ -36,9 +36,9 @@ func MakeDebugLogger() *zap.Logger {
 		panic(err)
 	}
 
-	logger.Debug("full debug mode enabled (LOG_DEBUG=true), enjoy all the colors and verbosity")
+	logger.Debug("full debug mode enabled (LOG_DEBUG=true)")
 
-	return logger
+	return applyStacktrace(logger, zap.DPanicLevel)
 }
 
 func Init() {
@@ -75,6 +75,22 @@ func Init() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Add stacktrace ONLY for panics
+	defaultLogger = applyStacktrace(defaultLogger, zap.PanicLevel)
+}
+
+// applies configured stacktrace level
+//
+// By default it uses Panic or DPanic (depends if debug logger is used)
+// This can be manipulated by setting LOG_STACKTRACE_LEVEL to
+// value "debug", "info", "warn", "error", "dpanic", "panic", or "fatal"
+func applyStacktrace(in *zap.Logger, def zapcore.Level) *zap.Logger {
+	if stl, has := os.LookupEnv("LOG_STACKTRACE_LEVEL"); has {
+		_ = def.UnmarshalText([]byte(stl))
+	}
+
+	return in.WithOptions(zap.AddStacktrace(def))
 }
 
 func Default() *zap.Logger {

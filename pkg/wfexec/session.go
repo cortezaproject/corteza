@@ -3,14 +3,15 @@ package wfexec
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
-	"runtime/debug"
-	"sync"
-	"time"
 )
 
 type (
@@ -181,7 +182,6 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 	}
 
 	s.log = s.log.
-		WithOptions(zap.AddStacktrace(zap.ErrorLevel)).
 		With(zap.Uint64("sessionID", s.id))
 
 	go s.worker(ctx)
@@ -566,7 +566,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		} else {
 			// push logger to context but raise the stacktrace level to panic
 			// to prevent overly verbose traces
-			ctx = logger.ContextWithValue(ctx, log.WithOptions(zap.AddStacktrace(zap.PanicLevel)))
+			ctx = logger.ContextWithValue(ctx, log)
 
 			// Context received in exec() wil not have the identity we're expecting
 			// so we need to pull it from state owner and add it to new context

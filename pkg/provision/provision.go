@@ -2,6 +2,8 @@ package provision
 
 import (
 	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -10,12 +12,9 @@ import (
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"time"
 )
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
-	log = log.WithOptions(zap.AddStacktrace(zap.PanicLevel))
-
 	ffn := []func() error{
 		func() error { return roles(ctx, s) },
 

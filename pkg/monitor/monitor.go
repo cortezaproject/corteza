@@ -32,7 +32,7 @@ var (
 )
 
 func Setup(logger *zap.Logger, o options.MonitorOpt) {
-	log = logger.Named("monitor").WithOptions(zap.AddStacktrace(zap.PanicLevel))
+	log = logger.Named("monitor")
 	opt = o
 }
 

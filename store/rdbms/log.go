@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -12,9 +13,7 @@ import (
 func (s Store) log(ctx context.Context) *zap.Logger {
 	return logger.ContextValue(ctx, s.logger).
 		Named("store.rdbms").
-		WithOptions(zap.AddCallerSkip(2)).
-		// Really not interested in call stack
-		WithOptions(zap.AddStacktrace(zap.FatalLevel))
+		WithOptions(zap.AddCallerSkip(2))
 }
 
 func (s Store) SetLogger(logger *zap.Logger) {
