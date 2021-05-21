@@ -87,7 +87,7 @@ props:
     default: "/"
     description: |-
       When webapps are enabled (HTTP_WEBAPP_ENABLED) this is moved to '/api' if not explicitly set otherwise.
-      API base URL is prefixed with baseUrl
+      API base URL is internaly prefixed with baseUrl
 
 
   - name: webappEnabled
@@ -99,11 +99,11 @@ props:
     env: HTTP_WEBAPP_BASE_URL
     default: "/"
     description: |-
-      Webapp base URL is prefixed with baseUrl
+      Webapp base URL is internaly prefixed with baseUrl
 
   - name: webappBaseDir
     env: HTTP_WEBAPP_BASE_DIR
-    default: "webapp/public"
+    default: "./webapp/public"
 
   - name: webappList
     env: HTTP_WEBAPP_LIST
