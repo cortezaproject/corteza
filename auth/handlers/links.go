@@ -46,7 +46,7 @@ type (
 var BasePath string = "/"
 
 func GetLinks() Links {
-	var b = BasePath + "/"
+	var b = strings.TrimSuffix(BasePath, "/") + "/"
 
 	return Links{
 		Profile:                  b + "auth",

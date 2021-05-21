@@ -82,12 +82,12 @@ func guessHostname() string {
 }
 
 // returns path prefix
-func pathPrefix() string {
-	return CleanBase(EnvString("HTTP_BASE_URL", ""))
+func pathPrefix(pp ...string) string {
+	return CleanBase(append([]string{EnvString("HTTP_BASE_URL", "")}, pp...)...)
 }
 
 // will return base URL with domain and prefix path
-func fullURL() string {
+func fullURL(pp ...string) string {
 	var (
 		full string
 		host = guessHostname()
@@ -99,8 +99,8 @@ func fullURL() string {
 		full = "https://" + host
 	}
 
-	if pp := pathPrefix(); pp != "" {
-		return full + pp
+	if pfix := pathPrefix(pp...); pfix != "" {
+		return full + pfix
 	}
 
 	return full
@@ -118,12 +118,12 @@ func isSecure() bool {
 
 // Path joins all parts with / and prefixes result (if not empty) with /
 func CleanBase(pp ...string) string {
-	if p := strings.Trim(path.Join(pp...), "/"); p != "" {
-		// prefix base with slash
-		return "/" + p
-	}
+	//if p := strings.Trim(path.Join(pp...), "/"); p != "" {
+	//	// prefix base with slash
+	//	return "/" + p
+	//}
 
-	return ""
+	return "/" + strings.Trim(path.Join(pp...), "/")
 }
 
 func EnvString(key string, def string) string {

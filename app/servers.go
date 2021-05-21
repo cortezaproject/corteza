@@ -68,7 +68,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			return
 		}
 
-		r.Route("/"+ho.WebappBaseUrl, webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth))
+		r.Route(options.CleanBase(ho.WebappBaseUrl), webapp.MakeWebappServer(app.Log, ho, app.Opt.Auth))
 
 		app.Log.Info(
 			"client web applications enabled",
@@ -87,7 +87,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			return
 		}
 
-		r.Route("/"+strings.TrimPrefix(ho.ApiBaseUrl, "/"), func(r chi.Router) {
+		r.Route(options.CleanBase(ho.ApiBaseUrl), func(r chi.Router) {
 			var fullpathAPI = "/" + strings.TrimPrefix(options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl), "/")
 
 			app.Log.Info(

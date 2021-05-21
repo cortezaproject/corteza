@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strings"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -17,10 +17,7 @@ import (
 )
 
 var (
-	htmlIndex struct {
-		body []byte
-		mod  time.Time
-	}
+	baseHrefMatcher = regexp.MustCompile(`<base\s+href="?.+?"?\s*\/?>`)
 )
 
 func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt options.AuthOpt) func(r chi.Router) {
@@ -36,12 +33,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt
 
 	// Preload index files for all apps
 	for _, app := range append(apps, "") {
-		pathPrefix := path.Join(httpSrvOpt.BaseUrl, httpSrvOpt.WebappBaseUrl, app)
-		if !strings.HasSuffix(pathPrefix, "/") {
-			pathPrefix += "/"
-		}
-
-		appIndexHTMLs[app], err = modifyIndexHTML(path.Join(httpSrvOpt.WebappBaseDir, app), pathPrefix)
+		appIndexHTMLs[app], err = modifyIndexHTML(app, httpSrvOpt.WebappBaseDir, httpSrvOpt.BaseUrl)
 		if err != nil {
 			log.Error("could not preload application index HTML", zap.Error(err))
 		}
@@ -49,31 +41,32 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HTTPServerOpt, authOpt
 
 	// Serves static files directly from FS
 	return func(r chi.Router) {
-		fileserver := http.StripPrefix(
-			path.Join(httpSrvOpt.BaseUrl, httpSrvOpt.WebappBaseUrl),
+		fs := http.StripPrefix(
+			options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.WebappBaseUrl),
 			http.FileServer(http.Dir(httpSrvOpt.WebappBaseDir)),
 		)
 
 		for _, app := range apps {
-			webBaseUrl = "/" + path.Join(httpSrvOpt.WebappBaseUrl, app)
+			webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl, app)
 			serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl)
-
-			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fileserver))
+			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
 		}
 
-		webBaseUrl = "/" + path.Join(httpSrvOpt.WebappBaseUrl)
+		webBaseUrl = options.CleanBase(httpSrvOpt.WebappBaseUrl)
 		serveConfig(r, webBaseUrl, apiBaseUrl, authOpt.BaseURL, httpSrvOpt.BaseUrl)
-
-		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fileserver))
+		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
 	}
 }
 
 // Serves index.html in case the requested file isn't found (or some other os.Stat error)
 func serveIndex(opt options.HTTPServerOpt, indexHTML []byte, serve http.Handler) http.HandlerFunc {
-	//indexPage := path.Join(opt.WebappBaseDir, indexPath, "index.html")
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		requestedFile := path.Join(opt.WebappBaseDir, strings.TrimPrefix(r.URL.Path, opt.BaseUrl))
+
+		requestedFile := path.Join(
+			// could be relative path
+			opt.WebappBaseDir,
+			strings.TrimPrefix(r.URL.Path, opt.BaseUrl),
+		)
 
 		f, err := os.Stat(requestedFile)
 		// When file does not exist or is a directory, serve app's index
@@ -102,7 +95,7 @@ func serveIndex(opt options.HTTPServerOpt, indexHTML []byte, serve http.Handler)
 }
 
 func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl string) {
-	r.Get(strings.TrimSuffix(appUrl, "/")+"/config.js", func(w http.ResponseWriter, r *http.Request) {
+	r.Get(options.CleanBase(appUrl, "config.js"), func(w http.ResponseWriter, r *http.Request) {
 		const line = "window.%s = '%s';\n"
 		_, _ = fmt.Fprintf(w, line, "CortezaAPI", apiBaseUrl)
 		_, _ = fmt.Fprintf(w, line, "CortezaAuth", authBaseUrl)
@@ -112,28 +105,30 @@ func serveConfig(r chi.Router, appUrl, apiBaseUrl, authBaseUrl, webappBaseUrl st
 
 // Reads and modifies index HTML for the webapp
 //
-// It replaces <base> tag with the exact location of the web app
-func modifyIndexHTML(dir, baseHref string) (buf []byte, err error) {
+// It replaces value for href in <base> tag with the virtual location of the web app
+// This is controlled with HTTP_WEBAPP_BASE_URL
+func modifyIndexHTML(app, dir, baseHref string) ([]byte, error) {
+	if fh, err := os.Open(path.Join(dir, app, "index.html")); err != nil {
+		return nil, err
+	} else if buf, err := io.ReadAll(fh); err != nil {
+		return nil, err
+	} else {
+		return replaceBaseHrefPlaceholder(buf, app, baseHref), nil
+	}
+}
+
+func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	var (
-		warning     = []byte("\n\n<!--\n\nError!\n\nFailed could not locate or modify <base> tag, your webapp might misbehave\n\n-->\n")
-		placeholder = []byte("<base href=/ >")
-		replacement = []byte(fmt.Sprintf(`<base href="%s" />`, baseHref))
-		fh          *os.File
+		base = strings.TrimSuffix(options.CleanBase(baseHref, app), "/") + "/"
+
+		warning     = []byte(`\n\n<!--\n\nError!\n\nFailed could not locate or modify <base> tag, your webapp might misbehave\n\n-->\n`)
+		replacement = []byte(fmt.Sprintf(`<base href="%s" />`, base))
+		fixed       = baseHrefMatcher.ReplaceAll(buf, replacement)
 	)
 
-	fh, err = os.Open(path.Join(dir, "index.html"))
-	if err != nil {
-		return
+	if bytes.Equal(buf, fixed) {
+		return append(buf, warning...)
 	}
 
-	buf, err = io.ReadAll(fh)
-	if err != nil {
-		return
-	}
-
-	if bytes.Contains(buf, placeholder) {
-		return bytes.Replace(buf, placeholder, replacement, 1), nil
-	} else {
-		return append(buf, warning...), nil
-	}
+	return fixed
 }

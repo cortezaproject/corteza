@@ -2,6 +2,11 @@ package server
 
 import (
 	"context"
+	"net"
+	"net/http"
+	"path"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
@@ -10,10 +15,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
-	"net"
-	"net/http"
-	"path"
-	"strings"
 )
 
 type (
@@ -99,18 +100,12 @@ func (s server) Serve(ctx context.Context) {
 
 	})
 
-	if s.httpOpt.BaseUrl != "" {
+	if s.httpOpt.BaseUrl != "/" {
 		router.Handle("/", http.RedirectHandler(s.httpOpt.BaseUrl, http.StatusTemporaryRedirect))
 
 	}
 
 	s.bindMiscRoutes(router)
-
-	if s.httpOpt.EnableDebugRoute {
-		router.Get("/__routes", debugRoutes(router))
-		router.Get(s.httpOpt.BaseUrl+"/__routes", debugRoutes(router))
-
-	}
 
 	go func() {
 		srv := http.Server{
@@ -135,6 +130,9 @@ func (s server) Serve(ctx context.Context) {
 
 func (s server) bindMiscRoutes(r chi.Router) {
 	if s.httpOpt.EnableDebugRoute {
+		s.log.Debug("route debugger enabled: /__routes")
+		r.Get("/__routes", debugRoutes(r))
+
 		s.log.Debug("profiler enabled: /__profiler")
 		r.Mount("/__profiler", middleware.Profiler())
 
