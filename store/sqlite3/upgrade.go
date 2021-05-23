@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"go.uber.org/zap"
@@ -220,6 +221,14 @@ func (u upgrader) RenameColumn(ctx context.Context, table, oldName, newName stri
 
 func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Index) (added bool, err error) {
 	return false, fmt.Errorf("adding primary keys on sqlite tables is not implemented")
+}
+
+func (u upgrader) CreateIndex(ctx context.Context, ind *ddl.Index) (added bool, err error) {
+	if err = u.Exec(ctx, u.ddl.CreateIndex(ind)); err != nil {
+		return false, fmt.Errorf("could not create index on table %s: %w", ind.Table, err)
+	}
+
+	return true, nil
 }
 
 // loads and returns all tables columns
