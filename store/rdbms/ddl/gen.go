@@ -3,10 +3,11 @@ package ddl
 import (
 	"bytes"
 	"fmt"
-	"go.uber.org/zap"
 	"regexp"
 	"strings"
 	"text/template"
+
+	"go.uber.org/zap"
 )
 
 type (

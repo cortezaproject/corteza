@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	_ "github.com/go-sql-driver/mysql"
@@ -37,6 +38,17 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 		"create-index",
 		`{{ if not .Condition }}CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ else }}SELECT 1 -- dummy sql, just to prevent "empty query" errors...{{ end }}`,
 	)
+
+	u.ddl.AddTemplate("index-fields", `
+({{ range $n, $f := . -}}
+	{{ if $n }}, {{ end }}
+	{{- if .Expr}}({{ end }}
+	{{- .Field }}
+	{{- if .Length}}({{ .Length }}){{ end }}
+	{{- if .Expr}}){{ end }}
+	{{- if .Desc }} DESC{{ end }}
+{{- end }})
+`)
 
 	// Cover mysql exceptions
 	u.ddl.AddTemplateFunc("columnType", func(ct *ddl.ColumnType) string {
@@ -304,6 +316,26 @@ func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Inde
 	}
 
 	return true, nil
+}
+
+func (u upgrader) CreateIndex(ctx context.Context, ind *ddl.Index) (added bool, err error) {
+	if added, err = u.hasIndex(ctx, ind.Table, ind.Name); added || err != nil {
+		return
+	}
+
+	if err = u.Exec(ctx, u.ddl.CreateIndex(ind)); err != nil {
+		return false, fmt.Errorf("could not create index on table %s: %w", ind.Table, err)
+	}
+
+	return true, nil
+}
+
+func (u upgrader) hasIndex(ctx context.Context, table, name string) (has bool, err error) {
+	var (
+		lookup = "SELECT COUNT(*) > 0 FROM information_schema.statistics where table_schema = ? AND table_name = ? AND index_name = ?"
+	)
+
+	return has, u.s.DB().GetContext(ctx, &has, lookup, u.s.Config().DBName, table, table+"_"+name)
 }
 
 // loads and returns all tables columns

@@ -31,6 +31,8 @@ type (
 		// Expression or a single column
 		Field string
 
+		Length int
+
 		// Wrap part in parenthesis
 		Expr bool
 
@@ -202,6 +204,15 @@ func IColumn(cc ...string) indexManipulator {
 	return func(i *Index) {
 		for _, c := range cc {
 			i.Fields = append(i.Fields, &IField{Field: c})
+		}
+	}
+}
+
+// IColumn adds one or more keys as columns
+func IFieldFull(ff ...*IField) indexManipulator {
+	return func(i *Index) {
+		for _, f := range ff {
+			i.Fields = append(i.Fields, f)
 		}
 	}
 }
