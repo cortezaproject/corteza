@@ -6,6 +6,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/store/rdbms"
 	"github.com/cortezaproject/corteza-server/store/rdbms/ddl"
 	"go.uber.org/zap"
@@ -27,7 +28,6 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 	// to properly support PostgreSQL dialect
 
 	g.ddl.AddTemplate("create-table-suffix", "WITHOUT OIDS")
-
 	return g
 }
 
@@ -214,6 +214,26 @@ func (u upgrader) AddPrimaryKey(ctx context.Context, table string, ind *ddl.Inde
 	}
 
 	return true, nil
+}
+
+func (u upgrader) CreateIndex(ctx context.Context, ind *ddl.Index) (added bool, err error) {
+	if added, err = u.hasIndex(ctx, ind.Table, ind.Name); added || err != nil {
+		return
+	}
+
+	if err = u.Exec(ctx, u.ddl.CreateIndex(ind)); err != nil {
+		return false, fmt.Errorf("could not create index on table %s: %w", ind.Table, err)
+	}
+
+	return true, nil
+}
+
+func (u upgrader) hasIndex(ctx context.Context, table, name string) (has bool, err error) {
+	var (
+		lookup = "SELECT COUNT(*) > 0 FROM pg_indexes WHERE tablename = $1 AND indexname = $2"
+	)
+
+	return has, u.s.DB().GetContext(ctx, &has, lookup, table, table+"_"+name)
 }
 
 // loads and returns all tables columns
