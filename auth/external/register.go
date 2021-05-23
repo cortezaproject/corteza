@@ -2,26 +2,28 @@ package external
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/system/service"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/crusttech/go-oidc"
-	"github.com/pkg/errors"
-	"go.uber.org/zap"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/crusttech/go-oidc"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
-func AddProvider(ctx context.Context, eap *types.ExternalAuthProvider, force bool) error {
-	var (
-		s   = service.CurrentSettings
-		log = log.With(
-			zap.Bool("force", force),
-			zap.String("handle", eap.Handle),
-			zap.String("key", eap.Key),
-		)
+// AddProvider is used by provisioning process
+func AddProvider(ctx context.Context, s store.Settings, eap *types.ExternalAuthProvider, force bool) error {
+	prefix := "auth.external.providers." + eap.Key + "."
+
+	log := log.With(
+		zap.Bool("force", force),
+		zap.String("handle", eap.Handle),
+		zap.String("key", eap.Key),
 	)
 
 	if eap.IssuerUrl != "" {
@@ -30,18 +32,27 @@ func AddProvider(ctx context.Context, eap *types.ExternalAuthProvider, force boo
 
 	log.Info("adding external authentication provider")
 
+	ss, _, err := store.SearchSettings(ctx, s, types.SettingsFilter{
+		Prefix: prefix,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	ex := ss.KV().CutPrefix(prefix)
+
 	if !force {
-		if ex := s.Auth.External.Providers.FindByHandle(eap.Handle); ex != nil && ex.Key == eap.Key && ex.Secret == eap.Secret {
+		// check if exists before storing it
+		if len(ex) > 0 && ex.String("key") == eap.Key && ex.String("secret") == eap.Secret {
 			return nil
 		}
 	}
-
 	if vv, err := eap.EncodeKV(); err != nil {
-		log.Error("could not prepare settings", zap.Error(err))
+		return fmt.Errorf("could not encode auth provider values: %w", err)
 		return err
-	} else if err = service.DefaultSettings.BulkSet(ctx, vv); err != nil {
-		log.Error("could not store settings", zap.Error(err))
-		return err
+	} else if err = store.UpsertSetting(ctx, s, vv...); err != nil {
+		return fmt.Errorf("could not store auth provider values: %w", err)
 	}
 
 	log.Info("external authentication provider added")
@@ -90,14 +101,16 @@ func DiscoverOidcProvider(ctx context.Context, opt options.AuthOpt, name, url st
 	return
 }
 
-func RegisterOidcProvider(ctx context.Context, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
-	var (
-		s = service.CurrentSettings
-	)
-
+func RegisterOidcProvider(ctx context.Context, s store.Settings, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
 	if !force {
-		if s.Auth.External.Providers.FindByHandle(OIDC_PROVIDER_PREFIX+name) != nil {
-			return
+		prefix := "auth.external.providers." + eap.Key + "."
+
+		vv, _, err := store.SearchSettings(ctx, s, types.SettingsFilter{
+			Prefix: prefix,
+		})
+
+		if err != nil || len(vv) > 0 {
+			return nil, err
 		}
 	}
 
@@ -154,7 +167,7 @@ func RegisterOidcProvider(ctx context.Context, opt options.AuthOpt, name, provid
 		vv = append(vv, v)
 	}
 
-	err = service.DefaultSettings.BulkSet(ctx, vv)
+	err = store.UpsertSetting(ctx, s, vv...)
 	if err != nil {
 		return
 	}
