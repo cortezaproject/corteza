@@ -360,6 +360,35 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			)
 			req.NoError(err)
 		})
+
+		t.Run("with multi-value field", func(t *testing.T) {
+			var (
+				err error
+				set types.RecordSet
+
+				req, _ = truncAndCreate(t,
+					makeNew(&types.RecordValue{Name: "strMulti", Value: "v1"}, &types.RecordValue{Name: "strMulti", Value: "v2", Place: 1}, &types.RecordValue{Name: "strMulti", Value: "v3", Place: 2}),
+					makeNew(&types.RecordValue{Name: "strMulti", Value: "v1"}, &types.RecordValue{Name: "strMulti", Value: "v2", Place: 1}),
+					makeNew(&types.RecordValue{Name: "strMulti", Value: "v1"}),
+					makeNew(&types.RecordValue{Name: "strMulti", Value: "same"}, &types.RecordValue{Name: "strMulti", Value: "same", Place: 1}, &types.RecordValue{Name: "strMulti", Value: "same", Place: 2}),
+				)
+
+				f = types.RecordFilter{
+					ModuleID:    mod.ID,
+					NamespaceID: mod.NamespaceID,
+				}
+			)
+
+			f.Query = `strMulti = 'v1'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 3)
+
+			f.Query = `strMulti = 'same'`
+			set, _, err = s.SearchComposeRecords(ctx, mod, f)
+			req.NoError(err)
+			req.Len(set, 1)
+		})
 	})
 
 	t.Run("paging and sorting", func(t *testing.T) {
@@ -1167,7 +1196,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 						if fields[f] == "updatedAt" {
 							v := set[r].UpdatedAt
 							if v != nil && !v.IsZero() {
-								out += v.Format(time.RFC3339)
+								out += v.UTC().Format(time.RFC3339)
 							} else {
 								out += "<NIL>"
 							}
