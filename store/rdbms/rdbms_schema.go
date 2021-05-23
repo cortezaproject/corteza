@@ -612,6 +612,12 @@ func (Schema) AutomationSessions() *Table {
 		ColumnDef("error", ColumnTypeText),
 
 		AddIndex("workflow", IColumn("rel_workflow")),
+		AddIndex("event_type", IFieldFull(&IField{Field: "event_type", Length: handleLength})),
+		AddIndex("resource_type", IFieldFull(&IField{Field: "resource_type", Length: handleLength})),
+		AddIndex("status", IColumn("status")),
+		AddIndex("created_at", IColumn("created_at")),
+		AddIndex("completed_at", IColumn("completed_at")),
+		AddIndex("suspended_at", IColumn("suspended_at")),
 	)
 }
 

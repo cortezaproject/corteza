@@ -21,6 +21,7 @@ type (
 		DropColumn(context.Context, string, string) (bool, error)
 		RenameColumn(context.Context, string, string, string) (bool, error)
 		AddPrimaryKey(context.Context, string, *ddl.Index) (bool, error)
+		CreateIndex(context.Context, *ddl.Index) (bool, error)
 		Exec(context.Context, string, ...interface{}) error
 	}
 )
@@ -76,6 +77,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 	case "compose_module_field":
 		return g.all(ctx,
 			g.AlterComposeModuleFieldAddExpresions,
+		)
+	case "automation_sessions":
+		return g.all(ctx,
+			g.CreateAutomationSessionIndexes,
 		)
 		//case "compose_attachment_binds":
 		//	return g.all(ctx,
@@ -375,5 +380,27 @@ func (g genericUpgrades) AlterComposeModuleFieldAddExpresions(ctx context.Contex
 	)
 
 	_, err = g.u.AddColumn(ctx, "compose_module_field", col)
+	return
+}
+
+func (g genericUpgrades) CreateAutomationSessionIndexes(ctx context.Context) (err error) {
+	var (
+		ii = []*ddl.Index{
+			{Name: "event_type", Fields: []*ddl.IField{{Field: "event_type", Length: handleLength}}},
+			{Name: "resource_type", Fields: []*ddl.IField{{Field: "resource_type", Length: handleLength}}},
+			{Name: "status", Fields: []*ddl.IField{{Field: "status"}}},
+			{Name: "created_at", Fields: []*ddl.IField{{Field: "created_at"}}},
+			{Name: "completed_at", Fields: []*ddl.IField{{Field: "completed_at"}}},
+			{Name: "suspended_at", Fields: []*ddl.IField{{Field: "suspended_at"}}},
+		}
+	)
+
+	for _, i := range ii {
+		i.Table = "automation_sessions"
+		if _, err = g.u.CreateIndex(ctx, i); err != nil {
+			return
+		}
+	}
+
 	return
 }
