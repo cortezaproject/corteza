@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/saml"
-
-	authService "github.com/cortezaproject/corteza-server/auth"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	autService "github.com/cortezaproject/corteza-server/automation/service"
 	cmpService "github.com/cortezaproject/corteza-server/compose/service"
@@ -44,9 +43,8 @@ const (
 	bootLevelWaiting = iota
 	bootLevelSetup
 	bootLevelStoreInitialized
-	bootLevelServicesInitialized
-	bootLevelUpgraded
 	bootLevelProvisioned
+	bootLevelServicesInitialized
 	bootLevelActivated
 )
 
@@ -246,11 +244,41 @@ func (app *CortezaApp) InitStore(ctx context.Context) (err error) {
 	return nil
 }
 
+// Provision instance with configuration and settings
+// by importing preset configurations and running autodiscovery procedures
+func (app *CortezaApp) Provision(ctx context.Context) (err error) {
+	if app.lvl >= bootLevelProvisioned {
+		return
+	}
+
+	if err = app.InitStore(ctx); err != nil {
+		return err
+	}
+
+	if !app.Opt.Provision.Always {
+		app.Log.Debug("provisioning skipped (PROVISION_ALWAYS=false)")
+	} else {
+		defer sentry.Recover()
+
+		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
+		ctx = auth.SetSuperUserContext(ctx)
+
+		if err = provision.Run(ctx, app.Log, app.Store, app.Opt.Provision, app.Opt.Auth); err != nil {
+			return err
+		}
+	}
+
+	app.lvl = bootLevelProvisioned
+	return
+}
+
 // InitServices initializes all services used
 func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelServicesInitialized {
 		return nil
-	} else if err := app.InitStore(ctx); err != nil {
+	}
+
+	if err := app.Provision(ctx); err != nil {
 		return err
 	}
 
@@ -264,14 +292,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	{
-		// Initialize RBAC subsystem
+		//Initialize RBAC subsystem
 		// and (re)load rules from the storage backend
-		err = rbac.Initialize(app.Log, app.Store)
-		if err != nil {
-			return
-		}
+		ac := rbac.NewService(app.Log, app.Store)
+		ac.Reload(ctx)
 
-		rbac.Global().Reload(ctx)
+		rbac.SetGlobal(ac)
 	}
 
 	if app.Opt.Messagebus.Enabled {
@@ -344,42 +370,13 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	return
 }
 
-// Provision instance with configuration and settings
-// by importing preset configurations and running autodiscovery procedures
-func (app *CortezaApp) Provision(ctx context.Context) (err error) {
-	if app.lvl >= bootLevelProvisioned {
-		return
-	}
-
-	if err = app.InitServices(ctx); err != nil {
-		return err
-	}
-
-	if !app.Opt.Provision.Always {
-		app.Log.Debug("provisioning skipped (PROVISION_ALWAYS=false)")
-	} else {
-		defer sentry.Recover()
-
-		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
-		ctx = auth.SetSuperUserContext(ctx)
-
-		if err = provision.Run(ctx, app.Log, app.Store, app.Opt.Provision, app.Opt.Auth); err != nil {
-			return err
-		}
-
-		// Provisioning doesn't automatically reload rbac rules, so this is required
-		rbac.Global().Reload(ctx)
-	}
-
-	app.lvl = bootLevelProvisioned
-	return
-}
-
 // Activate start all internal services and watchers
 func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelActivated {
 		return
-	} else if err := app.Provision(ctx); err != nil {
+	}
+
+	if err := app.InitServices(ctx); err != nil {
 		return err
 	}
 

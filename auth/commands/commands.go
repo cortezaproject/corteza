@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
@@ -25,8 +26,7 @@ func commandPreRunInitService(app serviceInitializer) func(*cobra.Command, []str
 	}
 }
 
-// Will perform OpenID connect auto-configuration
-func Command(app serviceInitializer) *cobra.Command {
+func Command(app serviceInitializer, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
 	var (
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
@@ -43,9 +43,14 @@ func Command(app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := auth.SetSuperUserContext(cli.Context())
-			_, err := external.RegisterOidcProvider(
+			ctx := cli.Context()
+
+			s, err := storeInit(ctx)
+			cli.HandleError(err)
+
+			_, err = external.RegisterOidcProvider(
 				ctx,
+				s,
 				app.Options().Auth,
 				args[0],
 				args[1],

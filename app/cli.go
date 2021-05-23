@@ -91,7 +91,7 @@ func (app *CortezaApp) InitCLI() {
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
-		authCommands.Command(app),
+		authCommands.Command(app, storeInit),
 		federationCommands.Sync(app),
 		cli.EnvCommand(),
 		cli.VersionCommand(),

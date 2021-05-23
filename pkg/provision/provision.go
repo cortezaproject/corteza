@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
@@ -26,10 +25,9 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
 
 		// Auto-discoveries and other parts that cannot be imported from static files
-		func() error { return authSettingsAutoDiscovery(ctx, log, service.DefaultSettings) },
-		func() error { return authAddExternals(ctx, log) },
-		func() error { return service.DefaultSettings.UpdateCurrent(ctx) },
-		func() error { return oidcAutoDiscovery(ctx, log, authOpt) },
+		func() error { return authSettingsAutoDiscovery(ctx, log, s) },
+		func() error { return authAddExternals(ctx, log, s) },
+		func() error { return oidcAutoDiscovery(ctx, log, s, authOpt) },
 		func() error { return defaultAuthClient(ctx, log, s, authOpt) },
 	}
 
