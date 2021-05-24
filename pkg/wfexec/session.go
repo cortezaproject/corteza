@@ -240,12 +240,20 @@ func (s *Session) Result() *expr.Vars {
 }
 
 func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
-	if s.g.Len() == 0 {
-		return fmt.Errorf("refusing to execute without steps")
-	}
+	err := func() error {
+		if s.g.Len() == 0 {
+			return fmt.Errorf("refusing to execute without steps")
+		}
 
-	if len(s.g.Parents(step)) > 0 {
-		return fmt.Errorf("cannot execute step with parents")
+		if len(s.g.Parents(step)) > 0 {
+			return fmt.Errorf("cannot execute step with parents")
+		}
+		return nil
+	}()
+
+	if err != nil {
+		s.qErr <- err
+		return err
 	}
 
 	if scope == nil {
@@ -392,6 +400,7 @@ func (s *Session) worker(ctx context.Context) {
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
+			// @todo !!
 			if st == nil {
 				// stop worker
 				s.log.Debug("completed")

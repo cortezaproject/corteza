@@ -300,7 +300,7 @@ func (svc *session) gc() {
 			pending1d++
 		}
 
-		if s.CompletedAt == nil {
+		if !s.GC() {
 			continue
 		}
 
