@@ -5,10 +5,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
-	"time"
 )
 
 type (
@@ -109,6 +110,10 @@ func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) (
 
 func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
 	return s.session.UserPendingPrompts(ownerId)
+}
+
+func (s Session) GC() bool {
+	return s.CompletedAt != nil || s.session.Error() != nil
 }
 
 // WaitResults wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts

@@ -233,12 +233,22 @@ func (s *Session) Result() *expr.Vars {
 }
 
 func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
-	if s.g.Len() == 0 {
-		return fmt.Errorf("refusing to execute without steps")
-	}
+	err := func() error {
+		if s.g.Len() == 0 {
+			return fmt.Errorf("refusing to execute without steps")
+		}
 
-	if len(s.g.Parents(step)) > 0 {
-		return fmt.Errorf("cannot execute step with parents")
+		if len(s.g.Parents(step)) > 0 {
+			return fmt.Errorf("cannot execute step with parents")
+		}
+		return nil
+	}()
+
+	if err != nil {
+		// send nil to error queue to trigger worker shutdown
+		// session error must be set to update session status
+		s.qErr <- err
+		return err
 	}
 
 	if scope == nil {
@@ -452,15 +462,18 @@ func (s *Session) worker(ctx context.Context) {
 					)
 
 					s.mux.Lock()
-					s.mux.Unlock()
+					defer s.mux.Unlock()
 
-					// We need to force failed session status
-					// because it's not set early enough to pick it up with s.Status()
-					status = SessionFailed
+					// when the err handler is defined, the error was handled and should not kill the workflow
+					if !st.errHandled {
+						// We need to force failed session status
+						// because it's not set early enough to pick it up with s.Status()
+						status = SessionFailed
 
-					// pushing step execution error into error queue
-					// to break worker loop
-					s.qErr <- st.err
+						// pushing step execution error into error queue
+						// to break worker loop
+						s.qErr <- st.err
+					}
 				}
 
 				s.log.Debug(
@@ -603,6 +616,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			// in case of another error in the error-handling branch
 			eh := st.errHandler
 			st.errHandler = nil
+			st.errHandled = true
 			if err = s.enqueue(ctx, st.Next(eh, scope)); err != nil {
 				log.Warn("unable to queue", zap.Error(err))
 			}
