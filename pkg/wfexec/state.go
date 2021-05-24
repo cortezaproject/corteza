@@ -46,6 +46,7 @@ type (
 
 		// error handling step
 		errHandler Step
+		handled    bool
 
 		loops []Iterator
 
