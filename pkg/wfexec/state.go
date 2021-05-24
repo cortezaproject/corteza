@@ -2,9 +2,10 @@ package wfexec
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
-	"time"
 )
 
 type (
@@ -46,6 +47,9 @@ type (
 
 		// error handling step
 		errHandler Step
+
+		// error handled flag, this gets restarted on every new state!
+		errHandled bool
 
 		loops []Iterator
 
