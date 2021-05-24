@@ -114,6 +114,10 @@ func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
 	return s.session.PendingPrompts(ownerId)
 }
 
+func (s Session) GC() bool {
+	return s.CompletedAt != nil || s.session.Error() != nil
+}
+
 // Wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
 func (s *Session) WaitResults(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, Stacktrace, error) {
 	if err := s.session.WaitUntil(ctx, wfexec.SessionFailed, wfexec.SessionCompleted); err != nil {
