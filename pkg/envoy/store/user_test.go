@@ -20,7 +20,7 @@ func TestUser_Merger(t *testing.T) {
 		Email:       "email",
 		Name:        "name",
 		Handle:      "handle",
-		Kind:        types.BotUser,
+		Kind:        types.SystemUser,
 		Meta:        &types.UserMeta{},
 		CreatedAt:   now,
 		UpdatedAt:   nowP,
@@ -34,7 +34,7 @@ func TestUser_Merger(t *testing.T) {
 		req.Equal("email", c.Email)
 		req.Equal("name", c.Name)
 		req.Equal("handle", c.Handle)
-		req.Equal(types.BotUser, c.Kind)
+		req.Equal(types.SystemUser, c.Kind)
 		req.Equal(&types.UserMeta{}, c.Meta)
 		req.Equal(now, c.CreatedAt)
 		req.Equal(nowP, c.UpdatedAt)
@@ -48,7 +48,7 @@ func TestUser_Merger(t *testing.T) {
 		req.Equal("email", c.Email)
 		req.Equal("name", c.Name)
 		req.Equal("handle", c.Handle)
-		req.Equal(types.BotUser, c.Kind)
+		req.Equal(types.SystemUser, c.Kind)
 		req.Equal(&types.UserMeta{}, c.Meta)
 		req.Equal(now, c.CreatedAt)
 		req.Equal(nowP, c.UpdatedAt)

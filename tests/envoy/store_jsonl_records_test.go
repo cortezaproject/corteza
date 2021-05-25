@@ -36,7 +36,7 @@ func TestStoreJsonl_records(t *testing.T) {
 		}
 	)
 
-	ctx := auth.SetSuperUserContext(context.Background())
+	ctx := context.Background()
 	s := initStore(ctx, t)
 
 	ni := uint64(10)
@@ -255,7 +255,7 @@ func TestStoreJsonl_records_fieldTypes(t *testing.T) {
 		}
 	)
 
-	ctx := auth.SetSuperUserContext(context.Background())
+	ctx := context.Background()
 	s := initStore(ctx, t)
 
 	ni := uint64(10)

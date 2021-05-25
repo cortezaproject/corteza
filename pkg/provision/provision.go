@@ -14,21 +14,21 @@ import (
 )
 
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
-	ffn := []func() error{
-		func() error { return roles(ctx, log, s) },
+	log = log.Named("provision")
 
+	ffn := []func() error{
 		// Migrations:
 		func() error { return migrateApplications(ctx, s) },
-		func() error { return migrateEmailTemplates(ctx, log, s) },
+		func() error { return migrateEmailTemplates(ctx, log.Named("email-templates"), s) },
 
 		// Config (full & partial)
-		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
+		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
 
 		// Auto-discoveries and other parts that cannot be imported from static files
-		func() error { return authSettingsAutoDiscovery(ctx, log, s) },
-		func() error { return authAddExternals(ctx, log, s) },
-		func() error { return oidcAutoDiscovery(ctx, log, s, authOpt) },
-		func() error { return defaultAuthClient(ctx, log, s, authOpt) },
+		func() error { return authSettingsAutoDiscovery(ctx, log.Named("auth.settings-discovery"), s) },
+		func() error { return authAddExternals(ctx, log.Named("auth.externals"), s) },
+		func() error { return oidcAutoDiscovery(ctx, log.Named("auth.oidc-auto-discovery"), s, authOpt) },
+		func() error { return defaultAuthClient(ctx, log.Named("auth.clients"), s, authOpt) },
 	}
 
 	for _, fn := range ffn {

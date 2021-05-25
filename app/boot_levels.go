@@ -255,13 +255,31 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		return err
 	}
 
+	var (
+		uu []*types.User
+		rr []*types.Role
+	)
+
+	// Basic provision for system resources that we need before anything else
+	if rr, err = provision.SystemRoles(ctx, app.Log, app.Store); err != nil {
+		return
+	}
+
+	// Basic provision for system users that we need before anything else
+	if uu, err = provision.SystemUsers(ctx, app.Log, app.Store); err != nil {
+		return
+	}
+
+	// now set system users with so that the whole app knows what to use
+	auth.SetSystemUsers(uu, rr)
+
 	if !app.Opt.Provision.Always {
 		app.Log.Debug("provisioning skipped (PROVISION_ALWAYS=false)")
 	} else {
 		defer sentry.Recover()
 
 		ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Provision)
-		ctx = auth.SetSuperUserContext(ctx)
+		ctx = auth.SetIdentityToContext(ctx, auth.ProvisionUser())
 
 		if err = provision.Run(ctx, app.Log, app.Store, app.Opt.Provision, app.Opt.Auth); err != nil {
 			return err
@@ -281,6 +299,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if err := app.Provision(ctx); err != nil {
 		return err
 	}
+
+	// Load users
 
 	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
 

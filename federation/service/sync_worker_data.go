@@ -163,7 +163,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	ctx = auth.SetSuperUserContext(ctx)
+	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
 
 	ticker := time.NewTicker(delay)
 

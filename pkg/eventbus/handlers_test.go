@@ -152,6 +152,8 @@ func TestHandler_RegOps(t *testing.T) {
 
 func TestHandlerHandler(t *testing.T) {
 	var (
+		identity uint64 = 42
+
 		a             = assert.New(t)
 		ctx           = context.Background()
 		ev            = &mockEvent{}
@@ -160,18 +162,19 @@ func TestHandlerHandler(t *testing.T) {
 		trSimple = &handler{
 			handler: func(ctx context.Context, ev Event) error {
 				passedthrough = true
-				a.True(auth.IsSuperUser(ev.(*mockEvent).identity))
+				a.Equal(identity, ev.(*mockEvent).identity.Identity())
 				return nil
 			},
 		}
 	)
 
 	a.False(passedthrough)
-	a.False(auth.IsSuperUser(ev.identity))
+	a.Nil(ev.identity)
 
-	trSimple.Handle(auth.SetSuperUserContext(ctx), ev)
+	a.NoError(trSimple.Handle(auth.SetIdentityToContext(ctx, auth.NewIdentity(identity)), ev))
 
-	a.True(auth.IsSuperUser(ev.identity))
+	a.NotNil(ev.identity)
+	a.Equal(identity, ev.identity.Identity())
 	a.True(passedthrough, "expecting to pass through simple handler")
 }
 

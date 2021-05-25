@@ -815,6 +815,9 @@ func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c 
 		return AuthErrFailedForSuspendedUser()
 	case u.DeletedAt != nil:
 		return AuthErrFailedForDeletedUser()
+	case u.Kind == types.SystemUser:
+		return AuthErrFailedForSystemUser()
+
 	}
 
 	if err = svc.LoadRoleMemberships(ctx, u); err != nil {

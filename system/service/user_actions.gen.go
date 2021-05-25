@@ -798,6 +798,38 @@ func UserErrNotAllowedToCreate(mm ...*userActionProps) *errors.Error {
 	return e
 }
 
+// UserErrNotAllowedToCreateSystem returns "system:user.notAllowedToCreateSystem" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func UserErrNotAllowedToCreateSystem(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create system users", nil),
+
+		errors.Meta("type", "notAllowedToCreateSystem"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to create system users"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // UserErrNotAllowedToUpdate returns "system:user.notAllowedToUpdate" as *errors.Error
 //
 //
@@ -819,6 +851,38 @@ func UserErrNotAllowedToUpdate(mm ...*userActionProps) *errors.Error {
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(userLogMetaKey{}, "failed to update {user.handle}; insufficient permissions"),
+		errors.Meta(userPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// UserErrNotAllowedToUpdateSystem returns "system:user.notAllowedToUpdateSystem" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func UserErrNotAllowedToUpdateSystem(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update system users", nil),
+
+		errors.Meta("type", "notAllowedToUpdateSystem"),
+		errors.Meta("resource", "system:user"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(userLogMetaKey{}, "failed to update system users"),
 		errors.Meta(userPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

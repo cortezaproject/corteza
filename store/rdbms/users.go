@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"fmt"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -58,9 +59,9 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Eq{"usr.handle": f.Handle})
 	}
 
-	if f.Kind != "" {
-		query = query.Where(squirrel.Eq{"usr.kind": f.Kind})
-	}
+	//if f.Kind != "" {
+	//	query = query.Where(squirrel.Eq{"usr.kind": f.Kind})
+	//}
 
 	return
 }

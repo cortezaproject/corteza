@@ -8,12 +8,8 @@ props:
 #    description: When disabled all operations on all resources are allowed
 
   - name: serviceUser
-    default: "corteza"
-    description: |-
-      Used at boot time, for provisioning and other service-level operations.
-      Service user is automatically member of all bypass roles.
-
   - name: bypassRoles
+    # Using literal string instead of DefaultBypassRole constant for clarity & documentation
     default: "super-admin"
     description: |-
       Space delimited list of role handles.
@@ -21,6 +17,7 @@ props:
       System will refuse to start if check-bypassing roles are also listed as authenticated or anonymous auto-assigned roles.
 
   - name: authenticatedRoles
+    # Using literal string instead of DefaultAuthenticatedRole constant for clarity & documentation
     default: "authenticated"
     description: |-
       Space delimited list of role handles.
@@ -29,6 +26,7 @@ props:
       System will refuse to start if roles listed here are also listed under anonymous roles
 
   - name: anonymousRoles
+    # Using literal string instead of DefaultAnonymousRole constant for clarity & documentation
     default: "anonymous"
     description: |-
       Space delimited list of role handles.

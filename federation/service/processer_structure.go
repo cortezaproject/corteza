@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/federation/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/decoder"
 	st "github.com/cortezaproject/corteza-server/system/types"
 )
@@ -40,8 +39,6 @@ func (dp *structureProcesser) Process(ctx context.Context, payload []byte) (Proc
 			Processed: processed,
 		}, nil
 	}
-
-	ctx = auth.SetSuperUserContext(ctx)
 
 	for _, em := range o {
 		new := &types.SharedModule{

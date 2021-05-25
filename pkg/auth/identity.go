@@ -13,10 +13,6 @@ type (
 	}
 )
 
-const (
-	superUserID uint64 = 10000000000000000
-)
-
 func NewIdentity(id uint64, rr ...uint64) *Identity {
 	return &Identity{
 		id:       id,
@@ -38,14 +34,6 @@ func (i Identity) Valid() bool {
 
 func (i Identity) String() string {
 	return fmt.Sprintf("%d", i.Identity())
-}
-
-func NewSuperUserIdentity() *Identity {
-	return NewIdentity(superUserID)
-}
-
-func IsSuperUser(i Identifiable) bool {
-	return i != nil && superUserID == i.Identity()
 }
 
 func ExtractUserIDFromSubClaim(sub string) uint64 {

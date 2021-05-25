@@ -48,7 +48,7 @@ func (dp *dataProcesser) Process(ctx context.Context, payload []byte) (Processer
 		}, nil
 	}
 
-	ctx = auth.SetSuperUserContext(ctx)
+	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
 
 	for _, er := range o {
 		var (

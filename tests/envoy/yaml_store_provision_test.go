@@ -18,7 +18,7 @@ import (
 
 func TestYamlStore_provision(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 	)
 

@@ -271,6 +271,9 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 		return NodeErrNotAllowedToPair()
 	}
 
+	// elevate permissions for user lookup & creation!
+	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
+
 	_, err := svc.updater(
 		ctx,
 		nodeID,
@@ -459,9 +462,6 @@ func (svc node) FindByID(ctx context.Context, nodeID uint64) (*types.Node, error
 func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysTypes.User, error) {
 	// Generate handle for user that se this node
 	uHandle := fmt.Sprintf("federation_%d", n.ID)
-
-	// elevate permissions for user lookup & creation!
-	ctx = auth.SetSuperUserContext(ctx)
 
 	u, err := svc.sysUser.FindByHandle(ctx, uHandle)
 	if err == nil {

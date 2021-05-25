@@ -15,7 +15,7 @@ import (
 
 func TestStamps(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		req = require.New(t)
 
