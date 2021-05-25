@@ -56,7 +56,7 @@ func TestEncoder_encodeStructure(t *testing.T) {
 			{
 				"Encode structure in internal Corteza format",
 				CortezaInternalStructure,
-				`{"filter":{"nodeID":"0","composeModuleID":"0","composeNamespaceID":"0","lastSync":0,"handle":"","name":"","query":"","limit":42},"set":[{"moduleID":"123","nodeID":"1111","composeModuleID":"456","composeNamespaceID":"789","handle":"test_module","name":"Test Module","fields":[{"kind":"String","name":"test_module_first_field","label":"Test Module First Field","isMulti":false},{"kind":"String","name":"test_module_second_field","label":"Test Module Second Field","isMulti":false}],"createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"}]}`,
+				`{"response":{"filter":{"nodeID":"0","composeModuleID":"0","composeNamespaceID":"0","lastSync":0,"handle":"","name":"","query":"","limit":42},"set":[{"moduleID":"123","nodeID":"1111","composeModuleID":"456","composeNamespaceID":"789","handle":"test_module","name":"Test Module","fields":[{"kind":"String","name":"test_module_first_field","label":"Test Module First Field","isMulti":false},{"kind":"String","name":"test_module_second_field","label":"Test Module Second Field","isMulti":false}],"createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"}]}}`,
 			},
 		}
 	)
@@ -133,7 +133,7 @@ func TestEncoder_encodeData(t *testing.T) {
 			{
 				"Encode structure in internal Corteza format",
 				CortezaInternalData,
-				`{"filter":{"moduleID":"456","namespaceID":"789","query":"","deleted":0,"limit":42},"set":[{"recordID":"123","moduleID":"456","values":[{"name":"First Record First Value","value":"First Record First Value"},{"name":"First Record Second Value","value":"First Record Second Value"}],"namespaceID":"789","ownedBy":"0","createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"},{"recordID":"124","moduleID":"456","values":[{"name":"Second Record First Value","value":"Second Record First Value"},{"name":"Second Record Second Value","value":"Second Record Second Value"}],"namespaceID":"789","ownedBy":"0","createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"}]}`,
+				`{"response":{"filter":{"moduleID":"456","namespaceID":"789","query":"","deleted":0,"limit":42},"set":[{"recordID":"123","moduleID":"456","values":[{"name":"First Record First Value","value":"First Record First Value"},{"name":"First Record Second Value","value":"First Record Second Value"}],"namespaceID":"789","ownedBy":"0","createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"},{"recordID":"124","moduleID":"456","values":[{"name":"Second Record First Value","value":"Second Record First Value"},{"name":"Second Record Second Value","value":"Second Record Second Value"}],"namespaceID":"789","ownedBy":"0","createdAt":"2020-10-10T10:10:10.00000001Z","createdBy":"2222"}]}}`,
 			},
 		}
 	)
