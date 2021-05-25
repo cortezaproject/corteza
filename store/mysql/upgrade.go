@@ -39,6 +39,7 @@ func NewUpgrader(log *zap.Logger, store *Store) *upgrader {
 		`{{ if not .Condition }}CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ else }}SELECT 1 -- dummy sql, just to prevent "empty query" errors...{{ end }}`,
 	)
 
+	u.ddl.AddTemplate("if-not-exists-clause", "")
 	u.ddl.AddTemplate("index-fields", `
 ({{ range $n, $f := . -}}
 	{{ if $n }}, {{ end }}

@@ -32,6 +32,7 @@ const (
 	{{- end }}
 	) {{- template "create-table-suffix" . -}}
 	`
+
 	genericCreateTableSuffix = ``
 
 	genericCreateTableColumn = `
@@ -62,7 +63,7 @@ const (
 	{{- end }})
 	`
 	// table/index exist or not clause
-	genericIfNotExistsClause = ``
+	genericIfNotExistsClause = `IF NOT EXISTS`
 )
 
 func NewGenerator(log *zap.Logger) *Generator {
