@@ -2,11 +2,13 @@ package wfexec
 
 import (
 	"context"
+	"fmt"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
-	"testing"
-	"time"
 )
 
 type (
@@ -188,7 +190,69 @@ func TestSession_Delays(t *testing.T) {
 	req.Contains(ses.Result().Dict(), "waitForMoment")
 	req.Contains(ses.Result().Dict(), "waitForInput")
 	req.Equal("foo", expr.Must(expr.Select(ses.Result(), "input")).Get())
+}
 
+func TestSession_ErrHandler(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+		wf  = NewGraph()
+		ses = NewSession(
+			ctx,
+			wf,
+
+			// enable if you need to see what is going on
+			//SetLogger(logger.MakeDebugLogger()),
+
+			// enable if you need to see what is going on
+			//SetHandler(func(status SessionStatus, state *State, session *Session) {
+			//	if state.step != nil {
+			//		println(state.step.(*sesTestStep).name)
+			//	}
+			//}),
+		)
+
+		cb_1_1 = &sesTestStep{name: "catch-branch-1-1"}
+		cb_1_2 = &sesTestStep{name: "catch-branch-1-2"}
+		tb_1_1 = &sesTestStep{name: "try-branch-1-1"}
+
+		eh_1 = &sesTestStep{name: "err-handler", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
+			return ErrorHandler(cb_1_1), nil
+		}}
+		er_1 = &sesTestStep{name: "err-raiser", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
+			return nil, fmt.Errorf("would-be-handled-error")
+		}}
+
+		cb_2_1 = &sesTestStep{name: "catch-branch-2-1"}
+		cb_2_2 = &sesTestStep{name: "catch-branch-2-2"}
+		tb_2_1 = &sesTestStep{name: "try-branch-2-1"}
+
+		eh_2 = &sesTestStep{name: "err-handler", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
+			return ErrorHandler(cb_2_1), nil
+		}}
+		er_2 = &sesTestStep{name: "err-raiser", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
+			return nil, fmt.Errorf("would-be-handled-error")
+		}}
+	)
+
+	wf.AddStep(eh_1, tb_1_1)   // error handling step (entrypoint!)
+	wf.AddStep(tb_1_1)         // add try step
+	wf.AddStep(tb_1_1, er_1)   // add  error raising step right after 1st step in try branch
+	wf.AddStep(cb_1_1, cb_1_2) // catch branch step 1 & 2
+
+	wf.AddStep(cb_1_2, eh_2)   // 2nd error handling step right after 1st catch branch
+	wf.AddStep(eh_2, tb_2_1)   // step in try branch
+	wf.AddStep(tb_2_1, er_2)   // 2nd error raising step on 2nd try branch
+	wf.AddStep(cb_2_1, cb_2_2) // 2nd catch branch step 1 & 2
+
+	req.NoError(ses.Exec(ctx, eh_1, nil))
+
+	req.NoError(ses.Wait(ctx))
+
+	req.Equal(
+		"/try-branch-1-1/catch-branch-1-1/catch-branch-1-2/try-branch-2-1/catch-branch-2-1/catch-branch-2-2",
+		ses.Result().Dict()["path"],
+	)
 }
 
 func bmSessionSimpleStepSequence(c uint64, b *testing.B) {

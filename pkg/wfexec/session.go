@@ -442,7 +442,7 @@ func (s *Session) worker(ctx context.Context) {
 					defer s.mux.Unlock()
 
 					// when the err handler is defined, the error was handled and should not kill the workflow
-					if !st.handled {
+					if !st.errHandled {
 						// We need to force failed session status
 						// because it's not set early enough to pick it up with s.Status()
 						status = SessionFailed
@@ -594,7 +594,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			// in case of another error in the error-handling branch
 			eh := st.errHandler
 			st.errHandler = nil
-			st.handled = true
+			st.errHandled = true
 			if err = s.enqueue(ctx, st.Next(eh, scope)); err != nil {
 				log.Warn("unable to queue", zap.Error(err))
 			}
