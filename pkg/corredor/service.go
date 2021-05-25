@@ -3,6 +3,10 @@ package corredor
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -16,9 +20,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"strings"
-	"sync"
-	"time"
 )
 
 type (
@@ -396,12 +397,8 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 // This is used only in case of explicit execution (onManual) and never when
 // scripts are executed implicitly (deferred, before/after...)
 func (svc service) canExec(ctx context.Context, script string) bool {
-	u := auth.GetIdentityFromContext(ctx)
-	if auth.IsSuperUser(u) {
-		return true
-	}
-
 	// @todo RBACv2 convert roles u.Roles()...
+	//u := auth.GetIdentityFromContext(ctx)
 	//return svc.permissions.Check(nil, script, permOpExec) != rbac.Deny
 	return true
 }

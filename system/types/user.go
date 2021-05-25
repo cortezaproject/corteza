@@ -105,7 +105,7 @@ type (
 
 const (
 	NormalUser UserKind = ""
-	BotUser    UserKind = "bot"
+	SystemUser UserKind = "sys"
 )
 
 func (u User) String() string {
@@ -126,6 +126,25 @@ func (u User) Roles() []uint64 {
 
 func (u *User) SetRoles(rr []uint64) {
 	u.roles = rr
+}
+
+func (u *User) Clone() *User {
+	return &User{
+		ID:             u.ID,
+		Username:       u.Username,
+		Email:          u.Email,
+		Name:           u.Name,
+		Handle:         u.Handle,
+		Kind:           u.Kind,
+		Meta:           u.Meta,
+		EmailConfirmed: u.EmailConfirmed,
+		Labels:         u.Labels,
+		CreatedAt:      u.CreatedAt,
+		UpdatedAt:      u.UpdatedAt,
+		SuspendedAt:    u.SuspendedAt,
+		DeletedAt:      u.DeletedAt,
+		roles:          u.roles,
+	}
 }
 
 func (meta *UserMeta) Scan(value interface{}) error {

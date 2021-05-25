@@ -9,7 +9,6 @@ import (
 
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	ctypes "github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -35,7 +34,7 @@ func TestYamlStore_base(t *testing.T) {
 	)
 
 	var (
-		ctx       = auth.SetSuperUserContext(context.Background())
+		ctx       = context.Background()
 		namespace = "base"
 		s         = initStore(ctx, t)
 		err       error

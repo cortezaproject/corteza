@@ -1,12 +1,13 @@
 package scim
 
 import (
+	"net/http"
+	"regexp"
+
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
-	"net/http"
-	"regexp"
 )
 
 type (

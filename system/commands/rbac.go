@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +41,7 @@ import (
 //	}
 //)
 
-func RBAC(app serviceInitializer) *cobra.Command {
+func RBAC(ctx context.Context, app serviceInitializer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rbac",
 		Short: "RBAC tools",

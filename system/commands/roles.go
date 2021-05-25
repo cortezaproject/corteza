@@ -1,14 +1,15 @@
 package commands
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
 )
 
-func Roles(app serviceInitializer) *cobra.Command {
+func Roles(ctx context.Context, app serviceInitializer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "roles",
 		Short: "Role management",
@@ -21,8 +22,6 @@ func Roles(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				roleStr, userStr = args[0], args[1]
 
 				role *types.Role

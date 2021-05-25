@@ -31,7 +31,7 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 		}
 	)
 
-	ctx := auth.SetSuperUserContext(context.Background())
+	ctx := context.Background()
 	s := initStore(ctx, t)
 
 	ni := uint64(10)

@@ -82,7 +82,6 @@ errors:
     message: "invalid email"
     severity: warning
 
-
   - error: notAllowedToRead
     message: "not allowed to read this user"
     log: "failed to read {user.handle}; insufficient permissions"
@@ -95,9 +94,17 @@ errors:
     message: "not allowed to create users"
     log: "failed to create users; insufficient permissions"
 
+  - error: notAllowedToCreateSystem
+    message: "not allowed to create system users"
+    log: "failed to create system users"
+
   - error: notAllowedToUpdate
     message: "not allowed to update this user"
     log: "failed to update {user.handle}; insufficient permissions"
+
+  - error: notAllowedToUpdateSystem
+    message: "not allowed to update system users"
+    log: "failed to update system users"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this user"

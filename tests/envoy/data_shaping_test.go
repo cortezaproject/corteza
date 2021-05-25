@@ -17,7 +17,7 @@ import (
 
 func TestDataShaping(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -88,7 +88,7 @@ func TestDataShaping(t *testing.T) {
 
 func TestDataShaping_large(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -154,7 +154,7 @@ func TestDataShaping_large(t *testing.T) {
 
 func TestDataShaping_fieldTypes(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -232,7 +232,7 @@ func TestDataShaping_fieldTypes(t *testing.T) {
 
 func TestDataShaping_refs(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -320,7 +320,7 @@ func TestDataShaping_refs(t *testing.T) {
 
 func TestDataShaping_xrefsPeer(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -408,7 +408,7 @@ func TestDataShaping_xrefsPeer(t *testing.T) {
 
 func TestDataShaping_xrefsStore(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -501,7 +501,7 @@ func TestDataShaping_xrefsStore(t *testing.T) {
 
 func TestDataShaping_xrefsMix(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 
@@ -600,7 +600,7 @@ func TestDataShaping_xrefsMix(t *testing.T) {
 
 func TestDataShaping_update(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
+		ctx = context.Background()
 		s   = initStore(ctx, t)
 		err error
 

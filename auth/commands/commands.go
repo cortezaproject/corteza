@@ -26,7 +26,7 @@ func commandPreRunInitService(app serviceInitializer) func(*cobra.Command, []str
 	}
 }
 
-func Command(app serviceInitializer, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
+func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
 	var (
 		enableDiscoveredProvider               bool
 		skipValidationOnAutoDiscoveredProvider bool
@@ -88,8 +88,6 @@ func Command(app serviceInitializer, storeInit func(ctx context.Context) (store.
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				user *types.User
 				err  error
 
@@ -112,9 +110,7 @@ func Command(app serviceInitializer, storeInit func(ctx context.Context) (store.
 		Args:    cobra.ExactArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
 				err error
 				ntf = service.DefaultAuthNotification
 			)

@@ -7,7 +7,6 @@ import (
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -69,7 +68,7 @@ var (
 
 	DefaultAuth        *auth
 	DefaultAuthClient  *authClient
-	DefaultUser        UserService
+	DefaultUser        *user
 	DefaultRole        *role
 	DefaultApplication *application
 	DefaultReminder    ReminderService
@@ -161,7 +160,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth()
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
-	DefaultUser = User(ctx)
+	DefaultUser = User()
 	DefaultRole = Role()
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)
@@ -204,7 +203,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 func Activate(ctx context.Context) (err error) {
 	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
+	err = DefaultSettings.UpdateCurrent(ctx)
 	if err != nil {
 		return
 	}

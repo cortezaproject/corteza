@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/auth/external"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -126,8 +125,6 @@ func authAddExternals(ctx context.Context, log *zap.Logger, s store.Settings) (e
 			eap.Key, eap.Secret = pp[0], pp[1]
 			eap.Handle = kind
 		}
-
-		ctx = auth.SetSuperUserContext(ctx)
 
 		_ = external.AddProvider(ctx, s, eap, false)
 	}

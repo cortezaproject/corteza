@@ -10,14 +10,13 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-func Export(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
+func Export(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
 	var (
 		output string
 	)
@@ -29,8 +28,6 @@ func Export(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Co
 
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				f = su.NewDecodeFilter()
 			)
 

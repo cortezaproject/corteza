@@ -22,8 +22,6 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, s store.Sto
 		boolWrapper   func() bool
 	)
 
-	log = log.Named("auth.settings-discovery")
-
 	var (
 		// Setter
 		//

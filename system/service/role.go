@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -18,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
+
 	"go.uber.org/zap"
 )
 
@@ -92,7 +94,7 @@ func Role() *role {
 	}
 }
 
-// SetImmutable sets list of handles for all system roles
+// SetSystem sets list of handles for all system roles
 //
 // System roles can not be changed or deleted
 func (svc role) SetSystem(hh ...string) {
@@ -725,12 +727,20 @@ func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eve
 
 	if bypass, err = s(opt.BypassRoles); err != nil {
 		return fmt.Errorf("failed to process list of bypass roles (RBAC_BYPASS_ROLES): %w", err)
+	} else if !bypass[intAuth.BypassRoleHandle] {
+		return fmt.Errorf("default bypass role %s (DefaultBypassRole) not in bypass role list (RBAC_BYPASS_ROLES)", intAuth.BypassRoleHandle)
 	}
+
 	if authenticated, err = s(opt.AuthenticatedRoles); err != nil {
 		return fmt.Errorf("failed to process list of authenticated roles (RBAC_AUTHENTICATED_ROLES): %w", err)
+	} else if !authenticated[intAuth.AuthenticatedRoleHandle] {
+		return fmt.Errorf("default authenticated role %s (DefaultAuthenticatedRole) not in authenticated role list (RBAC_AUTHENTICATED_ROLES)", intAuth.AuthenticatedRoleHandle)
 	}
+
 	if anonymous, err = s(opt.AnonymousRoles); err != nil {
 		return fmt.Errorf("failed to process list of anonymous roles (RBAC_ANONYMOUS_ROLES): %w", err)
+	} else if !anonymous[intAuth.AnonymousRoleHandle] {
+		return fmt.Errorf("default anonymous role %s (DefaultAnonymousRole) not in anonymous role list (RBAC_ANONYMOUS_ROLES)", intAuth.AnonymousRoleHandle)
 	}
 
 	for r := range authenticated {

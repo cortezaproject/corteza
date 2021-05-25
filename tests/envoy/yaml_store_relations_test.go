@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
@@ -29,7 +28,7 @@ func TestYamlStore_relations(t *testing.T) {
 	)
 
 	var (
-		ctx       = auth.SetSuperUserContext(context.Background())
+		ctx       = context.Background()
 		namespace = "relations"
 		s         = initStore(ctx, t)
 		err       error

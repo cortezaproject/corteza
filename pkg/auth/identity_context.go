@@ -19,11 +19,3 @@ func GetIdentityFromContext(ctx context.Context) Identifiable {
 		return NewIdentity(0)
 	}
 }
-
-// SetSuperUserContext stores system user as identity
-// and accompanying JWT for it to the context
-func SetSuperUserContext(ctx context.Context) context.Context {
-	su := NewSuperUserIdentity()
-
-	return SetIdentityToContext(ctx, su)
-}

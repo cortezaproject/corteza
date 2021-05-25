@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -16,7 +15,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 )
 
-func Import(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
+func Import(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
 	var (
 		replaceOnExisting    bool
 		mergeLeftOnExisting  bool
@@ -28,10 +27,6 @@ func Import(storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Co
 		Short: "Import data from yaml sources.",
 
 		Run: func(cmd *cobra.Command, args []string) {
-			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-			)
-
 			s, err := storeInit(ctx)
 			cli.HandleError(err)
 
