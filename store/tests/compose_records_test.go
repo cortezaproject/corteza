@@ -18,6 +18,8 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 	var (
 		ctx = context.Background()
 
+		offset = 0
+
 		mod = &types.Module{
 			ID:          id.Next(),
 			NamespaceID: id.Next(),
@@ -85,12 +87,14 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 				v.RecordID = recordID
 			}
 
+			offset++
 			return &types.Record{
 				ID:          recordID,
 				NamespaceID: mod.NamespaceID,
 				ModuleID:    mod.ID,
-				CreatedAt:   time.Now(),
-				Values:      vv,
+				// if we don't round this up to a second we'll confuse the sorting
+				CreatedAt: time.Now().Round(time.Second).Add(time.Second * time.Duration(offset)),
+				Values:    vv,
 			}
 		}
 
