@@ -22,7 +22,7 @@ type (
 const (
 	// table creation
 	genericCreateTable = `
-CREATE TABLE {{ .Name }} (
+CREATE TABLE {{template "if-not-exists-clause" .}} {{ .Name }} (
 {{ range $n, $c := .Columns -}}
 {{ if $n }}, {{ else }}  {{ end }}{{ template "create-table-column" . }}
 {{ end -}}
@@ -45,7 +45,7 @@ CREATE TABLE {{ .Name }} (
 	genericRenameColumn  = `ALTER TABLE {{ .Table }} RENAME COLUMN {{ .OldName }} TO {{ .NewName }}`
 
 	// index creation
-	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
+	genericCreateIndex = `CREATE {{ if .Unique }}UNIQUE {{ end }}INDEX {{ template "if-not-exists-clause" . }} {{ template "index-name" . }} ON {{ .Table }} {{ template "index-fields" .Fields }}{{ template "index-condition" . }}`
 
 	genericIndexName      = `{{ .Table }}_{{ .Name }}`
 	genericIndexCondition = `{{- if .Condition }} WHERE ({{ .Condition }}){{ end }}`
@@ -60,6 +60,9 @@ CREATE TABLE {{ .Name }} (
 	{{- if .Desc }} DESC{{ end }}
 {{- end }})
 `
+
+	// table/index exist or not clause
+	genericIfNotExistsClause = `IF NOT EXISTS`
 )
 
 func NewGenerator(log *zap.Logger) *Generator {
@@ -76,6 +79,7 @@ func NewGenerator(log *zap.Logger) *Generator {
 	g.AddTemplate("index-condition", genericIndexCondition)
 	g.AddTemplate("index-name", genericIndexName)
 	g.AddTemplate("index-fields", genericIndexFields)
+	g.AddTemplate("if-not-exists-clause", genericIfNotExistsClause)
 
 	return g
 }

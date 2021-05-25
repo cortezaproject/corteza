@@ -5,10 +5,11 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
-	"time"
 )
 
 type (
@@ -62,7 +63,16 @@ func (debug) argToZapFields(args []driver.NamedValue) []zap.Field {
 			name += fmt.Sprintf("%d", args[i].Ordinal)
 		}
 
-		out[i] = zap.Any(name, args[i].Value)
+		// Catch time to ensure proper format
+		switch args[i].Value.(type) {
+		case time.Time:
+			out[i] = zap.String(name, args[i].Value.(time.Time).Format(time.RFC3339))
+		case *time.Time:
+			out[i] = zap.String(name, (args[i].Value.(*time.Time)).Format(time.RFC3339))
+		default:
+			out[i] = zap.Any(name, args[i].Value)
+		}
+
 	}
 
 	return out
