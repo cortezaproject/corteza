@@ -255,6 +255,25 @@ func TestSession_ErrHandler(t *testing.T) {
 	)
 }
 
+func TestSession_ExecStepWithParents(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+		wf  = NewGraph()
+		ses = NewSession(ctx, wf)
+
+		p = &sesTestStep{name: "p"}
+		c = &sesTestStep{name: "c"}
+	)
+
+	wf.AddStep(p, c)
+
+	req.Equal(SessionActive, ses.Status())
+	req.Error(ses.Exec(ctx, c, nil))
+	req.Error(ses.Wait(ctx))
+	req.Equal(SessionFailed, ses.Status())
+}
+
 func bmSessionSimpleStepSequence(c uint64, b *testing.B) {
 	var (
 		ctx = context.Background()

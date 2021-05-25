@@ -252,6 +252,8 @@ func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
 	}()
 
 	if err != nil {
+		// send nil to error queue to trigger worker shutdown
+		// session error must be set to update session status
 		s.qErr <- err
 		return err
 	}
@@ -400,7 +402,6 @@ func (s *Session) worker(ctx context.Context) {
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
-			// @todo !!
 			if st == nil {
 				// stop worker
 				s.log.Debug("completed")
