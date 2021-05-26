@@ -274,6 +274,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	err = autService.Initialize(ctx, app.Log, app.Store, autService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Workflow:  app.Opt.Workflow,
+		Corredor:  app.Opt.Corredor,
 	})
 
 	if err != nil {

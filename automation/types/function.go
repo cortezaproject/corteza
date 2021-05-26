@@ -25,7 +25,8 @@ type (
 		Handler  FunctionHandler `json:"-"`
 		Iterator IteratorHandler `json:"-"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels   map[string]string `json:"labels,omitempty"`
+		Disabled bool              `json:"disabled,omitempty"`
 	}
 
 	FunctionMeta struct {

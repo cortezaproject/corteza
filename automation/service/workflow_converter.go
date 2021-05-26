@@ -567,6 +567,14 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 			return nil
 		}
 
+		// check for corredor function step(s) are allowed or not
+		checkDisabledFunc = func() error {
+			if !DefaultWorkflow.corredorOpt.Enabled && s.Ref == "corredorExec" {
+				return WorkflowErrNotAllowedToExecuteCorredorStep()
+			}
+			return nil
+		}
+
 		// checks if argument is present
 		checkArg = func(argName string, typ expr.Type) func() error {
 			return func() error {
@@ -664,6 +672,7 @@ func verifyStep(s *types.WorkflowStep, in, out types.WorkflowPathSet) types.Work
 	case types.WorkflowStepKindFunction:
 		checks = append(checks,
 			requiredRef,
+			checkDisabledFunc,
 			count(0, 1, outbound),
 		)
 

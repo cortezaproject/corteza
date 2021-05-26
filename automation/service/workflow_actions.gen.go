@@ -914,6 +914,38 @@ func WorkflowErrMaximumCallStackSizeExceeded(mm ...*workflowActionProps) *errors
 	return e
 }
 
+// WorkflowErrNotAllowedToExecuteCorredorStep returns "automation:workflow.notAllowedToExecuteCorredorStep" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func WorkflowErrNotAllowedToExecuteCorredorStep(mm ...*workflowActionProps) *errors.Error {
+	var p = &workflowActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to run corredorExec function, corredor is disabled", nil),
+
+		errors.Meta("type", "notAllowedToExecuteCorredorStep"),
+		errors.Meta("resource", "automation:workflow"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow} with corredorExec function step; corredor is disabled"),
+		errors.Meta(workflowPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 

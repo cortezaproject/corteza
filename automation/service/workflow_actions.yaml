@@ -111,3 +111,7 @@ errors:
   - error: maximumCallStackSizeExceeded
     message: "maximum call stack size exceeded"
     log: "maximum call stack size exceeded"
+
+  - error: notAllowedToExecuteCorredorStep
+    message: "not allowed to run corredorExec function, corredor is disabled"
+    log: "failed to execute {workflow} with corredorExec function step; corredor is disabled"

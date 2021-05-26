@@ -26,6 +26,7 @@ type (
 	Config struct {
 		ActionLog options.ActionLogOpt
 		Workflow  options.WorkflowOpt
+		Corredor  options.CorredorOpt
 	}
 
 	userService interface {
@@ -93,7 +94,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultAccessControl = AccessControl(rbac.Global())
 
 	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow)
-	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Workflow)
+	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Workflow, c.Corredor)
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
 	DefaultWorkflow.triggers = DefaultTrigger
