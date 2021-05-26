@@ -107,3 +107,7 @@ errors:
   - error: handleNotUnique
     message: "workflow handle not unique"
     log: "duplicate handle used for workflow ({workflow})"
+
+  - error: notAllowedToExecuteCorredorStep
+    message: "not allowed to run corredorExec function, corredor is disabled"
+    log: "failed to execute {workflow} with corredorExec function step; corredor is disabled"

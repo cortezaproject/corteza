@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"reflect"
 	"sync"
 
@@ -35,7 +36,8 @@ type (
 		wfgs map[uint64]*wfexec.Graph
 
 		// workflow function registry
-		reg *registry
+		reg         *registry
+		corredorOpt options.CorredorOpt
 
 		mux    *sync.RWMutex
 		parser expr.Parsable
@@ -77,19 +79,20 @@ const (
 	workflowDefChanged    workflowChanges = 4
 )
 
-func Workflow(log *zap.Logger) *workflow {
+func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt) *workflow {
 	return &workflow{
-		log:       log,
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		ac:        DefaultAccessControl,
-		triggers:  DefaultTrigger,
-		session:   DefaultSession,
-		eventbus:  eventbus.Service(),
-		wfgs:      make(map[uint64]*wfexec.Graph),
-		mux:       &sync.RWMutex{},
-		parser:    expr.NewParser(),
-		reg:       Registry(),
+		log:         log,
+		actionlog:   DefaultActionlog,
+		store:       DefaultStore,
+		ac:          DefaultAccessControl,
+		triggers:    DefaultTrigger,
+		session:     DefaultSession,
+		eventbus:    eventbus.Service(),
+		wfgs:        make(map[uint64]*wfexec.Graph),
+		mux:         &sync.RWMutex{},
+		parser:      expr.NewParser(),
+		reg:         Registry(),
+		corredorOpt: corredorOpt,
 	}
 }
 
