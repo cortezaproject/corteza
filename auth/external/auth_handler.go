@@ -51,15 +51,23 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 	}
 
 	if session != nil {
-		s := (session.(samlsp.JWTSessionClaims)).GetAttributes()
+		sess := (session.(samlsp.JWTSessionClaims))
 
 		u = &types.ExternalAuthUser{}
 		u.Provider = "saml"
 
 		// get identifier for use with Corteza (email)
-		u.Email = eh.service.GuessIdentifier(s)
-		u.Name = s.Get(eh.service.IDPUserMeta.Name)
-		u.NickName = s.Get(eh.service.IDPUserMeta.Handle)
+		u.Email = eh.service.GuessIdentifier(sess.Attributes)
+
+		// try to get email from jwt claims
+		if u.Email == "" {
+			u.Email = sess.StandardClaims.Subject
+			u.Name = sess.StandardClaims.Subject
+			u.NickName = sess.StandardClaims.Subject
+		} else {
+			u.Name = sess.Attributes.Get(eh.service.IDPUserMeta.Name)
+			u.NickName = sess.Attributes.Get(eh.service.IDPUserMeta.Handle)
+		}
 	}
 
 	return
