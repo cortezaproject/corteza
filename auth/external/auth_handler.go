@@ -53,6 +53,10 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 	if session != nil {
 		sess := (session.(samlsp.JWTSessionClaims))
 
+		if sess.StandardClaims.Valid() != nil {
+			return nil, sess.StandardClaims.Valid()
+		}
+
 		u = &types.ExternalAuthUser{}
 		u.Provider = "saml"
 
@@ -68,6 +72,8 @@ func (eh *externalSamlAuthHandler) CompleteUserAuth(w http.ResponseWriter, r *ht
 			u.Name = sess.Attributes.Get(eh.service.IDPUserMeta.Name)
 			u.NickName = sess.Attributes.Get(eh.service.IDPUserMeta.Handle)
 		}
+
+		u.UserID = sess.Attributes.Get("SessionIndex")
 	}
 
 	return
