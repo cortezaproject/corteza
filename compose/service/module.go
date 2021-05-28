@@ -589,10 +589,19 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Module, newFields types.ModuleFieldSet) (types.ModuleFieldSet, error) {
 	var err error
 
+	// prepare an auxillary module to perform isolated validations on
+	auxm := &types.Module{
+		Handle:      "aux_module",
+		NamespaceID: m.NamespaceID,
+		Fields:      types.ModuleFieldSet{nil},
+	}
+
 	for _, f := range newFields {
 		if f.DefaultValue == nil || len(f.DefaultValue) == 0 {
 			continue
 		}
+		auxm.Fields[0] = f
+
 		vv := f.DefaultValue
 		vv.SetUpdatedFlag(true)
 		// Module field default values should not have a field name, so let's temporarily add it
@@ -601,21 +610,21 @@ func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Mo
 			return nil
 		})
 
-		if err = RecordValueSanitization(m, vv); err != nil {
+		if err = RecordValueSanitization(auxm, vv); err != nil {
 			return nil, err
 		}
 
-		vv = values.Sanitizer().Run(m, vv)
+		vv = values.Sanitizer().Run(auxm, vv)
 
 		r := &types.Record{
 			Values: vv,
 		}
-		rve := defaultValidator().Run(ctx, s, m, r)
+		rve := defaultValidator().Run(ctx, s, auxm, r)
 		if !rve.IsValid() {
 			return nil, rve
 		}
 
-		vv = values.Formatter().Run(m, vv)
+		vv = values.Formatter().Run(auxm, vv)
 
 		// Module field default values should not have a field name, so let's remove it
 		vv.Walk(func(rv *types.RecordValue) error {
