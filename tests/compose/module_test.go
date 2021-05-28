@@ -265,6 +265,39 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h.a.Equal(m.Fields[1].Kind, "DateTime")
 }
 
+func TestModuleFieldsUpdate_defaults(t *testing.T) {
+	h := newHelper(t)
+	h.clearModules()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	ns := h.makeNamespace("some-namespace")
+	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing", Required: true, DefaultValue: types.RecordValueSet{&types.RecordValue{Value: "test"}}})
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+
+	f := m.Fields[0]
+	fjs := fmt.Sprintf(`{ "name": "%s", "fields": [{ "fieldID": "%d", "name": "existing_edited", "kind": "String", "isRequired": true, "defaultValue": [{ "value": "test" }] }, { "name": "new", "kind": "Bool", "defaultValue": [{ "value": "1" }] }] }`, m.Name, f.ID)
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d", ns.ID, m.ID)).
+		JSON(fjs).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	m = h.lookupModuleByID(m.ID)
+	h.a.NotNil(m)
+	h.a.NotNil(m.Fields)
+	h.a.Len(m.Fields, 2)
+
+	h.a.Equal(m.Fields[0].Kind, "String")
+	h.a.Len(m.Fields[0].DefaultValue, 1)
+	h.a.Equal("test", m.Fields[0].DefaultValue[0].Value)
+
+	h.a.Equal(m.Fields[1].Kind, "Bool")
+	h.a.Len(m.Fields[1].DefaultValue, 1)
+	h.a.Equal("1", m.Fields[1].DefaultValue[0].Value)
+}
+
 func TestModuleFieldsDefaultValue(t *testing.T) {
 	var ns *types.Namespace
 
