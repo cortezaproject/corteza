@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/compose/automation"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -18,9 +21,8 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
+	systemService "github.com/cortezaproject/corteza-server/system/service"
 	"go.uber.org/zap"
-	"strconv"
-	"time"
 )
 
 type (
@@ -171,6 +173,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		automationService.Registry(),
 		DefaultNamespace,
 	)
+
+	// Register reporters
+	// @todo additional datasource providers; generate?
+	systemService.DefaultReport.RegisterReporter("composeRecords", DefaultRecord)
 
 	return nil
 }
