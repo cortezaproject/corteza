@@ -132,6 +132,11 @@ func (t *Boolean) Assign(val interface{}) error {
 	}
 }
 
+// Compare the two Boolean values
+func (t Boolean) Compare(to TypedValue) (int, error) {
+	return compareToBoolean(t, to)
+}
+
 // DateTime is an expression type, wrapper for *time.Time type
 type DateTime struct{ value *time.Time }
 
@@ -168,6 +173,11 @@ func (t *DateTime) Assign(val interface{}) error {
 		t.value = c
 		return nil
 	}
+}
+
+// Compare the two DateTime values
+func (t DateTime) Compare(to TypedValue) (int, error) {
+	return compareToDateTime(t, to)
 }
 
 // Duration is an expression type, wrapper for time.Duration type
@@ -208,6 +218,11 @@ func (t *Duration) Assign(val interface{}) error {
 	}
 }
 
+// Compare the two Duration values
+func (t Duration) Compare(to TypedValue) (int, error) {
+	return compareToDuration(t, to)
+}
+
 // Float is an expression type, wrapper for float64 type
 type Float struct{ value float64 }
 
@@ -243,6 +258,25 @@ func (t *Float) Assign(val interface{}) error {
 	} else {
 		t.value = c
 		return nil
+	}
+}
+
+// Compare the two Float values
+func (t Float) Compare(to TypedValue) (int, error) {
+	c, err := NewFloat(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
 	}
 }
 
@@ -284,6 +318,25 @@ func (t *Handle) Assign(val interface{}) error {
 	}
 }
 
+// Compare the two Handle values
+func (t Handle) Compare(to TypedValue) (int, error) {
+	c, err := NewHandle(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
+	}
+}
+
 // ID is an expression type, wrapper for uint64 type
 type ID struct{ value uint64 }
 
@@ -322,6 +375,25 @@ func (t *ID) Assign(val interface{}) error {
 	}
 }
 
+// Compare the two ID values
+func (t ID) Compare(to TypedValue) (int, error) {
+	c, err := NewID(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
+	}
+}
+
 // Integer is an expression type, wrapper for int64 type
 type Integer struct{ value int64 }
 
@@ -357,6 +429,25 @@ func (t *Integer) Assign(val interface{}) error {
 	} else {
 		t.value = c
 		return nil
+	}
+}
+
+// Compare the two Integer values
+func (t Integer) Compare(to TypedValue) (int, error) {
+	c, err := NewInteger(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
 	}
 }
 
@@ -512,6 +603,25 @@ func (t *String) Assign(val interface{}) error {
 	}
 }
 
+// Compare the two String values
+func (t String) Compare(to TypedValue) (int, error) {
+	c, err := NewString(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
+	}
+}
+
 // UnsignedInteger is an expression type, wrapper for uint64 type
 type UnsignedInteger struct{ value uint64 }
 
@@ -547,6 +657,25 @@ func (t *UnsignedInteger) Assign(val interface{}) error {
 	} else {
 		t.value = c
 		return nil
+	}
+}
+
+// Compare the two UnsignedInteger values
+func (t UnsignedInteger) Compare(to TypedValue) (int, error) {
+	c, err := NewUnsignedInteger(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
 	}
 }
 

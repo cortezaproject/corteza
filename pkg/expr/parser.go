@@ -3,6 +3,7 @@ package expr
 import (
 	"context"
 	"fmt"
+
 	"github.com/PaesslerAG/gval"
 )
 
@@ -31,12 +32,14 @@ type (
 	}
 )
 
-func NewParser() Parsable {
-	return NewGvalParser()
+func NewParser(ee ...gval.Language) Parsable {
+	return NewGvalParser(ee...)
 }
 
-func NewGvalParser() *gvalParser {
-	return &gvalParser{lang: gval.Full(AllFunctions()...)}
+func NewGvalParser(ee ...gval.Language) *gvalParser {
+	ext := AllFunctions()
+	ext = append(ext, ee...)
+	return &gvalParser{lang: gval.Full(ext...)}
 }
 
 func (p *gvalParser) Parse(expr string) (Evaluable, error) {
