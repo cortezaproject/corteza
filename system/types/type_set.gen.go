@@ -60,6 +60,11 @@ type (
 	// This type is auto-generated.
 	ReminderSet []*Reminder
 
+	// ReportSet slice of Report
+	//
+	// This type is auto-generated.
+	ReportSet []*Report
+
 	// RoleSet slice of Role
 	//
 	// This type is auto-generated.
@@ -585,6 +590,62 @@ func (set ReminderSet) FindByID(ID uint64) *Reminder {
 //
 // This function is auto-generated.
 func (set ReminderSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Report) err
+//
+// This function is auto-generated.
+func (set ReportSet) Walk(w func(*Report) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Report) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ReportSet) Filter(f func(*Report) (bool, error)) (out ReportSet, err error) {
+	var ok bool
+	out = ReportSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ReportSet) FindByID(ID uint64) *Report {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ReportSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

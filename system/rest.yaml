@@ -1341,6 +1341,122 @@ endpoints:
         type: json.RawMessage
         required: false
         title: Rendering options
+
+- title: Reports
+  path: "/reports"
+  entrypoint: report
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/pkg/report
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: List reports
+    path: "/"
+    parameters:
+      get:
+      - name: handle
+        required: false
+        title: Report handle
+        type: string
+      - name: deleted
+        required: false
+        title: Exclude (0, default), include (1) or return only (2) deleted reports
+        type: uint
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+      - type: uint
+        name: limit
+        title: Limit
+      - type: string
+        name: pageCursor
+        title: Page cursor
+      - type: string
+        name: sort
+        title: Sort items
+  - name: create
+    method: POST
+    title: Create report
+    path: "/"
+    parameters:
+      post:
+      - { name: handle,       type: string,                       title: Client handle }
+      - { name: meta,         type: '*types.ReportMeta',          title: Additional info,         parser: types.ParseReportMeta }
+      - { name: sources,      type: "types.ReportDataSourceSet",  title: Report source definitions }
+      - { name: projections,  type: "types.ReportProjectionSet",  title: Report projections definition }
+      - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }
+  - name: update
+    method: PUT
+    title: Update report
+    path: "/{reportID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reportID
+        required: true
+        title: Report ID
+      post:
+      - { name: handle,       type: string,                       title: Client handle }
+      - { name: meta,         type: '*types.ReportMeta',          title: Additional info,         parser: types.ParseReportMeta }
+      - { name: sources,      type: "types.ReportDataSourceSet",  title: Report sources definition }
+      - { name: projections,  type: "types.ReportProjectionSet",  title: Report projections definition }
+      - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }
+  - name: read
+    method: GET
+    title: Read report details
+    path: "/{reportID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reportID
+        required: true
+        title: Report ID
+  - name: delete
+    method: DELETE
+    title: Remove report
+    path: "/{reportID}"
+    parameters:
+      path:
+      - type: uint64
+        name: reportID
+        required: true
+        title: Report ID
+  - name: undelete
+    method: POST
+    title: Undelete report
+    path: "/{reportID}/undelete"
+    parameters:
+      path:
+      - type: uint64
+        name: reportID
+        required: true
+        title: Report ID
+    # @todo better name
+  - name: runFresh
+    method: POST
+    title: Run report (fresh)
+    path: "/run"
+    parameters:
+      post:
+      - { name: sources,      type: "types.ReportDataSourceSet",  title: Report steps definition }
+      - { name: steps,        type: "report.StepDefinitionSet",   title: Report steps definition  }
+      - { name: frames,       type: "report.FrameDefinitionSet",  title: Report data frame definitions }
+  - name: run
+    method: POST
+    title: Run report
+    path: "/{reportID}/run"
+    parameters:
+      path:
+      - type: uint64
+        name: reportID
+        required: true
+        title: Report ID
+      post:
+      - { name: frames,       type: "report.FrameDefinitionSet",  title: Report data frame definitions }
 - title: Statistics
   entrypoint: stats
   path: "/stats"

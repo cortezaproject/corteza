@@ -11,6 +11,7 @@ package resource
 // - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
+// - system.report.yaml
 // - system.role.yaml
 // - system.template.yaml
 // - system.user.yaml
@@ -67,6 +68,19 @@ func SystemApplicationRbacReferences(application string) (res *Ref, pp []*Ref, e
 func SystemAuthClientRbacReferences(authClient string) (res *Ref, pp []*Ref, err error) {
 	if authClient != "*" {
 		res = &Ref{ResourceType: types.AuthClientResourceType, Identifiers: MakeIdentifiers(authClient)}
+	}
+
+	return
+}
+
+// SystemReportRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemReportRbacReferences(report string) (res *Ref, pp []*Ref, err error) {
+	if report != "*" {
+		res = &Ref{ResourceType: types.ReportResourceType, Identifiers: MakeIdentifiers(report)}
 	}
 
 	return
