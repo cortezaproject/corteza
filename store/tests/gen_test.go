@@ -32,6 +32,7 @@ package tests
 //  - store/messagebus_queue_settings.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
+//  - store/reports.yaml
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
@@ -197,6 +198,11 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	// Run generated tests for Reminders
 	t.Run("Reminders", func(t *testing.T) {
 		testReminders(t, s)
+	})
+
+	// Run generated tests for Reports
+	t.Run("Reports", func(t *testing.T) {
+		testReports(t, s)
 	})
 
 	// Run generated tests for RoleMembers

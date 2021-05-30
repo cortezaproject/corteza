@@ -1,0 +1,36 @@
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+fields:
+  - { field: ID }
+  - { field: Handle, sortable: true }
+  - { field: Meta, type: '*ReportMeta' }
+  - { field: Sources, type: 'ReportDataSourceSet' }
+  - { field: Projections, type: 'ReportProjectionSet' }
+  - { field: OwnedBy }
+  - { field: CreatedBy }
+  - { field: UpdatedBy }
+  - { field: DeletedBy }
+  - { field: CreatedAt, sortable: true }
+  - { field: UpdatedAt, sortable: true }
+  - { field: DeletedAt, sortable: true }
+
+lookups:
+  - fields: [ ID ]
+    description: |-
+      searches for report by ID
+
+      It returns report even if deleted
+
+  - fields: [ Handle ]
+    uniqueConstraintCheck: true
+    filter: { DeletedAt: nil }
+    description: |-
+      searches for report by Handle
+
+      It returns report even if deleted
+
+rdbms:
+  alias: rp
+  table: reports
+  customFilterConverter: true

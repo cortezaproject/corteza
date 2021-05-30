@@ -1,0 +1,88 @@
+# List of loggable service actions
+
+resource: system:report
+service: report
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: report
+    type: "*types.Report"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Report"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Report"
+    fields: [ handle, ID ]
+  - name: filter
+    type: "*types.ReportFilter"
+    fields: [ handle, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for reports"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {report}"
+    severity: info
+
+  - action: create
+    log: "created {report}"
+
+  - action: update
+    log: "updated {report}"
+
+  - action: delete
+    log: "deleted {report}"
+
+  - action: undelete
+    log: "undeleted {report}"
+
+  - action: run
+    log: report ran
+
+errors:
+  - error: notFound
+    message: "report not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this report"
+    log: "failed to read {report}; insufficient permissions"
+
+  - error: notAllowedToListReports
+    message: "not allowed to list reports"
+    log: "failed to list report; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create reports"
+    log: "failed to create report; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this report"
+    log: "failed to update {report}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this report"
+    log: "failed to delete {report}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this report"
+    log: "failed to undelete {report}; insufficient permissions"
+
+  - error: notAllowedToRun
+    message: "not allowed to run this report"
+    log: "failed to run {report}; insufficient permissions"

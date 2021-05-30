@@ -47,6 +47,7 @@ func (svc accessControl) Effective(ctx context.Context) (ee rbac.EffectiveSet) {
 	ee.Push(types.SystemRBACResource, "application.flag.self", svc.CanSelfFlagApplication(ctx))
 	ee.Push(types.SystemRBACResource, "application.flag.global", svc.CanGlobalFlagApplication(ctx))
 	ee.Push(types.SystemRBACResource, "template.create", svc.CanCreateTemplate(ctx))
+	ee.Push(types.SystemRBACResource, "report.create", svc.CanCreateReport(ctx))
 	ee.Push(types.SystemRBACResource, "role.create", svc.CanCreateRole(ctx))
 	ee.Push(types.SystemRBACResource, "messagebus-queue.create", svc.CanCreateMessagebusQueue(ctx))
 
@@ -91,6 +92,10 @@ func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
 
 func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
 	return svc.can(ctx, types.SystemRBACResource, "template.create")
+}
+
+func (svc accessControl) CanCreateReport(ctx context.Context) bool {
+	return svc.can(ctx, types.SystemRBACResource, "report.create")
 }
 
 func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
@@ -170,6 +175,22 @@ func (svc accessControl) CanDeleteTemplate(ctx context.Context, tpl *types.Templ
 
 func (svc accessControl) CanRenderTemplate(ctx context.Context, tpl *types.Template) bool {
 	return svc.can(ctx, tpl.RBACResource(), "render", rbac.Allowed)
+}
+
+func (svc accessControl) CanReadReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, r.RBACResource(), "read")
+}
+
+func (svc accessControl) CanUpdateReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, r.RBACResource(), "update")
+}
+
+func (svc accessControl) CanDeleteReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, r.RBACResource(), "delete")
+}
+
+func (svc accessControl) CanRunReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, r.RBACResource(), "run")
 }
 
 func (svc accessControl) CanReadUser(ctx context.Context, u *types.User) bool {
@@ -301,6 +322,7 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"application.flag.self",
 		"application.flag.global",
 		"template.create",
+		"report.create",
 		"reminder.assign",
 		"messagebus-queue.create",
 	)
@@ -318,6 +340,14 @@ func (svc accessControl) Whitelist() rbac.Whitelist {
 		"update",
 		"delete",
 		"render",
+	)
+
+	wl.Set(
+		types.ReportRBACResource,
+		"read",
+		"update",
+		"delete",
+		"run",
 	)
 
 	wl.Set(

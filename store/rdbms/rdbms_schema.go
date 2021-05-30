@@ -67,6 +67,7 @@ func (s Schema) Tables() []*Table {
 		s.Labels(),
 		s.Flags(),
 		s.Templates(),
+		s.Reports(),
 		s.ComposeAttachment(),
 		s.ComposeChart(),
 		s.ComposeModule(),
@@ -345,6 +346,22 @@ func (Schema) Templates() *Table {
 		ColumnDef("last_used_at", ColumnTypeTimestamp, Null),
 
 		AddIndex("unique_language_handle", IColumn("language"), IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
+	)
+}
+
+func (Schema) Reports() *Table {
+	return TableDef("reports",
+		ID,
+		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("sources", ColumnTypeJson),
+		ColumnDef("projections", ColumnTypeJson),
+
+		ColumnDef("owned_by", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+
+		AddIndex("unique_handle", IExpr("LOWER(handle)"), IWhere("LENGTH(handle) > 0 AND deleted_at IS NULL")),
 	)
 }
 

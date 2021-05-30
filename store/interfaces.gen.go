@@ -34,6 +34,7 @@ package store
 //  - store/messagebus_queue_settings.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
+//  - store/reports.yaml
 //  - store/role_members.yaml
 //  - store/roles.yaml
 //  - store/settings.yaml
@@ -77,6 +78,7 @@ type (
 		MessagebusQueueSettings
 		RbacRules
 		Reminders
+		Reports
 		RoleMembers
 		Roles
 		Settings

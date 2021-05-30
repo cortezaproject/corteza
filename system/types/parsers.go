@@ -1,6 +1,8 @@
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 func ParseTemplateMeta(ss []string) (p TemplateMeta, err error) {
 	p = TemplateMeta{}
@@ -17,6 +19,11 @@ func parseStringsInput(ss []string, p interface{}) (err error) {
 
 func ParseAuthClientMeta(ss []string) (p *AuthClientMeta, err error) {
 	p = &AuthClientMeta{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseReportMeta(ss []string) (p *ReportMeta, err error) {
+	p = &ReportMeta{}
 	return p, parseStringsInput(ss, &p)
 }
 
