@@ -2,10 +2,11 @@ package codegen
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path"
 	"text/template"
+
+	"gopkg.in/yaml.v3"
 )
 
 type (
@@ -32,6 +33,8 @@ type (
 		CustomGValSelector  bool `yaml:"customGValSelector"`
 		CustomSelector      bool `yaml:"customSelector"`
 		CustomFieldAssigner bool `yaml:"customFieldAssigner"`
+		Comparable          bool `yaml:"comparable"`
+		CustomComparator    bool `yaml:"customComparator"`
 		Struct              []*exprTypeStructDef
 
 		// @todo custom setters
