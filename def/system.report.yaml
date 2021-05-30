@@ -1,0 +1,10 @@
+rbac:
+  operations:
+    read:
+      description: Read report
+    update:
+      description: Update report
+    delete:
+      description: Delete report
+    run:
+      description: Run report

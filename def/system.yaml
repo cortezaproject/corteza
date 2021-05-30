@@ -42,6 +42,11 @@ rbac:
     templates.search:
       description: List, search or filter templates
 
+    report.create:
+      description: Create report
+    reports.search:
+      description: List, search or filter reports
+
     reminder.assign:
       description:  Assign reminders
 
