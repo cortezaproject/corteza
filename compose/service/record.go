@@ -19,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 )
 
@@ -84,6 +85,8 @@ type (
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
+
+		Datasource(context.Context, *report.LoadStepDefinition) (report.Datasource, error)
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, error)
@@ -1373,7 +1376,6 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 	}()
 
 	return svc.recordAction(ctx, aProps, RecordActionIteratorInvoked, err)
-
 }
 
 func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
