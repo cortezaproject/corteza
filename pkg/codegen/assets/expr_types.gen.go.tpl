@@ -75,6 +75,33 @@ func (t *{{ $exprType }}) Assign(val interface{}) (error) {
 	}
 }
 
+{{ if $def.Comparable }}
+{{ if not $def.CustomComparator }}
+// Compare the two {{ $exprType }} values
+func (t {{ $exprType }}) Compare(to TypedValue) (int, error) {
+	c, err := New{{ $exprType }}(to)
+	if err != nil {
+		return 0, fmt.Errorf("cannot compare %s and %s: %s", t.Type(), c.Type(), err.Error())
+	}
+
+	switch {
+	case t.value == c.value:
+		return 0, nil
+	case t.value < c.value:
+		return -1, nil
+	case t.value > c.value:
+		return 1, nil
+	default:
+		return 0, fmt.Errorf("cannot compare %s and %s: unknown state", t.Type(), c.Type())
+	}
+}
+{{ else }}
+// Compare the two {{ $exprType }} values
+func (t {{ $exprType }}) Compare(to TypedValue) (int, error) {
+	return compareTo{{ $exprType }}(t, to)
+}
+{{ end }}
+{{ end }}
 
 {{ if $def.Struct }}
 {{ if not $def.CustomFieldAssigner }}

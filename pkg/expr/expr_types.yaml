@@ -16,37 +16,49 @@ types:
   Boolean:
     as: 'bool'
     default: 'false'
+    comparable: true
+    customComparator: true
 
   ID:
     as: 'uint64'
     default: '0'
+    comparable: true
 
   Integer:
     as: 'int64'
     default: '0'
+    comparable: true
 
   UnsignedInteger:
     as: 'uint64'
     default: '0'
+    comparable: true
 
   Float:
     as: 'float64'
     default: '0'
+    comparable: true
 
   String:
     as: 'string'
     default: '""'
+    comparable: true
 
   Handle:
     as: 'string'
     default: '""'
+    comparable: true
 
   DateTime:
     as: '*time.Time'
+    comparable: true
+    customComparator: true
 
   Duration:
     as: 'time.Duration'
     default: '0'
+    comparable: true
+    customComparator: true
 
   KV:
     as: 'map[string]string'
