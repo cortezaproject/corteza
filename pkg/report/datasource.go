@@ -29,7 +29,18 @@ type (
 		Group(GroupDefinition, string) (bool, error)
 	}
 
+	// @todo make the underlying DB driver determine this alongside the rdbms package.
+	//       somethins similar to how we do typecasting should do the trick.
+	PartitionableDatasource interface {
+		Datasource
+		Partition(context.Context, uint, string, ...*FrameDefinition) (Loader, Closer, error)
+	}
+
 	// @todo TransformableDatasource
+)
+
+const (
+	defaultPageSize = uint(20)
 )
 
 // Merge merges the two DatasourceSets and overwrites any duplicates

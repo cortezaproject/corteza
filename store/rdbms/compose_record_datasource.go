@@ -165,6 +165,39 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
 	def := dd[0]
 
+	q, err := r.preloadQuery(def)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return r.load(ctx, def, q)
+}
+
+func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, partitionCol string, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
+	def := dd[0]
+
+	q, err := r.preloadQuery(def)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// the partitioning wrap
+	// @todo move this to the DB driver package?
+	// @todo squash the query a bit? try to move most of this to the base query to remove
+	//       one sub-select
+	prt := squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, partitionCol)).
+		FromSelect(q, "partition_base")
+
+	q = squirrel.Select("*").
+		FromSelect(prt, "partition_wrap").
+		Where(fmt.Sprintf("pp_rank <= %d", partitionSize))
+
+	return r.load(ctx, def, q)
+}
+
+func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.SelectBuilder, error) {
+	q := r.qBuilder
+
 	// assure columns
 	// - undefined columns = all columns
 	if len(def.Columns) == 0 {
@@ -175,14 +208,12 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 		for i, c := range def.Columns {
 			ci := r.cols.Find(c.Name)
 			if ci == -1 {
-				return nil, nil, fmt.Errorf("column not found: %s", c.Name)
+				return q, fmt.Errorf("column not found: %s", c.Name)
 			}
 			cc[i] = r.cols[ci]
 		}
 		def.Columns = cc
 	}
-
-	q := r.qBuilder
 
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
@@ -195,7 +226,7 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 		if def.Rows != nil {
 			f, err := r.rowFilterToString("", r.cols, def.Rows)
 			if err != nil {
-				return nil, nil, err
+				return q, err
 			}
 			wrap = wrap.Where(f)
 		}
@@ -206,12 +237,12 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 			for i, c := range def.Sorting {
 				ci := r.cols.Find(c.Column)
 				if ci == -1 {
-					return nil, nil, fmt.Errorf("sort column not resolved: %s", c.Column)
+					return q, fmt.Errorf("sort column not resolved: %s", c.Column)
 				}
 
 				_, _, typeCast, err := r.store.config.CastModuleFieldToColumnType(r.cols[ci], c.Column)
 				if err != nil {
-					return nil, nil, err
+					return q, err
 				}
 
 				ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
@@ -223,6 +254,10 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 		q = wrap
 	}
 
+	return q, nil
+}
+
+func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
 	r.rows, err = r.store.Query(ctx, q)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot execute query: %w", err)
@@ -234,6 +269,8 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 				Source: def.Source,
 				Ref:    def.Ref,
 			}
+
+			checkCap := cap > 0
 
 			// fetch & convert the data
 			i := 0
@@ -249,7 +286,7 @@ func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefiniti
 					return nil, err
 				}
 
-				if i >= cap {
+				if checkCap && i >= cap {
 					out := []*report.Frame{f}
 					f = &report.Frame{}
 					i = 0

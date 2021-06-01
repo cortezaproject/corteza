@@ -3,9 +3,10 @@ package filter
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"regexp"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
 
 type (
@@ -42,7 +43,7 @@ func NewSorting(sort string) (s Sorting, err error) {
 // Unlike before, we do not use pkg/ql for parsing this as we do not allow
 // any complex sorting expressions
 func parseSort(in string) (set SortExprSet, err error) {
-	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_]+)(\s+(asc|ASC|desc|DESC))?`)
+	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_\.]+)(\s+(asc|ASC|desc|DESC))?`)
 
 	set = SortExprSet{}
 
