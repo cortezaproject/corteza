@@ -193,7 +193,7 @@ func (m *model) calculatePaging(f *Frame, p *filter.Paging, ss filter.SortExprSe
 	out.Limit = p.Limit
 
 	if hasNext {
-		f, _ = f.Slice(0, f.Size()-2)
+		f, _ = f.Slice(0, f.Size()-1)
 		out.NextPage = m.calculatePageCursor(f.LastRow(), f.Columns, ss)
 	}
 

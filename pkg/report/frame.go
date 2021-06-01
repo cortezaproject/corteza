@@ -58,18 +58,6 @@ const (
 	columnWildcard = "*"
 )
 
-func MergeFrames(ff ...*Frame) (out *Frame) {
-	// @todo shape validation
-	for _, f := range ff {
-		if out == nil {
-			out = f
-		} else {
-			out.Rows = append(out.Rows, f.PullRows()...)
-		}
-	}
-	return out
-}
-
 func MakeColumnOfKind(k string) *FrameColumn {
 	return &FrameColumn{
 		Kind: k,
@@ -195,39 +183,33 @@ func (f *Frame) Slice(startIndex, size int) (a, b *Frame) {
 		Source:  f.Source,
 		Ref:     f.Ref,
 		Columns: f.Columns,
-		Rows:    f.Rows,
 		Error:   f.Error,
-
-		sliced: true,
 	}
 	b = &Frame{
 		Name:    f.Name,
 		Source:  f.Source,
 		Ref:     f.Ref,
 		Columns: f.Columns,
-		Rows:    f.Rows,
 		Error:   f.Error,
-
-		sliced: true,
 	}
 
-	a.startIndex = startIndex
-	// +1 to make it easier to work with indexes
-	a.size = size + 1
-
-	b.startIndex = size + 1
-	b.size = f.Size() - startIndex
-
+	a.Rows = f.Rows[startIndex:size]
+	b.Rows = f.Rows[size:]
 	return a, b
 }
 
-func (f *Frame) WalkRows(cb func(i int, r FrameRow) error) (err error) {
-	limit := len(f.Rows)
-	if f.sliced {
-		limit = f.size
+// With guard element
+func (f *Frame) WalkRowsG(cb func(i int, r FrameRow) error) (err error) {
+	err = f.WalkRows(cb)
+	if err != nil {
+		return err
 	}
 
-	for i := f.startIndex; i < limit; i++ {
+	return cb(f.Size(), nil)
+}
+
+func (f *Frame) WalkRows(cb func(i int, r FrameRow) error) (err error) {
+	for i := 0; i < f.Size(); i++ {
 		if err = cb(i, f.Rows[i]); err != nil {
 			return err
 		}
@@ -237,12 +219,7 @@ func (f *Frame) WalkRows(cb func(i int, r FrameRow) error) (err error) {
 }
 
 func (f *Frame) WalkRowsR(cb func(i int, r FrameRow) error) (err error) {
-	i := len(f.Rows) - 1
-	if f.sliced {
-		i = f.startIndex + f.size - 1
-	}
-
-	for i = i; i >= f.startIndex; i-- {
+	for i := f.Size(); i >= 0; i-- {
 		if err = cb(i, f.Rows[i]); err != nil {
 			return err
 		}
@@ -252,42 +229,27 @@ func (f *Frame) WalkRowsR(cb func(i int, r FrameRow) error) (err error) {
 }
 
 func (f *Frame) PeekRow(i int) FrameRow {
-	return f.Rows[f.startIndex+i]
+	return f.Rows[i]
 }
 
 func (f *Frame) PeekRowSafe(i int) FrameRow {
-	ix := f.startIndex + i
-	if ix >= f.Size() {
+	if i >= f.Size() {
 		return nil
 	}
 
-	return f.Rows[ix]
+	return f.Rows[i]
 }
 
 func (f *Frame) Size() int {
-	if f.sliced {
-		return f.size - f.startIndex
-	}
 	return len(f.Rows)
 }
 
 func (f *Frame) FirstRow() FrameRow {
-	return f.Rows[f.startIndex]
+	return f.Rows[0]
 }
 
 func (f *Frame) LastRow() FrameRow {
-	if f.sliced {
-		return f.Rows[f.startIndex+f.Size()-1]
-	}
-	return f.Rows[f.startIndex]
-}
-
-func (f *Frame) PullRows() FrameRowSet {
-	if !f.sliced {
-		return f.Rows
-	}
-
-	return f.Rows[f.startIndex : f.startIndex+f.size]
+	return f.Rows[f.Size()-1]
 }
 
 // @todo nicer formatting and alignment
@@ -305,7 +267,7 @@ func (f *Frame) String() string {
 	f.WalkRows(func(i int, r FrameRow) error {
 		out += fmt.Sprintf("%d| ", i+1)
 		for _, c := range r {
-			if c == nil || c == nil {
+			if c == nil {
 				out += "<N/A>, "
 			} else {
 				v := cast.ToString(c.Get())
