@@ -1,7 +1,9 @@
 rbac:
   resource:
-    elements: [ NodeID, ID ]
+    references: [ node, ID ]
 
   operations:
     manage:
       description: Manage shared module
+
+envoy: false

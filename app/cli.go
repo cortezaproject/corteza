@@ -83,7 +83,7 @@ func (app *CortezaApp) InitCLI() {
 	app.Command.AddCommand(
 		systemCommands.Users(ctx, app),
 		systemCommands.Roles(ctx, app),
-		systemCommands.RBAC(ctx, app),
+		systemCommands.RBAC(ctx, storeInit),
 		systemCommands.Sink(ctx, app),
 		systemCommands.Settings(ctx, app),
 		systemCommands.Import(ctx, storeInit),

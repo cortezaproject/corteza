@@ -4,11 +4,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
-	"strconv"
-	"time"
 )
 
 type (
@@ -236,11 +237,30 @@ func (set RecordValueSet) GetClean() (out RecordValueSet) {
 }
 
 // Merge merges old value set with new one and expects unchanged values to be in the new set
+func (set RecordValueSet) Merge(mfs ModuleFieldSet, new RecordValueSet, canAccessField func(f *ModuleField) bool) (out RecordValueSet) {
+	new, _ = new.Filter(func(v *RecordValue) (bool, error) {
+		return mfs.HasName(v.Name), nil
+	})
+
+	// Value merge process does not know anything about permissions so
+	// in case when new values are missing but do exist in the old set and their update/read is denied
+	// we need to copy them to ensure value merge process them correctly
+	for _, f := range mfs {
+		if len(new.FilterByName(f.Name)) == 0 && !canAccessField(f) {
+			// copy all fields from old to new
+			new = append(new, set.FilterByName(f.Name).GetClean()...)
+		}
+	}
+
+	return set.merge(new)
+}
+
+// Raw merge of old and one and new values, skipping unchanged
 //
 // This satisfies current requirements where record values are always
 // manipulated as a whole (not partial)
 //
-func (set RecordValueSet) Merge(new RecordValueSet) (out RecordValueSet) {
+func (set RecordValueSet) merge(new RecordValueSet) (out RecordValueSet) {
 	if len(set) == 0 {
 		// Empty set, copy all new values and return them
 		for i := range new {

@@ -270,8 +270,28 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		return
 	}
 
-	// now set system users with so that the whole app knows what to use
+	// set system users & roles with so that the whole app knows what to use
 	auth.SetSystemUsers(uu, rr)
+	auth.SetSystemRoles(rr)
+
+	{
+		// register temporary RBAC with bypass roles
+		// this is needed because envoy relies on availability of access-control
+		//
+		// @todo envoy should be decoupled from RBAC and import directly into store,
+		//       w/o using any access control
+
+		var (
+			ac  = rbac.NewService(app.Log, app.Store)
+			acr = make([]*rbac.Role, 0)
+		)
+		for _, r := range auth.ProvisionUser().Roles() {
+			acr = append(acr, rbac.BypassRole.Make(r, auth.BypassRoleHandle))
+		}
+		ac.UpdateRoles(acr...)
+		rbac.SetGlobal(ac)
+		defer rbac.SetGlobal(nil)
+	}
 
 	if !app.Opt.Provision.Always {
 		app.Log.Debug("provisioning skipped (PROVISION_ALWAYS=false)")
@@ -311,10 +331,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	{
+	if rbac.Global() == nil {
 		//Initialize RBAC subsystem
-		// and (re)load rules from the storage backend
 		ac := rbac.NewService(app.Log, app.Store)
+
+		// and (re)load rules from the storage backend
 		ac.Reload(ctx)
 
 		rbac.SetGlobal(ac)

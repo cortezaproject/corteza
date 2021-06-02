@@ -250,6 +250,7 @@ func (s Store) QueryFederationModuleMappings(
 	check func(*types.ModuleMapping) (bool, error),
 ) ([]*types.ModuleMapping, error) {
 	var (
+		tmp = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
 		set = make([]*types.ModuleMapping, 0, DefaultSliceCapacity)
 		res *types.ModuleMapping
 
@@ -271,6 +272,11 @@ func (s Store) QueryFederationModuleMappings(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -284,7 +290,7 @@ func (s Store) QueryFederationModuleMappings(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id

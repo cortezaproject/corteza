@@ -61,11 +61,17 @@ func Test_check(t *testing.T) {
 
 	for _, c := range cc {
 		t.Run(c.name, func(t *testing.T) {
-			require.Equal(t, c.exp, c.set.Check(partitionRoles(c.rr...), c.res, c.op))
+			require.Equal(t, c.exp.String(), check(indexRules(c.set), partitionRoles(c.rr...), c.op, c.res).String())
 		})
 	}
 }
 
+//cpu: Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz
+//Benchmark_Check100-16                	15626196	        88.85 ns/op
+//Benchmark_Check1000-16               	15976252	        74.09 ns/op
+//Benchmark_Check10000-16              	15025586	        78.12 ns/op
+//Benchmark_Check100000-16             	13760616	        84.70 ns/op
+//Benchmark_Check1000000-16            	 2602420	       415.8 ns/op
 func benchmarkCheck(b *testing.B, c int) {
 	var (
 		// resting with 50 roles
@@ -75,9 +81,9 @@ func benchmarkCheck(b *testing.B, c int) {
 			&Role{id: 1, kind: CommonRole},
 			&Role{id: 2, kind: CommonRole},
 			&Role{id: 3, kind: CommonRole},
-			&Role{id: 4, kind: CommonRole},
-			&Role{id: 5, kind: CommonRole},
-			&Role{id: 6, kind: CommonRole},
+			&Role{id: 4, kind: ContextRole},
+			&Role{id: 5, kind: ContextRole},
+			&Role{id: 6, kind: AuthenticatedRole},
 		)
 	)
 
@@ -95,7 +101,7 @@ func benchmarkCheck(b *testing.B, c int) {
 	b.StartTimer()
 
 	for n := 0; n < b.N; n++ {
-		checkOptimised(iRules, pr, "res-0", "op-0")
+		check(iRules, pr, "res-0", "op-0")
 	}
 
 	b.StopTimer()
@@ -117,200 +123,23 @@ func Test_checkRulesByResource(t *testing.T) {
 		}{
 			{Inherit, "", "", nil},
 			{Inherit, "res", "op", nil},
-			{Allow, "res", "op", []*Rule{
+			{Allow, "res/1", "op", []*Rule{
 				{Resource: "---", Operation: "--", Access: Deny},
-				{Resource: "res", Operation: "op", Access: Allow},
+				{Resource: "res/1", Operation: "op", Access: Allow},
+			}},
+			{Allow, "res/2", "op", []*Rule{
+				{Resource: "res/*", Operation: "op", Access: Allow},
+			}},
+			{Allow, "res/3", "op", []*Rule{
+				{Resource: "res/3", Operation: "op", Access: Allow},
+				{Resource: "res/*", Operation: "op", Access: Deny},
 			}},
 		}
 	)
 
 	for _, c := range cc {
-		t.Run("", func(t *testing.T) {
-			require.Equal(t, c.exp, checkRulesByResource(c.set, c.res, c.op))
+		t.Run(c.res, func(t *testing.T) {
+			require.Equal(t, c.exp.String(), checkRulesByResource(c.set, c.op, c.res).String())
 		})
 	}
 }
-
-//// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //
-//// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //
-//// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //// //
-//
-//const (
-//	role1 uint64 = 10001
-//	role2 uint64 = 10002
-//
-//	resService1 = Resource("service1")
-//	resService2 = Resource("service2")
-//
-//	resThingWc = Resource("some:answer:*")
-//	resThing13 = Resource("some:answer:13")
-//	resThing42 = Resource("some:answer:42")
-//
-//	opAccess = "access"
-//	opRead   = "read"
-//	opWrite  = "write"
-//)
-//
-//func TestRuleSet_check(t *testing.T) {
-//	var (
-//		req = require.New(t)
-//
-//		rr = RuleSet{
-//			AllowRule(role1, resThing42, opRead),
-//			DenyRule(role1, resThing13, opWrite),
-//			AllowRule(role2, resThing13, opWrite),
-//		}
-//
-//		sCases = []struct {
-//			roles    []uint64
-//			res      Resource
-//			op       Operation
-//			expected Access
-//		}{
-//			{[]uint64{role1}, resThing42, opRead, Allow},
-//			{[]uint64{role1}, resThing42, opWrite, Inherit},
-//			{[]uint64{role1}, resThing13, opWrite, Deny},
-//			{[]uint64{role2}, resThing13, opWrite, Allow},
-//			{[]uint64{role1, role2}, resThing13, opWrite, Deny},
-//			{[]uint64{role1, role2}, resThing42, opRead, Allow},
-//		}
-//	)
-//
-//	for c, sc := range sCases {
-//		v := rr.check(sc.res, sc.op, sc.roles...)
-//		req.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
-//	}
-//}
-//
-//// Test resource inheritance
-//func TestRuleSet_checkResource(t *testing.T) {
-//	const (
-//		role1 uint64 = 10001
-//
-//		resService1 = Resource("service1")
-//		resService2 = Resource("service2")
-//
-//		resThingWc = Resource("some:answer:*")
-//		resThing13 = Resource("some:answer:13")
-//		resThing42 = Resource("some:answer:42")
-//
-//		opAccess = "access"
-//	)
-//
-//	var (
-//		r = require.New(t)
-//
-//		sCases = []struct {
-//			rr       RuleSet
-//			roles    []uint64
-//			res      Resource
-//			op       Operation
-//			expected Access
-//		}{
-//			{
-//				RuleSet{
-//					AllowRule(role1, resService1, opAccess),
-//				},
-//				[]uint64{role1},
-//				resService1,
-//				opAccess,
-//				Allow,
-//			},
-//			{
-//				RuleSet{
-//					AllowRule(role1, resThingWc, opAccess),
-//				},
-//				[]uint64{role1},
-//				resThing42,
-//				opAccess,
-//				Allow,
-//			},
-//			{ // deny wc and explictly allow 42
-//				RuleSet{
-//					DenyRule(role1, resThingWc, opAccess),
-//					AllowRule(role1, resThing42, opAccess),
-//				},
-//				[]uint64{role1},
-//				resThing42,
-//				opAccess,
-//				Allow,
-//			},
-//			{ // deny wc and explictly allow 42
-//				RuleSet{
-//					DenyRule(role1, resThingWc, opAccess),
-//					AllowRule(role1, resThing42, opAccess),
-//				},
-//				[]uint64{role1},
-//				resThing13,
-//				opAccess,
-//				Deny,
-//			},
-//			{ // deny wc and and check if wc is denied
-//				RuleSet{
-//					DenyRule(role1, resThingWc, opAccess),
-//					AllowRule(role1, resThing42, opAccess),
-//				},
-//				[]uint64{role1},
-//				resThingWc,
-//				opAccess,
-//				Deny,
-//			},
-//			{ // allow wc and and check if wc is allowed
-//				RuleSet{
-//					AllowRule(role1, resThingWc, opAccess),
-//					DenyRule(role1, resThing42, opAccess),
-//				},
-//				[]uint64{role1},
-//				resThingWc,
-//				opAccess,
-//				Allow,
-//			},
-//		}
-//	)
-//
-//	for c, sc := range sCases {
-//		v := sc.rr.checkResource(sc.res, sc.op, sc.roles...)
-//		r.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
-//	}
-//}
-//
-//// Test role inheritance
-//func TestRuleSet_Check(t *testing.T) {
-//	var (
-//		rr = RuleSet{
-//			// 1st level
-//			AllowRule(role1, resService1, opAccess),
-//			DenyRule(role2, resService1, opAccess),
-//			// 2nd level
-//			DenyRule(EveryoneRoleID, resService2, opAccess),
-//			AllowRule(EveryoneRoleID, resThing13, opAccess),
-//			AllowRule(role1, resService2, opAccess),
-//			// 3rd level
-//			DenyRule(EveryoneRoleID, resThingWc, opAccess),
-//			AllowRule(role1, resThing42, opAccess),
-//		}
-//
-//		r = require.New(t)
-//
-//		sCases = []struct {
-//			roles    []uint64
-//			res      Resource
-//			op       Operation
-//			expected Access
-//		}{
-//			{[]uint64{role1}, resService1, opAccess, Allow},
-//			{[]uint64{role2}, resService1, opAccess, Deny},
-//			{[]uint64{role1}, resService2, opAccess, Allow},
-//			{[]uint64{role2}, resService2, opAccess, Deny},
-//			{[]uint64{role1}, resThing42, opAccess, Allow},
-//			{[]uint64{role2}, resThing42, opAccess, Deny},
-//			{[]uint64{}, resThing42, opAccess, Deny},
-//			{[]uint64{}, resThing13, opAccess, Allow},
-//		}
-//	)
-//
-//	for c, sc := range sCases {
-//		v := rr.Check(sc.res, sc.op, sc.roles...)
-//		r.Equalf(sc.expected, v, "Check test #%d failed, expected %s, got %s", c, sc.expected, v)
-//	}
-//}

@@ -11,6 +11,7 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -165,6 +166,7 @@ func (s Store) QueryComposeRecords(
 	check func(*types.Record) (bool, error),
 ) ([]*types.Record, error) {
 	var (
+		tmp = make([]*types.Record, 0, DefaultSliceCapacity)
 		set = make([]*types.Record, 0, DefaultSliceCapacity)
 		res *types.Record
 
@@ -186,6 +188,15 @@ func (s Store) QueryComposeRecords(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	if err = s.composeRecordPostLoadProcessor(ctx, _mod, tmp...); err != nil {
+		return nil, err
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -199,11 +210,7 @@ func (s Store) QueryComposeRecords(
 		set = append(set, res)
 	}
 
-	if err = s.composeRecordPostLoadProcessor(ctx, _mod, set...); err != nil {
-		return nil, err
-	}
-
-	return set, rows.Err()
+	return set, nil
 }
 
 // lookupComposeRecordByID searches for compose record by ID

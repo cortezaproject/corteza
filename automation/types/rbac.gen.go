@@ -11,6 +11,7 @@ package types
 // - automation.yaml
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -22,13 +23,13 @@ type (
 )
 
 const (
-	WorkflowRbacResourceSchema  = "corteza+automation.workflow"
-	ComponentRbacResourceSchema = "corteza+automation"
+	WorkflowResourceType  = "corteza::automation:workflow"
+	ComponentResourceType = "corteza::automation"
 )
 
 // RbacResource returns string representation of RBAC resource for Workflow by calling WorkflowRbacResource fn
 //
-// RBAC resource is in the corteza+automation.workflow:/... format
+// RBAC resource is in the corteza::automation:workflow/... format
 //
 // This function is auto-generated
 func (r Workflow) RbacResource() string {
@@ -37,24 +38,29 @@ func (r Workflow) RbacResource() string {
 
 // WorkflowRbacResource returns string representation of RBAC resource for Workflow
 //
-// RBAC resource is in the corteza+automation.workflow:/... format
+// RBAC resource is in the corteza::automation:workflow/... format
 //
 // This function is auto-generated
-func WorkflowRbacResource(iD uint64) string {
-	out := WorkflowRbacResourceSchema + ":"
-	out += "/"
-
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+func WorkflowRbacResource(id uint64) string {
+	cpts := []interface{}{WorkflowResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(WorkflowRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func WorkflowRbacResourceTpl() string {
+	return "%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
-// RBAC resource is in the corteza+automation:/... format
+// RBAC resource is in the corteza::automation/... format
 //
 // This function is auto-generated
 func (r Component) RbacResource() string {
@@ -63,10 +69,15 @@ func (r Component) RbacResource() string {
 
 // ComponentRbacResource returns string representation of RBAC resource for Component
 //
-// RBAC resource is in the corteza+automation:/... format
+// RBAC resource is in the corteza::automation/ format
 //
 // This function is auto-generated
 func ComponentRbacResource() string {
-	out := ComponentRbacResourceSchema + ":"
-	return out
+	return ComponentResourceType + "/"
+
+}
+
+// @todo template
+func ComponentRbacResourceTpl() string {
+	return "%s"
 }

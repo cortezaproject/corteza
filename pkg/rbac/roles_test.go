@@ -1,9 +1,18 @@
 package rbac
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
+
+type (
+	testResource string
+)
+
+func (t testResource) RbacResource() string {
+	return string(t)
+}
 
 func Test_partitionRoles(t *testing.T) {
 	var (
@@ -40,6 +49,8 @@ func Test_getContextRoles(t *testing.T) {
 			}
 		}
 
+		tres = testResource("testResource")
+
 		tcc = []struct {
 			name         string
 			sessionRoles []uint64
@@ -50,25 +61,26 @@ func Test_getContextRoles(t *testing.T) {
 			{
 				"existing role",
 				[]uint64{1},
-				nil,
+				tres,
 				[]*Role{{id: 1, kind: BypassRole}},
 				[]*Role{{id: 1, kind: BypassRole}},
 			},
 			{
 				"missing role",
 				[]uint64{2},
-				nil,
+				tres,
 				[]*Role{{id: 1, kind: BypassRole}},
 				[]*Role{},
 			},
 			{
 				"dynamic role",
 				[]uint64{1, 2},
-				nil,
+				tres,
 				[]*Role{
 					{id: 1, kind: BypassRole},
-					{id: 2, kind: ContextRole, check: dyCheck(true)},
-					{id: 3, kind: ContextRole, check: dyCheck(false)},
+					{id: 2, kind: ContextRole, check: dyCheck(true), crtypes: map[string]bool{tres.RbacResource(): true}},
+					{id: 3, kind: ContextRole, check: dyCheck(false), crtypes: map[string]bool{tres.RbacResource(): true}},
+					{id: 4, kind: ContextRole, check: dyCheck(true)},
 				},
 				[]*Role{{id: 1, kind: BypassRole}, {id: 2, kind: ContextRole}},
 			},
@@ -81,7 +93,7 @@ func Test_getContextRoles(t *testing.T) {
 				req = require.New(t)
 			)
 
-			req.Equal(partitionRoles(tc.output...), getContextRoles(tc.sessionRoles, tc.res, tc.preloadRoles))
+			req.Equal(partitionRoles(tc.output...), getContextRoles(&session{rr: tc.sessionRoles}, tc.res, tc.preloadRoles))
 		})
 	}
 }

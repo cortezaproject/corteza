@@ -77,10 +77,6 @@ func (a *Application) Valid() bool {
 	return a.ID > 0 && a.DeletedAt == nil
 }
 
-func (r *Application) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
-
 func (au *ApplicationUnify) Scan(value interface{}) error {
 	//lint:ignore S1034 This typecast is intentional, we need to get []byte out of a []uint8
 	switch value.(type) {

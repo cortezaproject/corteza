@@ -484,17 +484,20 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 			return nil, err
 		}
 
-		u, err = svc.sysUser.Create(ctx, user)
+		// context with fed. user credentials
+		ctxfed := auth.SetIdentityToContext(ctx, auth.FederationUser())
+
+		u, err = svc.sysUser.Create(ctxfed, user)
 
 		if err != nil {
 			return nil, err
 		}
 
-		if err = service.DefaultRole.MemberAdd(ctx, r.ID, u.ID); err != nil {
+		if err = service.DefaultRole.MemberAdd(ctxfed, r.ID, u.ID); err != nil {
 			return nil, err
 		}
 
-		u.SetRoles(append(u.Roles(), r.ID))
+		u.SetRoles(append(u.Roles(), r.ID)...)
 
 		return u, nil
 	}

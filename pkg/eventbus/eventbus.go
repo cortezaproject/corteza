@@ -152,3 +152,16 @@ func (b *eventbus) Unregister(ptrs ...uintptr) {
 		delete(b.handlers, ptr)
 	}
 }
+
+// UnregisterByResource removes one or more registered handlers that match the given resource
+func (b *eventbus) UnregisterByResource(r string) {
+	b.l.Lock()
+	defer b.l.Unlock()
+	for p, h := range b.handlers {
+		if h.resourceTypes[r] {
+			delete(b.handlers, p)
+			continue
+		}
+
+	}
+}

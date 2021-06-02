@@ -59,9 +59,11 @@ func (s Store) convertUserFilter(f types.UserFilter) (query squirrel.SelectBuild
 		query = query.Where(squirrel.Eq{"usr.handle": f.Handle})
 	}
 
-	//if f.Kind != "" {
-	//	query = query.Where(squirrel.Eq{"usr.kind": f.Kind})
-	//}
+	if !f.AllKinds {
+		// When not explicitly requested to search all kids of users,
+		// always limit to one kind
+		query = query.Where(squirrel.Eq{"usr.kind": f.Kind})
+	}
 
 	return
 }

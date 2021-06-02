@@ -52,6 +52,7 @@ func (s Store) QueryLabels(
 	check func(*types.Label) (bool, error),
 ) ([]*types.Label, error) {
 	var (
+		tmp = make([]*types.Label, 0, DefaultSliceCapacity)
 		set = make([]*types.Label, 0, DefaultSliceCapacity)
 		res *types.Label
 
@@ -73,10 +74,15 @@ func (s Store) QueryLabels(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupLabelByKindResourceIDName Label lookup by kind, resource, name

@@ -3,15 +3,16 @@ package automation
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func (h helper) clearSessions() {
@@ -41,7 +42,7 @@ func TestSessionList(t *testing.T) {
 	h := newHelper(t)
 	h.clearSessions()
 
-	h.allow(types.AutomationRBACResource, "sessions.search")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "sessions.search")
 
 	wf := h.repoMakeWorkflow()
 	h.repoMakeSession(wf)
@@ -64,8 +65,8 @@ func TestSessionRead(t *testing.T) {
 	wf := h.repoMakeWorkflow()
 	s := h.repoMakeSession(wf)
 
-	h.allow(types.AutomationRBACResource, "sessions.search")
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "sessions.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "sessions.search")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "sessions.manage")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/sessions/%d", s.ID)).

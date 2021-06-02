@@ -1,8 +1,13 @@
 package compose
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -10,9 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest"
-	"net/http"
-	"strconv"
-	"testing"
 )
 
 func (h helper) apiSendRecordExec(nsID, modID uint64, proc string, args []request.ProcedureArg) *apitest.Response {
@@ -41,7 +43,10 @@ func TestRecordExecOrganize(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	//helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	//helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read", "update")
+	//helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read", "record.value.update")
 
 	module := h.repoMakeRecordModuleWithFields(
 		"record testing module",
@@ -61,7 +66,7 @@ func TestRecordExecOrganize(t *testing.T) {
 	assertSort := func(expectedHandles, expectedCats string) {
 		// Using record service for fetching to avoid value pre-fetching etc..
 		sorting, _ := filter.NewSorting("position ASC")
-		set, _, err := store.SearchComposeRecords(h.secCtx(), service.DefaultStore, module, types.RecordFilter{
+		set, _, err := store.SearchComposeRecords(context.Background(), service.DefaultStore, module, types.RecordFilter{
 			ModuleID:    module.ID,
 			NamespaceID: module.NamespaceID,
 			Sorting:     sorting,

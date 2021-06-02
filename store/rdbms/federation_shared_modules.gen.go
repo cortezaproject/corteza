@@ -238,6 +238,7 @@ func (s Store) QueryFederationSharedModules(
 	check func(*types.SharedModule) (bool, error),
 ) ([]*types.SharedModule, error) {
 	var (
+		tmp = make([]*types.SharedModule, 0, DefaultSliceCapacity)
 		set = make([]*types.SharedModule, 0, DefaultSliceCapacity)
 		res *types.SharedModule
 
@@ -259,6 +260,11 @@ func (s Store) QueryFederationSharedModules(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryFederationSharedModules(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFederationSharedModuleByID searches for shared federation module by ID

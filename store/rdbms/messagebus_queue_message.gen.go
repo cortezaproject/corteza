@@ -238,6 +238,7 @@ func (s Store) QueryMessagebusQueueMessages(
 	check func(*messagebus.QueueMessage) (bool, error),
 ) ([]*messagebus.QueueMessage, error) {
 	var (
+		tmp = make([]*messagebus.QueueMessage, 0, DefaultSliceCapacity)
 		set = make([]*messagebus.QueueMessage, 0, DefaultSliceCapacity)
 		res *messagebus.QueueMessage
 
@@ -259,10 +260,15 @@ func (s Store) QueryMessagebusQueueMessages(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // CreateMessagebusQueueMessage creates one or more rows in queue_messages table

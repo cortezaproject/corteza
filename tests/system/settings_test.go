@@ -1,19 +1,20 @@
 package system
 
 import (
+	"net/http"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	sqlTypes "github.com/jmoiron/sqlx/types"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"testing"
 )
 
 func TestSettingsList(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ComponentRbacResource(), "settings.read")
-	h.allow(types.ComponentRbacResource(), "settings.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.manage")
 
 	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
 		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
@@ -35,7 +36,7 @@ func TestSettingsList(t *testing.T) {
 
 func TestSettingsList_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(types.ComponentRbacResource(), "settings.read")
+	helpers.DenyMe(h, types.ComponentRbacResource(), "settings.read")
 
 	h.apiInit().
 		Get("/settings/").
@@ -48,8 +49,8 @@ func TestSettingsList_noPermissions(t *testing.T) {
 
 func TestSettingsUpdate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ComponentRbacResource(), "settings.manage")
-	h.allow(types.ComponentRbacResource(), "settings.read")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
 
 	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
 		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
@@ -75,7 +76,7 @@ func TestSettingsUpdate(t *testing.T) {
 
 func TestSettingsUpdate_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(types.ComponentRbacResource(), "settings.manage")
+	helpers.DenyMe(h, types.ComponentRbacResource(), "settings.manage")
 
 	h.apiInit().
 		Patch("/settings/").
@@ -89,8 +90,8 @@ func TestSettingsUpdate_noPermissions(t *testing.T) {
 
 func TestSettingsGet(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.ComponentRbacResource(), "settings.read")
-	h.allow(types.ComponentRbacResource(), "settings.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.manage")
 
 	err := service.DefaultSettings.BulkSet(h.secCtx(), types.SettingValueSet{
 		&types.SettingValue{Name: "t_sys_k1.s1", Value: sqlTypes.JSONText(`"t_sys_v1"`)},
@@ -117,7 +118,7 @@ func TestSettingsGet(t *testing.T) {
 
 func TestSettingsGet_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(types.ComponentRbacResource(), "settings.read")
+	helpers.DenyMe(h, types.ComponentRbacResource(), "settings.read")
 
 	h.apiInit().
 		Get("/settings/t_sys_k1.s1").
@@ -130,7 +131,7 @@ func TestSettingsGet_noPermissions(t *testing.T) {
 
 func TestSettingsSet_noPermissions(t *testing.T) {
 	h := newHelper(t)
-	h.deny(types.SystemRBACResource, "settings.read")
+	helpers.DenyMe(h, types.ComponentRbacResource(), "settings.read")
 
 	h.apiInit().
 		Get("/settings/t_sys_k1.s1").
@@ -143,7 +144,7 @@ func TestSettingsSet_noPermissions(t *testing.T) {
 
 func TestSettingsCurrent(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "settings.read")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "settings.read")
 
 	h.apiInit().
 		Get("/settings/current").

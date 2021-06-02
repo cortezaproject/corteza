@@ -16,6 +16,7 @@ package types
 // - compose.yaml
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -27,18 +28,18 @@ type (
 )
 
 const (
-	ChartRbacResourceSchema       = "corteza+compose.chart"
-	ModuleFieldRbacResourceSchema = "corteza+compose.module-field"
-	ModuleRbacResourceSchema      = "corteza+compose.module"
-	NamespaceRbacResourceSchema   = "corteza+compose.namespace"
-	PageRbacResourceSchema        = "corteza+compose.page"
-	RecordRbacResourceSchema      = "corteza+compose.record"
-	ComponentRbacResourceSchema   = "corteza+compose"
+	ChartResourceType       = "corteza::compose:chart"
+	ModuleFieldResourceType = "corteza::compose:module-field"
+	ModuleResourceType      = "corteza::compose:module"
+	NamespaceResourceType   = "corteza::compose:namespace"
+	PageResourceType        = "corteza::compose:page"
+	RecordResourceType      = "corteza::compose:record"
+	ComponentResourceType   = "corteza::compose"
 )
 
 // RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
 //
-// RBAC resource is in the corteza+compose.chart:/... format
+// RBAC resource is in the corteza::compose:chart/... format
 //
 // This function is auto-generated
 func (r Chart) RbacResource() string {
@@ -47,31 +48,35 @@ func (r Chart) RbacResource() string {
 
 // ChartRbacResource returns string representation of RBAC resource for Chart
 //
-// RBAC resource is in the corteza+compose.chart:/... format
+// RBAC resource is in the corteza::compose:chart/... format
 //
 // This function is auto-generated
-func ChartRbacResource(namespaceID uint64, iD uint64) string {
-	out := ChartRbacResourceSchema + ":"
-	out += "/"
-
+func ChartRbacResource(namespaceID uint64, id uint64) string {
+	cpts := []interface{}{ChartResourceType}
 	if namespaceID != 0 {
-		out += strconv.FormatUint(namespaceID, 10)
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(ChartRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func ChartRbacResourceTpl() string {
+	return "%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for ModuleField by calling ModuleFieldRbacResource fn
 //
-// RBAC resource is in the corteza+compose.module-field:/... format
+// RBAC resource is in the corteza::compose:module-field/... format
 //
 // This function is auto-generated
 func (r ModuleField) RbacResource() string {
@@ -80,38 +85,41 @@ func (r ModuleField) RbacResource() string {
 
 // ModuleFieldRbacResource returns string representation of RBAC resource for ModuleField
 //
-// RBAC resource is in the corteza+compose.module-field:/... format
+// RBAC resource is in the corteza::compose:module-field/... format
 //
 // This function is auto-generated
-func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, iD uint64) string {
-	out := ModuleFieldRbacResourceSchema + ":"
-	out += "/"
-
+func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+	cpts := []interface{}{ModuleFieldResourceType}
 	if namespaceID != 0 {
-		out += strconv.FormatUint(namespaceID, 10)
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
 	if moduleID != 0 {
-		out += strconv.FormatUint(moduleID, 10)
+		cpts = append(cpts, strconv.FormatUint(moduleID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(ModuleFieldRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func ModuleFieldRbacResourceTpl() string {
+	return "%s/%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Module by calling ModuleRbacResource fn
 //
-// RBAC resource is in the corteza+compose.module:/... format
+// RBAC resource is in the corteza::compose:module/... format
 //
 // This function is auto-generated
 func (r Module) RbacResource() string {
@@ -120,31 +128,35 @@ func (r Module) RbacResource() string {
 
 // ModuleRbacResource returns string representation of RBAC resource for Module
 //
-// RBAC resource is in the corteza+compose.module:/... format
+// RBAC resource is in the corteza::compose:module/... format
 //
 // This function is auto-generated
-func ModuleRbacResource(namespaceID uint64, iD uint64) string {
-	out := ModuleRbacResourceSchema + ":"
-	out += "/"
-
+func ModuleRbacResource(namespaceID uint64, id uint64) string {
+	cpts := []interface{}{ModuleResourceType}
 	if namespaceID != 0 {
-		out += strconv.FormatUint(namespaceID, 10)
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(ModuleRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func ModuleRbacResourceTpl() string {
+	return "%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Namespace by calling NamespaceRbacResource fn
 //
-// RBAC resource is in the corteza+compose.namespace:/... format
+// RBAC resource is in the corteza::compose:namespace/... format
 //
 // This function is auto-generated
 func (r Namespace) RbacResource() string {
@@ -153,24 +165,29 @@ func (r Namespace) RbacResource() string {
 
 // NamespaceRbacResource returns string representation of RBAC resource for Namespace
 //
-// RBAC resource is in the corteza+compose.namespace:/... format
+// RBAC resource is in the corteza::compose:namespace/... format
 //
 // This function is auto-generated
-func NamespaceRbacResource(iD uint64) string {
-	out := NamespaceRbacResourceSchema + ":"
-	out += "/"
-
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+func NamespaceRbacResource(id uint64) string {
+	cpts := []interface{}{NamespaceResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func NamespaceRbacResourceTpl() string {
+	return "%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Page by calling PageRbacResource fn
 //
-// RBAC resource is in the corteza+compose.page:/... format
+// RBAC resource is in the corteza::compose:page/... format
 //
 // This function is auto-generated
 func (r Page) RbacResource() string {
@@ -179,31 +196,35 @@ func (r Page) RbacResource() string {
 
 // PageRbacResource returns string representation of RBAC resource for Page
 //
-// RBAC resource is in the corteza+compose.page:/... format
+// RBAC resource is in the corteza::compose:page/... format
 //
 // This function is auto-generated
-func PageRbacResource(namespaceID uint64, iD uint64) string {
-	out := PageRbacResourceSchema + ":"
-	out += "/"
-
+func PageRbacResource(namespaceID uint64, id uint64) string {
+	cpts := []interface{}{PageResourceType}
 	if namespaceID != 0 {
-		out += strconv.FormatUint(namespaceID, 10)
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(PageRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func PageRbacResourceTpl() string {
+	return "%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Record by calling RecordRbacResource fn
 //
-// RBAC resource is in the corteza+compose.record:/... format
+// RBAC resource is in the corteza::compose:record/... format
 //
 // This function is auto-generated
 func (r Record) RbacResource() string {
@@ -212,38 +233,41 @@ func (r Record) RbacResource() string {
 
 // RecordRbacResource returns string representation of RBAC resource for Record
 //
-// RBAC resource is in the corteza+compose.record:/... format
+// RBAC resource is in the corteza::compose:record/... format
 //
 // This function is auto-generated
-func RecordRbacResource(namespaceID uint64, moduleID uint64, iD uint64) string {
-	out := RecordRbacResourceSchema + ":"
-	out += "/"
-
+func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+	cpts := []interface{}{RecordResourceType}
 	if namespaceID != 0 {
-		out += strconv.FormatUint(namespaceID, 10)
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
 	if moduleID != 0 {
-		out += strconv.FormatUint(moduleID, 10)
+		cpts = append(cpts, strconv.FormatUint(moduleID, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	out += "/"
 
-	if iD != 0 {
-		out += strconv.FormatUint(iD, 10)
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
-		out += "*"
+		cpts = append(cpts, "*")
 	}
-	return out
+
+	return fmt.Sprintf(RecordRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func RecordRbacResourceTpl() string {
+	return "%s/%s/%s/%s"
 }
 
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
-// RBAC resource is in the corteza+compose:/... format
+// RBAC resource is in the corteza::compose/... format
 //
 // This function is auto-generated
 func (r Component) RbacResource() string {
@@ -252,10 +276,15 @@ func (r Component) RbacResource() string {
 
 // ComponentRbacResource returns string representation of RBAC resource for Component
 //
-// RBAC resource is in the corteza+compose:/... format
+// RBAC resource is in the corteza::compose/ format
 //
 // This function is auto-generated
 func ComponentRbacResource() string {
-	out := ComponentRbacResourceSchema + ":"
-	return out
+	return ComponentResourceType + "/"
+
+}
+
+// @todo template
+func ComponentRbacResourceTpl() string {
+	return "%s"
 }

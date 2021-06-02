@@ -238,6 +238,7 @@ func (s Store) QueryComposeModules(
 	check func(*types.Module) (bool, error),
 ) ([]*types.Module, error) {
 	var (
+		tmp = make([]*types.Module, 0, DefaultSliceCapacity)
 		set = make([]*types.Module, 0, DefaultSliceCapacity)
 		res *types.Module
 
@@ -259,6 +260,11 @@ func (s Store) QueryComposeModules(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryComposeModules(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupComposeModuleByNamespaceIDHandle searches for compose module by handle (case-insensitive)

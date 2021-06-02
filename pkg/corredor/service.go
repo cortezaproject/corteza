@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi/middleware"
@@ -73,8 +72,11 @@ type (
 		// caching user lookups (w/ errors)
 		userLookupCache userLookupCacheMap
 
-		// set of permission rules, generated from security info of each script
-		permissions rbac.RuleSet
+		// exec control
+		// pairs of scripts & roles that are explicitly denied exec the script
+		//
+		// Note: if script/role is missing from map it will be allowed to execute the script
+		denyExec map[string]map[uint64]bool
 	}
 
 	ScriptArgs interface {
@@ -93,10 +95,6 @@ type (
 		Unregister(ptrs ...uintptr)
 	}
 
-	iteratorRegistry interface {
-		Exec(ctx context.Context, resourceType string, f map[string]string, action string) error
-	}
-
 	userFinder interface {
 		FindByAny(context.Context, interface{}) (*types.User, error)
 	}
@@ -107,10 +105,6 @@ type (
 
 	authTokenMaker interface {
 		Encode(auth.Identifiable, ...string) string
-	}
-
-	permissionRuleChecker interface {
-		Check(res, op string, roles ...uint64) rbac.Access
 	}
 )
 
@@ -176,7 +170,8 @@ func NewService(logger *zap.Logger, opt options.CorredorOpt) *service {
 
 		authTokenMaker: auth.DefaultJwtHandler,
 		eventRegistry:  eventbus.Service(),
-		permissions:    rbac.RuleSet{},
+
+		denyExec: make(map[string]map[uint64]bool),
 
 		userLookupCache: userLookupCacheMap{},
 
@@ -392,14 +387,20 @@ func (svc service) Exec(ctx context.Context, scriptName string, args ScriptArgs)
 	return svc.exec(ctx, scriptName, runAs, args)
 }
 
-// Can current user execute this script
-//
-// This is used only in case of explicit execution (onManual) and never when
-// scripts are executed implicitly (deferred, before/after...)
+// Check for any explicit denies for any of the user roles on the script
 func (svc service) canExec(ctx context.Context, script string) bool {
-	// @todo RBACv2 convert roles u.Roles()...
-	//u := auth.GetIdentityFromContext(ctx)
-	//return svc.permissions.Check(nil, script, permOpExec) != rbac.Deny
+	i := auth.GetIdentityFromContext(ctx)
+
+	if svc.denyExec[script] == nil {
+		return true
+	}
+
+	for _, roleID := range i.Roles() {
+		if _, has := svc.denyExec[script][roleID]; has {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -451,7 +452,7 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 	svc.explicit = make(map[string]map[string]bool)
 
 	// Reset security
-	svc.permissions = rbac.RuleSet{}
+	svc.denyExec = make(map[string]map[uint64]bool)
 
 	// reset the cache
 	svc.userLookupCache = userLookupCacheMap{}
@@ -473,11 +474,8 @@ func (svc *service) registerServerScripts(ctx context.Context, ss ...*ServerScri
 		}
 
 		if len(s.Errors) == 0 {
-			if sec, rr, err := svc.serverScriptSecurity(ctx, script); err != nil {
+			if err := svc.serverScriptSecurity(ctx, script, s); err != nil {
 				s.Errors = append(s.Errors, err.Error())
-			} else {
-				s.Security = sec
-				svc.permissions = append(svc.permissions, rr...)
 			}
 		}
 
@@ -921,37 +919,12 @@ func (svc *service) registerClientScripts(ss ...*ClientScript) {
 // User and role caches (uc, rc args) hold list of users/roles
 // that were already loaded/checked
 //
-func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript) (sec *ScriptSecurity, rr rbac.RuleSet, err error) {
+func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScript, s *Script) (err error) {
 	if script.Security == nil {
 		return
 	}
 
-	var (
-		// collectors for allow&deny rules
-		// we'll merge
-		allow = rbac.RuleSet{}
-		deny  = rbac.RuleSet{}
-
-		permRuleGenerator = func(script string, access rbac.Access, roles ...string) (rbac.RuleSet, error) {
-			out := make([]*rbac.Rule, len(roles))
-			for i, role := range roles {
-				if r, err := svc.roles.FindByAny(ctx, role); err != nil {
-					return nil, fmt.Errorf("could not load security role: %s: %w", role, err)
-				} else {
-					out[i] = &rbac.Rule{
-						RoleID:    r.ID,
-						Resource:  script,
-						Operation: permOpExec,
-						Access:    access,
-					}
-				}
-
-			}
-			return out, nil
-		}
-	)
-
-	sec = &ScriptSecurity{Security: script.Security}
+	sec := &ScriptSecurity{Security: script.Security}
 
 	if sec.RunAs != "" {
 		_, err = svc.userLookupCache.lookup(
@@ -965,15 +938,20 @@ func (svc *service) serverScriptSecurity(ctx context.Context, script *ServerScri
 		}
 	}
 
-	if allow, err = permRuleGenerator(script.Name, rbac.Allow, script.Security.Allow...); err != nil {
-		return
+	denyExec := make(map[uint64]bool)
+	for _, role := range script.Security.Deny {
+		if r, err := svc.roles.FindByAny(ctx, role); err != nil {
+			return fmt.Errorf("could not load security role: %s: %w", role, err)
+		} else {
+			denyExec[r.ID] = true
+		}
 	}
 
-	if deny, err = permRuleGenerator(script.Name, rbac.Deny, script.Security.Deny...); err != nil {
-		return
+	if len(denyExec) > 0 {
+		svc.denyExec[script.Name] = denyExec
 	}
 
-	rr = append(allow, deny...)
+	s.Security = sec
 	return
 }
 

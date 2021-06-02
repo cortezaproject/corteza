@@ -2,14 +2,15 @@ package helpers
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/label/types"
-	"github.com/cortezaproject/corteza-server/store"
-	"github.com/steinfletcher/apitest"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/pkg/label/types"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/steinfletcher/apitest"
+	"github.com/stretchr/testify/require"
 )
 
 func SetLabelsViaAPI(api *apitest.APITest, t *testing.T, endpoint string, in, out interface{}) {
@@ -43,7 +44,8 @@ func SearchWithLabelsViaAPI(api *apitest.APITest, t *testing.T, endpoint string,
 
 	payload.Response.Set = res
 
-	api.Get(endpoint).
+	api.
+		Get(endpoint).
 		QueryCollection(labels).
 		Expect(t).
 		Status(http.StatusOK).

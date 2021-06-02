@@ -3,14 +3,15 @@ package auth
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/api"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/go-chi/jwtauth"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/go-chi/jwtauth"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -104,7 +105,7 @@ func (t *token) encode(i Identifiable, clientID uint64, scope ...string) string 
 	return tkn
 }
 
-// HttpAuthenticator converts JWT claims into Identity and stores it into context
+// HttpAuthenticator converts JWT claims into identity and stores it into context
 func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +133,7 @@ func (t *token) HttpAuthenticator() func(http.Handler) http.Handler {
 }
 
 // ClaimsToIdentity decodes sub & roles claims into identity
-func ClaimsToIdentity(c jwt.MapClaims) (i *Identity) {
+func ClaimsToIdentity(c jwt.MapClaims) (i *identity) {
 	var (
 		aux       interface{}
 		ok        bool
@@ -143,7 +144,7 @@ func ClaimsToIdentity(c jwt.MapClaims) (i *Identity) {
 		return
 	}
 
-	i = &Identity{}
+	i = &identity{}
 	if id, ok = aux.(string); ok {
 		i.id, _ = strconv.ParseUint(id, 10, 64)
 	}

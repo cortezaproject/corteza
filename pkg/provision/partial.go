@@ -28,7 +28,7 @@ func provisionPartialAuthClients(ctx context.Context, s store.Storer, log *zap.L
 	}
 
 	for _, r := range set {
-		if r.Resource == types.AuthClientRbacResourceSchema {
+		if rbac.ResourceType(r.Resource) == types.AuthClientResourceType {
 			return false
 		}
 	}

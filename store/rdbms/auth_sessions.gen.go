@@ -52,6 +52,7 @@ func (s Store) QueryAuthSessions(
 	check func(*types.AuthSession) (bool, error),
 ) ([]*types.AuthSession, error) {
 	var (
+		tmp = make([]*types.AuthSession, 0, DefaultSliceCapacity)
 		set = make([]*types.AuthSession, 0, DefaultSliceCapacity)
 		res *types.AuthSession
 
@@ -73,10 +74,15 @@ func (s Store) QueryAuthSessions(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAuthSessionByID

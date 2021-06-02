@@ -235,7 +235,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return nil, err
 	}
 
-	u.SetRoles(rr.IDs())
+	u.SetRoles(rr.IDs()...)
 	return
 }
 
@@ -419,7 +419,6 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrNotAllowedToUpdateSystem()
 		}
 
-		// @todo RBACv2 this could/should be solved via context roles
 		if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			if !svc.ac.CanUpdateUser(ctx, u) {
 				return UserErrNotAllowedToUpdate()

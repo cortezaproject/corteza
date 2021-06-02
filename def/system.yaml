@@ -1,5 +1,5 @@
 rbac:
-  resource: { elements: [] }
+  resource: { references: [] }
 
   operations:
     grant:
@@ -24,5 +24,5 @@ rbac:
       description: Create template
     reminder.assign:
       description:  Assign reminders
-    messagebus-queue.create:
+    queue.create:
       description: Create messagebus queues

@@ -1,8 +1,9 @@
 package auth
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"net/http"
+
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 )
 
 func MiddlewareValidOnly(next http.Handler) http.Handler {

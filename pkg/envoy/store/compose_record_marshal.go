@@ -13,7 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
 	systemTypes "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var (
@@ -439,13 +438,11 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 
 			rve = service.RecordValueUpdateOpCheck(ctx, pl.composeAccessControl, mod, rec.Values)
 			if !rve.IsValid() {
-				spew.Dump("RecordValueUpdateOpCheck", rve)
 				return rve
 			}
 
 			rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec)
 			if !rve.IsValid() {
-				spew.Dump("RecordPreparer", rve)
 				return rve
 			}
 

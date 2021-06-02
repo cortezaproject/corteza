@@ -1,5 +1,5 @@
 rbac:
-  resource: { elements: [] }
+  resource: { references: [] }
   operations:
     grant:
       description: Manage federation permissions
@@ -11,3 +11,5 @@ rbac:
       description: Read settings
     settings.manage:
       description: Manage settings
+
+envoy: false

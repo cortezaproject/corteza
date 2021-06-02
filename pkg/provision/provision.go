@@ -13,6 +13,14 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now().Round(time.Second)
+		return &c
+	}
+)
+
 func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
 	log = log.Named("provision")
 
@@ -20,6 +28,8 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		// Migrations:
 		func() error { return migrateApplications(ctx, s) },
 		func() error { return migrateEmailTemplates(ctx, log.Named("email-templates"), s) },
+		func() error { return migratePre202106Roles(ctx, log.Named("pre-202106-roles"), s) },
+		func() error { return migratePre202106RbacRules(ctx, log.Named("pre-202106-rbac-rules"), s) },
 
 		// Config (full & partial)
 		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
@@ -67,7 +77,7 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 		Trusted:   true,
 		Security:  &types.AuthClientSecurity{},
 		Labels:    nil,
-		CreatedAt: time.Now(),
+		CreatedAt: *now(),
 	}
 
 	_, err := store.LookupAuthClientByHandle(ctx, s, c.Handle)

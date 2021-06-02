@@ -224,7 +224,7 @@ func (s *Sync) LoadUserWithRoles(ctx context.Context, nodeID uint64) (*st.User, 
 		return nil, err
 	}
 
-	u.SetRoles(rr.IDs())
+	u.SetRoles(rr.IDs()...)
 
 	return u, nil
 }

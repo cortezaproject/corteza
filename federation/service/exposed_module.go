@@ -276,8 +276,8 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		}
 
 		if fedRole != nil {
-			// get first id from role and add it as an allow rule
-			err = cs.DefaultAccessControl.Grant(ctx, rbac.AllowRule(fedRole.ID, m.RbacResource(), "record.read"))
+			// get first ID from role and add it as allow rule
+			err = cs.DefaultAccessControl.Grant(ctx, rbac.AllowRule(fedRole.ID, ct.RecordRbacResource(m.NamespaceID, m.ID, 0), "read"))
 		}
 
 		// set labels

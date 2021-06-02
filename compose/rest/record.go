@@ -495,7 +495,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 		// Find only the stream we are interested in
 		for _, s := range ss {
-			if s.Resource == resource.COMPOSE_RECORD_RESOURCE_TYPE {
+			if s.Resource == types.RecordResourceType {
 				io.Copy(w, s.Source)
 			}
 		}

@@ -2,20 +2,38 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "properties": {
-    "schema": {
-      "type": "string",
-      "description": "Schema used for prefixing RBAC resource string/url",
-      "pattern": "^([a-z]+)\\+([a-z]((.|-)[a-z]+)*)$"
-    },
     "resource": {
       "additionalProperties": false,
       "type": "object",
       "description": "RBAC resource definition",
       "properties": {
-        "elements": {
+        "prefix": {
+          "type": "string",
+          "description": "Resource name",
+          "pattern": "^[a-z]+:?[a-zA-Z]+(:[a-zA-Z]+)?$"
+        },
+        "references": {
           "type": "array",
-          "title": "Resource elements",
-          "description": "When not explicitly defined it fallbacks to one item array with 'ID'"
+          "title": "Reference components",
+          "description": "When not explicitly defined it fallbacks to one item array with 'ID'",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
         },
         "attributes": {
           "anyOf": [

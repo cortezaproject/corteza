@@ -238,6 +238,7 @@ func (s Store) QueryTemplates(
 	check func(*types.Template) (bool, error),
 ) ([]*types.Template, error) {
 	var (
+		tmp = make([]*types.Template, 0, DefaultSliceCapacity)
 		set = make([]*types.Template, 0, DefaultSliceCapacity)
 		res *types.Template
 
@@ -259,6 +260,11 @@ func (s Store) QueryTemplates(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryTemplates(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupTemplateByID searches for template by ID

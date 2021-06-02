@@ -58,17 +58,61 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 }
 
 func (svc accessControl) List() (out []map[string]string) {
-	return []map[string]string{
-		{"resource": "corteza+federation.exposed-module", "operation": "manage"},
-		{"resource": "corteza+federation.node", "operation": "manage"},
-		{"resource": "corteza+federation.node", "operation": "module.create"},
-		{"resource": "corteza+federation.shared-module", "operation": "map"},
-		{"resource": "corteza+federation", "operation": "grant"},
-		{"resource": "corteza+federation", "operation": "pair"},
-		{"resource": "corteza+federation", "operation": "node.create"},
-		{"resource": "corteza+federation", "operation": "settings.read"},
-		{"resource": "corteza+federation", "operation": "settings.manage"},
+	def := []map[string]string{
+		{
+			"type": types.ExposedModuleResourceType,
+			"any":  types.ExposedModuleRbacResource(0, 0),
+			"op":   "manage",
+		},
+		{
+			"type": types.NodeResourceType,
+			"any":  types.NodeRbacResource(0),
+			"op":   "manage",
+		},
+		{
+			"type": types.NodeResourceType,
+			"any":  types.NodeRbacResource(0),
+			"op":   "module.create",
+		},
+		{
+			"type": types.SharedModuleResourceType,
+			"any":  types.SharedModuleRbacResource(0, 0),
+			"op":   "map",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "grant",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "pair",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "node.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.read",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.manage",
+		},
 	}
+
+	func(svc interface{}) {
+		if svc, is := svc.(interface{}).(interface{ list() []map[string]string }); is {
+			def = append(def, svc.list()...)
+		}
+	}(svc)
+
+	return def
 }
 
 // Grant applies one or more RBAC rules
@@ -189,39 +233,39 @@ func (svc accessControl) CanManageSettings(ctx context.Context) bool {
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+federation.exposed-module":
+	switch rbac.ResourceType(r) {
+	case types.ExposedModuleResourceType:
 		return rbacExposedModuleResourceValidator(r, oo...)
-	case "corteza+federation.node":
+	case types.NodeResourceType:
 		return rbacNodeResourceValidator(r, oo...)
-	case "corteza+federation.shared-module":
+	case types.SharedModuleResourceType:
 		return rbacSharedModuleResourceValidator(r, oo...)
-	case "corteza+federation":
+	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
 
-	return fmt.Errorf("unknown resource schema '%q'", r)
+	return fmt.Errorf("unknown resource type '%q'", r)
 }
 
 // rbacResourceOperations returns defined operations for a requested resource
 //
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+federation.exposed-module":
+	switch rbac.ResourceType(r) {
+	case types.ExposedModuleResourceType:
 		return map[string]bool{
 			"manage": true,
 		}
-	case "corteza+federation.node":
+	case types.NodeResourceType:
 		return map[string]bool{
 			"manage":        true,
 			"module.create": true,
 		}
-	case "corteza+federation.shared-module":
+	case types.SharedModuleResourceType:
 		return map[string]bool{
 			"map": true,
 		}
-	case "corteza+federation":
+	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":           true,
 			"pair":            true,
@@ -247,35 +291,39 @@ func rbacExposedModuleResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ExposedModuleRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ExposedModuleResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.ExposedModuleRbacResourceSchema)+2:], "/")
-	if len(pp) != 2 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
-			"NodeID",
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ExposedModuleResourceType):], sep), sep)
+		prc = []string{
+			"nodeID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for ExposedModule", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -295,34 +343,38 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.NodeRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.NodeResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.NodeRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.NodeResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Node", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -342,35 +394,39 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.SharedModuleRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.SharedModuleResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.SharedModuleRbacResourceSchema)+2:], "/")
-	if len(pp) != 2 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
-			"NodeID",
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.SharedModuleResourceType):], sep), sep)
+		prc = []string{
+			"nodeID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for SharedModule", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -390,8 +446,9 @@ func rbacComponentResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ComponentRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ComponentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
 	return nil

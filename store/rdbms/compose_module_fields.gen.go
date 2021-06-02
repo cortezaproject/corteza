@@ -52,6 +52,7 @@ func (s Store) QueryComposeModuleFields(
 	check func(*types.ModuleField) (bool, error),
 ) ([]*types.ModuleField, error) {
 	var (
+		tmp = make([]*types.ModuleField, 0, DefaultSliceCapacity)
 		set = make([]*types.ModuleField, 0, DefaultSliceCapacity)
 		res *types.ModuleField
 
@@ -73,10 +74,15 @@ func (s Store) QueryComposeModuleFields(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupComposeModuleFieldByModuleIDName searches for compose module field by name (case-insensitive)

@@ -62,16 +62,21 @@ func ruleByRole(base RuleSet, roleID uint64) (out RuleSet) {
 }
 
 // Dirty returns list of deleted (Access==Inherit) and changed (dirty) rules
-func flushable(set RuleSet) (inherited, rest RuleSet) {
-	inherited, rest = RuleSet{}, RuleSet{}
+func flushable(set RuleSet) (deletable, updatable, final RuleSet) {
+	deletable, updatable, final = RuleSet{}, RuleSet{}, RuleSet{}
 
 	for _, r := range set {
 		var c = *r
 		if r.Access == Inherit {
-			inherited = append(inherited, &c)
-		} else if r.dirty {
-			rest = append(rest, &c)
+			deletable = append(deletable, &c)
+			continue
 		}
+
+		if r.dirty {
+			updatable = append(updatable, &c)
+		}
+
+		final = append(final, &c)
 	}
 
 	return

@@ -52,6 +52,7 @@ func (s Store) QueryComposeRecordValues(
 	check func(*types.RecordValue) (bool, error),
 ) ([]*types.RecordValue, error) {
 	var (
+		tmp = make([]*types.RecordValue, 0, DefaultSliceCapacity)
 		set = make([]*types.RecordValue, 0, DefaultSliceCapacity)
 		res *types.RecordValue
 
@@ -73,10 +74,15 @@ func (s Store) QueryComposeRecordValues(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // createComposeRecordValue creates one or more rows in compose_record_value table

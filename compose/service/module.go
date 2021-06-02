@@ -593,7 +593,7 @@ func updateModuleFields(ctx context.Context, s store.Storer, new, old *types.Mod
 func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Module, newFields types.ModuleFieldSet) (types.ModuleFieldSet, error) {
 	var err error
 
-	// prepare an auxillary module to perform isolated validations on
+	// prepare an auxiliary module to perform isolated validations on
 	auxm := &types.Module{
 		Handle:      "aux_module",
 		NamespaceID: m.NamespaceID,
@@ -623,7 +623,8 @@ func moduleFieldDefaultPreparer(ctx context.Context, s store.Storer, m *types.Mo
 		r := &types.Record{
 			Values: vv,
 		}
-		rve := defaultValidator().Run(ctx, s, auxm, r)
+
+		rve := defaultValidator(nil).Run(ctx, s, auxm, r)
 		if !rve.IsValid() {
 			return nil, rve
 		}

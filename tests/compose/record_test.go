@@ -37,9 +37,11 @@ type (
 )
 
 func (h helper) makeRecordModuleWithFieldsOnNs(name string, namespace *types.Namespace, ff ...*types.ModuleField) *types.Module {
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	if len(ff) == 0 {
 		// Default fields
@@ -70,9 +72,10 @@ func (h helper) makeRecordModuleWithFieldsOnNs(name string, namespace *types.Nam
 func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleField) *types.Module {
 	namespace := h.makeNamespace("record testing namespace")
 
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read", "record.value.update")
 
 	if len(ff) == 0 {
 		// Default fields
@@ -103,9 +106,10 @@ func (h helper) repoMakeRecordModuleWithFields(name string, ff ...*types.ModuleF
 func (h helper) repoMakeRecordModuleWithFieldsRequired(name string, ff ...*types.ModuleField) *types.Module {
 	namespace := h.makeNamespace("record testing namespace")
 
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read", "record.value.update")
 
 	if len(ff) == 0 {
 		// Default fields
@@ -168,6 +172,7 @@ func TestRecordRead(t *testing.T) {
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -187,6 +192,7 @@ func TestRecordList(t *testing.T) {
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		Query("incTotal", "true").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -194,12 +200,12 @@ func TestRecordList(t *testing.T) {
 		End()
 }
 
-func TestRecordListForbidenRecords(t *testing.T) {
+func TestRecordListForbiddenRecords(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.deny(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.DenyMe(h, types.RecordRbacResource(0, 0, 0), "read")
 
 	h.makeRecord(module)
 	h.makeRecord(module)
@@ -207,6 +213,7 @@ func TestRecordListForbidenRecords(t *testing.T) {
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		Query("incTotal", "true").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -215,12 +222,12 @@ func TestRecordListForbidenRecords(t *testing.T) {
 		End()
 }
 
-func TestRecordListForbidenFields(t *testing.T) {
+func TestRecordListForbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.deny(types.ModuleFieldRbacResource(0, 0, module.Fields[0].ID), "record.value.read")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(0, 0, module.Fields[0].ID), "record.value.read")
 
 	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_0"}, &types.RecordValue{Name: "email", Value: "v_email_0"})
 	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_1"}, &types.RecordValue{Name: "email", Value: "v_email_1"})
@@ -228,6 +235,7 @@ func TestRecordListForbidenFields(t *testing.T) {
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		Query("incTotal", "true").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -252,6 +260,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to create records")).
@@ -263,18 +272,20 @@ func TestRecordCreate(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 }
 
-func TestRecordCreateForbiden_forbidenFields(t *testing.T) {
+func TestRecordCreateForbidden_forbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
@@ -282,19 +293,19 @@ func TestRecordCreateForbiden_forbidenFields(t *testing.T) {
 		&types.ModuleField{Name: "f1", Kind: "String"},
 		&types.ModuleField{Name: "f2", Kind: "String"},
 	)
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
-	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.DenyMe(h, module.Fields[1].RbacResource(), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}, {"name": "f2", "value": "f2.v1"}]}`)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("1 issue(s) found")).
+		Assert(helpers.AssertErrorP("1 issue(s) found")).
 		End()
 }
 
-func TestRecordCreate_forbidenFields(t *testing.T) {
+func TestRecordCreate_forbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
@@ -302,8 +313,8 @@ func TestRecordCreate_forbidenFields(t *testing.T) {
 		&types.ModuleField{Name: "f1", Kind: "String"},
 		&types.ModuleField{Name: "f2", Kind: "String"},
 	)
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
-	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.DenyMe(h, module.Fields[1].RbacResource(), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
@@ -317,12 +328,6 @@ func TestRecordCreate_forbidenFields(t *testing.T) {
 func TestRecordCreate_xss(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
-
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
 
 	var (
 		ns  = h.makeNamespace("some-namespace")
@@ -340,6 +345,14 @@ func TestRecordCreate_xss(t *testing.T) {
 			},
 		)
 	)
+
+	helpers.AllowMe(h, ns.RbacResource(), "read")
+	helpers.AllowMe(h, mod.RbacResource(), "read")
+	helpers.AllowMe(h, mod.RbacResource(), "record.create")
+	helpers.AllowMe(h, mod.Fields[0].RbacResource(), "record.value.update")
+	helpers.AllowMe(h, mod.Fields[1].RbacResource(), "record.value.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
 
 	t.Run("create with rich text fields", func(t *testing.T) {
 		var (
@@ -390,11 +403,13 @@ func TestRecordCreateWithErrors(t *testing.T) {
 		},
 	}
 	module := h.repoMakeRecordModuleWithFields("record testing module", fields...)
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "val"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Assert(helpers.AssertRecordValueError(
 			&types.RecordValueError{
@@ -417,6 +432,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("not allowed to update this record")).
@@ -429,11 +445,12 @@ func TestRecordUpdate(t *testing.T) {
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	record := h.makeRecord(module)
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -456,8 +473,8 @@ func TestRecordUpdate_missingField(t *testing.T) {
 		&types.RecordValue{Name: "f2", Value: "f2.v1"},
 	)
 	_ = record
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	api := h.apiInit()
 
@@ -486,7 +503,7 @@ func TestRecordUpdate_missingField(t *testing.T) {
 	h.a.Equal("f1.v1 (edited)", r.Values[0].Value)
 }
 
-func TestRecordUpdateForbiden_forbidenFields(t *testing.T) {
+func TestRecordUpdateForbidden_forbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
@@ -498,8 +515,9 @@ func TestRecordUpdateForbiden_forbidenFields(t *testing.T) {
 		&types.RecordValue{Name: "f1", Value: "f1.v1"},
 		&types.RecordValue{Name: "f2", Value: "f2.v1"},
 	)
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
-	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
+	helpers.DenyMe(h, module.Fields[1].RbacResource(), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -514,7 +532,7 @@ func TestRecordUpdateForbiden_forbidenFields(t *testing.T) {
 	h.a.Equal("f2.v1", r.Values.FilterByName("f2")[0].Value)
 }
 
-func TestRecordUpdate_forbidenFields(t *testing.T) {
+func TestRecordUpdate_forbiddenFields(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
@@ -526,8 +544,8 @@ func TestRecordUpdate_forbidenFields(t *testing.T) {
 		&types.RecordValue{Name: "f1", Value: "f1.v1"},
 		&types.RecordValue{Name: "f2", Value: "f2.v1"},
 	)
-	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
-	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.update")
+	helpers.DenyMe(h, module.Fields[1].RbacResource(), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
@@ -577,11 +595,12 @@ func TestRecordUpdate_refUnchanged(t *testing.T) {
 		},
 	)
 
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}, {"name": "ref", "value": "%d"}]}`, rRef.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -630,11 +649,12 @@ func TestRecordUpdate_refChanged(t *testing.T) {
 		},
 	)
 
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "name", "value": "changed-val"}, {"name": "ref", "value": "%d"}]}`, rRef2.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -652,11 +672,12 @@ func TestRecordUpdate_deleteOld(t *testing.T) {
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	record := h.makeRecord(module, &types.RecordValue{Name: "name", Value: "test name"}, &types.RecordValue{Name: "email", Value: "test@email.tld"})
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
 		JSON(fmt.Sprintf(`{"values": [{"name": "email", "value": "test@email.tld"}]}`)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -691,10 +712,11 @@ func TestRecordDelete(t *testing.T) {
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	record := h.makeRecord(module)
 
-	h.allow(types.ModuleRbacResource(0, 0), "record.delete")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -720,6 +742,7 @@ func TestRecordExport(t *testing.T) {
 	r := h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/export.csv", module.NamespaceID, module.ID)).
 		Query("fields", "name").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		End()
@@ -777,7 +800,7 @@ func TestRecordImportInit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			h.apiInitRecordImport(h.apiInit(), url, test.Name, []byte(test.Content)).
 				Assert(jsonpath.Present("$.response.sessionID")).
@@ -804,7 +827,7 @@ func TestRecordImportInit_invalidFileFormat(t *testing.T) {
 func TestRecordImportRun(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 	tests := []struct {
@@ -818,7 +841,7 @@ func TestRecordImportRun(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			rsp := &rImportSession{}
 			api := h.apiInit()
@@ -849,7 +872,7 @@ func TestRecordImportRun_sessionNotFound(t *testing.T) {
 func TestRecordImportRunForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
-	h.deny(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.DenyMe(h, types.ModuleRbacResource(0, 0), "record.create")
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 	tests := []struct {
@@ -863,7 +886,7 @@ func TestRecordImportRunForbidden(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			rsp := &rImportSession{}
 			api := h.apiInit()
@@ -881,12 +904,13 @@ func TestRecordImportRunForbidden(t *testing.T) {
 func TestRecordImportRunForbidden_field(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	module := h.repoMakeRecordModuleWithFields("record import run module")
 
 	f := module.Fields.FindByName("name")
-	h.deny(types.ModuleFieldRbacResource(0, 0, f.ID), "record.value.update")
+	helpers.DenyMe(h, f.RbacResource(), "record.value.update")
 
 	tests := []struct {
 		Name    string
@@ -899,7 +923,8 @@ func TestRecordImportRunForbidden_field(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
+			h.t = t
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			rsp := &rImportSession{}
 			api := h.apiInit()
@@ -917,7 +942,7 @@ func TestRecordImportRunForbidden_field(t *testing.T) {
 func TestRecordImportRunFieldError_missing(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
 
 	module := h.repoMakeRecordModuleWithFieldsRequired("record import run module")
 
@@ -932,7 +957,7 @@ func TestRecordImportRunFieldError_missing(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			rsp := &rImportSession{}
 			api := h.apiInit()
@@ -969,7 +994,7 @@ func TestRecordImportImportProgress(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(t.Name(), func(t *testing.T) {
+		t.Run(test.Name, func(t *testing.T) {
 			url := fmt.Sprintf("/namespace/%d/module/%d/record/import", module.NamespaceID, module.ID)
 			rsp := &rImportSession{}
 			api := h.apiInit()
@@ -1008,10 +1033,10 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	// make a standard module, and prevent (DENY) current user to
 	// read from "name" and update "email" fields
 	module := h.repoMakeRecordModuleWithFields("record testing module")
-	h.deny(module.Fields.FindByName("name").RbacResource(), "record.value.read")
-	h.deny(module.Fields.FindByName("email").RbacResource(), "record.value.update")
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
+	helpers.DenyMe(h, module.Fields.FindByName("name").RbacResource(), "record.value.read")
+	helpers.DenyMe(h, module.Fields.FindByName("email").RbacResource(), "record.value.update")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update")
 
 	record := h.makeRecord(
 		module,
@@ -1022,6 +1047,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	// Fetching record should work as before but without read-protected fields
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -1034,6 +1060,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 		// Searching records should work as before but without read-protected fields
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -1063,7 +1090,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 					Header("Accept", "application/json").
 					Expect(t).
 					Status(http.StatusOK).
-					Assert(helpers.AssertError("1 issue(s) found")).
+					Assert(helpers.AssertErrorP("1 issue(s) found")).
 					End()
 			})
 
@@ -1094,17 +1121,19 @@ func TestRecordLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
-	h.allow(types.ModuleRbacResource(0, 0), "record.update")
-	h.allow(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update", "read")
 
 	var (
 		ns  = h.makeNamespace("some-namespace")
 		mod = h.makeModule(ns, "some-module", &types.ModuleField{Kind: "String", Name: "dummy"})
 		ID  uint64
 	)
+
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create", "read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read")
+	helpers.AllowMe(h, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update")
 
 	t.Run("create", func(t *testing.T) {
 		var (
@@ -1126,6 +1155,7 @@ func TestRecordLabels(t *testing.T) {
 		h.apiInit().
 			Post(fmt.Sprintf("/namespace/%d/module/%d/record/", ns.ID, mod.ID)).
 			JSON(helpers.JSON(rec)).
+			Header("Accept", "application/json").
 			Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertNoErrors).
@@ -1170,6 +1200,7 @@ func TestRecordLabels(t *testing.T) {
 		h.apiInit().
 			Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", ns.ID, mod.ID, ID)).
 			JSON(helpers.JSON(rec)).
+			Header("Accept", "application/json").
 			Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertNoErrors).
@@ -1214,10 +1245,9 @@ func TestRecordReports(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "read")
-	h.allow(types.ModuleRbacResource(0, 0), "record.create")
-	h.allow(types.ModuleRbacResource(0, 0), "record.read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
+	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")
 
 	var (
 		ns  = h.makeNamespace("some-namespace")

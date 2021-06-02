@@ -17,11 +17,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -60,43 +61,191 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 }
 
 func (svc accessControl) List() (out []map[string]string) {
-	return []map[string]string{
-		{"resource": "corteza+system.application", "operation": "read"},
-		{"resource": "corteza+system.application", "operation": "update"},
-		{"resource": "corteza+system.application", "operation": "delete"},
-		{"resource": "corteza+system.auth-client", "operation": "read"},
-		{"resource": "corteza+system.auth-client", "operation": "update"},
-		{"resource": "corteza+system.auth-client", "operation": "delete"},
-		{"resource": "corteza+system.auth-client", "operation": "authorize"},
-		{"resource": "corteza+system.role", "operation": "read"},
-		{"resource": "corteza+system.role", "operation": "update"},
-		{"resource": "corteza+system.role", "operation": "delete"},
-		{"resource": "corteza+system.role", "operation": "members.manage"},
-		{"resource": "corteza+system.template", "operation": "read"},
-		{"resource": "corteza+system.template", "operation": "update"},
-		{"resource": "corteza+system.template", "operation": "delete"},
-		{"resource": "corteza+system.template", "operation": "render"},
-		{"resource": "corteza+system.user", "operation": "read"},
-		{"resource": "corteza+system.user", "operation": "update"},
-		{"resource": "corteza+system.user", "operation": "delete"},
-		{"resource": "corteza+system.user", "operation": "suspend"},
-		{"resource": "corteza+system.user", "operation": "unsuspend"},
-		{"resource": "corteza+system.user", "operation": "email.unmask"},
-		{"resource": "corteza+system.user", "operation": "name.unmask"},
-		{"resource": "corteza+system.user", "operation": "impersonate"},
-		{"resource": "corteza+system", "operation": "grant"},
-		{"resource": "corteza+system", "operation": "settings.read"},
-		{"resource": "corteza+system", "operation": "settings.manage"},
-		{"resource": "corteza+system", "operation": "auth-client.create"},
-		{"resource": "corteza+system", "operation": "role.create"},
-		{"resource": "corteza+system", "operation": "user.create"},
-		{"resource": "corteza+system", "operation": "application.create"},
-		{"resource": "corteza+system", "operation": "application.flag.self"},
-		{"resource": "corteza+system", "operation": "application.flag.global"},
-		{"resource": "corteza+system", "operation": "template.create"},
-		{"resource": "corteza+system", "operation": "reminder.assign"},
-		{"resource": "corteza+system", "operation": "messagebus-queue.create"},
+	def := []map[string]string{
+		{
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ApplicationResourceType,
+			"any":  types.ApplicationRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.AuthClientResourceType,
+			"any":  types.AuthClientRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.AuthClientResourceType,
+			"any":  types.AuthClientRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.AuthClientResourceType,
+			"any":  types.AuthClientRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.AuthClientResourceType,
+			"any":  types.AuthClientRbacResource(0),
+			"op":   "authorize",
+		},
+		{
+			"type": types.RoleResourceType,
+			"any":  types.RoleRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.RoleResourceType,
+			"any":  types.RoleRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.RoleResourceType,
+			"any":  types.RoleRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.RoleResourceType,
+			"any":  types.RoleRbacResource(0),
+			"op":   "members.manage",
+		},
+		{
+			"type": types.TemplateResourceType,
+			"any":  types.TemplateRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.TemplateResourceType,
+			"any":  types.TemplateRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.TemplateResourceType,
+			"any":  types.TemplateRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.TemplateResourceType,
+			"any":  types.TemplateRbacResource(0),
+			"op":   "render",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "suspend",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "unsuspend",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "email.unmask",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "name.unmask",
+		},
+		{
+			"type": types.UserResourceType,
+			"any":  types.UserRbacResource(0),
+			"op":   "impersonate",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "grant",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.read",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "auth-client.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "role.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "user.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "application.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "application.flag.self",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "application.flag.global",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "template.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "reminder.assign",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "queue.create",
+		},
 	}
+
+	func(svc interface{}) {
+		if svc, is := svc.(interface{}).(interface{ list() []map[string]string }); is {
+			def = append(def, svc.list()...)
+		}
+	}(svc)
+
+	return def
 }
 
 // Grant applies one or more RBAC rules
@@ -388,68 +537,68 @@ func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, "reminder.assign", &types.Component{})
 }
 
-// CanCreateMessagebusQueue checks if current user can create messagebus queues
+// CanCreateQueue checks if current user can create messagebus queues
 //
 // This function is auto-generated
-func (svc accessControl) CanCreateMessagebusQueue(ctx context.Context) bool {
-	return svc.can(ctx, "messagebus-queue.create", &types.Component{})
+func (svc accessControl) CanCreateQueue(ctx context.Context) bool {
+	return svc.can(ctx, "queue.create", &types.Component{})
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+system.application":
+	switch rbac.ResourceType(r) {
+	case types.ApplicationResourceType:
 		return rbacApplicationResourceValidator(r, oo...)
-	case "corteza+system.auth-client":
+	case types.AuthClientResourceType:
 		return rbacAuthClientResourceValidator(r, oo...)
-	case "corteza+system.role":
+	case types.RoleResourceType:
 		return rbacRoleResourceValidator(r, oo...)
-	case "corteza+system.template":
+	case types.TemplateResourceType:
 		return rbacTemplateResourceValidator(r, oo...)
-	case "corteza+system.user":
+	case types.UserResourceType:
 		return rbacUserResourceValidator(r, oo...)
-	case "corteza+system":
+	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
 
-	return fmt.Errorf("unknown resource schema '%q'", r)
+	return fmt.Errorf("unknown resource type '%q'", r)
 }
 
 // rbacResourceOperations returns defined operations for a requested resource
 //
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+system.application":
+	switch rbac.ResourceType(r) {
+	case types.ApplicationResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		}
-	case "corteza+system.auth-client":
+	case types.AuthClientResourceType:
 		return map[string]bool{
 			"read":      true,
 			"update":    true,
 			"delete":    true,
 			"authorize": true,
 		}
-	case "corteza+system.role":
+	case types.RoleResourceType:
 		return map[string]bool{
 			"read":           true,
 			"update":         true,
 			"delete":         true,
 			"members.manage": true,
 		}
-	case "corteza+system.template":
+	case types.TemplateResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 			"render": true,
 		}
-	case "corteza+system.user":
+	case types.UserResourceType:
 		return map[string]bool{
 			"read":         true,
 			"update":       true,
@@ -460,7 +609,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"name.unmask":  true,
 			"impersonate":  true,
 		}
-	case "corteza+system":
+	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                   true,
 			"settings.read":           true,
@@ -473,7 +622,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"application.flag.global": true,
 			"template.create":         true,
 			"reminder.assign":         true,
-			"messagebus-queue.create": true,
+			"queue.create":            true,
 		}
 	}
 
@@ -493,34 +642,38 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ApplicationRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ApplicationResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.ApplicationRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ApplicationResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Application", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -540,34 +693,38 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.AuthClientRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.AuthClientResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.AuthClientRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.AuthClientResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for AuthClient", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -587,34 +744,38 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.RoleRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.RoleResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.RoleRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.RoleResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Role", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -634,34 +795,38 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.TemplateRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.TemplateResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.TemplateRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.TemplateResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Template", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -681,34 +846,38 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.UserRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.UserResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.UserRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.UserResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for User", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -728,8 +897,9 @@ func rbacComponentResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ComponentRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ComponentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
 	return nil

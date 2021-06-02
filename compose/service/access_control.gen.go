@@ -18,11 +18,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -61,34 +62,146 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 }
 
 func (svc accessControl) List() (out []map[string]string) {
-	return []map[string]string{
-		{"resource": "corteza+compose.chart", "operation": "read"},
-		{"resource": "corteza+compose.chart", "operation": "update"},
-		{"resource": "corteza+compose.chart", "operation": "delete"},
-		{"resource": "corteza+compose.module-field", "operation": "record.value.read"},
-		{"resource": "corteza+compose.module-field", "operation": "record.value.update"},
-		{"resource": "corteza+compose.module", "operation": "read"},
-		{"resource": "corteza+compose.module", "operation": "update"},
-		{"resource": "corteza+compose.module", "operation": "delete"},
-		{"resource": "corteza+compose.module", "operation": "record.create"},
-		{"resource": "corteza+compose.namespace", "operation": "read"},
-		{"resource": "corteza+compose.namespace", "operation": "update"},
-		{"resource": "corteza+compose.namespace", "operation": "delete"},
-		{"resource": "corteza+compose.namespace", "operation": "module.create"},
-		{"resource": "corteza+compose.namespace", "operation": "chart.create"},
-		{"resource": "corteza+compose.namespace", "operation": "page.create"},
-		{"resource": "corteza+compose.page", "operation": "read"},
-		{"resource": "corteza+compose.page", "operation": "create"},
-		{"resource": "corteza+compose.page", "operation": "update"},
-		{"resource": "corteza+compose.page", "operation": "delete"},
-		{"resource": "corteza+compose.record", "operation": "read"},
-		{"resource": "corteza+compose.record", "operation": "update"},
-		{"resource": "corteza+compose.record", "operation": "delete"},
-		{"resource": "corteza+compose", "operation": "grant"},
-		{"resource": "corteza+compose", "operation": "namespace.create"},
-		{"resource": "corteza+compose", "operation": "settings.read"},
-		{"resource": "corteza+compose", "operation": "settings.manage"},
+	def := []map[string]string{
+		{
+			"type": types.ChartResourceType,
+			"any":  types.ChartRbacResource(0, 0),
+			"op":   "read",
+		},
+		{
+			"type": types.ChartResourceType,
+			"any":  types.ChartRbacResource(0, 0),
+			"op":   "update",
+		},
+		{
+			"type": types.ChartResourceType,
+			"any":  types.ChartRbacResource(0, 0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ModuleFieldResourceType,
+			"any":  types.ModuleFieldRbacResource(0, 0, 0),
+			"op":   "record.value.read",
+		},
+		{
+			"type": types.ModuleFieldResourceType,
+			"any":  types.ModuleFieldRbacResource(0, 0, 0),
+			"op":   "record.value.update",
+		},
+		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "read",
+		},
+		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "update",
+		},
+		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "record.create",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "manage",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "module.create",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "chart.create",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "page.create",
+		},
+		{
+			"type": types.PageResourceType,
+			"any":  types.PageRbacResource(0, 0),
+			"op":   "read",
+		},
+		{
+			"type": types.PageResourceType,
+			"any":  types.PageRbacResource(0, 0),
+			"op":   "update",
+		},
+		{
+			"type": types.PageResourceType,
+			"any":  types.PageRbacResource(0, 0),
+			"op":   "delete",
+		},
+		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "read",
+		},
+		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "update",
+		},
+		{
+			"type": types.RecordResourceType,
+			"any":  types.RecordRbacResource(0, 0, 0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "grant",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "namespace.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.read",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "settings.manage",
+		},
 	}
+
+	func(svc interface{}) {
+		if svc, is := svc.(interface{}).(interface{ list() []map[string]string }); is {
+			def = append(def, svc.list()...)
+		}
+	}(svc)
+
+	return def
 }
 
 // Grant applies one or more RBAC rules
@@ -226,6 +339,13 @@ func (svc accessControl) CanDeleteNamespace(ctx context.Context, r *types.Namesp
 	return svc.can(ctx, "delete", r)
 }
 
+// CanManageNamespace checks if current user can access to namespace admin panel
+//
+// This function is auto-generated
+func (svc accessControl) CanManageNamespace(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, "manage", r)
+}
+
 // CanCreateModuleOnNamespace checks if current user can create module on namespace
 //
 // This function is auto-generated
@@ -252,13 +372,6 @@ func (svc accessControl) CanCreatePageOnNamespace(ctx context.Context, r *types.
 // This function is auto-generated
 func (svc accessControl) CanReadPage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, "read", r)
-}
-
-// CanCreatePage checks if current user can create page
-//
-// This function is auto-generated
-func (svc accessControl) CanCreatePage(ctx context.Context, r *types.Page) bool {
-	return svc.can(ctx, "create", r)
 }
 
 // CanUpdatePage checks if current user can update page
@@ -328,72 +441,72 @@ func (svc accessControl) CanManageSettings(ctx context.Context) bool {
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+compose.chart":
+	switch rbac.ResourceType(r) {
+	case types.ChartResourceType:
 		return rbacChartResourceValidator(r, oo...)
-	case "corteza+compose.module-field":
+	case types.ModuleFieldResourceType:
 		return rbacModuleFieldResourceValidator(r, oo...)
-	case "corteza+compose.module":
+	case types.ModuleResourceType:
 		return rbacModuleResourceValidator(r, oo...)
-	case "corteza+compose.namespace":
+	case types.NamespaceResourceType:
 		return rbacNamespaceResourceValidator(r, oo...)
-	case "corteza+compose.page":
+	case types.PageResourceType:
 		return rbacPageResourceValidator(r, oo...)
-	case "corteza+compose.record":
+	case types.RecordResourceType:
 		return rbacRecordResourceValidator(r, oo...)
-	case "corteza+compose":
+	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
 
-	return fmt.Errorf("unknown resource schema '%q'", r)
+	return fmt.Errorf("unknown resource type '%q'", r)
 }
 
 // rbacResourceOperations returns defined operations for a requested resource
 //
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+compose.chart":
+	switch rbac.ResourceType(r) {
+	case types.ChartResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		}
-	case "corteza+compose.module-field":
+	case types.ModuleFieldResourceType:
 		return map[string]bool{
 			"record.value.read":   true,
 			"record.value.update": true,
 		}
-	case "corteza+compose.module":
+	case types.ModuleResourceType:
 		return map[string]bool{
 			"read":          true,
 			"update":        true,
 			"delete":        true,
 			"record.create": true,
 		}
-	case "corteza+compose.namespace":
+	case types.NamespaceResourceType:
 		return map[string]bool{
 			"read":          true,
 			"update":        true,
 			"delete":        true,
+			"manage":        true,
 			"module.create": true,
 			"chart.create":  true,
 			"page.create":   true,
 		}
-	case "corteza+compose.page":
-		return map[string]bool{
-			"read":   true,
-			"create": true,
-			"update": true,
-			"delete": true,
-		}
-	case "corteza+compose.record":
+	case types.PageResourceType:
 		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		}
-	case "corteza+compose":
+	case types.RecordResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":            true,
 			"namespace.create": true,
@@ -418,35 +531,39 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ChartRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ChartResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.ChartRbacResourceSchema)+2:], "/")
-	if len(pp) != 2 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ChartResourceType):], sep), sep)
+		prc = []string{
 			"namespaceID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Chart", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -466,36 +583,40 @@ func rbacModuleFieldResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ModuleFieldRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ModuleFieldResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.ModuleFieldRbacResourceSchema)+2:], "/")
-	if len(pp) != 3 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ModuleFieldResourceType):], sep), sep)
+		prc = []string{
 			"namespaceID",
 			"moduleID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for ModuleField", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -515,35 +636,39 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ModuleRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ModuleResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.ModuleRbacResourceSchema)+2:], "/")
-	if len(pp) != 2 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ModuleResourceType):], sep), sep)
+		prc = []string{
 			"namespaceID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Module", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -563,34 +688,38 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.NamespaceRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.NamespaceResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.NamespaceRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.NamespaceResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Namespace", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -610,35 +739,39 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.PageRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.PageResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.PageRbacResourceSchema)+2:], "/")
-	if len(pp) != 2 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.PageResourceType):], sep), sep)
+		prc = []string{
 			"namespaceID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Page", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -658,36 +791,40 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.RecordRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.RecordResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.RecordRbacResourceSchema)+2:], "/")
-	if len(pp) != 3 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.RecordResourceType):], sep), sep)
+		prc = []string{
 			"namespaceID",
 			"moduleID",
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Record", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -707,8 +844,9 @@ func rbacComponentResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ComponentRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ComponentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
 	return nil

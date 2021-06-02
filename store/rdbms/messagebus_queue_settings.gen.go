@@ -233,6 +233,7 @@ func (s Store) QueryMessagebusQueueSettings(
 	check func(*messagebus.QueueSettings) (bool, error),
 ) ([]*messagebus.QueueSettings, error) {
 	var (
+		tmp = make([]*messagebus.QueueSettings, 0, DefaultSliceCapacity)
 		set = make([]*messagebus.QueueSettings, 0, DefaultSliceCapacity)
 		res *messagebus.QueueSettings
 
@@ -254,10 +255,15 @@ func (s Store) QueryMessagebusQueueSettings(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupMessagebusQueueSettingByID searches for queue by ID
