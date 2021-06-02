@@ -19,8 +19,10 @@ import (
 func TestYamlStore_provision(t *testing.T) {
 	var (
 		ctx = context.Background()
-		s   = initStore(ctx, t)
+		s   = initServices(ctx, t)
 	)
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {
@@ -31,14 +33,6 @@ func TestYamlStore_provision(t *testing.T) {
 	prep := func(ctx context.Context, t *testing.T, s store.Storer) {
 		truncateStore(ctx, s, t)
 		ni = uint64(10)
-
-		err := collect(
-			storeRole(ctx, s, 1, "everyone"),
-			storeRole(ctx, s, 2, "admins"),
-		)
-		if err != nil {
-			t.Fatal(err.Error())
-		}
 	}
 
 	encode := func(ctx context.Context, s store.Storer, req *require.Assertions, dir string) error {
@@ -73,7 +67,7 @@ func TestYamlStore_provision(t *testing.T) {
 		)
 
 		prep(ctx, t, s)
-		encode(ctx, s, req, "provision/simple")
+		req.NoError(encode(ctx, s, req, "provision/simple"))
 
 		t.Run("rbac rules", func(t *testing.T) {
 			rrls, _, err = store.SearchRbacRules(ctx, s, rbac.RuleFilter{})

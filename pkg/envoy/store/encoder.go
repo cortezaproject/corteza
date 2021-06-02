@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -96,8 +95,6 @@ func NewStoreEncoder(s store.Storer, cfg *EncoderConfig) envoy.PrepareEncoder {
 		}
 	}
 
-	rbac.Initialize(nil, s)
-
 	return &storeEncoder{
 		s:   s,
 		cfg: cfg,
@@ -160,7 +157,6 @@ func (se *storeEncoder) Prepare(ctx context.Context, ee ...*envoy.ResourceState)
 			return se.WrapError("prepare", ers.Res, err)
 		}
 	}
-
 	return nil
 }
 
@@ -201,8 +197,7 @@ func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, ers *en
 }
 
 func (se *storeEncoder) WrapError(act string, res resource.Interface, err error) error {
-	rt := strings.Join(strings.Split(strings.TrimSpace(strings.TrimRight(res.ResourceType(), ":")), ":"), " ")
-	return fmt.Errorf("store encoder %s %s %v: %s", act, rt, res.Identifiers().StringSlice(), err)
+	return fmt.Errorf("store encoder %s %s %v: %s", act, res.ResourceType(), res.Identifiers().StringSlice(), err)
 }
 
 func resourceErrIdentifierNotUnique(i string) error {

@@ -38,7 +38,7 @@ func bulkComposeRecordEncoderFromResource(rec *resource.ComposeRecord, cfg *Enco
 func (n *bulkComposeRecordEncoder) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	_, ok := state.Res.(*resource.ComposeRecord)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_RECORD_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.RecordResourceType, state.Res.ResourceType())
 	}
 
 	return nil

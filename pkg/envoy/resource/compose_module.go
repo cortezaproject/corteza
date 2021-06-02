@@ -23,12 +23,12 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 		base:    &base{},
 		RefMods: make(RefSet, 0, len(res.Fields)),
 	}
-	r.SetResourceType(COMPOSE_MODULE_RESOURCE_TYPE)
+	r.SetResourceType(types.ModuleResourceType)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
 
 	// Field deps
 	for _, f := range res.Fields {
@@ -39,7 +39,7 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 				refMod = f.Options.String("moduleID")
 			}
 			if refMod != "" && refMod != "0" {
-				r.RefMods = append(r.RefMods, r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, refMod).Constraint(r.RefNs))
+				r.RefMods = append(r.RefMods, r.AddRef(types.ModuleResourceType, refMod).Constraint(r.RefNs))
 			}
 		}
 	}
@@ -52,6 +52,11 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 
 func (r *ComposeModule) SysID() uint64 {
 	return r.Res.ID
+}
+
+// @todo name
+func (r *ComposeModule) RBACPath() []*Ref {
+	return []*Ref{r.RefNs}
 }
 
 func (r *ComposeModule) Ref() string {

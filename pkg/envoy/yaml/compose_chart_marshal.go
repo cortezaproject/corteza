@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -17,7 +18,7 @@ func composeChartFromResource(r *resource.ComposeChart, cfg *EncoderConfig) *com
 func (n *composeChart) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	chr, ok := state.Res.(*resource.ComposeChart)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_CHART_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(composeTypes.ChartResourceType, state.Res.ResourceType())
 	}
 
 	// Get the related namespace

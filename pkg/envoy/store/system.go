@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -287,22 +288,34 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 			}
 
 			for _, n := range nn {
-				// If not wildcard or is a system rule; check if resource is allowed
-				_ = n
-				// @todo RBACv2
-				//if n.Resource.HasWildcard() || !n.Resource.IsAppendable() {
-				//	mm = append(mm, newRbacRule(n))
-				//} else {
-				//	id, err := n.Resource.GetID()
-				//	if err != nil {
-				//		return &auxRsp{
-				//			err: err,
-				//		}
-				//	}
-				//	if f.resourceID[id] {
-				//		mm = append(mm, newRbacRule(n))
-				//	}
-				//}
+				r := newRbacRule(n)
+
+				// parse the resource wo we can define relations/check if we can unmarshal it
+				_, ref, pp, err := resource.ParseRule(n.Resource)
+				r.refRes = ref
+				r.refPathRes = pp
+				if err != nil {
+					return &auxRsp{
+						err: err,
+					}
+				}
+
+				// somesort of a generic rule; no specifc resource
+				if ref == nil {
+					mm = append(mm, r)
+				} else {
+					// the first identifier is the most specific .. the ID
+					id, err := cast.ToUint64E(ref.Identifiers.First())
+					if err != nil {
+						return &auxRsp{
+							err: err,
+						}
+					}
+
+					if f.resourceID[id] {
+						mm = append(mm, r)
+					}
+				}
 			}
 
 			break

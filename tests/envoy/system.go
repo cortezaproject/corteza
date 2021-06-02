@@ -130,21 +130,21 @@ func sTestRbac(ctx context.Context, t *testing.T, s store.Storer, roleID uint64)
 	rr := rbac.RuleSet{
 		{
 			RoleID:    roleID,
-			Resource:  "compose",
+			Resource:  "corteza::compose/",
 			Operation: "read",
 			Access:    rbac.Allow,
 		},
 		{
 			RoleID:    roleID,
-			Resource:  "system",
+			Resource:  types.ComponentRbacResource(),
 			Operation: "read",
 			Access:    rbac.Deny,
 		},
 		{
 			RoleID:    roleID,
-			Resource:  "system:role:*",
+			Resource:  types.RoleRbacResource(0),
 			Operation: "read",
-			Access:    rbac.Deny,
+			Access:    rbac.Allow,
 		},
 		{
 			RoleID:    roleID,

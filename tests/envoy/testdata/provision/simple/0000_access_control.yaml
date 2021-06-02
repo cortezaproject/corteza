@@ -1,33 +1,38 @@
 allow:
   authenticated:
-    compose:
+    corteza::compose/:
       - op1
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - op1
 
   admins:
-    compose:
+    corteza::compose/:
       - op1
       - op1.sub
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - op1
       - op1.sub
 
 deny:
   authenticated:
-    compose:
+    corteza::compose/:
       - op2
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - op2
 
   admins:
-    compose:
+    corteza::compose/:
       - op2
       - op2.sub
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - op2
       - op2.sub
+
+
+roles:
+  authenticated: {}
+  admins: {}

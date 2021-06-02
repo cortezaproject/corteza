@@ -19,6 +19,10 @@ type (
 		refRes      *resource.Ref
 		relResource resource.Interface
 
+		// PathRes and PathResource slices hold parent resources we should nest the rule by
+		refPathRes      []*resource.Ref
+		relPathResource []resource.Interface
+
 		refRole string
 		relRole *types.Role
 	}
@@ -26,8 +30,12 @@ type (
 )
 
 func rbacRuleFromResource(r *resource.RbacRule, cfg *EncoderConfig) *rbacRule {
-	rr := string(r.Res.Resource)
-	rr = strings.TrimRight(rr, ":")
+	rr := r.Res.Resource
+	rr = strings.Trim(rr, ":")
+
+	if !strings.Contains(rr, ";") {
+		rr = "corteza::" + rr
+	}
 
 	return &rbacRule{
 		res:         r.Res,
@@ -74,14 +82,7 @@ func (rr rbacRuleSet) groupByResource() []rbacRuleSet {
 	rolx := make(map[string]rbacRuleSet)
 
 	for _, r := range rr {
-		// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
 		k := r.res.Resource
-		if r.relResource != nil {
-			if ri, is := r.relResource.(resource.RefableInterface); is {
-				k += ri.Ref()
-			}
-		}
-
 		if _, has := rolx[k]; !has {
 			rolx[k] = make(rbacRuleSet, 0, 100)
 		}
@@ -95,4 +96,15 @@ func (rr rbacRuleSet) groupByResource() []rbacRuleSet {
 	}
 
 	return rtr
+}
+
+// Just a helper to make the above code shorter
+func (r *rbacRule) bindRefs(res *resource.Ref, path []*resource.Ref, err error) error {
+	if err != nil {
+		return err
+	}
+
+	r.refRes = res
+	r.refPathRes = path
+	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	su "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/stretchr/testify/require"
@@ -30,9 +31,11 @@ func TestYamlStore_relations(t *testing.T) {
 	var (
 		ctx       = context.Background()
 		namespace = "relations"
-		s         = initStore(ctx, t)
+		s         = initServices(ctx, t)
 		err       error
 	)
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {

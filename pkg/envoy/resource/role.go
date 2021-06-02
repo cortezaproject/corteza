@@ -17,7 +17,7 @@ type (
 
 func NewRole(rl *types.Role) *Role {
 	r := &Role{base: &base{}}
-	r.SetResourceType(ROLE_RESOURCE_TYPE)
+	r.SetResourceType(types.RoleResourceType)
 	r.Res = rl
 
 	r.AddIdentifier(identifiers(rl.Handle, rl.Name, rl.ID)...)

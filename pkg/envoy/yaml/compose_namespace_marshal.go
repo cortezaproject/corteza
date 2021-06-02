@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -10,7 +11,7 @@ import (
 func (n *composeNamespace) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	ns, ok := state.Res.(*resource.ComposeNamespace)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_NAMESPACE_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.NamespaceResourceType, state.Res.ResourceType())
 	}
 
 	n.meta = composeNamespaceMeta(ns.Res.Meta)

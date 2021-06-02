@@ -37,7 +37,8 @@ func TestStoreJsonl_records(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	s := initStore(ctx, t)
+	s := initServices(ctx, t)
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {
@@ -256,7 +257,8 @@ func TestStoreJsonl_records_fieldTypes(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	s := initStore(ctx, t)
+	s := initServices(ctx, t)
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {

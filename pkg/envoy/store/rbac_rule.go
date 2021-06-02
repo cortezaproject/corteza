@@ -15,6 +15,9 @@ type (
 		res  *resource.RbacRule
 		rule *rbac.Rule
 
+		refRes     *resource.Ref
+		refPathRes []*resource.Ref
+
 		relRole *types.Role
 	}
 )

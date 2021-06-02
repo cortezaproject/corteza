@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -16,7 +17,7 @@ type (
 
 func NewApplication(res *types.Application) *Application {
 	r := &Application{base: &base{}}
-	r.SetResourceType(APPLICATION_RESOURCE_TYPE)
+	r.SetResourceType(types.ApplicationResourceType)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Name, res.ID)...)
@@ -64,4 +65,8 @@ func FindApplication(rr InterfaceSet, ii Identifiers) (ap *types.Application) {
 	}
 
 	return nil
+}
+
+func ApplicationErrUnresolved(ii Identifiers) error {
+	return fmt.Errorf("application unresolved %v", ii.StringSlice())
 }
