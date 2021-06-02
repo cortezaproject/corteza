@@ -16,7 +16,7 @@
 			Corteza
 		</title>
 	</head>
-	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat bottom;background-size: cover;background-attachment: fixed;">
+	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat top;background-size: cover;background-attachment: fixed;">
 		<main class="auth mt-sm-5 pt-md-5">
 			<div class="card">
 			{{ template "inc_nav.html.tpl" . }}
