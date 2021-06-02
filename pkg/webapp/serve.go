@@ -121,7 +121,7 @@ func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	var (
 		base = strings.TrimSuffix(options.CleanBase(baseHref, app), "/") + "/"
 
-		warning     = []byte(`\n\n<!--\n\nError!\n\nFailed could not locate or modify <base> tag, your webapp might misbehave\n\n-->\n`)
+		warning     = []byte(`<!-- Error! Could not locate or modify <base> tag, your webapp might misbehave -->`)
 		replacement = []byte(fmt.Sprintf(`<base href="%s" />`, base))
 		fixed       = baseHrefMatcher.ReplaceAll(buf, replacement)
 	)
