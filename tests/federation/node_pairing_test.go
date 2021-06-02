@@ -36,9 +36,8 @@ func (h helper) clearNodes() {
 }
 
 func (h helper) prepareRBAC() {
-	h.allow(types.ComponentRbacResource(), "node.create")
-	h.allow(types.ComponentRbacResource(), "pair")
-	h.allow(types.NodeRbacResource(0), "manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "node.create", "pair")
+	helpers.AllowMe(h, types.NodeRbacResource(0), "manage")
 
 	h.noError(service.DefaultStore.CreateRole(context.Background(), &st.Role{
 		ID:     h.roleID,
@@ -169,7 +168,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		service.DefaultNode.SetHandshaker(&mockNodeHandshake{
 			init: func(ctx context.Context, n *types.Node, authToken string) error {
 				h.apiInit().
-					// Debug().
+					//Debug().
 					// make sure we do not use test auth-token for authentication but
 					// we do it with pairing token
 					Intercept(helpers.ReqHeaderRawAuthBearer(n.AuthToken)).
@@ -186,7 +185,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		})
 
 		h.apiInit().
-			// Debug().
+			//Debug().
 			Post(fmt.Sprintf("/nodes/%d/pair", bNodeID)).
 			Expect(t).
 			Status(http.StatusOK).
@@ -205,7 +204,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		service.DefaultNode.SetHandshaker(&mockNodeHandshake{
 			complete: func(ctx context.Context, n *types.Node, authToken string) error {
 				h.apiInit().
-					// Debug().
+					//Debug().
 					// make sure we do not use test auth-token but
 					// one provided to us in the initial handshake step
 					Intercept(helpers.ReqHeaderRawAuthBearer(n.AuthToken)).
@@ -221,7 +220,7 @@ func TestSuccessfulNodePairing(t *testing.T) {
 		})
 
 		h.apiInit().
-			// Debug().
+			//Debug().
 			Intercept(helpers.ReqHeaderRawAuthBearer(getNodeAuthToken(aNodeID))).
 			Post(fmt.Sprintf("/nodes/%d/handshake-confirm", aNodeID)).
 			Expect(t).

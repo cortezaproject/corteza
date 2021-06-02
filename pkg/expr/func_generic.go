@@ -106,6 +106,10 @@ func isSlice(v interface{}) bool {
 	return reflect.TypeOf(v).Kind() == reflect.Slice || reflect.TypeOf(v).Kind() == reflect.Array
 }
 
+func isMap(v interface{}) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Map
+}
+
 // toArray removes expr types (if wrapped) and checks if the variable is slice
 // internal only
 //

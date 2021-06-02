@@ -2,10 +2,12 @@ package rbac
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
+	// Security/RBAC session
 	Session interface {
 		// Identity of the subject
 		Identity() uint64

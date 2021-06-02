@@ -94,7 +94,7 @@ func (vldtr *validator) FileRefChecker(fn ReferenceChecker) {
 //   - check if required values are present
 //   - check for unique-multi-value in multi value fields
 //   - field-kind specific validation on all values
-//   - unique check on all all values
+//   - unique check on all values
 func (vldtr validator) Run(ctx context.Context, s store.Storer, m *types.Module, r *types.Record) (out *types.RecordValueErrorSet) {
 	var (
 		f *types.ModuleField

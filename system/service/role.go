@@ -19,7 +19,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
-
 	"go.uber.org/zap"
 )
 
@@ -55,6 +54,9 @@ type (
 		FindByHandle(ctx context.Context, handle string) (*types.Role, error)
 		FindByAny(ctx context.Context, identifier interface{}) (*types.Role, error)
 		Find(context.Context, types.RoleFilter) (types.RoleSet, types.RoleFilter, error)
+
+		IsSystem(r *types.Role) bool
+		IsClosed(r *types.Role) bool
 
 		Create(ctx context.Context, role *types.Role) (*types.Role, error)
 		Update(ctx context.Context, role *types.Role) (*types.Role, error)
@@ -97,17 +99,25 @@ func Role() *role {
 // SetSystem sets list of handles for all system roles
 //
 // System roles can not be changed or deleted
-func (svc role) SetSystem(hh ...string) {
+func (svc *role) SetSystem(hh ...string) {
 	svc.system = slice.ToStringBoolMap(hh)
 	delete(svc.system, "")
+}
+
+func (svc role) IsSystem(r *types.Role) bool {
+	return len(r.Handle) > 0 && svc.system[r.Handle]
 }
 
 // SetClosed sets list of handles for all closed roles
 //
 // Closed roles can not have members
-func (svc role) SetClosed(hh ...string) {
+func (svc *role) SetClosed(hh ...string) {
 	svc.closed = slice.ToStringBoolMap(hh)
 	delete(svc.closed, "")
+}
+
+func (svc role) IsClosed(r *types.Role) bool {
+	return len(r.Handle) > 0 && svc.closed[r.Handle]
 }
 
 func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.RoleSet, f types.RoleFilter, err error) {
@@ -285,6 +295,12 @@ func (svc role) Create(ctx context.Context, new *types.Role) (r *types.Role, err
 			return
 		}
 
+		if new.Meta != nil && new.Meta.Context != nil {
+			if err = svc.validateContext(ctx, new.Meta.Context); err != nil {
+				return
+			}
+		}
+
 		if err = svc.UniqueCheck(ctx, new); err != nil {
 			return
 		}
@@ -332,7 +348,7 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return
 		}
 
-		if svc.system[r.Handle] {
+		if svc.IsSystem(r) {
 			return RoleErrNotAllowedToUpdate()
 		}
 
@@ -342,12 +358,19 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return
 		}
 
+		if upd.Meta != nil && upd.Meta.Context != nil {
+			if err = svc.validateContext(ctx, upd.Meta.Context); err != nil {
+				return
+			}
+		}
+
 		if err = svc.UniqueCheck(ctx, upd); err != nil {
 			return
 		}
 
 		r.Handle = upd.Handle
 		r.Name = upd.Name
+		r.Meta = upd.Meta
 		r.UpdatedAt = now()
 
 		// Assign changed values
@@ -393,6 +416,24 @@ func (svc role) UniqueCheck(ctx context.Context, r *types.Role) (err error) {
 	return nil
 }
 
+// validateContext validates role context expression
+func (svc role) validateContext(ctx context.Context, r *types.RoleContext) error {
+	if len(strings.TrimSpace(r.Expr)) == 0 {
+		return nil
+	}
+
+	_, err := expr.NewParser().Parse(r.Expr)
+	if err != nil {
+		return err
+	}
+
+	// this is really as much as we can validate at this point
+	// any further validation of the expression through actual execution
+	// would require us to bring in information about resources from non-system components
+	// and figuring out the exact module structure when using this with record values
+	return nil
+}
+
 func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 	var (
 		r       *types.Role
@@ -404,7 +445,7 @@ func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
-		if svc.system[r.Handle] {
+		if svc.IsSystem(r) {
 			return RoleErrNotAllowedToDelete()
 		}
 
@@ -443,7 +484,7 @@ func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
-		if svc.system[r.Handle] {
+		if svc.IsSystem(r) {
 			return RoleErrNotAllowedToUndelete()
 		}
 
@@ -476,7 +517,7 @@ func (svc role) Archive(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
-		if svc.system[r.Handle] {
+		if svc.IsSystem(r) {
 			return RoleErrNotAllowedToArchive()
 		}
 
@@ -508,7 +549,7 @@ func (svc role) Unarchive(ctx context.Context, roleID uint64) (err error) {
 			return err
 		}
 
-		if svc.system[r.Handle] {
+		if svc.IsSystem(r) {
 			return RoleErrNotAllowedToUnarchive()
 		}
 
@@ -548,12 +589,12 @@ func (svc role) MemberList(ctx context.Context, roleID uint64) (mm types.RoleMem
 			return RoleErrInvalidID()
 		}
 
-		if svc.closed[r.Handle] {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
 		if r, err = svc.findByID(ctx, roleID); err != nil {
 			return err
+		}
+
+		if svc.IsClosed(r) {
+			return RoleErrNotAllowedToManageMembers()
 		}
 
 		if !svc.ac.CanReadRole(ctx, r) {
@@ -584,15 +625,15 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 			return RoleErrInvalidID()
 		}
 
-		if svc.closed[r.Handle] {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
 		if r, err = svc.findByID(ctx, roleID); err != nil {
 			return
 		}
 
 		raProps.setRole(r)
+
+		if svc.IsClosed(r) {
+			return RoleErrNotAllowedToManageMembers()
+		}
 
 		if m, err = svc.user.FindByID(ctx, memberID); err != nil {
 			return
@@ -635,12 +676,12 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 			return RoleErrInvalidID()
 		}
 
-		if svc.closed[r.Handle] {
-			return RoleErrNotAllowedToManageMembers()
-		}
-
 		if r, err = svc.findByID(ctx, roleID); err != nil {
 			return
+		}
+
+		if svc.IsClosed(r) {
+			return RoleErrNotAllowedToManageMembers()
 		}
 
 		raProps.setRole(r)
@@ -686,9 +727,9 @@ func toLabeledRoles(set []*types.Role) []label.LabeledResource {
 	return ll
 }
 
-// Configures RBAC with roles
+// Initializes roles to RBAC and default role service
 //
-// Sets all closed & im
+// Sets all closed & system roles
 func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eventbusRoleChangeRegistry, ru rbacRoleUpdater) (err error) {
 	var (
 		// splits space separated string into map
@@ -759,13 +800,17 @@ func initRoles(ctx context.Context, log *zap.Logger, opt options.RBACOpt, eb eve
 		}
 	}
 
-	DefaultRole.SetSystem(j(bypass, authenticated, anonymous)...)
-	DefaultRole.SetClosed(j(authenticated, anonymous)...)
+	tmp := j(bypass, authenticated, anonymous)
+	log.Debug("setting system roles", zap.Strings("roles", tmp))
+	DefaultRole.SetSystem(tmp...)
+
+	tmp = j(authenticated, anonymous)
+	log.Debug("setting closed roles", zap.Strings("roles", tmp))
+	DefaultRole.SetClosed(tmp...)
 
 	// Initial RBAC update
-	err = updateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous)
-	if err != nil {
-
+	if err = updateRbacRoles(ctx, log, ru, bypass, authenticated, anonymous); err != nil {
+		return
 	}
 
 	// Hook to role create, update & delete events and
@@ -808,43 +853,53 @@ func updateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 		case bypass[r.Handle]:
 			countBypass++
 			rr = append(rr, rbac.BypassRole.Make(r.ID, r.Handle))
+			log.Debug("bypass role added")
 
 		case anonymous[r.Handle]:
 			countAnony++
 			rr = append(rr, rbac.AnonymousRole.Make(r.ID, r.Handle))
+			log.Debug("anonymous role added")
 
 		case authenticated[r.Handle]:
 			countAuth++
 			rr = append(rr, rbac.AuthenticatedRole.Make(r.ID, r.Handle))
+			log.Debug("authenticated role added")
 
 		case r.Meta != nil && r.Meta.Context != nil && len(r.Meta.Context.Expr) > 0:
 			log := log.With(zap.String("expr", r.Meta.Context.Expr))
 			eval, err := p.Parse(r.Meta.Context.Expr)
 			if err != nil {
-				log.Error("failed to parse role context expression", zap.Error(err))
+				log.Warn("failed to parse role context expression, defaulting to deny", zap.Error(err))
+
+				rr = append(rr, rbac.MakeContextRole(r.ID, r.Handle, func(_ map[string]interface{}) bool {
+					log.Warn("role context expression not parsed, fallback to deny", zap.Error(err))
+					return false
+				}))
 				continue
 			}
 
-			check := func(s map[string]interface{}) bool {
-				vars, err := expr.NewVars(s)
+			check := func(scope map[string]interface{}) bool {
+				vars, err := expr.NewVars(scope)
 				if err != nil {
-					log.Error("failed to convert check scope to expr.Vars", zap.Error(err))
+					log.Warn("failed to convert check scope to expr.Vars, fallback to deny", zap.Error(err))
 					return false
 				}
 
 				test, err := eval.Test(ctx, vars)
 				if err != nil {
-					log.Error("failed to evaluate role context expression", zap.Error(err))
+					log.Warn("failed to evaluate role context expression, fallback to deny", zap.Error(err))
 					return false
 				}
 
 				return test
 			}
 
-			rr = append(rr, rbac.MakeContextRole(r.ID, r.Handle, check))
+			rr = append(rr, rbac.MakeContextRole(r.ID, r.Handle, check, r.Meta.Context.Resource...))
+			log.Debug("context role added")
 
 		default:
 			rr = append(rr, rbac.CommonRole.Make(r.ID, r.Handle))
+			log.Debug("common role added")
 		}
 	}
 

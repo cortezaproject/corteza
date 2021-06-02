@@ -56,20 +56,76 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 }
 
 func (svc accessControl) List() (out []map[string]string) {
-	return []map[string]string{
-		{"resource": "corteza+automation.workflow", "operation": "read"},
-		{"resource": "corteza+automation.workflow", "operation": "update"},
-		{"resource": "corteza+automation.workflow", "operation": "delete"},
-		{"resource": "corteza+automation.workflow", "operation": "undelete"},
-		{"resource": "corteza+automation.workflow", "operation": "execute"},
-		{"resource": "corteza+automation.workflow", "operation": "triggers.manage"},
-		{"resource": "corteza+automation.workflow", "operation": "sessions.manage"},
-		{"resource": "corteza+automation", "operation": "grant"},
-		{"resource": "corteza+automation", "operation": "workflow.create"},
-		{"resource": "corteza+automation", "operation": "triggers.search"},
-		{"resource": "corteza+automation", "operation": "sessions.search"},
-		{"resource": "corteza+automation", "operation": "workflows.search"},
+	def := []map[string]string{
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "undelete",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "execute",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "triggers.manage",
+		},
+		{
+			"type": types.WorkflowResourceType,
+			"any":  types.WorkflowRbacResource(0),
+			"op":   "sessions.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "grant",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "workflow.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "triggers.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "sessions.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "workflows.search",
+		},
 	}
+
+	func(svc interface{}) {
+		if svc, is := svc.(interface{}).(interface{ list() []map[string]string }); is {
+			def = append(def, svc.list()...)
+		}
+	}(svc)
+
+	return def
 }
 
 // Grant applies one or more RBAC rules
@@ -211,22 +267,22 @@ func (svc accessControl) CanSearchWorkflows(ctx context.Context) bool {
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+automation.workflow":
+	switch rbac.ResourceType(r) {
+	case types.WorkflowResourceType:
 		return rbacWorkflowResourceValidator(r, oo...)
-	case "corteza+automation":
+	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
 
-	return fmt.Errorf("unknown resource schema '%q'", r)
+	return fmt.Errorf("unknown resource type '%q'", r)
 }
 
 // rbacResourceOperations returns defined operations for a requested resource
 //
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
-	switch rbac.ResourceSchema(r) {
-	case "corteza+automation.workflow":
+	switch rbac.ResourceType(r) {
+	case types.WorkflowResourceType:
 		return map[string]bool{
 			"read":            true,
 			"update":          true,
@@ -236,7 +292,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"triggers.manage": true,
 			"sessions.manage": true,
 		}
-	case "corteza+automation":
+	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":            true,
 			"workflow.create":  true,
@@ -262,34 +318,38 @@ func rbacWorkflowResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.WorkflowRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.WorkflowResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
-	pp := strings.Split(r[len(types.WorkflowRbacResourceSchema)+2:], "/")
-	if len(pp) != 1 {
-		return fmt.Errorf("invalid resource path")
-	}
-
+	const sep = "/"
 	var (
-		ppWildcard   bool
-		pathElements = []string{
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.WorkflowResourceType):], sep), sep)
+		prc = []string{
 			"ID",
 		}
 	)
 
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
 	for i, p := range pp {
 		if p == "*" {
-			ppWildcard = true
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Workflow", i)
+			}
+
+			specIdUsed = false
 			continue
 		}
 
-		if !ppWildcard {
-			return fmt.Errorf("invalid resource path wildcard level")
-		}
-
+		specIdUsed = true
 		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid ID for %s: '%s'", pathElements[i], p)
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -309,8 +369,9 @@ func rbacComponentResourceValidator(r string, oo ...string) error {
 		}
 	}
 
-	if !strings.HasPrefix(r, types.ComponentRbacResourceSchema+":/") {
-		return fmt.Errorf("invalid schema")
+	if !strings.HasPrefix(r, types.ComponentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
 	}
 
 	return nil

@@ -1,5 +1,5 @@
 rbac:
-  resource: { elements: [] }
+  resource: { references: [] }
 
   operations:
     grant:

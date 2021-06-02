@@ -54,7 +54,7 @@ func TestAuthClientList(t *testing.T) {
 	h.repoMakeAuthClient()
 	h.repoMakeAuthClient()
 
-	h.allow(types.AuthClientRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/auth/clients/").
@@ -71,7 +71,7 @@ func TestAuthClientRead(t *testing.T) {
 
 	client := h.repoMakeAuthClient()
 
-	h.allow(types.AuthClientRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/auth/clients/%d", client.ID)).
@@ -87,7 +87,7 @@ func TestAuthClientCreate(t *testing.T) {
 
 	handle := rs()
 
-	h.allow(types.SystemRBACResource, "auth-client.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "auth-client.create")
 
 	h.apiInit().
 		Post("/auth/clients/").
@@ -109,7 +109,7 @@ func TestAuthClientUpdate(t *testing.T) {
 	client := h.repoMakeAuthClient()
 	client.Handle = rs()
 
-	h.allow(types.AuthClientRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "update")
 
 	h.apiInit().
 		Put(fmt.Sprintf("/auth/clients/%d", client.ID)).
@@ -130,7 +130,7 @@ func TestAuthClientDelete(t *testing.T) {
 
 	client := h.repoMakeAuthClient()
 
-	h.allow(types.AuthClientRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/auth/clients/%d", client.ID)).
@@ -151,7 +151,7 @@ func TestAuthClientUnDelete(t *testing.T) {
 
 	client := h.repoMakeAuthClient()
 
-	h.allow(types.AuthClientRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.AuthClientRbacResource(0), "delete")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/auth/clients/%d/undelete", client.ID)).

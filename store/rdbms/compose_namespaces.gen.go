@@ -238,6 +238,7 @@ func (s Store) QueryComposeNamespaces(
 	check func(*types.Namespace) (bool, error),
 ) ([]*types.Namespace, error) {
 	var (
+		tmp = make([]*types.Namespace, 0, DefaultSliceCapacity)
 		set = make([]*types.Namespace, 0, DefaultSliceCapacity)
 		res *types.Namespace
 
@@ -259,6 +260,11 @@ func (s Store) QueryComposeNamespaces(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryComposeNamespaces(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupComposeNamespaceBySlug searches for namespace by slug (case-insensitive)

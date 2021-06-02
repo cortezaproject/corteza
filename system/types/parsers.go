@@ -24,3 +24,8 @@ func ParseAuthClientSecurity(ss []string) (p *AuthClientSecurity, err error) {
 	p = &AuthClientSecurity{}
 	return p, parseStringsInput(ss, &p)
 }
+
+func ParseRoleMeta(ss []string) (p *RoleMeta, err error) {
+	p = &RoleMeta{}
+	return p, parseStringsInput(ss, &p)
+}

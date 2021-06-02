@@ -238,6 +238,7 @@ func (s Store) QueryAutomationWorkflows(
 	check func(*types.Workflow) (bool, error),
 ) ([]*types.Workflow, error) {
 	var (
+		tmp = make([]*types.Workflow, 0, DefaultSliceCapacity)
 		set = make([]*types.Workflow, 0, DefaultSliceCapacity)
 		res *types.Workflow
 
@@ -259,6 +260,11 @@ func (s Store) QueryAutomationWorkflows(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryAutomationWorkflows(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAutomationWorkflowByID searches for workflow by ID

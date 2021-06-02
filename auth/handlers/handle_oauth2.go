@@ -4,6 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/auth/oauth2"
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
@@ -13,12 +20,6 @@ import (
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"go.uber.org/zap"
-	"html/template"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // oauth2 flow authorize step
@@ -414,7 +415,7 @@ func Profile(ctx context.Context, ti oauth2def.TokenInfo, data map[string]interf
 		return nil
 	}
 
-	userID := auth.ExtractUserIDFromSubClaim(ti.GetUserID())
+	userID, roles := auth.ExtractFromSubClaim(ti.GetUserID())
 	if userID == 0 {
 		return fmt.Errorf("invalid user ID in 'sub' claim")
 	}
@@ -422,7 +423,7 @@ func Profile(ctx context.Context, ti oauth2def.TokenInfo, data map[string]interf
 	user, err := systemService.DefaultUser.FindByID(
 		// inject ad-hoc identity into context so that user service is aware who is
 		// doing the lookup
-		auth.SetIdentityToContext(ctx, auth.NewIdentity(userID)),
+		auth.SetIdentityToContext(ctx, auth.Authenticated(userID, roles...)),
 		userID,
 	)
 

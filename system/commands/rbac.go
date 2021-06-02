@@ -2,323 +2,245 @@ package commands
 
 import (
 	"context"
+	"sort"
+	"strconv"
+	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
 )
 
-// Temporary solution, highly unstable, will change in the future!
-//type (
-//	rbacRoleOps map[string][]string
-//
-//	rbacModule struct {
-//		res   *cmptyp.Module
-//		rules rbac.RuleSet
-//
-//		Allow rbacRoleOps `yaml:"allow"`
-//		Deny  rbacRoleOps `yaml:"deny"`
-//	}
-//
-//	rbacNamespace struct {
-//		res   *cmptyp.Namespace
-//		rules rbac.RuleSet
-//
-//		Allow rbacRoleOps `yaml:"allow"`
-//		Deny  rbacRoleOps `yaml:"deny"`
-//
-//		Modules map[string]*rbacModule `yaml:"modules"`
-//	}
-//
-//	rbacRoot struct {
-//		Namespaces map[string]*rbacNamespace `yaml:"namespaces"`
-//	}
-//
-//	//rbacRules map[string]permissions.RuleSet
-//
-//	rbacPreloads struct {
-//		roles      systyp.RoleSet
-//		namespaces cmptyp.NamespaceSet
-//		modules    cmptyp.ModuleSet
-//	}
-//)
-
-func RBAC(ctx context.Context, app serviceInitializer) *cobra.Command {
+func RBAC(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rbac",
 		Short: "RBAC tools",
 		Long:  "Check and manipulates permissions",
 	}
 
-	//cmd.AddCommand(rbacCheck(app))
+	cmd.AddCommand(rbacList(ctx, storeInit))
 
-	//cmd.Flags().String("namespace", "", "Import into namespace (by ID or string)")
+	// @todo command that can grant/revoke/reset-all permissions
+	//       in a similar format(s) as we do listing so that users can
+	//       copy-paste the whole output, modify it and import it back
 
 	return cmd
 }
 
-//func rbacCheck(app serviceInitializer) *cobra.Command {
-//	return &cobra.Command{
-//		Use:     "check",
-//		Short:   "Check applied permissions against given file (only supports compose permissions for now)",
-//		PreRunE: commandPreRunInitService(app),
-//		Run: func(cmd *cobra.Command, args []string) {
-//			var (
-//				ctx = auth.SetSuperUserContext(cli.Context())
-//				fh  *os.File
-//				err error
-//
-//				r = &rbacRoot{}
-//
-//				p = rbacPreloads{}
-//
-//				currentRules = rbac.Global().Rules()
-//			)
-//
-//			if len(args) > 0 {
-//				fh, err = os.Open(args[0])
-//				cli.HandleError(err)
-//				defer fh.Close()
-//			} else {
-//				fh = os.Stdin
-//			}
-//
-//			cli.HandleError(yaml.NewDecoder(fh).Decode(r))
-//
-//			p.roles, _, err = syssvc.DefaultRole.Find(ctx, systyp.RoleFilter{})
-//			cli.HandleError(err)
-//			p.namespaces, _, err = cmpsvc.DefaultNamespace.Find(ctx, cmptyp.NamespaceFilter{})
-//			cli.HandleError(err)
-//			p.modules, _, err = cmpsvc.DefaultModule.Find(ctx, cmptyp.ModuleFilter{})
-//			cli.HandleError(err)
-//
-//			fmt.Printf("Preloaded %d roles(s)\n", len(p.roles))
-//			fmt.Printf("Preloaded %d namespaces(s)\n", len(p.namespaces))
-//			fmt.Printf("Preloaded %d module(s)\n", len(p.modules))
-//			fmt.Printf("Preloaded %d RBAC rule(s)\n", len(currentRules))
-//
-//			cli.HandleError(r.Resolve(p))
-//
-//			r.diagnose(currentRules, p)
-//		},
-//	}
-//}
-//
-////func (rr rbacRules) Merge(new rbacRules) rbacRules {
-////	var out = rr
-////
-////	for role, rules := range new {
-////		if _, has := out[role]; has {
-////			out[role] = append(out[role], rules...)
-////		} else {
-////			out[role] = rules
-////		}
-////	}
-////
-////	// @todo implementation
-////	return nil
-////}
-//
-////func (rr rbacRules) Update(resource permissions.Resource, access permissions.Access) {
-////	for _, rules := range rr {
-////		for _, rule := range rules {
-////			rule.Access = access
-////		}
-////	}
-////}
-//
-////func (r rbacRoot) CollectRbacRules() rbacRules {
-////	rr := rbacRules{}
-////
-////	for _, ns := range r.Namespaces {
-////		rr.Merge(ns.CollectRbacRules())
-////	}
-////
-////	return rr
-////}
-//
-//// Tranverses nodes and resolves references
-//func (r *rbacRoot) Resolve(p rbacPreloads) (err error) {
-//	for handle, ns := range r.Namespaces {
-//		err = ns.Resolve(handle, p)
-//		if err != nil {
-//			return
-//		}
-//	}
-//
-//	return nil
-//}
-//
-////func (ns rbacNamespace) CollectRbacRules() rbacRules {
-////	var (
-////		rr = rbacRules{}
-////
-////		a = ns.Allow.CollectRbacRules()
-////		d = ns.Deny.CollectRbacRules()
-////	)
-////
-////	a.Update(cmptyp.NamespaceRBACResource, permissions.Allow)
-////	d.Update(cmptyp.NamespaceRBACResource, permissions.Deny)
-////
-////	rr = rr.Merge(a).Merge(d)
-////
-////	for _, m := range ns.Modules {
-////		rr = rr.Merge(m.CollectRbacRules())
-////	}
-////
-////	return rr
-////}
-//
-//func (ns *rbacNamespace) Resolve(nsHandle string, p rbacPreloads) error {
-//	ns.res = p.namespaces.FindByHandle(nsHandle)
-//	if ns.res == nil {
-//		return fmt.Errorf("could not find namespace by handle: %q", nsHandle)
-//	}
-//
-//	for mHandle, m := range ns.Modules {
-//		if err := m.Resolve(mHandle, p); err != nil {
-//			return fmt.Errorf("failed to resolve module on namespace %q: %w", nsHandle, err)
-//		}
-//	}
-//
-//	ns.rules = rbac.RuleSet{}
-//
-//	if allows, err := ns.Allow.Resolve(ns.res.RBACResource(), rbac.Allow, p); err != nil {
-//		return fmt.Errorf("failed to resolve allow rules on namespace %q: %w", nsHandle, err)
-//	} else {
-//		ns.rules = append(ns.rules, allows...)
-//	}
-//
-//	if allows, err := ns.Deny.Resolve(ns.res.RBACResource(), rbac.Allow, p); err != nil {
-//		return fmt.Errorf("failed to resolve deny rules on namespace %q: %w", nsHandle, err)
-//	} else {
-//		ns.rules = append(ns.rules, allows...)
-//	}
-//
-//	return nil
-//}
-//
-//func (ns *rbacNamespace) SortedModuleHandles() []string {
-//	out := []string{}
-//	for h := range ns.Modules {
-//		out = append(out, h)
-//	}
-//
-//	sort.Strings(out)
-//	return out
-//}
-//
-//func (m *rbacModule) Resolve(handle string, p rbacPreloads) error {
-//	var permRes rbac.Resource
-//	if handle != "*" {
-//		m.res = p.modules.FindByHandle(handle)
-//		if m.res == nil {
-//			return fmt.Errorf("could not find module by handle: %q", handle)
-//		}
-//
-//		permRes = m.res.RBACResource()
-//	} else {
-//		permRes = cmptyp.ModuleRbacResource(0)
-//	}
-//
-//	m.rules = rbac.RuleSet{}
-//
-//	if allows, err := m.Allow.Resolve(permRes, rbac.Allow, p); err != nil {
-//		return fmt.Errorf("failed to resolve allow rules on module %q: %w", handle, err)
-//	} else {
-//		m.rules = append(m.rules, allows...)
-//	}
-//
-//	if allows, err := m.Deny.Resolve(permRes, rbac.Allow, p); err != nil {
-//		return fmt.Errorf("failed to resolve deny rules on module %q: %w", handle, err)
-//	} else {
-//		m.rules = append(m.rules, allows...)
-//	}
-//
-//	return nil
-//}
-//
-//func (m *rbacModule) diagnose(currentRules rbac.RuleSet, p rbacPreloads) {
-//	// all modules
-//	var (
-//		res = cmptyp.ModuleRbacResource(0)
-//	)
-//
-//	if m.res != nil {
-//		// specific module
-//		res = m.res.RBACResource()
-//	}
-//
-//	// all rules that belong to the module
-//	currentRules = currentRules.ByResource(res)
-//
-//	printRuleDiffs(currentRules, m.rules, rbac.Allow, p)
-//	printRuleDiffs(currentRules, m.rules, rbac.Deny, p)
-//
-//}
-//
-//func (rules rbacRoleOps) Resolve(res rbac.Resource, access rbac.Access, p rbacPreloads) (rbac.RuleSet, error) {
-//	prs := rbac.RuleSet{}
-//
-//	for roleHandle, ops := range rules {
-//		role := p.roles.FindByHandle(roleHandle)
-//		if role == nil {
-//			return nil, fmt.Errorf("could not find role by handle: %q", roleHandle)
-//		}
-//
-//		for _, op := range ops {
-//			prs = append(prs, &rbac.Rule{
-//				RoleID:    role.ID,
-//				Resource:  res,
-//				Operation: rbac.Operation(op),
-//				Access:    access,
-//			})
-//		}
-//	}
-//
-//	return prs, nil
-//}
-//
-//func (r *rbacRoot) diagnose(c rbac.RuleSet, p rbacPreloads) {
-//	for _, ns := range r.Namespaces {
-//		fmt.Printf("=> [%d] %s\n", ns.res.ID, ns.res.Slug)
-//		fmt.Printf("  checking with %d module(s) from YAML\n", len(ns.Modules))
-//
-//		if all, has := ns.Modules["*"]; has {
-//			fmt.Printf("    => ** all modules **\n")
-//			all.diagnose(c, p)
-//		}
-//
-//		for _, handle := range ns.SortedModuleHandles() {
-//			if handle == "*" {
-//				continue
-//			}
-//
-//			m := ns.Modules[handle]
-//
-//			if m.res == nil {
-//				fmt.Printf("    !! \033[33munresolved module with handle %q\033[39m\n", handle)
-//				continue
-//			}
-//
-//			fmt.Printf("    => [%d] %s\n", m.res.ID, m.res.Handle)
-//			m.diagnose(c, p)
-//		}
-//	}
-//}
-//
-//func printRuleDiffs(current, required rbac.RuleSet, a rbac.Access, p rbacPreloads) {
-//	diff := required.ByAccess(a).Diff(current.ByAccess(a))
-//
-//	if len(diff) > 0 {
-//		fmt.Printf("       \033[32mmissing %s rules (%d):\033[39m\n", a, len(diff))
-//		for _, roleID := range diff.Roles() {
-//			role := p.roles.FindByID(roleID)
-//			fmt.Printf("        - [%d] %-20s: ", role.ID, role.Handle)
-//			for _, r := range diff.ByRole(roleID) {
-//				fmt.Printf(" %s", r.Operation)
-//			}
-//			fmt.Println()
-//		}
-//	} else {
-//		fmt.Printf("       \033[32mno missing %s rules\033[39m\n", a)
-//	}
-//}
+func rbacList(ctx context.Context, storeInit func(ctx context.Context) (store.Storer, error)) (cmd *cobra.Command) {
+	var (
+		resources   []string
+		roles       []string
+		operations  []string
+		groupBy     string
+		allow, deny bool
+
+		matchResources = func(r *rbac.Rule) bool {
+			if len(resources) == 0 {
+				return true
+			}
+
+			for _, res := range resources {
+				if strings.HasPrefix(r.Resource, res) {
+					return true
+				}
+			}
+
+			return false
+		}
+
+		// makes a simple utiliy function for matching rules according to the used flags
+		ruleMatcher = func(s store.Storer) (map[uint64]*types.Role, func(r *rbac.Rule) bool) {
+			var (
+				opsMap    = slice.ToStringBoolMap(operations)
+				rr        []*types.Role
+				rolAuxMap = slice.ToStringBoolMap(roles)
+				rolMap    = make(map[uint64]*types.Role)
+				rolMatch  = make(map[uint64]bool)
+				err       error
+			)
+
+			rr, _, err = store.SearchRoles(ctx, s, types.RoleFilter{})
+			for _, r := range rr {
+				rolMap[r.ID] = r
+				if rolAuxMap[r.Name] || rolAuxMap[r.Handle] || rolAuxMap[strconv.FormatUint(r.ID, 10)] {
+					rolMatch[r.ID] = true
+				}
+			}
+
+			cli.HandleError(err)
+
+			return rolMap, func(r *rbac.Rule) bool {
+				if !matchResources(r) {
+					return false
+				}
+				if len(opsMap) > 0 && !opsMap[r.Operation] {
+					return false
+				}
+
+				// this use of rolAuxMap to check if there are roles specified in the flags
+				// and rolMap for checking if for actual role map is intentional!
+				if len(rolAuxMap) > 0 && !rolMatch[r.RoleID] {
+					return false
+				}
+
+				if allow && r.Access != rbac.Allow {
+					return false
+				}
+
+				if deny && r.Access != rbac.Deny {
+					return false
+				}
+
+				return true
+			}
+		}
+
+		ruleSorter = func(rr []*rbac.Rule) {
+			sort.SliceStable(rr, func(i, j int) bool {
+				switch groupBy {
+				case "role", "rMap":
+					return rr[i].RoleID < rr[j].RoleID
+				case "res", "resource", "resources":
+					return strings.Compare(rr[i].Resource, rr[i].Resource) < 0
+				case "op", "ops", "operation", "operations":
+					return strings.Compare(rr[i].Operation, rr[j].Operation) < 0
+				}
+
+				return rr[i].Access < rr[j].Access
+			})
+		}
+
+		roleDisplayName = func(rMap map[uint64]*types.Role, r *rbac.Rule) (role string) {
+			if rMap[r.RoleID] != nil {
+				role = rMap[r.RoleID].Name
+				if role == "" {
+					role = rMap[r.RoleID].Handle
+				}
+			}
+
+			if role == "" {
+				return strconv.FormatUint(r.RoleID, 10)
+			}
+
+			return
+		}
+
+		lengths = func(rr []*rbac.Rule, rMap map[uint64]*types.Role) (op, res, role int) {
+			for _, r := range rr {
+				if len(r.Operation) > op {
+					op = len(r.Operation)
+				}
+				if len(r.Resource) > res {
+					res = len(r.Resource)
+				}
+			}
+			for _, r := range rMap {
+				if len(r.Name) > role {
+					role = len(r.Name)
+				}
+				if len(r.Handle) > role {
+					role = len(r.Handle)
+				}
+			}
+
+			return
+		}
+	)
+
+	cmd = &cobra.Command{
+		Use:   "list",
+		Short: "Check applied permissions against given file (only supports compose permissions for now)",
+		Run: func(cmd *cobra.Command, args []string) {
+			var (
+				rr      []*rbac.Rule
+				s, err  = storeInit(ctx)
+				role    string
+				gBucket string
+			)
+
+			cli.HandleError(err)
+
+			rr, _, err = store.SearchRbacRules(cli.Context(), s, rbac.RuleFilter{})
+			cli.HandleError(err)
+
+			ruleSorter(rr)
+			rMap, matchRule := ruleMatcher(s)
+
+			longestOp, longestRes, longestRole := lengths(rr, rMap)
+
+			hr := strings.Repeat("-", longestOp+longestRes+longestRole+20)
+
+			for i, r := range rr {
+				if !matchRule(r) {
+					continue
+				}
+
+				r.Operation = r.Operation + strings.Repeat(" ", longestOp-len(r.Operation))
+				r.Resource = r.Resource + strings.Repeat(" ", longestRes-len(r.Resource))
+
+				role = roleDisplayName(rMap, r)
+				role = role + strings.Repeat(" ", longestRole-len(role))
+
+				bOp := strings.Repeat(" ", longestOp)
+				bRes := strings.Repeat(" ", longestRes)
+				bRole := strings.Repeat(" ", longestRole)
+
+				switch groupBy {
+				case "role", "roles":
+					if gBucket != role {
+						if i != 0 {
+							cmd.Println(hr)
+						}
+						cmd.Printf("%s %7s %s on %s\n", role, r.Access, r.Operation, r.Resource)
+					} else {
+						cmd.Printf("%s %7s %s on %s\n", bRole, r.Access, r.Operation, r.Resource)
+					}
+
+					gBucket = role
+
+				case "res", "resource", "resources":
+					if gBucket != r.Resource {
+						if i != 0 {
+							cmd.Println(hr)
+						}
+
+						cmd.Printf("on %s %7s %s to %s\n", r.Resource, r.Access, role, r.Operation)
+					} else {
+						cmd.Printf("   %s %7s %s to %s\n", bRes, r.Access, role, r.Operation)
+					}
+
+					gBucket = r.Resource
+
+				case "op", "ops", "operation", "operations":
+					if gBucket != r.Operation {
+						if i != 0 {
+							cmd.Println(hr)
+						}
+
+						cmd.Printf("%s %7s %s to %s\n", r.Operation, r.Access, role, r.Resource)
+					} else {
+						cmd.Printf("%s %7s %s to %s\n", bOp, r.Access, role, r.Resource)
+					}
+
+					gBucket = r.Operation
+				default:
+					cmd.Printf("%7s %s to %s on %s\n", r.Access, role, r.Operation, r.Resource)
+				}
+			}
+
+		},
+	}
+
+	cmd.Flags().StringArrayVarP(&resources, "resource", "r", nil, "Filter by resource (by prefix)")
+	cmd.Flags().StringArrayVarP(&roles, "role", "", nil, "Filter by role (handle or ID)")
+	cmd.Flags().StringArrayVarP(&operations, "operation", "o", nil, "Filter by operation")
+	cmd.Flags().BoolVarP(&deny, "deny", "d", false, "Show only deny")
+	cmd.Flags().BoolVarP(&allow, "allow", "a", false, "Show only allows")
+	cmd.Flags().StringVarP(&groupBy, "group", "g", "", "Group rules on output")
+
+	return
+}

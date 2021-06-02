@@ -48,10 +48,13 @@ func TestTemplateRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+
 	u := h.repoMakeTemplate()
 
 	h.apiInit().
 		Get(fmt.Sprintf("/template/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -64,11 +67,14 @@ func TestTemplateList(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+
 	h.repoMakeTemplate(rs())
 	h.repoMakeTemplate(rs())
 
 	h.apiInit().
 		Get("/template/").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -87,10 +93,11 @@ func TestTemplateList_filterForbidden(t *testing.T) {
 	h.repoMakeTemplate("template")
 	f := h.repoMakeTemplate()
 
-	h.deny(f.RbacResource(), "read")
+	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/template/").
+		Header("Accept", "application/json").
 		Query("handle", f.Handle).
 		Expect(t).
 		Status(http.StatusOK).
@@ -116,10 +123,11 @@ func TestTemplateCreateForbidden(t *testing.T) {
 func TestTemplateCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.ComponentRbacResource(), "template.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "template.create")
 
 	h.apiInit().
 		Post("/template/").
+		Header("Accept", "application/json").
 		FormData("handle", rs()).
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
@@ -147,7 +155,7 @@ func TestTemplateUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 	res := h.repoMakeTemplate()
-	h.allow(types.TemplateRbacResource(0), "update")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "update")
 
 	newHandle := "updated-" + rs()
 
@@ -182,7 +190,7 @@ func TestTemplateDeleteForbidden(t *testing.T) {
 func TestTemplateDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRbacResource(0), "delete")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "delete")
 
 	res := h.repoMakeTemplate()
 
@@ -202,7 +210,7 @@ func TestTemplateDelete(t *testing.T) {
 func TestTemplateUndelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "delete")
 
 	res := h.repoMakeTemplate()
 
@@ -219,10 +227,11 @@ func TestTemplateUndelete(t *testing.T) {
 	h.a.Nil(res.DeletedAt)
 }
 
-func TestTemplateRenderForbiden(t *testing.T) {
+func TestTemplateRenderForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.deny(types.TemplateRbacResource(0), "render")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+	helpers.DenyMe(h, types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/plain")
 
@@ -239,7 +248,8 @@ func TestTemplateRenderForbiden(t *testing.T) {
 func TestTemplateRenderDriverUndefined(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRbacResource(0), "render")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/notexisting")
 
@@ -256,12 +266,14 @@ func TestTemplateRenderDriverUndefined(t *testing.T) {
 func TestTemplateRenderPlain(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRbacResource(0), "render")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "Hello, {{.interpolate}}", "text/plain")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/template/%d/render/testing.txt", res.ID)).
+		Header("Accept", "application/json").
 		JSON(`{"variables": {"interpolate": "world!"}}`).
 		Expect(t).
 		Status(http.StatusOK).
@@ -272,12 +284,14 @@ func TestTemplateRenderPlain(t *testing.T) {
 func TestTemplateRenderHTML(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
-	h.allow(types.TemplateRbacResource(0), "render")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
+	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 
 	res := h.repoMakeTemplate("rendering", "<h1>Hello, {{.interpolate}}</h1>", "text/html")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/template/%d/render/testing.html", res.ID)).
+		Header("Accept", "application/json").
 		JSON(`{"variables": {"interpolate": "world!"}}`).
 		Expect(t).
 		Status(http.StatusOK).

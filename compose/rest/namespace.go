@@ -41,6 +41,7 @@ type (
 
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
+		CanManageNamespace(context.Context, *types.Namespace) bool
 
 		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
 		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
@@ -176,6 +177,7 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		CanGrant:           ctrl.ac.CanGrant(ctx),
 		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
+		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
 		CanCreateModule: ctrl.ac.CanCreateModuleOnNamespace(ctx, ns),
 		CanCreateChart:  ctrl.ac.CanCreateChartOnNamespace(ctx, ns),

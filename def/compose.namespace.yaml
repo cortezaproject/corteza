@@ -6,6 +6,8 @@ rbac:
       description: Update namespace
     delete:
       description: Delete namespace
+    manage:
+      description: Access to namespace admin panel
     module.create:
       description: Create module on namespace
     chart.create:

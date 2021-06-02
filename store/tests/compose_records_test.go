@@ -1171,7 +1171,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 						if fields[f] == "updatedAt" {
 							v := set[r].UpdatedAt
 							if v != nil && !v.IsZero() {
-								out += v.Format(time.RFC3339)
+								out += v.UTC().Format(time.RFC3339)
 							} else {
 								out += "<NIL>"
 							}

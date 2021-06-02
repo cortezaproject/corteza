@@ -1,12 +1,10 @@
 rbac:
   resource:
-    elements: [ namespaceID, ID ]
+    references: [ namespace, ID ]
 
   operations:
     read:
       description: Read page
-    create:
-      description: Create page
     update:
       description: Update page
     delete:

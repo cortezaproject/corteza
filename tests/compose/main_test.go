@@ -3,6 +3,9 @@ package compose
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/compose/rest"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -22,9 +25,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"os"
-	"testing"
 )
 
 type (
@@ -64,7 +64,6 @@ func InitTestApp() {
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.DefaultStore = app.Store
-			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
@@ -99,12 +98,14 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
-	h.cUser.SetRoles([]uint64{h.roleID})
-
-	rbac.Global().(*rbac.TestService).ClearGrants()
-	h.mockPermissionsWithAccess()
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
 
 	return h
+}
+
+func (h helper) MyRole() uint64 {
+	return h.roleID
 }
 
 // Returns context w/ security details
@@ -129,21 +130,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 		context.Background(),
 		rules...,
 	))
-}
-
-// Prepends allow access rule for compose service for everyone
-func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	h.mockPermissions(rules...)
-}
-
-// Set allow permision for test role
-func (h helper) allow(r, o string) {
-	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
-}
-
-// set deny permission for test role
-func (h helper) deny(r, o string) {
-	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester

@@ -52,6 +52,7 @@ func (s Store) QueryActionlogs(
 	check func(*actionlog.Action) (bool, error),
 ) ([]*actionlog.Action, error) {
 	var (
+		tmp = make([]*actionlog.Action, 0, DefaultSliceCapacity)
 		set = make([]*actionlog.Action, 0, DefaultSliceCapacity)
 		res *actionlog.Action
 
@@ -73,10 +74,15 @@ func (s Store) QueryActionlogs(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // CreateActionlog creates one or more rows in actionlog table

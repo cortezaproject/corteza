@@ -238,6 +238,7 @@ func (s Store) QueryAuthClients(
 	check func(*types.AuthClient) (bool, error),
 ) ([]*types.AuthClient, error) {
 	var (
+		tmp = make([]*types.AuthClient, 0, DefaultSliceCapacity)
 		set = make([]*types.AuthClient, 0, DefaultSliceCapacity)
 		res *types.AuthClient
 
@@ -259,6 +260,11 @@ func (s Store) QueryAuthClients(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryAuthClients(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAuthClientByID searches for auth client by ID

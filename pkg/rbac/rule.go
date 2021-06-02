@@ -18,6 +18,7 @@ type (
 
 	RuleSet []*Rule
 
+	// OptRuleSet RBAC rule index (operation / role ID / rules)
 	OptRuleSet map[string]map[uint64]RuleSet
 )
 
@@ -49,30 +50,10 @@ func indexRules(rules []*Rule) OptRuleSet {
 	return i
 }
 
-func filterRules(rules []*Rule, roles map[uint64]bool, op string) (out []*Rule) {
-	if len(roles) == 0 {
-		return
-	}
-
-	for _, r := range rules {
-		if !roles[r.RoleID] {
-			continue
-		}
-
-		if op != r.Operation {
-			continue
-		}
-
-		out = append(out, r)
-	}
-
-	return
-}
-
 func (set RuleSet) Len() int      { return len(set) }
 func (set RuleSet) Swap(i, j int) { set[i], set[j] = set[j], set[i] }
 func (set RuleSet) Less(i, j int) bool {
-	return level(set[i].Resource) < level(set[j].Resource)
+	return level(set[i].Resource) > level(set[j].Resource)
 }
 
 // AllowRule helper func to create allow rule

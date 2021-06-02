@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
@@ -27,14 +28,20 @@ type (
 
 		CanUpdateRole(context.Context, *types.Role) bool
 		CanDeleteRole(context.Context, *types.Role) bool
+		CanManageMembersOnRole(context.Context, *types.Role) bool
 	}
 
 	rolePayload struct {
 		*types.Role
 
-		CanGrant      bool `json:"canGrant"`
-		CanUpdateRole bool `json:"canUpdateRole"`
-		CanDeleteRole bool `json:"canDeleteRole"`
+		IsSystem bool `json:"isSystem"`
+		IsBypass bool `json:"isBypass"`
+		IsClosed bool `json:"isClosed"`
+
+		CanGrant               bool `json:"canGrant"`
+		CanUpdateRole          bool `json:"canUpdateRole"`
+		CanDeleteRole          bool `json:"canDeleteRole"`
+		CanManageMembersOnRole bool `json:"canManageMembersOnRole"`
 	}
 
 	roleSetPayload struct {
@@ -86,6 +93,7 @@ func (ctrl Role) Create(ctx context.Context, r *request.RoleCreate) (interface{}
 			Name:   r.Name,
 			Handle: r.Handle,
 			Labels: r.Labels,
+			Meta:   r.Meta,
 		}
 	)
 
@@ -111,6 +119,7 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 			Name:   r.Name,
 			Handle: r.Handle,
 			Labels: r.Labels,
+			Meta:   r.Meta,
 		}
 	)
 
@@ -202,18 +211,22 @@ func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScrip
 	return role, err
 }
 
-func (ctrl Role) makePayload(ctx context.Context, m *types.Role, err error) (*rolePayload, error) {
-	if err != nil || m == nil {
+func (ctrl Role) makePayload(ctx context.Context, r *types.Role, err error) (*rolePayload, error) {
+	if err != nil || r == nil {
 		return nil, err
 	}
 
 	return &rolePayload{
-		Role: m,
+		Role: r,
 
-		CanGrant: ctrl.ac.CanGrant(ctx),
+		CanGrant:               ctrl.ac.CanGrant(ctx),
+		CanUpdateRole:          ctrl.ac.CanUpdateRole(ctx, r),
+		CanDeleteRole:          ctrl.ac.CanDeleteRole(ctx, r),
+		CanManageMembersOnRole: ctrl.ac.CanManageMembersOnRole(ctx, r),
 
-		CanUpdateRole: ctrl.ac.CanUpdateRole(ctx, m),
-		CanDeleteRole: ctrl.ac.CanDeleteRole(ctx, m),
+		IsSystem: ctrl.role.IsSystem(r),
+		IsClosed: ctrl.role.IsClosed(r),
+		IsBypass: auth.BypassRoles().FindByID(r.ID) != nil,
 	}, nil
 }
 

@@ -69,6 +69,9 @@ type (
 		Handle   string   `json:"handle"`
 		Kind     UserKind `json:"kind"`
 
+		// Set to true if you want to get all kinds/types of users
+		AllKinds bool `json:"anyKind"`
+
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
 
@@ -124,11 +127,15 @@ func (u User) Roles() []uint64 {
 	return u.roles
 }
 
-func (u *User) SetRoles(rr []uint64) {
+func (u *User) SetRoles(rr ...uint64) {
 	u.roles = rr
 }
 
 func (u *User) Clone() *User {
+	if u == nil {
+		return nil
+	}
+
 	return &User{
 		ID:             u.ID,
 		Username:       u.Username,

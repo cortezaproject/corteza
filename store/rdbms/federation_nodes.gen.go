@@ -52,6 +52,7 @@ func (s Store) QueryFederationNodes(
 	check func(*types.Node) (bool, error),
 ) ([]*types.Node, error) {
 	var (
+		tmp = make([]*types.Node, 0, DefaultSliceCapacity)
 		set = make([]*types.Node, 0, DefaultSliceCapacity)
 		res *types.Node
 
@@ -73,6 +74,11 @@ func (s Store) QueryFederationNodes(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -86,7 +92,7 @@ func (s Store) QueryFederationNodes(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFederationNodeByID searches for federation node by ID

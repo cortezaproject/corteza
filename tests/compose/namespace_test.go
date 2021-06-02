@@ -42,6 +42,7 @@ func TestNamespaceRead(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -57,8 +58,7 @@ func TestNamespaceReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
 	nsbh, err := service.DefaultNamespace.FindByHandle(h.secCtx(), ns.Slug)
@@ -84,21 +84,21 @@ func TestNamespaceList(t *testing.T) {
 		End()
 }
 
-func TestNamespaceList_filterForbiden(t *testing.T) {
+func TestNamespaceList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
 	h.makeNamespace("namespace")
-	f := h.makeNamespace("namespace_forbiden")
+	f := h.makeNamespace("namespace_forbidden")
 
-	h.deny(types.NamespaceRbacResource(f.ID), "read")
+	helpers.DenyMe(h, types.NamespaceRbacResource(f.ID), "read")
 
 	h.apiInit().
 		Get("/namespace/").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="namespace_forbiden"]`)).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.name=="namespace_forbidden"]`)).
 		End()
 }
 
@@ -120,7 +120,7 @@ func TestNamespaceCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.ComponentRbacResource(), "namespace.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespace.create")
 
 	h.apiInit().
 		Post("/namespace/").
@@ -152,7 +152,7 @@ func TestNamespaceUpdate(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
-	h.allow(types.NamespaceRbacResource(0), "update")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -172,6 +172,8 @@ func TestNamespaceDeleteForbidden(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.DenyMe(h, types.NamespaceRbacResource(0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/namespace/%d", ns.ID)).
@@ -186,7 +188,7 @@ func TestNamespaceDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.NamespaceRbacResource(0), "delete")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "delete")
 
 	ns := h.makeNamespace("some-namespace")
 
@@ -205,10 +207,8 @@ func TestNamespaceLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
-	h.allow(types.ComponentRbacResource(), "namespace.create")
-	h.allow(types.NamespaceRbacResource(0), "read")
-	h.allow(types.NamespaceRbacResource(0), "update")
-	h.allow(types.NamespaceRbacResource(0), "delete")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespace.create")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "delete", "update")
 
 	var (
 		ID uint64

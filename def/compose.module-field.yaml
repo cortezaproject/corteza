@@ -1,6 +1,6 @@
 rbac:
   resource:
-    elements: [ namespaceID, moduleID, ID ]
+    references: [ namespace, module, ID ]
 
   operations:
     record.value.read:

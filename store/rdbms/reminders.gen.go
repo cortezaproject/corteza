@@ -238,6 +238,7 @@ func (s Store) QueryReminders(
 	check func(*types.Reminder) (bool, error),
 ) ([]*types.Reminder, error) {
 	var (
+		tmp = make([]*types.Reminder, 0, DefaultSliceCapacity)
 		set = make([]*types.Reminder, 0, DefaultSliceCapacity)
 		res *types.Reminder
 
@@ -259,6 +260,11 @@ func (s Store) QueryReminders(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryReminders(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupReminderByID searches for reminder by its ID

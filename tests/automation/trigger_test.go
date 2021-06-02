@@ -70,7 +70,7 @@ func TestTriggerRead(t *testing.T) {
 	wf := h.repoMakeWorkflow()
 	tg := h.repoMakeTrigger(wf)
 
-	h.allow(types.ComponentRbacResource(), "triggers.search")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "triggers.search")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/triggers/%d", tg.ID)).
@@ -87,7 +87,7 @@ func TestTriggerList(t *testing.T) {
 	h := newHelper(t)
 	h.clearTriggers()
 
-	h.allow(types.ComponentRbacResource(), "triggers.search")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "triggers.search")
 
 	wf := h.repoMakeWorkflow()
 	h.repoMakeTrigger(wf)
@@ -121,7 +121,7 @@ func TestTriggerCreate(t *testing.T) {
 	)
 
 	t.Run("allowed", func(t *testing.T) {
-		h.allow(wf.RbacResource(), "triggers.manage")
+		helpers.AllowMe(h, wf.RbacResource(), "triggers.manage")
 		req().Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertNoErrors).
@@ -129,7 +129,7 @@ func TestTriggerCreate(t *testing.T) {
 	})
 
 	t.Run("denied", func(t *testing.T) {
-		h.deny(wf.RbacResource(), "triggers.manage")
+		helpers.DenyMe(h, wf.RbacResource(), "triggers.manage")
 		req().Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertError("not allowed to create triggers")).
@@ -140,7 +140,7 @@ func TestTriggerCreate(t *testing.T) {
 func TestTriggerCreateFull(t *testing.T) {
 	h := newHelper(t)
 
-	h.allow(types.WorkflowRbacResource(0), "triggers.manage")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "triggers.manage")
 
 	h.clearTriggers()
 	var (
@@ -181,7 +181,7 @@ func TestTriggerCreateFull(t *testing.T) {
 
 	h.a.Equal(input, output)
 
-	h.allow(types.ComponentRbacResource(), "triggers.search")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "triggers.search")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/triggers/%d", output.ID)).
@@ -218,7 +218,7 @@ func TestTriggerUpdate(t *testing.T) {
 	)
 
 	t.Run("allowed", func(t *testing.T) {
-		h.allow(wf.RbacResource(), "triggers.manage")
+		helpers.AllowMe(h, wf.RbacResource(), "triggers.manage")
 		req(tg1.ID, "foo").Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertNoErrors).
@@ -230,7 +230,7 @@ func TestTriggerUpdate(t *testing.T) {
 	})
 
 	t.Run("denied", func(t *testing.T) {
-		h.deny(wf.RbacResource(), "triggers.manage")
+		helpers.DenyMe(h, wf.RbacResource(), "triggers.manage")
 		req(tg2.ID, "bar").Expect(t).
 			Status(http.StatusOK).
 			Assert(helpers.AssertError("not allowed to update this trigger")).
@@ -263,7 +263,7 @@ func TestTriggerDeleteForbidden(t *testing.T) {
 
 func TestTriggerDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.WorkflowRbacResource(0), "triggers.manage")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "triggers.manage")
 
 	wf := h.repoMakeWorkflow()
 	res := h.repoMakeTrigger(wf)
@@ -283,7 +283,7 @@ func TestTriggerDelete(t *testing.T) {
 
 func TestTriggerUndelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.WorkflowRBACResource.AppendWildcard(), "triggers.manage")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "triggers.manage")
 
 	wf := h.repoMakeWorkflow()
 	res := h.repoMakeTrigger(wf)
@@ -305,8 +305,8 @@ func TestTriggerLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearTriggers()
 
-	h.allow(types.WorkflowRbacResource(0), "triggers.manage")
-	h.allow(types.ComponentRbacResource(), "triggers.search")
+	helpers.AllowMe(h, types.WorkflowRbacResource(0), "triggers.manage")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "triggers.search")
 
 	var (
 		ID uint64

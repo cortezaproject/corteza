@@ -30,7 +30,7 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 		})
 
 		if h.Opt.RequestRateLimit > 0 {
-			r.Use(httprate.LimitByIP(h.Opt.RequestRateLimit, h.Opt.RequestRateWindowLength)) // @todo make configurable
+			r.Use(httprate.LimitByIP(h.Opt.RequestRateLimit, h.Opt.RequestRateWindowLength))
 		}
 
 		r.Use(request.ExtraReqInfoMiddleware)

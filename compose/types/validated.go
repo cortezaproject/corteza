@@ -35,7 +35,7 @@ func (v *RecordValueErrorSet) Error() string {
 		no = len(v.Set)
 	}
 
-	return fmt.Sprintf("%d issue(s) found: %+v", no, v.Set)
+	return fmt.Sprintf("%d issue(s) found", no)
 }
 
 func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {
@@ -46,6 +46,20 @@ func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {
 		Message: v.Error(),
 		Set:     v.Set,
 	})
+}
+
+func (v *RecordValueErrorSet) HasKind(kind string) bool {
+	if v == nil || v.IsValid() {
+		return false
+	}
+
+	for _, e := range v.Set {
+		if e.Kind == kind {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsRecordValueErrorSet tests if given error is RecordValueErrorSet (or it wraps it) and it has errors

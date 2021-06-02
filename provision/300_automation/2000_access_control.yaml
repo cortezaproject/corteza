@@ -1,13 +1,12 @@
 allow:
   admins:
-    automation:
-      - access
+    corteza::automation/:
       - grant
       - workflow.create
       - triggers.search
       - sessions.search
 
-    automation:workflow:
+    corteza::automation:workflow/*:
       - read
       - update
       - delete
@@ -16,14 +15,13 @@ allow:
       - sessions.manage
 
   developers:
-    automation:
-      - access
+    corteza::automation/:
       - grant
       - workflow.create
       - triggers.search
       - sessions.search
 
-    automation:workflow:
+    corteza::automation:workflow/*:
       - read
       - update
       - delete

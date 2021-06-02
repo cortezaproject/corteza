@@ -1,65 +1,111 @@
 allow:
   authenticated:
-    system:user:
+    corteza::system:user/*:
       - read
-      - unmask.email
-      - unmask.name
+      - email.unmask
+      - name.unmask
 
-    system:application:
-      - read
-
-    system:role:
+    corteza::system:application/*:
       - read
 
-    system:template:
+    corteza::system:role/*:
+      - read
+
+    corteza::system:template/*:
+      - read
       - render
 
-    system:messagebus-queue:
+    corteza::system:queue/*:
       - queue.read
 
   admins:
-    system:
-      - access
+    corteza::system/:
       - grant
       - settings.read
       - settings.manage
       - application.create
-      - authClient.create
+      - auth-client.create
       - user.create
       - template.create
       - role.create
       - reminder.assign
-      - messagebus-queue.create
+      - queue.create
 
-    system:application:
+    corteza::system:application/*:
       - read
       - update
       - delete
 
-    system:user:
+    corteza::system:user/*:
       - read
       - update
       - suspend
       - unsuspend
       - delete
-      - unmask.email
-      - unmask.name
+      - email.unmask
+      - name.unmask
 
-    system:role:
+    corteza::system:role/*:
       - read
       - update
       - delete
       - members.manage
 
-    system:template:
+    corteza::system:template/*:
       - read
       - update
       - delete
       - render
 
-    system:messagebus-queue:
+    corteza::system:queue/*:
       - read
       - update
       - delete
       - queue.read
       - queue.write
+
+  security_admins:
+    corteza::compose/:
+      - grant
+      - settings.read
+      - settings.manage
+
+    corteza::automation/:
+      - grant
+      - settings.read
+      - settings.manage
+
+    corteza::federation/:
+      - grant
+      - settings.read
+      - settings.manage
+
+    corteza::system/:
+      - grant
+      - settings.read
+      - settings.manage
+      - application.create
+      - auth-client.create
+      - user.create
+      - template.create
+      - role.create
+      - reminder.assign
+      - queue.create
+
+    corteza::system:application/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:user/*:
+      - read
+      - update
+      - suspend
+      - unsuspend
+      - delete
+
+    corteza::system:role/*:
+      - read
+      - update
+      - delete
+      - members.manage

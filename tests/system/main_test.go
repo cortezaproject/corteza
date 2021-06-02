@@ -9,14 +9,14 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
-	handlers "github.com/cortezaproject/corteza-server/auth/handlers"
+	"github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/auth/saml"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/id"
-	label "github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/label"
 	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
@@ -79,8 +79,6 @@ func InitTestApp() {
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			service.CurrentSettings.Auth.External.Enabled = true
-
-			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 			service.DefaultObjectStore, err = plain.NewWithAfero(afero.NewMemMapFs(), "test")
 			if err != nil {
 				return err
@@ -132,12 +130,15 @@ func newHelper(t *testing.T) helper {
 		data: mockData,
 	}
 
-	h.cUser.SetRoles([]uint64{h.roleID})
-
-	rbac.Global().(*rbac.TestService).ClearGrants()
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
 	h.mockPermissionsWithAccess()
 
 	return h
+}
+
+func (h helper) MyRole() uint64 {
+	return h.roleID
 }
 
 // Returns context w/ security details
@@ -167,16 +168,6 @@ func (h helper) mockPermissions(rules ...*rbac.Rule) {
 // Prepends allow access rule for system service for everyone
 func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
 	h.mockPermissions(rules...)
-}
-
-// Set allow permision for test role
-func (h helper) allow(r, o string) {
-	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
-}
-
-// set deny permission for test role
-func (h helper) deny(r, o string) {
-	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester

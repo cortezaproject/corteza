@@ -171,7 +171,7 @@ func TestHandlerHandler(t *testing.T) {
 	a.False(passedthrough)
 	a.Nil(ev.identity)
 
-	a.NoError(trSimple.Handle(auth.SetIdentityToContext(ctx, auth.NewIdentity(identity)), ev))
+	a.NoError(trSimple.Handle(auth.SetIdentityToContext(ctx, auth.Authenticated(identity)), ev))
 
 	a.NotNil(ev.identity)
 	a.Equal(identity, ev.identity.Identity())

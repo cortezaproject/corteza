@@ -30,7 +30,7 @@ type (
 	}
 
 	RoleContext struct {
-		Resource []string `json:"resource,omitempty"`
+		Resource []string `json:"resourceTypes,omitempty"`
 		Expr     string   `json:"expr,omitempty"`
 	}
 
@@ -72,8 +72,22 @@ type (
 	}
 )
 
-func (r *Role) DynamicRoles(userID uint64) []uint64 {
-	return nil
+func (r *Role) Clone() *Role {
+	if r == nil {
+		return nil
+	}
+
+	return &Role{
+		ID:         r.ID,
+		Name:       r.Name,
+		Handle:     r.Handle,
+		Meta:       r.Meta,
+		Labels:     r.Labels,
+		ArchivedAt: r.ArchivedAt,
+		CreatedAt:  r.CreatedAt,
+		UpdatedAt:  r.UpdatedAt,
+		DeletedAt:  r.DeletedAt,
+	}
 }
 
 // FindByHandle finds role by it's handle

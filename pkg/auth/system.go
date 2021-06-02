@@ -18,6 +18,10 @@ var (
 	provisionUser  *types.User
 	serviceUser    *types.User
 	federationUser *types.User
+
+	authenticatedRoles []*types.Role
+	anonymousRoles     []*types.Role
+	bypassRoles        []*types.Role
 )
 
 // SetSystemUsers takes list of users and sets/updates appropriate
@@ -31,15 +35,43 @@ func SetSystemUsers(uu types.UserSet, rr types.RoleSet) {
 		switch u.Handle {
 		case ProvisionUserHandle:
 			provisionUser = u.Clone()
-			federationUser.SetRoles([]uint64{bpr.ID})
+			provisionUser.SetRoles(bpr.ID)
 		case ServiceUserHandle:
 			serviceUser = u.Clone()
-			federationUser.SetRoles([]uint64{bpr.ID})
+			serviceUser.SetRoles(bpr.ID)
 		case FederationUserHandle:
 			federationUser = u.Clone()
-			federationUser.SetRoles([]uint64{bpr.ID})
+			federationUser.SetRoles(bpr.ID)
 		}
 	}
+}
+
+func SetSystemRoles(rr types.RoleSet) {
+	for _, r := range rr {
+		switch r.Handle {
+		case BypassRoleHandle:
+			bypassRoles = append(bypassRoles, r.Clone())
+		case AuthenticatedRoleHandle:
+			authenticatedRoles = append(authenticatedRoles, r.Clone())
+		case AnonymousRoleHandle:
+			anonymousRoles = append(anonymousRoles, r.Clone())
+		}
+	}
+}
+
+// BypassRoles returns all bypass Roles
+func BypassRoles() types.RoleSet {
+	return bypassRoles
+}
+
+// AuthenticatedRoles returns all authenticated Roles
+func AuthenticatedRoles() types.RoleSet {
+	return authenticatedRoles
+}
+
+// AnonymousRoles returns all anonymous Roles
+func AnonymousRoles() types.RoleSet {
+	return anonymousRoles
 }
 
 // ProvisionUser returns clone of system provision user

@@ -238,6 +238,7 @@ func (s Store) QueryComposePages(
 	check func(*types.Page) (bool, error),
 ) ([]*types.Page, error) {
 	var (
+		tmp = make([]*types.Page, 0, DefaultSliceCapacity)
 		set = make([]*types.Page, 0, DefaultSliceCapacity)
 		res *types.Page
 
@@ -259,6 +260,11 @@ func (s Store) QueryComposePages(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryComposePages(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupComposePageByNamespaceIDHandle searches for page by handle (case-insensitive)

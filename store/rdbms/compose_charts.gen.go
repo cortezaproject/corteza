@@ -238,6 +238,7 @@ func (s Store) QueryComposeCharts(
 	check func(*types.Chart) (bool, error),
 ) ([]*types.Chart, error) {
 	var (
+		tmp = make([]*types.Chart, 0, DefaultSliceCapacity)
 		set = make([]*types.Chart, 0, DefaultSliceCapacity)
 		res *types.Chart
 
@@ -259,6 +260,11 @@ func (s Store) QueryComposeCharts(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryComposeCharts(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupComposeChartByID searches for compose chart by ID

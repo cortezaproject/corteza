@@ -15,18 +15,29 @@ type (
 	}
 )
 
-func ResourceSchema(r string) string {
-	i := strings.Index(r, ":")
-	if i < 0 {
-		return ""
-	}
+const (
+	nsSep    = "::"
+	pathSep  = "/"
+	wildcard = "*"
+)
 
-	return r[:i]
+// ResourceType extracts 1st part of the resource
+//
+// ns::cmp:res/c returns ns::cmp:res
+// ns::cmp:res/  returns ns::cmp:res
+// ns::cmp:res   returns ns::cmp:res
+func ResourceType(r string) string {
+	if p := strings.Index(r, pathSep); p > 0 {
+		return r[:p]
+	} else {
+		return r
+	}
 }
 
 func matchResource(matcher, resource string) (m bool) {
-	if level(matcher) == 0 {
-		return matcher == resource
+	if matcher == resource {
+		// if resources match make sure no wildcards are resent
+		return strings.Index(resource, wildcard) == -1
 	}
 
 	m, _ = path.Match(matcher, resource)
@@ -37,6 +48,23 @@ func matchResource(matcher, resource string) (m bool) {
 // In a nutshell, level indicates number of wildcard characters
 //
 // More defined resources use less wildcards and are on a lower level
-func level(r string) int {
-	return strings.Count(r, string("*"))
+func level(r string) (score int) {
+	var nl bool
+	for l := len(r) - 1; l > strings.Index(r, pathSep); l-- {
+		switch r[l] {
+		case wildcard[0]:
+			// nop
+		case pathSep[0]:
+			// found next resource reference level
+			score *= 10
+			nl = false
+		default:
+			if !nl {
+				score += 1
+				nl = true
+			}
+		}
+	}
+
+	return
 }

@@ -1,33 +1,30 @@
 package rbac
 
-func (set RuleSet) Check(rolesByKind partRoles, res, op string) Access {
-	for _, kind := range roleKindsByPriority() {
-		if len(rolesByKind[kind]) == 0 {
-			continue
-		}
-
-		if kind == BypassRole {
-			return Allow
-		}
-
-		access := checkRulesByResource(filterRules(set, rolesByKind[kind], op), res, op)
-		if access != Inherit {
-			return access
-		}
+func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Access {
+	if member(rolesByKind, AnonymousRole) && len(rolesByKind) > 1 {
+		// Integrity check; when user is member of anonymous role
+		// should not be member of any other type of role
+		return Deny
 	}
 
-	return Inherit
-}
+	if member(rolesByKind, BypassRole) {
+		// if user has at least one bypass role, we allow access
+		return Allow
+	}
 
-func checkOptimised(indexedRules OptRuleSet, rolesByKind partRoles, res, op string) Access {
-	if len(rolesByKind) == 0 || len(indexedRules) == 0 {
+	if len(indexedRules) == 0 {
+		// no rules no access
 		return Inherit
 	}
 
 	var rules []*Rule
 
-	// looping through all role kinds
-	for _, kind := range roleKindsByPriority() {
+	// Priority is important here. We want to have
+	// stable RBAC check behaviour and ability
+	// to override allow/deny depending on how niche the role (type) is:
+	//  - context (eg owners) are more niche than common
+	//  - rules for common roles are more important than
+	for _, kind := range []roleKind{ContextRole, CommonRole, AuthenticatedRole, AnonymousRole} {
 		// no roles if this kind
 		if len(rolesByKind[kind]) == 0 {
 			continue
@@ -46,7 +43,7 @@ func checkOptimised(indexedRules OptRuleSet, rolesByKind partRoles, res, op stri
 			rules = append(rules, r...)
 		}
 
-		access := checkRulesByResource(rules, res, op)
+		access := checkRulesByResource(rules, op, res)
 		if access != Inherit {
 			return access
 		}
@@ -58,9 +55,9 @@ func checkOptimised(indexedRules OptRuleSet, rolesByKind partRoles, res, op stri
 // Check given resource match and operation on all given rules
 //
 // Function expects rules, sorted by level!
-func checkRulesByResource(set []*Rule, res, op string) Access {
+func checkRulesByResource(set []*Rule, op, res string) Access {
 	for _, r := range set {
-		if !matchResource(res, r.Resource) {
+		if !matchResource(r.Resource, res) {
 			continue
 		}
 
@@ -74,4 +71,15 @@ func checkRulesByResource(set []*Rule, res, op string) Access {
 	}
 
 	return Inherit
+}
+
+// at least one of the roles must be set to true
+func member(r partRoles, k roleKind) bool {
+	for _, is := range r[k] {
+		if is {
+			return true
+		}
+	}
+
+	return false
 }

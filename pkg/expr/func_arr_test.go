@@ -312,6 +312,16 @@ func Test_has(t *testing.T) {
 			val:    []interface{}{0.1, 1.1},
 			expect: false,
 		},
+		{
+			arr:    map[string]interface{}{"a": 1},
+			val:    []interface{}{"a", "b"},
+			expect: true,
+		},
+		{
+			arr:    map[string]interface{}{"a": 1},
+			val:    []interface{}{"b"},
+			expect: false,
+		},
 	}
 
 	for p, tc := range tcc {

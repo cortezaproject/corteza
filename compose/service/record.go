@@ -143,8 +143,7 @@ type (
 )
 
 func Record() RecordService {
-
-	return &record{
+	svc := &record{
 		actionlog:     DefaultActionlog,
 		ac:            DefaultAccessControl,
 		eventbus:      eventbus.Service(),
@@ -153,11 +152,14 @@ func Record() RecordService {
 
 		formatter: values.Formatter(),
 		sanitizer: values.Sanitizer(),
-		validator: defaultValidator(),
 	}
+
+	svc.validator = defaultValidator(svc)
+
+	return svc
 }
 
-func defaultValidator() recordValuesValidator {
+func defaultValidator(svc *record) recordValuesValidator {
 	// Initialize validator and setup all checkers it needs
 	validator := values.Validator()
 
@@ -170,11 +172,12 @@ func defaultValidator() recordValuesValidator {
 	})
 
 	validator.RecordRefChecker(func(ctx context.Context, s store.Storer, v *types.RecordValue, f *types.ModuleField, m *types.Module) (bool, error) {
-		if v.Ref == 0 {
+		if svc == nil && v.Ref == 0 {
 			return false, nil
 		}
 
-		r, err := store.LookupComposeRecordByID(ctx, s, m, v.Ref)
+		//r, err := store.LookupComposeRecordByID(ctx, s, m, v.Ref)
+		r, err := svc.FindByID(ctx, f.NamespaceID, f.ModuleID, v.Ref)
 		return r != nil, err
 	})
 
@@ -485,7 +488,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	new.SetModule(m)
 
 	if svc.optEmitEvents {
-		if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
+		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -499,7 +502,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	new.Values = RecordValueDefaults(m, new.Values)
 
 	// Handle payload from automation scripts
-	if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
+	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -608,24 +611,7 @@ func RecordUpdateOwner(invokerID uint64, r, old *types.Record) *types.Record {
 	return r
 }
 
-func RecordValueMerger(ctx context.Context, ac recordValueAccessController, m *types.Module, vv, old types.RecordValueSet) (types.RecordValueSet, *types.RecordValueErrorSet) {
-	if old != nil {
-		// Value merge process does not know anything about permissions so
-		// in case when new values are missing but do exist in the old set and their update/read is denied
-		// we need to copy them to ensure value merge process them correctly
-		for _, f := range m.Fields {
-			if len(vv.FilterByName(f.Name)) == 0 && !ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name)) {
-				// copy all fields from old to new
-				vv = append(vv, old.FilterByName(f.Name).GetClean()...)
-			}
-		}
-
-		// Merge new (updated) values with old ones
-		// This way we get list of updated, stale and deleted values
-		// that we can selectively update in the repository
-		vv = old.Merge(vv)
-	}
-
+func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessController, m *types.Module, vv types.RecordValueSet) *types.RecordValueErrorSet {
 	rve := &types.RecordValueErrorSet{}
 	_ = vv.Walk(func(v *types.RecordValue) error {
 		f := m.Fields.FindByName(v.Name)
@@ -642,7 +628,7 @@ func RecordValueMerger(ctx context.Context, ac recordValueAccessController, m *t
 		return nil
 	})
 
-	return vv, rve
+	return rve
 }
 
 func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitizer, vv recordValuesValidator, ff recordValuesFormatter, m *types.Module, new *types.Record) *types.RecordValueErrorSet {
@@ -744,7 +730,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 
 	if svc.optEmitEvents {
 		// Handle input payload
-		if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
+		if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
 			return nil, RecordErrValueInput().Wrap(rve)
 		}
 
@@ -761,7 +747,7 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 	}
 
 	// Handle payload from automation scripts
-	if rve = svc.procUpdate(ctx, svc.store, invokerID, m, upd, old); !rve.IsValid() {
+	if rve = svc.procUpdate(ctx, invokerID, m, upd, old); !rve.IsValid() {
 		return nil, RecordErrValueInput().Wrap(rve)
 	}
 
@@ -819,7 +805,7 @@ func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Rec
 // of the creation procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
+func (svc record) procCreate(ctx context.Context, invokerID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
 	new.Values.SetUpdatedFlag(true)
 
 	// Reset values to new record
@@ -833,10 +819,11 @@ func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint
 	new.DeletedBy = 0
 
 	new = RecordUpdateOwner(invokerID, new, nil)
-	new.Values, rve = RecordValueMerger(ctx, svc.ac, m, new.Values, nil)
-	if !rve.IsValid() {
-		return rve
+
+	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, new.Values); !rve.IsValid() {
+		return
 	}
+
 	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, new)
 	return rve
 }
@@ -862,7 +849,7 @@ func (svc record) Update(ctx context.Context, upd *types.Record) (rec *types.Rec
 // of the update procedure and after results are back from the automation scripts
 //
 // Both these points introduce external data that need to be checked fully in the same manner
-func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) (rve *types.RecordValueErrorSet) {
+func (svc record) procUpdate(ctx context.Context, invokerID uint64, m *types.Module, upd *types.Record, old *types.Record) (rve *types.RecordValueErrorSet) {
 	// Mark all values as updated (new)
 	upd.Values.SetUpdatedFlag(true)
 
@@ -883,12 +870,16 @@ func (svc record) procUpdate(ctx context.Context, s store.Storer, invokerID uint
 	upd.DeletedBy = old.DeletedBy
 
 	upd = RecordUpdateOwner(invokerID, upd, old)
-	upd.Values, rve = RecordValueMerger(ctx, svc.ac, m, upd.Values, old.Values)
-	if !rve.IsValid() {
+
+	upd.Values = old.Values.Merge(m.Fields, upd.Values, func(f *types.ModuleField) bool {
+		return svc.ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(f.Name))
+	})
+
+	if rve = RecordValueUpdateOpCheck(ctx, svc.ac, m, upd.Values); !rve.IsValid() {
 		return rve
 	}
-	rve = RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
-	return rve
+
+	return RecordPreparer(ctx, svc.store, svc.sanitizer, svc.validator, svc.formatter, m, upd)
 }
 
 func (svc record) recordInfoUpdate(ctx context.Context, r *types.Record) {
@@ -1306,7 +1297,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					rec.Values = RecordValueDefaults(m, rec.Values)
 
 					// Handle payload from automation scripts
-					if rve := svc.procCreate(ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
+					if rve := svc.procCreate(ctx, invokerID, m, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
@@ -1317,7 +1308,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					recordableAction = RecordActionIteratorUpdate
 
 					// Handle input payload
-					if rve := svc.procUpdate(ctx, svc.store, invokerID, m, rec, rec); !rve.IsValid() {
+					if rve := svc.procUpdate(ctx, invokerID, m, rec, rec); !rve.IsValid() {
 						return RecordErrValueInput().Wrap(rve)
 					}
 
@@ -1353,8 +1344,17 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 }
 
 func ComposeRecordFilterChecker(ctx context.Context, ac recordAccessController, m *types.Module) func(*types.Record) (bool, error) {
-	return func(res *types.Record) (bool, error) {
-		if !ac.CanReadRecord(ctx, res) {
+	return func(rec *types.Record) (bool, error) {
+		// Setting module right before we do access control
+		//
+		// Why?
+		//  - Access control can use one of the contextual roles
+		//  - Contextual role can use expression that accesses values
+		//  - Record's values are only exported into expression's scope when
+		//    module is set on record at the time when Dict() fn is called.
+		rec.SetModule(m)
+
+		if !ac.CanReadRecord(ctx, rec) {
 			return false, nil
 		}
 

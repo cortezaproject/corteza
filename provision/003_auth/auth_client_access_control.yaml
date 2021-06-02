@@ -1,10 +1,10 @@
 allow:
   authenticated:
-    system:auth-client:
+    corteza::system:auth-client/*:
       - authorize
 
   admins:
-    system:auth-client:
+    corteza::system:auth-client/*:
       - read
       - update
       - delete

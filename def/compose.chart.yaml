@@ -1,6 +1,6 @@
 rbac:
   resource:
-    elements: [ namespaceID, ID ]
+    references: [ namespace, ID ]
 
   operations:
     read:

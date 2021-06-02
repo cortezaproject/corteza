@@ -2,6 +2,11 @@ package rbac
 
 import (
 	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"go.uber.org/zap"
+)
+
+const (
+	roleKinds = 5
 )
 
 type (
@@ -19,11 +24,14 @@ type (
 		kind roleKind
 
 		check ctxRoleCheckFn
+
+		// compatible resource types
+		crtypes map[string]bool
 	}
 
 	roleKind int
 
-	partRoles []map[uint64]bool
+	partRoles [roleKinds]map[uint64]bool
 )
 
 const (
@@ -34,6 +42,23 @@ const (
 	BypassRole
 )
 
+func (k roleKind) String() string {
+	switch k {
+	case BypassRole:
+		return "bypass"
+	case ContextRole:
+		return "context"
+	case CommonRole:
+		return "common"
+	case AuthenticatedRole:
+		return "authenticated"
+	case AnonymousRole:
+		return "anonymous"
+	default:
+		panic("unknown role kind")
+	}
+}
+
 func (k roleKind) Make(id uint64, handle string) *Role {
 	return &Role{
 		kind:   k,
@@ -42,18 +67,19 @@ func (k roleKind) Make(id uint64, handle string) *Role {
 	}
 }
 
-func MakeContextRole(id uint64, handle string, fn ctxRoleCheckFn) *Role {
+func MakeContextRole(id uint64, handle string, fn ctxRoleCheckFn, tt ...string) *Role {
 	return &Role{
-		kind:   ContextRole,
-		id:     id,
-		handle: handle,
-		check:  fn,
+		kind:    ContextRole,
+		id:      id,
+		handle:  handle,
+		check:   fn,
+		crtypes: slice.ToStringBoolMap(tt),
 	}
 }
 
 // partitions roles by kind
 func partitionRoles(rr ...*Role) partRoles {
-	out := make([]map[uint64]bool, len(roleKindsByPriority()))
+	out := [roleKinds]map[uint64]bool{}
 	for _, r := range rr {
 		if out[r.kind] == nil {
 			out[r.kind] = make(map[uint64]bool)
@@ -65,6 +91,20 @@ func partitionRoles(rr ...*Role) partRoles {
 	return out
 }
 
+func (p partRoles) LogFields() (ff []zap.Field) {
+	for _, k := range []roleKind{BypassRole, ContextRole, CommonRole, AuthenticatedRole, AnonymousRole} {
+		ii := make([]uint64, 0, len(p[k]))
+		for r := range p[k] {
+			ii = append(ii, r)
+		}
+
+		ff = append(ff, zap.Uint64s(k.String(), ii))
+	}
+
+	return
+}
+
+// counts roles per type
 func statRoles(rr ...*Role) (stats map[roleKind]int) {
 	stats = make(map[roleKind]int)
 	for _, r := range rr {
@@ -74,47 +114,35 @@ func statRoles(rr ...*Role) (stats map[roleKind]int) {
 	return
 }
 
-// Returns slice of role types by priority
-//
-// Priority is important here. We want to have
-// stable RBAC check behaviour and ability
-// to override allow/deny depending on how niche the role (type) is:
-//  - bypass always stake precedence
-//  - context (eg owners) are more niche than common
-func roleKindsByPriority() []roleKind {
-	return []roleKind{
-		BypassRole,
-		ContextRole,
-		CommonRole,
-		AuthenticatedRole,
-		AnonymousRole,
-	}
-}
-
 // compare list of session roles (ids) with preloaded roles and calculate the final list
-func getContextRoles(sRoles []uint64, res Resource, preloadedRoles []*Role) (out partRoles) {
+func getContextRoles(s Session, res Resource, preloadedRoles []*Role) (out partRoles) {
 	var (
-		mm   = slice.ToUint64BoolMap(sRoles)
-		attr = make(map[string]interface{})
+		mm    = slice.ToUint64BoolMap(s.Roles())
+		scope = make(map[string]interface{})
 	)
 
-	if ar, ok := res.(resourceDicter); ok {
+	if d, ok := res.(resourceDicter); ok {
 		// if resource implements Dict() fn, we can use it to
-		// collect attributes, used for expr. evaluation and contextual role gathering
-		attr = ar.Dict()
+		// collect attributes, used for expression evaluation and contextual role gathering
+		scope["resource"] = d.Dict()
 	}
 
-	attr["userID"] = 0 // @todo RBACv2
+	scope["userID"] = s.Identity()
 
-	out = make([]map[uint64]bool, len(roleKindsByPriority()))
+	out = [roleKinds]map[uint64]bool{}
 	for _, r := range preloadedRoles {
 		if r.kind == ContextRole {
+			if len(r.crtypes) == 0 || !r.crtypes[ResourceType(res.RbacResource())] {
+				// resource type not compatible with this contextual role
+				continue
+			}
+
 			if r.check == nil {
 				// expression not defined, skip contextual role
 				continue
 			}
 
-			if !r.check(attr) {
+			if !r.check(scope) {
 				// add role to the list ONLY of expression evaluated true
 				continue
 			}

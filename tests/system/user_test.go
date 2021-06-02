@@ -3,6 +3,11 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -10,10 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) randEmail() string {
@@ -62,6 +63,7 @@ func TestUserRead(t *testing.T) {
 
 	h.apiInit().
 		Get(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -70,10 +72,11 @@ func TestUserRead(t *testing.T) {
 		End()
 
 	u = h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRbacResource(0), "unmask.email")
+	helpers.AllowMe(h, types.UserRbacResource(0), "email.unmask")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -92,10 +95,11 @@ func TestUserListAll(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -115,7 +119,7 @@ func TestUserListWithPaging(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	var aux = struct {
 		Response struct {
@@ -129,6 +133,7 @@ func TestUserListWithPaging(t *testing.T) {
 	h.apiInit().
 		Get("/users/").
 		Query("limit", "13").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -163,12 +168,12 @@ func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.createUserWithEmail("usr")
 	f := h.createUserWithEmail(h.randEmail())
 
-	h.deny(f.RbacResource(), "read")
+	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/users/").
@@ -186,10 +191,11 @@ func TestUserListQuery(t *testing.T) {
 
 	h.secCtx()
 
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Query("query", h.randEmail()).
 		Query("email", h.randEmail()).
 		Query("name", "John Doe").
@@ -207,14 +213,15 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRbacResource(0), "read")
-	h.allow(types.UserRbacResource(0), "unmask.email")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "email.unmask")
 
 	ee := h.randEmail()
 	h.createUserWithEmail(ee)
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Query("email", ee).
 		Expect(t).
 		Status(http.StatusOK).
@@ -228,7 +235,7 @@ func TestUserListQueryUsername(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	ee := h.randEmail()
 	h.createUser(&types.User{
@@ -238,6 +245,7 @@ func TestUserListQueryUsername(t *testing.T) {
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Query("username", ee).
 		Expect(t).
 		Status(http.StatusOK).
@@ -251,7 +259,7 @@ func TestUserListQueryHandle(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
-	h.allow(types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.createUser(&types.User{
 		Email:  "test@test.tld",
@@ -261,6 +269,7 @@ func TestUserListQueryHandle(t *testing.T) {
 	h.apiInit().
 		Get("/users/").
 		Query("handle", "johnDoe").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -275,7 +284,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 	h.secCtx()
 
 	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
-	h.allow(newUserWeCanAccess.RbacResource(), "read")
+	helpers.AllowMe(h, newUserWeCanAccess.RbacResource(), "read")
 
 	// And one we cannot access
 	h.createUserWithEmail(h.randEmail())
@@ -288,6 +297,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 
 	h.apiInit().
 		Get("/users/").
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -316,12 +326,13 @@ func TestUserCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.ComponentRbacResource(), "user.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "user.create")
 
 	email := h.randEmail()
 
 	h.apiInit().
 		Post("/users/").
+		Header("Accept", "application/json").
 		FormData("email", email).
 		Expect(t).
 		Status(http.StatusOK).
@@ -350,12 +361,13 @@ func TestUserUpdate(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRbacResource(0), "update")
+	helpers.AllowMe(h, types.UserRbacResource(0), "update")
 
 	newEmail := h.randEmail()
 
 	h.apiInit().
 		Put(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		FormData("email", newEmail).
 		Expect(t).
 		Status(http.StatusOK).
@@ -368,7 +380,7 @@ func TestUserSetPassword(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, types.UserRbacResource(0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/users/%d/password", u.ID)).
@@ -384,7 +396,7 @@ func TestUserSuspend(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRBACResource.AppendWildcard(), "suspend")
+	helpers.AllowMe(h, types.UserRbacResource(0), "suspend")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/users/%d/suspend", u.ID)).
@@ -403,7 +415,7 @@ func TestUserUnsuspend(t *testing.T) {
 	h.clearUsers()
 
 	u := h.createUserWithEmail(h.randEmail())
-	h.allow(types.UserRBACResource.AppendWildcard(), "unsuspend")
+	helpers.AllowMe(h, types.UserRbacResource(0), "unsuspend")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/users/%d/unsuspend", u.ID)).
@@ -436,12 +448,13 @@ func TestUserDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserRbacResource(0), "delete")
+	helpers.AllowMe(h, types.UserRbacResource(0), "delete")
 
 	u := h.createUserWithEmail(h.randEmail())
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/users/%d", u.ID)).
+		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -452,7 +465,7 @@ func TestUserUndelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.UserRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.UserRbacResource(0), "delete")
 
 	u := h.createUserWithEmail(h.randEmail())
 
@@ -472,10 +485,10 @@ func TestUserLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
-	h.allow(types.ComponentRbacResource(), "user.create")
-	h.allow(types.UserRbacResource(0), "read")
-	h.allow(types.UserRbacResource(0), "update")
-	h.allow(types.UserRbacResource(0), "delete")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "user.create")
+	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.UserRbacResource(0), "update")
+	helpers.AllowMe(h, types.UserRbacResource(0), "delete")
 
 	var (
 		ID uint64
@@ -552,7 +565,7 @@ func TestUserLabels(t *testing.T) {
 func TestUserMemberList(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
-	h.allow(types.RoleRBACResource, "read")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "read")
 
 	u := h.createUserWithEmail(h.randEmail())
 
@@ -573,7 +586,7 @@ func TestUserMemberList(t *testing.T) {
 func TestUserMemberAdd(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
-	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	u := h.createUserWithEmail(h.randEmail())
 
@@ -591,7 +604,7 @@ func TestUserMemberAdd(t *testing.T) {
 func TestUserMemberRemove(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
-	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	u := h.createUserWithEmail(h.randEmail())
 

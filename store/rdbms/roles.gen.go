@@ -238,6 +238,7 @@ func (s Store) QueryRoles(
 	check func(*types.Role) (bool, error),
 ) ([]*types.Role, error) {
 	var (
+		tmp = make([]*types.Role, 0, DefaultSliceCapacity)
 		set = make([]*types.Role, 0, DefaultSliceCapacity)
 		res *types.Role
 
@@ -259,6 +260,11 @@ func (s Store) QueryRoles(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryRoles(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupRoleByID searches for role by ID
@@ -458,6 +464,7 @@ func (s Store) internalRoleRowScanner(row rowScanner) (res *types.Role, err erro
 			&res.ID,
 			&res.Name,
 			&res.Handle,
+			&res.Meta,
 			&res.CreatedAt,
 			&res.UpdatedAt,
 			&res.ArchivedAt,
@@ -504,6 +511,7 @@ func (Store) roleColumns(aa ...string) []string {
 		alias + "id",
 		alias + "name",
 		alias + "handle",
+		alias + "meta",
 		alias + "created_at",
 		alias + "updated_at",
 		alias + "archived_at",
@@ -538,6 +546,7 @@ func (s Store) internalRoleEncoder(res *types.Role) store.Payload {
 		"id":          res.ID,
 		"name":        res.Name,
 		"handle":      res.Handle,
+		"meta":        res.Meta,
 		"created_at":  res.CreatedAt,
 		"updated_at":  res.UpdatedAt,
 		"archived_at": res.ArchivedAt,

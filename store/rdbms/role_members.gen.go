@@ -52,6 +52,7 @@ func (s Store) QueryRoleMembers(
 	check func(*types.RoleMember) (bool, error),
 ) ([]*types.RoleMember, error) {
 	var (
+		tmp = make([]*types.RoleMember, 0, DefaultSliceCapacity)
 		set = make([]*types.RoleMember, 0, DefaultSliceCapacity)
 		res *types.RoleMember
 
@@ -73,10 +74,15 @@ func (s Store) QueryRoleMembers(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // CreateRoleMember creates one or more rows in role_members table

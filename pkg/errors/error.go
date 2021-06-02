@@ -108,8 +108,14 @@ func (e *Error) Is(target error) bool {
 }
 
 // Unwrap is alias for errors.Unwrap so users can avoid importing both errors packages
+//
+// This function DOES NOT SUPPRESS errors if they are not wrapped!
 func Unwrap(err error) error {
-	return errors.Unwrap(err)
+	if err != nil && errors.Unwrap(err) != nil {
+		return errors.Unwrap(err)
+	}
+
+	return err
 }
 
 // Is is alias for errors.Is so users can avoid importing both errors packages

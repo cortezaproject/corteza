@@ -20,7 +20,6 @@ type (
 // RBAC initializes and returns a RBACOpt with default values
 func RBAC() (o *RBACOpt) {
 	o = &RBACOpt{
-		ServiceUser:        "corteza",
 		BypassRoles:        "super-admin",
 		AuthenticatedRoles: "authenticated",
 		AnonymousRoles:     "anonymous",

@@ -9,7 +9,6 @@ import (
 
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/automation/service"
-	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
@@ -18,7 +17,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -63,8 +61,6 @@ func InitTestApp() {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			rbac.SetGlobal(rbac.NewTestService(logger.Default(), app.Store))
-
 			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
 
 			if err != nil {
@@ -96,10 +92,8 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
-	h.cUser.SetRoles([]uint64{h.roleID})
-
-	rbac.Global().(*rbac.TestService).ClearGrants()
-	h.mockPermissionsWithAccess()
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
 
 	return h
 }
@@ -107,34 +101,6 @@ func newHelper(t *testing.T) helper {
 // Returns context w/ security details
 func (h helper) secCtx() context.Context {
 	return auth.SetIdentityToContext(context.Background(), h.cUser)
-}
-
-func (h helper) mockPermissions(rules ...*rbac.Rule) {
-	h.a.NoError(rbac.Global().Grant(
-		// TestService we use does not have any backend storage,
-		context.Background(),
-		rules...,
-	))
-}
-
-// Prepends allow access rule for messaging service for everyone
-func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	rules = append(
-		rules,
-		rbac.AllowRule(1, types.ComponentRbacResource(), "access"),
-	)
-
-	h.mockPermissions(rules...)
-}
-
-// Set allow permision for test role
-func (h helper) allow(r, o string) {
-	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
-}
-
-// set deny permission for test role
-func (h helper) deny(r, o string) {
-	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester
@@ -145,8 +111,6 @@ func (h helper) noError(err error) {
 
 	h.a.NoError(err)
 }
-
-func (h helper) prepareRBAC() {}
 
 func (h helper) prepareQueues(ctx context.Context, qs ...*messagebus.QueueSettings) {
 	h.noError(testApp.Store.TruncateMessagebusQueueSettings(ctx))
