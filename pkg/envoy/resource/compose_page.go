@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
 
@@ -33,18 +34,18 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		RefCharts: make(RefSet, 0, 10),
 		BlockRefs: make(map[int]RefSet),
 	}
-	r.SetResourceType(COMPOSE_PAGE_RESOURCE_TYPE)
+	r.SetResourceType(types.PageResourceType)
 	r.Res = pg
 
 	r.AddIdentifier(identifiers(pg.Handle, pg.Title, pg.ID)...)
 
-	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
 	if modRef != "" {
-		r.RefMod = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.RefNs)
+		r.RefMod = r.AddRef(types.ModuleResourceType, modRef).Constraint(r.RefNs)
 	}
 
 	if parentRef != "" {
-		r.RefParent = r.AddRef(COMPOSE_PAGE_RESOURCE_TYPE, parentRef).Constraint(r.RefNs)
+		r.RefParent = r.AddRef(types.PageResourceType, parentRef).Constraint(r.RefNs)
 	}
 
 	// Quick utility to extract references from options
@@ -71,7 +72,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		case "RecordList":
 			id := ss(b.Options, "module", "moduleID")
 			if id != "" {
-				ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
 				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
 			}
@@ -82,7 +83,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				button, _ := b.(map[string]interface{})
 				id := ss(button, "workflow", "workflowID")
 				if id != "" {
-					ref := r.AddRef(AUTOMATION_WORKFLOW_RESOURCE_TYPE, id)
+					ref := r.AddRef(automationTypes.WorkflowResourceType, id)
 					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 					r.WfRefs = append(r.WfRefs, ref)
 				}
@@ -91,7 +92,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		case "RecordOrganizer":
 			id := ss(b.Options, "module", "moduleID")
 			if id != "" {
-				ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
 				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
 			}
@@ -99,7 +100,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		case "Chart":
 			id := ss(b.Options, "chart", "chartID")
 			if id != "" {
-				ref := r.AddRef(COMPOSE_CHART_RESOURCE_TYPE, id).Constraint(r.RefNs)
+				ref := r.AddRef(types.ChartResourceType, id).Constraint(r.RefNs)
 				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 				r.RefCharts = append(r.RefCharts, ref)
 			}
@@ -111,7 +112,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				fOpts, _ := (feed["options"]).(map[string]interface{})
 				id := ss(fOpts, "module", "moduleID")
 				if id != "" {
-					ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+					ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
 					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 					r.ModRefs = append(r.ModRefs, ref)
 				}
@@ -123,7 +124,7 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 				mops, _ := m.(map[string]interface{})
 				id := ss(mops, "module", "moduleID")
 				if id != "" {
-					ref := r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, id).Constraint(r.RefNs)
+					ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
 					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
 					r.ModRefs = append(r.ModRefs, ref)
 				}
@@ -143,6 +144,10 @@ func (r *ComposePage) SysID() uint64 {
 
 func (r *ComposePage) Ref() string {
 	return firstOkString(r.Res.Handle, r.Res.Title, strconv.FormatUint(r.Res.ID, 10))
+}
+
+func (r *ComposePage) RBACPath() []*Ref {
+	return []*Ref{r.RefNs}
 }
 
 // FindComposePage looks for the page in the resources

@@ -58,7 +58,7 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	// @todo enable when records are ready for RBAC
-	//if wrap.rbac, err = decodeRbac(types.ComponentRbacResource(), n); err != nil {
+	//if wrap.rbac, err = decodeRbac(&types.Component{}, n); err != nil {
 	//	return
 	//}
 

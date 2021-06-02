@@ -3,6 +3,8 @@ package yaml
 import (
 	"context"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -17,7 +19,7 @@ func composePageFromResource(r *resource.ComposePage, cfg *EncoderConfig) *compo
 func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	pg, ok := state.Res.(*resource.ComposePage)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_PAGE_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(composeTypes.PageResourceType, state.Res.ResourceType())
 	}
 
 	// Get the related namespace
@@ -55,7 +57,7 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 		if refs, has := pg.BlockRefs[i]; has {
 			for _, ref := range refs {
 				switch ref.ResourceType {
-				case resource.COMPOSE_MODULE_RESOURCE_TYPE:
+				case composeTypes.ModuleResourceType:
 					relMod := resource.FindComposeModule(state.ParentResources, ref.Identifiers)
 					cpb.relMod = append(cpb.relMod, relMod)
 					if cpb.relMod == nil {
@@ -63,7 +65,7 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 					}
 					cpb.refMod = append(cpb.refMod, relModToRef(relMod))
 
-				case resource.AUTOMATION_WORKFLOW_RESOURCE_TYPE:
+				case automationTypes.WorkflowResourceType:
 					relWf := resource.FindAutomationWorkflow(state.ParentResources, ref.Identifiers)
 					cpb.relWf = append(cpb.relWf, relWf)
 					if cpb.relWf == nil {
@@ -71,7 +73,7 @@ func (n *composePage) Prepare(ctx context.Context, state *envoy.ResourceState) (
 					}
 					cpb.refWf = append(cpb.refWf, relWfToRef(relWf))
 
-				case resource.COMPOSE_CHART_RESOURCE_TYPE:
+				case composeTypes.ChartResourceType:
 					relChart := resource.FindComposeChart(state.ParentResources, ref.Identifiers)
 					cpb.relChart = append(cpb.relChart, relChart)
 					if cpb.relChart == nil {

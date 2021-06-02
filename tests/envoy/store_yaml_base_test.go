@@ -2,7 +2,6 @@ package envoy
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -40,7 +39,8 @@ func TestStoreYaml_base(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	s := initStore(ctx, t)
+	s := initServices(ctx, t)
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {
@@ -620,10 +620,10 @@ func TestStoreYaml_base(t *testing.T) {
 					case stypes.RoleRbacResource(0):
 						req.Equal(rl.ID, r.RoleID)
 						req.Equal("read", r.Operation)
-						req.Equal(rbac.Deny, r.Access)
-					default:
+						req.Equal(rbac.Allow, r.Access)
+					case stypes.UserRbacResource(rl.ID):
 						req.Equal(rl.ID, r.RoleID)
-						req.Equal(fmt.Sprintf("system:role:%d", rl.ID), r.Resource)
+						req.Equal(stypes.UserRbacResource(rl.ID), r.Resource)
 						req.Equal("read", r.Operation)
 						req.Equal(rbac.Deny, r.Access)
 					}
@@ -689,10 +689,10 @@ func TestStoreYaml_base(t *testing.T) {
 			// Assert
 			c.check(ctx, s, req)
 
-			// Cleanup the store
-			truncateStore(ctx, s, t)
 		})
 		ni = 0
-		truncateStore(ctx, s, t)
 	}
+
+	// Cleanup the store
+	truncateStore(ctx, s, t)
 }

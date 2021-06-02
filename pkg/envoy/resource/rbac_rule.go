@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -13,18 +14,24 @@ type (
 
 		RefRole     *Ref
 		RefResource *Ref
+		RefPath     []*Ref
 	}
 )
 
-func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref) *RbacRule {
+func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref, refPath ...*Ref) *RbacRule {
 	r := &RbacRule{base: &base{}}
-	r.SetResourceType(RBAC_RESOURCE_TYPE)
+	r.SetResourceType(RbacResourceType)
 	r.Res = res
 
-	r.RefRole = r.AddRef(ROLE_RESOURCE_TYPE, refRole)
+	r.RefRole = r.AddRef(types.RoleResourceType, refRole)
 
 	if resRef != nil {
 		r.RefResource = r.AddRef(resRef.ResourceType, resRef.Identifiers.StringSlice()...)
+	}
+
+	// any additional constraints
+	for _, rp := range refPath {
+		r.RefPath = append(r.RefPath, r.AddRef(rp.ResourceType, rp.Identifiers.StringSlice()...))
 	}
 
 	return r

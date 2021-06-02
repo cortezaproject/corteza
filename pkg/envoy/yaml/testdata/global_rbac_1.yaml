@@ -1,29 +1,29 @@
 allow:
   authenticated:
-    compose:
+    corteza::compose/:
       - access
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - read
 
-    compose:module:
+    corteza::compose:module/*/*:
       - read
 
-    compose:page:
+    corteza::compose:page/*/*:
       - read
 
-    compose:chart:
+    corteza::compose:chart/*/*:
       - read
 
   admins:
-    compose:
+    corteza::compose/:
       - access
       - grant
       - settings.read
       - settings.manage
       - namespace.create
 
-    compose:namespace:
+    corteza::compose:namespace/*:
       - read
       - update
       - delete
@@ -32,7 +32,7 @@ allow:
       - module.create
       - chart.create
 
-    compose:module:
+    corteza::compose:module/*/*:
       - read
       - update
       - delete
@@ -41,12 +41,12 @@ allow:
       - record.update
       - record.delete
 
-    compose:chart:
+    corteza::compose:chart/*/*:
       - read
       - update
       - delete
 
-    compose:page:
+    corteza::compose:page/*/*:
       - read
       - update
       - delete

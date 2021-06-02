@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func applicationFromResource(r *resource.Application, cfg *EncoderConfig) *application {
@@ -17,7 +18,7 @@ func applicationFromResource(r *resource.Application, cfg *EncoderConfig) *appli
 func (n *application) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	app, ok := state.Res.(*resource.Application)
 	if !ok {
-		return encoderErrInvalidResource(resource.APPLICATION_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.ApplicationResourceType, state.Res.ResourceType())
 	}
 
 	n.res = app.Res

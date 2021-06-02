@@ -24,14 +24,14 @@ func NewComposeChart(res *types.Chart, nsRef string, mmRef []string) *ComposeCha
 		base:    &base{},
 		RefMods: make(RefSet, len(mmRef)),
 	}
-	r.SetResourceType(COMPOSE_CHART_RESOURCE_TYPE)
+	r.SetResourceType(types.ChartResourceType)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Name, res.ID)...)
 
-	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
+	r.RefNs = r.AddRef(types.NamespaceResourceType, nsRef)
 	for i, mRef := range mmRef {
-		r.RefMods[i] = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, mRef).Constraint(r.RefNs)
+		r.RefMods[i] = r.AddRef(types.ModuleResourceType, mRef).Constraint(r.RefNs)
 	}
 
 	// Initial timestamps
@@ -46,6 +46,10 @@ func (r *ComposeChart) SysID() uint64 {
 
 func (r *ComposeChart) Ref() string {
 	return firstOkString(r.Res.Handle, r.Res.Name, strconv.FormatUint(r.Res.ID, 10))
+}
+
+func (r *ComposeChart) RBACPath() []*Ref {
+	return []*Ref{r.RefNs}
 }
 
 // FindComposeChart looks for the chart in the resources

@@ -1,11 +1,11 @@
 allow:
   r1:
-    compose:
+    corteza::compose/:
       - access
 
 deny:
   r1:
-    compose:namespace:
+    corteza::compose:namespace/*:
       - access
-    messaging:
+    corteza::messaging/:
       - access

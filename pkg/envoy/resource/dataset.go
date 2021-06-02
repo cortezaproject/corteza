@@ -19,7 +19,7 @@ func NewResourceDataset(name string, p provider) *ResourceDataset {
 	r := &ResourceDataset{base: &base{}}
 	r.P = p
 
-	r.SetResourceType(DATA_SOURCE_RESOURCE_TYPE)
+	r.SetResourceType(DataSourceResourceType)
 	r.AddIdentifier(identifiers(name)...)
 
 	return r

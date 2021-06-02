@@ -32,7 +32,8 @@ func TestStoreYaml_pageRefs(t *testing.T) {
 	)
 
 	ctx := context.Background()
-	s := initStore(ctx, t)
+	s := initServices(ctx, t)
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {

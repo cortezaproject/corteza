@@ -21,6 +21,12 @@ type (
 		Ref() string
 	}
 
+	RBACInterface interface {
+		Interface
+
+		RBACPath() []*Ref
+	}
+
 	RefSet []*Ref
 	Ref    struct {
 		// @todo check with Denis regarding strings here (the cdocs comment)
@@ -34,20 +40,9 @@ type (
 )
 
 var (
-	// @todo RBACv2
-	APPLICATION_RESOURCE_TYPE         = "application"
-	COMPOSE_CHART_RESOURCE_TYPE       = "compose.chart"
-	COMPOSE_MODULE_RESOURCE_TYPE      = "compose:module"
-	COMPOSE_NAMESPACE_RESOURCE_TYPE   = "compose:namespace"
-	COMPOSE_PAGE_RESOURCE_TYPE        = "compose:page"
-	COMPOSE_RECORD_RESOURCE_TYPE      = "compose:record"
-	RBAC_RESOURCE_TYPE                = "rbac-rule"
-	ROLE_RESOURCE_TYPE                = "role"
-	SETTINGS_RESOURCE_TYPE            = "setting"
-	USER_RESOURCE_TYPE                = "user"
-	TEMPLATE_RESOURCE_TYPE            = "template"
-	DATA_SOURCE_RESOURCE_TYPE         = "data:raw"
-	AUTOMATION_WORKFLOW_RESOURCE_TYPE = "workflow"
+	DataSourceResourceType = "data:raw"
+	SettingsResourceType   = "setting"
+	RbacResourceType       = "rbac-rule"
 )
 
 func MakeIdentifiers(ss ...string) Identifiers {

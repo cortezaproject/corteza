@@ -16,7 +16,7 @@ type (
 
 func NewComposeNamespace(ns *types.Namespace) *ComposeNamespace {
 	r := &ComposeNamespace{base: &base{}}
-	r.SetResourceType(COMPOSE_NAMESPACE_RESOURCE_TYPE)
+	r.SetResourceType(types.NamespaceResourceType)
 	r.Res = ns
 
 	r.AddIdentifier(identifiers(ns.Slug, ns.Name, ns.ID)...)

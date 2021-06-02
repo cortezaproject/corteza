@@ -18,7 +18,7 @@ type (
 
 func NewSettings(vv map[string]interface{}) *Settings {
 	r := &Settings{base: &base{}}
-	r.SetResourceType(SETTINGS_RESOURCE_TYPE)
+	r.SetResourceType(SettingsResourceType)
 
 	r.Res = make(types.SettingValueSet, 0, len(vv))
 	for k, v := range vv {
@@ -34,7 +34,7 @@ func NewSettings(vv map[string]interface{}) *Settings {
 
 func NewSetting(s *types.SettingValue) *Setting {
 	r := &Setting{base: &base{}}
-	r.SetResourceType(SETTINGS_RESOURCE_TYPE)
+	r.SetResourceType(SettingsResourceType)
 	r.Res = *s
 
 	r.AddIdentifier(identifiers(s.Name)...)

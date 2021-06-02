@@ -2,16 +2,20 @@ package yaml
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	federationTypes "github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func (n *rbacRule) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	rl, ok := state.Res.(*resource.RbacRule)
 	if !ok {
-		return encoderErrInvalidResource(resource.RBAC_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(resource.RbacResourceType, state.Res.ResourceType())
 	}
 
 	// Get the related role
@@ -51,6 +55,125 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 	// under the related namespace.
 	// For now all rules will be nested under a root node for simplicity sake.
 
+	res := state.Res.(*resource.RbacRule)
+
+	p0ID := "*"
+	p1ID := "*"
+
+	switch r.res.Resource {
+	case composeTypes.ComponentResourceType,
+		systemTypes.ComponentResourceType,
+		automationTypes.ComponentResourceType,
+		federationTypes.ComponentResourceType:
+		r.res.Resource += "/"
+		goto next
+	}
+
+	// @todo the following stuff I'm not too sure about
+	switch r.res.Resource {
+	case composeTypes.NamespaceResourceType:
+		if res.RefResource != nil {
+			p1 := resource.FindComposeNamespace(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.ComposeNamespaceErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Slug
+		}
+
+		r.res.Resource = fmt.Sprintf(composeTypes.NamespaceRbacResourceTpl(), composeTypes.NamespaceResourceType, p1ID)
+	case composeTypes.ModuleResourceType:
+		if len(res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.Slug
+		}
+
+		if res.RefResource != nil {
+			p1 := resource.FindComposeModule(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.ComposeModuleErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		r.res.Resource = fmt.Sprintf(composeTypes.ModuleRbacResourceTpl(), composeTypes.ModuleResourceType, p0ID, p1ID)
+	case composeTypes.ChartResourceType:
+		if len(res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.Slug
+		}
+
+		if res.RefResource != nil {
+			p1 := resource.FindComposeChart(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.ComposeChartErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		r.res.Resource = fmt.Sprintf(composeTypes.ChartRbacResourceTpl(), composeTypes.ChartResourceType, p0ID, p1ID)
+	case composeTypes.PageResourceType:
+		if len(res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.Slug
+		}
+
+		if res.RefResource != nil {
+			p1 := resource.FindComposePage(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.ComposePageErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		r.res.Resource = fmt.Sprintf(composeTypes.PageRbacResourceTpl(), composeTypes.PageResourceType, p0ID, p1ID)
+	case composeTypes.RecordResourceType:
+		return fmt.Errorf("importing rbac rules on record level is not supported")
+	case composeTypes.ModuleFieldResourceType:
+		return fmt.Errorf("importing rbac rules on record level is not supported")
+	case systemTypes.UserResourceType:
+		if res.RefResource != nil {
+			p1 := resource.FindUser(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.UserErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		r.res.Resource = fmt.Sprintf(systemTypes.UserRbacResourceTpl(), systemTypes.UserResourceType, p1ID)
+	case systemTypes.RoleResourceType:
+		if res.RefResource != nil {
+			p1 := resource.FindRole(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.RoleErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		r.res.Resource = fmt.Sprintf(systemTypes.RoleRbacResourceTpl(), systemTypes.RoleResourceType, p1ID)
+	case systemTypes.ApplicationResourceType:
+		if res.RefResource != nil {
+			p1 := resource.FindApplication(state.ParentResources, res.RefResource.Identifiers)
+			if p1 == nil {
+				return resource.ApplicationErrUnresolved(res.RefResource.Identifiers)
+			}
+			p1ID = p1.Name
+		}
+
+		r.res.Resource = fmt.Sprintf(systemTypes.ApplicationRbacResourceTpl(), systemTypes.ApplicationResourceType, p1ID)
+	default:
+		return fmt.Errorf("unsupported resource type '%s' for RBAC YAML encode", r.res.Resource)
+	}
+
+next:
 	doc.addRbacRule(r)
 
 	return nil
@@ -59,23 +182,6 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 	if rr == nil || len(rr) == 0 {
 		return nil, nil
-	}
-
-	addRef := func(r *rbacRule, base string) string {
-		// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
-		rtr := base
-		// rtr := base.TrimID().String()
-
-		if r.relResource == nil {
-			return rtr
-		}
-
-		refr, ok := r.relResource.(resource.RefableInterface)
-		if !ok {
-			return rtr
-		}
-
-		return rtr + refr.Ref()
 	}
 
 	var err error
@@ -90,9 +196,7 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 				opNode, _ := makeSeq()
 
 				for _, rule := range resRules {
-					// @todo RBACv2 this will most def. become a problem // is there a better way to link resources with rules?
 					opNode, err = addSeq(opNode, rule.res.Operation)
-					//opNode, err = addSeq(opNode, rule.res.Operation.String())
 
 					if err != nil {
 						return nil, err
@@ -100,7 +204,7 @@ func (rr rbacRuleSet) MarshalYAML() (interface{}, error) {
 				}
 
 				resNode, err = addMap(resNode,
-					strings.TrimRight(addRef(resRules[0], resRules[0].res.Resource), ":"), opNode,
+					resRules[0].res.Resource, opNode,
 				)
 				if err != nil {
 					return nil, err

@@ -16,10 +16,8 @@ import (
 func TestStamps(t *testing.T) {
 	var (
 		ctx = context.Background()
-		s   = initStore(ctx, t)
+		s   = initServices(ctx, t)
 		req = require.New(t)
-
-		err error
 
 		createdAtTs   = "2021-12-01T10:00:00Z"
 		updatedAtTs   = "2021-12-02T10:00:00Z"
@@ -143,9 +141,8 @@ func TestStamps(t *testing.T) {
 			return nil, nil
 		}
 	)
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
-	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	nn, err := decodeDirectory(ctx, "sys_stamps")
 	req.NoError(err)
