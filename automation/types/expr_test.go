@@ -122,6 +122,12 @@ func TestExprSet_Eval(t *testing.T) {
 					})),
 				},
 			},
+			{
+				name:   "vars with nested path",
+				set:    ExprSet{&Expr{Target: "t1.t11", typ: &String{}, Expr: `e1.e11`}},
+				input:  map[string]interface{}{"t1": map[string]interface{}{}, "e1": map[string]interface{}{"e11": Must(Typify("bar"))}},
+				output: map[string]interface{}{"t1": map[string]interface{}{"t11": Must(Typify("bar"))}},
+			},
 		}
 	)
 

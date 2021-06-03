@@ -3,10 +3,12 @@ package automation
 import (
 	"context"
 	"fmt"
+	"testing"
+
+	aTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSetRecordValuesWithPath(t *testing.T) {
@@ -21,29 +23,6 @@ func TestSetRecordValuesWithPath(t *testing.T) {
 		r.NoError(expr.Assign(rvs, "field1.1", expr.Must(expr.NewString("a"))))
 		r.True(rvs.value.Values.Has("field1", 0))
 		r.True(rvs.value.Values.Has("field1", 1))
-	})
-
-	t.Run("cast string map", func(t *testing.T) {
-
-		var (
-			r        = require.New(t)
-			rvs, err = CastToComposeRecordValues(map[string]string{"field2": "b"})
-		)
-
-		r.NoError(err)
-		r.True(rvs.Has("field2", 0))
-	})
-
-	t.Run("cast string slice map", func(t *testing.T) {
-
-		var (
-			r        = require.New(t)
-			rvs, err = CastToComposeRecordValues(map[string][]string{"field2": []string{"a", "b"}})
-		)
-
-		r.NoError(err)
-		r.True(rvs.Has("field2", 0))
-		r.True(rvs.Has("field2", 1))
 	})
 }
 
@@ -66,7 +45,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.ModuleField{Name: "ref2", Multi: false, Kind: "Record"},
 		}}
 
-		raw = &types.Record{Values: types.RecordValueSet{
+		rawValues = types.RecordValueSet{
 			&types.RecordValue{Name: "s1", Value: "sVal1"},
 			&types.RecordValue{Name: "m1", Value: "mVal1.0", Place: 0},
 			&types.RecordValue{Name: "m1", Value: "mVal1.1", Place: 1},
@@ -76,7 +55,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "n2", Value: "0", Place: 0},
 			&types.RecordValue{Name: "n3", Value: "2", Place: 0},
 			&types.RecordValue{Name: "ref2", Value: "", Ref: 2, Place: 0},
-		}}
+		}
+		raw = &types.Record{Values: rawValues}
 
 		scope, _ = expr.NewVars(map[string]interface{}{
 			"rec": &ComposeRecord{value: raw},
@@ -93,10 +73,13 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 
 			// "record" (not really) set to nil
 			"fooRec": nil,
+
+			// record with id and value set (this was) fixme
+			"record": &ComposeRecord{&types.Record{ID: 99, Values: rawValues}},
 		})
 	)
 
-	// @todo see not above re. back-ref to record
+	// @todo see note above regarding back-ref to record
 	raw.SetModule(mod)
 
 	t.Run("via typed value", func(t *testing.T) {
@@ -112,6 +95,7 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			{false, "rec.values.b0"},
 			{true, "rec.values.b1"},
 			{uint64(2), "rec.values.ref2"},
+			{raw, "rec.values"},
 		}
 
 		for _, tc := range tcc {
@@ -125,6 +109,46 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 				req.Equal(tc.expects, v.Get())
 			})
 		}
+	})
+
+	t.Run("copy record's values via gval selector", func(t *testing.T) {
+		var (
+			req      = require.New(t)
+			output   *expr.Vars
+			inputRec = &types.Record{ID: 99, Values: rawValues}
+			cloneRec = &types.Record{}
+		)
+
+		// IMPORTANT! set module to record; otherwise values will not be copied properly
+		inputRec.SetModule(mod)
+		cloneRec.SetModule(mod)
+
+		e, err := aTypes.NewExpr(
+			"recordClone.values",
+			ComposeRecordValues{}.Type(),
+			`record.values`)
+		req.NoError(err)
+
+		err = e.SetType(func(s string) (expr.Type, error) {
+			return ComposeRecordValues{}, nil
+		})
+		req.NoError(err)
+
+		evaluable, err := expr.NewParser().Parse(e.GetExpr())
+		req.NoError(err)
+		e.SetEval(evaluable)
+
+		input, _ := expr.NewVars(map[string]expr.TypedValue{
+			"record":      &ComposeRecord{inputRec},
+			"recordClone": &ComposeRecord{cloneRec},
+		})
+
+		output, err = (aTypes.ExprSet{e}).Eval(context.Background(), input)
+		req.NoError(err)
+		rc, err := output.Select("recordClone")
+		req.NoError(err)
+		req.NotNil(rc.Get())
+		req.Equal(rawValues, rc.Get().(*types.Record).Values)
 	})
 
 	t.Run("via gval selector", func(t *testing.T) {
@@ -201,11 +225,11 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			{false, `rec.values.n2 == 2`},
 			{true, `rec.values.n3 == 2`},
 
-			//{true, `rec.values.n1 < 3`}, // invalid op <nil> < 3
+			// {true, `rec.values.n1 < 3`}, // invalid op <nil> < 3
 			{true, `rec.values.n2 < 3`},
 			{true, `rec.values.n3 < 3`},
 
-			//{false, `rec.values.n1 > 1`}, // invalid op <nil> > 3
+			// {false, `rec.values.n1 > 1`}, // invalid op <nil> > 3
 			{false, `rec.values.n2 > 2`},
 			{false, `rec.values.n3 > 2`},
 
@@ -305,4 +329,150 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 		req.NoError(assignToComposeRecordValues(target, []string{"a"}, expr.Must(expr.NewAny([]string{"1", "2"}))))
 		req.Len(target.Values, 2)
 	})
+}
+
+func TestCastToComposeRecordValues(t *testing.T) {
+	var (
+		commonRVS = types.RecordValueSet{
+			&types.RecordValue{Name: "bools", Value: "1"},
+			&types.RecordValue{Name: "interfaces", Value: "val"},
+			&types.RecordValue{Name: "interfaces", Value: "val2", Place: 1},
+			&types.RecordValue{Name: "string", Value: "val"},
+			&types.RecordValue{Name: "strings", Value: "val"},
+			&types.RecordValue{Name: "strings", Value: "val2", Place: 1},
+			// false booleans will not be set and that is ok!
+			// &types.RecordValue{Name: "bools", Value: "false", Place: 1}
+		}
+
+		nilSlice      []int
+		nilUntypedMap map[string]interface{}
+		cases         = []struct {
+			name string
+			in   interface{}
+			out  types.RecordValueSet
+			err  error
+		}{
+			{
+				in: map[string]interface{}{
+					"string":        "val",
+					"interfaces":    []interface{}{"val", "val2"},
+					"strings":       []string{"val", "val2"},
+					"bools":         []bool{true, false},
+					"nilSlice":      nilSlice,
+					"nilUntypedMap": nilUntypedMap,
+				},
+				// warning! false booleans will not be set and that is ok!
+				out: commonRVS,
+			},
+			{
+				in: map[string][]string{
+					"strings": {"val", "val2"},
+				},
+				out: types.RecordValueSet{
+					&types.RecordValue{Name: "strings", Value: "val"},
+					&types.RecordValue{Name: "strings", Value: "val2", Place: 1},
+				},
+			},
+			{
+				in: map[string]string{
+					"string": "val",
+				},
+				out: types.RecordValueSet{
+					&types.RecordValue{Name: "string", Value: "val"},
+				},
+			},
+			{
+				in: &types.RecordValue{Name: "string", Value: "val"},
+				out: types.RecordValueSet{
+					&types.RecordValue{Name: "string", Value: "val"},
+				},
+			},
+			{
+				in:  commonRVS,
+				out: commonRVS,
+			},
+			{
+				in:  &types.Record{Values: commonRVS},
+				out: commonRVS,
+			},
+			{
+				in:  42,
+				err: fmt.Errorf("unable to cast type int to types.RecordValueSet"),
+			},
+		}
+	)
+
+	for _, c := range cases {
+		if c.name == "" && c.in != nil {
+			c.name = fmt.Sprintf("%T", c.in)
+		}
+
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+			)
+
+			if c.in == nil {
+				t.Skip()
+			}
+
+			if out, err := CastToComposeRecordValues(c.in); c.err != nil {
+				req.EqualError(err, c.err.Error())
+			} else {
+				req.EqualValues(c.out, out)
+			}
+		})
+	}
+}
+
+func TestIsNil(t *testing.T) {
+	var (
+		nilSlice        []int
+		nilUntypedSlice []interface{}
+		nilPtr          *int
+		nilStringMap    map[string]string
+		nilUntypedMap   map[string]interface{}
+
+		cases = []struct {
+			name     string
+			input    interface{}
+			expected bool
+		}{
+			{
+				"nilSlice",
+				nilSlice,
+				true,
+			},
+			{
+				"nilUntypedSlice",
+				nilUntypedSlice,
+				true,
+			},
+			{
+				"nilPtr",
+				nilPtr,
+				true,
+			},
+			{
+				"nilStringMap",
+				nilStringMap,
+				true,
+			},
+			{
+				"nilUntypedMap",
+				nilUntypedMap,
+				true,
+			},
+		}
+	)
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				req = require.New(t)
+			)
+
+			req.Equal(c.expected, isNil(c.input))
+		})
+	}
 }

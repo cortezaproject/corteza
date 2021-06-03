@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
@@ -135,7 +136,7 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 					return errors.NotFound("variable %q does not exist", e.Source)
 				}
 
-				value, _ = expr.Select(scope, e.Source)
+				value, err = expr.Select(scope, e.Source)
 				return
 			}
 
