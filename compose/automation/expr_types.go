@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/spf13/cast"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func CastToComposeNamespace(val interface{}) (out *types.Namespace, err error) {
@@ -99,7 +101,8 @@ func (t *ComposeRecord) AssignFieldValue(kk []string, val expr.TypedValue) error
 	switch kk[0] {
 	case "values":
 		return assignToComposeRecordValues(t.value, kk[1:], val)
-		// @todo deep setting labels
+	// case "labels":
+	// @todo deep setting labels
 	default:
 		return assignToComposeRecord(t.value, kk[0], val)
 	}
@@ -118,12 +121,11 @@ func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, err
 			t.value.Values = types.RecordValueSet{}
 		}
 
-		var ff types.ModuleFieldSet
-		if t.value.GetModule() != nil {
-			ff = t.value.GetModule().Fields
+		if t.value.Values.Len() == 0 {
+			return nil, nil
 		}
 
-		return t.value.Values.Dict(ff), nil
+		return &ComposeRecordValues{t.value}, nil
 	}
 
 	return composeRecordGValSelector(t.value, k)
@@ -148,6 +150,7 @@ type ComposeRecordValues struct{ value *types.Record }
 
 func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err error) {
 	out = types.RecordValueSet{}
+
 	switch val := val.(type) {
 	case expr.Iterator:
 		return out, val.Each(func(k string, v expr.TypedValue) error {
@@ -171,26 +174,59 @@ func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err e
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Record:
 		return val.Values, nil
+	case *types.RecordValue:
+		return types.RecordValueSet{val}, nil
 	case types.RecordValueSet:
 		return val, nil
 	case map[string]string:
-		out = types.RecordValueSet{}
-		for k, v := range val {
-			out = out.Set(&types.RecordValue{Name: k, Value: v})
+		for _, k := range slice.Keys(val) {
+			out = out.Set(&types.RecordValue{Name: k, Value: val[k]})
 		}
-
 		return
-
 	case map[string][]string:
-		out = types.RecordValueSet{}
-		for k, vv := range val {
-			for i, v := range vv {
+		for _, k := range slice.Keys(val) {
+			for i, v := range val[k] {
 				out = out.Set(&types.RecordValue{Name: k, Value: v, Place: uint(i)})
 			}
 		}
-
 		return
+	case map[string]interface{}:
+		for _, k := range slice.Keys(val) {
+			if isNil(val[k]) {
+				continue
+			}
 
+			var vv []interface{}
+			// covering a couple of typed slices
+			ref := reflect.ValueOf(val[k])
+
+			if ref.Kind() == reflect.Slice {
+				for i := 0; i < ref.Len(); i++ {
+					vv = append(vv, ref.Index(i).Interface())
+				}
+			} else {
+				vv = []interface{}{val[k]}
+			}
+
+			i := 0
+			for _, value := range vv {
+				switch v := value.(type) {
+				// a small exception for boolean fields, don't add false values and when its true cast to 1
+				case bool:
+					if !v {
+						continue
+					} else {
+						value = "1"
+					}
+				}
+
+				out = out.Set(&types.RecordValue{Name: k, Value: cast.ToString(value), Place: uint(i)})
+
+				// explicitly counting because of how booleans are handled
+				i++
+			}
+		}
+		return
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -205,7 +241,7 @@ func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue)
 // It allows gval lib to access Record's underlying value (*types.RecordValues)
 // and it's fields
 //
-func (t *ComposeRecordValues) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *ComposeRecordValues) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	return composeRecordValuesGValSelector(t.value, k)
 }
 
@@ -230,13 +266,13 @@ func composeRecordValuesGValSelector(res *types.Record, k string) (interface{}, 
 	)
 
 	if mod := res.GetModule(); mod != nil {
-		fld := mod.Fields.FindByName(k)
+		field = mod.Fields.FindByName(k)
 
-		if fld == nil {
+		if field == nil {
 			return nil, fmt.Errorf("field '%s' does not exist on module %s", k, mod.Name)
 		}
 
-		multiValueField = fld.Multi
+		multiValueField = field.Multi
 	}
 
 	switch {
@@ -265,8 +301,6 @@ func composeRecordValuesGValSelector(res *types.Record, k string) (interface{}, 
 }
 
 // recordValuesTypedValueSelector is field accessor for *types.RecordValueSet
-//
-// @todo return appropriate types (atm all values are returned as String)
 func composeRecordValuesTypedValueSelector(res *types.Record, k string) (expr.TypedValue, error) {
 	var (
 		vv = res.Values.FilterByName(k)
@@ -388,11 +422,6 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 
 // NewComposeRecordValues creates new instance of ComposeRecordValues expression type
 func NewComposeRecordValues(val interface{}) (*ComposeRecordValues, error) {
-	// Try to cast to ComposeRecord first
-	if rec, err := CastToComposeRecord(val); err == nil {
-		return &ComposeRecordValues{value: rec}, nil
-	}
-
 	if c, err := CastToComposeRecordValues(val); err != nil {
 		return nil, fmt.Errorf("unable to create ComposeRecordValues: %w", err)
 	} else {
@@ -436,26 +465,10 @@ func CastToComposeRecordValueErrorSet(val interface{}) (out *types.RecordValueEr
 }
 
 func recordValueToExprTypedValue(field *types.ModuleField, rv *types.RecordValue) (expr.TypedValue, error) {
-	switch {
-	case field == nil:
-		return expr.NewString(rv.Value)
-
-	case field.IsRef():
-		ref := rv.Ref
-		if ref == 0 && len(rv.Value) > 0 {
-			// Cover cases when we Ref is not set but Value is
-			// This happens when RVS is transferred as JSON
-			ref, _ = strconv.ParseUint(rv.Value, 10, 64)
-		}
-
-		return expr.NewID(ref)
-
-	default:
-		if v, err := rv.Cast(field); err != nil {
-			return nil, err
-		} else {
-			return expr.Typify(v)
-		}
+	if v, err := rv.Cast(field); err != nil {
+		return nil, err
+	} else {
+		return expr.Typify(v)
 	}
 }
 
@@ -476,4 +489,16 @@ func recordValueSetToExprArray(field *types.ModuleField, vv ...*types.RecordValu
 	}
 
 	return
+}
+
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map:
+		return reflect.ValueOf(i).IsNil()
+	}
+
+	return false
 }
