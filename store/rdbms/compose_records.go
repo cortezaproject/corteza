@@ -482,46 +482,30 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 			return false
 		}
 
-		identResolver = func(sortBy bool) func(i ql.Ident) (ql.Ident, error) {
-			return func(i ql.Ident) (ql.Ident, error) {
-				var is bool
-				if i.Value, _, is = isRealRecordCol(i.Value); is {
-					i.Value += " "
-					return i, nil
-				}
-
-				if !m.Fields.HasName(i.Value) {
-					return i, fmt.Errorf("unknown field %q", i.Value)
-				}
-
-				if !alreadyJoined(i.Value) {
-					join := composeRecordValueJoinTpl
-					join = strings.ReplaceAll(join, "{alias}", composeRecordValueAliasPfx+i.Value)
-					join = strings.ReplaceAll(join, "{field}", i.Value)
-					query = query.LeftJoin(join)
-
-					if sortBy {
-						var sortCol string
-						sortCol, _, _, err = s.config.CastModuleFieldToColumnType(m.Fields.FindByName(i.Value), i.Value)
-						if err != nil {
-							return i, err
-						}
-
-						query = query.Column(squirrel.Alias(squirrel.Expr(sortCol), composeRecordValueAliasPfx+i.Value))
-					}
-
-				}
-
-				return s.FieldToColumnTypeCaster(m.Fields.FindByName(i.Value), i)
+		identResolver = func(i ql.Ident) (ql.Ident, error) {
+			var is bool
+			if i.Value, _, is = isRealRecordCol(i.Value); is {
+				i.Value += " "
+				return i, nil
 			}
+
+			if !m.Fields.HasName(i.Value) {
+				return i, fmt.Errorf("unknown field %q", i.Value)
+			}
+
+			if !alreadyJoined(i.Value) {
+				join := composeRecordValueJoinTpl
+				join = strings.ReplaceAll(join, "{alias}", composeRecordValueAliasPfx+i.Value)
+				join = strings.ReplaceAll(join, "{field}", i.Value)
+				query = query.LeftJoin(join)
+			}
+
+			return s.FieldToColumnTypeCaster(m.Fields.FindByName(i.Value), i)
 		}
 	)
 
 	// Create query for fetching and counting records.
 	query = s.composeRecordsSelectBuilder().
-		Prefix("SELECT "+strings.Join(s.composeRecordColumns("sub"), ", ")+" FROM (").
-		Suffix(") AS sub").
-		Distinct().
 		Where("crd.module_id = ?", m.ID).
 		Where("crd.rel_namespace = ?", m.NamespaceID)
 
@@ -544,7 +528,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 
 		// Resolve all identifiers found in the query
 		// into their table/column counterparts
-		fp.OnIdent = identResolver(false)
+		fp.OnIdent = identResolver
 
 		if fn, err = fp.ParseExpression(f.Query); err != nil {
 			return
@@ -563,7 +547,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 
 		// Resolve all identifiers found in sort
 		// into their table/column counterparts
-		sp.OnIdent = identResolver(true)
+		sp.OnIdent = identResolver
 
 		if _, err = sp.ParseColumns(f.Sort.String()); err != nil {
 			return
@@ -578,7 +562,7 @@ func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter)
 
 		// Resolve all identifiers found in sort
 		// into their table/column counterparts
-		sp.OnIdent = identResolver(true)
+		sp.OnIdent = identResolver
 
 		if _, err = sp.ParseColumns(strings.Join(f.PageCursor.Keys(), ", ")); err != nil {
 			return
