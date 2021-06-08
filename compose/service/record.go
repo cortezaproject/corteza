@@ -625,7 +625,14 @@ func RecordValueMerger(ctx context.Context, ac recordValueAccessController, m *t
 
 	rve := &types.RecordValueErrorSet{}
 	_ = vv.Walk(func(v *types.RecordValue) error {
-		if v.IsUpdated() && !ac.CanUpdateRecordValue(ctx, m.Fields.FindByName(v.Name)) {
+		f := m.Fields.FindByName(v.Name)
+
+		// when f is nil, the module field was deleted so we shouldn't do any AC
+		if f == nil {
+			return nil
+		}
+
+		if v.IsUpdated() && !ac.CanUpdateRecordValue(ctx, f) {
 			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
 		}
 
