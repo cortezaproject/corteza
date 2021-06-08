@@ -343,6 +343,49 @@ func TestRecordUpdate(t *testing.T) {
 	h.a.NotNil(r)
 }
 
+func TestRecordUpdate_missingField(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "f1", Kind: "String"},
+		&types.ModuleField{Name: "f2", Kind: "String"},
+	)
+	record := h.makeRecord(module,
+		&types.RecordValue{Name: "f1", Value: "f1.v1"},
+		&types.RecordValue{Name: "f2", Value: "f2.v1"},
+	)
+	_ = record
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+
+	api := h.apiInit()
+
+	// delete f2
+	api.
+		Post(fmt.Sprintf("/namespace/%d/module/%d", module.NamespaceID, module.ID)).
+		JSON(fmt.Sprintf(`{"name": "%s", "handle": "%s", "fields": [{ "name": "f1", "kind": "String" }]}`, module.Name, module.Handle)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// update f1
+	api.
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1 (edited)"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r)
+	h.a.Len(r.Values, 1)
+	h.a.Equal("f1", r.Values[0].Name)
+	h.a.Equal("f1.v1 (edited)", r.Values[0].Value)
+}
+
 func TestRecordUpdate_refUnchanged(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
