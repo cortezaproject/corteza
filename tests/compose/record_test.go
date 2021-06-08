@@ -274,6 +274,46 @@ func TestRecordCreate(t *testing.T) {
 		End()
 }
 
+func TestRecordCreateForbiden_forbidenFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "f1", Kind: "String"},
+		&types.ModuleField{Name: "f2", Kind: "String"},
+	)
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}, {"name": "f2", "value": "f2.v1"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("1 issue(s) found")).
+		End()
+}
+
+func TestRecordCreate_forbidenFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "f1", Kind: "String"},
+		&types.ModuleField{Name: "f2", Kind: "String"},
+	)
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/", module.NamespaceID, module.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
 func TestRecordCreateWithErrors(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
@@ -384,6 +424,61 @@ func TestRecordUpdate_missingField(t *testing.T) {
 	h.a.Len(r.Values, 1)
 	h.a.Equal("f1", r.Values[0].Name)
 	h.a.Equal("f1.v1 (edited)", r.Values[0].Value)
+}
+
+func TestRecordUpdateForbiden_forbidenFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "f1", Kind: "String"},
+		&types.ModuleField{Name: "f2", Kind: "String"},
+	)
+	record := h.makeRecord(module,
+		&types.RecordValue{Name: "f1", Value: "f1.v1"},
+		&types.RecordValue{Name: "f2", Value: "f2.v1"},
+	)
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}, {"name": "f2", "value": "f2.v1 (edited)"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("1 issue(s) found")).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r)
+	h.a.Equal("f2.v1", r.Values.FilterByName("f2")[0].Value)
+}
+
+func TestRecordUpdate_forbidenFields(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	module := h.repoMakeRecordModuleWithFields("record testing module",
+		&types.ModuleField{Name: "f1", Kind: "String"},
+		&types.ModuleField{Name: "f2", Kind: "String"},
+	)
+	record := h.makeRecord(module,
+		&types.RecordValue{Name: "f1", Value: "f1.v1"},
+		&types.RecordValue{Name: "f2", Value: "f2.v1"},
+	)
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.deny(types.ModuleFieldRBACResource.AppendID(module.Fields[1].ID), "record.value.update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).
+		JSON(fmt.Sprintf(`{"values": [{"name": "f1", "value": "f1.v1"}, {"name": "f2", "value": "f2.v1"}]}`)).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+
+	r := h.lookupRecordByID(module, record.ID)
+	h.a.NotNil(r)
+	h.a.Equal("f2.v1", r.Values.FilterByName("f2")[0].Value)
 }
 
 func TestRecordUpdate_refUnchanged(t *testing.T) {
