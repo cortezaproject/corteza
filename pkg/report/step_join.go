@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -100,6 +101,29 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			localDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.localDim())
 			foreignDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.foreignDim())
 
+			// basic pre-run validation
+			// - definitions
+			if localDef == nil {
+				return nil, fmt.Errorf("definition for local datasource not found: %s", d.def.localDim())
+			}
+			if foreignDef == nil {
+				return nil, fmt.Errorf("definition for foreign datasource not found: %s", d.def.foreignDim())
+			}
+			if localDef.Paging == nil {
+				localDef.Paging = &filter.Paging{}
+			}
+			if foreignDef.Paging == nil {
+				foreignDef.Paging = &filter.Paging{}
+			}
+
+			// - key columns
+			if localDef.Columns.Find(d.def.localColumn()) < 0 {
+				return nil, fmt.Errorf("local frame definition must include the key column: %s", d.def.localColumn())
+			}
+			if foreignDef.Columns.Find(d.def.foreignColumn()) < 0 {
+				return nil, fmt.Errorf("foreign frame definition must include the key column: %s", d.def.foreignColumn())
+			}
+
 			// based on the passed sort, determine main/sub datasources
 			//
 			// if the local datasource is being initially sorted by the foreign
@@ -159,7 +183,9 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				// nothing special needed
 				mainLoader, mainCloser, err = d.base.Load(ctx, localDef)
 			}
-			defer mainCloser()
+			if mainCloser != nil {
+				defer mainCloser()
+			}
 			if err != nil {
 				return nil, err
 			}
@@ -207,17 +233,34 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				}
 			}
 			var k string
-			for _, mf := range mainFrames {
-				err = mf.WalkRows(func(i int, r FrameRow) error {
+			if useSubSort {
+				// since these frames are grouped by the ref value, we can use any one of the rows
+				// and we don't have to look at all of the rows
+
+				for _, mf := range mainFrames {
+					r := mf.FirstRow()
 					k, err = cast.ToStringE(r[mainKeyColIndex].Get())
 					if ok := keySet[k]; !ok {
 						keys = append(keys, k)
 						keySet[k] = true
 					}
-					return err
-				})
-				if err != nil {
-					return nil, err
+					if err != nil {
+						return nil, err
+					}
+				}
+			} else {
+				for _, mf := range mainFrames {
+					err = mf.WalkRows(func(i int, r FrameRow) error {
+						k, err = cast.ToStringE(r[mainKeyColIndex].Get())
+						if ok := keySet[k]; !ok {
+							keys = append(keys, k)
+							keySet[k] = true
+						}
+						return err
+					})
+					if err != nil {
+						return nil, err
+					}
 				}
 			}
 
@@ -229,15 +272,69 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				localDef.Rows = d.keySliceToFilter(d.def.localColumn(), keys).MergeAnd(localDef.Rows)
 
 				// - go!
-				// @todo closer
 				loader, closer, err := d.base.Load(ctx, localDef)
-				defer closer()
+				if closer != nil {
+					defer closer()
+				}
 				if err != nil {
 					return nil, err
 				}
 				subFrames, err = loader(0)
+
+				// -- slice keys based on mainFrames and their sort key matching
+				//
+				// Each key from mainFrames points to a bucket where all of the
+				// sort columns match.
+				// Later used for easier sorting.
+				// @todo join with above mainFrames traversal?
+				var (
+					prevSortBucketKey = ""
+					sortBucketKey     = ""
+					buckets           = make(map[string]int)
+					bucketIndex       = 0
+				)
+
+				sortKeyColIndexes := make([]int, 0, len(foreignDef.Sorting))
+				for _, s := range foreignDef.Sorting {
+					sortKeyColIndexes = append(sortKeyColIndexes, mainFrames[0].Columns.Find(s.Column))
+				}
+
+				for _, mf := range mainFrames {
+					// since these frames are grouped by the ref value, we can use any one of the rows
+					// and we don't have to look at all of the rows
+					r := mf.FirstRow()
+
+					// get key value
+					k = mf.RefKey
+
+					// get sort value
+					sortBucketKey, err = d.cellsToString(r, sortKeyColIndexes)
+					if err != nil {
+						return nil, err
+					}
+
+					// initial bucket
+					if prevSortBucketKey == "" {
+						buckets[k] = bucketIndex
+						prevSortBucketKey = sortBucketKey
+						continue
+					}
+
+					// falls into the same bucket
+					if prevSortBucketKey == sortBucketKey {
+						buckets[k] = bucketIndex
+						continue
+					}
+
+					// falls into another bucket
+					bucketIndex++
+					buckets[k] = bucketIndex
+					prevSortBucketKey = sortBucketKey
+				}
+
+				localColIndex := subFrames[0].Columns.Find(d.def.localColumn())
 				for i := range subFrames {
-					subFrames[i], err = d.sortFrameByKeys(subFrames[i], d.def.localColumn(), keys)
+					subFrames[i], err = d.bucketSort(subFrames[i], buckets, localColIndex, localDef.Sorting...)
 					if err != nil {
 						return nil, err
 					}
@@ -264,7 +361,9 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 
 				// - go!
 				loader, closer, err := prtDS.Partition(ctx, partitionSize, d.def.foreignColumn(), foreignDef)
-				defer closer()
+				if closer != nil {
+					defer closer()
+				}
 				if err != nil {
 					return nil, err
 				}
@@ -347,6 +446,7 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, col string) (out []*Fram
 			i = len(out)
 			outMap[k] = i
 			out = append(out, &Frame{
+				RefKey:  k,
 				Columns: ff[0].Columns,
 				Paging:  ff[0].Paging,
 				Sorting: ff[0].Sorting,
@@ -374,39 +474,71 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, col string) (out []*Fram
 }
 
 // @todo make in place
-func (d *joinedDataset) sortFrameByKeys(f *Frame, col string, keys []string) (*Frame, error) {
-	var err error
-	sortMap := make(map[string]int)
-	colIndex := f.Columns.Find(col)
-	if colIndex < 0 {
-		return nil, fmt.Errorf("unable to sort frame: column not found: %s", col)
+func (d *joinedDataset) bucketSort(f *Frame, buckets map[string]int, bucketColIndex int, ss ...*filter.SortExpr) (*Frame, error) {
+	// - prepare sort col indexes
+	sortColIndexes := make([]int, len(ss))
+	for i, s := range ss {
+		sortColIndexes[i] = f.Columns.Find(s.Column)
 	}
 
-	cellToString := func(t expr.TypedValue) (string, error) {
-		return cast.ToStringE(t.Get())
-	}
+	// - sort #1 based on key sub-slice order to place common rows together
+	//   ordered determined by corresponding bucket index
+	var ri FrameRow
+	var rj FrameRow
 
-	// index rows
-	var k string
-	err = f.WalkRows(func(i int, r FrameRow) error {
-		k, err = cellToString(r[colIndex])
-		sortMap[k] = i
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
+	var bi int
+	var bj int
 
-	// return frame rows in provided key order
-	out := make(FrameRowSet, 0, f.Size())
-	for _, k := range keys {
-		if i, ok := sortMap[k]; ok {
-			out = append(out, f.PeekRow(i))
+	var ci expr.Comparable
+	var ok bool
+	sort.SliceStable(f.Rows, func(i, j int) bool {
+		ri = f.Rows[i]
+		rj = f.Rows[j]
+		bi = buckets[cast.ToString(ri[bucketColIndex].Get())]
+		bj = buckets[cast.ToString(rj[bucketColIndex].Get())]
+
+		// if bi is before bj, the row bellongs to a complitely different bucket
+		// so we shouldn't do anything extra
+		if bi < bj {
+			return true
 		}
+
+		// go through the sort definitions and sort based on that
+		for si, s := range ss {
+			ci, ok = ri[sortColIndexes[si]].(expr.Comparable)
+			if !ok {
+				return true
+			}
+
+			r, err := ci.Compare(rj[sortColIndexes[si]])
+			if err != nil {
+				return false
+			}
+
+			if r != 0 {
+				if s.Descending {
+					return r > 0
+				}
+				return r < 0
+			}
+		}
+
+		return bi < bj
+	})
+	return f, nil
+}
+
+func (d *joinedDataset) cellsToString(row FrameRow, indexes []int) (out string, err error) {
+	var k string
+	for _, i := range indexes {
+		k, err = cast.ToStringE(row[i].Get())
+		if err != nil {
+			return
+		}
+		out += k
 	}
 
-	f.Rows = out
-	return f, nil
+	return
 }
 
 func (def *JoinStepDefinition) localDim() string {

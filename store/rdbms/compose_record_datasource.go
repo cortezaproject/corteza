@@ -188,9 +188,16 @@ func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, pa
 	prt := squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, partitionCol)).
 		FromSelect(q, "partition_base")
 
+	// @odo make it better, please...
+	ss, err := r.sortExpr(def)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	q = squirrel.Select("*").
 		FromSelect(prt, "partition_wrap").
-		Where(fmt.Sprintf("pp_rank <= %d", partitionSize))
+		Where(fmt.Sprintf("pp_rank <= %d", partitionSize)).
+		OrderBy(ss...)
 
 	return r.load(ctx, def, q)
 }
@@ -233,19 +240,9 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 		// additional sorting
 		if len(def.Sorting) > 0 {
-			ss := make([]string, len(def.Sorting))
-			for i, c := range def.Sorting {
-				ci := r.cols.Find(c.Column)
-				if ci == -1 {
-					return q, fmt.Errorf("sort column not resolved: %s", c.Column)
-				}
-
-				_, _, typeCast, err := r.store.config.CastModuleFieldToColumnType(r.cols[ci], c.Column)
-				if err != nil {
-					return q, err
-				}
-
-				ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
+			ss, err := r.sortExpr(def)
+			if err != nil {
+				return q, err
 			}
 
 			wrap = wrap.OrderBy(ss...)
@@ -255,6 +252,25 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 	}
 
 	return q, nil
+}
+
+func (r *recordDatasource) sortExpr(def *report.FrameDefinition) ([]string, error) {
+	ss := make([]string, len(def.Sorting))
+	for i, c := range def.Sorting {
+		ci := r.cols.Find(c.Column)
+		if ci == -1 {
+			return nil, fmt.Errorf("sort column not resolved: %s", c.Column)
+		}
+
+		_, _, typeCast, err := r.store.config.CastModuleFieldToColumnType(r.cols[ci], c.Column)
+		if err != nil {
+			return nil, err
+		}
+
+		ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
+	}
+
+	return ss, nil
 }
 
 func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
@@ -389,6 +405,14 @@ func (b *recordDatasource) Cast(row sqlx.ColScanner, out *report.Frame) error {
 			if err != nil {
 				return err
 			}
+
+		default:
+			c, err := c.Caster(cv)
+			if err != nil {
+				return err
+			}
+			r[i] = c
+
 		}
 
 	}
