@@ -1,0 +1,43 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "name": "unnamed_src",
+    "groups": [
+      {
+        "name": "unnamed_grp",
+        "steps": [
+          { "load": {
+            "name": "users",
+            "source": "composeRecords",
+            "definition": {
+              "module": "user",
+              "namespace": "ns"
+            }
+          }},
+
+          { "group": {
+            "name": "grouped",
+            "source": "users",
+            "groups": [
+              { "name": "by_name", "expr": "first_name", "kind": "String" }
+            ],
+            "columns": [
+              { "count": { "count": "*" } },
+              { "total": { "sum": "number_of_numbers" } }
+            ]
+          }}
+        ]
+      }
+    ]
+  }],
+  "frames": [{
+    "name":   "result",
+    "source": "grouped",
+    "columns": [
+      { "name": "by_name", "label": "by_name" },
+      { "name": "count", "label": "count" },
+      { "name": "total", "label": "total" }
+    ],
+    "sort": "by_name ASC"
+  }]
+}

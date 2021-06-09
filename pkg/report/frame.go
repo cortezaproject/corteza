@@ -3,7 +3,7 @@ package report
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -14,7 +14,8 @@ type (
 	Frame struct {
 		Name   string `json:"name"`
 		Source string `json:"source"`
-		Ref    string `json:"ref"`
+		Ref    string `json:"ref,omitempty"`
+		RefKey string `json:"refKey,omitempty"`
 
 		Columns FrameColumnSet `json:"columns"`
 		Rows    FrameRowSet    `json:"rows"`
@@ -139,56 +140,23 @@ func (b CellDefinition) OpToCmp() string {
 	}
 }
 
-func (f *Frame) Sort(ss ...filter.SortExpr) error {
-	// @todo allow sorting sliced frames?
-	if f.sliced {
-		return fmt.Errorf("unable to sort a sliced frame")
-	}
-
-	colIndex := make(map[string]int)
-	for _, s := range ss {
-		colIndex[s.Column] = f.Columns.Find(s.Column)
-	}
-
-	// we use SliceStable for cases where the database applies some initial sorting
-	sort.SliceStable(f.Rows, func(i, j int) bool {
-		for _, s := range ss {
-			c, ok := f.Rows[i][colIndex[s.Column]].(expr.Comparable)
-			if !ok {
-				return true
-			}
-
-			r, err := c.Compare(f.Rows[j][colIndex[s.Column]])
-			if err != nil {
-				return false
-			}
-
-			if r != 0 {
-				if s.Descending {
-					return r > 0
-				}
-				return r < 0
-			}
-		}
-		return false
-	})
-
-	return nil
-}
-
 // Slice in place
 func (f *Frame) Slice(startIndex, size int) (a, b *Frame) {
 	a = &Frame{
-		Name:    f.Name,
-		Source:  f.Source,
-		Ref:     f.Ref,
+		Name:   f.Name,
+		Source: f.Source,
+		Ref:    f.Ref,
+		RefKey: f.RefKey,
+
 		Columns: f.Columns,
 		Error:   f.Error,
 	}
 	b = &Frame{
-		Name:    f.Name,
-		Source:  f.Source,
-		Ref:     f.Ref,
+		Name:   f.Name,
+		Source: f.Source,
+		Ref:    f.Ref,
+		RefKey: f.RefKey,
+
 		Columns: f.Columns,
 		Error:   f.Error,
 	}
@@ -257,11 +225,16 @@ func (f *Frame) String() string {
 	if f == nil {
 		return "<NIL>"
 	}
-	out := fmt.Sprintf("%s; %s; %s\n", f.Name, f.Source, f.Ref)
+	out := fmt.Sprintf("n: %10s; src: %10s\n", f.Name, f.Source)
+
+	if f.Ref != "" {
+		out += fmt.Sprintf("ref: %10s; key: %10s\n", f.Ref, f.RefKey)
+	}
 
 	for _, c := range f.Columns {
 		out += fmt.Sprintf("%s<%s>, ", c.Name, c.Kind)
 	}
+	out = strings.TrimRight(out, " ,")
 	out += "\n"
 
 	f.WalkRows(func(i int, r FrameRow) error {
@@ -274,7 +247,7 @@ func (f *Frame) String() string {
 				out += fmt.Sprintf("%s, ", v)
 			}
 		}
-		out += "\n"
+		out = strings.TrimRight(out, ", ") + "\n"
 		return nil
 	})
 
@@ -302,6 +275,14 @@ func (cc FrameColumnSet) Find(name string) int {
 	}
 
 	return -1
+}
+
+func (cc FrameColumnSet) String() string {
+	out := ""
+	for _, c := range cc {
+		out += fmt.Sprintf("%s<%s>, ", c.Name, c.Kind)
+	}
+	return strings.TrimRight(out, " ,")
 }
 
 // Receivers to conform to rdbms field matcher
@@ -376,4 +357,20 @@ func (r FrameRow) MarshalJSON() (out []byte, err error) {
 	}
 
 	return json.Marshal(aux)
+}
+
+func (r FrameRow) String() string {
+	out := ""
+	var s string
+	var err error
+	for _, c := range r {
+		s, err = cast.ToStringE(c.Get())
+		if err != nil {
+			out = fmt.Sprintf("%s, [STRING CAST ERROR]%s", out, err.Error())
+		} else {
+			out = fmt.Sprintf("%s, %s", out, s)
+		}
+	}
+
+	return strings.Trim(out, ", ")
 }
