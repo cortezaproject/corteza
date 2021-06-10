@@ -16,6 +16,11 @@ func NewUserFromResource(res *resource.User, cfg *EncoderConfig) resourceState {
 }
 
 func (n *user) Prepare(ctx context.Context, pl *payload) (err error) {
+	if n.cfg.IgnoreStore {
+		n.res.Res.ID = 0
+		return nil
+	}
+
 	// Try to get the original user
 	n.u, err = findUserStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {

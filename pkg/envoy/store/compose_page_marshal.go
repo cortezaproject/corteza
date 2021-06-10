@@ -24,9 +24,14 @@ func newComposePageFromResource(res *resource.ComposePage, cfg *EncoderConfig) r
 
 func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related namespace
-	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
-	if err != nil {
-		return err
+	if !n.cfg.IgnoreStore {
+		n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
+		if err != nil {
+			return err
+		}
+	} else {
+		n.res.Res.ID = 0
+		n.relNS = resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
 	}
 	if n.relNS == nil {
 		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
@@ -35,9 +40,13 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related module
 	// If this isn't a record page, there is no related module
 	if n.res.RefMod != nil {
-		n.relMod, err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, n.res.RefMod.Identifiers)
-		if err != nil {
-			return err
+		if !n.cfg.IgnoreStore {
+			n.relMod, err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, n.res.RefMod.Identifiers)
+			if err != nil {
+				return err
+			}
+		} else {
+			n.relMod = resource.FindComposeModule(pl.state.ParentResources, n.res.RefMod.Identifiers)
 		}
 		if n.relMod == nil {
 			return resource.ComposeModuleErrUnresolved(n.res.RefMod.Identifiers)
@@ -46,9 +55,13 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 
 	// Get parent page
 	if n.res.RefParent != nil {
-		n.relParent, err = findComposePage(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, n.res.RefParent.Identifiers)
-		if err != nil {
-			return err
+		if !n.cfg.IgnoreStore {
+			n.relParent, err = findComposePage(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, n.res.RefParent.Identifiers)
+			if err != nil {
+				return err
+			}
+		} else {
+			n.relParent = resource.FindComposePage(pl.state.ParentResources, n.res.RefParent.Identifiers)
 		}
 		if n.relParent == nil {
 			return resource.ComposePageErrUnresolved(n.res.RefParent.Identifiers)
@@ -56,10 +69,15 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Get related workflows
+	var wf *atypes.Workflow
 	for _, wfr := range n.res.WfRefs {
-		wf, err := findAutomationWorkflow(ctx, pl.s, pl.state.ParentResources, wfr.Identifiers)
-		if err != nil {
-			return err
+		if !n.cfg.IgnoreStore {
+			wf, err = findAutomationWorkflow(ctx, pl.s, pl.state.ParentResources, wfr.Identifiers)
+			if err != nil {
+				return err
+			}
+		} else {
+			wf = resource.FindAutomationWorkflow(pl.state.ParentResources, wfr.Identifiers)
 		}
 		if wf == nil {
 			return resource.AutomationWorkflowErrUnresolved(wfr.Identifiers)
@@ -70,10 +88,15 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Get other related modules
+	var mod *types.Module
 	for _, mr := range n.res.ModRefs {
-		mod, err := findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, mr.Identifiers)
-		if err != nil {
-			return err
+		if !n.cfg.IgnoreStore {
+			mod, err = findComposeModule(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, mr.Identifiers)
+			if err != nil {
+				return err
+			}
+		} else {
+			mod = resource.FindComposeModule(pl.state.ParentResources, mr.Identifiers)
 		}
 		if mod == nil {
 			return resource.ComposeModuleErrUnresolved(mr.Identifiers)
@@ -84,10 +107,15 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Get related charts
+	var chr *types.Chart
 	for _, refChart := range n.res.RefCharts {
-		chr, err := findComposeChart(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, refChart.Identifiers)
-		if err != nil {
-			return err
+		if !n.cfg.IgnoreStore {
+			chr, err = findComposeChart(ctx, pl.s, n.relNS.ID, pl.state.ParentResources, refChart.Identifiers)
+			if err != nil {
+				return err
+			}
+		} else {
+			chr = resource.FindComposeChart(pl.state.ParentResources, refChart.Identifiers)
 		}
 		if chr == nil {
 			return resource.ComposeChartErrUnresolved(refChart.Identifiers)
@@ -95,6 +123,10 @@ func (n *composePage) Prepare(ctx context.Context, pl *payload) (err error) {
 		for id := range refChart.Identifiers {
 			n.relCharts[id] = chr
 		}
+	}
+
+	if n.cfg.IgnoreStore {
+		return nil
 	}
 
 	// Try to get the original page

@@ -21,6 +21,7 @@ type (
 		rbac.RuleFilter
 		// This will help us determine what rules for what resources we are able to export
 		resourceID map[uint64]bool
+		strict     bool
 	}
 
 	systemDecoder struct {
@@ -288,7 +289,11 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 			for _, n := range nn {
 				// If not wildcard or is a system rule; check if resource is allowed
 				if n.Resource.HasWildcard() || !n.Resource.IsAppendable() {
-					mm = append(mm, newRbacRule(n))
+					// strict mode prevents non-resource specific roles from being exported.
+					// mainly used for NS duplication
+					if !f.strict {
+						mm = append(mm, newRbacRule(n))
+					}
 				} else {
 					id, err := n.Resource.GetID()
 					if err != nil {
@@ -416,6 +421,19 @@ func (df *DecodeFilter) Rbac(f *rbac.RuleFilter) *DecodeFilter {
 	}
 
 	df.rbac = append(df.rbac, &rbacFilter{RuleFilter: *f})
+	return df
+}
+
+func (df *DecodeFilter) RbacStrict(f *rbac.RuleFilter) *DecodeFilter {
+	if df.rbac == nil {
+		df.rbac = make([]*rbacFilter, 0, 1)
+	} else {
+		// There can only be a single rbac filter
+		// since it makes no sense to have multiple of
+		return df
+	}
+
+	df.rbac = append(df.rbac, &rbacFilter{RuleFilter: *f, strict: true})
 	return df
 }
 
