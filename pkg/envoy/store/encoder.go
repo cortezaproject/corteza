@@ -40,6 +40,9 @@ type (
 		// If you return an error, the encoding will terminate.
 		// If you return nil (ignore the error), the encoding will continue.
 		DeferNok func(error) error
+
+		// IgnoreStore prevents encoders from accessing the store for initial resources
+		IgnoreStore bool
 	}
 
 	accessControlRBACServicer interface {

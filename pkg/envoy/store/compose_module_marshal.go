@@ -21,9 +21,14 @@ func NewComposeModuleFromResource(res *resource.ComposeModule, cfg *EncoderConfi
 
 func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related namespace
-	n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
-	if err != nil {
-		return err
+	if !n.cfg.IgnoreStore {
+		n.relNS, err = findComposeNamespace(ctx, pl.s, pl.state.ParentResources, n.res.RefNs.Identifiers)
+		if err != nil {
+			return err
+		}
+	} else {
+		n.res.Res.ID = 0
+		n.relNS = resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefNs.Identifiers)
 	}
 	if n.relNS == nil {
 		return resource.ComposeNamespaceErrUnresolved(n.res.RefNs.Identifiers)
@@ -34,7 +39,7 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 	// Get related record field modules
 	for _, refMod := range n.res.RefMods {
 		var mod *types.Module
-		if n.relNS.ID > 0 {
+		if !n.cfg.IgnoreStore && n.relNS.ID > 0 {
 			mod, err = findComposeModuleStore(ctx, pl.s, n.relNS.ID, makeGenericFilter(refMod.Identifiers))
 			if err != nil {
 				return err
@@ -53,7 +58,7 @@ func (n *composeModule) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Can't do anything else, since the NS doesn't yet exist
-	if n.relNS.ID <= 0 {
+	if n.cfg.IgnoreStore || n.relNS.ID <= 0 {
 		return nil
 	}
 

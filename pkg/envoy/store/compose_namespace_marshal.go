@@ -16,10 +16,14 @@ func newComposeNamespaceFromResource(res *resource.ComposeNamespace, cfg *Encode
 }
 
 func (n *composeNamespace) Prepare(ctx context.Context, pl *payload) (err error) {
-	// Try to get the original namespace
-	n.ns, err = findComposeNamespaceStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
-	if err != nil {
-		return err
+	if !n.cfg.IgnoreStore {
+		// Try to get the original namespace
+		n.ns, err = findComposeNamespaceStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
+		if err != nil {
+			return err
+		}
+	} else {
+		n.res.Res.ID = 0
 	}
 
 	if n.ns != nil {

@@ -141,6 +141,9 @@ func mergeConfig(ec *EncoderConfig, rs *resource.EnvoyConfig) *EncoderConfig {
 	rr := &EncoderConfig{
 		OnExisting: rs.OnExisting,
 		SkipIf:     rs.SkipIf,
+
+		// IgnoreStore is an encoder thing and should not be controlled from a resource
+		IgnoreStore: ec.IgnoreStore,
 	}
 
 	// Default to store config

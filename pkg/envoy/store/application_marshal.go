@@ -16,6 +16,11 @@ func NewApplicationFromResource(res *resource.Application, cfg *EncoderConfig) r
 }
 
 func (n *application) Prepare(ctx context.Context, pl *payload) (err error) {
+	if n.cfg.IgnoreStore {
+		n.res.Res.ID = 0
+		return nil
+	}
+
 	// Get the existing app
 	n.app, err = findApplicationStore(ctx, pl.s, makeGenericFilter(n.res.Identifiers()))
 	if err != nil {
