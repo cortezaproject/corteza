@@ -28,9 +28,10 @@ type (
 	}
 
 	NamespaceFilter struct {
-		Query string `json:"query"`
-		Slug  string `json:"slug"`
-		Name  string `json:"name"`
+		NamespaceID []uint64 `json:"namespaceID"`
+		Query       string   `json:"query"`
+		Slug        string   `json:"slug"`
+		Name        string   `json:"name"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
