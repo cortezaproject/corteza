@@ -60,7 +60,7 @@ system:auth-client:
 
 system:user:
   on: ['manual']
-  ba: ['create', 'update', 'delete']
+  ba: ['create', 'update', 'delete', 'suspend']
   props:
     - name: 'user'
       type: '*types.User'

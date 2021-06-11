@@ -594,11 +594,19 @@ func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 			return UserErrNotAllowedToSuspend()
 		}
 
+		// Clone u to oldUser
+		oldUser := *u
 		u.SuspendedAt = now()
+
+		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeSuspend(u, &oldUser)); err != nil {
+			return
+		}
+
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
 			return
 		}
 
+		_ = svc.eventbus.WaitFor(ctx, event.UserAfterSuspend(u, &oldUser))
 		return nil
 	}()
 

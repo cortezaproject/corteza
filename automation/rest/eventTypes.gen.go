@@ -2555,6 +2555,35 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 		{
 			ResourceType: "system:user",
+			EventType:    "beforeSuspend",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "user",
+					Type:      "User",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUser",
+					Type:      "User",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user",
 			EventType:    "afterCreate",
 			Properties: []eventTypePropertyDef{
 
@@ -2614,6 +2643,35 @@ func getEventTypeDefinitions() []eventTypeDef {
 		{
 			ResourceType: "system:user",
 			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "user",
+					Type:      "User",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUser",
+					Type:      "User",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "user.handle",
+				},
+
+				{
+					Name: "user.email",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user",
+			EventType:    "afterSuspend",
 			Properties: []eventTypePropertyDef{
 
 				{

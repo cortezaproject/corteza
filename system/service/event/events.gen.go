@@ -404,6 +404,13 @@ type (
 		*userBase
 	}
 
+	// userBeforeSuspend
+	//
+	// This type is auto-generated.
+	userBeforeSuspend struct {
+		*userBase
+	}
+
 	// userAfterCreate
 	//
 	// This type is auto-generated.
@@ -422,6 +429,13 @@ type (
 	//
 	// This type is auto-generated.
 	userAfterDelete struct {
+		*userBase
+	}
+
+	// userAfterSuspend
+	//
+	// This type is auto-generated.
+	userAfterSuspend struct {
 		*userBase
 	}
 )
@@ -3047,6 +3061,13 @@ func (userBeforeDelete) EventType() string {
 	return "beforeDelete"
 }
 
+// EventType on userBeforeSuspend returns "beforeSuspend"
+//
+// This function is auto-generated.
+func (userBeforeSuspend) EventType() string {
+	return "beforeSuspend"
+}
+
 // EventType on userAfterCreate returns "afterCreate"
 //
 // This function is auto-generated.
@@ -3066,6 +3087,13 @@ func (userAfterUpdate) EventType() string {
 // This function is auto-generated.
 func (userAfterDelete) EventType() string {
 	return "afterDelete"
+}
+
+// EventType on userAfterSuspend returns "afterSuspend"
+//
+// This function is auto-generated.
+func (userAfterSuspend) EventType() string {
+	return "afterSuspend"
 }
 
 // UserOnManual creates onManual for system:user resource
@@ -3204,6 +3232,40 @@ func UserBeforeDeleteImmutable(
 	}
 }
 
+// UserBeforeSuspend creates beforeSuspend for system:user resource
+//
+// This function is auto-generated.
+func UserBeforeSuspend(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userBeforeSuspend {
+	return &userBeforeSuspend{
+		userBase: &userBase{
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserBeforeSuspendImmutable creates beforeSuspend for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserBeforeSuspendImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userBeforeSuspend {
+	return &userBeforeSuspend{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
 // UserAfterCreate creates afterCreate for system:user resource
 //
 // This function is auto-generated.
@@ -3298,6 +3360,40 @@ func UserAfterDeleteImmutable(
 	argOldUser *types.User,
 ) *userAfterDelete {
 	return &userAfterDelete{
+		userBase: &userBase{
+			immutable: true,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserAfterSuspend creates afterSuspend for system:user resource
+//
+// This function is auto-generated.
+func UserAfterSuspend(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userAfterSuspend {
+	return &userAfterSuspend{
+		userBase: &userBase{
+			immutable: false,
+			user:      argUser,
+			oldUser:   argOldUser,
+		},
+	}
+}
+
+// UserAfterSuspendImmutable creates afterSuspend for system:user resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserAfterSuspendImmutable(
+	argUser *types.User,
+	argOldUser *types.User,
+) *userAfterSuspend {
+	return &userAfterSuspend{
 		userBase: &userBase{
 			immutable: true,
 			user:      argUser,
