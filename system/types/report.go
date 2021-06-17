@@ -48,11 +48,13 @@ type (
 	}
 
 	ReportProjection struct {
-		Name        string                 `json:"name"`
-		Key         string                 `json:"key"`
+		Title       string                 `json:"title"`
 		Description string                 `json:"description"`
+		Key         string                 `json:"key"`
 		Kind        string                 `json:"kind"`
-		Options     map[string]interface{} `json:"options"`
+		Options     map[string]interface{} `json:"options,omitempty"`
+		Elements    []interface{}          `json:"elements"`
+		XYWH        [4]int                 `json:"xywh"`
 	}
 	ReportProjectionSet []*ReportProjection
 
