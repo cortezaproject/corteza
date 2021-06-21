@@ -493,7 +493,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 		}
 	}
 
-	new.Values = RecordValueDefaults(m, new.Values)
+	new.Values = RecordValueDefaults(ctx, svc.ac, m, new.Values)
 
 	// Handle payload from automation scripts
 	if rve = svc.procCreate(ctx, svc.store, invokerID, m, new); !rve.IsValid() {
@@ -670,11 +670,17 @@ func RecordPreparer(ctx context.Context, s store.Storer, ss recordValuesSanitize
 	return nil
 }
 
-func RecordValueDefaults(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
+func RecordValueDefaults(ctx context.Context, ac recordValueAccessController, m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
 	out = vv
 
 	for _, f := range m.Fields {
+		// ignore fields without default values
 		if f.DefaultValue == nil {
+			continue
+		}
+
+		// ignore fields where we don't have permissions
+		if ac != nil && !ac.CanUpdateRecordValue(ctx, f) {
 			continue
 		}
 
@@ -1305,7 +1311,7 @@ func (svc record) Iterator(ctx context.Context, f types.RecordFilter, fn eventbu
 					recordableAction = RecordActionIteratorClone
 
 					// Assign defaults (only on missing values)
-					rec.Values = RecordValueDefaults(m, rec.Values)
+					rec.Values = RecordValueDefaults(ctx, svc.ac, m, rec.Values)
 
 					// Handle payload from automation scripts
 					if rve := svc.procCreate(ctx, svc.store, invokerID, m, rec); !rve.IsValid() {
