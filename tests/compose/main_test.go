@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
@@ -45,6 +46,16 @@ var (
 
 func init() {
 	helpers.RecursiveDotEnvLoad()
+}
+
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
 }
 
 func InitTestApp() {

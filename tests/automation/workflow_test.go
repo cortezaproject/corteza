@@ -304,6 +304,25 @@ func TestWorkflowDelete(t *testing.T) {
 	h.a.NotNil(res.DeletedAt)
 }
 
+func TestWorkflowUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.WorkflowRBACResource.AppendWildcard(), "undelete")
+
+	res := h.repoMakeWorkflow()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/workflows/%d/undelete", res.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupWorkflowByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.DeletedAt)
+}
+
 func TestWorkflowLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearWorkflows()

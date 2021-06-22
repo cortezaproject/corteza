@@ -62,6 +62,7 @@ type (
 
 func New() *CortezaApp {
 	app := &CortezaApp{lvl: bootLevelWaiting}
+	app.Opt = options.Init()
 	app.InitCLI()
 	return app
 }

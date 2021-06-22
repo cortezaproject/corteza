@@ -41,6 +41,12 @@ func (h helper) clearUsers() {
 	h.noError(store.TruncateUsers(context.Background(), service.DefaultStore))
 }
 
+func (h helper) lookupUserByEmail(email string) *types.User {
+	res, err := store.LookupUserByEmail(context.Background(), service.DefaultStore, email)
+	h.noError(err)
+	return res
+}
+
 func TestUserRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
@@ -357,6 +363,60 @@ func TestUserUpdate(t *testing.T) {
 		End()
 }
 
+func TestUserSetPassword(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	u := h.createUserWithEmail(h.randEmail())
+	h.allow(types.UserRBACResource.AppendWildcard(), "update")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/users/%d/password", u.ID)).
+		FormData("password", "newPassword").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestUserSuspend(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	u := h.createUserWithEmail(h.randEmail())
+	h.allow(types.UserRBACResource.AppendWildcard(), "suspend")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/users/%d/suspend", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u = h.lookupUserByEmail(u.Email)
+	h.a.NotNil(u)
+	h.a.NotNil(u.SuspendedAt)
+}
+
+func TestUserUnsuspend(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	u := h.createUserWithEmail(h.randEmail())
+	h.allow(types.UserRBACResource.AppendWildcard(), "unsuspend")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/users/%d/unsuspend", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u = h.lookupUserByEmail(u.Email)
+	h.a.NotNil(u)
+	h.a.Nil(u.SuspendedAt)
+}
+
 func TestUserDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
@@ -386,6 +446,26 @@ func TestUserDelete(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
+}
+
+func TestUserUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+
+	h.allow(types.UserRBACResource.AppendWildcard(), "delete")
+
+	u := h.createUserWithEmail(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/users/%d/undelete", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	u = h.lookupUserByEmail(u.Email)
+	h.a.NotNil(u)
+	h.a.Nil(u.DeletedAt)
 }
 
 func TestUserLabels(t *testing.T) {
@@ -467,4 +547,61 @@ func TestUserLabels(t *testing.T) {
 		req.NotNil(set.FindByID(ID))
 		req.NotNil(set.FindByID(ID).Labels)
 	})
+}
+
+func TestUserMemberList(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+	h.allow(types.RoleRBACResource, "read")
+
+	u := h.createUserWithEmail(h.randEmail())
+
+	r1 := h.repoMakeRole(h.randEmail())
+	r2 := h.repoMakeRole(h.randEmail())
+	h.createRoleMember(u.ID, r1.ID)
+	h.createRoleMember(u.ID, r2.ID)
+
+	h.apiInit().
+		Get(fmt.Sprintf("/users/%d/membership", u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response`, 2)).
+		End()
+}
+
+func TestUserMemberAdd(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+
+	u := h.createUserWithEmail(h.randEmail())
+
+	r := h.repoMakeRole(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/users/%d/membership/%d", u.ID, r.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestUserMemberRemove(t *testing.T) {
+	h := newHelper(t)
+	h.clearUsers()
+	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+
+	u := h.createUserWithEmail(h.randEmail())
+
+	r := h.repoMakeRole(h.randEmail())
+
+	h.apiInit().
+		Delete(fmt.Sprintf("/users/%d/membership/%d", u.ID, r.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
 }

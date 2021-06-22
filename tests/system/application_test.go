@@ -317,6 +317,25 @@ func TestApplicationDelete(t *testing.T) {
 	h.a.NotNil(res.DeletedAt)
 }
 
+func TestApplicationUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.ApplicationRBACResource.AppendWildcard(), "delete")
+
+	res := h.repoMakeApplication()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/application/%d/undelete", res.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupApplicationByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.DeletedAt)
+}
+
 func TestApplicationLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()

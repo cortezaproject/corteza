@@ -199,6 +199,26 @@ func TestTemplateDelete(t *testing.T) {
 	h.a.NotNil(res.DeletedAt)
 }
 
+func TestTemplateUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.clearTemplates()
+	h.allow(types.TemplateRBACResource.AppendWildcard(), "delete")
+
+	res := h.repoMakeTemplate()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/template/%d/undelete", res.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupTemplateByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.DeletedAt)
+}
+
 func TestTemplateRenderForbiden(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
