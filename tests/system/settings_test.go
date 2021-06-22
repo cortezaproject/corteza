@@ -127,3 +127,28 @@ func TestSettingsGet_noPermissions(t *testing.T) {
 		Assert(helpers.AssertError("not allowed to read settings")).
 		End()
 }
+
+func TestSettingsSet_noPermissions(t *testing.T) {
+	h := newHelper(t)
+	h.deny(types.SystemRBACResource, "settings.read")
+
+	h.apiInit().
+		Get("/settings/t_sys_k1.s1").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to read settings")).
+		End()
+}
+
+func TestSettingsCurrent(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.SystemRBACResource, "settings.read")
+
+	h.apiInit().
+		Get("/settings/current").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(jsonpath.Present(`$.response`)).
+		End()
+}

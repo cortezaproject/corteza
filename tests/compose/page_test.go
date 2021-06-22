@@ -201,6 +201,23 @@ func TestPageUpdate(t *testing.T) {
 	h.a.Equal("changed-name", res.Title)
 }
 
+func TestPageReorder(t *testing.T) {
+	h := newHelper(t)
+	h.clearPages()
+
+	h.allow(types.PageRBACResource.AppendWildcard(), "update")
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	ns := h.makeNamespace("some-namespace")
+	res := h.repoMakePage(ns, "some-page")
+
+	h.apiInit().
+		Post(fmt.Sprintf("/namespace/%d/page/%d/reorder", ns.ID, res.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
 func TestPageDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()

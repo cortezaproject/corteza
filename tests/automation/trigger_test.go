@@ -281,6 +281,26 @@ func TestTriggerDelete(t *testing.T) {
 	h.a.NotNil(res.DeletedAt)
 }
 
+func TestTriggerUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.WorkflowRBACResource.AppendWildcard(), "triggers.manage")
+
+	wf := h.repoMakeWorkflow()
+	res := h.repoMakeTrigger(wf)
+
+	h.apiInit().
+		Post(fmt.Sprintf("/triggers/%d/undelete", res.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupTriggerByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.DeletedAt)
+}
+
 func TestTriggerLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearTriggers()

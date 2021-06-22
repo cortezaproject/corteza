@@ -66,6 +66,17 @@ func (h helper) lookupRoleByID(ID uint64) *types.Role {
 	return res
 }
 
+func (h helper) createRoleMember(userID, roleID uint64) *types.RoleMember {
+	var r = &types.RoleMember{
+		RoleID: roleID,
+		UserID: userID,
+	}
+
+	h.a.NoError(store.CreateRoleMember(context.Background(), service.DefaultStore, r))
+
+	return r
+}
+
 func TestRoleRead(t *testing.T) {
 	h := newHelper(t)
 
@@ -239,6 +250,60 @@ func TestRoleDelete(t *testing.T) {
 	h.a.NotNil(res.DeletedAt)
 }
 
+func TestRoleUndelete(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+
+	res := h.repoMakeRole()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/undelete", res.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupRoleByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.DeletedAt)
+}
+
+func TestRoleArchive(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
+
+	res := h.repoMakeRole()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/archive", res.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupRoleByID(res.ID)
+	h.a.NotNil(res)
+	h.a.NotNil(res.ArchivedAt)
+}
+
+func TestRoleUnarchive(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+
+	res := h.repoMakeRole()
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/unarchive", res.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	res = h.lookupRoleByID(res.ID)
+	h.a.NotNil(res)
+	h.a.Nil(res.ArchivedAt)
+}
+
 func TestRoleLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoles()
@@ -318,4 +383,51 @@ func TestRoleLabels(t *testing.T) {
 		req.NotNil(set.FindByID(ID))
 		req.NotNil(set.FindByID(ID).Labels)
 	})
+}
+
+func TestMemberList(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource, "read")
+
+	r := h.repoMakeRole(h.randEmail())
+	h.createRoleMember(id.Next(), r.ID)
+	h.createRoleMember(id.Next(), r.ID)
+
+	h.apiInit().
+		Get(fmt.Sprintf("/roles/%d/members", r.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		Assert(jsonpath.Len(`$.response`, 2)).
+		End()
+}
+
+func TestMemberAdd(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+
+	r := h.repoMakeRole(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+func TestMemberRemove(t *testing.T) {
+	h := newHelper(t)
+	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+
+	r := h.repoMakeRole(h.randEmail())
+	u := h.createUserWithEmail(h.randEmail())
+
+	h.apiInit().
+		Post(fmt.Sprintf("/roles/%d/member/%d", r.ID, u.ID)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
 }
