@@ -31,12 +31,17 @@ github.com/SentimensRG/ctx/sigctx
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit
 github.com/asaskevich/govalidator
+# github.com/aymerick/douceur v0.2.0
+github.com/aymerick/douceur/css
+github.com/aymerick/douceur/parser
 # github.com/beevik/etree v1.1.0
 github.com/beevik/etree
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
+# github.com/chris-ramon/douceur v0.2.0
+## explicit
 # github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da
 github.com/crewjam/httperr
 # github.com/crewjam/saml v0.4.5
@@ -121,6 +126,8 @@ github.com/gorhill/cronexpr
 # github.com/gorilla/csrf v1.7.0
 ## explicit
 github.com/gorilla/csrf
+# github.com/gorilla/css v1.0.0
+github.com/gorilla/css/scanner
 # github.com/gorilla/mux v1.7.1
 ## explicit
 github.com/gorilla/mux
@@ -184,6 +191,9 @@ github.com/mattermost/xml-roundtrip-validator
 github.com/mattn/go-sqlite3
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/microcosm-cc/bluemonday v1.0.10
+## explicit
+github.com/microcosm-cc/bluemonday
 # github.com/minio/minio-go/v6 v6.0.39
 ## explicit
 github.com/minio/minio-go/v6
@@ -297,9 +307,11 @@ golang.org/x/image/bmp
 golang.org/x/image/ccitt
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-# golang.org/x/net v0.0.0-20200930145003-4acb6c075d10
+# golang.org/x/net v0.0.0-20210610132358-84b48f89b13b
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
+golang.org/x/net/html
+golang.org/x/net/html/atom
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
@@ -313,13 +325,12 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20200918174421-af09f7315aff
-## explicit
+# golang.org/x/sys v0.0.0-20210423082822-04245dca01da
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.3
+# golang.org/x/text v0.3.6
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
