@@ -129,6 +129,7 @@ func (ctrl Attachment) serve(ctx context.Context, attachmentID uint64, preview, 
 			w.Header().Add("Content-Disposition", "attachment; filename="+name)
 		} else {
 			w.Header().Add("Content-Disposition", "inline; filename="+name)
+			w.Header().Add("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
 		}
 
 		http.ServeContent(w, req, name, att.CreatedAt, fh)

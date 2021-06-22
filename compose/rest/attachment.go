@@ -3,10 +3,11 @@ package rest
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/api"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/cortezaproject/corteza-server/pkg/api"
 
 	"github.com/cortezaproject/corteza-server/compose/rest/request"
 	"github.com/cortezaproject/corteza-server/compose/service"
@@ -142,6 +143,7 @@ func (ctrl Attachment) serve(ctx context.Context, namespaceID, attachmentID uint
 			w.Header().Add("Content-Disposition", "attachment; filename="+name)
 		} else {
 			w.Header().Add("Content-Disposition", "inline; filename="+name)
+			w.Header().Add("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
 		}
 
 		http.ServeContent(w, req, name, att.CreatedAt, fh)
