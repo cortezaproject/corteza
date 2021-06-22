@@ -13,6 +13,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/chris-ramon/douceur v0.2.0 // indirect
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1 // indirect
@@ -48,6 +49,7 @@ require (
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
 	github.com/mattn/go-sqlite3 v1.14.0
+	github.com/microcosm-cc/bluemonday v1.0.14
 	github.com/minio/minio-go/v6 v6.0.39
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6
@@ -69,7 +71,7 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
-	golang.org/x/sys v0.0.0-20200918174421-af09f7315aff // indirect
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
