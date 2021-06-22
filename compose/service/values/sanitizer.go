@@ -2,12 +2,14 @@ package values
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
@@ -117,7 +119,7 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		}
 
 		// Per field type validators
-		switch strings.ToLower(f.Kind) {
+		switch kind {
 		case "bool":
 			v.Value = sBool(v.Value)
 
@@ -126,6 +128,9 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 
 		case "number":
 			v.Value = sNumber(v.Value, f.Options.Precision())
+
+		case "string":
+			v.Value = sString(v.Value)
 
 			// Uncomment when they become relevant for sanitization
 			//case "email":
@@ -136,8 +141,6 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 			//	v = s.sRecord(v, f, m)
 			//case "select":
 			//	v = s.sSelect(v, f, m)
-			//case "string":
-			//	v = s.sString(v, f, m)
 			//case "url":
 			//	v = s.sUrl(v, f, m)
 			//case "user":
@@ -146,6 +149,29 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 	}
 
 	return
+}
+
+func (s sanitizer) RunXSS(m *types.Module, vv types.RecordValueSet) types.RecordValueSet {
+	var (
+		f *types.ModuleField
+	)
+
+	for _, v := range vv {
+		f = m.Fields.FindByName(v.Name)
+		if f == nil {
+			// Unknown field,
+			// if it is not handled before,
+			// sanitizer does not care about it
+			continue
+		}
+
+		switch strings.ToLower(f.Kind) {
+		case "string":
+			v.Value = sString(v.Value)
+		}
+	}
+
+	return vv
 }
 
 func sBool(v interface{}) string {
@@ -256,6 +282,19 @@ func sNumber(num interface{}, p uint) string {
 	}
 
 	return str
+}
+
+// sString is used mostly to strip insecure html data
+// from strings
+func sString(str string) string {
+	// use standard html escaping policy
+	p := bluemonday.UGCPolicy()
+
+	// match only colors for html editor elements on style attr
+	p.AllowAttrs("style").OnElements("span", "p")
+	p.AllowStyles("color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
+
+	return p.Sanitize(str)
 }
 
 // sanitize casts value to field kind format

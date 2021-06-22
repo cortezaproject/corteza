@@ -2,10 +2,11 @@ package values
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 )
@@ -159,6 +160,160 @@ func Test_sanitizer_Run(t *testing.T) {
 			options: map[string]interface{}{"precision": 2},
 			input:   "42.040",
 			output:  "42.04",
+		},
+		{
+			name:    "string escaping; html",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   "<span onerror=alert()>Title here</span>",
+			output:  "<span>Title here</span>",
+		},
+		{
+			name:    "string escaping; html a.href with javascript alert",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<a href="javascript:alert('XSS1')" onmouseover="alert('XSS2')">XSS<a>`,
+			output:  "XSS",
+		},
+		{
+			name:    "string escaping; a.href with javascript",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<a href="javascript:document.location='https://cortezaproject.org/'">XSS</A>`,
+			output:  "XSS",
+		},
+		{
+			name:    "string escaping; script with script",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<script>document.write("<scri");</script>pt src="https://cortezaproject.org/script.js"></script>`,
+			output:  "pt src=&#34;https://cortezaproject.org/script.js&#34;&gt;",
+		},
+		{
+			name:    "string escaping; script with a",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<script a=">'>" src="https://cortezaproject.org/xss.js"></script>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; meta with script",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<meta http-equiv="set-cookie" content="<script>alert('xss')</script>">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; object",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<object type="text/x-scriptlet" data="https://cortezaproject.org/xss.html"></object>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; base href",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<base href="javascript:alert('xss');//">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; script",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<!--[if gte ie 4]><script>alert('xss');</script><![endif]-->`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; div",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<div style="background-image: url(javascript:alert('XSS'))"></div>`,
+			output:  "<div></div>",
+		},
+		{
+			name:    "string escaping; frameset",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<frameset><frame src="javascript:alert('XSS');"></frameset>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; iframe",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<iframe src=# onmouseover="alert(document.cookie)"></iframe>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; meta",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<meta http-equiv="refresh" content="0; url=https://;url=javascript:alert('xss');">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; br",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<br size="&{alert('XSS')}">`,
+			output:  "<br>",
+		},
+		{
+			name:    "string escaping; bgsound",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<bgsound src="javascript:alert('XSS');">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; input type image",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<input type="image" src="javascript:alert('XSS');">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; style",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<style>@import 'https://cortezaproject.org/xss.css';</style>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; link",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<link rel="stylesheet" href="javascript:alert('xss');">`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; html body onload event",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<body onload=alert('XSS')>`,
+			output:  "",
+		},
+		{
+			name:    "string escaping; xss element",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `'';!--"<XSS>=&{()}`,
+			output:  "&#39;&#39;;!--&#34;=&amp;{()}",
+		},
+		{
+			name:    "string escaping; xss element",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `Hello <span class="><script src='https://cortezaproject.org/XSS.js'></script>">there</span> world.`,
+			output:  "Hello <span>there</span> world.",
+		},
+		{
+			name:    "string escaping; xss element",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<tag1>cor<tag2></tag2>teza</tag1><tag1>server</tag1><tag2>123</tag2>`,
+			output:  "cortezaserver123",
 		},
 	}
 	for _, tt := range tests {
