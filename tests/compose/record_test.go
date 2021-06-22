@@ -314,6 +314,66 @@ func TestRecordCreate_forbidenFields(t *testing.T) {
 		End()
 }
 
+func TestRecordCreate_xss(t *testing.T) {
+	h := newHelper(t)
+	h.clearRecords()
+
+	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "read")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.create")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.update")
+	h.allow(types.ModuleRBACResource.AppendWildcard(), "record.read")
+
+	var (
+		ns  = h.makeNamespace("some-namespace")
+		mod = h.makeModule(ns, "some-module",
+			&types.ModuleField{
+				Kind: "String",
+				Name: "dummy",
+			},
+			&types.ModuleField{
+				Kind: "String",
+				Name: "dummyRichTextBox",
+				Options: map[string]interface{}{
+					"useRichTextEditor": true,
+				},
+			},
+		)
+	)
+
+	t.Run("create with rich text fields", func(t *testing.T) {
+		var (
+			req = require.New(t)
+
+			payload = struct {
+				Response *types.Record
+			}{}
+
+			rec = &types.Record{
+				Values: types.RecordValueSet{
+					&types.RecordValue{Name: "dummyRichTextBox", Value: "<img src=x onerror=alert(11111)>test"},
+					&types.RecordValue{Name: "dummy", Value: "simple-text"},
+				},
+			}
+		)
+
+		h.apiInit().
+			Post(fmt.Sprintf("/namespace/%d/module/%d/record/", ns.ID, mod.ID)).
+			JSON(helpers.JSON(rec)).
+			Expect(t).
+			Status(http.StatusOK).
+			Assert(jsonpath.Present(`$.response.values[? @.name=="dummyRichTextBox"]`)).
+			Assert(jsonpath.Present(`$.response.values[? @.name=="dummy"]`)).
+			Assert(jsonpath.Present(`$.response.values[? @.value=="simple-text"]`)).
+			Assert(jsonpath.Present(`$.response.values[? @.value=="<img src=\"x\">test"]`)).
+			End().
+			JSON(&payload)
+
+		req.NotNil(payload.Response)
+		req.NotZero(payload.Response.ID)
+	})
+}
+
 func TestRecordCreateWithErrors(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()

@@ -50,6 +50,7 @@ type (
 
 	recordValuesSanitizer interface {
 		Run(*types.Module, types.RecordValueSet) types.RecordValueSet
+		RunXSS(*types.Module, types.RecordValueSet) types.RecordValueSet
 	}
 
 	recordValuesValidator interface {
@@ -233,6 +234,7 @@ func (svc record) lookup(ctx context.Context, namespaceID, moduleID uint64, look
 		}
 
 		r.SetModule(m)
+		r.Values = svc.sanitizer.RunXSS(m, r.Values)
 
 		return nil
 	}()
@@ -312,6 +314,7 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 
 		_ = set.Walk(func(r *types.Record) error {
 			r.SetModule(m)
+			r.Values = svc.sanitizer.RunXSS(m, r.Values)
 			return nil
 		})
 
