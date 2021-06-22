@@ -45,6 +45,11 @@ type (
 	// This type is auto-generated.
 	CredentialsSet []*Credentials
 
+	// FunctionSet slice of Function
+	//
+	// This type is auto-generated.
+	FunctionSet []*Function
+
 	// ReminderSet slice of Reminder
 	//
 	// This type is auto-generated.
@@ -59,6 +64,11 @@ type (
 	//
 	// This type is auto-generated.
 	RoleMemberSet []*RoleMember
+
+	// RouteSet slice of Route
+	//
+	// This type is auto-generated.
+	RouteSet []*Route
 
 	// SettingValueSet slice of SettingValue
 	//
@@ -416,6 +426,62 @@ func (set CredentialsSet) IDs() (IDs []uint64) {
 	return
 }
 
+// Walk iterates through every slice item and calls w(Function) err
+//
+// This function is auto-generated.
+func (set FunctionSet) Walk(w func(*Function) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Function) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set FunctionSet) Filter(f func(*Function) (bool, error)) (out FunctionSet, err error) {
+	var ok bool
+	out = FunctionSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set FunctionSet) FindByID(ID uint64) *Function {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set FunctionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
 // Walk iterates through every slice item and calls w(Reminder) err
 //
 // This function is auto-generated.
@@ -553,6 +619,62 @@ func (set RoleMemberSet) Filter(f func(*RoleMember) (bool, error)) (out RoleMemb
 		} else if ok {
 			out = append(out, set[i])
 		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(Route) err
+//
+// This function is auto-generated.
+func (set RouteSet) Walk(w func(*Route) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(Route) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set RouteSet) Filter(f func(*Route) (bool, error)) (out RouteSet, err error) {
+	var ok bool
+	out = RouteSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set RouteSet) FindByID(ID uint64) *Route {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set RouteSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
 	}
 
 	return
