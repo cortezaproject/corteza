@@ -55,6 +55,7 @@ type (
 		Options     map[string]interface{} `json:"options,omitempty"`
 		Elements    []interface{}          `json:"elements"`
 		XYWH        [4]int                 `json:"xywh"`
+		Layout      string                 `json:"layout"`
 	}
 	ReportProjectionSet []*ReportProjection
 
