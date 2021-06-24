@@ -87,6 +87,10 @@ func (svc reminder) FindByID(ctx context.Context, ID uint64) (r *types.Reminder,
 			return err
 		}
 
+		if svc.checkAssignTo(ctx, r) {
+			return ReminderErrNotAllowedToRead()
+		}
+
 		raProps.setReminder(r)
 
 		return nil
@@ -100,20 +104,25 @@ func (svc reminder) FindByIDs(ctx context.Context, IDs ...uint64) (rr types.Remi
 		return nil, nil
 	}
 
-	rr, _, err = svc.Find(ctx, types.ReminderFilter{ReminderID: IDs})
+	rr, _, err = svc.Find(ctx, types.ReminderFilter{ReminderID: IDs, AssignedTo: svc.currentUser(ctx)})
 
 	return rr, nil
 }
 
 func (svc reminder) checkAssignee(ctx context.Context, rm *types.Reminder) (err error) {
 	// Check if user is assigning to someone else
-	if rm.AssignedTo != svc.currentUser(ctx) {
+	if svc.checkAssignTo(ctx, rm) {
 		if !svc.ac.CanAssignReminder(ctx) {
 			return ReminderErrNotAllowedToAssign()
 		}
 	}
 
 	return nil
+}
+
+// checkAssignTo compares current user with reminder.AssignedTo and return bool
+func (svc reminder) checkAssignTo(ctx context.Context, rm *types.Reminder) (valid bool) {
+	return rm.AssignedTo != svc.currentUser(ctx)
 }
 
 func (svc reminder) currentUser(ctx context.Context) uint64 {
@@ -199,6 +208,10 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 
 		if r, err = store.LookupReminderByID(ctx, svc.store, ID); err != nil {
 			return ReminderErrNotFound()
+		}
+
+		if svc.checkAssignTo(ctx, r) {
+			return ReminderErrNotAllowedToDismiss()
 		}
 
 		raProps.setReminder(r)

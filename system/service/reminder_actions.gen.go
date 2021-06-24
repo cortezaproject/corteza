@@ -550,6 +550,66 @@ func ReminderErrNotAllowedToAssign(mm ...*reminderActionProps) *errors.Error {
 	return e
 }
 
+// ReminderErrNotAllowedToDismiss returns "system:reminder.notAllowedToDismiss" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrNotAllowedToDismiss(mm ...*reminderActionProps) *errors.Error {
+	var p = &reminderActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to dismiss reminders of other users", nil),
+
+		errors.Meta("type", "notAllowedToDismiss"),
+		errors.Meta("resource", "system:reminder"),
+
+		errors.Meta(reminderPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ReminderErrNotAllowedToRead returns "system:reminder.notAllowedToRead" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
+	var p = &reminderActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read reminders of other users", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "system:reminder"),
+
+		errors.Meta(reminderPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 
