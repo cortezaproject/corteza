@@ -21,7 +21,11 @@ func (h helper) clearReminders() {
 }
 
 func (h helper) makeReminder() *types.Reminder {
-	rm := &types.Reminder{Resource: "test:resource", AssignedTo: h.cUser.ID}
+	return h.makeReminderByUserID(h.cUser.ID)
+}
+
+func (h helper) makeReminderByUserID(userID uint64) *types.Reminder {
+	rm := &types.Reminder{Resource: "test:resource", AssignedTo: userID}
 	rm.ID = id.Next()
 	rm.CreatedAt = time.Now()
 	h.noError(store.CreateReminder(context.Background(), service.DefaultStore, rm))
@@ -176,6 +180,22 @@ func TestReminderDismiss(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
+		End()
+}
+
+// TestReminderDismissForbidden checks only user themself can dismiss reminder assigned to them
+func TestReminderDismissForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/reminder/%d/dismiss", rm.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to dismiss reminders of other users")).
 		End()
 }
 

@@ -61,3 +61,9 @@ errors:
 
   - error: notAllowedToAssign
     message: "not allowed to assign reminders to other users"
+
+  - error: notAllowedToDismiss
+    message: "not allowed to dismiss reminders of other users"
+
+  - error: notAllowedToRead
+    message: "not allowed to check reminders of other users"
