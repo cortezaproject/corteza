@@ -1,0 +1,28 @@
+name: checks
+
+on: [pull_request]
+
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+      - uses: actions/cache@v2
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - run: make test.coverprofile.all
+        env:
+          GOFLAGS: -mod=readonly
+      - uses: codecov/codecov-action@v1
+        with:
+          token: 628a7104-4ec8-46ef-a3a8-50b0c2507082
+          files: .cover.out
+          fail_ci_if_error: true

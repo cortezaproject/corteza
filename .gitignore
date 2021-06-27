@@ -13,3 +13,5 @@ profile.coverprofile
 /gin-bin
 /.vscode
 /federation/etc/.env*
+/.act*
+/workflow
