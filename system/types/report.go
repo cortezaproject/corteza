@@ -48,14 +48,15 @@ type (
 	}
 
 	ReportProjection struct {
-		Title       string                 `json:"title"`
-		Description string                 `json:"description"`
-		Key         string                 `json:"key"`
-		Kind        string                 `json:"kind"`
-		Options     map[string]interface{} `json:"options,omitempty"`
-		Elements    []interface{}          `json:"elements"`
-		XYWH        [4]int                 `json:"xywh"`
-		Layout      string                 `json:"layout"`
+		Title       string                   `json:"title"`
+		Description string                   `json:"description"`
+		Key         string                   `json:"key"`
+		Kind        string                   `json:"kind"`
+		Options     map[string]interface{}   `json:"options,omitempty"`
+		Elements    []interface{}            `json:"elements"`
+		Sources     report.StepDefinitionSet `json:"sources"`
+		XYWH        [4]int                   `json:"xywh"`
+		Layout      string                   `json:"layout"`
 	}
 	ReportProjectionSet []*ReportProjection
 

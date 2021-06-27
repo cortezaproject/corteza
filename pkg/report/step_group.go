@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 type (
@@ -19,8 +18,8 @@ type (
 	}
 
 	GroupDefinition struct {
-		Groups  []*GroupKey    `json:"groups"`
-		Columns []GroupColumn  `json:"columns"`
+		Groups  []*GroupColumn `json:"groups"`
+		Columns []*GroupColumn `json:"columns"`
 		Rows    *RowDefinition `json:"rows,omitempty"`
 	}
 
@@ -30,22 +29,17 @@ type (
 		GroupDefinition
 	}
 
-	GroupKey struct {
+	GroupColumn struct {
 		// Name defines the alias for the new column
 		Name string `json:"name"`
 		// Expr defines the expression to transform the column
 		Expr string `json:"expr"`
+		// Aggregate defines the aggregation function to apply
+		Aggregate string `json:"aggregate"`
 
 		// @todo imply from context
 		Kind string `json:"kind"`
 	}
-
-	// Group columns define what columns we wish to produce and what operations
-	// we should perform over them.
-	//
-	// alias: operation: args; for example -- { "total": { "sum": "cost" } }
-	GroupColumn     map[string]AggregateColumn
-	AggregateColumn map[string]string
 )
 
 var (
@@ -104,13 +98,6 @@ func (d *stepGroup) Source() []string {
 
 func (d *stepGroup) Def() *StepDefinition {
 	return &StepDefinition{Group: d.def}
-}
-
-func (c AggregateColumn) GetOp() string {
-	for k := range c {
-		return strings.ToLower(k)
-	}
-	return ""
 }
 
 // // // //

@@ -25,10 +25,12 @@ type (
 	}
 
 	JoinStepDefinition struct {
-		Name    string         `json:"name"`
-		Local   string         `json:"local"`
-		Foreign string         `json:"foreign"`
-		Rows    *RowDefinition `json:"rows,omitempty"`
+		Name          string         `json:"name"`
+		LocalSource   string         `json:"localSource"`
+		LocalColumn   string         `json:"localColumn"`
+		ForeignSource string         `json:"foreignSource"`
+		ForeignColumn string         `json:"foreignColumn"`
+		Rows          *RowDefinition `json:"rows,omitempty"`
 	}
 )
 
@@ -42,7 +44,7 @@ func (j *stepJoin) Run(ctx context.Context, dd ...Datasource) (Datasource, error
 	}
 
 	if len(dd) < 2 {
-		return nil, fmt.Errorf("foreign join datasources not defined: %s", j.def.localDim())
+		return nil, fmt.Errorf("foreign join datasources not defined: %s", j.def.LocalSource)
 	}
 
 	// @todo multiple joins
@@ -59,13 +61,13 @@ func (j *stepJoin) Validate() error {
 	case j.def.Name == "":
 		return errors.New(pfx + "dimension name not defined")
 
-	case j.def.localDim() == "":
+	case j.def.LocalSource == "":
 		return errors.New(pfx + "local dimension not defined")
-	case j.def.localColumn() == "":
+	case j.def.LocalColumn == "":
 		return errors.New(pfx + "local column not defined")
-	case j.def.foreignDim() == "":
+	case j.def.ForeignSource == "":
 		return errors.New(pfx + "foreign dimension not defined")
-	case j.def.foreignColumn() == "":
+	case j.def.ForeignColumn == "":
 		return errors.New(pfx + "foreign column not defined")
 
 	default:
@@ -78,7 +80,7 @@ func (d *stepJoin) Name() string {
 }
 
 func (d *stepJoin) Source() []string {
-	return []string{d.def.localDim(), d.def.foreignDim()}
+	return []string{d.def.LocalSource, d.def.ForeignSource}
 }
 
 func (d *stepJoin) Def() *StepDefinition {
@@ -98,16 +100,16 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 
 	return func(cap int) ([]*Frame, error) {
 			// determine local and foreign frame definitions
-			localDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.localDim())
-			foreignDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.foreignDim())
+			localDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.LocalSource)
+			foreignDef := FrameDefinitionSet(dd).FindBySourceRef(d.Name(), d.def.ForeignSource)
 
 			// basic pre-run validation
 			// - definitions
 			if localDef == nil {
-				return nil, fmt.Errorf("definition for local datasource not found: %s", d.def.localDim())
+				return nil, fmt.Errorf("definition for local datasource not found: %s", d.def.LocalSource)
 			}
 			if foreignDef == nil {
-				return nil, fmt.Errorf("definition for foreign datasource not found: %s", d.def.foreignDim())
+				return nil, fmt.Errorf("definition for foreign datasource not found: %s", d.def.ForeignSource)
 			}
 			if localDef.Paging == nil {
 				localDef.Paging = &filter.Paging{}
@@ -117,11 +119,11 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			}
 
 			// - key columns
-			if localDef.Columns.Find(d.def.localColumn()) < 0 {
-				return nil, fmt.Errorf("local frame definition must include the key column: %s", d.def.localColumn())
+			if len(localDef.Columns) > 0 && localDef.Columns.Find(d.def.LocalColumn) < 0 {
+				return nil, fmt.Errorf("local frame definition must include the key column: %s", d.def.LocalColumn)
 			}
-			if foreignDef.Columns.Find(d.def.foreignColumn()) < 0 {
-				return nil, fmt.Errorf("foreign frame definition must include the key column: %s", d.def.foreignColumn())
+			if len(foreignDef.Columns) > 0 && foreignDef.Columns.Find(d.def.ForeignColumn) < 0 {
+				return nil, fmt.Errorf("foreign frame definition must include the key column: %s", d.def.ForeignColumn)
 			}
 
 			// based on the passed sort, determine main/sub datasources
@@ -174,7 +176,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				foreignDef.Paging.Limit = mainPageCap
 
 				// - prepare loader, closer
-				mainLoader, mainCloser, err = prtDS.Partition(ctx, partitionSize, d.def.foreignColumn(), foreignDef)
+				mainLoader, mainCloser, err = prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
 			} else {
 				mainPageCap = defaultPageSize
 				if localDef.Paging != nil && localDef.Paging.Limit > 0 {
@@ -199,7 +201,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			if useSubSort {
 				// here we need to slice the partitioned datasource
 				// @todo should this be layed off to the lowe level?
-				mainFrames, err = d.sliceFramesFurther(mainFrames, d.def.foreignColumn())
+				mainFrames, err = d.sliceFramesFurther(mainFrames, d.def.ForeignColumn, d.def.LocalColumn)
 				if err != nil {
 					return nil, err
 				}
@@ -222,14 +224,14 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			keys := make([]string, 0, defaultPageSize)
 			keySet := make(map[string]bool)
 			if useSubSort {
-				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.foreignColumn())
+				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.ForeignColumn)
 				if mainKeyColIndex < 0 {
-					return nil, fmt.Errorf("key column on foreign datasource does not exist: %s", d.def.foreignColumn())
+					return nil, fmt.Errorf("key column on foreign datasource does not exist: %s", d.def.ForeignColumn)
 				}
 			} else {
-				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.localColumn())
+				mainKeyColIndex = mainFrames[0].Columns.Find(d.def.LocalColumn)
 				if mainKeyColIndex < 0 {
-					return nil, fmt.Errorf("key column on local datasource does not exist: %s", d.def.localColumn())
+					return nil, fmt.Errorf("key column on local datasource does not exist: %s", d.def.LocalColumn)
 				}
 			}
 			var k string
@@ -269,7 +271,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			if useSubSort {
 				// here we use the LOCAL datasource, because it's flipped
 				// - prepare key pre-filter
-				localDef.Rows = d.keySliceToFilter(d.def.localColumn(), keys).MergeAnd(localDef.Rows)
+				localDef.Rows = d.keySliceToFilter(d.def.LocalColumn, keys).MergeAnd(localDef.Rows)
 
 				// - go!
 				loader, closer, err := d.base.Load(ctx, localDef)
@@ -305,7 +307,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					r := mf.FirstRow()
 
 					// get key value
-					k = mf.RefKey
+					k = mf.RefValue
 
 					// get sort value
 					sortBucketKey, err = d.cellsToString(r, sortKeyColIndexes)
@@ -332,7 +334,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					prevSortBucketKey = sortBucketKey
 				}
 
-				localColIndex := subFrames[0].Columns.Find(d.def.localColumn())
+				localColIndex := subFrames[0].Columns.Find(d.def.LocalColumn)
 				for i := range subFrames {
 					subFrames[i], err = d.bucketSort(subFrames[i], buckets, localColIndex, localDef.Sorting...)
 					if err != nil {
@@ -357,10 +359,10 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				}
 
 				// - prepare key pre-filter
-				foreignDef.Rows = d.keySliceToFilter(d.def.foreignColumn(), keys).MergeAnd(foreignDef.Rows)
+				foreignDef.Rows = d.keySliceToFilter(d.def.ForeignColumn, keys).MergeAnd(foreignDef.Rows)
 
 				// - go!
-				loader, closer, err := prtDS.Partition(ctx, partitionSize, d.def.foreignColumn(), foreignDef)
+				loader, closer, err := prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
 				if closer != nil {
 					defer closer()
 				}
@@ -368,7 +370,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					return nil, err
 				}
 				subFrames, err = loader(0)
-				subFrames, err = d.sliceFramesFurther(subFrames, d.def.foreignColumn())
+				subFrames, err = d.sliceFramesFurther(subFrames, d.def.ForeignColumn, d.def.LocalColumn)
 				if err != nil {
 					return nil, err
 				}
@@ -432,7 +434,7 @@ func (d *joinedDataset) keySliceToFilter(col string, keys []string) *RowDefiniti
 	return cf
 }
 
-func (d *joinedDataset) sliceFramesFurther(ff []*Frame, col string) (out []*Frame, err error) {
+func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) (out []*Frame, err error) {
 	outMap := make(map[string]int)
 
 	cellToString := func(t expr.TypedValue) (string, error) {
@@ -446,10 +448,11 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, col string) (out []*Fram
 			i = len(out)
 			outMap[k] = i
 			out = append(out, &Frame{
-				RefKey:  k,
-				Columns: ff[0].Columns,
-				Paging:  ff[0].Paging,
-				Sorting: ff[0].Sorting,
+				RefValue:  k,
+				RelColumn: relCol,
+				Columns:   ff[0].Columns,
+				Paging:    ff[0].Paging,
+				Sorting:   ff[0].Sorting,
 			})
 		}
 
@@ -459,7 +462,7 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, col string) (out []*Fram
 	for _, f := range ff {
 		// slice the output; one frame per key
 		var k string
-		fColI := f.Columns.Find(col)
+		fColI := f.Columns.Find(selfCol)
 		err = f.WalkRows(func(i int, r FrameRow) error {
 			k, err = cellToString(r[fColI])
 			push(k, r)
@@ -539,17 +542,4 @@ func (d *joinedDataset) cellsToString(row FrameRow, indexes []int) (out string, 
 	}
 
 	return
-}
-
-func (def *JoinStepDefinition) localDim() string {
-	return dimensionOf(def.Local)
-}
-func (def *JoinStepDefinition) localColumn() string {
-	return columnOf(def.Local)
-}
-func (def *JoinStepDefinition) foreignDim() string {
-	return dimensionOf(def.Foreign)
-}
-func (def *JoinStepDefinition) foreignColumn() string {
-	return columnOf(def.Foreign)
 }

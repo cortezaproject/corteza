@@ -22,8 +22,8 @@
               { "name": "by_name", "expr": "first_name", "kind": "String" }
             ],
             "columns": [
-              { "count": { "count": "*" } },
-              { "total": { "sum": "number_of_numbers" } }
+              { "name": "count", "aggregate": "count", "expr": "*" , "kind": "Number"},
+              { "name": "total", "aggregate": "sum", "expr": "number_of_numbers", "kind": "Number" }
             ]
           }}
         ]

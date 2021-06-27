@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -129,23 +130,34 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 			GroupBy(e.String())
 	}
 
+	var e ql.ASTNode
+	var err error
 	for _, c := range d.Columns {
-		for alias, op := range c {
-			o := op.GetOp()
-			e, err := parser.ParseExpression(fmt.Sprintf("%s(%s)", o, op[o]))
+		if c.Aggregate != "" {
+			e, err = parser.ParseExpression(fmt.Sprintf("%s(%s)", c.Aggregate, c.Expr))
 			if err != nil {
 				return false, err
 			}
-
-			// @todo imply based on context
-			c := report.MakeColumnOfKind("Number")
-			c.Name = alias
-			gCols = append(gCols, c)
-
-			r.levelColumns[alias] = true
-			q = q.
-				Column(fmt.Sprintf("%s as `%s`", e.String(), alias))
+		} else {
+			e, err = parser.ParseExpression(c.Expr)
+			if err != nil {
+				return false, err
+			}
 		}
+
+		var col *report.FrameColumn
+		if c.Kind != "" {
+			col = report.MakeColumnOfKind(c.Kind)
+		} else {
+			// @todo imply based on context
+			col = report.MakeColumnOfKind("Number")
+		}
+		col.Name = c.Name
+		gCols = append(gCols, col)
+		r.levelColumns[c.Name] = true
+
+		q = q.
+			Column(fmt.Sprintf("%s as `%s`", e.String(), c.Name))
 	}
 
 	if d.Rows != nil {
@@ -407,6 +419,10 @@ func (b *recordDatasource) Cast(row sqlx.ColScanner, out *report.Frame) error {
 			}
 
 		default:
+			if isNil(cv) {
+				continue
+			}
+
 			c, err := c.Caster(cv)
 			if err != nil {
 				return err
@@ -497,4 +513,15 @@ func (ds *recordDatasource) rowFilterToString(conjunction string, cc report.Fram
 	}
 
 	return strings.TrimSpace(base), nil
+}
+
+func isNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	switch reflect.TypeOf(i).Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+		return reflect.ValueOf(i).IsNil()
+	}
+	return false
 }
