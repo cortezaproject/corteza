@@ -308,11 +308,40 @@ func (svc *report) RunFresh(ctx context.Context, src types.ReportDataSourceSet, 
 			return
 		}
 
-		ff, err := model.Load(ctx, dd...)
-		if err != nil {
-			return err
+		auxdd := make([]*rep.FrameDefinition, 0, len(dd))
+		for i, d := range dd {
+			// first one; nothing special needed
+			if i == 0 {
+				auxdd = append(auxdd, d)
+				continue
+			}
+
+			// if the current source matches the prev. source, and they both define references,
+			// they fall into the same chunk.
+			if (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
+				auxdd = append(auxdd, d)
+				continue
+			}
+
+			// if the current one doesn't fall into the current chunk, process
+			// the chunk and reset it
+			ff, err := model.Load(ctx, auxdd...)
+			if err != nil {
+				return err
+			}
+			out = append(out, ff...)
+
+			auxdd = make([]*rep.FrameDefinition, 0, len(dd))
+			auxdd = append(auxdd, d)
 		}
-		out = append(out, ff...)
+
+		if len(auxdd) > 0 {
+			ff, err := model.Load(ctx, auxdd...)
+			if err != nil {
+				return err
+			}
+			out = append(out, ff...)
+		}
 
 		// _ = svc.eventbus.WaitFor(ctx, event.ReportAfterUpdate(upd, report))
 		// return nil

@@ -15,11 +15,12 @@ type (
 		Name   string `json:"name"`
 		Source string `json:"source"`
 		Ref    string `json:"ref,omitempty"`
-		RefKey string `json:"refKey,omitempty"`
+
+		RefValue  string `json:"refValue,omitempty"`
+		RelColumn string `json:"relColumn,omitempty"`
 
 		Columns FrameColumnSet `json:"columns"`
 		Rows    FrameRowSet    `json:"rows"`
-		Error   error          `json:"error"`
 
 		Paging  *filter.Paging  `json:"paging"`
 		Sorting *filter.Sorting `json:"sorting"`
@@ -44,14 +45,14 @@ type (
 
 	FrameDefinitionSet []*FrameDefinition
 	FrameDefinition    struct {
-		Name    string
-		Source  string
-		Ref     string
-		Rows    *RowDefinition
-		Columns FrameColumnSet
+		Name    string         `json:"name"`
+		Source  string         `json:"source"`
+		Ref     string         `json:"ref"`
+		Rows    *RowDefinition `json:"rows"`
+		Columns FrameColumnSet `json:"columns"`
 
-		Paging  *filter.Paging
-		Sorting filter.SortExprSet
+		Paging  *filter.Paging     `json:"paging"`
+		Sorting filter.SortExprSet `json:"sorting"`
 	}
 )
 
@@ -143,22 +144,22 @@ func (b CellDefinition) OpToCmp() string {
 // Slice in place
 func (f *Frame) Slice(startIndex, size int) (a, b *Frame) {
 	a = &Frame{
-		Name:   f.Name,
-		Source: f.Source,
-		Ref:    f.Ref,
-		RefKey: f.RefKey,
+		Name:      f.Name,
+		Source:    f.Source,
+		Ref:       f.Ref,
+		RefValue:  f.RefValue,
+		RelColumn: f.RelColumn,
 
 		Columns: f.Columns,
-		Error:   f.Error,
 	}
 	b = &Frame{
-		Name:   f.Name,
-		Source: f.Source,
-		Ref:    f.Ref,
-		RefKey: f.RefKey,
+		Name:      f.Name,
+		Source:    f.Source,
+		Ref:       f.Ref,
+		RefValue:  f.RefValue,
+		RelColumn: f.RelColumn,
 
 		Columns: f.Columns,
-		Error:   f.Error,
 	}
 
 	a.Rows = f.Rows[startIndex:size]
@@ -213,10 +214,18 @@ func (f *Frame) Size() int {
 }
 
 func (f *Frame) FirstRow() FrameRow {
+	if f.Size() == 0 {
+		return nil
+	}
+
 	return f.Rows[0]
 }
 
 func (f *Frame) LastRow() FrameRow {
+	if f.Size() == 0 {
+		return nil
+	}
+
 	return f.Rows[f.Size()-1]
 }
 
@@ -228,7 +237,7 @@ func (f *Frame) String() string {
 	out := fmt.Sprintf("n: %10s; src: %10s\n", f.Name, f.Source)
 
 	if f.Ref != "" {
-		out += fmt.Sprintf("ref: %10s; key: %10s\n", f.Ref, f.RefKey)
+		out += fmt.Sprintf("ref: %10s; col: %10s\n; key: %10s\n", f.Ref, f.RelColumn, f.RefValue)
 	}
 
 	for _, c := range f.Columns {
@@ -348,6 +357,10 @@ func (r FrameRow) MarshalJSON() (out []byte, err error) {
 	var s string
 
 	for i, c := range r {
+		if c == nil {
+			continue
+		}
+
 		s, err = cast.ToStringE(c.Get())
 		if err != nil {
 			return nil, err

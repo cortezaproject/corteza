@@ -157,6 +157,8 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) ([]*Frame, err
 	i := 0
 	if def.Paging != nil && def.Paging.Limit > 0 {
 		i = int(def.Paging.Limit)
+	} else {
+		i = -1
 	}
 
 	ff, err := l(i + 1)
@@ -165,15 +167,16 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) ([]*Frame, err
 	}
 
 	dds := FrameDefinitionSet(dd)
-	for i, f := range ff {
+	for _, f := range ff {
 		def = dds.FindBySourceRef(f.Source, f.Ref)
 		if def == nil {
 			return nil, fmt.Errorf("unable to find frame definition for frame: src-%s, ref-%s", f.Source, f.Ref)
 		}
-		ff[i], err = m.calculatePaging(f, def.Paging, def.Sorting)
-		if err != nil {
-			return nil, err
-		}
+
+		// ff[i], err = m.calculatePaging(f, def.Paging, def.Sorting)
+		// if err != nil {
+		// 	return nil, err
+		// }
 	}
 
 	return ff, err
