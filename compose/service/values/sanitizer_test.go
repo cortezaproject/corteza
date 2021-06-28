@@ -187,7 +187,14 @@ func Test_sanitizer_Run(t *testing.T) {
 			kind:    "String",
 			options: map[string]interface{}{},
 			input:   `<script>document.write("<scri");</script>pt src="https://cortezaproject.org/script.js"></script>`,
-			output:  "pt src=&#34;https://cortezaproject.org/script.js&#34;&gt;",
+			output:  `pt src="https://cortezaproject.org/script.js">`,
+		},
+		{
+			name:    "string escaping; inline styles unchanged",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `<span style="background-color: #00ff00"><span style="color: #4a86e8">nasty looking content</span></span>`,
+			output:  `<span style="background-color: #00ff00"><span style="color: #4a86e8">nasty looking content</span></span>`,
 		},
 		{
 			name:    "string escaping; script with a",
@@ -299,7 +306,7 @@ func Test_sanitizer_Run(t *testing.T) {
 			kind:    "String",
 			options: map[string]interface{}{},
 			input:   `'';!--"<XSS>=&{()}`,
-			output:  "&#39;&#39;;!--&#34;=&amp;{()}",
+			output:  `'';!--"=&{()}`,
 		},
 		{
 			name:    "string escaping; xss element",
@@ -314,6 +321,13 @@ func Test_sanitizer_Run(t *testing.T) {
 			options: map[string]interface{}{},
 			input:   `<tag1>cor<tag2></tag2>teza</tag1><tag1>server</tag1><tag2>123</tag2>`,
 			output:  "cortezaserver123",
+		},
+		{
+			name:    "string escaping; preserve necessary chars",
+			kind:    "String",
+			options: map[string]interface{}{},
+			input:   `a < b ; "'"`,
+			output:  `a < b ; "'"`,
 		},
 	}
 	for _, tt := range tests {
