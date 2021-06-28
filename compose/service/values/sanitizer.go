@@ -2,6 +2,7 @@ package values
 
 import (
 	"fmt"
+	"html"
 	"regexp"
 	"strconv"
 	"strings"
@@ -294,8 +295,14 @@ func sString(str string) string {
 	// match only colors for html editor elements on style attr
 	p.AllowAttrs("style").OnElements("span", "p")
 	p.AllowStyles("color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
+	p.AllowStyles("background-color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
 
-	return p.Sanitize(str)
+	sanitized := p.Sanitize(str)
+
+	// handle escaped strings and unescape them
+	// all the dangerous chars should have been stripped
+	// by now
+	return html.UnescapeString(sanitized)
 }
 
 // sanitize casts value to field kind format
