@@ -11,18 +11,34 @@ import (
 
 // LoadEnv loads env-variables (KEY=VAL) from provided files and paths (by searching for .env file in the given path)
 //
-// Please not that loaded values DO NOT OVERRIDE the existing environmental variables
+// Please note that loaded values
+// DO NOT OVERRIDE the existing
+// environmental variables
 func LoadEnv(pp ...string) error {
 	// preparse the input and try to figure out if .env should be appended
-	for i, p := range pp {
+	var checked = make([]string, 0, len(pp))
+	for _, p := range pp {
 		if s, err := os.Stat(p); err != nil {
 			return err
 		} else if s.IsDir() {
-			pp[i] = path.Join(p, ".env")
+			//pp[i] = path.Join(p, ".env")
+			chk := path.Join(p, ".env")
+			if _, err = os.Stat(chk); err == nil {
+				// make sure only .env files
+				checked = append(checked, chk)
+			} else if err != os.ErrNotExist {
+				return err
+			}
+		} else {
+			checked = append(checked, p)
 		}
 	}
 
-	return godotenv.Load(pp...)
+	if len(checked) == 0 {
+		return nil
+	}
+
+	return godotenv.Load(checked...)
 }
 
 // EnvCommand outputs all loaded env variables

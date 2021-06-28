@@ -20,10 +20,14 @@ func (app *CortezaApp) InitCLI() {
 
 		// path to all environmental files (or locations with .env file)
 		// filled from flag values
-		envs = []string{"."}
+		envs []string
 	)
 
 	app.Command = cli.RootCommand(func() error {
+		if len(envs) == 0 {
+			envs = []string{"."}
+		}
+
 		if err := cli.LoadEnv(envs...); err != nil {
 			return fmt.Errorf("failed to load environmental variables: %w", err)
 		}
