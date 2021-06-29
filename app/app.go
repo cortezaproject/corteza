@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/auth/settings"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/go-chi/chi"
 	"github.com/spf13/cobra"
@@ -33,7 +35,7 @@ type (
 	}
 
 	CortezaApp struct {
-		Opt *Options
+		Opt *options.Options
 		lvl int
 		Log *zap.Logger
 
@@ -59,12 +61,11 @@ type (
 )
 
 func New() *CortezaApp {
-	app := &CortezaApp{
-		Opt: NewOptions(),
-		lvl: bootLevelWaiting,
-	}
-
+	app := &CortezaApp{lvl: bootLevelWaiting}
 	app.InitCLI()
-
 	return app
+}
+
+func (app *CortezaApp) Options() *options.Options {
+	return app.Opt
 }
