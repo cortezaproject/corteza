@@ -35,15 +35,6 @@ applications:
       logo: applications/video-conference.png
       url: bridge/jitsi/
 
-  - name: Google Maps
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      icon: applications/google-maps.png
-      logo: applications/google-maps.png
-      url: bridge/google-maps/
-
   - name: Admin Area
     (envoy): { skipIf: "!missing" }
     enabled: true
