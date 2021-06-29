@@ -21,7 +21,6 @@ func LoadEnv(pp ...string) error {
 		if s, err := os.Stat(p); err != nil {
 			return err
 		} else if s.IsDir() {
-			//pp[i] = path.Join(p, ".env")
 			chk := path.Join(p, ".env")
 			if _, err = os.Stat(chk); err == nil {
 				// make sure only .env files
