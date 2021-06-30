@@ -24,7 +24,7 @@ type (
 		ac         sessionAccessController
 		opt        options.WorkflowOpt
 		log        *zap.Logger
-		mux        *sync.RWMutex
+		mux        sync.RWMutex
 		pool       map[uint64]*types.Session
 		spawnQueue chan *spawn
 	}
@@ -52,7 +52,6 @@ func Session(log *zap.Logger, opt options.WorkflowOpt) *session {
 		actionlog:  DefaultActionlog,
 		store:      DefaultStore,
 		ac:         DefaultAccessControl,
-		mux:        &sync.RWMutex{},
 		pool:       make(map[uint64]*types.Session),
 		spawnQueue: make(chan *spawn),
 	}
@@ -139,8 +138,8 @@ func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPro
 		return
 	}
 
-	defer svc.mux.RUnlock()
 	svc.mux.RLock()
+	defer svc.mux.RUnlock()
 
 	pp = make([]*wfexec.PendingPrompt, 0, len(svc.pool))
 	for _, s := range svc.pool {
@@ -203,8 +202,8 @@ func (svc *session) Resume(sessionID, stateID uint64, i auth.Identifiable, input
 		ctx = auth.SetIdentityToContext(context.Background(), i)
 	)
 
-	defer svc.mux.RUnlock()
 	svc.mux.RLock()
+	defer svc.mux.RUnlock()
 	ses := svc.pool[sessionID]
 	if ses == nil {
 		return errors.NotFound("session not found")
@@ -240,6 +239,7 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 
 func (svc *session) Watch(ctx context.Context) {
 	gcTicker := time.NewTicker(time.Second)
+	lpTicker := time.NewTicker(time.Second * 30)
 
 	go func() {
 		defer sentry.Recover()
@@ -271,6 +271,9 @@ func (svc *session) Watch(ctx context.Context) {
 
 			case <-gcTicker.C:
 				svc.gc()
+
+			case <-lpTicker.C:
+				svc.logPending()
 			}
 		}
 
@@ -283,54 +286,59 @@ func (svc *session) Watch(ctx context.Context) {
 
 // garbage collection for stale sessions
 func (svc *session) gc() {
-	defer svc.mux.Unlock()
 	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	for _, s := range svc.pool {
+		if s.GC() {
+			delete(svc.pool, s.ID)
+		}
+	}
+}
+
+// garbage collection for stale sessions
+func (svc *session) logPending() {
+	svc.mux.RLock()
+	defer svc.mux.RUnlock()
 
 	var (
-		total = len(svc.pool)
-
-		removed, pending1m, pending1h, pending1d int
+		total                                    = len(svc.pool)
+		pending, pending1m, pending1h, pending1d int
 	)
 
 	for _, s := range svc.pool {
 		switch {
-		case s.CreatedAt.Sub(*now()) > time.Minute:
-			pending1m++
-		case s.CreatedAt.Sub(*now()) > time.Hour:
-			pending1h++
 		case s.CreatedAt.Sub(*now()) > time.Hour*24:
 			pending1d++
+		case s.CreatedAt.Sub(*now()) > time.Hour:
+			pending1h++
+		case s.CreatedAt.Sub(*now()) > time.Minute:
+			pending1m++
+		default:
+			pending++
 		}
-
-		if !s.GC() {
-			continue
-		}
-
-		removed++
-
-		delete(svc.pool, s.ID)
 	}
 
 	if total > 0 {
 		svc.log.Info(
 			"workflow session garbage collector stats",
 			zap.Int("total", total),
-			zap.Int("removed", removed),
+			zap.Int("pending", pending),
 			zap.Int("pending1m", pending1m),
 			zap.Int("pending1h", pending1h),
 			zap.Int("pending1d", pending1d),
 		)
 	}
-
 }
 
 // stateChangeHandler keeps track of session status changes and frequently stores session into db
 func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHandler {
 	return func(i wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
+		svc.mux.Lock()
+		defer svc.mux.Unlock()
+
 		log := svc.log.With(zap.Uint64("sessionID", s.ID()))
 
-		defer svc.mux.RUnlock()
-		svc.mux.RLock()
 		ses := svc.pool[s.ID()]
 		if ses == nil {
 			log.Warn("could not find session to update")
@@ -343,9 +351,8 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		)
 
 		var (
-			// By default we want to update session when new status is prompted, delayed, completed or failed
-			//
-			// But if status is active, we'll flush it every X frames (flushFrquency)
+			// By default, we want to update session when new status is prompted, delayed, completed or failed
+			// But if status is active, we'll flush it every X frames (flushFrequency)
 			update = true
 
 			frame = state.MakeFrame()

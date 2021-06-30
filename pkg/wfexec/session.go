@@ -47,15 +47,13 @@ type (
 		// only one worker routine per session
 		workerLock chan struct{}
 
-		workerTicker *time.Ticker
-
 		statusChange chan int
 
 		// holds final result
 		result *expr.Vars
 		err    error
 
-		mux *sync.RWMutex
+		mux sync.RWMutex
 
 		// debug logger
 		log *zap.Logger
@@ -172,8 +170,6 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 		workerInterval: time.Millisecond * 250, // debug mode rate
 		workerLock:     make(chan struct{}, 1),
 
-		mux: &sync.RWMutex{},
-
 		log: zap.NewNop(),
 
 		eventHandler: func(SessionStatus, *State, *Session) {
@@ -197,8 +193,8 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 }
 
 func (s Session) Status() SessionStatus {
-	defer s.mux.Unlock()
-	s.mux.Lock()
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	switch {
 	case s.err != nil:
@@ -216,25 +212,29 @@ func (s Session) Status() SessionStatus {
 	default:
 		return SessionCompleted
 	}
-
 }
 
-func (s Session) ID() uint64 { return s.id }
+func (s Session) ID() uint64 {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	return s.id
+}
 
 func (s Session) Idle() bool {
 	return s.Status() != SessionActive
 }
 
 func (s *Session) Error() error {
-	defer s.mux.RUnlock()
 	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	return s.err
 }
 
 func (s *Session) Result() *expr.Vars {
-	defer s.mux.RUnlock()
 	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	return s.result
 }
@@ -388,8 +388,9 @@ func (s *Session) worker(ctx context.Context) {
 	defer close(s.workerLock)
 	s.workerLock <- struct{}{}
 
-	s.workerTicker = time.NewTicker(s.workerInterval)
-	defer s.workerTicker.Stop()
+	workerTicker := time.NewTicker(s.workerInterval)
+
+	defer workerTicker.Stop()
 
 	for {
 		select {
@@ -397,7 +398,7 @@ func (s *Session) worker(ctx context.Context) {
 			s.log.Debug("worker context done", zap.Error(ctx.Err()))
 			return
 
-		case <-s.workerTicker.C:
+		case <-workerTicker.C:
 			s.log.Debug("checking for delayed states")
 			s.queueScheduledSuspended()
 
@@ -410,12 +411,17 @@ func (s *Session) worker(ctx context.Context) {
 
 			s.log.Debug("pulled state from queue", zap.Uint64("stateID", st.stateId))
 			if st.step == nil {
-				s.log.Debug("done, stopping and setting results")
-				s.mux.Lock()
-				defer s.mux.Unlock()
+				s.log.Debug("done, setting results and stopping the worker")
 
-				// making sure result != nil
-				s.result = (&expr.Vars{}).Merge(st.scope)
+				func() {
+					// mini lambda fn to ensure we can properly unlock with defer
+					s.mux.Lock()
+					defer s.mux.Unlock()
+
+					// with merge we are making sure
+					// that result != nil even if state scope is
+					s.result = (&expr.Vars{}).Merge(st.scope)
+				}()
 
 				// Call event handler with completed status
 				s.eventHandler(SessionCompleted, st, s)
@@ -477,6 +483,7 @@ func (s *Session) worker(ctx context.Context) {
 		case err := <-s.qErr:
 			s.mux.Lock()
 			defer s.mux.Unlock()
+
 			if err == nil {
 				// stop worker
 				return
@@ -490,8 +497,8 @@ func (s *Session) worker(ctx context.Context) {
 }
 
 func (s *Session) Stop() {
-	s.log.Debug("stopping session", zap.Stringer("status", s.Status()))
-	defer s.workerTicker.Stop()
+	s.log.Debug("stopping session worker", zap.Stringer("status", s.Status()))
+	s.qErr <- nil
 }
 
 func (s Session) Suspended() bool {
