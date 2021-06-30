@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -19,6 +20,7 @@ type (
 		store         store.Settings
 		accessControl accessController
 		logger        *zap.Logger
+		m             sync.RWMutex
 
 		// Holds reference to the "current" settings that
 		// are used by the services
@@ -64,6 +66,10 @@ func Settings(ctx context.Context, s store.Settings, log *zap.Logger, ac accessC
 
 func (svc *settings) Register(prefix string, listener SettingsChangeListener) {
 	svc.logger.Debug("registering new settings change listener", zap.String("prefix", prefix))
+
+	svc.m.Lock()
+	defer svc.m.Unlock()
+
 	svc.listeners = append(svc.listeners, registeredSettingsListener{
 		prefix: prefix,
 		fn:     listener,
@@ -84,6 +90,9 @@ func (svc *settings) watch(ctx context.Context) {
 }
 
 func (svc *settings) notify(ctx context.Context, vv types.SettingValueSet) {
+	svc.m.RLock()
+	defer svc.m.RUnlock()
+
 	for _, l := range svc.listeners {
 		go func(l registeredSettingsListener) {
 			if len(l.prefix) > 0 {
@@ -148,7 +157,7 @@ func (svc settings) updateCurrent(ctx context.Context, vv types.SettingValueSet)
 		return
 	}
 
-	// push message over update chan so we cannotify listeners
+	// push message over update chan so that we can notify all settings listeners
 	select {
 	case svc.update <- vv:
 	case <-ctx.Done():
