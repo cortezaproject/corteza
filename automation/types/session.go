@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -47,6 +48,8 @@ type (
 		// This will aid us when session fails and we can access
 		// the whole stacktrace
 		RuntimeStacktrace Stacktrace `json:"-"`
+
+		l sync.RWMutex
 	}
 
 	SessionStartParams struct {
@@ -112,7 +115,10 @@ func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
 	return s.session.UserPendingPrompts(ownerId)
 }
 
-func (s Session) GC() bool {
+func (s *Session) GC() bool {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
 	return s.CompletedAt != nil || s.session.Error() != nil
 }
 
@@ -126,6 +132,9 @@ func (s *Session) WaitResults(ctx context.Context) (*expr.Vars, wfexec.SessionSt
 }
 
 func (s *Session) Apply(ssp SessionStartParams) {
+	s.l.Lock()
+	defer s.l.Unlock()
+
 	s.WorkflowID = ssp.WorkflowID
 	s.EventType = ssp.EventType
 	s.ResourceType = ssp.ResourceType
