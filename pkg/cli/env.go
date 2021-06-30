@@ -5,6 +5,7 @@ import (
 	"path"
 	"sort"
 
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ func LoadEnv(pp ...string) error {
 			if _, err = os.Stat(chk); err == nil {
 				// make sure only .env files
 				checked = append(checked, chk)
-			} else if err != os.ErrNotExist {
+			} else if !errors.Is(err, os.ErrNotExist) {
 				return err
 			}
 		} else {
