@@ -594,7 +594,7 @@ func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to check reminders of other users", nil),
+		p.Format("not allowed to read reminders of other users", nil),
 
 		errors.Meta("type", "notAllowedToRead"),
 		errors.Meta("resource", "system:reminder"),

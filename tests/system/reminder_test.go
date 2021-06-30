@@ -102,6 +102,22 @@ func TestReminderRead(t *testing.T) {
 		End()
 }
 
+// TestReminderReadForbidden checks only user themself can read reminder assigned to them
+func TestReminderReadForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearReminders()
+
+	rm := h.makeReminderByUserID(id.Next())
+
+	h.apiInit().
+		Get(fmt.Sprintf("/reminder/%d", rm.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("not allowed to read reminders of other users")).
+		End()
+}
+
 func TestReminderList(t *testing.T) {
 	h := newHelper(t)
 	h.clearReminders()

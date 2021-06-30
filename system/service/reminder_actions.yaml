@@ -66,4 +66,4 @@ errors:
     message: "not allowed to dismiss reminders of other users"
 
   - error: notAllowedToRead
-    message: "not allowed to check reminders of other users"
+    message: "not allowed to read reminders of other users"
