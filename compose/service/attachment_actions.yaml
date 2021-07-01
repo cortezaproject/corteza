@@ -101,6 +101,10 @@ errors:
     message: "not allowed to create attachments"
     log: "could not create attachments; insufficient permissions"
 
+  - error: notAllowedToCreateEmptyAttachment
+    message: "not allowed to create empty attachments"
+    log: "failed to create attachment; empty file"
+
   - error: failedToExtractMimeType
     message: "could not extract mime type"
 

@@ -868,6 +868,38 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 	return e
 }
 
+// AttachmentErrNotAllowedToCreateEmptyAttachment returns "compose:attachment.notAllowedToCreateEmptyAttachment" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create empty attachments", nil),
+
+		errors.Meta("type", "notAllowedToCreateEmptyAttachment"),
+		errors.Meta("resource", "compose:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "failed to create attachment; empty file"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AttachmentErrFailedToExtractMimeType returns "compose:attachment.failedToExtractMimeType" as *errors.Error
 //
 //

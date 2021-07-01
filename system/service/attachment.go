@@ -210,6 +210,10 @@ func (svc attachment) create(ctx context.Context, name string, size int64, fh io
 		return errors.New("cannot create attachment: store handler not set")
 	}
 
+	if size == 0 {
+		return AttachmentErrNotAllowedToCreateEmptyAttachment(aaProps)
+	}
+
 	aaProps.setName(name)
 	aaProps.setSize(size)
 
@@ -259,7 +263,7 @@ func (svc attachment) extractMimetype(file io.ReadSeeker) (mimetype string, err 
 }
 
 func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
-	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
+	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") || att.Meta.Original.Mimetype == "image/x-icon" {
 		// Only supporting previews from images (for now)
 		return
 	}
