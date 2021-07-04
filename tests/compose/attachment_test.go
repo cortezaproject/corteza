@@ -15,6 +15,7 @@ import (
 )
 
 func (h helper) clearAttachment() {
+	h.clearNamespaces()
 	h.noError(store.TruncateAttachments(context.Background(), service.DefaultStore))
 }
 
