@@ -59,6 +59,12 @@ actions:
   - action: setPassword
     log: "password changed for {user}"
 
+  - action: deleteAuthTokens
+    log: "deleted auth tokens of {user}"
+
+  - action: deleteAuthSessions
+    log: "deleted auth sessions of {user}"
+
 errors:
   - error: notFound
     message: "user not found"
