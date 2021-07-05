@@ -82,6 +82,9 @@ type (
 		SetPassword(ctx context.Context, userID uint64, password string) error
 
 		Preloader(context.Context, userIdGetter, types.UserFilter, userSetter) error
+
+		DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (err error)
+		DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (err error)
 	}
 )
 
@@ -748,6 +751,48 @@ rangeLoop:
 	}
 
 	return uu.Walk(s)
+}
+
+// DeleteAuthTokensByUserID will delete all auth tokens of user which will un-authorize all auth clients of user
+func (svc user) DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
+
+	err = func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
+
+		if err = svc.store.DeleteAuthOA2TokenByUserID(ctx, userID); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionDeleteAuthTokens, err)
+}
+
+// DeleteAuthSessionsByUserID will delete all auth session of user
+func (svc user) DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (err error) {
+	var (
+		uaProps = &userActionProps{user: &types.User{ID: userID}}
+	)
+
+	err = func() (err error) {
+		if userID == 0 {
+			return UserErrInvalidID()
+		}
+
+		if err = svc.store.DeleteAuthSessionsByUserID(ctx, userID); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, uaProps, UserActionDeleteAuthSessions, err)
 }
 
 // UniqueCheck verifies user's email, username and handle

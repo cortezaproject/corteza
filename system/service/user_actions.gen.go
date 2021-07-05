@@ -506,6 +506,46 @@ func UserActionSetPassword(props ...*userActionProps) *userAction {
 	return a
 }
 
+// UserActionDeleteAuthTokens returns "system:user.deleteAuthTokens" action
+//
+// This function is auto-generated.
+//
+func UserActionDeleteAuthTokens(props ...*userActionProps) *userAction {
+	a := &userAction{
+		timestamp: time.Now(),
+		resource:  "system:user",
+		action:    "deleteAuthTokens",
+		log:       "deleted auth tokens of {user}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// UserActionDeleteAuthSessions returns "system:user.deleteAuthSessions" action
+//
+// This function is auto-generated.
+//
+func UserActionDeleteAuthSessions(props ...*userActionProps) *userAction {
+	a := &userAction{
+		timestamp: time.Now(),
+		resource:  "system:user",
+		action:    "deleteAuthSessions",
+		log:       "deleted auth sessions of {user}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Error constructors

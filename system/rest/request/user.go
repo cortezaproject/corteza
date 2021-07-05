@@ -267,6 +267,13 @@ type (
 		// Script to execute
 		Script string
 	}
+
+	UserSessionsRemove struct {
+		// UserID PATH parameter
+		//
+		// ID
+		UserID uint64 `json:",string"`
+	}
 )
 
 // NewUserList request
@@ -1173,6 +1180,41 @@ func (r *UserTriggerScript) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "userID")
+		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewUserSessionsRemove request
+func NewUserSessionsRemove() *UserSessionsRemove {
+	return &UserSessionsRemove{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserSessionsRemove) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"userID": r.UserID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserSessionsRemove) GetUserID() uint64 {
+	return r.UserID
+}
+
+// Fill processes request and fills internal variables
+func (r *UserSessionsRemove) Fill(req *http.Request) (err error) {
 
 	{
 		var val string
