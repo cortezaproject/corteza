@@ -232,6 +232,26 @@ func (ctrl *User) TriggerScript(ctx context.Context, r *request.UserTriggerScrip
 
 }
 
+func (ctrl *User) SessionsRemove(ctx context.Context, r *request.UserSessionsRemove) (rsp interface{}, err error) {
+	var (
+		user *types.User
+	)
+
+	if user, err = ctrl.user.FindByID(ctx, r.UserID); err != nil {
+		return
+	}
+
+	if err = ctrl.user.DeleteAuthSessionsByUserID(ctx, user.ID); err != nil {
+		return
+	}
+
+	if err = ctrl.user.DeleteAuthTokensByUserID(ctx, user.ID); err != nil {
+		return
+	}
+
+	return
+}
+
 func (ctrl User) makeFilterPayload(ctx context.Context, uu types.UserSet, f types.UserFilter, err error) (*userSetPayload, error) {
 	if err != nil {
 		return nil, err
