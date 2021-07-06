@@ -1510,7 +1510,6 @@ endpoints:
   entrypoint: route
   authentication: []
   imports:
-    # - github.com/cortezaproject/corteza-server/system/types
     - github.com/cortezaproject/corteza-server/pkg/label
   apis:
   - name: list
@@ -1521,8 +1520,8 @@ endpoints:
       get:
       - { name: routeID,    type: "[]string",          title: "Filter by route ID" }
       - { name: query,      type: "string",            title: "Filter routes" }
-      - { name: deleted,    type: "uint64",              title: "Exclude (0, default), include (1) or return only (2) deleted routes" }
-      - { name: disabled,   type: "uint64",              title: "Exclude (0, default), include (1) or return only (2) disabled routes" }
+      - { name: deleted,    type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) deleted routes" }
+      - { name: disabled,   type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) disabled routes" }
       - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,      type: "uint",              title: "Limit" }
       - { name: pageCursor, type: "string",            title: "Page cursor" }
@@ -1535,10 +1534,9 @@ endpoints:
       post:
       - { name: endpoint, type: string, required: true, title: "Route endpoint" }
       - { name: method,   type: string,                 title: "Route method" }
-      # - { name: meta,   type: "*types.RouteMeta",     title: "Route meta data",             parser: "types.ParseRouteMeta" }
       - { name: debug,    type: bool,                   title: "Debug route" }
       - { name: enabled,  type: bool,                   title: "Is route enabled" }
-      - { name: group,    type: uint64,                    title: "Route group" }
+      - { name: group,    type: uint64,                 title: "Route group" }
   - name: update
     method: PUT
     title: Update route details
@@ -1550,7 +1548,7 @@ endpoints:
       - { name: method,   type: string,                 title: "Route method" }
       - { name: debug,    type: bool,                   title: "Debug route" }
       - { name: enabled,  type: bool,                   title: "Is route enabled" }
-      - { name: group,    type: uint64,                    title: "Route group" }
+      - { name: group,    type: uint64,                 title: "Route group" }
   - name: read
     method: GET
     title: Read route details
@@ -1585,7 +1583,6 @@ endpoints:
   authentication: []
   imports:
     - github.com/cortezaproject/corteza-server/system/types
-    # - github.com/cortezaproject/corteza-server/pkg/label
   apis:
   - name: list
     method: GET
@@ -1593,26 +1590,25 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - { name: functionID, type: "[]string",          title: "Filter by function ID" }
-      - { name: routeID,    type: "string",            title: "Filter by route ID" }
-      - { name: query,      type: "string",            title: "Filter functions" }
-      - { name: deleted,    type: "uint64",              title: "Exclude (0, default), include (1) or return only (2) deleted functions" }
-      - { name: disabled,   type: "uint64",              title: "Exclude (0, default), include (1) or return only (2) disabled functions" }
-      # - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
-      - { name: limit,      type: "uint",              title: "Limit" }
-      - { name: pageCursor, type: "string",            title: "Page cursor" }
-      - { name: sort,       type: "string",            title: "Sort items" }
+      - { name: functionID, type: "[]string", title: "Filter by function ID" }
+      - { name: routeID,    type: "string",   title: "Filter by route ID" }
+      - { name: query,      type: "string",   title: "Filter functions" }
+      - { name: deleted,    type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) deleted functions" }
+      - { name: disabled,   type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) disabled functions" }
+      - { name: limit,      type: "uint",     title: "Limit" }
+      - { name: pageCursor, type: "string",   title: "Page cursor" }
+      - { name: sort,       type: "string",   title: "Sort items" }
   - name: create
     method: PUT
     title: Create function
     path: ""
     parameters:
       post:
-      - { name: routeID,  type: uint64,  required: true,      title: "Route" }
-      - { name: weight, type: uint64,                       title: "Function priority" }
-      - { name: kind,   type: "types.ApigwFunctionKind", title: "Function kind" }
-      - { name: ref,    type: string,                    title: "Function ref" }
-      - { name: params,   type: "types.FuncParams",          title: "Function parameters", parser: "types.ParseApigwfFunctionParams" }
+      - { name: routeID, type: uint64,                    title: "Route", required: true }
+      - { name: weight,  type: uint64,                    title: "Function priority" }
+      - { name: kind,    type: "types.ApigwFunctionKind", title: "Function kind" }
+      - { name: ref,     type: string,                    title: "Function ref" }
+      - { name: params,  type: "types.FuncParams",        title: "Function parameters", parser: "types.ParseApigwfFunctionParams" }
   - name: update
     method: POST
     title: Update route details
@@ -1620,11 +1616,11 @@ endpoints:
     parameters:
       path: [ { name: functionID, type: uint64, required: true, title: "Function ID" } ]
       post:
-      - { name: routeID,  type: uint64,  required: true,      title: "Route" }
-      - { name: weight, type: uint64,                       title: "Function priority" }
-      - { name: kind,   type: "types.ApigwFunctionKind", title: "Function kind" }
-      - { name: ref,    type: string,                    title: "Function ref" }
-      - { name: params, type: "types.FuncParams",        title: "Function parameters", parser: "types.ParseApigwfFunctionParams" }
+      - { name: routeID,  type: uint64,                    title: "Route", required: true }
+      - { name: weight,   type: uint64,                    title: "Function priority" }
+      - { name: kind,     type: "types.ApigwFunctionKind", title: "Function kind" }
+      - { name: ref,      type: string,                    title: "Function ref" }
+      - { name: params,   type: "types.FuncParams",        title: "Function parameters", parser: "types.ParseApigwfFunctionParams" }
   - name: read
     method: GET
     title: Read function details
@@ -1640,3 +1636,10 @@ endpoints:
     title: Undelete function
     path: "/{functionID}/undelete"
     parameters: { path: [ { name: functionID, type: uint64, required: true, title: "Function ID" } ] }
+  - name: definitions
+    method: GET
+    title: Function definitions
+    path: "/def"
+    parameters:
+      get:
+      - { name: kind, type: "string", title: "Filter functions by kind" }
