@@ -54,7 +54,6 @@ func TestMessageWrite(t *testing.T) {
 		ctx = context.Background()
 	)
 
-	h.prepareRBAC()
 	h.prepareQueues(ctx, testQueueDispatched)
 
 	// reinit the messagebus
@@ -108,7 +107,6 @@ func TestMessageWriteEventbus(t *testing.T) {
 		}
 	)
 
-	h.prepareRBAC()
 	h.prepareQueues(ctx, testQueueEb)
 
 	// reinit the messagebus

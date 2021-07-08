@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
@@ -47,7 +48,7 @@ type (
 
 		// Archived GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) achived roles
+		// Exclude (0, default), include (1) or return only (2) archived roles
 		Archived uint
 
 		// Labels GET parameter
@@ -74,18 +75,23 @@ type (
 	RoleCreate struct {
 		// Name POST parameter
 		//
-		// Name of Role
+		// Name of role
 		Name string
 
 		// Handle POST parameter
 		//
-		// Handle for Role
+		// Handle for role
 		Handle string
 
 		// Members POST parameter
 		//
-		// Role member IDs
+		// role member IDs
 		Members []string
+
+		// Meta POST parameter
+		//
+		// Meta
+		Meta *types.RoleMeta
 
 		// Labels POST parameter
 		//
@@ -101,18 +107,23 @@ type (
 
 		// Name POST parameter
 		//
-		// Name of Role
+		// Name of role
 		Name string
 
 		// Handle POST parameter
 		//
-		// Handle for Role
+		// Handle for role
 		Handle string
 
 		// Members POST parameter
 		//
-		// Role member IDs
+		// role member IDs
 		Members []string
+
+		// Meta POST parameter
+		//
+		// Meta
+		Meta *types.RoleMeta
 
 		// Labels POST parameter
 		//
@@ -346,6 +357,7 @@ func (r RoleCreate) Auditable() map[string]interface{} {
 		"name":    r.Name,
 		"handle":  r.Handle,
 		"members": r.Members,
+		"meta":    r.Meta,
 		"labels":  r.Labels,
 	}
 }
@@ -363,6 +375,11 @@ func (r RoleCreate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleCreate) GetMembers() []string {
 	return r.Members
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleCreate) GetMeta() *types.RoleMeta {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -412,6 +429,18 @@ func (r *RoleCreate) Fill(req *http.Request) (err error) {
 		//    }
 		//}
 
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseRoleMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseRoleMeta(val)
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)
 			if err != nil {
@@ -440,6 +469,7 @@ func (r RoleUpdate) Auditable() map[string]interface{} {
 		"name":    r.Name,
 		"handle":  r.Handle,
 		"members": r.Members,
+		"meta":    r.Meta,
 		"labels":  r.Labels,
 	}
 }
@@ -462,6 +492,11 @@ func (r RoleUpdate) GetHandle() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleUpdate) GetMembers() []string {
 	return r.Members
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleUpdate) GetMeta() *types.RoleMeta {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -510,6 +545,18 @@ func (r *RoleUpdate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseRoleMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseRoleMeta(val)
+			if err != nil {
+				return err
+			}
+		}
 
 		if val, ok := req.Form["labels[]"]; ok {
 			r.Labels, err = label.ParseStrings(val)

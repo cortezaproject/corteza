@@ -1,11 +1,11 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"syscall"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func Users(app serviceInitializer) *cobra.Command {
+func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		flagNoPassword bool
 	)
@@ -33,8 +33,6 @@ func Users(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				queryFlag = cmd.Flags().Lookup("query").Value.String()
 				limitFlag = cmd.Flags().Lookup("limit").Value.String()
 
@@ -88,8 +86,6 @@ func Users(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				authSvc = service.Auth()
 
 				// @todo email validation
@@ -139,8 +135,6 @@ func Users(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-
 				user     *types.User
 				err      error
 				password []byte

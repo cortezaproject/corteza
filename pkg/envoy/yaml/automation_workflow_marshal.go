@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 
+	automationTypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -45,7 +46,7 @@ func automationWorkflowFromResource(r *resource.AutomationWorkflow, cfg *Encoder
 func (n *automationWorkflow) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	wf, ok := state.Res.(*resource.AutomationWorkflow)
 	if !ok {
-		return encoderErrInvalidResource(resource.AUTOMATION_WORKFLOW_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(automationTypes.WorkflowResourceType, state.Res.ResourceType())
 	}
 
 	n.res = wf.Res

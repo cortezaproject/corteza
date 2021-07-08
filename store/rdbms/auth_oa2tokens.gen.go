@@ -52,6 +52,7 @@ func (s Store) QueryAuthOa2tokens(
 	check func(*types.AuthOa2token) (bool, error),
 ) ([]*types.AuthOa2token, error) {
 	var (
+		tmp = make([]*types.AuthOa2token, 0, DefaultSliceCapacity)
 		set = make([]*types.AuthOa2token, 0, DefaultSliceCapacity)
 		res *types.AuthOa2token
 
@@ -73,10 +74,15 @@ func (s Store) QueryAuthOa2tokens(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAuthOa2tokenByCode

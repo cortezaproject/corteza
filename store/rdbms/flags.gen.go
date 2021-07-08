@@ -52,6 +52,7 @@ func (s Store) QueryFlags(
 	check func(*types.Flag) (bool, error),
 ) ([]*types.Flag, error) {
 	var (
+		tmp = make([]*types.Flag, 0, DefaultSliceCapacity)
 		set = make([]*types.Flag, 0, DefaultSliceCapacity)
 		res *types.Flag
 
@@ -73,10 +74,15 @@ func (s Store) QueryFlags(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFlagByKindResourceIDName Flag lookup by kind, resource, name

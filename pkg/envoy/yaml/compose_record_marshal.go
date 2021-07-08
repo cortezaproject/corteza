@@ -32,7 +32,7 @@ func composeRecordSetFromResource(rec *resource.ComposeRecord, cfg *EncoderConfi
 func (n *composeRecordEncoder) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	rec, ok := state.Res.(*resource.ComposeRecord)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_RECORD_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.RecordResourceType, state.Res.ResourceType())
 	}
 
 	// Get the related namespace

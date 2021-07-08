@@ -7,50 +7,41 @@ import (
 )
 
 type (
-	Identity struct {
+	identity struct {
 		id       uint64
 		memberOf []uint64
 	}
 )
 
-const (
-	superUserID uint64 = 10000000000000000
-)
-
-func NewIdentity(id uint64, rr ...uint64) *Identity {
-	return &Identity{
-		id:       id,
-		memberOf: rr,
+// Anonymous constructs and returns new anonymous identity with system anonymous roles
+func Anonymous() *identity {
+	return &identity{
+		memberOf: AnonymousRoles().IDs(),
 	}
 }
 
-func (i Identity) Identity() uint64 {
+// Authenticated constructs and returns new authenticated identity with assigned roles + system authenticated roles
+func Authenticated(id uint64, rr ...uint64) *identity {
+	return &identity{
+		id:       id,
+		memberOf: append(rr, AuthenticatedRoles().IDs()...),
+	}
+}
+
+func (i identity) Identity() uint64 {
 	return i.id
 }
 
-func (i Identity) Roles() []uint64 {
+func (i identity) Roles() []uint64 {
 	return i.memberOf
 }
 
-func (i Identity) Valid() bool {
+func (i identity) Valid() bool {
 	return i.id > 0
 }
 
-func (i Identity) String() string {
+func (i identity) String() string {
 	return fmt.Sprintf("%d", i.Identity())
-}
-
-func NewSuperUserIdentity() *Identity {
-	return NewIdentity(superUserID)
-}
-
-func IsSuperUser(i Identifiable) bool {
-	return i != nil && superUserID == i.Identity()
-}
-
-func ExtractUserIDFromSubClaim(sub string) uint64 {
-	userID, _ := ExtractFromSubClaim(sub)
-	return userID
 }
 
 func ExtractFromSubClaim(sub string) (userID uint64, rr []uint64) {

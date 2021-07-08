@@ -3,10 +3,10 @@ package rest
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/pkg/api"
-
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -15,8 +15,8 @@ type (
 	}
 
 	permissionsAccessController interface {
-		Effective(context.Context) rbac.EffectiveSet
-		Whitelist() rbac.Whitelist
+		Effective(context.Context, ...rbac.Resource) rbac.EffectiveSet
+		List() []map[string]string
 		FindRulesByRoleID(context.Context, uint64) (rbac.RuleSet, error)
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
 	}
@@ -29,11 +29,11 @@ func (Permissions) New() *Permissions {
 }
 
 func (ctrl Permissions) Effective(ctx context.Context, r *request.PermissionsEffective) (interface{}, error) {
-	return ctrl.ac.Effective(ctx), nil
+	return ctrl.ac.Effective(ctx, types.Component{}), nil
 }
 
 func (ctrl Permissions) List(ctx context.Context, r *request.PermissionsList) (interface{}, error) {
-	return ctrl.ac.Whitelist().Flatten(), nil
+	return ctrl.ac.List(), nil
 }
 
 func (ctrl Permissions) Read(ctx context.Context, r *request.PermissionsRead) (interface{}, error) {
@@ -46,22 +46,18 @@ func (ctrl Permissions) Delete(ctx context.Context, r *request.PermissionsDelete
 		return nil, err
 	}
 
-	_ = rr.Walk(func(rule *rbac.Rule) error {
-		// Setting access to "inherit" will make Grant remove the rule
-		rule.Access = rbac.Inherit
-		return nil
-	})
+	for _, r := range rr {
+		r.Access = rbac.Inherit
+	}
 
 	return api.OK(), ctrl.ac.Grant(ctx, rr...)
 }
 
 func (ctrl Permissions) Update(ctx context.Context, r *request.PermissionsUpdate) (interface{}, error) {
-	rr := r.Rules
-	_ = rr.Walk(func(rule *rbac.Rule) error {
+	for _, rule := range r.Rules {
 		// Make sure everything is properly set
 		rule.RoleID = r.RoleID
-		return nil
-	})
+	}
 
-	return api.OK(), ctrl.ac.Grant(ctx, rr...)
+	return api.OK(), ctrl.ac.Grant(ctx, r.Rules...)
 }

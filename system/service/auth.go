@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -816,6 +815,9 @@ func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c 
 		return AuthErrFailedForSuspendedUser()
 	case u.DeletedAt != nil:
 		return AuthErrFailedForDeletedUser()
+	case u.Kind == types.SystemUser:
+		return AuthErrFailedForSystemUser()
+
 	}
 
 	if err = svc.LoadRoleMemberships(ctx, u); err != nil {
@@ -955,27 +957,32 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 	return token, svc.recordAction(ctx, aam, AuthActionIssueToken, err)
 }
 
-// Automatically promotes user to administrator if it is the first user in the database
+// Automatically promotes user to super-administrator if it is the first non-system user in the database
 func (svc auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	var (
-		c      uint
-		roleID = rbac.AdminsRoleID
-		aam    = &authActionProps{user: u, role: &types.Role{ID: roleID}}
+		c   uint
+		aam = &authActionProps{user: u, role: &types.Role{}}
 	)
 
-	err = func() error {
-		if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{}); err != nil {
+	if c, err = store.CountUsers(ctx, svc.store, types.UserFilter{Kind: types.NormalUser}); err != nil {
+		return err
+	}
+
+	if c > 1 || u.ID == 0 {
+		return nil
+	}
+
+	for _, r := range internalAuth.BypassRoles() {
+		m := &types.RoleMember{UserID: u.ID, RoleID: r.ID}
+		if err = store.CreateRoleMember(ctx, svc.store, m); err != nil {
 			return err
 		}
 
-		if c > 1 || u.ID == 0 {
-			return nil
-		}
+		aam.role = r
+		_ = svc.recordAction(ctx, aam, AuthActionAutoPromote, nil)
+	}
 
-		return store.CreateRoleMember(ctx, svc.store, &types.RoleMember{RoleID: roleID, UserID: u.ID})
-	}()
-
-	return svc.recordAction(ctx, aam, AuthActionAutoPromote, err)
+	return nil
 }
 
 // ValidateTOTP checks given code with the current secret
@@ -1318,7 +1325,7 @@ func (svc auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
 		return err
 	}
 
-	u.SetRoles(rr.IDs())
+	u.SetRoles(rr.IDs()...)
 	return nil
 }
 

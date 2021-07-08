@@ -46,7 +46,7 @@ type (
 
 	triggerAccessController interface {
 		CanSearchTriggers(context.Context) bool
-		CanManageWorkflowTriggers(context.Context, *types.Workflow) bool
+		CanManageTriggersOnWorkflow(context.Context, *types.Workflow) bool
 		CanExecuteWorkflow(context.Context, *types.Workflow) bool
 	}
 
@@ -198,7 +198,7 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 			return err
 		}
 
-		if !svc.ac.CanManageWorkflowTriggers(ctx, wf) {
+		if !svc.ac.CanManageTriggersOnWorkflow(ctx, wf) {
 			return TriggerErrNotAllowedToCreate()
 		}
 
@@ -398,7 +398,7 @@ func (svc trigger) handleUndelete(ctx context.Context, res *types.Trigger) (trig
 func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, permErr error) error {
 	if wf, err := loadWorkflow(ctx, svc.store, res.WorkflowID); err != nil {
 		return err
-	} else if !svc.ac.CanManageWorkflowTriggers(ctx, wf) {
+	} else if !svc.ac.CanManageTriggersOnWorkflow(ctx, wf) {
 		return permErr
 	} else {
 		return nil

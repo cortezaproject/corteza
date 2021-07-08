@@ -1,0 +1,15 @@
+rbac:
+  resource: { references: [] }
+  operations:
+    grant:
+      description: Manage federation permissions
+    pair:
+      description: Pair federation nodes
+    node.create:
+      description: Create new federation node
+    settings.read:
+      description: Read settings
+    settings.manage:
+      description: Manage settings
+
+envoy: false

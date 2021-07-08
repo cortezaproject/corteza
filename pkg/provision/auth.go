@@ -2,52 +2,27 @@ package provision
 
 import (
 	"context"
+	"fmt"
+	"os"
+
+	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/system/service"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
-	"os"
-)
-
-type (
-	settingsService interface {
-		FindByPrefix(context.Context, ...string) (types.SettingValueSet, error)
-		BulkSet(context.Context, types.SettingValueSet) error
-	}
-)
-
-var (
-	IsMonolith bool
 )
 
 // Discovers "auth.%" settings from the environment
 //
 // when other kinds of auto-discoverable settings come, lambdas inside will probably need a bit of refactoring
-func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc settingsService) (err error) {
+func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	type (
 		stringWrapper func() string
 		boolWrapper   func() bool
 	)
 
 	var (
-		current types.SettingValueSet
-	)
-
-	if log == nil {
-		log = zap.NewNop()
-	}
-
-	log = service.DefaultLogger.Named("auth-settings-discovery")
-
-	current, err = svc.FindByPrefix(ctx, "auth.")
-	if err != nil {
-		return
-	}
-
-	var (
-		new = current
-
 		// Setter
 		//
 		// Finds existing settings, tries with environmental "PROVISION_SETTINGS_AUTH_..." probing
@@ -57,25 +32,32 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 		// how settings were discovered and set
 		//
 		// @todo generalize and move under settings
-		set = func(name string, env string, def interface{}, maskSensitive bool) {
+		set = func(name string, env string, def interface{}, maskSensitive bool) error {
+
 			var (
 				log = log.With(
 					zap.String("name", name),
 				)
 
-				v     = current.First(name)
-				value interface{}
+				envExists bool
+				value     interface{}
+
+				v, err = s.LookupSettingByNameOwnedBy(ctx, name, 0)
 			)
+
+			if !errors.IsNotFound(err) && err != nil {
+				return fmt.Errorf("could not load settings value for '%s': %w", name, err)
+			}
 
 			if v != nil {
 				// Nothing to discover, already set
 				log.Debug("already set", logger.MaskIf("value", v, maskSensitive))
-				return
+				return nil
 			}
 
 			v = &types.SettingValue{Name: name}
 
-			value, envExists := os.LookupEnv(env)
+			value, envExists = os.LookupEnv(env)
 
 			switch dfn := def.(type) {
 			case stringWrapper:
@@ -99,18 +81,15 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 				}
 
 			default:
-				log.Error("unsupported type")
-				return
+				return fmt.Errorf("unsupported type %T for '%s'", def, name)
 			}
 
 			if err := v.SetValue(value); err != nil {
-				log.Error("could not set value", zap.Error(err))
-				return
+				return fmt.Errorf("could not set value to '%q': %w", name, err)
 			}
 
-			log.Info("value auto-discovered")
-
-			new.Replace(v)
+			log.Debug("value auto-discovered")
+			return s.UpsertSetting(ctx, v)
 		}
 
 		// Assume we have emailing capabilities if SMTP_HOST variable is set
@@ -204,8 +183,10 @@ func authSettingsAutoDiscovery(ctx context.Context, log *zap.Logger, svc setting
 	}
 
 	for _, item := range list {
-		set(item.nme, item.env, item.def, item.mask)
+		if err = set(item.nme, item.env, item.def, item.mask); err != nil {
+			return err
+		}
 	}
 
-	return svc.BulkSet(ctx, new)
+	return nil
 }

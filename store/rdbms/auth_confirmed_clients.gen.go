@@ -52,6 +52,7 @@ func (s Store) QueryAuthConfirmedClients(
 	check func(*types.AuthConfirmedClient) (bool, error),
 ) ([]*types.AuthConfirmedClient, error) {
 	var (
+		tmp = make([]*types.AuthConfirmedClient, 0, DefaultSliceCapacity)
 		set = make([]*types.AuthConfirmedClient, 0, DefaultSliceCapacity)
 		res *types.AuthConfirmedClient
 
@@ -73,10 +74,15 @@ func (s Store) QueryAuthConfirmedClients(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAuthConfirmedClientByUserIDClientID

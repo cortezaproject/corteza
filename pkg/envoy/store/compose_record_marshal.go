@@ -8,11 +8,11 @@ import (
 
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/service/values"
-	"github.com/cortezaproject/corteza-server/compose/types"
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/store"
-	stypes "github.com/cortezaproject/corteza-server/system/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 var (
@@ -26,7 +26,7 @@ func NewComposeRecordFromResource(res *resource.ComposeRecord, cfg *EncoderConfi
 		cfg:         cfg,
 		fieldModRef: make(map[string]resource.Identifiers),
 		externalRef: make(map[string]map[string]uint64),
-		recMap:      make(map[string]*types.Record),
+		recMap:      make(map[string]*composeTypes.Record),
 
 		res: res,
 	}
@@ -72,7 +72,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 	if len(n.res.UserFlakes) == 0 {
 		// No users provided, let's try to fetch them
-		uu, _, err := store.SearchUsers(ctx, pl.s, stypes.UserFilter{
+		uu, _, err := store.SearchUsers(ctx, pl.s, systemTypes.UserFilter{
 			Paging: filter.Paging{
 				Limit: 0,
 			},
@@ -94,7 +94,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 			}
 			if refM != "" && refM != "0" {
 				// Make a reference with that module's records
-				ref := n.res.AddRef(resource.COMPOSE_RECORD_RESOURCE_TYPE, refM).Constraint(n.res.RefNs)
+				ref := n.res.AddRef(composeTypes.RecordResourceType, refM).Constraint(n.res.RefNs)
 
 				n.fieldModRef[f.Name] = ref.Identifiers
 				preloadRefs = append(preloadRefs, ref)
@@ -121,7 +121,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 		}
 
 		// Preload all records
-		rr, _, err := store.SearchComposeRecords(ctx, pl.s, mod, types.RecordFilter{
+		rr, _, err := store.SearchComposeRecords(ctx, pl.s, mod, composeTypes.RecordFilter{
 			ModuleID:    mod.ID,
 			NamespaceID: mod.NamespaceID,
 			Paging: filter.Paging{
@@ -143,7 +143,7 @@ func (n *composeRecord) Prepare(ctx context.Context, pl *payload) (err error) {
 	}
 
 	// Preload own records
-	rr, _, err := store.SearchComposeRecords(ctx, pl.s, n.relMod, types.RecordFilter{
+	rr, _, err := store.SearchComposeRecords(ctx, pl.s, n.relMod, composeTypes.RecordFilter{
 		ModuleID:    n.relMod.ID,
 		NamespaceID: n.relNS.ID,
 		Paging: filter.Paging{
@@ -209,7 +209,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	// Next all of the encoded users.
 	// If identifiers overwrite eachother, that's fine.
 	for _, ref := range pl.state.ParentResources {
-		if ref.ResourceType() == resource.USER_RESOURCE_TYPE {
+		if ref.ResourceType() == systemTypes.UserResourceType {
 			refUsr := ref.(*resource.User)
 			for i := range refUsr.Identifiers() {
 				ux[i] = refUsr.SysID()
@@ -276,7 +276,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 		}
 
-		rec := &types.Record{
+		rec := &composeTypes.Record{
 			ID:          im[getKey(i, r.ID)],
 			NamespaceID: nsID,
 			ModuleID:    mod.ID,
@@ -284,7 +284,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 
 		exists := false
-		var old *types.Record
+		var old *composeTypes.Record
 		if r.ID != "" {
 			old = rm[r.ID]
 			exists = old != nil
@@ -337,9 +337,9 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 			service.RecordUpdateOwner(pl.invokerID, rec, old)
 
-			rvs := make(types.RecordValueSet, 0, len(r.Values))
+			rvs := make(composeTypes.RecordValueSet, 0, len(r.Values))
 			for k, v := range r.Values {
-				rv := &types.RecordValue{
+				rv := &composeTypes.RecordValue{
 					RecordID: rec.ID,
 					Name:     k,
 					Value:    v,
@@ -420,12 +420,23 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			rec.Values.SetUpdatedFlag(true)
 
 			// @todo owner?
-			var rve *types.RecordValueErrorSet
+			var (
+				rve *composeTypes.RecordValueErrorSet
+
+				canAccessField = func(f *composeTypes.ModuleField) bool {
+					return pl.composeAccessControl.CanUpdateRecordValue(ctx, f)
+				}
+			)
+
 			if old != nil {
-				rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, old.Values)
-			} else {
-				rec.Values, rve = service.RecordValueMerger(ctx, pl.composeAccessControl, mod, rec.Values, nil)
+				rec.Values = old.Values.Merge(mod.Fields, rec.Values, canAccessField)
 			}
+
+			rec.Values, _ = rec.Values.Filter(func(v *composeTypes.RecordValue) (bool, error) {
+				return mod.Fields.HasName(v.Name), nil
+			})
+
+			rve = service.RecordValueUpdateOpCheck(ctx, pl.composeAccessControl, mod, rec.Values)
 			if !rve.IsValid() {
 				return rve
 			}
@@ -439,17 +450,15 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			//
 			// AC needs to happen down here, because we are either creating or updating
 			// records and we don't know that for sure in the Prepare method.
-			//
-			// @todo expand this when we allow record based AC
 			if !exists && !createAcChecked {
 				createAcChecked = true
-				if !pl.composeAccessControl.CanCreateRecord(ctx, mod) {
+				if !pl.composeAccessControl.CanCreateRecordOnModule(ctx, mod) {
 					return fmt.Errorf("not allowed to create records for module %d", mod.ID)
 				}
 			} else if exists && !updateAcChecked {
 				updateAcChecked = true
-				if !pl.composeAccessControl.CanUpdateRecord(ctx, mod) {
-					return fmt.Errorf("not allowed to update records for module %d", mod.ID)
+				if !pl.composeAccessControl.CanUpdateRecord(ctx, rec) {
+					return fmt.Errorf("not allowed to update record")
 				}
 			}
 

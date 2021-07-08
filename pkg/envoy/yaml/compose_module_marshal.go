@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 )
@@ -18,7 +19,7 @@ func composeModuleFromResource(r *resource.ComposeModule, cfg *EncoderConfig) *c
 func (n *composeModule) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	mod, ok := state.Res.(*resource.ComposeModule)
 	if !ok {
-		return encoderErrInvalidResource(resource.COMPOSE_MODULE_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.ModuleResourceType, state.Res.ResourceType())
 	}
 
 	// Get the related namespace

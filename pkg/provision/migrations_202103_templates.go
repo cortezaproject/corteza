@@ -3,7 +3,6 @@ package provision
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -82,7 +81,7 @@ func migrateEmailTemplates(ctx context.Context, log *zap.Logger, s store.Storer)
 			}
 
 			tmpl.ID = id.Next()
-			tmpl.CreatedAt = time.Now()
+			tmpl.CreatedAt = *now()
 			tmpl.Template = sval.String()
 
 			err = store.CreateTemplate(ctx, s, tmpl)

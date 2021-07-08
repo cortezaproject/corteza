@@ -1,95 +1,70 @@
 package rbac
 
 import (
-	"strconv"
+	"path"
 	"strings"
 )
 
 type (
-	Resource string
+	Resource interface {
+		RbacResource() string
+	}
+
+	resourceDicter interface {
+		Dict() map[string]interface{}
+	}
 )
 
 const (
-	resourceDelimiter = ':'
-	resourceWildcard  = '*'
+	nsSep    = "::"
+	pathSep  = "/"
+	wildcard = "*"
 )
 
-func (r Resource) append(suffix string) Resource {
-	if !r.IsAppendable() {
-		panic("cannot append to non appendable resource '" + r.String() + "'")
+// ResourceType extracts 1st part of the resource
+//
+// ns::cmp:res/c returns ns::cmp:res
+// ns::cmp:res/  returns ns::cmp:res
+// ns::cmp:res   returns ns::cmp:res
+func ResourceType(r string) string {
+	if p := strings.Index(r, pathSep); p > 0 {
+		return r[:p]
+	} else {
+		return r
+	}
+}
+
+func matchResource(matcher, resource string) (m bool) {
+	if matcher == resource {
+		// if resources match make sure no wildcards are resent
+		return strings.Index(resource, wildcard) == -1
 	}
 
-	return Resource(r.String() + suffix)
+	m, _ = path.Match(matcher, resource)
+	return
 }
 
-// Resource to satisfty interfaces and ease development
-func (r Resource) RBACResource() Resource {
-	return r
-}
-
-// DynamicRoles satisfies Resourcable interface when Resource is
-// used directly
-func (r Resource) DynamicRoles(i uint64) []uint64 {
-	return nil
-}
-
-func (r Resource) AppendID(ID uint64) Resource {
-	return r.append(strconv.FormatUint(ID, 10))
-}
-
-func (r Resource) AppendWildcard() Resource {
-	return r.TrimID().append(string(resourceWildcard))
-}
-
-// Trims off wildcard/id from resource
-func (r Resource) TrimID() Resource {
-	s := r.String()
-	p := strings.LastIndexByte(s, resourceDelimiter)
-	if p > 0 {
-		return Resource(s[0 : p+1])
+// returns level for the given resource match
+// In a nutshell, level indicates number of wildcard characters
+//
+// More defined resources use less wildcards and are on a lower level
+func level(r string) (score int) {
+	var nl bool
+	for l := len(r) - 1; l > strings.Index(r, pathSep); l-- {
+		switch r[l] {
+		case wildcard[0]:
+			// nop
+		case pathSep[0]:
+			// found next resource reference level
+			score *= 10
+			nl = false
+		default:
+			if !nl {
+				score += 1
+				nl = true
+			}
+		}
 	}
 
-	return r
-}
-
-// GetID returns the identifier for this resource
-func (r Resource) GetID() (id uint64, err error) {
-	s := r.String()
-	p := strings.LastIndexByte(s, resourceDelimiter)
-	if p > 0 {
-		id, err = strconv.ParseUint(s[p+1:], 10, 64)
-		return id, err
-	}
-
-	return 0, nil
-}
-
-// IsAppendable checks if Resource has trailing resource delimiter
-func (r Resource) IsAppendable() bool {
-	return strings.IndexByte(r.String(), resourceDelimiter) > -1
-}
-
-// IsValid does basic resource validation
-func (r Resource) IsValid() bool {
-	return len(r) > 0 && r[len(r)-1] != resourceDelimiter
-}
-
-// IsServiceLevel checks for resource delimiters - service level resources do not have it
-func (r Resource) GetService() Resource {
-	s := r.String()
-	p := strings.IndexByte(s, resourceDelimiter)
-	if p > 0 {
-		return Resource(s[0:p])
-	}
-
-	return r
-}
-
-// HasWildcard checks if resource has wildcard char at the end
-func (r Resource) HasWildcard() bool {
-	return len(r) > 0 && r[len(r)-1] == resourceWildcard
-}
-
-func (r Resource) String() string {
-	return string(r)
+	return
 }

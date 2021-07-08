@@ -238,6 +238,7 @@ func (s Store) QueryAutomationTriggers(
 	check func(*types.Trigger) (bool, error),
 ) ([]*types.Trigger, error) {
 	var (
+		tmp = make([]*types.Trigger, 0, DefaultSliceCapacity)
 		set = make([]*types.Trigger, 0, DefaultSliceCapacity)
 		res *types.Trigger
 
@@ -259,6 +260,11 @@ func (s Store) QueryAutomationTriggers(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryAutomationTriggers(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAutomationTriggerByID searches for trigger by ID

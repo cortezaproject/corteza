@@ -3,8 +3,8 @@ modules:
   Account:
     name: Account
     allow:
-      everyone:
+      authenticated:
       - read
     deny:
-      everyone:
+      authenticated:
       - delete

@@ -238,6 +238,7 @@ func (s Store) QueryFederationNodesSyncs(
 	check func(*types.NodeSync) (bool, error),
 ) ([]*types.NodeSync, error) {
 	var (
+		tmp = make([]*types.NodeSync, 0, DefaultSliceCapacity)
 		set = make([]*types.NodeSync, 0, DefaultSliceCapacity)
 		res *types.NodeSync
 
@@ -259,6 +260,11 @@ func (s Store) QueryFederationNodesSyncs(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryFederationNodesSyncs(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFederationNodesSyncByNodeID searches for sync activity by node ID

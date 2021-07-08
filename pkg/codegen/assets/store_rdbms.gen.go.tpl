@@ -293,6 +293,7 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 	check func(*{{ $.Types.GoType }}) (bool, error),
 ) ([]*{{ $.Types.GoType }}, error) {
 	var (
+		tmp = make([]*{{ $.Types.GoType }}, 0, DefaultSliceCapacity)
 		set = make([]*{{ $.Types.GoType }}, 0, DefaultSliceCapacity)
 		res  *{{ $.Types.GoType }}
 
@@ -314,6 +315,16 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+{{ if .RDBMS.CustomPostLoadProcessor }}
+	if err = s.{{ unexport $.Types.Singular }}PostLoadProcessor(ctx{{ template "extraArgsCall" . }}, tmp...); err != nil {
+		return nil, err
+	}
+{{end }}
+
+	for _, res = range tmp {
 	{{ if $.Search.EnableFilterCheckFn }}
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
@@ -328,13 +339,7 @@ func (s Store) {{ export "query" $.Types.Plural }} (
 		set = append(set, res)
 	}
 
-{{ if .RDBMS.CustomPostLoadProcessor }}
-	if err = s.{{ unexport $.Types.Singular }}PostLoadProcessor(ctx{{ template "extraArgsCall" . }}, set...); err != nil {
-		return nil, err
-	}
-{{end }}
-
-	return set, rows.Err()
+	return set, nil
 }
 
 

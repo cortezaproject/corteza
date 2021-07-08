@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func roleFromResource(r *resource.Role, cfg *EncoderConfig) *role {
@@ -17,7 +18,7 @@ func roleFromResource(r *resource.Role, cfg *EncoderConfig) *role {
 func (r *role) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	rl, ok := state.Res.(*resource.Role)
 	if !ok {
-		return encoderErrInvalidResource(resource.ROLE_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.RoleResourceType, state.Res.ResourceType())
 	}
 
 	r.res = rl.Res

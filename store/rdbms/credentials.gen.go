@@ -52,6 +52,7 @@ func (s Store) QueryCredentials(
 	check func(*types.Credentials) (bool, error),
 ) ([]*types.Credentials, error) {
 	var (
+		tmp = make([]*types.Credentials, 0, DefaultSliceCapacity)
 		set = make([]*types.Credentials, 0, DefaultSliceCapacity)
 		res *types.Credentials
 
@@ -73,10 +74,15 @@ func (s Store) QueryCredentials(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupCredentialsByID searches for credentials by ID

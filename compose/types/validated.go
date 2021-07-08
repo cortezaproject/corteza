@@ -48,6 +48,20 @@ func (v RecordValueErrorSet) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (v *RecordValueErrorSet) HasKind(kind string) bool {
+	if v == nil || v.IsValid() {
+		return false
+	}
+
+	for _, e := range v.Set {
+		if e.Kind == kind {
+			return true
+		}
+	}
+
+	return false
+}
+
 // IsRecordValueErrorSet tests if given error is RecordValueErrorSet (or it wraps it) and it has errors
 // If not is not (or !IsValid), it return nil!
 func IsRecordValueErrorSet(err error) *RecordValueErrorSet {

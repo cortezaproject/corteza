@@ -23,25 +23,10 @@ type (
 
 	pageAccessController interface {
 		CanReadNamespace(context.Context, *types.Namespace) bool
-		CanCreatePage(context.Context, *types.Namespace) bool
+		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
 		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
 		CanDeletePage(context.Context, *types.Page) bool
-	}
-
-	PageService interface {
-		FindByID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
-		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Page, error)
-		FindByPageID(ctx context.Context, namespaceID, pageID uint64) (*types.Page, error)
-		FindBySelfID(ctx context.Context, namespaceID, selfID uint64) (pages types.PageSet, f types.PageFilter, err error)
-		Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
-		Tree(ctx context.Context, namespaceID uint64) (pages types.PageSet, err error)
-
-		Create(ctx context.Context, page *types.Page) (*types.Page, error)
-		Update(ctx context.Context, page *types.Page) (*types.Page, error)
-		DeleteByID(ctx context.Context, namespaceID, pageID uint64) error
-
-		Reorder(ctx context.Context, namespaceID, selfID uint64, pageIDs []uint64) error
 	}
 
 	pageUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Page) (pageChanges, error)
@@ -54,7 +39,7 @@ const (
 	pageLabelsChanged pageChanges = 2
 )
 
-func Page() PageService {
+func Page() *page {
 	return &page{
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
@@ -225,7 +210,7 @@ func (svc page) Reorder(ctx context.Context, namespaceID, parentID uint64, pageI
 
 		if parentID == 0 {
 			// Reordering on root mode -- check if user can create pages.
-			if !svc.ac.CanCreatePage(ctx, ns) {
+			if !svc.ac.CanCreatePageOnNamespace(ctx, ns) {
 				return PageErrNotAllowedToUpdate()
 			}
 		} else {
@@ -267,7 +252,7 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return err
 		}
 
-		if !svc.ac.CanCreatePage(ctx, ns) {
+		if !svc.ac.CanCreatePageOnNamespace(ctx, ns) {
 			return PageErrNotAllowedToCreate()
 		}
 

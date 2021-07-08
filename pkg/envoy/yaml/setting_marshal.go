@@ -18,7 +18,7 @@ func settingFromResource(r *resource.Setting, cfg *EncoderConfig) *setting {
 func (n *setting) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	st, ok := state.Res.(*resource.Setting)
 	if !ok {
-		return encoderErrInvalidResource(resource.SETTINGS_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(resource.SettingsResourceType, state.Res.ResourceType())
 	}
 
 	n.res = &st.Res

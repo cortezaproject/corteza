@@ -1,13 +1,15 @@
 package commands
 
 import (
+	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 // Will perform OpenID connect auto-configuration
-func Sink(app serviceInitializer) *cobra.Command {
+func Sink(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		expires string
 		srup    = service.SinkRequestUrlParams{}

@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 )
 
@@ -49,11 +47,6 @@ type (
 		filter.Paging
 	}
 )
-
-// Resource returns a system resource ID for this type
-func (s QueueSettings) RBACResource() rbac.Resource {
-	return types.MessagebusQueueRBACResource.AppendID(s.ID)
-}
 
 func (h *QueueSettingsMeta) UnmarshalJSON(s []byte) error {
 	type Alias QueueSettingsMeta

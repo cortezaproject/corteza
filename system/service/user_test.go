@@ -14,33 +14,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Mock auth service with nil for current time, dummy provider validator and mock db
-func makeMockUserService() *user {
-	var (
-		ctx = context.Background()
-
-		mem, err = sqlite3.ConnectInMemory(ctx)
-
-		svc = &user{
-			settings: &types.AppSettings{},
-			ac:       AccessControl(rbac.NewService(zap.NewNop(), mem)),
-			eventbus: eventbus.New(),
-		}
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if err = store.Upgrade(ctx, zap.NewNop(), mem); err != nil {
-		panic(err)
-	}
-
-	svc.store = mem
-
-	return svc
-}
-
 func TestUser_ProtectedSearch(t *testing.T) {
 	const testRoleID = 123
 
@@ -55,20 +28,37 @@ func TestUser_ProtectedSearch(t *testing.T) {
 		err error
 
 		testUser = &types.User{ID: 42}
+
+		acRBAC = rbac.NewService(zap.NewNop(), nil)
+
+		s store.Storer
 	)
 
-	testUser.SetRoles([]uint64{testRoleID})
+	if s, err = sqlite3.ConnectInMemory(ctx); err != nil {
+		req.NoError(err)
+	} else if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
+		req.NoError(err)
+	}
+
+	acRBAC.UpdateRoles(rbac.CommonRole.Make(testRoleID, "test-role"))
+	req.NoError(acRBAC.Grant(ctx,
+		rbac.AllowRule(testRoleID, types.UserRbacResource(0), "read"),
+		rbac.DenyRule(testRoleID, masked.RbacResource(), "email.unmask"),
+		rbac.AllowRule(testRoleID, unmasked.RbacResource(), "email.unmask"),
+		rbac.DenyRule(testRoleID, masked.RbacResource(), "name.unmask"),
+		rbac.AllowRule(testRoleID, unmasked.RbacResource(), "name.unmask"),
+	))
+
+	testUser.SetRoles(testRoleID)
 	ctx = a.SetIdentityToContext(ctx, testUser)
 
-	svc := makeMockUserService()
+	svc := &user{
+		settings: &types.AppSettings{},
+		ac:       &accessControl{rbac: acRBAC},
+		eventbus: eventbus.New(),
+		store:    s,
+	}
 
-	svc.ac.(*accessControl).permissions.Grant(ctx, svc.ac.(*accessControl).Whitelist(),
-		rbac.AllowRule(testRoleID, (&types.User{}).RBACResource().AppendWildcard(), "read"),
-		rbac.DenyRule(testRoleID, masked.RBACResource(), "unmask.email"),
-		rbac.AllowRule(testRoleID, unmasked.RBACResource(), "unmask.email"),
-		rbac.DenyRule(testRoleID, masked.RBACResource(), "unmask.name"),
-		rbac.AllowRule(testRoleID, unmasked.RBACResource(), "unmask.name"),
-	)
 	req.NoError(store.CreateUser(ctx, svc.store, masked, unmasked))
 
 	t.Run("with disabled masking", func(t *testing.T) {

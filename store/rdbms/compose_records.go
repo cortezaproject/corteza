@@ -108,7 +108,7 @@ func (s Store) SearchComposeRecords(ctx context.Context, m *types.Module, f type
 
 		// Prevent sorting over multi-value fields
 		//
-		// Due to how values are currently storred, this causes duplication.
+		// Due to how values are currently stored, this causes duplication.
 		// For now, we'll prevent this and address in future releases.
 		for _, s := range f.Sort {
 			f := m.Fields.FindByName(s.Column)
@@ -300,8 +300,8 @@ func (s Store) composeRecordsPageNavigation(
 
 // LookupComposeRecordByID searches for compose record by ID
 // It returns compose record even if deleted
-func (s Store) LookupComposeRecordByID(ctx context.Context, _ *types.Module, id uint64) (res *types.Record, err error) {
-	res, err = s.lookupComposeRecordByID(ctx, nil, id)
+func (s Store) LookupComposeRecordByID(ctx context.Context, m *types.Module, id uint64) (res *types.Record, err error) {
+	res, err = s.lookupComposeRecordByID(ctx, m, id)
 	if err != nil {
 		return
 	}
@@ -317,7 +317,7 @@ func (s Store) CreateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 
 	for _, res := range rr {
 
-		err = s.createComposeRecord(ctx, nil, res)
+		err = s.createComposeRecord(ctx, m, res)
 		if err != nil {
 			return
 		}
@@ -325,7 +325,7 @@ func (s Store) CreateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 		// Make sure all record-values are linked to the record
 		res.Values.SetRecordID(res.ID)
 
-		err = s.createComposeRecordValue(ctx, nil, res.Values...)
+		err = s.createComposeRecordValue(ctx, m, res.Values...)
 		if err != nil {
 			return
 		}
@@ -341,7 +341,7 @@ func (s Store) UpdateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 	}
 
 	for _, res := range rr {
-		err = s.updateComposeRecord(ctx, nil, res)
+		err = s.updateComposeRecord(ctx, m, res)
 		if err != nil {
 			return
 		}
@@ -365,7 +365,7 @@ func (s Store) UpdateComposeRecord(ctx context.Context, m *types.Module, rr ...*
 			// Make sure all record-values are linked to the record
 			res.Values.SetRecordID(res.ID)
 
-			err = s.createComposeRecordValue(ctx, nil, res.Values.GetClean()...)
+			err = s.createComposeRecordValue(ctx, m, res.Values.GetClean()...)
 		}
 	}
 
@@ -414,8 +414,8 @@ func (s Store) UpsertComposeRecord(ctx context.Context, m *types.Module, rr ...*
 }
 
 // DeleteComposeRecordByID Deletes ComposeRecord from store
-func (s Store) DeleteComposeRecordByID(ctx context.Context, _ *types.Module, ID uint64) (err error) {
-	err = s.deleteComposeRecordByID(ctx, nil, ID)
+func (s Store) DeleteComposeRecordByID(ctx context.Context, m *types.Module, ID uint64) (err error) {
+	err = s.deleteComposeRecordByID(ctx, m, ID)
 	if err != nil {
 		return
 	}
@@ -429,13 +429,13 @@ func (s Store) DeleteComposeRecordByID(ctx context.Context, _ *types.Module, ID 
 }
 
 // TruncateComposeRecords Deletes all ComposeRecords from store
-func (s Store) TruncateComposeRecords(ctx context.Context, _ *types.Module) (err error) {
-	err = s.truncateComposeRecords(ctx, nil)
+func (s Store) TruncateComposeRecords(ctx context.Context, m *types.Module) (err error) {
+	err = s.truncateComposeRecords(ctx, m)
 	if err != nil {
 		return
 	}
 
-	err = s.truncateComposeRecordValues(ctx, nil)
+	err = s.truncateComposeRecordValues(ctx, m)
 	if err != nil {
 		return
 	}
@@ -599,15 +599,18 @@ func (s Store) composeRecordPostLoadProcessor(ctx context.Context, m *types.Modu
 		var (
 			rvs types.RecordValueSet
 		)
+
 		rvs, _, err = s.searchComposeRecordValues(ctx, nil, types.RecordValueFilter{
 			RecordID: types.RecordSet(set).IDs(),
 			Deleted:  filter.StateInclusive,
 		})
+
 		if err != nil {
 			return
 		}
 
 		for r := range set {
+			set[r].SetModule(m)
 			set[r].Values = rvs.FilterByRecordID(set[r].ID)
 		}
 	}

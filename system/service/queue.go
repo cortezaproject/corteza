@@ -16,22 +16,19 @@ type (
 	}
 
 	queueAccessController interface {
-		CanCreateMessagebusQueue(ctx context.Context) bool
-		CanReadMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-		CanUpdateMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-		CanDeleteMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-
-		CanReadFromMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-		CanWriteToMessagebusQueue(ctx context.Context, c *messagebus.QueueSettings) bool
+		CanCreateQueue(ctx context.Context) bool
+		CanReadQueue(ctx context.Context, c *messagebus.QueueSettings) bool
+		CanUpdateQueue(ctx context.Context, c *messagebus.QueueSettings) bool
+		CanDeleteQueue(ctx context.Context, c *messagebus.QueueSettings) bool
 	}
 )
 
 func Queue() *queue {
-	return (&queue{
+	return &queue{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueSettings, err error) {
@@ -50,7 +47,7 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueS
 
 		qProps.setQueue(q)
 
-		if !svc.ac.CanReadMessagebusQueue(ctx, q) {
+		if !svc.ac.CanReadQueue(ctx, q) {
 			return QueueErrNotAllowedToRead(qProps)
 		}
 
@@ -66,7 +63,7 @@ func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q 
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanCreateMessagebusQueue(ctx) {
+		if !svc.ac.CanCreateQueue(ctx) {
 			return QueueErrNotAllowedToCreate(qProps)
 		}
 
@@ -101,7 +98,7 @@ func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q 
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanUpdateMessagebusQueue(ctx, upd) {
+		if !svc.ac.CanUpdateQueue(ctx, upd) {
 			return QueueErrNotAllowedToUpdate(qProps)
 		}
 
@@ -153,7 +150,7 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		qProps.setQueue(q)
 
-		if !svc.ac.CanDeleteMessagebusQueue(ctx, q) {
+		if !svc.ac.CanDeleteQueue(ctx, q) {
 			return QueueErrNotAllowedToDelete(qProps)
 		}
 
@@ -188,7 +185,7 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		qProps.setQueue(q)
 
-		if !svc.ac.CanDeleteMessagebusQueue(ctx, q) {
+		if !svc.ac.CanDeleteQueue(ctx, q) {
 			return QueueErrNotAllowedToDelete(qProps)
 		}
 
@@ -213,7 +210,7 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *messagebus.QueueSettings) (bool, error) {
-		if !svc.ac.CanReadMessagebusQueue(ctx, res) {
+		if !svc.ac.CanReadQueue(ctx, res) {
 			return false, nil
 		}
 

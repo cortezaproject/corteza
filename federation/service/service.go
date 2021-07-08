@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	ss "github.com/cortezaproject/corteza-server/system/service"
@@ -85,7 +84,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl(rbac.Global())
+	DefaultAccessControl = AccessControl()
 
 	DefaultNode = Node(DefaultStore, service.DefaultUser, DefaultActionlog, auth.DefaultJwtHandler, c.Federation, DefaultAccessControl)
 	DefaultNodeSync = NodeSync()

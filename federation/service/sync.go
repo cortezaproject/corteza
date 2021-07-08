@@ -10,6 +10,7 @@ import (
 	cs "github.com/cortezaproject/corteza-server/compose/service"
 	ct "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	ss "github.com/cortezaproject/corteza-server/system/service"
 	st "github.com/cortezaproject/corteza-server/system/types"
@@ -62,6 +63,8 @@ func (s *Sync) CanUpdateSharedModule(ctx context.Context, new *types.SharedModul
 
 // ProcessPayload passes the payload to the syncer lib
 func (s *Sync) ProcessPayload(ctx context.Context, payload []byte, out chan Url, url types.SyncerURI, processer Processer) (ProcesserResponse, error) {
+	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
+
 	return s.syncer.Process(ctx, payload, out, url, processer)
 }
 
@@ -221,7 +224,7 @@ func (s *Sync) LoadUserWithRoles(ctx context.Context, nodeID uint64) (*st.User, 
 		return nil, err
 	}
 
-	u.SetRoles(rr.IDs())
+	u.SetRoles(rr.IDs()...)
 
 	return u, nil
 }

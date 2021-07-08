@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/rest/request"
 	"github.com/cortezaproject/corteza-server/federation/service"
 	"github.com/cortezaproject/corteza-server/federation/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/federation"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -193,9 +194,7 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 		return strings.Contains(u.Handle, "federation_"), nil
 	})
 
-	// TODO - remove once the federation users are doing the persist
-	//        on the data sync, for now, it's superuser
-	users = append(users, &st.User{ID: 10000000000000000})
+	users = append(users, auth.FederationUser())
 
 	query := buildLastSyncQuery(r.LastSync)
 	ignoredUsersQuery := buildIgnoredUsersQuery(users)

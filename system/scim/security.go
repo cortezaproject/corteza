@@ -2,16 +2,16 @@ package scim
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"net/http"
+
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 )
 
 type (
 	getSecurityContextFn func(r *http.Request) context.Context
 )
 
-// All actions are in security context of a superuser for now
-//
+// Set service user to request's identity
 func getSecurityContext(r *http.Request) context.Context {
-	return auth.SetSuperUserContext(r.Context())
+	return auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 }

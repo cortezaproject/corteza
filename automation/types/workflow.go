@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"time"
 )
 
@@ -94,11 +93,6 @@ type (
 		Input *expr.Vars
 	}
 )
-
-// Resource returns a resource ID for this type
-func (r *Workflow) RBACResource() rbac.Resource {
-	return WorkflowRBACResource.AppendID(r.ID)
-}
 
 // CheckDeferred returns true if any of the steps is deferred.
 //

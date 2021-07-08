@@ -163,7 +163,10 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			// so we can properly identify ourselves when interacting
 			// with services
 			if req.AuthUser != nil && !req.AuthUser.PendingMFA() {
-				req.Request = req.Request.Clone(auth.SetIdentityToContext(req.Context(), req.AuthUser.User))
+				req.Request = req.Request.Clone(auth.SetIdentityToContext(
+					req.Context(),
+					auth.Authenticated(req.AuthUser.User.ID, req.AuthUser.User.Roles()...),
+				))
 			}
 
 			// Alerts show for 1 session only!

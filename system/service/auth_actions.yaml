@@ -107,6 +107,11 @@ errors:
     log: "suspended user {user} tried to log-in with {credentials.kind}"
     severity: warning
 
+  - error: failedForSystemUser
+    maskedWith: invalidCredentials
+    log: "system user {user} tried to log-in with {credentials.kind}"
+    severity: warning
+
   - error: failedUnconfirmedEmail
     message: "system requires confirmed email before logging in"
     log: "failed to log-in with with unconfirmed email"

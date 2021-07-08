@@ -2,7 +2,6 @@ package yaml
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -33,29 +32,35 @@ func decodeRbac(n *yaml.Node) (rbacRuleSet, error) {
 	})
 }
 
-func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, error) {
+func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (oo rbacRuleSet, err error) {
 	if rr == nil {
-		rr = make(rbacRuleSet, 0, 10)
+		oo = make(rbacRuleSet, 0, 10)
+	} else {
+		oo = rr
 	}
-
-	var err error
 
 	parseOps := func(ops *yaml.Node, roleRef, res string) error {
 		return y7s.EachSeq(ops, func(op *yaml.Node) error {
 			rule := &rbacRule{
 				res: &rbac.Rule{
 					Access:    a,
-					Operation: rbac.Operation(op.Value),
+					Operation: op.Value,
 				},
 				refRole: roleRef,
 			}
-			rule.SetResource(res)
-			rr = append(rr, rule)
+
+			if res != "" {
+				if err = rule.SetResource(res); err != nil {
+					return fmt.Errorf("failed to decode RBAC rule for role '%s': %w", roleRef, err)
+				}
+			}
+
+			oo = append(oo, rule)
 			return nil
 		})
 	}
 
-	err = y7s.EachMap(rules, func(role, ops *yaml.Node) error {
+	return oo, y7s.EachMap(rules, func(role, ops *yaml.Node) error {
 		// If its a mapping node, keys represent resources
 		if ops.Kind == yaml.MappingNode {
 			err = y7s.EachMap(ops, func(res, ops *yaml.Node) error {
@@ -67,8 +72,6 @@ func (rr rbacRuleSet) decodeRbac(a rbac.Access, rules *yaml.Node) (rbacRuleSet, 
 
 		return nil
 	})
-
-	return rr, err
 }
 
 func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
@@ -77,79 +80,40 @@ func (rr rbacRuleSet) bindResource(resI resource.Interface) rbacRuleSet {
 		Identifiers:  resI.Identifiers(),
 	}
 
+	var path []*resource.Ref
+	if resRbac, ok := resI.(resource.RBACInterface); ok {
+		path = resRbac.RBACPath()
+	}
+
 	rtr := make(rbacRuleSet, 0, len(rr))
 	for _, r := range rr {
-		r.SetResource(ref.ResourceType)
+		_ = r.SetResource(ref.ResourceType)
 		r.refRes = ref
+		r.refPathRes = path
 		rtr = append(rtr, r)
 	}
 
 	return rtr
 }
 
-func (rr rbacRuleSet) setResource(res rbac.Resource) error {
-	for _, r := range rr {
-		if r.resource.String() != "" && res != r.resource {
-			return fmt.Errorf("cannot override resource %s with %s", r.resource, res)
-		}
-
-		r.resource = res
-	}
-
-	return nil
-}
-
-func (rr rbacRuleSet) setResourceRef(ref string) error {
-	for _, r := range rr {
-		if r.refResource != "" && ref != r.refResource {
-			return fmt.Errorf("cannot override resource reference %s with %s", r.refResource, ref)
-		}
-
-		r.refResource = ref
-	}
-
-	return nil
-}
-
 func (rr rbacRuleSet) MarshalEnvoy() ([]resource.Interface, error) {
 	var nn = make([]resource.Interface, 0, len(rr))
 
 	for _, r := range rr {
-		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.refRes))
+		nn = append(nn, resource.NewRbacRule(r.res, r.refRole, r.refRes, r.refPathRes...))
 	}
 	return nn, nil
 }
 
-func (r *rbacRule) SetResource(res string) {
-	if res == "" {
-		return
+func (r *rbacRule) SetResource(res string) error {
+	res, ref, pp, err := resource.ParseRule(res)
+	if err != nil {
+		return err
 	}
 
-	sp := ":"
-
-	res = strings.TrimSpace(res)
-	res = strings.TrimRight(res, sp)
-	rr := strings.Split(res, sp)
-
-	// When len is 1; only top-level defined (system, compose, ...)
-	if len(rr) == 1 {
-		r.res.Resource = rbac.Resource(res)
-		return
+	if res != "" {
+		r.res.Resource = res
 	}
 
-	// When len is 2; top-level and sub level defined (compose:namespace, system:user, ...)
-	if len(rr) == 2 {
-		r.res.Resource = rbac.Resource(res + sp)
-		return
-	}
-
-	//When len is 3; both levels defined; resource ref also provided
-	if len(rr) == 3 {
-		res = strings.Join(rr[0:2], sp) + sp
-		r.refRes = &resource.Ref{
-			ResourceType: strings.Join(rr[0:2], sp) + sp,
-			Identifiers:  resource.MakeIdentifiers(rr[2]),
-		}
-		r.res.Resource = rbac.Resource(res)
-	}
+	return r.bindRefs(ref, pp, err)
 }

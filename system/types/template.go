@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/pkg/errors"
 )
 
@@ -96,8 +95,4 @@ func (t TemplateMeta) Value() (driver.Value, error) {
 func (t Template) Clone() *Template {
 	c := &t
 	return c
-}
-
-func (r Template) RBACResource() rbac.Resource {
-	return TemplateRBACResource.AppendID(r.ID)
 }

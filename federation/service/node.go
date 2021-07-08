@@ -271,6 +271,9 @@ func (svc node) Pair(ctx context.Context, nodeID uint64) error {
 		return NodeErrNotAllowedToPair()
 	}
 
+	// elevate permissions for user lookup & creation!
+	ctx = auth.SetIdentityToContext(ctx, auth.FederationUser())
+
 	_, err := svc.updater(
 		ctx,
 		nodeID,
@@ -460,9 +463,6 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 	// Generate handle for user that se this node
 	uHandle := fmt.Sprintf("federation_%d", n.ID)
 
-	// elevate permissions for user lookup & creation!
-	ctx = auth.SetSuperUserContext(ctx)
-
 	u, err := svc.sysUser.FindByHandle(ctx, uHandle)
 	if err == nil {
 		// Reuse existing user
@@ -484,17 +484,20 @@ func (svc node) fetchFederatedUser(ctx context.Context, n *types.Node) (*sysType
 			return nil, err
 		}
 
-		u, err = svc.sysUser.Create(ctx, user)
+		// context with fed. user credentials
+		ctxfed := auth.SetIdentityToContext(ctx, auth.FederationUser())
+
+		u, err = svc.sysUser.Create(ctxfed, user)
 
 		if err != nil {
 			return nil, err
 		}
 
-		if err = service.DefaultRole.MemberAdd(ctx, r.ID, u.ID); err != nil {
+		if err = service.DefaultRole.MemberAdd(ctxfed, r.ID, u.ID); err != nil {
 			return nil, err
 		}
 
-		u.SetRoles(append(u.Roles(), r.ID))
+		u.SetRoles(append(u.Roles(), r.ID)...)
 
 		return u, nil
 	}

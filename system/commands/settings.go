@@ -1,19 +1,20 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"os"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/system/types"
+
 	"github.com/spf13/cobra"
 
-	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/system/service"
 )
 
-func Settings(app serviceInitializer) *cobra.Command {
+func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		cmd = &cobra.Command{
 			Use:   "settings",
@@ -26,10 +27,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		Short:   "List all",
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-			)
-
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultSettings.FindByPrefix(ctx, prefix); err != nil {
 				cli.HandleError(err)
@@ -57,10 +54,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
-			)
-
 			if v, err := service.DefaultSettings.Get(ctx, args[0], 0); err != nil {
 				cli.HandleError(err)
 			} else if v != nil {
@@ -75,11 +68,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
-			var (
-				err error
-				ctx = auth.SetSuperUserContext(cli.Context())
-			)
-
 			value := args[1]
 
 			v := &types.SettingValue{
@@ -87,16 +75,14 @@ func Settings(app serviceInitializer) *cobra.Command {
 			}
 
 			if cmd.Flags().Lookup("as-string").Changed {
-				err = v.SetValue(value)
+				cli.HandleError(v.SetValue(value))
 			} else {
-				err = v.SetRawValue(value)
+				err := v.SetRawValue(value)
 				if _, is := err.(*json.SyntaxError); is {
 					// Quote the raw value and re-parse
 					err = v.SetRawValue(`"` + value + `"`)
 				}
-			}
 
-			if err != nil {
 				cli.HandleError(err)
 			}
 
@@ -113,7 +99,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
 				fh  *os.File
 				err error
 			)
@@ -153,7 +138,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx = auth.SetSuperUserContext(cli.Context())
 				fh  *os.File
 				err error
 			)
@@ -186,7 +170,6 @@ func Settings(app serviceInitializer) *cobra.Command {
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
-				ctx   = auth.SetSuperUserContext(cli.Context())
 				names = []string{}
 			)
 

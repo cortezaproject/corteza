@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"sort"
 	"time"
 )
@@ -12,9 +11,10 @@ import (
 type (
 	// Modules - CRM module definitions
 	ModuleField struct {
-		ID       uint64 `json:"fieldID,string"`
-		ModuleID uint64 `json:"moduleID,string"`
-		Place    int    `json:"-"`
+		ID          uint64 `json:"fieldID,string"`
+		NamespaceID uint64 `json:"namspaceID,string"`
+		ModuleID    uint64 `json:"moduleID,string"`
+		Place       int    `json:"-"`
 
 		Kind  string `json:"kind"`
 		Name  string `json:"name"`
@@ -46,15 +46,6 @@ type (
 var (
 	_ sort.Interface = &ModuleFieldSet{}
 )
-
-// Resource returns a system resource ID for this type
-func (m ModuleField) RBACResource() rbac.Resource {
-	return ModuleFieldRBACResource.AppendID(m.ID)
-}
-
-func (m ModuleField) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
 
 func (m ModuleField) Clone() *ModuleField {
 	return &m

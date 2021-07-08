@@ -27,8 +27,8 @@ type (
 	}
 
 	exposedModuleAccessController interface {
-		CanCreateModule(ctx context.Context, r *types.Node) bool
-		CanManageModule(ctx context.Context, r *types.ExposedModule) bool
+		CanCreateModuleOnNode(ctx context.Context, r *types.Node) bool
+		CanManageExposedModule(ctx context.Context, r *types.ExposedModule) bool
 	}
 
 	ExposedModuleService interface {
@@ -42,7 +42,7 @@ type (
 	moduleUpdateHandler func(ctx context.Context, ns *types.Node, c *types.ExposedModule) (bool, bool, error)
 )
 
-func ExposedModule() ExposedModuleService {
+func ExposedModule() *exposedModule {
 	return &exposedModule{
 		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
@@ -81,7 +81,7 @@ func (svc exposedModule) FindByID(ctx context.Context, nodeID uint64, moduleID u
 			return err
 		}
 
-		if !svc.ac.CanManageModule(ctx, module) {
+		if !svc.ac.CanManageExposedModule(ctx, module) {
 			return ExposedModuleErrNotAllowedToManage()
 		}
 
@@ -107,7 +107,7 @@ func (svc exposedModule) Update(ctx context.Context, updated *types.ExposedModul
 			return ExposedModuleErrNodeNotFound()
 		}
 
-		if !svc.ac.CanManageModule(ctx, updated) {
+		if !svc.ac.CanManageExposedModule(ctx, updated) {
 			return ExposedModuleErrNotAllowedToManage()
 		}
 
@@ -193,7 +193,7 @@ func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64
 			return err
 		}
 
-		if !svc.ac.CanManageModule(ctx, m) {
+		if !svc.ac.CanManageExposedModule(ctx, m) {
 			return ExposedModuleErrNotAllowedToManage()
 		}
 
@@ -214,7 +214,7 @@ func (svc exposedModule) DeleteByID(ctx context.Context, nodeID, moduleID uint64
 
 func (svc exposedModule) Find(ctx context.Context, filter types.ExposedModuleFilter) (set types.ExposedModuleSet, f types.ExposedModuleFilter, err error) {
 	filter.Check = func(res *types.ExposedModule) (bool, error) {
-		if !svc.ac.CanManageModule(ctx, res) {
+		if !svc.ac.CanManageExposedModule(ctx, res) {
 			return false, ExposedModuleErrNotAllowedToManage()
 		}
 
@@ -248,7 +248,7 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 			return ExposedModuleErrNodeNotFound()
 		}
 
-		if !svc.ac.CanCreateModule(ctx, node) {
+		if !svc.ac.CanCreateModuleOnNode(ctx, node) {
 			return ExposedModuleErrNotAllowedToCreate()
 		}
 
@@ -276,8 +276,8 @@ func (svc exposedModule) Create(ctx context.Context, new *types.ExposedModule) (
 		}
 
 		if fedRole != nil {
-			// get first id from role and add it as an allow rule
-			err = cs.DefaultAccessControl.Grant(ctx, rbac.AllowRule(fedRole.ID, m.RBACResource(), "record.read"))
+			// get first ID from role and add it as allow rule
+			err = cs.DefaultAccessControl.Grant(ctx, rbac.AllowRule(fedRole.ID, ct.RecordRbacResource(m.NamespaceID, m.ID, 0), "read"))
 		}
 
 		// set labels

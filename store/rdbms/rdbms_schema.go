@@ -202,6 +202,7 @@ func (Schema) Roles() *Table {
 		ID,
 		ColumnDef("name", ColumnTypeText),
 		ColumnDef("handle", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("meta", ColumnTypeJson),
 		ColumnDef("archived_at", ColumnTypeTimestamp, Null),
 		CUDTimestamps,
 

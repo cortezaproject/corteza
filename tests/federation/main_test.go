@@ -15,14 +15,12 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 )
 
 type (
@@ -52,10 +50,8 @@ func InitTestApp() {
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
 			app.Opt.Federation.Enabled = true
-
 			service.DefaultLogger = app.Log
 			service.DefaultStore = app.Store
-			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
 
 			eventbus.Set(eventBus)
 			return nil
@@ -86,12 +82,14 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
-	h.cUser.SetRoles([]uint64{h.roleID})
-
-	rbac.Global().(*rbac.TestService).ClearGrants()
-	h.mockPermissionsWithAccess()
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
 
 	return h
+}
+
+func (h helper) MyRole() uint64 {
+	return h.roleID
 }
 
 // Returns context w/ security details
@@ -108,31 +106,6 @@ func (h helper) apiInit() *apitest.APITest {
 		Handler(r).
 		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
 
-}
-
-func (h helper) mockPermissions(rules ...*rbac.Rule) {
-	h.noError(rbac.Global().Grant(
-		// TestService we use does not have any backend storage,
-		context.Background(),
-		// We want to make sure we did not make a mistake with any of the mocked resources or actions
-		service.DefaultAccessControl.Whitelist(),
-		rules...,
-	))
-}
-
-// Prepends allow access rule for federation service for everyone
-func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	h.mockPermissions(rules...)
-}
-
-// Set allow permision for test role
-func (h helper) allow(r rbac.Resource, o rbac.Operation) {
-	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
-}
-
-// set deny permission for test role
-func (h helper) deny(r rbac.Resource, o rbac.Operation) {
-	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester

@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 func templateFromResource(r *resource.Template, cfg *EncoderConfig) *template {
@@ -17,7 +18,7 @@ func templateFromResource(r *resource.Template, cfg *EncoderConfig) *template {
 func (t *template) Prepare(ctx context.Context, state *envoy.ResourceState) (err error) {
 	us, ok := state.Res.(*resource.Template)
 	if !ok {
-		return encoderErrInvalidResource(resource.TEMPLATE_RESOURCE_TYPE, state.Res.ResourceType())
+		return encoderErrInvalidResource(types.TemplateResourceType, state.Res.ResourceType())
 	}
 
 	t.res = us.Res

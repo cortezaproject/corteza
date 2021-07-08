@@ -238,6 +238,7 @@ func (s Store) QueryAutomationSessions(
 	check func(*types.Session) (bool, error),
 ) ([]*types.Session, error) {
 	var (
+		tmp = make([]*types.Session, 0, DefaultSliceCapacity)
 		set = make([]*types.Session, 0, DefaultSliceCapacity)
 		res *types.Session
 
@@ -259,6 +260,11 @@ func (s Store) QueryAutomationSessions(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryAutomationSessions(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAutomationSessionByID searches for session by ID

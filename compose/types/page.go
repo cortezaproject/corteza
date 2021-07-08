@@ -8,8 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -80,15 +78,6 @@ type (
 		filter.Paging
 	}
 )
-
-// Resource returns a system resource ID for this type
-func (p Page) RBACResource() rbac.Resource {
-	return PageRBACResource.AppendID(p.ID)
-}
-
-func (p Page) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
 
 func (m Page) Clone() *Page {
 	c := &m

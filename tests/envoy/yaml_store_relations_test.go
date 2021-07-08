@@ -29,11 +29,13 @@ func TestYamlStore_relations(t *testing.T) {
 	)
 
 	var (
-		ctx       = auth.SetSuperUserContext(context.Background())
+		ctx       = context.Background()
 		namespace = "relations"
-		s         = initStore(ctx, t)
+		s         = initServices(ctx, t)
 		err       error
 	)
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {

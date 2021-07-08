@@ -52,8 +52,8 @@ type (
 	}
 
 	recordAccessController interface {
-		CanUpdateRecord(context.Context, *types.Module) bool
-		CanDeleteRecord(context.Context, *types.Module) bool
+		CanUpdateRecord(context.Context, *types.Record) bool
+		CanDeleteRecord(context.Context, *types.Record) bool
 	}
 )
 
@@ -495,7 +495,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 
 		// Find only the stream we are interested in
 		for _, s := range ss {
-			if s.Resource == resource.COMPOSE_RECORD_RESOURCE_TYPE {
+			if s.Resource == types.RecordResourceType {
 				io.Copy(w, s.Source)
 			}
 		}
@@ -562,8 +562,8 @@ func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, err err
 		Record:  rr[0],
 		Records: rr[1:],
 
-		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
-		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
+		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, rr[0]),
+		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, rr[0]),
 	}, nil
 }
 
@@ -575,8 +575,8 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 	return &recordPayload{
 		Record: r,
 
-		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
-		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
+		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, r),
+		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, r),
 	}, nil
 }
 

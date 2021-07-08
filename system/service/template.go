@@ -56,14 +56,14 @@ type (
 	}
 )
 
-func Renderer(cfg options.TemplateOpt) TemplateService {
-	return (&template{
+func Renderer(cfg options.TemplateOpt) *template {
+	return &template{
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 
 		renderer: renderer.Renderer(cfg),
-	})
+	}
 }
 
 func (svc template) FindByID(ctx context.Context, ID uint64) (tpl *types.Template, err error) {

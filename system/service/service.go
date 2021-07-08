@@ -7,7 +7,6 @@ import (
 
 	automationService "github.com/cortezaproject/corteza-server/automation/service"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -28,16 +27,12 @@ type (
 		Send(kind string, payload interface{}, userIDs ...uint64) error
 	}
 
-	RBACServicer interface {
-		accessControlRBACServicer
-		Watch(ctx context.Context)
-	}
-
 	Config struct {
 		ActionLog options.ActionLogOpt
 		Storage   options.ObjectStoreOpt
 		Template  options.TemplateOpt
 		Auth      options.AuthOpt
+		RBAC      options.RBACOpt
 	}
 
 	eventDispatcher interface {
@@ -73,8 +68,8 @@ var (
 
 	DefaultAuth        *auth
 	DefaultAuthClient  *authClient
-	DefaultUser        UserService
-	DefaultRole        RoleService
+	DefaultUser        *user
+	DefaultRole        *role
 	DefaultApplication *application
 	DefaultReminder    ReminderService
 	DefaultAttachment  AttachmentService
@@ -120,7 +115,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl(rbac.Global())
+	DefaultAccessControl = AccessControl()
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, CurrentSettings)
 
@@ -165,14 +160,18 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth()
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
-	DefaultUser = User(ctx)
-	DefaultRole = Role(ctx)
+	DefaultUser = User()
+	DefaultRole = Role()
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultAttachment = Attachment(DefaultObjectStore)
 	DefaultQueue = Queue()
+
+	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
+		return err
+	}
 
 	automationService.DefaultUser = DefaultUser
 
@@ -204,7 +203,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 func Activate(ctx context.Context) (err error) {
 	// Run initial update of current settings with super-user credentials
-	err = DefaultSettings.UpdateCurrent(intAuth.SetSuperUserContext(ctx))
+	err = DefaultSettings.UpdateCurrent(ctx)
 	if err != nil {
 		return
 	}

@@ -52,6 +52,7 @@ func (s Store) QueryAttachments(
 	check func(*types.Attachment) (bool, error),
 ) ([]*types.Attachment, error) {
 	var (
+		tmp = make([]*types.Attachment, 0, DefaultSliceCapacity)
 		set = make([]*types.Attachment, 0, DefaultSliceCapacity)
 		res *types.Attachment
 
@@ -73,6 +74,11 @@ func (s Store) QueryAttachments(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -86,7 +92,7 @@ func (s Store) QueryAttachments(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupAttachmentByID searches for attachment by its ID

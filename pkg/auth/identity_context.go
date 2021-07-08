@@ -12,18 +12,13 @@ func SetIdentityToContext(ctx context.Context, identity Identifiable) context.Co
 	return context.WithValue(ctx, identityCtxKey{}, identity)
 }
 
+// GetIdentityFromContext always returns identity, either valid or anonymous
+//
+// For anonymous user, it auto appends all anonymous defined on the system
 func GetIdentityFromContext(ctx context.Context) Identifiable {
-	if identity, ok := ctx.Value(identityCtxKey{}).(Identifiable); ok && identity != nil {
+	if identity, ok := ctx.Value(identityCtxKey{}).(Identifiable); ok && identity != nil && identity.Valid() {
 		return identity
 	} else {
-		return NewIdentity(0)
+		return Anonymous()
 	}
-}
-
-// SetSuperUserContext stores system user as identity
-// and accompanying JWT for it to the context
-func SetSuperUserContext(ctx context.Context) context.Context {
-	su := NewSuperUserIdentity()
-
-	return SetIdentityToContext(ctx, su)
 }

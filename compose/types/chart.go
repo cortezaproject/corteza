@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/pkg/errors"
 )
 
@@ -65,15 +64,6 @@ type (
 		filter.Paging
 	}
 )
-
-// Resource returns a system resource ID for this type
-func (c Chart) RBACResource() rbac.Resource {
-	return ChartRBACResource.AppendID(c.ID)
-}
-
-func (c Chart) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
 
 // FindByHandle finds chart by it's handle
 func (set ChartSet) FindByHandle(handle string) *Chart {

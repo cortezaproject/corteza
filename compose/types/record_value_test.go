@@ -36,13 +36,52 @@ func TestRecordValueSet_Set(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.set.Set(&tt.new); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Set() = %v, want %v", got, tt.want)
+				t.Errorf("got:\n%+v\n\nwant\n%+v", got, tt.want)
 			}
 		})
 	}
 }
 
 func TestRecordValueSet_Merge(t *testing.T) {
+	tests := []struct {
+		name string
+		set  RecordValueSet
+		new  RecordValueSet
+		mfs  ModuleFieldSet
+		fn   func(f *ModuleField) bool
+		want RecordValueSet
+	}{
+		{
+			name: "update with partial access",
+			set:  RecordValueSet{{Name: "n", Value: "1"}, {Name: "accessible", Value: "skip me"}, {Name: "inaccessible", Value: "don't skip me"}},
+			new:  RecordValueSet{{Name: "n", Value: "2"}},
+			mfs: ModuleFieldSet{
+				&ModuleField{Name: "n"},
+				&ModuleField{Name: "accessible"},
+				&ModuleField{Name: "inaccessible"},
+			},
+			fn: func(f *ModuleField) bool {
+				// is field accessible?
+				return f.Name == "accessible"
+			},
+			want: RecordValueSet{
+				{Name: "n", Value: "2", OldValue: "1", Updated: true},
+				{Name: "accessible", Value: "skip me", OldValue: "skip me", Updated: true, DeletedAt: &time.Time{}},
+				{Name: "inaccessible", Value: "don't skip me", OldValue: "don't skip me"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.set.Merge(tt.mfs, tt.new, tt.fn); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got:\n%+v\n\nwant\n%+v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRecordValueSet_merge(t *testing.T) {
 	tests := []struct {
 		name string
 		set  RecordValueSet
@@ -94,7 +133,7 @@ func TestRecordValueSet_Merge(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.set.Merge(tt.new); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.set.merge(tt.new); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("got:\n%+v\n\nwant\n%+v", got, tt.want)
 			}
 		})

@@ -171,7 +171,7 @@ func (ctrl ManageStructure) makeSharedModulePayload(ctx context.Context, sm *typ
 	return &sharedModulePayload{
 		SharedModule: sm,
 
-		CanMapModule: service.DefaultAccessControl.CanMapModule(ctx, sm),
+		CanMapModule: service.DefaultAccessControl.CanMapSharedModule(ctx, sm),
 	}, nil
 }
 
@@ -183,7 +183,7 @@ func (ctrl ManageStructure) makeExposedModulePayload(ctx context.Context, em *ty
 	return &exposedModulePayload{
 		ExposedModule: em,
 
-		CanManageModule: service.DefaultAccessControl.CanManageModule(ctx, em),
+		CanManageModule: service.DefaultAccessControl.CanManageExposedModule(ctx, em),
 	}, nil
 }
 

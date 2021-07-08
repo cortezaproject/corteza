@@ -9,8 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -71,6 +69,9 @@ type (
 		Handle   string   `json:"handle"`
 		Kind     UserKind `json:"kind"`
 
+		// Set to true if you want to get all kinds/types of users
+		AllKinds bool `json:"anyKind"`
+
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
 
@@ -107,7 +108,7 @@ type (
 
 const (
 	NormalUser UserKind = ""
-	BotUser    UserKind = "bot"
+	SystemUser UserKind = "sys"
 )
 
 func (u User) String() string {
@@ -126,17 +127,31 @@ func (u User) Roles() []uint64 {
 	return u.roles
 }
 
-func (u *User) SetRoles(rr []uint64) {
+func (u *User) SetRoles(rr ...uint64) {
 	u.roles = rr
 }
 
-// Resource returns a resource ID for this type
-func (u *User) RBACResource() rbac.Resource {
-	return UserRBACResource.AppendID(u.ID)
-}
+func (u *User) Clone() *User {
+	if u == nil {
+		return nil
+	}
 
-func (u *User) DynamicRoles(userID uint64) []uint64 {
-	return nil
+	return &User{
+		ID:             u.ID,
+		Username:       u.Username,
+		Email:          u.Email,
+		Name:           u.Name,
+		Handle:         u.Handle,
+		Kind:           u.Kind,
+		Meta:           u.Meta,
+		EmailConfirmed: u.EmailConfirmed,
+		Labels:         u.Labels,
+		CreatedAt:      u.CreatedAt,
+		UpdatedAt:      u.UpdatedAt,
+		SuspendedAt:    u.SuspendedAt,
+		DeletedAt:      u.DeletedAt,
+		roles:          u.roles,
+	}
 }
 
 func (meta *UserMeta) Scan(value interface{}) error {

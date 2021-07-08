@@ -17,7 +17,7 @@ type (
 
 func NewUser(u *types.User) *User {
 	r := &User{base: &base{}}
-	r.SetResourceType(USER_RESOURCE_TYPE)
+	r.SetResourceType(types.UserResourceType)
 	r.Res = u
 
 	r.AddIdentifier(identifiers(u.Handle, u.Email, u.Name, u.ID)...)

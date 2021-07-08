@@ -3,6 +3,11 @@ package compose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/id"
@@ -10,10 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearPages() {
@@ -56,8 +57,8 @@ func TestPageRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
 
@@ -75,8 +76,8 @@ func TestPageReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.repoMakePage(ns, "some-page")
 
@@ -92,7 +93,7 @@ func TestPageList(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.repoMakePage(ns, "app")
@@ -106,24 +107,24 @@ func TestPageList(t *testing.T) {
 		End()
 }
 
-func TestPageList_filterForbiden(t *testing.T) {
+func TestPageList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace")
 
 	h.repoMakePage(ns, "page")
-	f := h.repoMakePage(ns, "page_forbiden")
+	f := h.repoMakePage(ns, "page_forbidden")
 
-	h.deny(types.PageRBACResource.AppendID(f.ID), "read")
+	helpers.DenyMe(h, types.PageRbacResource(f.NamespaceID, f.ID), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/page/", ns.ID)).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.NotPresent(`$.response.set[? @.title=="page_forbiden"]`)).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.title=="page_forbidden"]`)).
 		End()
 }
 
@@ -147,8 +148,8 @@ func TestPageCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "page.create")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "page.create")
 
 	ns := h.makeNamespace("some-namespace")
 
@@ -165,7 +166,7 @@ func TestPageUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
 
@@ -183,10 +184,10 @@ func TestPageUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace")
 	res := h.repoMakePage(ns, "some-page")
-	h.allow(types.PageRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/page/%d", ns.ID, res.ID)).
@@ -205,8 +206,8 @@ func TestPageReorder(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.PageRBACResource.AppendWildcard(), "update")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace")
 	res := h.repoMakePage(ns, "some-page")
 
@@ -222,8 +223,8 @@ func TestPageDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
 
@@ -240,9 +241,9 @@ func TestPageDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "delete")
 
 	ns := h.makeNamespace("some-namespace")
 	res := h.repoMakePage(ns, "some-page")
@@ -262,8 +263,8 @@ func TestPageTreeRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	h.repoMakeWeightedPage(ns, "p1", 1)
 	h.repoMakeWeightedPage(ns, "p4", 4)
@@ -286,11 +287,11 @@ func TestPageLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "read")
-	h.allow(types.NamespaceRBACResource.AppendWildcard(), "page.create")
-	h.allow(types.PageRBACResource.AppendWildcard(), "read")
-	h.allow(types.PageRBACResource.AppendWildcard(), "update")
-	h.allow(types.PageRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "page.create")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
+	helpers.AllowMe(h, types.PageRbacResource(0, 0), "delete")
 
 	var (
 		ns = h.makeNamespace("some-namespace")

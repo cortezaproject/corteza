@@ -238,6 +238,7 @@ func (s Store) QueryUsers(
 	check func(*types.User) (bool, error),
 ) ([]*types.User, error) {
 	var (
+		tmp = make([]*types.User, 0, DefaultSliceCapacity)
 		set = make([]*types.User, 0, DefaultSliceCapacity)
 		res *types.User
 
@@ -259,6 +260,11 @@ func (s Store) QueryUsers(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryUsers(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupUserByID searches for user by ID

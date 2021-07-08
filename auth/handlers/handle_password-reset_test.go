@@ -72,7 +72,7 @@ func Test_resetPasswordForm(t *testing.T) {
 				authService = &authServiceMocked{
 					validatePasswordResetToken: func(ctx context.Context, token string) (user *types.User, err error) {
 						u := makeMockUser(ctx)
-						u.SetRoles([]uint64{})
+						u.SetRoles()
 
 						return u, nil
 					},

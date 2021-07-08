@@ -152,7 +152,7 @@ func AssertBody(expected string) assertFn {
 	}
 }
 
-// AssertErrorP checks if the expected error is part of the error messsage
+// AssertErrorP checks if the expected error is part of the error message
 func AssertErrorP(expectedError string) assertFn {
 	return func(rsp *http.Response, _ *http.Request) (err error) {
 		tmp := StdErrorResponse{}

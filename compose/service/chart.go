@@ -21,20 +21,10 @@ type (
 
 	chartAccessController interface {
 		CanReadNamespace(context.Context, *types.Namespace) bool
-		CanCreateChart(context.Context, *types.Namespace) bool
+		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
 		CanReadChart(context.Context, *types.Chart) bool
 		CanUpdateChart(context.Context, *types.Chart) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
-	}
-
-	ChartService interface {
-		FindByID(ctx context.Context, namespaceID, chartID uint64) (*types.Chart, error)
-		FindByHandle(ctx context.Context, namespaceID uint64, handle string) (*types.Chart, error)
-		Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
-
-		Create(ctx context.Context, chart *types.Chart) (*types.Chart, error)
-		Update(ctx context.Context, chart *types.Chart) (*types.Chart, error)
-		DeleteByID(ctx context.Context, namespaceID, chartID uint64) error
 	}
 
 	chartUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.Chart) (chartChanges, error)
@@ -48,12 +38,12 @@ const (
 	chartLabelsChanged chartChanges = 2
 )
 
-func Chart() ChartService {
-	return (&chart{
+func Chart() *chart {
+	return &chart{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
-	})
+	}
 }
 
 func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error) {
@@ -150,7 +140,7 @@ func (svc chart) Create(ctx context.Context, new *types.Chart) (*types.Chart, er
 
 		aProps.setNamespace(ns)
 
-		if !svc.ac.CanCreateChart(ctx, ns) {
+		if !svc.ac.CanCreateChartOnNamespace(ctx, ns) {
 			return ChartErrNotAllowedToCreate()
 		}
 

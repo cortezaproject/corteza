@@ -23,6 +23,8 @@ type (
 
 	applicationAccessController interface {
 		CanCreateApplication(context.Context) bool
+		CanSelfApplicationFlag(context.Context) bool
+		CanGlobalApplicationFlag(context.Context) bool
 		CanReadApplication(context.Context, *types.Application) bool
 		CanUpdateApplication(context.Context, *types.Application) bool
 		CanDeleteApplication(context.Context, *types.Application) bool
@@ -307,6 +309,36 @@ func (svc *application) Undelete(ctx context.Context, ID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, aaProps, ApplicationActionUndelete, err)
+}
+
+func (svc *application) Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error {
+	if err := svc.checkFlag(ctx, ownedBy); err != nil {
+		return err
+	}
+
+	return flag.Create(ctx, svc.store, app, ownedBy, f)
+}
+
+func (svc *application) Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error {
+	if err := svc.checkFlag(ctx, ownedBy); err != nil {
+		return err
+	}
+
+	return flag.Delete(ctx, svc.store, app, ownedBy, f)
+}
+
+func (svc *application) checkFlag(ctx context.Context, ownedBy uint64) error {
+	if ownedBy == 0 {
+		if !svc.ac.CanGlobalApplicationFlag(ctx) {
+			return ApplicationErrNotAllowedToManageFlagGlobal()
+		}
+	} else {
+		if ownedBy != a.GetIdentityFromContext(ctx).Identity() || !svc.ac.CanSelfApplicationFlag(ctx) {
+			return ApplicationErrNotAllowedToManageFlag()
+		}
+	}
+
+	return nil
 }
 
 func (svc *application) Reorder(ctx context.Context, order []uint64) (err error) {
