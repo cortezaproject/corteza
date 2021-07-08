@@ -49,6 +49,7 @@ func (s Store) QueryRbacRules(
 	check func(*rbac.Rule) (bool, error),
 ) ([]*rbac.Rule, error) {
 	var (
+		tmp = make([]*rbac.Rule, 0, DefaultSliceCapacity)
 		set = make([]*rbac.Rule, 0, DefaultSliceCapacity)
 		res *rbac.Rule
 
@@ -70,10 +71,15 @@ func (s Store) QueryRbacRules(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // CreateRbacRule creates one or more rows in rbac_rules table

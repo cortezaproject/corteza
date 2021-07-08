@@ -27,9 +27,6 @@ type (
 		CanUpdateModule bool `json:"canUpdateModule"`
 		CanDeleteModule bool `json:"canDeleteModule"`
 		CanCreateRecord bool `json:"canCreateRecord"`
-		CanReadRecord   bool `json:"canReadRecord"`
-		CanUpdateRecord bool `json:"canUpdateRecord"`
-		CanDeleteRecord bool `json:"canDeleteRecord"`
 	}
 
 	moduleFieldPayload struct {
@@ -50,10 +47,10 @@ type (
 
 		CanUpdateModule(context.Context, *types.Module) bool
 		CanDeleteModule(context.Context, *types.Module) bool
-		CanCreateRecord(context.Context, *types.Module) bool
-		CanReadRecord(context.Context, *types.Module) bool
-		CanUpdateRecord(context.Context, *types.Module) bool
-		CanDeleteRecord(context.Context, *types.Module) bool
+		CanCreateRecordOnModule(context.Context, *types.Module) bool
+		CanReadRecord(context.Context, *types.Record) bool
+		CanUpdateRecord(context.Context, *types.Record) bool
+		CanDeleteRecord(context.Context, *types.Record) bool
 
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
@@ -180,10 +177,7 @@ func (ctrl Module) makePayload(ctx context.Context, m *types.Module, err error) 
 
 		CanUpdateModule: ctrl.ac.CanUpdateModule(ctx, m),
 		CanDeleteModule: ctrl.ac.CanDeleteModule(ctx, m),
-		CanCreateRecord: ctrl.ac.CanCreateRecord(ctx, m),
-		CanReadRecord:   ctrl.ac.CanReadRecord(ctx, m),
-		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, m),
-		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, m),
+		CanCreateRecord: ctrl.ac.CanCreateRecordOnModule(ctx, m),
 	}, nil
 }
 

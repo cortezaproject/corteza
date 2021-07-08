@@ -192,6 +192,11 @@ func findComposeModuleFieldsStore(ctx context.Context, s store.Storer, mod *type
 		return nil, err
 	}
 
+	_ = ff.Walk(func(f *types.ModuleField) error {
+		f.NamespaceID = mod.NamespaceID
+		return nil
+	})
+
 	return ff, nil
 }
 

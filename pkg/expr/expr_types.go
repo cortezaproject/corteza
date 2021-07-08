@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/PaesslerAG/gval"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/spf13/cast"

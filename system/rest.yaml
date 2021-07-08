@@ -42,7 +42,7 @@ endpoints:
         type: string
       - name: deleted
         required: false
-        title: Exclude (0, default), include (1) or return only (2) deleted roles
+        title: Exclude (0, default), include (1) or return only (2) deleted clients
         type: uint
       - type: map[string]string
         name: labels
@@ -219,6 +219,7 @@ endpoints:
   - Session ID
   imports:
     - github.com/cortezaproject/corteza-server/pkg/label
+    - github.com/cortezaproject/corteza-server/system/types
   apis:
   - name: list
     method: GET
@@ -226,80 +227,37 @@ endpoints:
     path: "/"
     parameters:
       get:
-      - type: string
-        name: query
-        required: false
-        title: Search query
-      - name: deleted
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) deleted roles
-        type: uint
-      - name: archived
-        required: false
-        title: Exclude (0, default), include (1) or return only (2) achived roles
-        type: uint
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
-      - type: uint
-        name: limit
-        title: Limit
-      - type: string
-        name: pageCursor
-        title: Page cursor
-      - type: string
-        name: sort
-        title: Sort items
+      - { type: "string",            name: "query",      title: "Search query" }
+      - { type: "uint",              name: "deleted",    title: "Exclude (0, default), include (1) or return only (2) deleted roles" }
+      - { type: "uint",              name: "archived",   title: "Exclude (0, default), include (1) or return only (2) archived roles" }
+      - { type: "map[string]string", name: "labels",     title: "Labels", parser: "label.ParseStrings" }
+      - { type: "uint",              name: "limit",      title: "Limit" }
+      - { type: "string",            name: "pageCursor", title: "Page cursor" }
+      - { type: "string",            name: "sort",       title: "Sort items" }
   - name: create
     method: POST
     title: Update role details
     path: "/"
     parameters:
       post:
-      - type: string
-        name: name
-        required: true
-        title: Name of Role
-      - type: string
-        name: handle
-        required: true
-        title: Handle for Role
-      - type: "[]string"
-        name: members
-        required: false
-        title: Role member IDs
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
+      - { type: "string",             name: "name",       required: true,  title: "Name of role" }
+      - { type: "string",             name: "handle",     required: true,  title: "Handle for role" }
+      - { type: "[]string",           name: "members",                     title: "role member IDs" }
+      - { type: "*types.RoleMeta",    name: "meta",                        title: "Meta",           parser: "types.ParseRoleMeta" }
+      - { type: "map[string]string",  name: "labels",                      title: "Labels",         parser: "label.ParseStrings" }
   - name: update
     method: PUT
     title: Update role details
     path: "/{roleID}"
     parameters:
       path:
-      - type: uint64
-        name: roleID
-        required: true
-        title: Role ID
+      - { type: "uint64",             name: "roleID",     required: true,  title: Role ID }
       post:
-      - type: string
-        name: name
-        required: false
-        title: Name of Role
-      - type: string
-        name: handle
-        required: false
-        title: Handle for Role
-      - type: "[]string"
-        name: members
-        required: false
-        title: Role member IDs
-      - type: map[string]string
-        name: labels
-        title: Labels
-        parser: label.ParseStrings
+      - { type: "string",             name: "name",       required: false, title: "Name of role" }
+      - { type: "string",             name: "handle",     required: false, title: "Handle for role" }
+      - { type: "[]string",           name: "members",    required: false, title: "role member IDs" }
+      - { type: "*types.RoleMeta",    name: "meta",                        title: "Meta",            parser: "types.ParseRoleMeta" }
+      - { type: "map[string]string",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
   - name: read
     method: GET
     title: Read role details and memberships

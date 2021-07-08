@@ -33,6 +33,8 @@ type (
 		Delete(ctx context.Context, ID uint64) (err error)
 		Undelete(ctx context.Context, ID uint64) (err error)
 		Reorder(ctx context.Context, order []uint64) (err error)
+		Flag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
+		Unflag(ctx context.Context, app *types.Application, ownedBy uint64, f string) error
 	}
 
 	applicationAccessController interface {
@@ -209,17 +211,8 @@ func (ctrl *Application) FlagCreate(ctx context.Context, r *request.ApplicationF
 		return nil, err
 	}
 
-	if r.OwnedBy == 0 {
-		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
-		}
-	} else {
-		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlag()
-		}
-	}
+	return api.OK(), ctrl.application.Flag(ctx, app, r.OwnedBy, r.Flag)
 
-	return api.OK(), flag.Create(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
 }
 
 func (ctrl *Application) FlagDelete(ctx context.Context, r *request.ApplicationFlagDelete) (interface{}, error) {
@@ -228,17 +221,7 @@ func (ctrl *Application) FlagDelete(ctx context.Context, r *request.ApplicationF
 		return nil, err
 	}
 
-	if r.OwnedBy == 0 {
-		if !service.DefaultAccessControl.CanGlobalFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlagGlobal()
-		}
-	} else {
-		if !service.DefaultAccessControl.CanSelfFlagApplication(ctx) {
-			return nil, service.ApplicationErrNotAllowedToManageFlag()
-		}
-	}
-
-	return api.OK(), flag.Delete(ctx, service.DefaultStore, app, r.OwnedBy, r.Flag)
+	return api.OK(), ctrl.application.Unflag(ctx, app, r.OwnedBy, r.Flag)
 }
 
 func (ctrl Application) makePayload(ctx context.Context, m *types.Application, err error) (*applicationPayload, error) {

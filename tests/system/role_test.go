@@ -3,6 +3,11 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -10,10 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/url"
-	"testing"
-	"time"
 )
 
 func (h helper) clearRoles() {
@@ -116,7 +117,7 @@ func TestRoleList_filterForbidden(t *testing.T) {
 	h.repoMakeRole("role")
 	f := h.repoMakeRole()
 
-	h.deny(types.RoleRBACResource.AppendID(f.ID), "read")
+	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
 		Get("/roles/").
@@ -143,7 +144,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 
 func TestRoleCreateNotUnique(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "role.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
 
 	role := h.repoMakeRole()
 	h.apiInit().
@@ -170,7 +171,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 
 func TestRoleCreate(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.SystemRBACResource, "role.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
 
 	h.apiInit().
 		Post("/roles/").
@@ -180,6 +181,87 @@ func TestRoleCreate(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
+}
+
+func TestRoleCreateWithJSON(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
+
+	h.clearRoles()
+
+	h.apiInit().
+		Post("/roles/").
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{ 
+			"name": "fake role",
+			"handle": "fakeRoleFromJSON",
+			"meta": {
+				"description": "this is my description",
+				"context": {
+					"resourceTypes": ["corteza::compose:record"],
+					"expr": "userID == resource.ownedBy"	
+				}
+			}
+		 }`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	r, err := store.LookupRoleByHandle(context.Background(), service.DefaultStore, "fakeRoleFromJSON")
+	h.a.NoError(err)
+	h.a.NotNil(r.Meta)
+	h.a.NotNil(r.Meta.Context)
+	h.a.NotEmpty(r.Meta.Context.Resource)
+	h.a.Equal("corteza::compose:record", r.Meta.Context.Resource[0])
+	h.a.Equal("userID == resource.ownedBy", r.Meta.Context.Expr)
+}
+
+func TestRoleUpdateWithJSON(t *testing.T) {
+	h := newHelper(t)
+	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
+
+	h.clearRoles()
+
+	h.noError(store.CreateRole(context.Background(), service.DefaultStore, &types.Role{
+		ID:     42,
+		Name:   "fix",
+		Handle: "fix",
+		Meta: &types.RoleMeta{
+			Description: "fix",
+			Context: &types.RoleContext{
+				Resource: []string{"corteza::compose:module"},
+				Expr:     "1!=2",
+			},
+		},
+	}))
+
+	h.apiInit().
+		Post("/roles/").
+		Header("Accept", "application/json").
+		JSON(fmt.Sprintf(`{ 
+			"name": "fake role",
+			"handle": "fakeRoleFromJSON",
+			"meta": {
+				"description": "this is my description",
+				"context": {
+					"resourceTypes": ["corteza::compose:record"],
+					"expr": "userID == resource.ownedBy"	
+				}
+			}
+		 }`)).
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	r, err := store.LookupRoleByHandle(context.Background(), service.DefaultStore, "fakeRoleFromJSON")
+	h.a.NoError(err)
+	h.a.NotNil(r.Meta)
+	h.a.NotNil(r.Meta.Context)
+	h.a.NotEmpty(r.Meta.Context.Resource)
+	h.a.Equal("corteza::compose:record", r.Meta.Context.Resource[0])
+	h.a.Equal("userID == resource.ownedBy", r.Meta.Context.Expr)
 }
 
 func TestRoleUpdateForbidden(t *testing.T) {
@@ -199,7 +281,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 func TestRoleUpdate(t *testing.T) {
 	h := newHelper(t)
 	res := h.repoMakeRole()
-	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "update")
 
 	newName := "updated-" + rs()
 	newHandle := "updated-" + rs()
@@ -234,7 +316,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 
 func TestRoleDelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "delete")
 
 	res := h.repoMakeRole()
 
@@ -252,7 +334,7 @@ func TestRoleDelete(t *testing.T) {
 
 func TestRoleUndelete(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "delete")
 
 	res := h.repoMakeRole()
 
@@ -270,7 +352,7 @@ func TestRoleUndelete(t *testing.T) {
 
 func TestRoleArchive(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "update")
 
 	res := h.repoMakeRole()
 
@@ -288,7 +370,7 @@ func TestRoleArchive(t *testing.T) {
 
 func TestRoleUnarchive(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "delete")
 
 	res := h.repoMakeRole()
 
@@ -308,10 +390,8 @@ func TestRoleLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoles()
 
-	h.allow(types.SystemRBACResource, "role.create")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "read")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "update")
-	h.allow(types.RoleRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "read", "update", "delete")
 
 	var (
 		ID uint64
@@ -387,7 +467,7 @@ func TestRoleLabels(t *testing.T) {
 
 func TestMemberList(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource, "read")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "read")
 
 	r := h.repoMakeRole(h.randEmail())
 	h.createRoleMember(id.Next(), r.ID)
@@ -404,7 +484,7 @@ func TestMemberList(t *testing.T) {
 
 func TestMemberAdd(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	r := h.repoMakeRole(h.randEmail())
 	u := h.createUserWithEmail(h.randEmail())
@@ -419,7 +499,7 @@ func TestMemberAdd(t *testing.T) {
 
 func TestMemberRemove(t *testing.T) {
 	h := newHelper(t)
-	h.allow(types.RoleRBACResource.AppendWildcard(), "members.manage")
+	helpers.AllowMe(h, types.RoleRbacResource(0), "members.manage")
 
 	r := h.repoMakeRole(h.randEmail())
 	u := h.createUserWithEmail(h.randEmail())

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path"
-	"strings"
 	"testing"
 
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
@@ -35,9 +34,9 @@ func TestYamlStore_base(t *testing.T) {
 	)
 
 	var (
-		ctx       = auth.SetSuperUserContext(context.Background())
+		ctx       = context.Background()
 		namespace = "base"
-		s         = initStore(ctx, t)
+		s         = initServices(ctx, t)
 		err       error
 	)
 
@@ -46,6 +45,18 @@ func TestYamlStore_base(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
+	// Allow rec. field values to be updated for this user.
+	rbac.Global().Grant(
+		ctx,
+		rbac.AllowRule(
+			auth.ServiceUser().Roles()[0],
+			ctypes.ModuleFieldRbacResource(0, 0, 0),
+			"record.value.update",
+		),
+	)
 
 	cases := []*tc{
 		{
@@ -65,8 +76,8 @@ func TestYamlStore_base(t *testing.T) {
 			file: "modules_no_ns",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
-				req.True(strings.Contains(err.Error(), "prepare compose module"))
-				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:module")
+				req.Contains(err.Error(), "compose namespace unresolved")
 			},
 		},
 
@@ -162,13 +173,13 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose chart"))
-				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:chart")
+				req.Contains(err.Error(), "compose namespace unresolved")
 			},
 		},
 
 		{
-			name: "charts; no moduleule",
+			name: "charts; no module",
 			file: "charts_no_mod",
 			pre: func() (err error) {
 				return collect(
@@ -178,8 +189,8 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose chart"))
-				req.True(strings.Contains(err.Error(), "compose module unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:chart")
+				req.Contains(err.Error(), "compose module unresolved")
 			},
 		},
 
@@ -237,8 +248,8 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose page"))
-				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:page")
+				req.Contains(err.Error(), "compose namespace unresolved")
 			},
 		},
 
@@ -254,8 +265,8 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose page"))
-				req.True(strings.Contains(err.Error(), "compose module unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:page")
+				req.Contains(err.Error(), "compose module unresolved")
 			},
 		},
 
@@ -388,8 +399,8 @@ func TestYamlStore_base(t *testing.T) {
 			file: "rbac_rules_no_role",
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
-				req.True(strings.Contains(err.Error(), "prepare rbac rule"))
-				req.True(strings.Contains(err.Error(), "role unresolved"))
+				req.Contains(err.Error(), "prepare rbac-rule")
+				req.Contains(err.Error(), "role unresolved")
 			},
 		},
 
@@ -415,8 +426,8 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose record"))
-				req.True(strings.Contains(err.Error(), "compose namespace unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:record")
+				req.Contains(err.Error(), "compose namespace unresolved")
 			},
 		},
 
@@ -431,8 +442,8 @@ func TestYamlStore_base(t *testing.T) {
 			post: func(req *require.Assertions, err error) {
 				req.Error(err)
 
-				req.True(strings.Contains(err.Error(), "prepare compose record"))
-				req.True(strings.Contains(err.Error(), "compose module unresolved"))
+				req.Contains(err.Error(), "prepare corteza::compose:record")
+				req.Contains(err.Error(), "compose module unresolved")
 			},
 		},
 
@@ -544,7 +555,7 @@ func TestYamlStore_base(t *testing.T) {
 			name: "base access control",
 			file: "access_control_base",
 			check: func(req *require.Assertions) {
-				role, err := store.LookupRoleByHandle(ctx, s, "everyone")
+				role, err := store.LookupRoleByHandle(ctx, s, "authenticated")
 				req.NoError(err)
 				req.NotNil(role)
 
@@ -553,37 +564,36 @@ func TestYamlStore_base(t *testing.T) {
 				req.Len(rr, 16)
 
 				// Check that the role is ok
-				rr.Walk(func(r *rbac.Rule) error {
+				for _, r := range rr {
 					req.Equal(role.ID, r.RoleID)
-					return nil
-				})
+				}
 
 				resources := []string{
-					"compose:namespace:",
-					"compose:namespace:",
-					"compose:module:",
-					"compose:module:",
-					"compose:page:",
-					"compose:page:",
-					"compose:chart:",
-					"compose:chart:",
-					"system:role:",
-					"system:role:",
-					"system:user:",
-					"system:user:",
-					"system:application:",
-					"system:application:",
-					"compose",
-					"compose",
+					"corteza::compose:namespace/11",
+					"corteza::compose:namespace/11",
+					"corteza::compose:module/11/12",
+					"corteza::compose:module/11/12",
+					"corteza::compose:page/11/13",
+					"corteza::compose:page/11/13",
+					"corteza::compose:chart/11/14",
+					"corteza::compose:chart/11/14",
+					"corteza::system:role/16",
+					"corteza::system:role/16",
+					"corteza::system:user/17",
+					"corteza::system:user/17",
+					"corteza::system:application/18",
+					"corteza::system:application/18",
+					"corteza::compose/",
+					"corteza::compose/",
 				}
 
 				for i, res := range resources {
-					req.Equal(rbac.Resource(res), rr[i].Resource.TrimID())
+					req.Equal(res, rr[i].Resource)
 					if i%2 == 0 {
-						req.Equal(rbac.Operation("op1"), rr[i].Operation)
+						req.Equal("op1", rr[i].Operation)
 						req.Equal(rbac.Allow, rr[i].Access)
 					} else {
-						req.Equal(rbac.Operation("op2"), rr[i].Operation)
+						req.Equal("op2", rr[i].Operation)
 						req.Equal(rbac.Deny, rr[i].Access)
 					}
 				}
@@ -608,6 +618,8 @@ func TestYamlStore_base(t *testing.T) {
 	for _, c := range cases {
 		f := c.file + ".yaml"
 		t.Run(fmt.Sprintf("%s; testdata/%s/%s", c.name, namespace, f), func(t *testing.T) {
+			// before running tests, reset ID and truncate store
+			ni = 10
 			truncateStore(ctx, s, t)
 
 			req := require.New(t)
@@ -637,7 +649,6 @@ func TestYamlStore_base(t *testing.T) {
 				c.check(req)
 			}
 
-			truncateStore(ctx, s, t)
 		})
 	}
 }

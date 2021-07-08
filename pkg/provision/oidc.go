@@ -3,19 +3,20 @@ package provision
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/auth/external"
-	"github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/system/types"
-	"go.uber.org/zap"
 	"os"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/auth/external"
+	"github.com/cortezaproject/corteza-server/pkg/options"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
+	"go.uber.org/zap"
 )
 
 // Provisions OIDC providers from PROVISION_OIDC_PROVIDER env variable
 //
 // Env variable should contains space delimited pairs of providers (<name> <provider> ....)
-func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, opt options.AuthOpt) (err error) {
+func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, s store.Settings, opt options.AuthOpt) (err error) {
 	var provider = strings.TrimSpace(options.EnvString("PROVISION_OIDC_PROVIDER", ""))
 
 	log.Debug("OIDC auto discovery provision",
@@ -49,7 +50,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, opt options.AuthOpt
 		//
 		// enable:   true
 		// we want provider & the entire external auth to be validated
-		eap, err = external.RegisterOidcProvider(ctx, opt, name, purl, false, false, true)
+		eap, err = external.RegisterOidcProvider(ctx, s, opt, name, purl, false, false, true)
 
 		if err != nil {
 			log.Error(
@@ -72,7 +73,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, opt options.AuthOpt
 	return
 }
 
-func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
+func authAddExternals(ctx context.Context, log *zap.Logger, s store.Settings) (err error) {
 	var (
 		kinds = []string{
 			"github",
@@ -125,9 +126,7 @@ func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
 			eap.Handle = kind
 		}
 
-		ctx = auth.SetSuperUserContext(ctx)
-
-		_ = external.AddProvider(ctx, eap, false)
+		_ = external.AddProvider(ctx, s, eap, false)
 	}
 
 	return

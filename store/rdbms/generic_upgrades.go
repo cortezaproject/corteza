@@ -70,6 +70,10 @@ func (g genericUpgrades) Upgrade(ctx context.Context, t *ddl.Table) error {
 			g.AlterUsersDropOrganisation,
 			g.AlterUsersDropRelatedUser,
 		)
+	case "roles":
+		return g.all(ctx,
+			g.AddRolesMetaField,
+		)
 	case "compose_module":
 		return g.all(ctx,
 			g.AlterComposeModuleRenameJsonToMeta,
@@ -249,6 +253,17 @@ func (g genericUpgrades) AddWeightField(ctx context.Context) error {
 		Type:         ddl.ColumnType{Type: ddl.ColumnTypeInteger},
 		IsNull:       false,
 		DefaultValue: "0",
+	})
+
+	return err
+}
+
+func (g genericUpgrades) AddRolesMetaField(ctx context.Context) error {
+	_, err := g.u.AddColumn(ctx, "roles", &ddl.Column{
+		Name:         "meta",
+		Type:         ddl.ColumnType{Type: ddl.ColumnTypeJson},
+		IsNull:       false,
+		DefaultValue: "'{}'",
 	})
 
 	return err

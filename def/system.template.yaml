@@ -1,0 +1,10 @@
+rbac:
+  operations:
+    read:
+      description: Read template
+    update:
+      description: Update template
+    delete:
+      description: Delete template
+    render:
+      description: Render template

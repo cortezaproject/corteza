@@ -40,7 +40,7 @@ func NewAutomationWorkflow(res *types.Workflow) *AutomationWorkflow {
 	r := &AutomationWorkflow{
 		base: &base{},
 	}
-	r.SetResourceType(AUTOMATION_WORKFLOW_RESOURCE_TYPE)
+	r.SetResourceType(types.WorkflowResourceType)
 	r.Res = res
 
 	r.AddIdentifier(identifiers(res.Handle, res.Meta.Name, res.ID)...)

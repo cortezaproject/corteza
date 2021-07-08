@@ -2,6 +2,10 @@ package system
 
 import (
 	"context"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
@@ -9,9 +13,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func (h helper) clearActionLog() {
@@ -23,7 +24,7 @@ func (h helper) repoMakeActionLog() *actionlog.Action {
 		ID:        id.Next(),
 		Timestamp: time.Now(),
 		ActorID:   id.Next(),
-		Resource:  types.SystemRBACResource.String(),
+		Resource:  types.ComponentRbacResource(),
 		Action:    "lookup",
 	}
 

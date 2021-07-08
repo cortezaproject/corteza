@@ -238,6 +238,7 @@ func (s Store) QueryFederationExposedModules(
 	check func(*types.ExposedModule) (bool, error),
 ) ([]*types.ExposedModule, error) {
 	var (
+		tmp = make([]*types.ExposedModule, 0, DefaultSliceCapacity)
 		set = make([]*types.ExposedModule, 0, DefaultSliceCapacity)
 		res *types.ExposedModule
 
@@ -259,6 +260,11 @@ func (s Store) QueryFederationExposedModules(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryFederationExposedModules(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupFederationExposedModuleByID searches for federation module by ID

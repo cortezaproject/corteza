@@ -2,9 +2,9 @@ namespaces:
   crm:
     name: CRM
     allow:
-      everyone:
+      authenticated:
       - module.create
       - read
     deny:
-      everyone:
+      authenticated:
       - delete

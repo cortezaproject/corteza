@@ -3,6 +3,8 @@ package resource
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -163,9 +165,9 @@ func (t *base) SetUserRefs(uu []*Userstamp) {
 			continue
 		}
 		if u.UserID > 0 {
-			t.urefs = append(t.urefs, t.AddRef(USER_RESOURCE_TYPE, strconv.FormatUint(u.UserID, 10)))
+			t.urefs = append(t.urefs, t.AddRef(types.UserResourceType, strconv.FormatUint(u.UserID, 10)))
 		} else if u.Ref != "" {
-			t.urefs = append(t.urefs, t.AddRef(USER_RESOURCE_TYPE, u.Ref))
+			t.urefs = append(t.urefs, t.AddRef(types.UserResourceType, u.Ref))
 		}
 	}
 }

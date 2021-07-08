@@ -22,7 +22,7 @@ type (
 	}
 
 	moduleMappingAccessController interface {
-		CanMapModule(ctx context.Context, r *types.SharedModule) bool
+		CanMapSharedModule(ctx context.Context, r *types.SharedModule) bool
 	}
 
 	ModuleMappingService interface {
@@ -35,7 +35,7 @@ type (
 	moduleMappingUpdateHandler func(ctx context.Context, c *types.ModuleMapping) (bool, bool, error)
 )
 
-func ModuleMapping() ModuleMappingService {
+func ModuleMapping() *moduleMapping {
 	return &moduleMapping{
 		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
@@ -62,7 +62,7 @@ func (svc moduleMapping) FindByID(ctx context.Context, federationModuleID uint64
 			return err
 		}
 
-		if !svc.ac.CanMapModule(ctx, sm) {
+		if !svc.ac.CanMapSharedModule(ctx, sm) {
 			return ModuleMappingErrNotAllowedToMap()
 		}
 
@@ -82,7 +82,7 @@ func (svc moduleMapping) Find(ctx context.Context, filter types.ModuleMappingFil
 			return false, err
 		}
 
-		if !svc.ac.CanMapModule(ctx, sm) {
+		if !svc.ac.CanMapSharedModule(ctx, sm) {
 			return false, ModuleMappingErrNotAllowedToMap()
 		}
 
@@ -137,7 +137,7 @@ func (svc moduleMapping) Create(ctx context.Context, new *types.ModuleMapping) (
 			return err
 		}
 
-		if !svc.ac.CanMapModule(ctx, sm) {
+		if !svc.ac.CanMapSharedModule(ctx, sm) {
 			return ModuleMappingErrNotAllowedToMap()
 		}
 
@@ -181,7 +181,7 @@ func (svc moduleMapping) Update(ctx context.Context, updated *types.ModuleMappin
 			return err
 		}
 
-		if !svc.ac.CanMapModule(ctx, sm) {
+		if !svc.ac.CanMapSharedModule(ctx, sm) {
 			return ModuleMappingErrNotAllowedToMap()
 		}
 

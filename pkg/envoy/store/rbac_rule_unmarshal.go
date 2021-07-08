@@ -3,15 +3,10 @@ package store
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
-)
-
-const (
-	rbacSep = ":"
 )
 
 func newRbacRule(rl *rbac.Rule) *rbacRule {
@@ -23,16 +18,10 @@ func newRbacRule(rl *rbac.Rule) *rbacRule {
 func (rl *rbacRule) MarshalEnvoy() ([]resource.Interface, error) {
 	refRole := strconv.FormatUint(rl.rule.RoleID, 10)
 
-	refRes, err := rbacResToRef(rl.rule.Resource.String())
-	if err != nil {
-		return nil, err
-	}
-
-	// Remove the identifier once we're finished with it
-	rl.rule.Resource = rl.rule.Resource.TrimID()
+	rl.rule.Resource = rbac.ResourceType(rl.rule.Resource)
 
 	return envoy.CollectNodes(
-		resource.NewRbacRule(rl.rule, refRole, refRes),
+		resource.NewRbacRule(rl.rule, refRole, rl.refRes, rl.refPathRes...),
 	)
 }
 
@@ -42,26 +31,24 @@ func rbacResToRef(rr string) (*resource.Ref, error) {
 	}
 
 	ref := &resource.Ref{}
-
-	rr = strings.TrimSpace(rr)
-	rr = strings.TrimRight(rr, rbacSep)
-
-	parts := strings.Split(rr, rbacSep)
+	if ref.ResourceType = rbac.ResourceType(rr); ref.ResourceType != "" {
+		return ref, nil
+	}
 
 	// When len is 1; only top-level defined (system, compose, ....)
-	if len(parts) == 1 {
-		ref.ResourceType = rr
-		return ref, nil
-	}
+	//if len(parts) == 1 {
+	//	ref.ResourceType = rr
+	//	return ref, nil
+	//}
 
 	//When len is 3; both levels defined; resource ref also provided
-	if len(parts) == 3 {
-		ref.ResourceType = strings.Join(parts[0:2], rbacSep) + rbacSep
-		if parts[2] != "*" {
-			ref.Identifiers = resource.MakeIdentifiers(parts[2])
-		}
-		return ref, nil
-	}
+	//if len(parts) == 3 {
+	//	ref.ResourceType = strings.Join(parts[0:2], rbacSep) + rbacSep
+	//	if parts[2] != "*" {
+	//		ref.Identifiers = resource.MakeIdentifiers(parts[2])
+	//	}
+	//	return ref, nil
+	//}
 
 	return nil, fmt.Errorf("invalid resource provided: %s", rr)
 }

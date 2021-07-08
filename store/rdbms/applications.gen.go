@@ -238,6 +238,7 @@ func (s Store) QueryApplications(
 	check func(*types.Application) (bool, error),
 ) ([]*types.Application, error) {
 	var (
+		tmp = make([]*types.Application, 0, DefaultSliceCapacity)
 		set = make([]*types.Application, 0, DefaultSliceCapacity)
 		res *types.Application
 
@@ -259,6 +260,11 @@ func (s Store) QueryApplications(
 			return nil, err
 		}
 
+		tmp = append(tmp, res)
+	}
+
+	for _, res = range tmp {
+
 		// check fn set, call it and see if it passed the test
 		// if not, skip the item
 		if check != nil {
@@ -272,7 +278,7 @@ func (s Store) QueryApplications(
 		set = append(set, res)
 	}
 
-	return set, rows.Err()
+	return set, nil
 }
 
 // LookupApplicationByID searches for application by ID

@@ -1,34 +1,36 @@
 allow:
   admins:
-    federation:
+    corteza::federation/:
       - grant
-      - access
       - pair
       - settings.read
       - settings.manage
       - node.create
-    
-    federation:node:
+
+    corteza::federation:node/*:
       - manage
       - module.create
 
-    federation:module:
+    corteza::federation:exposed-module/*:
       - manage
+
+    corteza::federation:shared-module/*:
       - map
-  
+
   federation:
-    federation:
+    corteza::federation/:
       - grant
-      - access
       - pair
       - settings.read
       - settings.manage
       - node.create
-    
-    federation:node:
+
+    corteza::federation:node/*:
       - manage
       - module.create
 
-    federation:module:
+    corteza::federation:exposed-module/*/*:
       - manage
+
+    corteza::federation:shared-module/*/*:
       - map

@@ -1,11 +1,12 @@
 allow:
   r1:
-    compose:
+    corteza::compose/:
       - access
 
 deny:
   r1:
-    compose:namespace:
+    corteza::compose:namespace/*:
       - access
-    messaging:
+    # @todo see comment for rbac store marshal if I forget to mention this to you
+    corteza::system/:
       - access

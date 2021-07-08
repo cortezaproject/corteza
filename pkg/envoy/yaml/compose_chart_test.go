@@ -60,9 +60,9 @@ func TestComposeChart_UnmarshalYAML(t *testing.T) {
 		req.Len(ch.rbac, 2)
 		a := ch.rbac[0]
 		b := ch.rbac[1]
-		req.Equal(a.res.Operation, rbac.Operation("read"))
+		req.Equal(a.res.Operation, "read")
 		req.Equal(a.res.Access, rbac.Allow)
-		req.Equal(b.res.Operation, rbac.Operation("delete"))
+		req.Equal(b.res.Operation, "delete")
 		req.Equal(b.res.Access, rbac.Deny)
 	})
 }

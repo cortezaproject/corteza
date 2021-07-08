@@ -2,15 +2,15 @@ package corredor
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"testing"
 )
 
 type (
@@ -67,7 +67,7 @@ func TestFindOnManual(t *testing.T) {
 		ctx = context.Background()
 
 		svc = &service{
-			permissions: rbac.RuleSet{},
+			denyExec: make(map[string]map[uint64]bool),
 			sScripts: ScriptSet{
 				&Script{
 					Name: "s1",
@@ -164,12 +164,12 @@ func TestService_canExec(t *testing.T) {
 	var (
 		a   = assert.New(t)
 		svc = &service{
-			users:       &mockUserSvc{user: &types.User{ID: 42, Email: "dummy@mo.ck", Handle: "dummy"}},
-			roles:       &mockRoleSvc{role: &types.Role{ID: 84, Handle: "role", Name: "ROLE"}},
-			permissions: rbac.RuleSet{},
+			users:    &mockUserSvc{user: &types.User{ID: 42, Email: "dummy@mo.ck", Handle: "dummy"}},
+			roles:    &mockRoleSvc{role: &types.Role{ID: 84, Handle: "role", Name: "ROLE"}},
+			denyExec: make(map[string]map[uint64]bool),
 		}
 
-		ctx = auth.SetIdentityToContext(context.Background(), auth.NewIdentity(42, 84))
+		ctx = auth.SetIdentityToContext(context.Background(), auth.Authenticated(42, 84))
 
 		script1 = &ServerScript{
 			Name: "s1",
@@ -221,7 +221,8 @@ func TestService_canExec(t *testing.T) {
 	svc.registerServerScripts(ctx, script1, script2, script3, script4)
 
 	a.Len(svc.sScripts, 3)
-	a.Len(svc.permissions, 3)
+	a.Len(svc.denyExec, 2)
+
 	a.True(svc.canExec(ctx, script1.Name))
 	a.False(svc.canExec(ctx, script2.Name))
 }

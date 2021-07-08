@@ -3,7 +3,8 @@ package resource
 import (
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/types"
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
+	systemTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -37,7 +38,7 @@ type (
 		RefNs *Ref
 
 		RefMod *Ref
-		RelMod *types.Module
+		RelMod *composeTypes.Module
 
 		IDMap map[string]uint64
 		// UserFlakes help the system by predefining a set of potential sys user references.
@@ -52,13 +53,13 @@ func NewComposeRecordSet(w CrsWalker, nsRef, modRef string) *ComposeRecord {
 		IDMap: make(map[string]uint64),
 	}
 
-	r.SetResourceType(COMPOSE_RECORD_RESOURCE_TYPE)
+	r.SetResourceType(composeTypes.RecordResourceType)
 	r.Walker = w
 
 	r.AddIdentifier(identifiers(modRef)...)
 
-	r.RefNs = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.RefMod = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.RefNs)
+	r.RefNs = r.AddRef(composeTypes.NamespaceResourceType, nsRef)
+	r.RefMod = r.AddRef(composeTypes.ModuleResourceType, modRef).Constraint(r.RefNs)
 
 	return r
 }
@@ -67,7 +68,11 @@ func (r *ComposeRecord) SetUserFlakes(uu UserstampIndex) {
 	r.UserFlakes = uu
 
 	// Set user refs as wildflag, indicating it refers to any user resource
-	r.AddRef(USER_RESOURCE_TYPE, "*")
+	r.AddRef(systemTypes.UserResourceType, "*")
+}
+
+func (r *ComposeRecord) RBACPath() []*Ref {
+	return []*Ref{r.RefNs, r.RefMod}
 }
 
 func FindComposeRecordResource(rr InterfaceSet, ii Identifiers) (rec *ComposeRecord) {

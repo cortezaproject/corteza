@@ -11,7 +11,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/objstore"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
@@ -20,11 +19,6 @@ import (
 type (
 	websocketSender interface {
 		Send(kind string, payload interface{}, userIDs ...uint64) error
-	}
-
-	RBACServicer interface {
-		accessControlRBACServicer
-		Watch(ctx context.Context)
 	}
 
 	Config struct {
@@ -95,7 +89,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultActionlog = actionlog.NewService(DefaultStore, log, tee, policy)
 	}
 
-	DefaultAccessControl = AccessControl(rbac.Global())
+	DefaultAccessControl = AccessControl()
 
 	DefaultSession = Session(DefaultLogger.Named("session"), c.Workflow, ws)
 	DefaultWorkflow = Workflow(DefaultLogger.Named("workflow"), c.Corredor)

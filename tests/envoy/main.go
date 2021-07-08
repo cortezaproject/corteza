@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
@@ -16,6 +18,9 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
+	"github.com/cortezaproject/corteza-server/pkg/provision"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	stypes "github.com/cortezaproject/corteza-server/system/types"
@@ -23,25 +28,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type (
-	tc struct {
-		name  string
-		suite string
-		file  string
-
-		// Before the data gets processed
-		pre func() error
-		// After the data gets processed
-		post func(req *require.Assertions, err error)
-		// Data assertions
-		check func(req *require.Assertions)
-	}
-)
-
 var (
 	createdAt, _   = time.Parse(time.RFC3339, "2021-01-01T11:10:09Z")
 	updatedAt, _   = time.Parse(time.RFC3339, "2021-01-02T11:10:09Z")
 	suspendedAt, _ = time.Parse(time.RFC3339, "2021-01-03T11:10:09Z")
+
+	initOnce = &sync.Once{}
+	s        store.Storer
 )
 
 // // // // // // Resource helpers
@@ -105,16 +98,55 @@ func truncateStore(ctx context.Context, s store.Storer, t *testing.T) {
 	}
 }
 
-func initStore(ctx context.Context, t *testing.T) store.Storer {
-	s, err := sqlite3.ConnectInMemoryWithDebug(ctx)
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
-	}
+// returns store & authorized context
+//
+// @todo this should be refactored to use TestMain (see https://golang.org/pkg/testing/#hdr-Main)
+func initServices(ctx context.Context, t *testing.T) store.Storer {
+	initOnce.Do(func() {
+		var (
+			log = zap.NewNop()
+			err error
+		)
 
-	err = store.Upgrade(ctx, zap.NewNop(), s)
-	if err != nil {
-		t.Fatalf("failed to init sqlite in-memory db: %v", err)
-	}
+		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+		if err != nil {
+			t.Fatalf("failed to init sqlite in-memory db: %v", err)
+		}
+
+		err = store.Upgrade(ctx, log, s)
+		if err != nil {
+			t.Fatalf("failed to upgrade sqlite in-memory db: %v", err)
+		}
+
+		rr, err := provision.SystemRoles(ctx, log, s)
+		if err != nil {
+			t.Fatalf("failed to provision system roles: %v", err)
+		}
+
+		uu, err := provision.SystemUsers(ctx, log, s)
+		if err != nil {
+			t.Fatalf("failed to provision system users: %v", err)
+		}
+
+		{
+			// uncomment for verbose logging (db & rbac)
+			//logger.SetDefault(logger.MakeDebugLogger())
+		}
+
+		if rbac.Global() == nil {
+			// make sure this is done only once
+			auth.SetSystemRoles(rr)
+			auth.SetSystemUsers(uu, rr)
+
+			rbac.SetGlobal(rbac.NewService(logger.Default(), s))
+			rbac.Global().UpdateRoles(func() (out []*rbac.Role) {
+				for _, r := range auth.BypassRoles() {
+					out = append(out, rbac.BypassRole.Make(r.ID, r.Handle))
+				}
+				return
+			}()...)
+		}
+	})
 
 	return s
 }

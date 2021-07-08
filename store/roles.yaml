@@ -5,6 +5,7 @@ fields:
   - { field: ID }
   - { field: Name,                                   sortable: true }
   - { field: Handle,                                 sortable: true, unique: true, lookupFilterPreprocessor: lower }
+  - { field: Meta,                                   type: '*AuthClientMeta' }
   - { field: CreatedAt,                              sortable: true }
   - { field: UpdatedAt,                              sortable: true }
   - { field: ArchivedAt,                             sortable: true }

@@ -3,8 +3,6 @@ package commands
 import (
 	"context"
 
-	"github.com/cortezaproject/corteza-server/pkg/cli"
-
 	"github.com/spf13/cobra"
 )
 
@@ -14,10 +12,7 @@ type (
 	}
 )
 
-func Sync(app serviceInitializer) *cobra.Command {
-
-	ctx := cli.Context()
-
+func Sync(ctx context.Context, app serviceInitializer) *cobra.Command {
 	// Sync commands.
 	cmd := &cobra.Command{
 		Use:   "sync",

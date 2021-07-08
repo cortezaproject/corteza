@@ -3,6 +3,7 @@ package expr
 import (
 	"context"
 	"fmt"
+
 	"github.com/PaesslerAG/gval"
 )
 
@@ -85,7 +86,7 @@ func Parser(ll ...gval.Language) gval.Language {
 func AllFunctions() []gval.Language {
 	ff := make([]gval.Language, 0, 100)
 
-	//ff = append(ff, GenericFunctions()...)
+	ff = append(ff, GenericFunctions()...)
 	ff = append(ff, StringFunctions()...)
 	ff = append(ff, JsonFunctions()...)
 	ff = append(ff, NumericFunctions()...)

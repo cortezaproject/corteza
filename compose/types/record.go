@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -116,21 +114,6 @@ func (r Record) Clone() *Record {
 	c := &r
 	c.Values = r.Values.Clone()
 	return c
-}
-
-// Resource returns a system resource ID for this type
-func (r Record) RBACResource() rbac.Resource {
-	return ModuleRBACResource.AppendID(r.ModuleID)
-}
-
-func (r Record) DynamicRoles(userID uint64) []uint64 {
-	return rbac.DynamicRoles(
-		userID,
-		r.OwnedBy, rbac.OwnersDynamicRoleID,
-		r.CreatedBy, rbac.CreatorsDynamicRoleID,
-		r.UpdatedBy, rbac.UpdatersDynamicRoleID,
-		r.DeletedBy, rbac.DeletersDynamicRoleID,
-	)
 }
 
 func (r Record) Dict() map[string]interface{} {

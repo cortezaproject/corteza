@@ -1,10 +1,13 @@
 allow:
-  everyone:
-    compose:
+  everyone: []
+  authenticated:
+    corteza::compose/:
       - op1
+
 deny:
-  everyone:
-    compose:
+  everyone: []
+  authenticated:
+    corteza::compose/:
       - op2
 
 namespaces:
@@ -12,10 +15,12 @@ namespaces:
     name: ns1 name
 
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 modules:
@@ -23,10 +28,12 @@ modules:
     name: mod1 name
 
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 pages:
@@ -34,10 +41,12 @@ pages:
     title: pg1 title
 
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 charts:
@@ -45,39 +54,36 @@ charts:
     name: chr1 name
 
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 applications:
   - name: app1
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
-      - op2
-
-channels:
-  - name: ch1
-    type: public
-    allow:
-      everyone:
-      - op1
-    deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 roles:
   everyone:
+  authenticated:
     name: everyone name
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
 
 users:
@@ -85,8 +91,11 @@ users:
     name: u1 name
     email: u1@example.tld
     allow:
-      everyone:
+      everyone: []
+      authenticated:
       - op1
     deny:
-      everyone:
+      everyone: []
+      authenticated:
       - op2
+

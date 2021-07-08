@@ -1,0 +1,8 @@
+rbac:
+  operations:
+    read:
+      description: Read application
+    update:
+      description: Update application
+    delete:
+      description: Delete application

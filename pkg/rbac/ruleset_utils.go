@@ -1,29 +1,26 @@
 package rbac
 
-import "github.com/cortezaproject/corteza-server/pkg/slice"
-
-// Merge applies new rules (changes) to existing set and mark all changes as dirty
-func (set RuleSet) Merge(rules ...*Rule) (out RuleSet) {
+func merge(base RuleSet, new ...*Rule) (out RuleSet) {
 	var (
 		o    int
-		olen = len(set)
+		blen = len(base)
 	)
 
-	if olen == 0 {
+	if blen == 0 {
 		// Nothing exists yet, mark all as dirty
-		for r := range rules {
-			rules[r].dirty = true
+		for r := range new {
+			new[r].dirty = true
 		}
 
-		return rules
+		return new
 	} else {
-		out = set
+		out = base
 
 	newRules:
-		for _, rule := range rules {
-			// Never go beyond the last old rule (olen)
-			for o = 0; o < olen; o++ {
-				if out[o].Equals(rule) {
+		for _, rule := range new {
+			// Never go beyond the last base rule (blen)
+			for o = 0; o < blen; o++ {
+				if eq(out[o], rule) {
 					out[o].dirty = out[o].Access != rule.Access
 					out[o].Access = rule.Access
 
@@ -32,7 +29,7 @@ func (set RuleSet) Merge(rules ...*Rule) (out RuleSet) {
 				}
 			}
 
-			// none of the old rules matched, append
+			// none of the base new matched, append
 			var c = *rule
 			c.dirty = true
 
@@ -44,87 +41,49 @@ func (set RuleSet) Merge(rules ...*Rule) (out RuleSet) {
 	return
 }
 
-// Dirty returns list of changed (Dirty==true) and deleted (Access==Inherit) rules
-func (set RuleSet) Dirty() (inherited, rest RuleSet) {
-	inherited, rest = RuleSet{}, RuleSet{}
+func eq(a, b *Rule) bool {
+	if a == nil || b == nil {
+		return false
+	}
 
-	for _, r := range set {
-		var c = *r
-		if r.Access == Inherit {
-			inherited = append(inherited, &c)
-		} else if r.dirty {
-			rest = append(rest, &c)
+	return a.RoleID == b.RoleID &&
+		a.Resource == b.Resource &&
+		a.Operation == b.Operation
+}
+
+func ruleByRole(base RuleSet, roleID uint64) (out RuleSet) {
+	for _, r := range base {
+		if r.RoleID == roleID {
+			out = append(out, r)
 		}
 	}
 
 	return
 }
 
-// reset dirty flag
-func (set RuleSet) Clear() {
-	_ = set.Walk(func(rule *Rule) error {
-		rule.dirty = false
-		return nil
-	})
-}
+// Dirty returns list of deleted (Access==Inherit) and changed (dirty) rules
+func flushable(set RuleSet) (deletable, updatable, final RuleSet) {
+	deletable, updatable, final = RuleSet{}, RuleSet{}, RuleSet{}
 
-// Missing compares cmp with existing set
-// and returns rules that exists in set but not in cmp
-func (set RuleSet) Diff(cmp RuleSet) RuleSet {
-	diff := RuleSet{}
-base:
-	for _, s := range set {
-		for _, c := range cmp {
-			if c.Equals(s) {
-				continue base
-			}
-		}
-
-		diff = append(diff, s)
-	}
-
-	return diff
-}
-
-// Roles returns list of unique id of all roles in the rule set
-func (set RuleSet) Roles() []uint64 {
-	roles := make([]uint64, 0)
 	for _, r := range set {
-		if slice.HasUint64(roles, r.RoleID) {
+		var c = *r
+		if r.Access == Inherit {
+			deletable = append(deletable, &c)
 			continue
 		}
 
-		roles = append(roles, r.RoleID)
+		if r.dirty {
+			updatable = append(updatable, &c)
+		}
+
+		final = append(final, &c)
 	}
 
-	return roles
+	return
 }
 
-func (set RuleSet) ByResource(res Resource) RuleSet {
-	out, _ := set.Filter(func(r *Rule) (bool, error) {
-		return res == r.Resource, nil
-	})
-	return out
-}
-
-func (set RuleSet) AllAllows() RuleSet {
-	return set.ByAccess(Allow)
-}
-
-func (set RuleSet) AllDenies() RuleSet {
-	return set.ByAccess(Deny)
-}
-
-func (set RuleSet) ByAccess(a Access) RuleSet {
-	out, _ := set.Filter(func(r *Rule) (bool, error) {
-		return a == r.Access, nil
-	})
-	return out
-}
-
-func (set RuleSet) ByRole(roleID uint64) RuleSet {
-	out, _ := set.Filter(func(r *Rule) (bool, error) {
-		return roleID == r.RoleID, nil
-	})
-	return out
+func clear(set []*Rule) {
+	for _, r := range set {
+		r.dirty = false
+	}
 }

@@ -37,6 +37,11 @@ type (
 		eventbus eventDispatcher
 
 		store store.Storer
+
+		// List (cache) of preloaded users, accessible by handle
+		//
+		// It also does negative caching by assigning empty User structs
+		preloaded map[string]*types.User
 	}
 
 	userAuth interface {
@@ -51,13 +56,9 @@ type (
 		CanDeleteUser(context.Context, *types.User) bool
 		CanSuspendUser(context.Context, *types.User) bool
 		CanUnsuspendUser(context.Context, *types.User) bool
-		CanUnmaskEmail(context.Context, *types.User) bool
-		CanUnmaskName(context.Context, *types.User) bool
+		CanUnmaskEmailOnUser(context.Context, *types.User) bool
+		CanUnmaskNameOnUser(context.Context, *types.User) bool
 	}
-
-	// Temp types to support user.Preloader
-	userIdGetter func(chan uint64)
-	userSetter   func(*types.User) error
 
 	UserService interface {
 		FindByUsername(ctx context.Context, username string) (*types.User, error)
@@ -81,14 +82,12 @@ type (
 
 		SetPassword(ctx context.Context, userID uint64, password string) error
 
-		Preloader(context.Context, userIdGetter, types.UserFilter, userSetter) error
-
 		DeleteAuthTokensByUserID(ctx context.Context, userID uint64) (err error)
 		DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) (err error)
 	}
 )
 
-func User(ctx context.Context) UserService {
+func User() *user {
 	return &user{
 		eventbus: eventbus.Service(),
 		ac:       DefaultAccessControl,
@@ -98,6 +97,8 @@ func User(ctx context.Context) UserService {
 		store: DefaultStore,
 
 		actionlog: DefaultActionlog,
+
+		preloaded: make(map[string]*types.User),
 	}
 }
 
@@ -109,16 +110,6 @@ func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err
 	err = func() error {
 		if userID == 0 {
 			return UserErrInvalidID()
-		}
-
-		su := internalAuth.NewIdentity(userID)
-		if internalAuth.IsSuperUser(su) {
-			// Handling case when looking for a super-user
-			//
-			// Currently, superuser is a virtual entity
-			// and does not exists in the db
-			u = &types.User{ID: userID}
-			return nil
 		}
 
 		u, err = store.LookupUserByID(ctx, svc.store, userID)
@@ -244,7 +235,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return nil, err
 	}
 
-	u.SetRoles(rr.IDs())
+	u.SetRoles(rr.IDs()...)
 	return
 }
 
@@ -349,6 +340,10 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return UserErrNotAllowedToCreate()
 		}
 
+		if new.Kind == types.SystemUser {
+			return UserErrNotAllowedToCreateSystem()
+		}
+
 		if !handle.IsValid(new.Handle) {
 			return UserErrInvalidHandle()
 		}
@@ -419,6 +414,10 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		}
 
 		uaProps.setUser(u)
+
+		if upd.Kind == types.SystemUser || u.Kind == types.SystemUser {
+			return UserErrNotAllowedToUpdateSystem()
+		}
 
 		if upd.ID != internalAuth.GetIdentityFromContext(ctx).Identity() {
 			if !svc.ac.CanUpdateUser(ctx, u) {
@@ -519,6 +518,10 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToDelete()
+		}
+
 		if !svc.ac.CanDeleteUser(ctx, u) {
 			return UserErrNotAllowedToDelete()
 		}
@@ -560,6 +563,10 @@ func (svc user) Undelete(ctx context.Context, userID uint64) (err error) {
 			return err
 		}
 
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToDelete()
+		}
+
 		if !svc.ac.CanDeleteUser(ctx, u) {
 			return UserErrNotAllowedToDelete()
 		}
@@ -592,6 +599,10 @@ func (svc user) Suspend(ctx context.Context, userID uint64) (err error) {
 		}
 
 		uaProps.setUser(u)
+
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToSuspend()
+		}
 
 		if !svc.ac.CanSuspendUser(ctx, u) {
 			return UserErrNotAllowedToSuspend()
@@ -634,6 +645,10 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 
 		uaProps.setUser(u)
 
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToUnsuspend()
+		}
+
 		if !svc.ac.CanUnsuspendUser(ctx, u) {
 			return UserErrNotAllowedToUnsuspend()
 		}
@@ -646,7 +661,6 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, uaProps, UserActionUnsuspend, err)
-
 }
 
 // SetPassword sets new password for a user
@@ -664,6 +678,10 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 		}
 
 		uaProps.setUser(u)
+
+		if u.Kind == types.SystemUser {
+			return UserErrNotAllowedToUpdateSystem()
+		}
 
 		if !svc.ac.CanUpdateUser(ctx, u) {
 			return UserErrNotAllowedToUpdate()
@@ -696,61 +714,27 @@ func (svc user) handlePrivateData(ctx context.Context, u *types.User) {
 }
 
 func (svc user) maskEmail(ctx context.Context, u *types.User) bool {
-	return svc.settings.Privacy.Mask.Email && !svc.ac.CanUnmaskEmail(ctx, u)
+	return svc.settings.Privacy.Mask.Email && !svc.ac.CanUnmaskEmailOnUser(ctx, u)
 }
 
 func (svc user) maskName(ctx context.Context, u *types.User) bool {
-	return svc.settings.Privacy.Mask.Name && !svc.ac.CanUnmaskName(ctx, u)
+	return svc.settings.Privacy.Mask.Name && !svc.ac.CanUnmaskNameOnUser(ctx, u)
 }
 
-// Preloader collects all ids of users, loads them and sets them back
-//
-//
-// @todo this kind of preloader is useful and can be implemented in bunch
-//       of places and replace old code
-func (svc user) Preloader(ctx context.Context, g userIdGetter, f types.UserFilter, s userSetter) error {
-	var (
-		// channel that will collect the IDs in the getter
-		ch = make(chan uint64, 0)
-
-		// unique index for IDs
-		unq = make(map[uint64]bool)
-	)
-
-	// Reset the collection of the IDs
-	f.UserID = make([]uint64, 0)
-
-	// Call getter and collect the IDs
-	go g(ch)
-
-rangeLoop:
-	for {
-		select {
-		case <-ctx.Done():
-			close(ch)
-			break rangeLoop
-		case id, ok := <-ch:
-			if !ok {
-				// Channel closed
-				break rangeLoop
-			}
-
-			if !unq[id] {
-				unq[id] = true
-				f.UserID = append(f.UserID, id)
-			}
+func (svc *user) Get(ctx context.Context, h string) (u *types.User, err error) {
+	if svc.preloaded[h] == nil {
+		svc.preloaded[h], err = svc.FindByHandle(ctx, h)
+		if err != nil {
+			svc.preloaded[h] = &types.User{}
+			return
 		}
-
 	}
 
-	// Load all users (even if deleted, suspended) from the given list of IDs
-	uu, _, err := svc.Find(ctx, f)
-
-	if err != nil {
-		return err
+	if svc.preloaded[h] == nil || svc.preloaded[h].ID == 0 {
+		return nil, UserErrNotFound()
 	}
 
-	return uu.Walk(s)
+	return svc.preloaded[h], nil
 }
 
 // DeleteAuthTokensByUserID will delete all auth tokens of user which will un-authorize all auth clients of user

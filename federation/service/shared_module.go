@@ -20,7 +20,7 @@ type (
 	}
 
 	sharedModuleAccessController interface {
-		CanCreateModule(ctx context.Context, r *types.Node) bool
+		CanCreateModuleOnNode(ctx context.Context, r *types.Node) bool
 	}
 
 	SharedModuleService interface {
@@ -31,7 +31,7 @@ type (
 	}
 )
 
-func SharedModule() SharedModuleService {
+func SharedModule() *sharedModule {
 	return &sharedModule{
 		ac:        DefaultAccessControl,
 		node:      *DefaultNode,
@@ -67,7 +67,7 @@ func (svc sharedModule) Create(ctx context.Context, new *types.SharedModule) (*t
 			return SharedModuleErrNodeNotFound()
 		}
 
-		if !svc.ac.CanCreateModule(ctx, node) {
+		if !svc.ac.CanCreateModuleOnNode(ctx, node) {
 			return SharedModuleErrNotAllowedToCreate()
 		}
 

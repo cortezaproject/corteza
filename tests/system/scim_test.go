@@ -3,6 +3,10 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/store"
@@ -12,9 +16,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/steinfletcher/apitest"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"regexp"
-	"testing"
 )
 
 // apitest basics, initialize, set handler, add auth

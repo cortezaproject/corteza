@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -13,8 +16,6 @@ import (
 	"github.com/go-oauth2/oauth2/v4"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	oauth2models "github.com/go-oauth2/oauth2/v4/models"
-	"strconv"
-	"time"
 )
 
 type (
@@ -81,7 +82,7 @@ func (c CortezaTokenStore) Create(ctx context.Context, info oauth2.TokenInfo) (e
 	acc.ClientID = oa2t.ClientID
 
 	if info.GetUserID() != "" {
-		if oa2t.UserID = auth.ExtractUserIDFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
+		if oa2t.UserID, _ = auth.ExtractFromSubClaim(info.GetUserID()); oa2t.UserID == 0 {
 			// UserID stores collection of IDs: user's ID and set of all roles user is member of
 			return fmt.Errorf("could not parse user ID from token info")
 		}

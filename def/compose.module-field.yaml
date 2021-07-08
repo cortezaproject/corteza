@@ -1,0 +1,11 @@
+rbac:
+  resource:
+    references: [ namespace, module, ID ]
+
+  operations:
+    record.value.read:
+      canFnName: CanReadRecordValue
+      description: Read field value on records
+    record.value.update:
+      canFnName: CanUpdateRecordValue
+      description: Update field value on records

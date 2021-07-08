@@ -3,10 +3,12 @@ package automation
 import (
 	"context"
 	"errors"
+	"os"
+	"testing"
+
 	"github.com/cortezaproject/corteza-server/app"
 	"github.com/cortezaproject/corteza-server/automation/rest"
 	"github.com/cortezaproject/corteza-server/automation/service"
-	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
@@ -16,7 +18,6 @@ import (
 	ltype "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
@@ -25,9 +26,6 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/steinfletcher/apitest"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"os"
-	"testing"
 )
 
 type (
@@ -66,8 +64,6 @@ func InitTestApp() {
 		ctx := cli.Context()
 
 		testApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
-			rbac.SetGlobal(rbac.NewTestService(zap.NewNop(), app.Store))
-
 			service.DefaultStore, err = sqlite3.ConnectInMemory(ctx)
 			if err != nil {
 				return err
@@ -101,12 +97,14 @@ func newHelper(t *testing.T) helper {
 		},
 	}
 
-	h.cUser.SetRoles([]uint64{h.roleID})
-
-	rbac.Global().(*rbac.TestService).ClearGrants()
-	h.mockPermissionsWithAccess()
+	h.cUser.SetRoles(h.roleID)
+	helpers.UpdateRBAC(h.roleID)
 
 	return h
+}
+
+func (h helper) MyRole() uint64 {
+	return h.roleID
 }
 
 // Returns context w/ security details
@@ -123,36 +121,6 @@ func (h helper) apiInit() *apitest.APITest {
 		Handler(r).
 		Intercept(helpers.ReqHeaderAuthBearer(h.cUser))
 
-}
-
-func (h helper) mockPermissions(rules ...*rbac.Rule) {
-	h.a.NoError(rbac.Global().Grant(
-		// TestService we use does not have any backend storage,
-		context.Background(),
-		// We want to make sure we did not make a mistake with any of the mocked resources or actions
-		service.DefaultAccessControl.Whitelist(),
-		rules...,
-	))
-}
-
-// Prepends allow access rule for messaging service for everyone
-func (h helper) mockPermissionsWithAccess(rules ...*rbac.Rule) {
-	rules = append(
-		rules,
-		rbac.AllowRule(rbac.EveryoneRoleID, types.AutomationRBACResource, "access"),
-	)
-
-	h.mockPermissions(rules...)
-}
-
-// Set allow permision for test role
-func (h helper) allow(r rbac.Resource, o rbac.Operation) {
-	h.mockPermissions(rbac.AllowRule(h.roleID, r, o))
-}
-
-// set deny permission for test role
-func (h helper) deny(r rbac.Resource, o rbac.Operation) {
-	h.mockPermissions(rbac.DenyRule(h.roleID, r, o))
 }
 
 // Unwraps error before it passes it to the tester

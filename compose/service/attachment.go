@@ -40,9 +40,9 @@ type (
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadPage(context.Context, *types.Page) bool
 		CanUpdatePage(context.Context, *types.Page) bool
-		CanReadRecord(context.Context, *types.Module) bool
-		CanUpdateRecord(context.Context, *types.Module) bool
-		CanCreateRecord(context.Context, *types.Module) bool
+		CanReadRecord(context.Context, *types.Record) bool
+		CanUpdateRecord(context.Context, *types.Record) bool
+		CanCreateRecordOnModule(context.Context, *types.Module) bool
 	}
 
 	AttachmentService interface {
@@ -100,14 +100,14 @@ func (svc attachment) Find(filter types.AttachmentFilter) (set types.AttachmentS
 			aProps.namespace, aProps.module, aProps.record, err = loadRecordCombo(svc.ctx, svc.store, filter.NamespaceID, filter.ModuleID, filter.RecordID)
 			if err != nil {
 				return err
-			} else if svc.ac.CanReadRecord(svc.ctx, aProps.module) {
+			} else if svc.ac.CanReadRecord(svc.ctx, aProps.record) {
 				return AttachmentErrNotAllowedToReadRecord()
 			}
 		} else if filter.ModuleID > 0 {
 			aProps.namespace, aProps.module, err = loadModuleWithNamespace(svc.ctx, svc.store, filter.NamespaceID, filter.ModuleID)
 			if err != nil {
 				return err
-			} else if svc.ac.CanReadRecord(svc.ctx, aProps.module) {
+			} else if svc.ac.CanReadRecord(svc.ctx, aProps.record) {
 				return AttachmentErrNotAllowedToReadRecord()
 			}
 		}
@@ -320,7 +320,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 
 			aProps.setRecord(r)
 
-			if !svc.ac.CanUpdateRecord(ctx, m) {
+			if !svc.ac.CanUpdateRecord(ctx, r) {
 				return AttachmentErrNotAllowedToUpdateRecord()
 			}
 		} else {
@@ -328,7 +328,7 @@ func (svc attachment) CreateRecordAttachment(namespaceID uint64, name string, si
 			//
 			// To allow upload (attachment creation) user must have permissions to
 			// create records
-			if !svc.ac.CanCreateRecord(ctx, m) {
+			if !svc.ac.CanCreateRecordOnModule(ctx, m) {
 				return AttachmentErrNotAllowedToCreateRecords()
 			}
 		}

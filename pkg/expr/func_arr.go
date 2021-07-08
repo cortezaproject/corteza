@@ -2,8 +2,9 @@ package expr
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/gval"
 	"reflect"
+
+	"github.com/PaesslerAG/gval"
 )
 
 func ArrayFunctions() []gval.Language {
@@ -113,14 +114,22 @@ func count(arr interface{}, v ...interface{}) (count int, err error) {
 	return
 }
 
-// has finds any occurrence of the values in slice
-func has(arr interface{}, v ...interface{}) (b bool, err error) {
-	if arr, err = toSlice(arr); err != nil {
+// has finds any occurrence of the values in slice or key in a map
+func has(arr interface{}, vv ...interface{}) (b bool, err error) {
+	arr = UntypedValue(arr)
+
+	if isMap(arr) {
+		for _, v := range vv {
+			if reflect.ValueOf(arr).MapIndex(reflect.ValueOf(v)).IsValid() {
+				return true, nil
+			}
+		}
+
 		return
 	}
 
 	var c int
-	if c, err = count(arr, v...); err != nil {
+	if c, err = count(arr, vv...); err != nil {
 		return
 	}
 

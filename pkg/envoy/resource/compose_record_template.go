@@ -1,5 +1,9 @@
 package resource
 
+import (
+	"github.com/cortezaproject/corteza-server/compose/types"
+)
+
 type (
 	MappingTpl struct {
 		// Index is like Cell, but the index
@@ -43,10 +47,10 @@ func NewComposeRecordTemplate(modRef, nsRef, name string, defaultable bool, fiel
 	r.FieldMap = fieldMap
 	r.Defaultable = defaultable
 
-	r.NsRef = r.AddRef(COMPOSE_NAMESPACE_RESOURCE_TYPE, nsRef)
-	r.ModRef = r.AddRef(COMPOSE_MODULE_RESOURCE_TYPE, modRef).Constraint(r.NsRef)
+	r.NsRef = r.AddRef(types.NamespaceResourceType, nsRef)
+	r.ModRef = r.AddRef(types.ModuleResourceType, modRef).Constraint(r.NsRef)
 
-	r.SetResourceType(DATA_SOURCE_RESOURCE_TYPE)
+	r.SetResourceType(DataSourceResourceType)
 	r.AddIdentifier(identifiers(name)...)
 	return r
 }

@@ -44,7 +44,7 @@ type (
 
 		// Deleted GET parameter
 		//
-		// Exclude (0, default), include (1) or return only (2) deleted roles
+		// Exclude (0, default), include (1) or return only (2) deleted clients
 		Deleted uint
 
 		// Labels GET parameter

@@ -1,0 +1,16 @@
+rbac:
+  operations:
+    read:
+      description: Read namespace
+    update:
+      description: Update namespace
+    delete:
+      description: Delete namespace
+    manage:
+      description: Access to namespace admin panel
+    module.create:
+      description: Create module on namespace
+    chart.create:
+      description: Create chart on namespace
+    page.create:
+      description: Create page on namespace

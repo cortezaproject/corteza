@@ -81,18 +81,18 @@ func (app *CortezaApp) InitCLI() {
 	}
 
 	app.Command.AddCommand(
-		systemCommands.Users(app),
-		systemCommands.Roles(app),
-		systemCommands.RBAC(app),
-		systemCommands.Sink(app),
-		systemCommands.Settings(app),
-		systemCommands.Import(storeInit),
-		systemCommands.Export(storeInit),
+		systemCommands.Users(ctx, app),
+		systemCommands.Roles(ctx, app),
+		systemCommands.RBAC(ctx, storeInit),
+		systemCommands.Sink(ctx, app),
+		systemCommands.Settings(ctx, app),
+		systemCommands.Import(ctx, storeInit),
+		systemCommands.Export(ctx, storeInit),
 		serveCmd,
 		upgradeCmd,
 		provisionCmd,
-		authCommands.Command(app),
-		federationCommands.Sync(app),
+		authCommands.Command(ctx, app, storeInit),
+		federationCommands.Sync(ctx, app),
 		cli.EnvCommand(),
 		cli.VersionCommand(),
 	)

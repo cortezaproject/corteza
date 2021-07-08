@@ -851,6 +851,42 @@ func AuthErrFailedForSuspendedUser(mm ...*authActionProps) *errors.Error {
 	return e
 }
 
+// AuthErrFailedForSystemUser returns "system:auth.failedForSystemUser" as *errors.Error
+//
+// Note: This error will be wrapped with safe (system:auth.invalidCredentials) error!
+//
+// This function is auto-generated.
+//
+func AuthErrFailedForSystemUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		"failedForSystemUser",
+
+		errors.Meta("type", "failedForSystemUser"),
+		errors.Meta("resource", "system:auth"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authLogMetaKey{}, "system user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	// Wrap with safe error
+	e = AuthErrInvalidCredentials().Wrap(e)
+
+	return e
+}
+
 // AuthErrFailedUnconfirmedEmail returns "system:auth.failedUnconfirmedEmail" as *errors.Error
 //
 //

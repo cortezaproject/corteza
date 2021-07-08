@@ -2,33 +2,94 @@ package provision
 
 import (
 	"context"
-	"time"
+	"fmt"
 
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"go.uber.org/zap"
 )
 
-func roles(ctx context.Context, s store.Storer) error {
-	if set, _, err := store.SearchRoles(ctx, s, types.RoleFilter{}); err != nil {
-		return err
-	} else if len(set) > 0 {
-		return nil
+// SystemRoles creates system roles
+func SystemRoles(ctx context.Context, log *zap.Logger, s store.Storer) (rr []*types.Role, err error) {
+	rr = types.RoleSet{
+		&types.Role{
+			Name:   "Super administrator",
+			Handle: "super-admin",
+			Meta: &types.RoleMeta{
+				Description: "Super admin is a 'bypass' role that auto-allows all operations to it's members",
+				Context:     nil,
+			},
+		},
+
+		&types.Role{
+			Name:   "Authenticated",
+			Handle: "authenticated",
+			Meta: &types.RoleMeta{
+				Description: "Authenticated role is auto-assigned to all authenticated sessions",
+				Context:     nil,
+			},
+		},
+
+		&types.Role{
+			Name:   "Anonymous",
+			Handle: "anonymous",
+			Meta: &types.RoleMeta{
+				Description: "Authenticated role is auto-assigned to all non-authenticated sessions",
+				Context:     nil,
+			}},
 	}
 
-	now := time.Now().Round(time.Second)
-
-	rr := types.RoleSet{
-		// For now, we need to create these 2 programmatically (and not through provision yaml files)
-		// due to importance of stable IDs (admin=2, everyone=1)
-		&types.Role{ID: rbac.AdminsRoleID, Name: "Administrators", Handle: "admins"},
-		&types.Role{ID: rbac.EveryoneRoleID, Name: "Everyone", Handle: "everyone"},
+	m, err := loadRoles(ctx, s)
+	if err != nil {
+		return
 	}
 
-	err := rr.Walk(func(r *types.Role) error {
-		r.CreatedAt = now
-		return store.CreateRole(ctx, s, r)
-	})
+	for i := range rr {
+		r := rr[i]
+		if m[r.Handle] == nil {
+			log.Info("creating role", zap.String("handle", r.Handle))
+			// this is a new role
+			r.ID = id.Next()
+			r.CreatedAt = *now()
 
-	return err
+			m[r.Handle] = r
+		} else {
+			log.Info("updating role", zap.String("handle", r.Handle))
+			// use existing role
+			rr[i] = m[r.Handle]
+
+			// make sure it's not deleted or archived
+			// and leave other props as they are
+			r.DeletedAt = nil
+			r.ArchivedAt = nil
+
+		}
+	}
+
+	if err := store.UpsertRole(ctx, s, rr...); err != nil {
+		return nil, fmt.Errorf("failed to provision roles: %w", err)
+	}
+
+	return
+}
+
+func loadRoles(ctx context.Context, s store.Roles) (m map[string]*types.Role, err error) {
+	var (
+		f = types.RoleFilter{
+			Archived: filter.StateInclusive,
+			Deleted:  filter.StateInclusive,
+		}
+	)
+
+	m = make(map[string]*types.Role)
+
+	if set, _, err := store.SearchRoles(ctx, s, f); err == nil {
+		for _, r := range set {
+			m[r.Handle] = r
+		}
+	}
+
+	return
 }

@@ -83,7 +83,7 @@ func Test_profileFormProc(t *testing.T) {
 				userService = &userServiceMocked{
 					update: func(c context.Context, u *types.User) (*types.User, error) {
 						u = makeMockUser(ctx)
-						u.SetRoles([]uint64{})
+						u.SetRoles()
 
 						return u, nil
 					},

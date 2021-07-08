@@ -2,23 +2,28 @@ package rbac
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
 type (
 	service struct {
-		l      *sync.Mutex
+		l      *sync.RWMutex
 		logger *zap.Logger
 
 		//  service will flush values on TRUE or just reload on FALSE
 		f chan bool
 
-		rules RuleSet
+		rules   RuleSet
+		indexed OptRuleSet
+
+		roles []*Role
 
 		store rbacRulesStore
 	}
@@ -26,20 +31,16 @@ type (
 	// RuleFilter is a dummy struct to satisfy store codegen
 	RuleFilter struct{}
 
-	Controller interface {
-		Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool
-		Check(res Resource, op Operation, roles ...uint64) (v Access)
-		Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error)
-		Watch(ctx context.Context)
-		FindRulesByRoleID(roleID uint64) (rr RuleSet)
-		Rules() (rr RuleSet)
-		Reload(ctx context.Context)
+	RoleSettings struct {
+		Bypass        []uint64
+		Authenticated []uint64
+		Anonymous     []uint64
 	}
 )
 
 var (
 	// Global RBAC service
-	gRBAC Controller
+	gRBAC *service
 )
 
 const (
@@ -47,22 +48,13 @@ const (
 )
 
 // Global returns global RBAC service
-func Global() Controller {
+func Global() *service {
 	return gRBAC
 }
 
-func SetGlobal(svc Controller) {
+// SetGlobal re-sets global service
+func SetGlobal(svc *service) {
 	gRBAC = svc
-}
-
-func Initialize(logger *zap.Logger, s rbacRulesStore) error {
-	if gRBAC != nil {
-		// Prevent multiple initializations
-		return nil
-	}
-
-	SetGlobal(NewService(logger, s))
-	return nil
 }
 
 // NewService initializes service{} struct
@@ -71,7 +63,7 @@ func Initialize(logger *zap.Logger, s rbacRulesStore) error {
 // It acts as a caching layer
 func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 	svc = &service{
-		l: &sync.Mutex{},
+		l: &sync.RWMutex{},
 		f: make(chan bool),
 
 		store: s,
@@ -91,69 +83,56 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 // iterate over all fallback functions
 //
 // System user is always allowed to do everything
-//
-// When not explicitly allowed through rules or fallbacks, function will return FALSE.
-func (svc service) Can(roles []uint64, res Resource, op Operation, ff ...CheckAccessFunc) bool {
-	// Checking rules
-	var v = svc.Check(res.RBACResource(), op, roles...)
-	if v != Inherit {
-		return v == Allow
-	}
-
-	// Checking fallback functions
-	for _, f := range ff {
-		v = f()
-
-		if v != Inherit {
-			return v == Allow
-		}
-	}
-
-	return false
+func (svc *service) Can(ses Session, op string, res Resource) bool {
+	return svc.Check(ses, op, res) == Allow
 }
 
 // Check verifies if role has access to perform an operation on a resource
 //
 // See RuleSet's Check() func for details
-func (svc service) Check(res Resource, op Operation, roles ...uint64) (v Access) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
+func (svc *service) Check(ses Session, op string, res Resource) (v Access) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
 
-	return svc.rules.Check(res, op, roles...)
+	var (
+		fRoles = getContextRoles(ses, res, svc.roles)
+		access = check(svc.indexed, fRoles, op, res.RbacResource())
+	)
+
+	svc.logger.Debug(access.String()+" "+op+" for "+res.RbacResource(),
+		append(
+			fRoles.LogFields(),
+			zap.Uint64("identity", ses.Identity()),
+			zap.Any("indexed", len(svc.indexed)),
+			zap.Any("rules", len(svc.rules)),
+		)...,
+	)
+
+	return access
 }
 
 // Grant appends and/or overwrites internal rules slice
 //
 // All rules with Inherit are removed
-func (svc *service) Grant(ctx context.Context, wl Whitelist, rules ...*Rule) (err error) {
+func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
-	if err = svc.checkRules(wl, rules...); err != nil {
-		return err
+	for _, r := range rules {
+		svc.logger.Debug(r.Access.String() + " " + r.Operation + " on " + r.Resource + " to " + strconv.FormatUint(r.RoleID, 10))
 	}
 
 	svc.grant(rules...)
-
 	return svc.flush(ctx)
 }
 
-func (svc service) checkRules(wl Whitelist, rules ...*Rule) error {
-	for _, r := range rules {
-		if !wl.Check(r) {
-			return errors.Errorf("invalid rule: '%s' on '%s'", r.Operation, r.Resource)
-		}
-	}
-
-	return nil
-}
-
 func (svc *service) grant(rules ...*Rule) {
-	svc.rules = svc.rules.Merge(rules...)
+	svc.rules = merge(svc.rules, rules...)
+	svc.indexed = indexRules(svc.rules)
 }
 
-// Watches for changes
-func (svc service) Watch(ctx context.Context) {
+// Watch reloads RBAC rules in intervals and on request
+func (svc *service) Watch(ctx context.Context) {
 	go func() {
 		defer sentry.Recover()
 
@@ -174,27 +153,37 @@ func (svc service) Watch(ctx context.Context) {
 	svc.logger.Debug("watcher initialized")
 }
 
-func (svc service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
+// FindRulesByRoleID returns all RBAC rules that belong to a role
+func (svc *service) FindRulesByRoleID(roleID uint64) (rr RuleSet) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
 
-	rr, _ = svc.rules.Filter(func(rule *Rule) (b bool, e error) {
-		return rule.RoleID == roleID, nil
-	})
-
-	return
+	return ruleByRole(svc.rules, roleID)
 }
 
-func (svc service) Rules() (rr RuleSet) {
-	svc.l.Lock()
-	defer svc.l.Unlock()
+// Rules return all roles
+func (svc *service) Rules() (rr RuleSet) {
+	svc.l.RLock()
+	defer svc.l.RUnlock()
 	return svc.rules
 }
 
+// Reload store rules
 func (svc *service) Reload(ctx context.Context) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
+	svc.reloadRules(ctx)
+}
 
+// Clear removes all access control rules
+func (svc *service) Clear() {
+	svc.l.Lock()
+	defer svc.l.Unlock()
+	svc.rules = RuleSet{}
+	svc.indexed = OptRuleSet{}
+}
+
+func (svc *service) reloadRules(ctx context.Context) {
 	rr, _, err := svc.store.SearchRbacRules(ctx, RuleFilter{})
 	svc.logger.Debug(
 		"reloading rules",
@@ -205,27 +194,86 @@ func (svc *service) Reload(ctx context.Context) {
 
 	if err == nil {
 		svc.rules = rr
+		svc.indexed = indexRules(rr)
 	}
 }
 
-func (svc service) flush(ctx context.Context) (err error) {
-	d, u := svc.rules.Dirty()
+// UpdateRoles updates RBAC roles
+func (svc *service) UpdateRoles(rr ...*Role) {
+	svc.l.Lock()
+	defer svc.l.Unlock()
 
-	err = svc.store.DeleteRbacRule(ctx, d...)
+	stats := statRoles(rr...)
+	svc.logger.Debug(
+		"updating roles",
+		zap.Int("before", len(svc.roles)),
+		zap.Int("after", len(rr)),
+		zap.Int("bypass", stats[BypassRole]),
+		zap.Int("context", stats[ContextRole]),
+		zap.Int("common", stats[CommonRole]),
+		zap.Int("authenticated", stats[AuthenticatedRole]),
+		zap.Int("anonymous", stats[AnonymousRole]),
+	)
+	svc.roles = rr
+}
+
+// flush pushes all changed rules to the store (if service is configured with one)
+func (svc *service) flush(ctx context.Context) (err error) {
+	if svc.store == nil {
+		svc.logger.Debug("rule flushing disabled (no store)")
+		return
+	}
+
+	deletable, updatable, final := flushable(svc.rules)
+
+	err = svc.store.DeleteRbacRule(ctx, deletable...)
 	if err != nil {
 		return
 	}
 
-	err = svc.store.UpsertRbacRule(ctx, u...)
+	err = svc.store.UpsertRbacRule(ctx, updatable...)
 	if err != nil {
 		return
 	}
 
-	u.Clear()
-	svc.rules = u
-	svc.logger.Debug("flushed rules",
-		zap.Int("updated", len(u)),
-		zap.Int("deleted", len(d)))
+	clear(final)
+	svc.rules = final
+	svc.logger.Debug(
+		"flushed rules",
+		zap.Int("deleted", len(deletable)),
+		zap.Int("updated", len(updatable)),
+		zap.Int("final", len(final)),
+	)
+
+	return
+}
+
+func (svc service) String() (out string) {
+	tpl := "%-5v %-20s to %-20s %-30s\n"
+	out += strings.Repeat("-", 120) + "\n"
+
+	role := func(id uint64) string {
+		for _, r := range svc.roles {
+			if r.id == id {
+				if r.handle != "" {
+					return fmt.Sprintf("%s [%d]", r.handle, r.kind)
+				}
+				return fmt.Sprintf("%d [%d]", id, r.kind)
+			}
+		}
+
+		return fmt.Sprintf("%d [?]", id)
+	}
+
+	for _, byRole := range svc.indexed {
+		for _, rr := range byRole {
+			for _, r := range rr {
+				out += fmt.Sprintf(tpl, r.Access, r.Operation, role(r.RoleID), r.Resource)
+			}
+		}
+	}
+
+	out += strings.Repeat("-", 120) + "\n"
 
 	return
 }

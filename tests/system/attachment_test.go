@@ -64,7 +64,7 @@ func TestAttachmentDelete(t *testing.T) {
 	h.clearAttachments()
 
 	a := h.repoMakeAttachment()
-	h.allow(types.ApplicationRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, types.ApplicationRbacResource(0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/attachment/%s/%d", a.Kind, a.ID)).

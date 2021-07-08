@@ -4,11 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
 
 type (
@@ -116,11 +116,6 @@ type (
 	}
 )
 
-// Resource returns a resource ID for this type
-func (r *AuthClient) RBACResource() rbac.Resource {
-	return AuthClientRBACResource.AppendID(r.ID)
-}
-
 func (r *AuthClient) String() string {
 	switch {
 	case r.Meta != nil && r.Meta.Name != "":
@@ -130,6 +125,29 @@ func (r *AuthClient) String() string {
 	default:
 		return fmt.Sprintf("%d", r.ID)
 	}
+}
+
+func (r AuthClient) Dict() map[string]interface{} {
+	dict := map[string]interface{}{
+		"ID":          r.ID,
+		"labels":      r.Labels,
+		"scope":       r.Scope,
+		"grant":       r.ValidGrant,
+		"redirectURI": r.RedirectURI,
+		"trusted":     r.Trusted,
+		"enabled":     r.Enabled,
+		"validFrom":   r.ValidFrom,
+		"expiresAt":   r.ExpiresAt,
+		"ownedBy":     r.OwnedBy,
+		"createdAt":   r.CreatedAt,
+		"createdBy":   r.CreatedBy,
+		"updatedAt":   r.UpdatedAt,
+		"updatedBy":   r.UpdatedBy,
+		"deletedAt":   r.DeletedAt,
+		"deletedBy":   r.DeletedBy,
+	}
+
+	return dict
 }
 
 // FindByHandle finds authClient by it's handle

@@ -17,8 +17,8 @@ import (
 
 func TestDataShaping(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -36,8 +36,10 @@ func TestDataShaping(t *testing.T) {
 		return ni
 	}
 
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 	for _, c := range cases {
-		t.Run(fmt.Sprintf("record shaping; data_shaping/%s", c), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s", c), func(t *testing.T) {
 			var (
 				req = require.New(t)
 			)
@@ -81,15 +83,15 @@ func TestDataShaping(t *testing.T) {
 			req.Equal("c1.v2", r2.Values.FilterByName("f1")[0].Value)
 			req.Equal("c2.v2", r2.Values.FilterByName("f2")[0].Value)
 
-			s.TruncateComposeRecords(ctx, ms)
+			req.NoError(s.TruncateComposeRecords(ctx, ms))
 		})
 	}
 }
 
 func TestDataShaping_large(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -103,6 +105,8 @@ func TestDataShaping_large(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("record shaping; data_shaping; large datasets/%s", c), func(t *testing.T) {
@@ -154,8 +158,8 @@ func TestDataShaping_large(t *testing.T) {
 
 func TestDataShaping_fieldTypes(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -169,6 +173,8 @@ func TestDataShaping_fieldTypes(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("record shaping; data_shaping_field_types/%s", c), func(t *testing.T) {
@@ -232,8 +238,8 @@ func TestDataShaping_fieldTypes(t *testing.T) {
 
 func TestDataShaping_refs(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -246,6 +252,8 @@ func TestDataShaping_refs(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("record shaping; data_shaping_refs/%s", c), func(t *testing.T) {
@@ -313,15 +321,15 @@ func TestDataShaping_refs(t *testing.T) {
 			req.Equal("202", r4.Values.Get("f_user", 0).Value)
 			req.Equal(uint64(202), r4.Values.Get("f_user", 0).Ref)
 
-			s.TruncateComposeRecords(ctx, ms)
+			req.NoError(s.TruncateComposeRecords(ctx, ms))
 		})
 	}
 }
 
 func TestDataShaping_xrefsPeer(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -334,6 +342,8 @@ func TestDataShaping_xrefsPeer(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("record shaping; data_shaping_xrefs_peer/%s", c), func(t *testing.T) {
@@ -401,15 +411,15 @@ func TestDataShaping_xrefsPeer(t *testing.T) {
 			req.Equal(strconv.FormatUint(refR4.ID, 10), r4.Values.Get("f_record", 0).Value)
 			req.Equal(refR4.ID, r4.Values.Get("f_record", 0).Ref)
 
-			s.TruncateComposeRecords(ctx, m)
+			req.NoError(s.TruncateComposeRecords(ctx, m))
 		})
 	}
 }
 
 func TestDataShaping_xrefsStore(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
@@ -422,6 +432,8 @@ func TestDataShaping_xrefsStore(t *testing.T) {
 		ni++
 		return ni
 	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("record shaping; data_shaping_xrefs_store/%s", c), func(t *testing.T) {
@@ -494,21 +506,23 @@ func TestDataShaping_xrefsStore(t *testing.T) {
 			req.Equal(strconv.FormatUint(refR2.ID, 10), r4.Values.Get("f_record", 0).Value)
 			req.Equal(refR2.ID, r4.Values.Get("f_record", 0).Ref)
 
-			s.TruncateComposeRecords(ctx, m)
+			req.NoError(s.TruncateComposeRecords(ctx, m))
 		})
 	}
 }
 
 func TestDataShaping_xrefsMix(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
 			"csv_xrefs_mix",
 		}
 	)
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {
@@ -593,21 +607,23 @@ func TestDataShaping_xrefsMix(t *testing.T) {
 			req.Equal(strconv.FormatUint(refStoreR2.ID, 10), r4.Values.Get("f_record", 0).Value)
 			req.Equal(refStoreR2.ID, r4.Values.Get("f_record", 0).Ref)
 
-			s.TruncateComposeRecords(ctx, mod1)
+			req.NoError(s.TruncateComposeRecords(ctx, mod1))
 		})
 	}
 }
 
 func TestDataShaping_update(t *testing.T) {
 	var (
-		ctx = auth.SetSuperUserContext(context.Background())
-		s   = initStore(ctx, t)
+		ctx = context.Background()
+		s   = initServices(ctx, t)
 		err error
 
 		cases = []string{
 			"csv_update",
 		}
 	)
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	ni := uint64(10)
 	su.NextID = func() uint64 {
@@ -665,7 +681,7 @@ func TestDataShaping_update(t *testing.T) {
 			req.Len(r2.Values, 1)
 			req.Equal("updated", r2.Values.Get("f_label", 0).Value)
 
-			s.TruncateComposeRecords(ctx, mod1)
+			req.NoError(s.TruncateComposeRecords(ctx, mod1))
 		})
 	}
 }

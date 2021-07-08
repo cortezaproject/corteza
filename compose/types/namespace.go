@@ -8,8 +8,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 
 	"github.com/pkg/errors"
-
-	"github.com/cortezaproject/corteza-server/pkg/rbac"
 )
 
 type (
@@ -61,15 +59,6 @@ type (
 		LogoID uint64 `json:"logoID,string"`
 	}
 )
-
-// Resource returns a system resource ID for this type
-func (n Namespace) RBACResource() rbac.Resource {
-	return NamespaceRBACResource.AppendID(n.ID)
-}
-
-func (n Namespace) DynamicRoles(userID uint64) []uint64 {
-	return nil
-}
 
 func (n Namespace) Clone() *Namespace {
 	c := &n

@@ -17,7 +17,7 @@ type (
 
 func NewTemplate(t *types.Template) *Template {
 	r := &Template{base: &base{}}
-	r.SetResourceType(TEMPLATE_RESOURCE_TYPE)
+	r.SetResourceType(types.TemplateResourceType)
 	r.Res = t
 
 	r.AddIdentifier(identifiers(t.Handle, t.Meta.Short, t.ID)...)

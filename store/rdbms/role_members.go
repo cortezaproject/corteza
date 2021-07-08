@@ -1,7 +1,10 @@
 package rdbms
 
 import (
+	"context"
+
 	"github.com/Masterminds/squirrel"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -17,4 +20,8 @@ func (s Store) convertRoleMemberFilter(f types.RoleMemberFilter) (query squirrel
 	}
 
 	return
+}
+
+func (s Store) TransferRoleMembers(ctx context.Context, src, dst uint64) (err error) {
+	return s.execUpdateRbacRules(ctx, squirrel.Eq{"rel_role": src}, store.Payload{"rel_role": dst})
 }

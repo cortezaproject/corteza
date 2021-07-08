@@ -3,6 +3,10 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/store"
@@ -10,9 +14,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func (h helper) clearMessagebusQueueSettings() {
@@ -56,7 +57,7 @@ func TestQueueList(t *testing.T) {
 	h.repoMakeMessagebusQueueSetting()
 	h.repoMakeMessagebusQueueSetting()
 
-	h.allow(types.MessagebusQueueRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
 
 	h.apiInit().
 		Get("/queues/").
@@ -73,7 +74,7 @@ func TestQueueRead(t *testing.T) {
 
 	res := h.repoMakeMessagebusQueueSetting()
 
-	h.allow(types.MessagebusQueueRBACResource.AppendWildcard(), "read")
+	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/queues/%d", res.ID)).
@@ -87,7 +88,7 @@ func TestQueueCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearMessagebusQueueSettings()
 
-	h.allow(types.SystemRBACResource, "messagebus-queue.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "queue.create")
 
 	consumer := string(messagebus.ConsumerStore)
 	queue := rs()
@@ -114,7 +115,7 @@ func TestQueueUpdate(t *testing.T) {
 	res := h.repoMakeMessagebusQueueSetting()
 	res.Consumer = consumer
 
-	h.allow(types.MessagebusQueueRBACResource.AppendWildcard(), "update")
+	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/queues/%d", res.ID)).
@@ -136,7 +137,7 @@ func TestQueueDelete(t *testing.T) {
 
 	res := h.repoMakeMessagebusQueueSetting()
 
-	h.allow(types.MessagebusQueueRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "delete")
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/queues/%d", res.ID)).
@@ -157,7 +158,7 @@ func TestQueueUnDelete(t *testing.T) {
 
 	res := h.repoMakeMessagebusQueueSetting()
 
-	h.allow(types.MessagebusQueueRBACResource.AppendWildcard(), "delete")
+	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "delete")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/queues/%d/undelete", res.ID)).

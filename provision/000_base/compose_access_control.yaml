@@ -1,29 +1,25 @@
 allow:
-  everyone:
-    compose:
-      - access
-
-    compose:namespace:
+  authenticated:
+    corteza::compose:namespace/*:
       - read
 
-    compose:module:
+    corteza::compose:module/*/*:
       - read
 
-    compose:page:
+    corteza::compose:page/*/*:
       - read
 
-    compose:chart:
+    corteza::compose:chart/*/*:
       - read
 
   admins:
-    compose:
-      - access
+    corteza::compose/:
       - grant
       - settings.read
       - settings.manage
       - namespace.create
 
-    compose:namespace:
+    corteza::compose:namespace/*/*:
       - read
       - update
       - delete
@@ -32,21 +28,68 @@ allow:
       - module.create
       - chart.create
 
-    compose:module:
+    corteza::compose:module/*/*:
       - read
       - update
       - delete
       - record.create
-      - record.read
-      - record.update
-      - record.delete
 
-    compose:chart:
+    corteza::compose:module-field/*/*/*:
+      - record.value.read
+      - record.value.update
+
+    corteza::compose:record/*/*/*:
       - read
       - update
       - delete
 
-    compose:page:
+    corteza::compose:chart/*/*:
+      - read
+      - update
+      - delete
+
+    corteza::compose:page/*/*:
+      - read
+      - update
+      - delete
+
+  low_code_admins:
+    corteza::compose/:
+      - grant
+      - settings.read
+      - settings.manage
+      - namespace.create
+
+    corteza::compose:namespace/*/*:
+      - read
+      - update
+      - delete
+      - manage
+      - page.create
+      - module.create
+      - chart.create
+
+    corteza::compose:module/*/*:
+      - read
+      - update
+      - delete
+      - record.create
+
+    corteza::compose:module-field/*/*/*:
+      - record.value.read
+      - record.value.update
+
+    corteza::compose:record/*/*/*:
+      - read
+      - update
+      - delete
+
+    corteza::compose:chart/*/*:
+      - read
+      - update
+      - delete
+
+    corteza::compose:page/*/*:
       - read
       - update
       - delete

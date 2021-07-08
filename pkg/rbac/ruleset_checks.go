@@ -1,86 +1,85 @@
 package rbac
 
-// Check verifies if role has access to perform an operation on a resource
-//
-// Overall flow:
-//  - invalid resource, no access
-//  - can this combination of roles perform an operation on this specific resource
-//  - can this combination of roles perform an operation on any resource of the type (wildcard)
-//  - can anyone/everyone perform an operation on this specific resource
-//  - can anyone/everyone perform an operation on any resource of the type (wildcard)
-func (set RuleSet) Check(res Resource, op Operation, roles ...uint64) (v Access) {
-
-	if !res.IsValid() {
+func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string) Access {
+	if member(rolesByKind, AnonymousRole) && len(rolesByKind) > 1 {
+		// Integrity check; when user is member of anonymous role
+		// should not be member of any other type of role
 		return Deny
 	}
 
-	if len(roles) > 0 {
-		if v = set.checkResource(res, op, roles...); v != Inherit {
-			return
-		}
+	if member(rolesByKind, BypassRole) {
+		// if user has at least one bypass role, we allow access
+		return Allow
 	}
 
-	if v = set.checkResource(res, op, EveryoneRoleID); v != Inherit {
-		return
+	if len(indexedRules) == 0 {
+		// no rules no access
+		return Inherit
 	}
 
-	return
-}
+	var rules []*Rule
 
-// Check ability to perform an operation on a specific and wildcard resource
-func (set RuleSet) checkResource(res Resource, op Operation, roles ...uint64) (v Access) {
-	if v = set.check(res, op, roles...); v != Inherit {
-		return
-	}
-
-	if res.IsAppendable() {
-		// Is this a specific resource and can we turn it into a wild-carded resource?
-		if v = set.check(res.AppendWildcard(), op, roles...); v != Inherit {
-			return
-		}
-	}
-
-	return
-}
-
-// Check verifies if any of given roles has permission to perform an operation over a resource
-//
-// Will return Inherit when:
-//  - no roles are given
-//  - more than 1 role is given and one of the given roles is Everyone
-//
-// Will return Deny when:
-//  - there is one rule with Deny value
-//
-// Will return Allow when:
-//  - there is at least one rule with Allow value (and no Deny rules)
-func (set RuleSet) check(res Resource, op Operation, roles ...uint64) (v Access) {
-	v = Inherit
-
-	for i := range set {
-		// Ignore resources & operations that do not match
-		if set[i].Resource != res || set[i].Operation != op {
+	// Priority is important here. We want to have
+	// stable RBAC check behaviour and ability
+	// to override allow/deny depending on how niche the role (type) is:
+	//  - context (eg owners) are more niche than common
+	//  - rules for common roles are more important than
+	for _, kind := range []roleKind{ContextRole, CommonRole, AuthenticatedRole, AnonymousRole} {
+		// no roles if this kind
+		if len(rolesByKind[kind]) == 0 {
 			continue
 		}
 
-		// Check for every role
-		for _, roleID := range roles {
-			// Skip rules that do not match
-			if set[i].RoleID != roleID || set[i].Access == Inherit {
+		// user has at least one bypass role
+		if kind == BypassRole {
+			return Allow
+		}
+
+		rules = nil
+		for roleID, r := range indexedRules[op] {
+			if !rolesByKind[kind][roleID] {
 				continue
 			}
+			rules = append(rules, r...)
+		}
 
-			v = set[i].Access // set to Allow
-
-			// Return on first Deny
-			if v == Deny {
-				return
-			}
+		access := checkRulesByResource(rules, op, res)
+		if access != Inherit {
+			return access
 		}
 	}
 
-	// If none of the rules matched, return Inherit (see 1st line)
-	// if at least one of the rules allowed this op over a resource,
-	// return Allow.
-	return v
+	return Inherit
+}
+
+// Check given resource match and operation on all given rules
+//
+// Function expects rules, sorted by level!
+func checkRulesByResource(set []*Rule, op, res string) Access {
+	for _, r := range set {
+		if !matchResource(r.Resource, res) {
+			continue
+		}
+
+		if op != r.Operation {
+			continue
+		}
+
+		if r.Access != Inherit {
+			return r.Access
+		}
+	}
+
+	return Inherit
+}
+
+// at least one of the roles must be set to true
+func member(r partRoles, k roleKind) bool {
+	for _, is := range r[k] {
+		if is {
+			return true
+		}
+	}
+
+	return false
 }

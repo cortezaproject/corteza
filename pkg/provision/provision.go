@@ -9,28 +9,36 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 )
 
-func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
-	ffn := []func() error{
-		func() error { return roles(ctx, s) },
+var (
+	// wrapper around time.Now() that will aid service testing
+	now = func() *time.Time {
+		c := time.Now().Round(time.Second)
+		return &c
+	}
+)
 
+func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt options.ProvisionOpt, authOpt options.AuthOpt) error {
+	log = log.Named("provision")
+
+	ffn := []func() error{
 		// Migrations:
 		func() error { return migrateApplications(ctx, s) },
-		func() error { return migrateEmailTemplates(ctx, log, s) },
+		func() error { return migrateEmailTemplates(ctx, log.Named("email-templates"), s) },
+		func() error { return migratePre202106Roles(ctx, log.Named("pre-202106-roles"), s) },
+		func() error { return migratePre202106RbacRules(ctx, log.Named("pre-202106-rbac-rules"), s) },
 
 		// Config (full & partial)
-		func() error { return importConfig(ctx, log, s, provisionOpt.Path) },
+		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
 
 		// Auto-discoveries and other parts that cannot be imported from static files
-		func() error { return authSettingsAutoDiscovery(ctx, log, service.DefaultSettings) },
-		func() error { return authAddExternals(ctx, log) },
-		func() error { return service.DefaultSettings.UpdateCurrent(ctx) },
-		func() error { return oidcAutoDiscovery(ctx, log, authOpt) },
-		func() error { return defaultAuthClient(ctx, log, s, authOpt) },
+		func() error { return authSettingsAutoDiscovery(ctx, log.Named("auth.settings-discovery"), s) },
+		func() error { return authAddExternals(ctx, log.Named("auth.externals"), s) },
+		func() error { return oidcAutoDiscovery(ctx, log.Named("auth.oidc-auto-discovery"), s, authOpt) },
+		func() error { return defaultAuthClient(ctx, log.Named("auth.clients"), s, authOpt) },
 	}
 
 	for _, fn := range ffn {
@@ -69,7 +77,7 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 		Trusted:   true,
 		Security:  &types.AuthClientSecurity{},
 		Labels:    nil,
-		CreatedAt: time.Now(),
+		CreatedAt: *now(),
 	}
 
 	_, err := store.LookupAuthClientByHandle(ctx, s, c.Handle)
