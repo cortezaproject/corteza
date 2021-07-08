@@ -13,5 +13,7 @@ profile.coverprofile
 /gin-bin
 /.vscode
 /federation/etc/.env*
+
+# https://github.com/nektos/act
 /.act*
 /workflow
