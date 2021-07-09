@@ -65,9 +65,9 @@ errors:
     message: "not allowed to read this auth client"
     log: "failed to read {authClient}; insufficient permissions"
 
-  - error: notAllowedToListAuthClients
-    message: "not allowed to list auth clients"
-    log: "failed to list authClient; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list auth clients"
+    log: "failed to search or list authClient; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create auth clients"

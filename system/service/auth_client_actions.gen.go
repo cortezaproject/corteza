@@ -530,12 +530,12 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
-// AuthClientErrNotAllowedToListAuthClients returns "system:auth-client.notAllowedToListAuthClients" as *errors.Error
+// AuthClientErrNotAllowedToSearch returns "system:auth-client.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AuthClientErrNotAllowedToListAuthClients(mm ...*authClientActionProps) *errors.Error {
+func AuthClientErrNotAllowedToSearch(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -544,13 +544,13 @@ func AuthClientErrNotAllowedToListAuthClients(mm ...*authClientActionProps) *err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to list auth clients", nil),
+		p.Format("not allowed to search or list auth clients", nil),
 
-		errors.Meta("type", "notAllowedToListAuthClients"),
+		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to list authClient; insufficient permissions"),
+		errors.Meta(authClientLogMetaKey{}, "failed to search or list authClient; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

@@ -88,6 +88,10 @@ errors:
     message: "not allowed to read this page"
     log: "could not read {page}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list pages"
+    log: "could not search pages; insufficient permissions"
+
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
     log: "could not read namespace {namespace}; insufficient permissions"

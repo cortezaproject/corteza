@@ -737,6 +737,38 @@ func PageErrNotAllowedToRead(mm ...*pageActionProps) *errors.Error {
 	return e
 }
 
+// PageErrNotAllowedToSearch returns "compose:page.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageErrNotAllowedToSearch(mm ...*pageActionProps) *errors.Error {
+	var p = &pageActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list pages", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:page"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLogMetaKey{}, "could not search pages; insufficient permissions"),
+		errors.Meta(pagePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // PageErrNotAllowedToReadNamespace returns "compose:page.notAllowedToReadNamespace" as *errors.Error
 //
 //

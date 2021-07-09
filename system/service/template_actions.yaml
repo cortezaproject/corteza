@@ -70,9 +70,9 @@ errors:
     message: "not allowed to read this template"
     log: "failed to read {template.handle}; insufficient permissions"
 
-  - error: notAllowedToListTemplates
-    message: "not allowed to list templates"
-    log: "failed to list template; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list templates"
+    log: "failed to search or list templates; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create templates"

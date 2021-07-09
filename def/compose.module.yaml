@@ -9,5 +9,8 @@ rbac:
       description: Update module
     delete:
       description: Delete module
+
     record.create:
       description: Create record
+    records.search:
+      description: List, search or filter records

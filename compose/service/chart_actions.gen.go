@@ -716,6 +716,38 @@ func ChartErrNotAllowedToRead(mm ...*chartActionProps) *errors.Error {
 	return e
 }
 
+// ChartErrNotAllowedToSearch returns "compose:chart.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ChartErrNotAllowedToSearch(mm ...*chartActionProps) *errors.Error {
+	var p = &chartActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list charts", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:chart"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(chartLogMetaKey{}, "could not search or list charts; insufficient permissions"),
+		errors.Meta(chartPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ChartErrNotAllowedToReadNamespace returns "compose:chart.notAllowedToReadNamespace" as *errors.Error
 //
 //
@@ -737,38 +769,6 @@ func ChartErrNotAllowedToReadNamespace(mm ...*chartActionProps) *errors.Error {
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(chartLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
-		errors.Meta(chartPropsMetaKey{}, p),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// ChartErrNotAllowedToListCharts returns "compose:chart.notAllowedToListCharts" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func ChartErrNotAllowedToListCharts(mm ...*chartActionProps) *errors.Error {
-	var p = &chartActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list charts", nil),
-
-		errors.Meta("type", "notAllowedToListCharts"),
-		errors.Meta("resource", "compose:chart"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not list charts; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

@@ -707,6 +707,38 @@ func ModuleErrNotAllowedToRead(mm ...*moduleActionProps) *errors.Error {
 	return e
 }
 
+// ModuleErrNotAllowedToSearch returns "compose:module.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ModuleErrNotAllowedToSearch(mm ...*moduleActionProps) *errors.Error {
+	var p = &moduleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list modules", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:module"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(moduleLogMetaKey{}, "could not search or list modules; insufficient permissions"),
+		errors.Meta(modulePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ModuleErrNotAllowedToReadNamespace returns "compose:module.notAllowedToReadNamespace" as *errors.Error
 //
 //

@@ -92,17 +92,22 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "node.create",
-		},
-		{
-			"type": types.ComponentResourceType,
-			"any":  types.ComponentRbacResource(),
 			"op":   "settings.read",
 		},
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "settings.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "node.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "nodes.search",
 		},
 	}
 
@@ -208,13 +213,6 @@ func (svc accessControl) CanPair(ctx context.Context) bool {
 	return svc.can(ctx, "pair", &types.Component{})
 }
 
-// CanCreateNode checks if current user can create new federation node
-//
-// This function is auto-generated
-func (svc accessControl) CanCreateNode(ctx context.Context) bool {
-	return svc.can(ctx, "node.create", &types.Component{})
-}
-
 // CanReadSettings checks if current user can read settings
 //
 // This function is auto-generated
@@ -227,6 +225,20 @@ func (svc accessControl) CanReadSettings(ctx context.Context) bool {
 // This function is auto-generated
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
 	return svc.can(ctx, "settings.manage", &types.Component{})
+}
+
+// CanCreateNode checks if current user can create new federation node
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateNode(ctx context.Context) bool {
+	return svc.can(ctx, "node.create", &types.Component{})
+}
+
+// CanSearchNodes checks if current user can list, search or filter federation nodes
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchNodes(ctx context.Context) bool {
+	return svc.can(ctx, "nodes.search", &types.Component{})
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -269,9 +281,10 @@ func rbacResourceOperations(r string) map[string]bool {
 		return map[string]bool{
 			"grant":           true,
 			"pair":            true,
-			"node.create":     true,
 			"settings.read":   true,
 			"settings.manage": true,
+			"node.create":     true,
+			"nodes.search":    true,
 		}
 	}
 

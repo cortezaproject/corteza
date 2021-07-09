@@ -990,12 +990,12 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 	return e
 }
 
-// AttachmentErrNotAllowedToReadModule returns "compose:attachment.notAllowedToReadModule" as *errors.Error
+// AttachmentErrNotAllowedToRead returns "compose:attachment.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func AttachmentErrNotAllowedToReadModule(mm ...*attachmentActionProps) *errors.Error {
+func AttachmentErrNotAllowedToRead(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -1006,11 +1006,43 @@ func AttachmentErrNotAllowedToReadModule(mm ...*attachmentActionProps) *errors.E
 
 		p.Format("not allowed to read this module", nil),
 
-		errors.Meta("type", "notAllowedToReadModule"),
+		errors.Meta("type", "notAllowedToRead"),
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(attachmentLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AttachmentErrNotAllowedToSearch returns "compose:attachment.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AttachmentErrNotAllowedToSearch(mm ...*attachmentActionProps) *errors.Error {
+	var p = &attachmentActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list modules", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:attachment"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(attachmentLogMetaKey{}, "could not search or list modules; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

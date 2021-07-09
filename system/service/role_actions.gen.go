@@ -766,12 +766,12 @@ func RoleErrNotAllowedToRead(mm ...*roleActionProps) *errors.Error {
 	return e
 }
 
-// RoleErrNotAllowedToListRoles returns "system:role.notAllowedToListRoles" as *errors.Error
+// RoleErrNotAllowedToSearch returns "system:role.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RoleErrNotAllowedToListRoles(mm ...*roleActionProps) *errors.Error {
+func RoleErrNotAllowedToSearch(mm ...*roleActionProps) *errors.Error {
 	var p = &roleActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -780,13 +780,13 @@ func RoleErrNotAllowedToListRoles(mm ...*roleActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to list roles", nil),
+		p.Format("not allowed to search or list roles", nil),
 
-		errors.Meta("type", "notAllowedToListRoles"),
+		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to list role; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to search or list roles; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

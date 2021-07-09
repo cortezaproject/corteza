@@ -63,8 +63,8 @@ errors:
     log: "failed to read {session}; insufficient permissions"
 
   - error: notAllowedToSearch
-    message: "not allowed to search sessions"
-    log: "failed to list session; insufficient permissions"
+    message: "not allowed to search or list sessions"
+    log: "failed to search or list session; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this session"

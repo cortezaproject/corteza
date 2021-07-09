@@ -640,13 +640,13 @@ func WorkflowErrNotAllowedToSearch(mm ...*workflowActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to search workflows", nil),
+		p.Format("not allowed to search or list workflows", nil),
 
 		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to list workflow; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to search or list workflow; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

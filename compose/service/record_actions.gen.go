@@ -969,6 +969,38 @@ func RecordErrNotAllowedToRead(mm ...*recordActionProps) *errors.Error {
 	return e
 }
 
+// RecordErrNotAllowedToSearch returns "compose:record.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list records", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "failed to search or list records; insufficient permissions"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RecordErrNotAllowedToReadNamespace returns "compose:record.notAllowedToReadNamespace" as *errors.Error
 //
 //

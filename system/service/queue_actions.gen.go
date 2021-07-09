@@ -578,6 +578,38 @@ func QueueErrNotAllowedToRead(mm ...*queueActionProps) *errors.Error {
 	return e
 }
 
+// QueueErrNotAllowedToSearch returns "system:queue.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrNotAllowedToSearch(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list queues", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "system:queue"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(queueLogMetaKey{}, "failed to search or list; insufficient permissions"),
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // QueueErrNotAllowedToUpdate returns "system:queue.notAllowedToUpdate" as *errors.Error
 //
 //

@@ -92,9 +92,9 @@ errors:
     message: "not allowed to read this role"
     log: "failed to read {role.handle}; insufficient permissions"
 
-  - error: notAllowedToListRoles
-    message: "not allowed to list roles"
-    log: "failed to list role; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list roles"
+    log: "failed to search or list roles; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create roles"

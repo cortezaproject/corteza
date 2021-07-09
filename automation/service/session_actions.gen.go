@@ -515,13 +515,13 @@ func SessionErrNotAllowedToSearch(mm ...*sessionActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to search sessions", nil),
+		p.Format("not allowed to search or list sessions", nil),
 
 		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "automation:session"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sessionLogMetaKey{}, "failed to list session; insufficient permissions"),
+		errors.Meta(sessionLogMetaKey{}, "failed to search or list session; insufficient permissions"),
 		errors.Meta(sessionPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

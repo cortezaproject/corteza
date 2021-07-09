@@ -114,9 +114,13 @@ errors:
   - error: failedToProcessImage
     message: "could not process image"
 
-  - error: notAllowedToReadModule
+  - error: notAllowedToRead
     message: "not allowed to read this module"
     log: "could not delete {module}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list modules"
+    log: "could not search or list modules; insufficient permissions"
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"

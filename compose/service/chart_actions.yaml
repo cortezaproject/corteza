@@ -88,13 +88,13 @@ errors:
     message: "not allowed to read this chart"
     log: "could not read {chart}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list charts"
+    log: "could not search or list charts; insufficient permissions"
+
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
     log: "could not read namespace {namespace}; insufficient permissions"
-
-  - error: notAllowedToListCharts
-    message: "not allowed to list charts"
-    log: "could not list charts; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create charts"

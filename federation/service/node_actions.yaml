@@ -84,10 +84,14 @@ errors:
     message: "not allowed to create nodes"
     log: "could not create nodes; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list nodes"
+    log: "could not search or list nodes; insufficient permissions"
+
   - error: notAllowedToManage
     message: "not allowed to manage this node"
     log: "could not manage {node}; insufficient permissions"
-  
+
   - error: notAllowedToPair
     message: "not allowed to pair this node"
     log: "could not pair {node}; insufficient permissions"

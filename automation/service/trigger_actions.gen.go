@@ -515,13 +515,13 @@ func TriggerErrNotAllowedToSearch(mm ...*triggerActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to search triggers", nil),
+		p.Format("not allowed to search or list triggers", nil),
 
 		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "automation:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to list trigger; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to search or list trigger; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
 		errors.StackSkip(1),

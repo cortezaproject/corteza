@@ -185,6 +185,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "action-log.read",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "settings.read",
 		},
 		{
@@ -200,7 +205,17 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "auth-clients.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "role.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "roles.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -210,7 +225,17 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "users.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "application.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "applications.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -230,12 +255,22 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "templates.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "reminder.assign",
 		},
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "queue.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "queues.search",
 		},
 	}
 
@@ -467,6 +502,13 @@ func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, "grant", &types.Component{})
 }
 
+// CanReadActionLog checks if current user can access to action log
+//
+// This function is auto-generated
+func (svc accessControl) CanReadActionLog(ctx context.Context) bool {
+	return svc.can(ctx, "action-log.read", &types.Component{})
+}
+
 // CanReadSettings checks if current user can read system settings
 //
 // This function is auto-generated
@@ -488,11 +530,25 @@ func (svc accessControl) CanCreateAuthClient(ctx context.Context) bool {
 	return svc.can(ctx, "auth-client.create", &types.Component{})
 }
 
+// CanSearchAuthClients checks if current user can list, search or filter auth clients
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchAuthClients(ctx context.Context) bool {
+	return svc.can(ctx, "auth-clients.search", &types.Component{})
+}
+
 // CanCreateRole checks if current user can create roles
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateRole(ctx context.Context) bool {
 	return svc.can(ctx, "role.create", &types.Component{})
+}
+
+// CanSearchRoles checks if current user can list, search or filter roles
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchRoles(ctx context.Context) bool {
+	return svc.can(ctx, "roles.search", &types.Component{})
 }
 
 // CanCreateUser checks if current user can create users
@@ -502,11 +558,25 @@ func (svc accessControl) CanCreateUser(ctx context.Context) bool {
 	return svc.can(ctx, "user.create", &types.Component{})
 }
 
+// CanSearchUsers checks if current user can list, search or filter users
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchUsers(ctx context.Context) bool {
+	return svc.can(ctx, "users.search", &types.Component{})
+}
+
 // CanCreateApplication checks if current user can create applications
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateApplication(ctx context.Context) bool {
 	return svc.can(ctx, "application.create", &types.Component{})
+}
+
+// CanSearchApplications checks if current user can list, search or filter auth clients
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchApplications(ctx context.Context) bool {
+	return svc.can(ctx, "applications.search", &types.Component{})
 }
 
 // CanSelfApplicationFlag checks if current user can manage private flags for applications
@@ -530,6 +600,13 @@ func (svc accessControl) CanCreateTemplate(ctx context.Context) bool {
 	return svc.can(ctx, "template.create", &types.Component{})
 }
 
+// CanSearchTemplates checks if current user can list, search or filter templates
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchTemplates(ctx context.Context) bool {
+	return svc.can(ctx, "templates.search", &types.Component{})
+}
+
 // CanAssignReminder checks if current user can assign reminders
 //
 // This function is auto-generated
@@ -537,11 +614,18 @@ func (svc accessControl) CanAssignReminder(ctx context.Context) bool {
 	return svc.can(ctx, "reminder.assign", &types.Component{})
 }
 
-// CanCreateQueue checks if current user can create messagebus queues
+// CanCreateQueue checks if current user can create message queue
 //
 // This function is auto-generated
 func (svc accessControl) CanCreateQueue(ctx context.Context) bool {
 	return svc.can(ctx, "queue.create", &types.Component{})
+}
+
+// CanSearchQueues checks if current user can list, search or filter message queues
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchQueues(ctx context.Context) bool {
+	return svc.can(ctx, "queues.search", &types.Component{})
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -612,17 +696,24 @@ func rbacResourceOperations(r string) map[string]bool {
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                   true,
+			"action-log.read":         true,
 			"settings.read":           true,
 			"settings.manage":         true,
 			"auth-client.create":      true,
+			"auth-clients.search":     true,
 			"role.create":             true,
+			"roles.search":            true,
 			"user.create":             true,
+			"users.search":            true,
 			"application.create":      true,
+			"applications.search":     true,
 			"application.flag.self":   true,
 			"application.flag.global": true,
 			"template.create":         true,
+			"templates.search":        true,
 			"reminder.assign":         true,
 			"queue.create":            true,
+			"queues.search":           true,
 		}
 	}
 
