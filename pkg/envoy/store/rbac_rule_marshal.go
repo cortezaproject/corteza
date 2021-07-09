@@ -189,6 +189,7 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[1].Identifiers)
 		//}
 
+		////
 		//p2 := resource.FindComposeRecord(pl.state.ParentResources, n.res.RefResource.Identifiers)
 		//if p2 == nil {
 		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefResource.Identifiers)
@@ -196,7 +197,7 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 		//
 		//res.Resource = composeTypes.RecordRbacResource(p0.ID, p1.ID, p2.ID)
 	case composeTypes.ModuleFieldResourceType:
-		return fmt.Errorf("importing rbac rules on record level is not supported")
+		return fmt.Errorf("importing rbac rules on module field level is not supported")
 		//p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)
 		//if p0 == nil {
 		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[0].Identifiers)

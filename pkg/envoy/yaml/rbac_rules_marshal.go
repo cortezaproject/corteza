@@ -138,7 +138,7 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 	case composeTypes.RecordResourceType:
 		return fmt.Errorf("importing rbac rules on record level is not supported")
 	case composeTypes.ModuleFieldResourceType:
-		return fmt.Errorf("importing rbac rules on record level is not supported")
+		return fmt.Errorf("importing rbac rules on module field level is not supported")
 	case systemTypes.UserResourceType:
 		if res.RefResource != nil {
 			p1 := resource.FindUser(state.ParentResources, res.RefResource.Identifiers)
