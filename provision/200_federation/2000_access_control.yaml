@@ -6,6 +6,7 @@ allow:
       - settings.read
       - settings.manage
       - node.create
+      - nodes.search
 
     corteza::federation:node/*:
       - manage
@@ -24,6 +25,7 @@ allow:
       - settings.read
       - settings.manage
       - node.create
+      - nodes.search
 
     corteza::federation:node/*:
       - manage
