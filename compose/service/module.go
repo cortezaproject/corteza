@@ -28,6 +28,7 @@ type (
 	}
 
 	moduleAccessController interface {
+		CanSearchModulesOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
@@ -70,6 +71,7 @@ func Module() *module {
 
 func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set types.ModuleSet, f types.ModuleFilter, err error) {
 	var (
+		ns     *types.Namespace
 		aProps = &moduleActionProps{filter: &filter}
 	)
 
@@ -83,11 +85,14 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 	}
 
 	err = func() error {
-
-		if ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID); err != nil {
+		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+		if err != nil {
 			return err
-		} else {
-			aProps.setNamespace(ns)
+		}
+
+		aProps.setNamespace(ns)
+		if !svc.ac.CanSearchModulesOnNamespace(ctx, ns) {
+			return ModuleErrNotAllowedToSearch()
 		}
 
 		if len(filter.Labels) > 0 {

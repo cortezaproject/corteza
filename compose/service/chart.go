@@ -20,6 +20,7 @@ type (
 	}
 
 	chartAccessController interface {
+		CanSearchChartsOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
 		CanReadChart(context.Context, *types.Chart) bool
@@ -61,10 +62,14 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 	}
 
 	err = func() error {
-		if ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID); err != nil {
+		ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID)
+		if err != nil {
 			return err
-		} else {
-			aProps.setNamespace(ns)
+		}
+
+		aProps.setNamespace(ns)
+		if !svc.ac.CanSearchChartsOnNamespace(ctx, ns) {
+			return ChartErrNotAllowedToSearch()
 		}
 
 		if len(filter.Labels) > 0 {

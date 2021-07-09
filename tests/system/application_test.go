@@ -86,6 +86,7 @@ func TestApplicationRead(t *testing.T) {
 	h := newHelper(t)
 
 	app := h.repoMakeApplication()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
 	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read")
 
 	h.apiInit().
@@ -100,6 +101,8 @@ func TestApplicationRead(t *testing.T) {
 
 func TestApplicationList(t *testing.T) {
 	h := newHelper(t)
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
 
 	h.repoMakeApplication(h.randEmail())
 	h.repoMakeApplication(h.randEmail())
@@ -122,6 +125,7 @@ func TestApplicationList_filterForbidden(t *testing.T) {
 	h.repoMakeApplication("application")
 	f := h.repoMakeApplication()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
 	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
@@ -341,6 +345,7 @@ func TestApplicationLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "application.create")
 	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read", "update", "delete")
 
@@ -420,6 +425,7 @@ func TestApplicationFlags(t *testing.T) {
 	h := newHelper(t)
 	h.clearApplications()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "applications.search")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "application.create")
 	helpers.AllowMe(h, types.ApplicationRbacResource(0), "read")
 

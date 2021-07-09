@@ -64,7 +64,7 @@ func TestModuleRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
@@ -83,7 +83,7 @@ func TestModuleReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeModule(ns, "some-module")
@@ -100,7 +100,7 @@ func TestModuleList(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeModule(ns, "app")
@@ -118,7 +118,7 @@ func TestModuleListQuery(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.createModule(&types.Module{
@@ -141,7 +141,7 @@ func TestModuleList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeModule(ns, "module")
@@ -178,7 +178,7 @@ func TestModuleCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
 
 	ns := h.makeNamespace("some-namespace")
@@ -196,7 +196,7 @@ func TestModuleUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
 
@@ -214,7 +214,7 @@ func TestModuleUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
@@ -238,7 +238,7 @@ func TestModuleFieldsUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
@@ -270,7 +270,7 @@ func TestModuleFieldsUpdate_defaults(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing", Required: true, DefaultValue: types.RecordValueSet{&types.RecordValue{Value: "test"}}})
 
@@ -304,7 +304,7 @@ func TestModuleFieldsDefaultValue(t *testing.T) {
 	var ns *types.Namespace
 
 	h := newHelper(t)
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 
 	prep := func() {
 		h.clearModules()
@@ -419,7 +419,7 @@ func TestModuleFieldsUpdate_removed(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "a"}, &types.ModuleField{ID: id.Next(), Kind: "String", Name: "b"})
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")
@@ -447,7 +447,7 @@ func TestModuleFieldsUpdate_removedHasRecords(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "a"}, &types.ModuleField{ID: id.Next(), Kind: "String", Name: "b"})
 	h.makeRecord(m, &types.RecordValue{Name: "a", Value: "va"}, &types.RecordValue{Name: "b", Value: "vb"})
@@ -476,7 +476,7 @@ func TestModuleFieldsUpdateExpressions(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
 	ns := h.makeNamespace("some-namespace")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
@@ -578,7 +578,7 @@ func TestModuleFieldsPreventUpdate_ifRecordExists(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module", &types.ModuleField{ID: id.Next(), Kind: "String", Name: "existing"})
 	h.makeRecord(m, &types.RecordValue{Name: "existing", Value: "value"})
@@ -611,7 +611,7 @@ func TestModuleDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeModule(ns, "some-module")
@@ -629,7 +629,7 @@ func TestModuleDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "delete")
 
@@ -651,7 +651,7 @@ func TestModuleLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearModules()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "modules.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "module.create")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "update")

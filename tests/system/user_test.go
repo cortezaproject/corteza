@@ -95,6 +95,7 @@ func TestUserListAll(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.apiInit().
@@ -119,6 +120,7 @@ func TestUserListWithPaging(t *testing.T) {
 		h.createUserWithEmail(h.randEmail())
 	}
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	var aux = struct {
@@ -168,6 +170,7 @@ func TestUserList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearUsers()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.createUserWithEmail("usr")
@@ -191,6 +194,7 @@ func TestUserListQuery(t *testing.T) {
 
 	h.secCtx()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	h.apiInit().
@@ -213,6 +217,7 @@ func TestUserListQueryEmail(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.UserRbacResource(0), "email.unmask")
 
@@ -235,6 +240,7 @@ func TestUserListQueryUsername(t *testing.T) {
 	h.clearUsers()
 
 	h.secCtx()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 
 	ee := h.randEmail()
@@ -260,6 +266,7 @@ func TestUserListQueryHandle(t *testing.T) {
 
 	h.secCtx()
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 
 	h.createUser(&types.User{
 		Email:  "test@test.tld",
@@ -284,6 +291,7 @@ func TestUserListWithOneAllowed(t *testing.T) {
 	h.secCtx()
 
 	newUserWeCanAccess := h.createUserWithEmail(h.randEmail())
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, newUserWeCanAccess.RbacResource(), "read")
 
 	// And one we cannot access
@@ -486,6 +494,7 @@ func TestUserLabels(t *testing.T) {
 	h.clearUsers()
 
 	helpers.AllowMe(h, types.ComponentRbacResource(), "user.create")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "users.search")
 	helpers.AllowMe(h, types.UserRbacResource(0), "read")
 	helpers.AllowMe(h, types.UserRbacResource(0), "update")
 	helpers.AllowMe(h, types.UserRbacResource(0), "delete")

@@ -99,6 +99,8 @@ func TestRoleList(t *testing.T) {
 	h.repoMakeRole(h.randEmail())
 	h.repoMakeRole(h.randEmail())
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
+
 	h.apiInit().
 		Get("/roles/").
 		Expect(t).
@@ -117,6 +119,7 @@ func TestRoleList_filterForbidden(t *testing.T) {
 	h.repoMakeRole("role")
 	f := h.repoMakeRole()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
 	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
@@ -390,6 +393,7 @@ func TestRoleLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearRoles()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "roles.search")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "role.create")
 	helpers.AllowMe(h, types.RoleRbacResource(0), "read", "update", "delete")
 

@@ -41,6 +41,7 @@ type (
 	}
 
 	roleAccessController interface {
+		CanSearchRoles(context.Context) bool
 		CanCreateRole(context.Context) bool
 		CanReadRole(context.Context, *types.Role) bool
 		CanUpdateRole(context.Context, *types.Role) bool
@@ -135,6 +136,10 @@ func (svc role) Find(ctx context.Context, filter types.RoleFilter) (rr types.Rol
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchRoles(ctx) {
+			return RoleErrNotAllowedToSearch()
+		}
+
 		if filter.Deleted > 0 {
 			// If list with deleted or suspended users is requested
 			// user must have access permissions to system (ie: is admin)

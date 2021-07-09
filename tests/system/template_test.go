@@ -48,6 +48,7 @@ func TestTemplateRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 
 	u := h.repoMakeTemplate()
@@ -67,6 +68,7 @@ func TestTemplateList(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 
 	h.repoMakeTemplate(rs())
@@ -93,6 +95,7 @@ func TestTemplateList_filterForbidden(t *testing.T) {
 	h.repoMakeTemplate("template")
 	f := h.repoMakeTemplate()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
@@ -178,6 +181,8 @@ func TestTemplateDeleteForbidden(t *testing.T) {
 	h.clearTemplates()
 	u := h.repoMakeTemplate()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
+
 	h.apiInit().
 		Delete(fmt.Sprintf("/template/%d", u.ID)).
 		Header("Accept", "application/json").
@@ -230,6 +235,7 @@ func TestTemplateUndelete(t *testing.T) {
 func TestTemplateRenderForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 	helpers.DenyMe(h, types.TemplateRbacResource(0), "render")
 
@@ -248,6 +254,7 @@ func TestTemplateRenderForbidden(t *testing.T) {
 func TestTemplateRenderDriverUndefined(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 
@@ -266,6 +273,7 @@ func TestTemplateRenderDriverUndefined(t *testing.T) {
 func TestTemplateRenderPlain(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 
@@ -284,6 +292,7 @@ func TestTemplateRenderPlain(t *testing.T) {
 func TestTemplateRenderHTML(t *testing.T) {
 	h := newHelper(t)
 	h.clearTemplates()
+	helpers.AllowMe(h, types.ComponentRbacResource(), "templates.search")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "read")
 	helpers.AllowMe(h, types.TemplateRbacResource(0), "render")
 

@@ -50,6 +50,7 @@ type (
 	}
 
 	userAccessController interface {
+		CanSearchUsers(context.Context) bool
 		CanCreateUser(context.Context) bool
 		CanReadUser(context.Context, *types.User) bool
 		CanUpdateUser(context.Context, *types.User) bool
@@ -135,6 +136,10 @@ func (svc user) FindByEmail(ctx context.Context, email string) (u *types.User, e
 	)
 
 	err = func() error {
+		if !svc.ac.CanSearchUsers(ctx) {
+			return UserErrNotAllowedToSearch()
+		}
+
 		u, err = store.LookupUserByEmail(ctx, svc.store, email)
 		if u, err = svc.proc(ctx, u, err); err != nil {
 			return err
@@ -283,6 +288,10 @@ func (svc user) Find(ctx context.Context, filter types.UserFilter) (uu types.Use
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchUsers(ctx) {
+			return UserErrNotAllowedToSearch()
+		}
+
 		if filter.Deleted > 0 {
 			// If list with deleted users is requested
 			// user must have access permissions to system (ie: is admin)

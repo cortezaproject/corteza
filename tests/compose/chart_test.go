@@ -45,7 +45,7 @@ func TestChartRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
@@ -64,7 +64,7 @@ func TestChartReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.makeChart(ns, "some-chart")
@@ -81,7 +81,7 @@ func TestChartList(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeChart(ns, "chart1")
@@ -99,7 +99,7 @@ func TestChartList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.makeChart(ns, "chart")
@@ -136,7 +136,7 @@ func TestChartCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "chart.create")
 
 	ns := h.makeNamespace("some-namespace")
@@ -154,7 +154,7 @@ func TestChartUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
 
@@ -172,7 +172,7 @@ func TestChartUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	ns := h.makeNamespace("some-namespace")
 	res := h.makeChart(ns, "some-chart")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "update")
@@ -194,7 +194,7 @@ func TestChartDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.makeChart(ns, "some-chart")
@@ -212,7 +212,7 @@ func TestChartDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "delete")
 
@@ -234,7 +234,7 @@ func TestChartLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearCharts()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "charts.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "chart.create")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.ChartRbacResource(0, 0), "update")

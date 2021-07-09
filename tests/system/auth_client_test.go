@@ -3,15 +3,16 @@ package system
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func (h helper) clearAuthClients() {
@@ -54,6 +55,7 @@ func TestAuthClientList(t *testing.T) {
 	h.repoMakeAuthClient()
 	h.repoMakeAuthClient()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "auth-clients.search")
 	helpers.AllowMe(h, types.AuthClientRbacResource(0), "read")
 
 	h.apiInit().
@@ -87,6 +89,7 @@ func TestAuthClientCreate(t *testing.T) {
 
 	handle := rs()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "auth-clients.search")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "auth-client.create")
 
 	h.apiInit().

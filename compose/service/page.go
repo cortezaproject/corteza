@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -10,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
-	"reflect"
 )
 
 type (
@@ -22,6 +23,7 @@ type (
 	}
 
 	pageAccessController interface {
+		CanSearchPagesOnNamespace(context.Context, *types.Namespace) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
 		CanReadPage(context.Context, *types.Page) bool
@@ -95,16 +97,21 @@ func checkPage(ctx context.Context, ac pageAccessController) func(res *types.Pag
 func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error) {
 	var (
 		aProps = &pageActionProps{filter: &filter}
+		ns     *types.Namespace
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = checkPage(ctx, svc.ac)
 
 	err = func() error {
-		if ns, err := loadNamespace(ctx, svc.store, filter.NamespaceID); err != nil {
+		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+		if err != nil {
 			return err
-		} else {
-			aProps.setNamespace(ns)
+		}
+
+		aProps.setNamespace(ns)
+		if !svc.ac.CanSearchPagesOnNamespace(ctx, ns) {
+			return PageErrNotAllowedToSearch()
 		}
 
 		if len(filter.Labels) > 0 {

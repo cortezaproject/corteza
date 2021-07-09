@@ -28,6 +28,7 @@ type (
 
 	templateAccessController interface {
 		CanCreateTemplate(context.Context) bool
+		CanSearchTemplates(context.Context) bool
 		CanReadTemplate(context.Context, *types.Template) bool
 		CanUpdateTemplate(context.Context, *types.Template) bool
 		CanDeleteTemplate(context.Context, *types.Template) bool
@@ -153,6 +154,10 @@ func (svc template) Search(ctx context.Context, filter types.TemplateFilter) (se
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchTemplates(ctx) {
+			return TemplateErrNotAllowedToSearch()
+		}
+
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
 				ctx,

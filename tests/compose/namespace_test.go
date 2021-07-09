@@ -42,6 +42,8 @@ func TestNamespaceRead(t *testing.T) {
 	h.clearNamespaces()
 
 	ns := h.makeNamespace("some-namespace")
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 
 	h.apiInit().
@@ -58,6 +60,7 @@ func TestNamespaceReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	ns := h.makeNamespace("some-namespace-" + string(rand.Bytes(20)))
 
@@ -72,6 +75,8 @@ func TestNamespaceReadByHandle(t *testing.T) {
 func TestNamespaceList(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 
 	h.makeNamespace("ns1")
 	h.makeNamespace("ns2")
@@ -91,6 +96,7 @@ func TestNamespaceList_filterForbidden(t *testing.T) {
 	h.makeNamespace("namespace")
 	f := h.makeNamespace("namespace_forbidden")
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 	helpers.DenyMe(h, types.NamespaceRbacResource(f.ID), "read")
 
 	h.apiInit().
@@ -105,6 +111,8 @@ func TestNamespaceList_filterForbidden(t *testing.T) {
 func TestNamespaceCreateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
+
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 
 	h.apiInit().
 		Post("/namespace/").
@@ -207,6 +215,7 @@ func TestNamespaceLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearNamespaces()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "namespaces.search")
 	helpers.AllowMe(h, types.ComponentRbacResource(), "namespace.create")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "delete", "update")
 
