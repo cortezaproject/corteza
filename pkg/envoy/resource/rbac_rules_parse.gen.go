@@ -19,6 +19,7 @@ package resource
 // - system.application.yaml
 // - system.auth-client.yaml
 // - system.role.yaml
+// - system.route.yaml
 // - system.template.yaml
 // - system.user.yaml
 // - system.yaml
@@ -197,6 +198,16 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			path[0],
 		)
 		return systemTypes.RoleResourceType, ref, pp, err
+
+	case systemTypes.RouteResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemRouteRbacReferences(
+			// route
+			path[0],
+		)
+		return systemTypes.RouteResourceType, ref, pp, err
 
 	case systemTypes.TemplateResourceType:
 		if len(path) != 1 {
