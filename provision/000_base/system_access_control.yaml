@@ -24,12 +24,18 @@ allow:
       - settings.read
       - settings.manage
       - application.create
+      - applications.search
       - auth-client.create
+      - auth-clients.search
       - user.create
+      - users.search
       - template.create
+      - templates.search
       - role.create
+      - roles.search
       - reminder.assign
       - queue.create
+      - queues.search
 
     corteza::system:application/*:
       - read
@@ -85,12 +91,18 @@ allow:
       - settings.read
       - settings.manage
       - application.create
+      - applications.search
       - auth-client.create
+      - auth-clients.search
       - user.create
+      - users.search
       - template.create
+      - templates.search
       - role.create
+      - roles.search
       - reminder.assign
       - queue.create
+      - queues.search
 
     corteza::system:application/*:
       - read

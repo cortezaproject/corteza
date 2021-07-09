@@ -1,5 +1,8 @@
 allow:
   authenticated:
+    corteza::compose/:
+      - namespaces.search
+
     corteza::compose:namespace/*:
       - read
 
@@ -12,12 +15,17 @@ allow:
     corteza::compose:chart/*/*:
       - read
 
+# @todo implement support for record resource import in Envoy
+#    corteza::compose:record/*/*/*:
+#      - read
+
   admins:
     corteza::compose/:
       - grant
       - settings.read
       - settings.manage
       - namespace.create
+      - namespaces.search
 
     corteza::compose:namespace/*/*:
       - read
@@ -25,23 +33,28 @@ allow:
       - delete
       - manage
       - page.create
+      - pages.search
       - module.create
+      - modules.search
       - chart.create
+      - charts.search
 
     corteza::compose:module/*/*:
       - read
       - update
       - delete
       - record.create
+      - records.search
 
     corteza::compose:module-field/*/*/*:
       - record.value.read
       - record.value.update
 
-    corteza::compose:record/*/*/*:
-      - read
-      - update
-      - delete
+# @todo implement support for record resource import in Envoy
+#    corteza::compose:record/*/*/*:
+#      - read
+#      - update
+#      - delete
 
     corteza::compose:chart/*/*:
       - read
@@ -59,6 +72,7 @@ allow:
       - settings.read
       - settings.manage
       - namespace.create
+      - namespaces.search
 
     corteza::compose:namespace/*/*:
       - read
@@ -66,23 +80,28 @@ allow:
       - delete
       - manage
       - page.create
+      - pages.search
       - module.create
+      - modules.search
       - chart.create
+      - charts.search
 
     corteza::compose:module/*/*:
       - read
       - update
       - delete
       - record.create
+      - records.search
 
     corteza::compose:module-field/*/*/*:
       - record.value.read
       - record.value.update
 
-    corteza::compose:record/*/*/*:
-      - read
-      - update
-      - delete
+# @todo implement support for record resource import in Envoy
+#    corteza::compose:record/*/*/*:
+#      - read
+#      - update
+#      - delete
 
     corteza::compose:chart/*/*:
       - read
