@@ -69,9 +69,9 @@ errors:
     message: "not allowed to read this application"
     log: "failed to read {application.name}; insufficient permissions"
 
-  - error: notAllowedToListApplications
-    message: "not allowed to list applications"
-    log: "failed to list application; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list applications"
+    log: "failed to search or list applications; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create applications"

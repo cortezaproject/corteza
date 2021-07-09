@@ -86,6 +86,10 @@ errors:
     message: "not allowed to read this module"
     log: "could not read {module}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list modules"
+    log: "could not search or list modules; insufficient permissions"
+
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
     log: "could not read namespace {namespace}; insufficient permissions"

@@ -590,12 +590,12 @@ func NamespaceErrNotAllowedToRead(mm ...*namespaceActionProps) *errors.Error {
 	return e
 }
 
-// NamespaceErrNotAllowedToListNamespaces returns "compose:namespace.notAllowedToListNamespaces" as *errors.Error
+// NamespaceErrNotAllowedToSearch returns "compose:namespace.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func NamespaceErrNotAllowedToListNamespaces(mm ...*namespaceActionProps) *errors.Error {
+func NamespaceErrNotAllowedToSearch(mm ...*namespaceActionProps) *errors.Error {
 	var p = &namespaceActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -604,13 +604,13 @@ func NamespaceErrNotAllowedToListNamespaces(mm ...*namespaceActionProps) *errors
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to list this namespaces", nil),
+		p.Format("not allowed to search or list namespaces", nil),
 
-		errors.Meta("type", "notAllowedToListNamespaces"),
+		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "could not list namespaces; insufficient permissions"),
+		errors.Meta(namespaceLogMetaKey{}, "could not search or list namespaces; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

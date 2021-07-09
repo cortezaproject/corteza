@@ -77,8 +77,8 @@ errors:
     log: "failed to read {workflow.handle}; insufficient permissions"
 
   - error: notAllowedToSearch
-    message: "not allowed to search workflows"
-    log: "failed to list workflow; insufficient permissions"
+    message: "not allowed to search or list workflows"
+    log: "failed to search or list workflow; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create workflows"

@@ -4,11 +4,15 @@ rbac:
   operations:
     grant:
       description: Manage automation permissions
+
     workflow.create:
       description: Create workflows
+
     triggers.search:
-      description: Search triggers
+      description: List, search or filter triggers
+
     sessions.search:
-      description: Search sessions
+      description: List, search or filter sessions
+
     workflows.search:
-      description: Search workflows
+      description: List, search or filter workflows

@@ -120,6 +120,10 @@ errors:
     message: "not allowed to read this record"
     log: "failed to read {record}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list records"
+    log: "failed to search or list records; insufficient permissions"
+
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
     log: "failed to read namespace {namespace}; insufficient permissions"

@@ -588,12 +588,12 @@ func TemplateErrNotAllowedToRead(mm ...*templateActionProps) *errors.Error {
 	return e
 }
 
-// TemplateErrNotAllowedToListTemplates returns "system:template.notAllowedToListTemplates" as *errors.Error
+// TemplateErrNotAllowedToSearch returns "system:template.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func TemplateErrNotAllowedToListTemplates(mm ...*templateActionProps) *errors.Error {
+func TemplateErrNotAllowedToSearch(mm ...*templateActionProps) *errors.Error {
 	var p = &templateActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -602,13 +602,13 @@ func TemplateErrNotAllowedToListTemplates(mm ...*templateActionProps) *errors.Er
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to list templates", nil),
+		p.Format("not allowed to search or list templates", nil),
 
-		errors.Meta("type", "notAllowedToListTemplates"),
+		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to list template; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to search or list templates; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
 
 		errors.StackSkip(1),

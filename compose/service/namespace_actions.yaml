@@ -73,9 +73,9 @@ errors:
     message: "not allowed to read this namespace"
     log: "could not read {namespace}; insufficient permissions"
 
-  - error: notAllowedToListNamespaces
-    message: "not allowed to list this namespaces"
-    log: "could not list namespaces; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list namespaces"
+    log: "could not search or list namespaces; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create namespaces"

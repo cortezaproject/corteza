@@ -242,21 +242,21 @@ func (svc accessControl) CanCreateWorkflow(ctx context.Context) bool {
 	return svc.can(ctx, "workflow.create", &types.Component{})
 }
 
-// CanSearchTriggers checks if current user can search triggers
+// CanSearchTriggers checks if current user can list, search or filter triggers
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchTriggers(ctx context.Context) bool {
 	return svc.can(ctx, "triggers.search", &types.Component{})
 }
 
-// CanSearchSessions checks if current user can search sessions
+// CanSearchSessions checks if current user can list, search or filter sessions
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchSessions(ctx context.Context) bool {
 	return svc.can(ctx, "sessions.search", &types.Component{})
 }
 
-// CanSearchWorkflows checks if current user can search workflows
+// CanSearchWorkflows checks if current user can list, search or filter workflows
 //
 // This function is auto-generated
 func (svc accessControl) CanSearchWorkflows(ctx context.Context) bool {

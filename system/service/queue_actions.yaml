@@ -72,6 +72,10 @@ errors:
     message: "not allowed to read this queue"
     log: "failed to read {queue.queue}; insufficient permissions"
 
+  - error: notAllowedToSearch
+    message: "not allowed to search or list queues"
+    log: "failed to search or list; insufficient permissions"
+
   - error: notAllowedToUpdate
     message: "not allowed to update this queue"
     log: "failed to update {queue.queue}; insufficient permissions"

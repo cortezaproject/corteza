@@ -18,12 +18,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -109,6 +108,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "record.create",
 		},
 		{
+			"type": types.ModuleResourceType,
+			"any":  types.ModuleRbacResource(0, 0),
+			"op":   "records.search",
+		},
+		{
 			"type": types.NamespaceResourceType,
 			"any":  types.NamespaceRbacResource(0),
 			"op":   "read",
@@ -136,12 +140,27 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.NamespaceResourceType,
 			"any":  types.NamespaceRbacResource(0),
+			"op":   "modules.search",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "chart.create",
 		},
 		{
 			"type": types.NamespaceResourceType,
 			"any":  types.NamespaceRbacResource(0),
+			"op":   "charts.search",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
 			"op":   "page.create",
+		},
+		{
+			"type": types.NamespaceResourceType,
+			"any":  types.NamespaceRbacResource(0),
+			"op":   "pages.search",
 		},
 		{
 			"type": types.PageResourceType,
@@ -181,17 +200,22 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
-			"op":   "namespace.create",
-		},
-		{
-			"type": types.ComponentResourceType,
-			"any":  types.ComponentRbacResource(),
 			"op":   "settings.read",
 		},
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "settings.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "namespace.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "namespaces.search",
 		},
 	}
 
@@ -318,6 +342,13 @@ func (svc accessControl) CanCreateRecordOnModule(ctx context.Context, r *types.M
 	return svc.can(ctx, "record.create", r)
 }
 
+// CanSearchRecordsOnModule checks if current user can list, search or filter records
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchRecordsOnModule(ctx context.Context, r *types.Module) bool {
+	return svc.can(ctx, "records.search", r)
+}
+
 // CanReadNamespace checks if current user can read namespace
 //
 // This function is auto-generated
@@ -353,6 +384,13 @@ func (svc accessControl) CanCreateModuleOnNamespace(ctx context.Context, r *type
 	return svc.can(ctx, "module.create", r)
 }
 
+// CanSearchModulesOnNamespace checks if current user can list, search or filter module on namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchModulesOnNamespace(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, "modules.search", r)
+}
+
 // CanCreateChartOnNamespace checks if current user can create chart on namespace
 //
 // This function is auto-generated
@@ -360,11 +398,25 @@ func (svc accessControl) CanCreateChartOnNamespace(ctx context.Context, r *types
 	return svc.can(ctx, "chart.create", r)
 }
 
+// CanSearchChartsOnNamespace checks if current user can list, search or filter chart on namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchChartsOnNamespace(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, "charts.search", r)
+}
+
 // CanCreatePageOnNamespace checks if current user can create page on namespace
 //
 // This function is auto-generated
 func (svc accessControl) CanCreatePageOnNamespace(ctx context.Context, r *types.Namespace) bool {
 	return svc.can(ctx, "page.create", r)
+}
+
+// CanSearchPagesOnNamespace checks if current user can list, search or filter pages on namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchPagesOnNamespace(ctx context.Context, r *types.Namespace) bool {
+	return svc.can(ctx, "pages.search", r)
 }
 
 // CanReadPage checks if current user can read page
@@ -416,13 +468,6 @@ func (svc accessControl) CanGrant(ctx context.Context) bool {
 	return svc.can(ctx, "grant", &types.Component{})
 }
 
-// CanCreateNamespace checks if current user can create namespace
-//
-// This function is auto-generated
-func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
-	return svc.can(ctx, "namespace.create", &types.Component{})
-}
-
 // CanReadSettings checks if current user can read settings
 //
 // This function is auto-generated
@@ -435,6 +480,20 @@ func (svc accessControl) CanReadSettings(ctx context.Context) bool {
 // This function is auto-generated
 func (svc accessControl) CanManageSettings(ctx context.Context) bool {
 	return svc.can(ctx, "settings.manage", &types.Component{})
+}
+
+// CanCreateNamespace checks if current user can create namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateNamespace(ctx context.Context) bool {
+	return svc.can(ctx, "namespace.create", &types.Component{})
+}
+
+// CanSearchNamespaces checks if current user can list, search or filter namespaces
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchNamespaces(ctx context.Context) bool {
+	return svc.can(ctx, "namespaces.search", &types.Component{})
 }
 
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
@@ -479,20 +538,24 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ModuleResourceType:
 		return map[string]bool{
-			"read":          true,
-			"update":        true,
-			"delete":        true,
-			"record.create": true,
+			"read":           true,
+			"update":         true,
+			"delete":         true,
+			"record.create":  true,
+			"records.search": true,
 		}
 	case types.NamespaceResourceType:
 		return map[string]bool{
-			"read":          true,
-			"update":        true,
-			"delete":        true,
-			"manage":        true,
-			"module.create": true,
-			"chart.create":  true,
-			"page.create":   true,
+			"read":           true,
+			"update":         true,
+			"delete":         true,
+			"manage":         true,
+			"module.create":  true,
+			"modules.search": true,
+			"chart.create":   true,
+			"charts.search":  true,
+			"page.create":    true,
+			"pages.search":   true,
 		}
 	case types.PageResourceType:
 		return map[string]bool{
@@ -508,10 +571,11 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":            true,
-			"namespace.create": true,
-			"settings.read":    true,
-			"settings.manage":  true,
+			"grant":             true,
+			"settings.read":     true,
+			"settings.manage":   true,
+			"namespace.create":  true,
+			"namespaces.search": true,
 		}
 	}
 

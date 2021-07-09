@@ -677,6 +677,38 @@ func NodeErrNotAllowedToCreate(mm ...*nodeActionProps) *errors.Error {
 	return e
 }
 
+// NodeErrNotAllowedToSearch returns "federation:node.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func NodeErrNotAllowedToSearch(mm ...*nodeActionProps) *errors.Error {
+	var p = &nodeActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list nodes", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "federation:node"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(nodeLogMetaKey{}, "could not search or list nodes; insufficient permissions"),
+		errors.Meta(nodePropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // NodeErrNotAllowedToManage returns "federation:node.notAllowedToManage" as *errors.Error
 //
 //

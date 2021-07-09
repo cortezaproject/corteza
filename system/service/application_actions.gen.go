@@ -553,12 +553,12 @@ func ApplicationErrNotAllowedToRead(mm ...*applicationActionProps) *errors.Error
 	return e
 }
 
-// ApplicationErrNotAllowedToListApplications returns "system:application.notAllowedToListApplications" as *errors.Error
+// ApplicationErrNotAllowedToSearch returns "system:application.notAllowedToSearch" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func ApplicationErrNotAllowedToListApplications(mm ...*applicationActionProps) *errors.Error {
+func ApplicationErrNotAllowedToSearch(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -567,13 +567,13 @@ func ApplicationErrNotAllowedToListApplications(mm ...*applicationActionProps) *
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to list applications", nil),
+		p.Format("not allowed to search or list applications", nil),
 
-		errors.Meta("type", "notAllowedToListApplications"),
+		errors.Meta("type", "notAllowedToSearch"),
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to list application; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to search or list applications; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
