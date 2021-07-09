@@ -10,6 +10,7 @@ package types
 // - system.application.yaml
 // - system.auth-client.yaml
 // - system.role.yaml
+// - system.route.yaml
 // - system.template.yaml
 // - system.user.yaml
 // - system.yaml
@@ -30,6 +31,7 @@ const (
 	ApplicationResourceType = "corteza::system:application"
 	AuthClientResourceType  = "corteza::system:auth-client"
 	RoleResourceType        = "corteza::system:role"
+	RouteResourceType       = "corteza::system:route"
 	TemplateResourceType    = "corteza::system:template"
 	UserResourceType        = "corteza::system:user"
 	ComponentResourceType   = "corteza::system"
@@ -125,6 +127,37 @@ func RoleRbacResource(id uint64) string {
 
 // @todo template
 func RoleRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Route by calling RouteRbacResource fn
+//
+// RBAC resource is in the corteza::system:route/... format
+//
+// This function is auto-generated
+func (r Route) RbacResource() string {
+	return RouteRbacResource(r.ID)
+}
+
+// RouteRbacResource returns string representation of RBAC resource for Route
+//
+// RBAC resource is in the corteza::system:route/... format
+//
+// This function is auto-generated
+func RouteRbacResource(id uint64) string {
+	cpts := []interface{}{RouteResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(RouteRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func RouteRbacResourceTpl() string {
 	return "%s/%s"
 }
 
