@@ -9,7 +9,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
-
 	// Explicitly register SQLite (not done in the app as for testing only)
 	_ "github.com/cortezaproject/corteza-server/store/sqlite3"
 )

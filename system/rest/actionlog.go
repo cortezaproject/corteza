@@ -6,19 +6,20 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
+	"github.com/go-oauth2/oauth2/v4/errors"
 )
 
 type (
-	actionlogUserSearcher interface {
-		Find(context.Context, types.UserFilter) (types.UserSet, types.UserFilter, error)
-	}
-
 	Actionlog struct {
 		actionSvc actionlog.Recorder
-		userSvc   actionlogUserSearcher
+		store     store.Users
+		ac        interface {
+			CanReadActionLog(ctx context.Context) bool
+		}
 	}
 
 	// Extend actionlog.Action so we can
@@ -37,11 +38,16 @@ type (
 func (Actionlog) New() *Actionlog {
 	return &Actionlog{
 		actionSvc: service.DefaultActionlog,
-		userSvc:   service.DefaultUser,
+		ac:        service.DefaultAccessControl,
+		store:     service.DefaultStore,
 	}
 }
 
 func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (interface{}, error) {
+	if !ctrl.ac.CanReadActionLog(ctx) {
+		return nil, errors.ErrAccessDenied
+	}
+
 	var (
 		err error
 		f   = actionlog.Filter{
@@ -76,7 +82,7 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 
 	err = userPreloader(
 		ctx,
-		ctrl.userSvc,
+		ctrl.store,
 		func(c chan uint64) {
 			for e := range ee {
 				c <- ee[e].ActorID
@@ -111,10 +117,10 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 
 // Preloader collects all ids of users, loads them and sets them back
 //
+// We'll be accessing the store directly since this is protected with action-log.read operation check.
 //
-// @todo this kind of preloader is useful and can be implemented in bunch
-//       of places and replace old code
-func userPreloader(ctx context.Context, svc actionlogUserSearcher, g func(chan uint64), f types.UserFilter, s func(*types.User) error) error {
+// @todo move action log collection and user merging to dedicated service
+func userPreloader(ctx context.Context, s store.Users, g func(chan uint64), f types.UserFilter, collect func(*types.User) error) error {
 	var (
 		// channel that will collect the IDs in the getter
 		ch = make(chan uint64, 0)
@@ -150,11 +156,11 @@ rangeLoop:
 	}
 
 	// Load all users (even if deleted, suspended) from the given list of IDs
-	uu, _, err := svc.Find(ctx, f)
+	uu, _, err := store.SearchUsers(ctx, s, f)
 
 	if err != nil {
 		return err
 	}
 
-	return uu.Walk(s)
+	return uu.Walk(collect)
 }

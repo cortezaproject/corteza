@@ -36,7 +36,7 @@ func (h helper) clearNodes() {
 }
 
 func (h helper) prepareRBAC() {
-	helpers.AllowMe(h, types.ComponentRbacResource(), "node.create", "pair")
+	helpers.AllowMe(h, types.ComponentRbacResource(), "node.create", "nodes.search", "pair")
 	helpers.AllowMe(h, types.NodeRbacResource(0), "manage")
 
 	h.noError(service.DefaultStore.CreateRole(context.Background(), &st.Role{

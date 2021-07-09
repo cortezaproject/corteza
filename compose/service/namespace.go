@@ -25,6 +25,7 @@ type (
 	}
 
 	namespaceAccessController interface {
+		CanSearchNamespaces(context.Context) bool
 		CanCreateNamespace(context.Context) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
@@ -79,6 +80,10 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchNamespaces(ctx) {
+			return ChartErrNotAllowedToRead()
+		}
+
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
 				ctx,

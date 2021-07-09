@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 	"reflect"
 	"sync"
+
+	"github.com/cortezaproject/corteza-server/pkg/options"
 
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -44,12 +45,12 @@ type (
 	}
 
 	workflowAccessController interface {
+		CanSearchWorkflows(context.Context) bool
 		CanCreateWorkflow(context.Context) bool
 		CanReadWorkflow(context.Context, *types.Workflow) bool
 		CanUpdateWorkflow(context.Context, *types.Workflow) bool
 		CanDeleteWorkflow(context.Context, *types.Workflow) bool
 		CanUndeleteWorkflow(context.Context, *types.Workflow) bool
-		CanSearchWorkflows(context.Context) bool
 		CanManageSessionsOnWorkflow(context.Context, *types.Workflow) bool
 
 		Grant(ctx context.Context, rr ...*rbac.Rule) error
@@ -109,12 +110,8 @@ func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (r
 	}
 
 	err = func() (err error) {
-		if filter.Deleted > 0 || filter.Disabled > 0 {
-			// If list with deleted or disabled workflows is requested
-			// user must be allowed to search workflows
-			if !svc.ac.CanSearchWorkflows(ctx) {
-				return WorkflowErrNotAllowedToSearch()
-			}
+		if !svc.ac.CanSearchWorkflows(ctx) {
+			return WorkflowErrNotAllowedToSearch()
 		}
 
 		if len(filter.Labels) > 0 {

@@ -185,6 +185,7 @@ func TestRecordList(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.search")
 
 	h.makeRecord(module)
 	h.makeRecord(module)
@@ -205,6 +206,7 @@ func TestRecordListForbiddenRecords(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
 	helpers.DenyMe(h, types.RecordRbacResource(0, 0, 0), "read")
 
 	h.makeRecord(module)
@@ -227,6 +229,7 @@ func TestRecordListForbiddenFields(t *testing.T) {
 	h.clearRecords()
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.create", "records.search")
 	helpers.DenyMe(h, types.ModuleFieldRbacResource(0, 0, module.Fields[0].ID), "record.value.read")
 
 	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_0"}, &types.RecordValue{Name: "email", Value: "v_email_0"})
@@ -1033,6 +1036,7 @@ func TestRecordFieldModulePermissionCheck(t *testing.T) {
 	// make a standard module, and prevent (DENY) current user to
 	// read from "name" and update "email" fields
 	module := h.repoMakeRecordModuleWithFields("record testing module")
+	helpers.AllowMe(h, module.RbacResource(), "records.create", "records.search")
 	helpers.DenyMe(h, module.Fields.FindByName("name").RbacResource(), "record.value.read")
 	helpers.DenyMe(h, module.Fields.FindByName("email").RbacResource(), "record.value.update")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "record.create")
@@ -1122,7 +1126,7 @@ func TestRecordLabels(t *testing.T) {
 	h.clearRecords()
 
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
-	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create", "records.search")
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "update", "read")
 
 	var (
@@ -1245,6 +1249,7 @@ func TestRecordReports(t *testing.T) {
 	h := newHelper(t)
 	h.clearRecords()
 
+	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "records.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
 	helpers.AllowMe(h, types.ModuleRbacResource(0, 0), "read", "record.create")
 	helpers.AllowMe(h, types.RecordRbacResource(0, 0, 0), "read")

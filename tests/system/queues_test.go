@@ -57,6 +57,7 @@ func TestQueueList(t *testing.T) {
 	h.repoMakeMessagebusQueueSetting()
 	h.repoMakeMessagebusQueueSetting()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "queues.search")
 	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
 
 	h.apiInit().
@@ -74,6 +75,7 @@ func TestQueueRead(t *testing.T) {
 
 	res := h.repoMakeMessagebusQueueSetting()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "queues.search")
 	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "read")
 
 	h.apiInit().

@@ -15,7 +15,6 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/sqlite3"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -269,7 +268,6 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 			&types.RecordValue{Name: "string", Value: "abc"},
 		}
 
-		spew.Dump(recChecked.GetModule())
 		recChecked, err = svc.Update(ctx, recChecked)
 		req.NoError(err)
 
@@ -548,6 +546,7 @@ func TestRecord_searchAccessControl(t *testing.T) {
 
 	t.Log("log-in with test user ")
 	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, testerRole.ID))
+	rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod.RbacResource(), "records.search"))
 
 	t.Log("search for the newly created records; should not find any (all denied)")
 	f.IncTotal = true
@@ -610,6 +609,7 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		numField  = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "num", Kind: "String"}
 		boolField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "yes", Kind: "String"}
 
+		baseRole   = &sysTypes.Role{Name: "base", ID: nextID()}
 		ownerRole  = &sysTypes.Role{Name: "owner", ID: nextID()}
 		truthyRole = &sysTypes.Role{Name: "whenBoolTrue", ID: nextID()}
 		tttRole    = &sysTypes.Role{Name: "whenNum333", ID: nextID()}
@@ -627,7 +627,6 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 			p := expr.NewParser()
 
 			return func(scope map[string]interface{}) bool {
-				spew.Dump(expression, scope)
 				v, _ := expr.NewVars(scope)
 				if e, err := p.Parse(expression); err != nil {
 					t.Logf("could not parse expression: %v", err)
@@ -691,13 +690,16 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 
 	t.Log("inform rbac service about new roles")
 	rbacService.UpdateRoles(
+		rbac.CommonRole.Make(baseRole.ID, baseRole.Name),
 		rbac.MakeContextRole(ownerRole.ID, ownerRole.Name, roleCheckFnMaker("resource.ownedBy == userID"), types.RecordResourceType),
 		rbac.MakeContextRole(truthyRole.ID, truthyRole.Name, roleCheckFnMaker(`has(resource.values, "yes") ? resource.values.yes : false`), types.RecordResourceType),
 		rbac.MakeContextRole(tttRole.ID, tttRole.Name, roleCheckFnMaker(`has(resource.values, "num") ? resource.values.num == 333 : false`), types.RecordResourceType),
 	)
 
+	rbacService.Grant(ctx, rbac.AllowRule(baseRole.ID, types.ModuleRbacResource(0, 0), "records.search"))
+
 	t.Log("log-in with test user")
-	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, ownerRole.ID, truthyRole.ID, tttRole.ID))
+	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, baseRole.ID))
 
 	t.Log("expecting not find any (all denied)")
 	hits, _, err = svc.Find(ctx, f)

@@ -67,6 +67,7 @@ type (
 
 	recordAccessController interface {
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
+		CanSearchRecordsOnModule(context.Context, *types.Module) bool
 		CanReadNamespace(context.Context, *types.Namespace) bool
 		CanReadModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Record) bool
@@ -268,6 +269,10 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 		aProps.setNamespace(ns)
 		aProps.setModule(m)
 
+		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+			return RecordErrNotAllowedToSearch()
+		}
+
 		out, err = store.ComposeRecordReport(ctx, svc.store, m, metrics, dimensions, filter)
 		return err
 	}()
@@ -284,6 +289,10 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 	err = func() error {
 		if m, err = loadModule(ctx, svc.store, filter.ModuleID); err != nil {
 			return err
+		}
+
+		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
+			return RecordErrNotAllowedToSearch()
 		}
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)

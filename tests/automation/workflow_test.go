@@ -83,6 +83,7 @@ func TestWorkflowList(t *testing.T) {
 	h := newHelper(t)
 	h.clearWorkflows()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "workflows.search")
 	helpers.AllowMe(h, types.WorkflowRbacResource(0), "read")
 
 	h.repoMakeWorkflow()
@@ -101,13 +102,10 @@ func TestWorkflowList(t *testing.T) {
 func TestWorkflowList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 
-	// @todo this can be a problematic test because it leaves
-	//       behind workflows that are not denied this context
-	//       db purge might be needed
-
 	h.repoMakeWorkflow("workflow")
 	f := h.repoMakeWorkflow()
 
+	helpers.AllowMe(h, types.ComponentRbacResource(), "workflows.search")
 	helpers.DenyMe(h, f.RbacResource(), "read")
 
 	h.apiInit().
@@ -136,6 +134,7 @@ func TestWorkflowCreateForbidden(t *testing.T) {
 
 func TestWorkflowCreateNotUnique(t *testing.T) {
 	h := newHelper(t)
+
 	helpers.AllowMe(h, types.ComponentRbacResource(), "workflow.create")
 
 	workflow := h.repoMakeWorkflow()
@@ -152,6 +151,7 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 
 func TestWorkflowCreate(t *testing.T) {
 	h := newHelper(t)
+
 	helpers.AllowMe(h, types.ComponentRbacResource(), "workflow.create")
 
 	h.apiInit().

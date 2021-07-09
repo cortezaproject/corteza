@@ -23,6 +23,7 @@ type (
 
 	applicationAccessController interface {
 		CanCreateApplication(context.Context) bool
+		CanSearchApplications(context.Context) bool
 		CanSelfApplicationFlag(context.Context) bool
 		CanGlobalApplicationFlag(context.Context) bool
 		CanReadApplication(context.Context, *types.Application) bool
@@ -77,6 +78,10 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchApplications(ctx) {
+			return ApplicationErrNotAllowedToSearch()
+		}
+
 		if af.Deleted > filter.StateExcluded {
 			// If list with deleted applications is requested
 			// user must have access permissions to system (ie: is admin)

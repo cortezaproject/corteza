@@ -17,6 +17,7 @@ type (
 
 	queueAccessController interface {
 		CanCreateQueue(ctx context.Context) bool
+		CanSearchQueues(ctx context.Context) bool
 		CanReadQueue(ctx context.Context, c *messagebus.QueueSettings) bool
 		CanUpdateQueue(ctx context.Context, c *messagebus.QueueSettings) bool
 		CanDeleteQueue(ctx context.Context, c *messagebus.QueueSettings) bool
@@ -218,6 +219,10 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchQueues(ctx) {
+			return QueueErrNotAllowedToSearch()
+		}
+
 		if q, f, err = store.SearchMessagebusQueueSettings(ctx, svc.store, filter); err != nil {
 			return err
 		}

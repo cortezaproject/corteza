@@ -57,7 +57,7 @@ func TestPageRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
@@ -76,7 +76,7 @@ func TestPageReadByHandle(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	c := h.repoMakePage(ns, "some-page")
@@ -93,7 +93,7 @@ func TestPageList(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.repoMakePage(ns, "app")
@@ -111,7 +111,7 @@ func TestPageList_filterForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	ns := h.makeNamespace("some-namespace")
 
 	h.repoMakePage(ns, "page")
@@ -148,7 +148,7 @@ func TestPageCreate(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "page.create")
 
 	ns := h.makeNamespace("some-namespace")
@@ -166,7 +166,7 @@ func TestPageUpdateForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
 
@@ -184,7 +184,7 @@ func TestPageUpdate(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	ns := h.makeNamespace("some-namespace")
 	res := h.repoMakePage(ns, "some-page")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
@@ -207,7 +207,7 @@ func TestPageReorder(t *testing.T) {
 	h.clearPages()
 
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	ns := h.makeNamespace("some-namespace")
 	res := h.repoMakePage(ns, "some-page")
 
@@ -223,7 +223,7 @@ func TestPageDeleteForbidden(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	m := h.repoMakePage(ns, "some-page")
@@ -241,7 +241,7 @@ func TestPageDelete(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "delete")
 
@@ -263,7 +263,7 @@ func TestPageTreeRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	ns := h.makeNamespace("some-namespace")
 	h.repoMakeWeightedPage(ns, "p1", 1)
@@ -287,7 +287,7 @@ func TestPageLabels(t *testing.T) {
 	h := newHelper(t)
 	h.clearPages()
 
-	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "read", "pages.search")
 	helpers.AllowMe(h, types.NamespaceRbacResource(0), "page.create")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "read")
 	helpers.AllowMe(h, types.PageRbacResource(0, 0), "update")

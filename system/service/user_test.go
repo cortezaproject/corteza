@@ -42,6 +42,7 @@ func TestUser_ProtectedSearch(t *testing.T) {
 
 	acRBAC.UpdateRoles(rbac.CommonRole.Make(testRoleID, "test-role"))
 	req.NoError(acRBAC.Grant(ctx,
+		rbac.AllowRule(testRoleID, types.ComponentRbacResource(), "users.search"),
 		rbac.AllowRule(testRoleID, types.UserRbacResource(0), "read"),
 		rbac.DenyRule(testRoleID, masked.RbacResource(), "email.unmask"),
 		rbac.AllowRule(testRoleID, unmasked.RbacResource(), "email.unmask"),

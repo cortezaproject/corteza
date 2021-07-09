@@ -43,6 +43,7 @@ type (
 
 	nodeAccessController interface {
 		CanPair(ctx context.Context) bool
+		CanSearchNodes(ctx context.Context) bool
 		CanCreateNode(ctx context.Context) bool
 		CanManageNode(ctx context.Context, r *types.Node) bool
 	}
@@ -90,6 +91,10 @@ func (svc node) Search(ctx context.Context, filter types.NodeFilter) (set types.
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchNodes(ctx) {
+			return NodeErrNotAllowedToSearch()
+		}
+
 		if set, f, err = store.SearchFederationNodes(ctx, svc.store, filter); err != nil {
 			return err
 		}

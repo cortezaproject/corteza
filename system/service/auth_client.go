@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -22,6 +23,7 @@ type (
 	}
 
 	authClientAccessController interface {
+		CanSearchAuthClients(context.Context) bool
 		CanCreateAuthClient(context.Context) bool
 		CanReadAuthClient(context.Context, *types.AuthClient) bool
 		CanUpdateAuthClient(context.Context, *types.AuthClient) bool
@@ -113,6 +115,10 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 	}
 
 	err = func() error {
+		if !svc.ac.CanSearchAuthClients(ctx) {
+			return AuthClientErrNotAllowedToSearch()
+		}
+
 		if af.Deleted > filter.StateExcluded {
 			// If list with deleted authClients is requested
 			// user must have access permissions to system (ie: is admin)
