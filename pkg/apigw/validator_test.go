@@ -3,58 +3,75 @@ package apigw
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/stretchr/testify/require"
 )
 
-func TestContentLengthValidator(t *testing.T) {
+func Test_validatorHeader(t *testing.T) {
 	type (
 		tf struct {
-			name  string
-			limit int
-			exp   string
-			body  string
+			name    string
+			expr    string
+			err     string
+			headers http.Header
 		}
 	)
 
 	var (
-		ctx = context.Background()
-
 		tcc = []tf{
 			{
-				name:  "fail on content length > limit",
-				limit: 10,
-				exp:   "workflow 0 step 0 execution failed: content length overriden",
-				body:  "A message that is 31 bytes long",
+				name:    "matching simple",
+				expr:    `{"expr":"foo == \"bar\""}`,
+				headers: map[string][]string{"foo": {"bar"}},
 			},
 			{
-				name:  "success on content length < limit",
-				limit: 10,
-				exp:   "",
-				body:  "Below 10",
+				name:    "matching case",
+				expr:    `{"expr":"Foo == \"bar\""}`,
+				headers: map[string][]string{"Foo": {"bar"}},
+			},
+			{
+				name:    "non matching value",
+				expr:    `{"expr":"Foo == \"bar1\""}`,
+				headers: map[string][]string{"Foo": {"bar"}},
+				err:     "could not validate headers",
+			},
+			{
+				name:    "non matching key",
+				expr:    `{"expr":"Foo1 == \"bar\""}`,
+				headers: map[string][]string{"Foo": {"bar"}},
+				err:     "could not validate headers: failed to select 'Foo1' on *expr.Vars: no such key 'Foo1'",
+			},
+			{
+				name:    "matching header with hyphen - TODO",
+				expr:    `{"expr":"Content-type == \"application/json\""}`,
+				headers: map[string][]string{"Content-type": {"application/json"}},
 			},
 		}
 	)
 
 	for _, tc := range tcc {
+		var (
+			ctx = context.Background()
+		)
+
 		t.Run(tc.name, func(t *testing.T) {
-			var (
-				req   = require.New(t)
-				input = &expr.Vars{}
-			)
+			req := require.New(t)
 
-			input.Set("length", tc.limit)
+			r, err := http.NewRequest(http.MethodGet, "/foo", http.NoBody)
+			r.Header = tc.headers
 
-			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
+			req.NoError(err)
 
-			err := execFn(t, r, contentLengthValidator(ctx, input))
+			scope := &scp{"request": r}
 
-			if tc.exp != "" {
-				req.EqualError(err, tc.exp)
+			h := NewValidatorHeader()
+			h.Merge([]byte(tc.expr))
+
+			err = h.Exec(ctx, scope)
+
+			if tc.err != "" {
+				req.EqualError(err, tc.err)
 			} else {
 				req.NoError(err)
 			}

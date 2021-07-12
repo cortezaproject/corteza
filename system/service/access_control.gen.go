@@ -7,10 +7,11 @@ package service
 //
 
 // Definitions file that controls how this file is generated:
+// - system.apigw-function.yaml
+// - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
 // - system.role.yaml
-// - system.route.yaml
 // - system.template.yaml
 // - system.user.yaml
 // - system.yaml
@@ -63,6 +64,36 @@ func (svc accessControl) Effective(ctx context.Context, rr ...rbac.Resource) (ee
 
 func (svc accessControl) List() (out []map[string]string) {
 	def := []map[string]string{
+		{
+			"type": types.ApigwFunctionResourceType,
+			"any":  types.ApigwFunctionRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ApigwFunctionResourceType,
+			"any":  types.ApigwFunctionRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ApigwFunctionResourceType,
+			"any":  types.ApigwFunctionRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ApigwRouteResourceType,
+			"any":  types.ApigwRouteRbacResource(0),
+			"op":   "delete",
+		},
 		{
 			"type": types.ApplicationResourceType,
 			"any":  types.ApplicationRbacResource(0),
@@ -117,21 +148,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.RoleResourceType,
 			"any":  types.RoleRbacResource(0),
 			"op":   "members.manage",
-		},
-		{
-			"type": types.RouteResourceType,
-			"any":  types.RouteRbacResource(0),
-			"op":   "read",
-		},
-		{
-			"type": types.RouteResourceType,
-			"any":  types.RouteRbacResource(0),
-			"op":   "update",
-		},
-		{
-			"type": types.RouteResourceType,
-			"any":  types.RouteRbacResource(0),
-			"op":   "delete",
 		},
 		{
 			"type": types.TemplateResourceType,
@@ -293,6 +309,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "api-gw-route.create",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "api-gw-routes.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "api-gw-function.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "api-gw-functions.search",
+		},
 	}
 
 	func(svc interface{}) {
@@ -353,6 +384,48 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 	}
 
 	return svc.rbac.FindRulesByRoleID(roleID), nil
+}
+
+// CanReadApigwFunction checks if current user can read api gateway function
+//
+// This function is auto-generated
+func (svc accessControl) CanReadApigwFunction(ctx context.Context, r *types.ApigwFunction) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateApigwFunction checks if current user can update api gateway function
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateApigwFunction(ctx context.Context, r *types.ApigwFunction) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteApigwFunction checks if current user can delete api gateway function
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteApigwFunction(ctx context.Context, r *types.ApigwFunction) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadApigwRoute checks if current user can read api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanReadApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateApigwRoute checks if current user can update api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteApigwRoute checks if current user can delete api gateway route
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteApigwRoute(ctx context.Context, r *types.ApigwRoute) bool {
+	return svc.can(ctx, "delete", r)
 }
 
 // CanReadApplication checks if current user can read application
@@ -430,27 +503,6 @@ func (svc accessControl) CanDeleteRole(ctx context.Context, r *types.Role) bool 
 // This function is auto-generated
 func (svc accessControl) CanManageMembersOnRole(ctx context.Context, r *types.Role) bool {
 	return svc.can(ctx, "members.manage", r)
-}
-
-// CanReadRoute checks if current user can read api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanReadRoute(ctx context.Context, r *types.Route) bool {
-	return svc.can(ctx, "read", r)
-}
-
-// CanUpdateRoute checks if current user can update api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanUpdateRoute(ctx context.Context, r *types.Route) bool {
-	return svc.can(ctx, "update", r)
-}
-
-// CanDeleteRoute checks if current user can delete api gateway route
-//
-// This function is auto-generated
-func (svc accessControl) CanDeleteRoute(ctx context.Context, r *types.Route) bool {
-	return svc.can(ctx, "delete", r)
 }
 
 // CanReadTemplate checks if current user can read template
@@ -677,19 +729,42 @@ func (svc accessControl) CanCreateApiGwRoute(ctx context.Context) bool {
 	return svc.can(ctx, "api-gw-route.create", &types.Component{})
 }
 
+// CanSearchApiGwRoutes checks if current user can list search or filter api gateway routes
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchApiGwRoutes(ctx context.Context) bool {
+	return svc.can(ctx, "api-gw-routes.search", &types.Component{})
+}
+
+// CanCreateApiGwFunction checks if current user can add api gateway function to route
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateApiGwFunction(ctx context.Context) bool {
+	return svc.can(ctx, "api-gw-function.create", &types.Component{})
+}
+
+// CanSearchApiGwFunctions checks if current user can list, search or filter functions
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchApiGwFunctions(ctx context.Context) bool {
+	return svc.can(ctx, "api-gw-functions.search", &types.Component{})
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
 func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
+	case types.ApigwFunctionResourceType:
+		return rbacApigwFunctionResourceValidator(r, oo...)
+	case types.ApigwRouteResourceType:
+		return rbacApigwRouteResourceValidator(r, oo...)
 	case types.ApplicationResourceType:
 		return rbacApplicationResourceValidator(r, oo...)
 	case types.AuthClientResourceType:
 		return rbacAuthClientResourceValidator(r, oo...)
 	case types.RoleResourceType:
 		return rbacRoleResourceValidator(r, oo...)
-	case types.RouteResourceType:
-		return rbacRouteResourceValidator(r, oo...)
 	case types.TemplateResourceType:
 		return rbacTemplateResourceValidator(r, oo...)
 	case types.UserResourceType:
@@ -706,6 +781,18 @@ func rbacResourceValidator(r string, oo ...string) error {
 // This function is auto-generated
 func rbacResourceOperations(r string) map[string]bool {
 	switch rbac.ResourceType(r) {
+	case types.ApigwFunctionResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ApigwRouteResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ApplicationResourceType:
 		return map[string]bool{
 			"read":   true,
@@ -725,12 +812,6 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update":         true,
 			"delete":         true,
 			"members.manage": true,
-		}
-	case types.RouteResourceType:
-		return map[string]bool{
-			"read":   true,
-			"update": true,
-			"delete": true,
 		}
 	case types.TemplateResourceType:
 		return map[string]bool{
@@ -772,6 +853,111 @@ func rbacResourceOperations(r string) map[string]bool {
 			"queue.create":            true,
 			"queues.search":           true,
 			"api-gw-route.create":     true,
+			"api-gw-routes.search":    true,
+			"api-gw-function.create":  true,
+			"api-gw-functions.search": true,
+		}
+	}
+
+	return nil
+}
+
+// rbacApigwFunctionResourceValidator checks validity of rbac resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacApigwFunctionResourceValidator(r string, oo ...string) error {
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for system ApigwFunction resource", o)
+		}
+	}
+
+	if !strings.HasPrefix(r, types.ApigwFunctionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	const sep = "/"
+	var (
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ApigwFunctionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i, p := range pp {
+		if p == "*" {
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for ApigwFunction", i)
+			}
+
+			specIdUsed = false
+			continue
+		}
+
+		specIdUsed = true
+		if _, err := cast.ToUint64E(p); err != nil {
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+		}
+	}
+
+	return nil
+}
+
+// rbacApigwRouteResourceValidator checks validity of rbac resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacApigwRouteResourceValidator(r string, oo ...string) error {
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for system ApigwRoute resource", o)
+		}
+	}
+
+	if !strings.HasPrefix(r, types.ApigwRouteResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	const sep = "/"
+	var (
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ApigwRouteResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i, p := range pp {
+		if p == "*" {
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for ApigwRoute", i)
+			}
+
+			specIdUsed = false
+			continue
+		}
+
+		specIdUsed = true
+		if _, err := cast.ToUint64E(p); err != nil {
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
 		}
 	}
 
@@ -816,16 +1002,11 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Application", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -911,52 +1092,6 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 		if p == "*" {
 			if !specIdUsed {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Role", i)
-			}
-
-			if _, err := cast.ToUint64E(pp[i]); err != nil {
-				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
-			}
-		}
-	}
-	return nil
-}
-
-// rbacRouteResourceValidator checks validity of rbac resource and operations
-//
-// Can be called without operations to check for validity of resource string only
-//
-// This function is auto-generated
-func rbacRouteResourceValidator(r string, oo ...string) error {
-	defOps := rbacResourceOperations(r)
-	for _, o := range oo {
-		if !defOps[o] {
-			return fmt.Errorf("invalid operation '%s' for system Route resource", o)
-		}
-	}
-
-	if !strings.HasPrefix(r, types.RouteResourceType) {
-		// expecting resource to always include path
-		return fmt.Errorf("invalid resource type")
-	}
-
-	const sep = "/"
-	var (
-		specIdUsed = true
-
-		pp  = strings.Split(strings.Trim(r[len(types.RouteResourceType):], sep), sep)
-		prc = []string{
-			"ID",
-		}
-	)
-
-	if len(pp) != len(prc) {
-		return fmt.Errorf("invalid resource path structure")
-	}
-
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
-				return fmt.Errorf("invalid resource path wildcard level (%d) for Route", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

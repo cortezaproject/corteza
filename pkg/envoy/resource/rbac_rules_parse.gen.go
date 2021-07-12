@@ -16,10 +16,11 @@ package resource
 // - compose.page.yaml
 // - compose.record.yaml
 // - compose.yaml
+// - system.apigw-function.yaml
+// - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
 // - system.role.yaml
-// - system.route.yaml
 // - system.template.yaml
 // - system.user.yaml
 // - system.yaml
@@ -169,6 +170,26 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 
 		// Component resource, no path
 		return composeTypes.ComponentResourceType, nil, nil, nil
+	case systemTypes.ApigwFunctionResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemApigwFunctionRbacReferences(
+			// apigwFunction
+			path[0],
+		)
+		return systemTypes.ApigwFunctionResourceType, ref, pp, err
+
+	case systemTypes.ApigwRouteResourceType:
+		if len(path) != 1 {
+			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := SystemApigwRouteRbacReferences(
+			// apigwRoute
+			path[0],
+		)
+		return systemTypes.ApigwRouteResourceType, ref, pp, err
+
 	case systemTypes.ApplicationResourceType:
 		if len(path) != 1 {
 			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
@@ -198,16 +219,6 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 			path[0],
 		)
 		return systemTypes.RoleResourceType, ref, pp, err
-
-	case systemTypes.RouteResourceType:
-		if len(path) != 1 {
-			return "", nil, nil, fmt.Errorf("expecting 1 reference components in path, got %d", len(path))
-		}
-		ref, pp, err := SystemRouteRbacReferences(
-			// route
-			path[0],
-		)
-		return systemTypes.RouteResourceType, ref, pp, err
 
 	case systemTypes.TemplateResourceType:
 		if len(path) != 1 {

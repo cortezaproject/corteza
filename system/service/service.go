@@ -75,8 +75,8 @@ var (
 	DefaultAttachment  AttachmentService
 	DefaultRenderer    TemplateService
 	DefaultQueue       *queue
-	DefaultRoute       *route
-	DefaultFunction    *function
+	DefaultRoute       *apigwRoute
+	DefaultFunction    *apigwFunction
 
 	DefaultStatistics *statistics
 

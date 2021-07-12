@@ -1,17 +1,22 @@
 package apigw
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/cortezaproject/corteza-server/system/types"
-	"github.com/davecgh/go-spew/spew"
+	"net/url"
 )
 
 type (
-	expediterRedirection struct{}
+	expediterRedirection struct {
+		functionMeta
+		params struct {
+			HTTPStatus int    `json:"status,string"`
+			Location   string `json:"location"`
+		}
+	}
 
 	errorHandler struct {
 		name   string
@@ -21,41 +26,91 @@ type (
 	}
 )
 
-func NewExpediterRedirection() expediterRedirection {
-	return expediterRedirection{}
+func NewExpediterRedirection() (e *expediterRedirection) {
+	e = &expediterRedirection{}
+
+	e.Step = 3
+	e.Name = "expediterRedirection"
+	e.Label = "Redirection expediter"
+	e.Kind = FunctionKindExpediter
+
+	e.Args = []*functionMetaArg{
+		{
+			Type:    "status",
+			Label:   "status",
+			Options: map[string]interface{}{},
+		},
+		{
+			Type:    "text",
+			Label:   "location",
+			Options: map[string]interface{}{},
+		},
+	}
+
+	return
 }
 
-func (h expediterRedirection) Meta(f *types.Function) functionMeta {
-	return functionMeta{
-		Step:   3,
-		Name:   "expediterRedirection",
-		Label:  "Redirection expediter",
-		Kind:   "expediter",
-		Weight: int(f.Weight),
-		Params: f.Params,
-	}
+func (h expediterRedirection) String() string {
+	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
-func (h expediterRedirection) Handler() handlerFunc {
-	return func(ctx context.Context, scope *scp, params map[string]interface{}, ff functionHandler) error {
-		scope.Writer().Header().Add(fmt.Sprintf("step_%d", ff.step), ff.name)
-		http.Redirect(scope.Writer(), scope.Request(), params["location"].(string), http.StatusFound)
+func (h expediterRedirection) Meta() functionMeta {
+	return h.functionMeta
+}
 
-		return nil
+func (f *expediterRedirection) Merge(params []byte) (Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&f.params)
+	return f, err
+}
+
+func (h expediterRedirection) Exec(ctx context.Context, scope *scp) error {
+	loc, err := url.ParseRequestURI(h.params.Location)
+
+	if err != nil {
+		return fmt.Errorf("could not redirect: %s", err)
 	}
+
+	status := h.params.HTTPStatus
+
+	if !checkStatus("redirect", status) {
+		return fmt.Errorf("could not redirect: wrong status %d", status)
+	}
+
+	http.Redirect(scope.Writer(), scope.Request(), loc.String(), status)
+
+	return nil
 }
 
 func (pp errorHandler) Exec(ctx context.Context, scope *scp, err error) {
 	type (
 		responseHelper struct {
-			Msg string `json:"msg"`
+			ErrResponse struct {
+				Msg string `json:"msg"`
+			} `json:"error"`
 		}
 	)
 
 	resp := responseHelper{
-		Msg: err.Error(),
+		ErrResponse: struct {
+			Msg string "json:\"msg\""
+		}{
+			Msg: err.Error(),
+		},
 	}
-	spew.Dump("ERR in expediter", err, resp)
 
+	// set http status code
+	scope.Writer().WriteHeader(http.StatusInternalServerError)
+
+	// set body
 	json.NewEncoder(scope.Writer()).Encode(resp)
+
+}
+
+func checkStatus(typ string, status int) bool {
+	switch typ {
+	case "redirect":
+		return status >= 300 && status <= 399
+	default:
+		return true
+	}
 }
