@@ -2,11 +2,9 @@ package apigw
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/automation/service"
-	as "github.com/cortezaproject/corteza-server/automation/service"
-	"github.com/cortezaproject/corteza-server/pkg/options"
-	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -25,6 +23,11 @@ func (r *registry) Add(n string, h Handler) {
 	r.h[n] = h
 }
 
+func (r *registry) Merge(h Handler, b []byte) (hh Handler, err error) {
+	hh, err = h.Merge(b)
+	return
+}
+
 func (r *registry) Get(identifier string) (Handler, error) {
 	var (
 		ok bool
@@ -40,8 +43,8 @@ func (r *registry) Get(identifier string) (Handler, error) {
 
 func (r *registry) All() (list functionMetaList) {
 	for _, handler := range r.h {
-		m := handler.Meta(&types.Function{})
-		list = append(list, &m)
+		meta := handler.Meta()
+		list = append(list, &meta)
 	}
 
 	return
@@ -50,10 +53,8 @@ func (r *registry) All() (list functionMetaList) {
 func (r *registry) Preload() {
 	r.Add("verifierQueryParam", NewVerifierQueryParam())
 	r.Add("verifierOrigin", NewVerifierOrigin())
+	r.Add("validatorHeader", NewValidatorHeader())
 	r.Add("expediterRedirection", NewExpediterRedirection())
 	r.Add("processerWorkflow", NewProcesserWorkflow(NewWorkflow()))
-}
-
-func NewWorkflow() WfExecer {
-	return as.Workflow(service.DefaultLogger, options.CorredorOpt{})
+	r.Add("processerProxy", NewProcesserProxy(service.DefaultLogger, http.DefaultClient))
 }

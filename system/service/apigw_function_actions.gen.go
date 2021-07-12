@@ -6,7 +6,7 @@ package service
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// system/service/function_actions.yaml
+// system/service/apigw_function_actions.yaml
 
 import (
 	"context"
@@ -19,12 +19,12 @@ import (
 )
 
 type (
-	functionActionProps struct {
-		function *types.Function
-		search   *types.FunctionFilter
+	apigwFunctionActionProps struct {
+		function *types.ApigwFunction
+		search   *types.ApigwFunctionFilter
 	}
 
-	functionAction struct {
+	apigwFunctionAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -34,11 +34,11 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *functionActionProps
+		props *apigwFunctionActionProps
 	}
 
-	functionLogMetaKey   struct{}
-	functionPropsMetaKey struct{}
+	apigwFunctionLogMetaKey   struct{}
+	apigwFunctionPropsMetaKey struct{}
 )
 
 var (
@@ -49,33 +49,33 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setFunction updates functionActionProps's function
+// setFunction updates apigwFunctionActionProps's function
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *functionActionProps) setFunction(function *types.Function) *functionActionProps {
+func (p *apigwFunctionActionProps) setFunction(function *types.ApigwFunction) *apigwFunctionActionProps {
 	p.function = function
 	return p
 }
 
-// setSearch updates functionActionProps's search
+// setSearch updates apigwFunctionActionProps's search
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *functionActionProps) setSearch(search *types.FunctionFilter) *functionActionProps {
+func (p *apigwFunctionActionProps) setSearch(search *types.ApigwFunctionFilter) *apigwFunctionActionProps {
 	p.search = search
 	return p
 }
 
-// Serialize converts functionActionProps to actionlog.Meta
+// Serialize converts apigwFunctionActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p functionActionProps) Serialize() actionlog.Meta {
+func (p apigwFunctionActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -94,7 +94,7 @@ func (p functionActionProps) Serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p functionActionProps) Format(in string, err error) string {
+func (p apigwFunctionActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -148,8 +148,8 @@ func (p functionActionProps) Format(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *functionAction) String() string {
-	var props = &functionActionProps{}
+func (a *apigwFunctionAction) String() string {
+	var props = &apigwFunctionActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -158,7 +158,7 @@ func (a *functionAction) String() string {
 	return props.Format(a.log, nil)
 }
 
-func (e *functionAction) ToAction() *actionlog.Action {
+func (e *apigwFunctionAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
 		Resource:    e.resource,
 		Action:      e.action,
@@ -172,12 +172,12 @@ func (e *functionAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// FunctionActionSearch returns "system:function.search" action
+// ApigwFunctionActionSearch returns "system:function.search" action
 //
 // This function is auto-generated.
 //
-func FunctionActionSearch(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionSearch(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "search",
@@ -192,12 +192,12 @@ func FunctionActionSearch(props ...*functionActionProps) *functionAction {
 	return a
 }
 
-// FunctionActionLookup returns "system:function.lookup" action
+// ApigwFunctionActionLookup returns "system:function.lookup" action
 //
 // This function is auto-generated.
 //
-func FunctionActionLookup(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionLookup(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "lookup",
@@ -212,12 +212,12 @@ func FunctionActionLookup(props ...*functionActionProps) *functionAction {
 	return a
 }
 
-// FunctionActionCreate returns "system:function.create" action
+// ApigwFunctionActionCreate returns "system:function.create" action
 //
 // This function is auto-generated.
 //
-func FunctionActionCreate(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionCreate(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "create",
@@ -232,12 +232,12 @@ func FunctionActionCreate(props ...*functionActionProps) *functionAction {
 	return a
 }
 
-// FunctionActionUpdate returns "system:function.update" action
+// ApigwFunctionActionUpdate returns "system:function.update" action
 //
 // This function is auto-generated.
 //
-func FunctionActionUpdate(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionUpdate(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "update",
@@ -252,12 +252,12 @@ func FunctionActionUpdate(props ...*functionActionProps) *functionAction {
 	return a
 }
 
-// FunctionActionDelete returns "system:function.delete" action
+// ApigwFunctionActionDelete returns "system:function.delete" action
 //
 // This function is auto-generated.
 //
-func FunctionActionDelete(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionDelete(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "delete",
@@ -272,12 +272,12 @@ func FunctionActionDelete(props ...*functionActionProps) *functionAction {
 	return a
 }
 
-// FunctionActionUndelete returns "system:function.undelete" action
+// ApigwFunctionActionUndelete returns "system:function.undelete" action
 //
 // This function is auto-generated.
 //
-func FunctionActionUndelete(props ...*functionActionProps) *functionAction {
-	a := &functionAction{
+func ApigwFunctionActionUndelete(props ...*apigwFunctionActionProps) *apigwFunctionAction {
+	a := &apigwFunctionAction{
 		timestamp: time.Now(),
 		resource:  "system:function",
 		action:    "undelete",
@@ -296,13 +296,13 @@ func FunctionActionUndelete(props ...*functionActionProps) *functionAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// FunctionErrGeneric returns "system:function.generic" as *errors.Error
+// ApigwFunctionErrGeneric returns "system:function.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func FunctionErrGeneric(mm ...*functionActionProps) *errors.Error {
-	var p = &functionActionProps{}
+func ApigwFunctionErrGeneric(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -316,8 +316,8 @@ func FunctionErrGeneric(mm ...*functionActionProps) *errors.Error {
 		errors.Meta("resource", "system:function"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(functionLogMetaKey{}, "{err}"),
-		errors.Meta(functionPropsMetaKey{}, p),
+		errors.Meta(apigwFunctionLogMetaKey{}, "{err}"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -328,13 +328,13 @@ func FunctionErrGeneric(mm ...*functionActionProps) *errors.Error {
 	return e
 }
 
-// FunctionErrNotFound returns "system:function.notFound" as *errors.Error
+// ApigwFunctionErrNotFound returns "system:function.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func FunctionErrNotFound(mm ...*functionActionProps) *errors.Error {
-	var p = &functionActionProps{}
+func ApigwFunctionErrNotFound(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -347,7 +347,7 @@ func FunctionErrNotFound(mm ...*functionActionProps) *errors.Error {
 		errors.Meta("type", "notFound"),
 		errors.Meta("resource", "system:function"),
 
-		errors.Meta(functionPropsMetaKey{}, p),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -358,13 +358,13 @@ func FunctionErrNotFound(mm ...*functionActionProps) *errors.Error {
 	return e
 }
 
-// FunctionErrInvalidID returns "system:function.invalidID" as *errors.Error
+// ApigwFunctionErrInvalidID returns "system:function.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func FunctionErrInvalidID(mm ...*functionActionProps) *errors.Error {
-	var p = &functionActionProps{}
+func ApigwFunctionErrInvalidID(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -377,7 +377,7 @@ func FunctionErrInvalidID(mm ...*functionActionProps) *errors.Error {
 		errors.Meta("type", "invalidID"),
 		errors.Meta("resource", "system:function"),
 
-		errors.Meta(functionPropsMetaKey{}, p),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -388,13 +388,13 @@ func FunctionErrInvalidID(mm ...*functionActionProps) *errors.Error {
 	return e
 }
 
-// FunctionErrInvalidRoute returns "system:function.invalidRoute" as *errors.Error
+// ApigwFunctionErrInvalidRoute returns "system:function.invalidRoute" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func FunctionErrInvalidRoute(mm ...*functionActionProps) *errors.Error {
-	var p = &functionActionProps{}
+func ApigwFunctionErrInvalidRoute(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -407,7 +407,167 @@ func FunctionErrInvalidRoute(mm ...*functionActionProps) *errors.Error {
 		errors.Meta("type", "invalidRoute"),
 		errors.Meta("resource", "system:function"),
 
-		errors.Meta(functionPropsMetaKey{}, p),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFunctionErrNotAllowedToCreate returns "system:function.notAllowedToCreate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFunctionErrNotAllowedToCreate(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create a function", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "system:function"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFunctionLogMetaKey{}, "failed to create a route; insufficient permissions"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFunctionErrNotAllowedToRead returns "system:function.notAllowedToRead" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFunctionErrNotAllowedToRead(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this function", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "system:function"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFunctionLogMetaKey{}, "failed to read {function}; insufficient permissions"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFunctionErrNotAllowedToUpdate returns "system:function.notAllowedToUpdate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFunctionErrNotAllowedToUpdate(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this function", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "system:function"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFunctionLogMetaKey{}, "failed to update {function}; insufficient permissions"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFunctionErrNotAllowedToDelete returns "system:function.notAllowedToDelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFunctionErrNotAllowedToDelete(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this function", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "system:function"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFunctionLogMetaKey{}, "failed to delete {function}; insufficient permissions"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFunctionErrNotAllowedToUndelete returns "system:function.notAllowedToUndelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFunctionErrNotAllowedToUndelete(mm ...*apigwFunctionActionProps) *errors.Error {
+	var p = &apigwFunctionActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this function", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "system:function"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFunctionLogMetaKey{}, "failed to undelete {function}; insufficient permissions"),
+		errors.Meta(apigwFunctionPropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -427,7 +587,7 @@ func FunctionErrInvalidRoute(mm ...*functionActionProps) *errors.Error {
 //
 // This function is auto-generated.
 //
-func (svc function) recordAction(ctx context.Context, props *functionActionProps, actionFn func(...*functionActionProps) *functionAction, err error) error {
+func (svc apigwFunction) recordAction(ctx context.Context, props *apigwFunctionActionProps, actionFn func(...*apigwFunctionActionProps) *apigwFunctionAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err
@@ -448,10 +608,10 @@ func (svc function) recordAction(ctx context.Context, props *functionActionProps
 
 		a.Error = err.Error()
 		a.Severity = actionlog.Severity(m.AsInt("severity"))
-		a.Description = props.Format(m.AsString(functionLogMetaKey{}), err)
+		a.Description = props.Format(m.AsString(apigwFunctionLogMetaKey{}), err)
 
-		if p, has := m[functionPropsMetaKey{}]; has {
-			a.Meta = p.(*functionActionProps).Serialize()
+		if p, has := m[apigwFunctionPropsMetaKey{}]; has {
+			a.Meta = p.(*apigwFunctionActionProps).Serialize()
 		}
 
 		svc.actionlog.Record(ctx, a)

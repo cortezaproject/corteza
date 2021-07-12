@@ -6,7 +6,7 @@ package service
 // the code is regenerated.
 //
 // Definitions file that controls how this file is generated:
-// system/service/route_actions.yaml
+// system/service/apigw_route_actions.yaml
 
 import (
 	"context"
@@ -19,14 +19,14 @@ import (
 )
 
 type (
-	routeActionProps struct {
-		route  *types.Route
-		new    *types.Route
-		update *types.Route
-		search *types.RouteFilter
+	apigwRouteActionProps struct {
+		route  *types.ApigwRoute
+		new    *types.ApigwRoute
+		update *types.ApigwRoute
+		search *types.ApigwRouteFilter
 	}
 
-	routeAction struct {
+	apigwRouteAction struct {
 		timestamp time.Time
 		resource  string
 		action    string
@@ -36,11 +36,11 @@ type (
 		// prefix for error when action fails
 		errorMessage string
 
-		props *routeActionProps
+		props *apigwRouteActionProps
 	}
 
-	routeLogMetaKey   struct{}
-	routePropsMetaKey struct{}
+	apigwRouteLogMetaKey   struct{}
+	apigwRoutePropsMetaKey struct{}
 )
 
 var (
@@ -51,55 +51,55 @@ var (
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 // Props methods
-// setRoute updates routeActionProps's route
+// setRoute updates apigwRouteActionProps's route
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *routeActionProps) setRoute(route *types.Route) *routeActionProps {
+func (p *apigwRouteActionProps) setRoute(route *types.ApigwRoute) *apigwRouteActionProps {
 	p.route = route
 	return p
 }
 
-// setNew updates routeActionProps's new
+// setNew updates apigwRouteActionProps's new
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *routeActionProps) setNew(new *types.Route) *routeActionProps {
+func (p *apigwRouteActionProps) setNew(new *types.ApigwRoute) *apigwRouteActionProps {
 	p.new = new
 	return p
 }
 
-// setUpdate updates routeActionProps's update
+// setUpdate updates apigwRouteActionProps's update
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *routeActionProps) setUpdate(update *types.Route) *routeActionProps {
+func (p *apigwRouteActionProps) setUpdate(update *types.ApigwRoute) *apigwRouteActionProps {
 	p.update = update
 	return p
 }
 
-// setSearch updates routeActionProps's search
+// setSearch updates apigwRouteActionProps's search
 //
 // Allows method chaining
 //
 // This function is auto-generated.
 //
-func (p *routeActionProps) setSearch(search *types.RouteFilter) *routeActionProps {
+func (p *apigwRouteActionProps) setSearch(search *types.ApigwRouteFilter) *apigwRouteActionProps {
 	p.search = search
 	return p
 }
 
-// Serialize converts routeActionProps to actionlog.Meta
+// Serialize converts apigwRouteActionProps to actionlog.Meta
 //
 // This function is auto-generated.
 //
-func (p routeActionProps) Serialize() actionlog.Meta {
+func (p apigwRouteActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
 	)
@@ -126,7 +126,7 @@ func (p routeActionProps) Serialize() actionlog.Meta {
 //
 // This function is auto-generated.
 //
-func (p routeActionProps) Format(in string, err error) string {
+func (p apigwRouteActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{err}"}
 		// first non-empty string
@@ -208,8 +208,8 @@ func (p routeActionProps) Format(in string, err error) string {
 //
 // This function is auto-generated.
 //
-func (a *routeAction) String() string {
-	var props = &routeActionProps{}
+func (a *apigwRouteAction) String() string {
+	var props = &apigwRouteActionProps{}
 
 	if a.props != nil {
 		props = a.props
@@ -218,7 +218,7 @@ func (a *routeAction) String() string {
 	return props.Format(a.log, nil)
 }
 
-func (e *routeAction) ToAction() *actionlog.Action {
+func (e *apigwRouteAction) ToAction() *actionlog.Action {
 	return &actionlog.Action{
 		Resource:    e.resource,
 		Action:      e.action,
@@ -232,12 +232,12 @@ func (e *routeAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// RouteActionSearch returns "system:route.search" action
+// ApigwRouteActionSearch returns "system:route.search" action
 //
 // This function is auto-generated.
 //
-func RouteActionSearch(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionSearch(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "search",
@@ -252,12 +252,12 @@ func RouteActionSearch(props ...*routeActionProps) *routeAction {
 	return a
 }
 
-// RouteActionLookup returns "system:route.lookup" action
+// ApigwRouteActionLookup returns "system:route.lookup" action
 //
 // This function is auto-generated.
 //
-func RouteActionLookup(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionLookup(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "lookup",
@@ -272,12 +272,12 @@ func RouteActionLookup(props ...*routeActionProps) *routeAction {
 	return a
 }
 
-// RouteActionCreate returns "system:route.create" action
+// ApigwRouteActionCreate returns "system:route.create" action
 //
 // This function is auto-generated.
 //
-func RouteActionCreate(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionCreate(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "create",
@@ -292,12 +292,12 @@ func RouteActionCreate(props ...*routeActionProps) *routeAction {
 	return a
 }
 
-// RouteActionUpdate returns "system:route.update" action
+// ApigwRouteActionUpdate returns "system:route.update" action
 //
 // This function is auto-generated.
 //
-func RouteActionUpdate(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionUpdate(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "update",
@@ -312,12 +312,12 @@ func RouteActionUpdate(props ...*routeActionProps) *routeAction {
 	return a
 }
 
-// RouteActionDelete returns "system:route.delete" action
+// ApigwRouteActionDelete returns "system:route.delete" action
 //
 // This function is auto-generated.
 //
-func RouteActionDelete(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionDelete(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "delete",
@@ -332,12 +332,12 @@ func RouteActionDelete(props ...*routeActionProps) *routeAction {
 	return a
 }
 
-// RouteActionUndelete returns "system:route.undelete" action
+// ApigwRouteActionUndelete returns "system:route.undelete" action
 //
 // This function is auto-generated.
 //
-func RouteActionUndelete(props ...*routeActionProps) *routeAction {
-	a := &routeAction{
+func ApigwRouteActionUndelete(props ...*apigwRouteActionProps) *apigwRouteAction {
+	a := &apigwRouteAction{
 		timestamp: time.Now(),
 		resource:  "system:route",
 		action:    "undelete",
@@ -356,13 +356,13 @@ func RouteActionUndelete(props ...*routeActionProps) *routeAction {
 // *********************************************************************************************************************
 // Error constructors
 
-// RouteErrGeneric returns "system:route.generic" as *errors.Error
+// ApigwRouteErrGeneric returns "system:route.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrGeneric(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrGeneric(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -376,8 +376,8 @@ func RouteErrGeneric(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "{err}"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "{err}"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -388,13 +388,13 @@ func RouteErrGeneric(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotFound returns "system:route.notFound" as *errors.Error
+// ApigwRouteErrNotFound returns "system:route.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotFound(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotFound(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -407,7 +407,7 @@ func RouteErrNotFound(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("type", "notFound"),
 		errors.Meta("resource", "system:route"),
 
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -418,13 +418,13 @@ func RouteErrNotFound(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrInvalidID returns "system:route.invalidID" as *errors.Error
+// ApigwRouteErrInvalidID returns "system:route.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrInvalidID(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrInvalidID(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -437,7 +437,7 @@ func RouteErrInvalidID(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("type", "invalidID"),
 		errors.Meta("resource", "system:route"),
 
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -448,13 +448,13 @@ func RouteErrInvalidID(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrInvalidEndpoint returns "system:route.invalidEndpoint" as *errors.Error
+// ApigwRouteErrInvalidEndpoint returns "system:route.invalidEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrInvalidEndpoint(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -467,7 +467,7 @@ func RouteErrInvalidEndpoint(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("type", "invalidEndpoint"),
 		errors.Meta("resource", "system:route"),
 
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -478,13 +478,13 @@ func RouteErrInvalidEndpoint(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrExistsEndpoint returns "system:route.existsEndpoint" as *errors.Error
+// ApigwRouteErrExistsEndpoint returns "system:route.existsEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrExistsEndpoint(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrExistsEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -497,7 +497,7 @@ func RouteErrExistsEndpoint(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("type", "existsEndpoint"),
 		errors.Meta("resource", "system:route"),
 
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -508,13 +508,13 @@ func RouteErrExistsEndpoint(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrAlreadyExists returns "system:route.alreadyExists" as *errors.Error
+// ApigwRouteErrAlreadyExists returns "system:route.alreadyExists" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrAlreadyExists(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrAlreadyExists(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -527,7 +527,7 @@ func RouteErrAlreadyExists(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("type", "alreadyExists"),
 		errors.Meta("resource", "system:route"),
 
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -538,13 +538,13 @@ func RouteErrAlreadyExists(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToCreate returns "system:route.notAllowedToCreate" as *errors.Error
+// ApigwRouteErrNotAllowedToCreate returns "system:route.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToCreate(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToCreate(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -558,8 +558,8 @@ func RouteErrNotAllowedToCreate(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to create a route; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to create a route; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -570,13 +570,13 @@ func RouteErrNotAllowedToCreate(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToRead returns "system:route.notAllowedToRead" as *errors.Error
+// ApigwRouteErrNotAllowedToRead returns "system:route.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToRead(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -590,8 +590,8 @@ func RouteErrNotAllowedToRead(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to read {route.endpoint}; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to read {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -602,13 +602,13 @@ func RouteErrNotAllowedToRead(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToUpdate returns "system:route.notAllowedToUpdate" as *errors.Error
+// ApigwRouteErrNotAllowedToUpdate returns "system:route.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToUpdate(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToUpdate(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -622,8 +622,8 @@ func RouteErrNotAllowedToUpdate(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to update {route.endpoint}; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to update {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -634,13 +634,13 @@ func RouteErrNotAllowedToUpdate(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToDelete returns "system:route.notAllowedToDelete" as *errors.Error
+// ApigwRouteErrNotAllowedToDelete returns "system:route.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToDelete(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToDelete(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -654,8 +654,8 @@ func RouteErrNotAllowedToDelete(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to delete {route.endpoint}; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to delete {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -666,13 +666,13 @@ func RouteErrNotAllowedToDelete(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToUndelete returns "system:route.notAllowedToUndelete" as *errors.Error
+// ApigwRouteErrNotAllowedToUndelete returns "system:route.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToUndelete(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToUndelete(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -686,8 +686,8 @@ func RouteErrNotAllowedToUndelete(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to undelete {route.endpoint}; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to undelete {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -698,13 +698,13 @@ func RouteErrNotAllowedToUndelete(mm ...*routeActionProps) *errors.Error {
 	return e
 }
 
-// RouteErrNotAllowedToExec returns "system:route.notAllowedToExec" as *errors.Error
+// ApigwRouteErrNotAllowedToExec returns "system:route.notAllowedToExec" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func RouteErrNotAllowedToExec(mm ...*routeActionProps) *errors.Error {
-	var p = &routeActionProps{}
+func ApigwRouteErrNotAllowedToExec(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
 	}
@@ -718,8 +718,8 @@ func RouteErrNotAllowedToExec(mm ...*routeActionProps) *errors.Error {
 		errors.Meta("resource", "system:route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(routeLogMetaKey{}, "failed to exec {route.endpoint}; insufficient permissions"),
-		errors.Meta(routePropsMetaKey{}, p),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to exec {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
 		errors.StackSkip(1),
 	)
@@ -739,7 +739,7 @@ func RouteErrNotAllowedToExec(mm ...*routeActionProps) *errors.Error {
 //
 // This function is auto-generated.
 //
-func (svc route) recordAction(ctx context.Context, props *routeActionProps, actionFn func(...*routeActionProps) *routeAction, err error) error {
+func (svc apigwRoute) recordAction(ctx context.Context, props *apigwRouteActionProps, actionFn func(...*apigwRouteActionProps) *apigwRouteAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
 		return err
@@ -760,10 +760,10 @@ func (svc route) recordAction(ctx context.Context, props *routeActionProps, acti
 
 		a.Error = err.Error()
 		a.Severity = actionlog.Severity(m.AsInt("severity"))
-		a.Description = props.Format(m.AsString(routeLogMetaKey{}), err)
+		a.Description = props.Format(m.AsString(apigwRouteLogMetaKey{}), err)
 
-		if p, has := m[routePropsMetaKey{}]; has {
-			a.Meta = p.(*routeActionProps).Serialize()
+		if p, has := m[apigwRoutePropsMetaKey{}]; has {
+			a.Meta = p.(*apigwRouteActionProps).Serialize()
 		}
 
 		svc.actionlog.Record(ctx, a)

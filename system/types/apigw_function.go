@@ -10,17 +10,15 @@ import (
 )
 
 type (
-	ApigwFunctionKind string
+	ApigwFuncParams map[string]interface{}
 
-	FuncParams map[string]interface{}
-
-	Function struct {
-		ID     uint64     `json:"functionID,string"`
-		Route  uint64     `json:"routeID,string"`
-		Weight uint64     `json:"weight"`
-		Ref    string     `json:"ref,omitempty"`
-		Kind   string     `json:"kind,omitempty"`
-		Params FuncParams `json:"params"`
+	ApigwFunction struct {
+		ID     uint64          `json:"functionID,string"`
+		Route  uint64          `json:"routeID,string"`
+		Weight uint64          `json:"weight,string"`
+		Ref    string          `json:"ref,omitempty"`
+		Kind   string          `json:"kind,omitempty"`
+		Params ApigwFuncParams `json:"params"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		CreatedBy uint64     `json:"createdBy,string" `
@@ -30,7 +28,7 @@ type (
 		DeletedBy uint64     `json:"deletedBy,string,omitempty" `
 	}
 
-	FunctionFilter struct {
+	ApigwFunctionFilter struct {
 		RouteID  uint64 `json:"routeID,string"`
 		Endpoint string `json:"endpoint"`
 		Group    string `json:"group"`
@@ -42,22 +40,14 @@ type (
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(*Route) (bool, error) `json:"-"`
+		Check func(*ApigwFunction) (bool, error) `json:"-"`
 
 		filter.Sorting
 		filter.Paging
 	}
 )
 
-const (
-	ApigwFunctionKindVerifier  ApigwFunctionKind = "functionVerifier"
-	ApigwFunctionKindValidator ApigwFunctionKind = "functionValidator"
-	ApigwFunctionKindMatcher   ApigwFunctionKind = "functionMatcher"
-	ApigwFunctionKindProcesser ApigwFunctionKind = "functionProcesser"
-	ApigwFunctionKindExpediter ApigwFunctionKind = "functionExpediter"
-)
-
-func (vv *FuncParams) Scan(value interface{}) (err error) {
+func (vv *ApigwFuncParams) Scan(value interface{}) (err error) {
 	if err := json.Unmarshal(value.([]byte), vv); err != nil {
 		return fmt.Errorf("cannot scan '%v' into FuncParams", value)
 	}
@@ -65,6 +55,6 @@ func (vv *FuncParams) Scan(value interface{}) (err error) {
 	return
 }
 
-func (vv FuncParams) Value() (driver.Value, error) {
+func (vv ApigwFuncParams) Value() (driver.Value, error) {
 	return json.Marshal(vv)
 }

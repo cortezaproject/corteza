@@ -52,3 +52,10 @@ rbac:
 
     api-gw-route.create:
       description: Create API gateway route
+    api-gw-routes.search:
+      description: List search or filter API gateway routes
+
+    api-gw-function.create:
+      description: Add API gateway function to route
+    api-gw-functions.search:
+      description: List, search or filter functions

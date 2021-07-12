@@ -2,7 +2,11 @@ package apigw
 
 import (
 	"context"
+	"encoding/json"
 
+	as "github.com/cortezaproject/corteza-server/automation/service"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
@@ -10,11 +14,12 @@ import (
 
 type (
 	storer interface {
-		SearchApigwRoutes(ctx context.Context, f types.RouteFilter) (types.RouteSet, types.RouteFilter, error)
-		SearchApigwFunctions(ctx context.Context, f types.FunctionFilter) (types.FunctionSet, types.FunctionFilter, error)
+		SearchApigwRoutes(ctx context.Context, f types.ApigwRouteFilter) (types.ApigwRouteSet, types.ApigwRouteFilter, error)
+		SearchApigwFunctions(ctx context.Context, f types.ApigwFunctionFilter) (types.ApigwFunctionSet, types.ApigwFunctionFilter, error)
 	}
 
 	apigw struct {
+		opts   *options.ApigwOpt
 		log    *zap.Logger
 		reg    *registry
 		routes []*route
@@ -37,7 +42,7 @@ func Set(a *apigw) {
 }
 
 // Setup handles the singleton service
-func Setup(opts interface{}, log *zap.Logger, storer storer) {
+func Setup(opts *options.ApigwOpt, log *zap.Logger, storer storer) {
 	if apiGw != nil {
 		return
 	}
@@ -45,11 +50,12 @@ func Setup(opts interface{}, log *zap.Logger, storer storer) {
 	apiGw = New(opts, log, storer)
 }
 
-func New(opts interface{}, logger *zap.Logger, storer storer) *apigw {
+func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 	reg := NewRegistry()
 	reg.Preload()
 
 	return &apigw{
+		opts:   opts,
 		log:    logger,
 		storer: storer,
 		reload: make(chan bool),
@@ -64,7 +70,7 @@ func (s *apigw) Reload(ctx context.Context) {
 }
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
-	routes, _, err := s.storer.SearchApigwRoutes(ctx, types.RouteFilter{Enabled: true})
+	routes, _, err := s.storer.SearchApigwRoutes(ctx, types.ApigwRouteFilter{Enabled: true, Deleted: filter.StateExcluded})
 
 	if err != nil {
 		return
@@ -83,66 +89,76 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 	return
 }
 
-func (s *apigw) loadFunctions(ctx context.Context, route uint64) (ff []*types.Function, err error) {
-	ff, _, err = s.storer.SearchApigwFunctions(ctx, types.FunctionFilter{})
+func (s *apigw) loadFunctions(ctx context.Context, route uint64) (ff []*types.ApigwFunction, err error) {
+	ff, _, err = s.storer.SearchApigwFunctions(ctx, types.ApigwFunctionFilter{RouteID: route})
 	return
 }
 
-func (s *apigw) Router(ctx context.Context) func(r chi.Router) {
-	return func(r chi.Router) {
-		routes, err := s.loadRoutes(ctx)
+func (s *apigw) Router(r chi.Router) {
+	var (
+		ctx = context.Background()
+	)
 
-		if err != nil {
-			s.log.Error("could not load routes", zap.Error(err))
-			return
-		}
+	r.HandleFunc("/", helperDefaultResponse(s.opts))
 
-		s.Init(ctx, routes...)
+	routes, err := s.loadRoutes(ctx)
 
-		for _, route := range s.routes {
-			r.Handle(route.endpoint, route)
-		}
+	if err != nil {
+		s.log.Error("could not load routes", zap.Error(err))
+		return
+	}
 
-		go func() {
-			for {
-				select {
-				case <-s.reload:
-					s.log.Debug("got reload signal")
+	s.Init(ctx, routes...)
 
-					routes, err := s.loadRoutes(ctx)
+	for _, route := range s.routes {
+		r.Handle(route.endpoint, route)
+	}
 
-					if err != nil {
-						s.log.Error("could not reload routes", zap.Error(err))
-						return
-					}
+	go func() {
+		for {
+			select {
+			case <-s.reload:
+				routes, err := s.loadRoutes(ctx)
 
-					s.Init(ctx, routes...)
-
-					for _, route := range s.routes {
-						r.Handle(route.endpoint, route)
-					}
-
-				case <-ctx.Done():
-					s.log.Debug("done! getting out")
+				if err != nil {
+					s.log.Error("could not reload API Gateway routes", zap.Error(err))
 					return
 				}
+
+				s.log.Debug("reloading API Gateway routes and functions", zap.Int("count", len(routes)))
+
+				s.Init(ctx, routes...)
+
+				for _, route := range s.routes {
+					r.Handle(route.endpoint, route)
+				}
+
+			case <-ctx.Done():
+				s.log.Debug("shutting down API Gateway service")
+				return
 			}
-		}()
-	}
+		}
+	}()
 }
 
 // init all the routes
 func (s *apigw) Init(ctx context.Context, route ...*route) {
 	s.routes = route
 
-	s.log.Debug("initializing routes\n", zap.Int("num", len(s.routes)))
+	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
 
 	for _, r := range s.routes {
-		r.pipe = &pl{}
+		log := s.log.With(zap.String("route", r.String()))
+
+		r.pipe = NewPipeline(log)
+
+		r.opts = s.opts
+		r.log = log
+
 		regFuncs, err := s.loadFunctions(ctx, r.ID)
 
 		if err != nil {
-			s.log.Error("could not load functions for route", zap.String("route", r.endpoint), zap.Error(err))
+			log.Error("could not load functions for route", zap.Error(err))
 			continue
 		}
 
@@ -154,20 +170,31 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 		})
 
 		for _, f := range regFuncs {
-			fc := functionHandler{}
-
 			h, err := s.reg.Get(f.Ref)
 
 			if err != nil {
-				s.log.Error("could not register function for route", zap.String("route", r.endpoint), zap.Error(err))
+				log.Error("could not register function for route", zap.Error(err))
 				continue
 			}
 
-			fc.Merge(ctx, h.Meta(f))
-			fc.SetHandler(h.Handler())
+			enc, err := json.Marshal(f.Params)
 
-			r.pipe.Add(fc, f.Params)
+			if err != nil {
+				log.Error("could not load params for function", zap.String("ref", f.Ref), zap.Error(err))
+				continue
+			}
+
+			h, err = s.reg.Merge(h, enc)
+
+			if err != nil {
+				log.Error("could not merge params to handler", zap.String("ref", f.Ref), zap.Error(err))
+				continue
+			}
+
+			r.pipe.Add(h)
 		}
+
+		log.Debug("successfuly registered route")
 	}
 }
 
@@ -176,10 +203,13 @@ func (s *apigw) Funcs(kind string) (list functionMetaList) {
 
 	if kind != "" {
 		list, _ = list.Filter(func(fm *functionMeta) (bool, error) {
-			// return fm.
-			return fm.Kind == kind, nil
+			return string(fm.Kind) == kind, nil
 		})
 	}
 
 	return
+}
+
+func NewWorkflow() (wf WfExecer) {
+	return as.Workflow(&zap.Logger{}, options.CorredorOpt{})
 }
