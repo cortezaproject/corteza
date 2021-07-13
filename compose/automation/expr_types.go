@@ -98,6 +98,9 @@ var _ expr.DeepFieldAssigner = &ComposeRecord{}
 // We need to reroute value assigning for record-value-sets because
 // we loose the reference to record-value slice
 func (t *ComposeRecord) AssignFieldValue(kk []string, val expr.TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	switch kk[0] {
 	case "values":
 		return assignToComposeRecordValues(t.value, kk[1:], val)
@@ -115,7 +118,10 @@ var _ gval.Selector = &ComposeRecord{}
 // It allows gval lib to access Record's underlying value (*types.Record)
 // and it's fields
 //
-func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, error) {
+func (t *ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value != nil && k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}
@@ -134,7 +140,10 @@ func (t ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, err
 // Select is field accessor for *types.ComposeRecord
 //
 // Similar to SelectGVal but returns typed values
-func (t ComposeRecord) Select(k string) (expr.TypedValue, error) {
+func (t *ComposeRecord) Select(k string) (expr.TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value != nil && k == "values" {
 		if t.value.Values == nil {
 			t.value.Values = types.RecordValueSet{}

@@ -3,10 +3,11 @@ package expr
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Example_set_kv() {
@@ -20,11 +21,11 @@ func Example_set_kv() {
 	)
 
 	eval(`set(kv, key, value)`, p)
-	fmt.Printf("\nOriginal KV should be %v", kv)
+	fmt.Printf("\nOriginal KV should be %v", kv.value)
 
 	// output:
-	// &{value:map[k1:v11]}
-	// Original KV should be &{map[]}
+	// map[k1:v11]
+	// Original KV should be map[]
 }
 
 func Example_merge_kv() {
@@ -42,11 +43,11 @@ func Example_merge_kv() {
 	)
 
 	eval(`merge(kv, foo, bar)`, p)
-	fmt.Printf("\nOriginal KV should be %v", kv)
+	fmt.Printf("\nOriginal KV should be %v", kv.value)
 
 	// output:
-	// &{value:map[k1:v1 k2:v2]}
-	// Original KV should be &{map[]}
+	// map[k1:v1 k2:v2]
+	// Original KV should be map[]
 }
 
 func Example_filter_kv() {
@@ -63,11 +64,11 @@ func Example_filter_kv() {
 	)
 
 	eval(`filter(kv, key1, key2)`, p)
-	fmt.Printf("\nOriginal KV should be %v", kv)
+	fmt.Printf("\nOriginal KV should be %v", kv.value)
 
 	// output:
-	// &{value:map[k1:v1]}
-	// Original KV should be &{map[k1:v1 k2:v2]}
+	// map[k1:v1]
+	// Original KV should be map[k1:v1 k2:v2]
 }
 
 func Example_omit_kv() {
@@ -85,11 +86,11 @@ func Example_omit_kv() {
 	)
 
 	eval(`omit(kv, key1, key2)`, p)
-	fmt.Printf("\nOriginal KV should be %v", kv)
+	fmt.Printf("\nOriginal KV should be %v", kv.value)
 
 	// output:
-	// &{value:map[k2:v2]}
-	// Original KV should be &{map[k1:v1 k2:v2 k3:v3]}
+	// map[k2:v2]
+	// Original KV should be map[k1:v1 k2:v2 k3:v3]
 }
 
 func Example_set_kvv() {
@@ -103,11 +104,11 @@ func Example_set_kvv() {
 	)
 
 	eval(`set(kvv, key, value)`, p)
-	fmt.Printf("\nOriginal KVV should be %v", kvv)
+	fmt.Printf("\nOriginal KVV should be %v", kvv.value)
 
 	// output:
-	// &{value:map[foo:[bar]]}
-	// Original KVV should be &{map[]}
+	// map[foo:[bar]]
+	// Original KVV should be map[]
 }
 
 func Example_merge_kvv() {
@@ -126,11 +127,11 @@ func Example_merge_kvv() {
 	)
 
 	eval(`merge(kvv, foo, bar)`, p)
-	fmt.Printf("\nOriginal KVV should be %v", kvv)
+	fmt.Printf("\nOriginal KVV should be %v", kvv.value)
 
 	// output:
-	// &{value:map[k1:[v1 v11] k2:[v2]]}
-	// Original KVV should be &{map[]}
+	// map[k1:[v1 v11] k2:[v2]]
+	// Original KVV should be map[]
 }
 
 func Example_filter_kvv() {
@@ -147,11 +148,11 @@ func Example_filter_kvv() {
 	)
 
 	eval(`filter(kv, key1, key2)`, p)
-	fmt.Printf("\nOriginal KVV should be %v", kvv)
+	fmt.Printf("\nOriginal KVV should be %v", kvv.value)
 
 	// output:
-	// &{value:map[k1:[v1]]}
-	// Original KVV should be &{map[k1:[v1] k2:[v2]]}
+	// map[k1:[v1]]
+	// Original KVV should be map[k1:[v1] k2:[v2]]
 }
 
 func Example_omit_kvv() {
@@ -169,11 +170,11 @@ func Example_omit_kvv() {
 	)
 
 	eval(`omit(kvv, key1, key2)`, p)
-	fmt.Printf("\nOriginal KVV should be %v", kvv)
+	fmt.Printf("\nOriginal KVV should be %v", kvv.value)
 
 	// output:
-	// &{value:map[k2:[v2]]}
-	// Original KVV should be &{map[k1:[v1] k2:[v2] k3:[v3]]}
+	// map[k2:[v2]]
+	// Original KVV should be map[k1:[v1] k2:[v2] k3:[v3]]
 }
 
 func TestTypedValueOperations(t *testing.T) {
@@ -527,10 +528,10 @@ func TestArrayDecode(t *testing.T) {
 	req.NoError(err)
 
 	vars, err := NewVars(map[string]interface{}{
-		"strings": &Array{arr},
+		"strings": &Array{value: arr},
 		"iface":   Must(NewString("typed")),
 		"typed":   Must(NewString("typed")),
-		"values":  &Array{arr},
+		"values":  &Array{value: arr},
 	})
 
 	req.NoError(err)
