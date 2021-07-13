@@ -39,6 +39,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	defApp = helpers.NewIntegrationTestApp(ctx, func(app *app.CortezaApp) (err error) {
+		//app.Opt.Workflow.ExecDebug = true
 		defStore = app.Store
 		eventbus.Set(eventBus)
 		return nil

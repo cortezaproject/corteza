@@ -202,6 +202,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.RbacHandler(
 		automationService.Registry(),
 		rbac.Global(),
+		DefaultUser,
+		DefaultRole,
 	)
 
 	return

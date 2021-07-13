@@ -230,6 +230,9 @@ func (s *Session) Result() *expr.Vars {
 }
 
 func (s *Session) Exec(ctx context.Context, step Step, scope *expr.Vars) error {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
 	err := func() error {
 		if s.g.Len() == 0 {
 			return fmt.Errorf("refusing to execute without steps")
@@ -466,7 +469,9 @@ func (s *Session) worker(ctx context.Context) {
 						st.err,
 					)
 
-					// when the error handler is defined, the error was handled and should not kill the workflow
+					s.mux.Lock()
+
+					// when the err handler is defined, the error was handled and should not kill the workflow
 					if !st.errHandled {
 						// We need to force failed session status
 						// because it's not set early enough to pick it up with s.Status()
@@ -476,6 +481,8 @@ func (s *Session) worker(ctx context.Context) {
 						// to break worker loop
 						s.qErr <- st.err
 					}
+
+					s.mux.Unlock()
 				}
 
 				s.log.Debug(
