@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/stretchr/testify/require"
@@ -13,8 +12,6 @@ import (
 
 func Test0001_basics(t *testing.T) {
 	ctx := bypassRBAC(context.Background())
-	ctx, fn := context.WithTimeout(ctx, time.Second)
-	defer fn()
 	loadScenario(ctx, t)
 
 	var (
