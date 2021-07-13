@@ -1,0 +1,18 @@
+workflows:
+  basic:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "40" } ]
+      - stepID: 2
+        kind: expressions
+        arguments: [ { target: foo, type: Integer, expr: "foo + 2" } ]
+
+    paths:
+      - { parentID: 1, childID: 2 }
