@@ -416,10 +416,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			return
 		}
 
-		if ses.Stacktrace != nil || ses.Error != "" {
-			// Save stacktrace when we know we're tracing workflows OR whenever there is an error...
-			ses.Stacktrace = ses.RuntimeStacktrace
-		}
+		ses.CopyRuntimeStacktrace()
 
 		if err := svc.store.UpsertAutomationSession(ctx, ses); err != nil {
 			log.Error("failed to update session", zap.Error(err))

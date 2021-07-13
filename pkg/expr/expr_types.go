@@ -137,10 +137,10 @@ func Typify(in interface{}) (tv TypedValue, err error) {
 		if v, err := CastToVars(c); err != nil {
 			return nil, err
 		} else {
-			return &Vars{v}, nil
+			return &Vars{value: v}, nil
 		}
 	case map[string]TypedValue:
-		return &Vars{c}, nil
+		return &Vars{value: c}, nil
 	case map[string]string:
 		return &KV{value: c}, nil
 	case map[string][]string:

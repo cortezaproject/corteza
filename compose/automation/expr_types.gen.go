@@ -11,6 +11,8 @@ package automation
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 )
@@ -19,7 +21,10 @@ var _ = context.Background
 var _ = fmt.Errorf
 
 // ComposeModule is an expression type, wrapper for *types.Module type
-type ComposeModule struct{ value *types.Module }
+type ComposeModule struct {
+	value *types.Module
+	mux   sync.RWMutex
+}
 
 // NewComposeModule creates new instance of ComposeModule expression type
 func NewComposeModule(val interface{}) (*ComposeModule, error) {
@@ -30,16 +35,24 @@ func NewComposeModule(val interface{}) (*ComposeModule, error) {
 	}
 }
 
-// Return underlying value on ComposeModule
-func (t ComposeModule) Get() interface{} { return t.value }
+// Get return underlying value on ComposeModule
+func (t *ComposeModule) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on ComposeModule
-func (t ComposeModule) GetValue() *types.Module { return t.value }
+// GetValue returns underlying value on ComposeModule
+func (t *ComposeModule) GetValue() *types.Module {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (ComposeModule) Type() string { return "ComposeModule" }
 
-// Convert value to *types.Module
+// Cast converts value to *types.Module
 func (ComposeModule) Cast(val interface{}) (TypedValue, error) {
 	return NewComposeModule(val)
 }
@@ -57,6 +70,8 @@ func (t *ComposeModule) Assign(val interface{}) error {
 }
 
 func (t *ComposeModule) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToComposeModule(t.value, key, val)
 }
 
@@ -65,18 +80,24 @@ func (t *ComposeModule) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access ComposeModule's underlying value (*types.Module)
 // and it's fields
 //
-func (t ComposeModule) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *ComposeModule) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return composeModuleGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.Module
 //
 // Similar to SelectGVal but returns typed values
-func (t ComposeModule) Select(k string) (TypedValue, error) {
+func (t *ComposeModule) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return composeModuleTypedValueSelector(t.value, k)
 }
 
-func (t ComposeModule) Has(k string) bool {
+func (t *ComposeModule) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "moduleID":
 		return true
@@ -195,7 +216,10 @@ func assignToComposeModule(res *types.Module, k string, val interface{}) error {
 }
 
 // ComposeNamespace is an expression type, wrapper for *types.Namespace type
-type ComposeNamespace struct{ value *types.Namespace }
+type ComposeNamespace struct {
+	value *types.Namespace
+	mux   sync.RWMutex
+}
 
 // NewComposeNamespace creates new instance of ComposeNamespace expression type
 func NewComposeNamespace(val interface{}) (*ComposeNamespace, error) {
@@ -206,16 +230,24 @@ func NewComposeNamespace(val interface{}) (*ComposeNamespace, error) {
 	}
 }
 
-// Return underlying value on ComposeNamespace
-func (t ComposeNamespace) Get() interface{} { return t.value }
+// Get return underlying value on ComposeNamespace
+func (t *ComposeNamespace) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on ComposeNamespace
-func (t ComposeNamespace) GetValue() *types.Namespace { return t.value }
+// GetValue returns underlying value on ComposeNamespace
+func (t *ComposeNamespace) GetValue() *types.Namespace {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (ComposeNamespace) Type() string { return "ComposeNamespace" }
 
-// Convert value to *types.Namespace
+// Cast converts value to *types.Namespace
 func (ComposeNamespace) Cast(val interface{}) (TypedValue, error) {
 	return NewComposeNamespace(val)
 }
@@ -233,6 +265,8 @@ func (t *ComposeNamespace) Assign(val interface{}) error {
 }
 
 func (t *ComposeNamespace) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToComposeNamespace(t.value, key, val)
 }
 
@@ -241,18 +275,24 @@ func (t *ComposeNamespace) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access ComposeNamespace's underlying value (*types.Namespace)
 // and it's fields
 //
-func (t ComposeNamespace) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *ComposeNamespace) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return composeNamespaceGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.Namespace
 //
 // Similar to SelectGVal but returns typed values
-func (t ComposeNamespace) Select(k string) (TypedValue, error) {
+func (t *ComposeNamespace) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return composeNamespaceTypedValueSelector(t.value, k)
 }
 
-func (t ComposeNamespace) Has(k string) bool {
+func (t *ComposeNamespace) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "namespaceID":
 		return true
@@ -363,7 +403,10 @@ func assignToComposeNamespace(res *types.Namespace, k string, val interface{}) e
 }
 
 // ComposeRecord is an expression type, wrapper for *types.Record type
-type ComposeRecord struct{ value *types.Record }
+type ComposeRecord struct {
+	value *types.Record
+	mux   sync.RWMutex
+}
 
 // NewComposeRecord creates new instance of ComposeRecord expression type
 func NewComposeRecord(val interface{}) (*ComposeRecord, error) {
@@ -374,16 +417,24 @@ func NewComposeRecord(val interface{}) (*ComposeRecord, error) {
 	}
 }
 
-// Return underlying value on ComposeRecord
-func (t ComposeRecord) Get() interface{} { return t.value }
+// Get return underlying value on ComposeRecord
+func (t *ComposeRecord) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on ComposeRecord
-func (t ComposeRecord) GetValue() *types.Record { return t.value }
+// GetValue returns underlying value on ComposeRecord
+func (t *ComposeRecord) GetValue() *types.Record {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (ComposeRecord) Type() string { return "ComposeRecord" }
 
-// Convert value to *types.Record
+// Cast converts value to *types.Record
 func (ComposeRecord) Cast(val interface{}) (TypedValue, error) {
 	return NewComposeRecord(val)
 }
@@ -400,7 +451,9 @@ func (t *ComposeRecord) Assign(val interface{}) error {
 	}
 }
 
-func (t ComposeRecord) Has(k string) bool {
+func (t *ComposeRecord) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "recordID":
 		return true
@@ -551,7 +604,10 @@ func assignToComposeRecord(res *types.Record, k string, val interface{}) error {
 }
 
 // ComposeRecordValueErrorSet is an expression type, wrapper for *types.RecordValueErrorSet type
-type ComposeRecordValueErrorSet struct{ value *types.RecordValueErrorSet }
+type ComposeRecordValueErrorSet struct {
+	value *types.RecordValueErrorSet
+	mux   sync.RWMutex
+}
 
 // NewComposeRecordValueErrorSet creates new instance of ComposeRecordValueErrorSet expression type
 func NewComposeRecordValueErrorSet(val interface{}) (*ComposeRecordValueErrorSet, error) {
@@ -562,16 +618,24 @@ func NewComposeRecordValueErrorSet(val interface{}) (*ComposeRecordValueErrorSet
 	}
 }
 
-// Return underlying value on ComposeRecordValueErrorSet
-func (t ComposeRecordValueErrorSet) Get() interface{} { return t.value }
+// Get return underlying value on ComposeRecordValueErrorSet
+func (t *ComposeRecordValueErrorSet) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on ComposeRecordValueErrorSet
-func (t ComposeRecordValueErrorSet) GetValue() *types.RecordValueErrorSet { return t.value }
+// GetValue returns underlying value on ComposeRecordValueErrorSet
+func (t *ComposeRecordValueErrorSet) GetValue() *types.RecordValueErrorSet {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (ComposeRecordValueErrorSet) Type() string { return "ComposeRecordValueErrorSet" }
 
-// Convert value to *types.RecordValueErrorSet
+// Cast converts value to *types.RecordValueErrorSet
 func (ComposeRecordValueErrorSet) Cast(val interface{}) (TypedValue, error) {
 	return NewComposeRecordValueErrorSet(val)
 }

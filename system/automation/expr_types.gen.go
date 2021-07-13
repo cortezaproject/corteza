@@ -11,6 +11,8 @@ package automation
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -19,7 +21,10 @@ var _ = context.Background
 var _ = fmt.Errorf
 
 // DocumentType is an expression type, wrapper for types.DocumentType type
-type DocumentType struct{ value types.DocumentType }
+type DocumentType struct {
+	value types.DocumentType
+	mux   sync.RWMutex
+}
 
 // NewDocumentType creates new instance of DocumentType expression type
 func NewDocumentType(val interface{}) (*DocumentType, error) {
@@ -30,16 +35,24 @@ func NewDocumentType(val interface{}) (*DocumentType, error) {
 	}
 }
 
-// Return underlying value on DocumentType
-func (t DocumentType) Get() interface{} { return t.value }
+// Get return underlying value on DocumentType
+func (t *DocumentType) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on DocumentType
-func (t DocumentType) GetValue() types.DocumentType { return t.value }
+// GetValue returns underlying value on DocumentType
+func (t *DocumentType) GetValue() types.DocumentType {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (DocumentType) Type() string { return "DocumentType" }
 
-// Convert value to types.DocumentType
+// Cast converts value to types.DocumentType
 func (DocumentType) Cast(val interface{}) (TypedValue, error) {
 	return NewDocumentType(val)
 }
@@ -57,7 +70,10 @@ func (t *DocumentType) Assign(val interface{}) error {
 }
 
 // QueueMessage is an expression type, wrapper for *types.QueueMessage type
-type QueueMessage struct{ value *types.QueueMessage }
+type QueueMessage struct {
+	value *types.QueueMessage
+	mux   sync.RWMutex
+}
 
 // NewQueueMessage creates new instance of QueueMessage expression type
 func NewQueueMessage(val interface{}) (*QueueMessage, error) {
@@ -68,16 +84,24 @@ func NewQueueMessage(val interface{}) (*QueueMessage, error) {
 	}
 }
 
-// Return underlying value on QueueMessage
-func (t QueueMessage) Get() interface{} { return t.value }
+// Get return underlying value on QueueMessage
+func (t *QueueMessage) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on QueueMessage
-func (t QueueMessage) GetValue() *types.QueueMessage { return t.value }
+// GetValue returns underlying value on QueueMessage
+func (t *QueueMessage) GetValue() *types.QueueMessage {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (QueueMessage) Type() string { return "QueueMessage" }
 
-// Convert value to *types.QueueMessage
+// Cast converts value to *types.QueueMessage
 func (QueueMessage) Cast(val interface{}) (TypedValue, error) {
 	return NewQueueMessage(val)
 }
@@ -95,6 +119,8 @@ func (t *QueueMessage) Assign(val interface{}) error {
 }
 
 func (t *QueueMessage) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToQueueMessage(t.value, key, val)
 }
 
@@ -103,18 +129,24 @@ func (t *QueueMessage) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access QueueMessage's underlying value (*types.QueueMessage)
 // and it's fields
 //
-func (t QueueMessage) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *QueueMessage) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return queueMessageGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.QueueMessage
 //
 // Similar to SelectGVal but returns typed values
-func (t QueueMessage) Select(k string) (TypedValue, error) {
+func (t *QueueMessage) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return queueMessageTypedValueSelector(t.value, k)
 }
 
-func (t QueueMessage) Has(k string) bool {
+func (t *QueueMessage) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "Queue":
 		return true
@@ -179,7 +211,10 @@ func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) er
 }
 
 // RenderOptions is an expression type, wrapper for map[string]string type
-type RenderOptions struct{ value map[string]string }
+type RenderOptions struct {
+	value map[string]string
+	mux   sync.RWMutex
+}
 
 // NewRenderOptions creates new instance of RenderOptions expression type
 func NewRenderOptions(val interface{}) (*RenderOptions, error) {
@@ -190,16 +225,24 @@ func NewRenderOptions(val interface{}) (*RenderOptions, error) {
 	}
 }
 
-// Return underlying value on RenderOptions
-func (t RenderOptions) Get() interface{} { return t.value }
+// Get return underlying value on RenderOptions
+func (t *RenderOptions) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on RenderOptions
-func (t RenderOptions) GetValue() map[string]string { return t.value }
+// GetValue returns underlying value on RenderOptions
+func (t *RenderOptions) GetValue() map[string]string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (RenderOptions) Type() string { return "RenderOptions" }
 
-// Convert value to map[string]string
+// Cast converts value to map[string]string
 func (RenderOptions) Cast(val interface{}) (TypedValue, error) {
 	return NewRenderOptions(val)
 }
@@ -217,7 +260,10 @@ func (t *RenderOptions) Assign(val interface{}) error {
 }
 
 // RenderedDocument is an expression type, wrapper for *renderedDocument type
-type RenderedDocument struct{ value *renderedDocument }
+type RenderedDocument struct {
+	value *renderedDocument
+	mux   sync.RWMutex
+}
 
 // NewRenderedDocument creates new instance of RenderedDocument expression type
 func NewRenderedDocument(val interface{}) (*RenderedDocument, error) {
@@ -228,16 +274,24 @@ func NewRenderedDocument(val interface{}) (*RenderedDocument, error) {
 	}
 }
 
-// Return underlying value on RenderedDocument
-func (t RenderedDocument) Get() interface{} { return t.value }
+// Get return underlying value on RenderedDocument
+func (t *RenderedDocument) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on RenderedDocument
-func (t RenderedDocument) GetValue() *renderedDocument { return t.value }
+// GetValue returns underlying value on RenderedDocument
+func (t *RenderedDocument) GetValue() *renderedDocument {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (RenderedDocument) Type() string { return "RenderedDocument" }
 
-// Convert value to *renderedDocument
+// Cast converts value to *renderedDocument
 func (RenderedDocument) Cast(val interface{}) (TypedValue, error) {
 	return NewRenderedDocument(val)
 }
@@ -255,6 +309,8 @@ func (t *RenderedDocument) Assign(val interface{}) error {
 }
 
 func (t *RenderedDocument) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToRenderedDocument(t.value, key, val)
 }
 
@@ -263,18 +319,24 @@ func (t *RenderedDocument) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access RenderedDocument's underlying value (*renderedDocument)
 // and it's fields
 //
-func (t RenderedDocument) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *RenderedDocument) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return renderedDocumentGValSelector(t.value, k)
 }
 
 // Select is field accessor for *renderedDocument
 //
 // Similar to SelectGVal but returns typed values
-func (t RenderedDocument) Select(k string) (TypedValue, error) {
+func (t *RenderedDocument) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return renderedDocumentTypedValueSelector(t.value, k)
 }
 
-func (t RenderedDocument) Has(k string) bool {
+func (t *RenderedDocument) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "document":
 		return true
@@ -353,7 +415,10 @@ func assignToRenderedDocument(res *renderedDocument, k string, val interface{}) 
 }
 
 // Role is an expression type, wrapper for *types.Role type
-type Role struct{ value *types.Role }
+type Role struct {
+	value *types.Role
+	mux   sync.RWMutex
+}
 
 // NewRole creates new instance of Role expression type
 func NewRole(val interface{}) (*Role, error) {
@@ -364,16 +429,24 @@ func NewRole(val interface{}) (*Role, error) {
 	}
 }
 
-// Return underlying value on Role
-func (t Role) Get() interface{} { return t.value }
+// Get return underlying value on Role
+func (t *Role) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Role
-func (t Role) GetValue() *types.Role { return t.value }
+// GetValue returns underlying value on Role
+func (t *Role) GetValue() *types.Role {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Role) Type() string { return "Role" }
 
-// Convert value to *types.Role
+// Cast converts value to *types.Role
 func (Role) Cast(val interface{}) (TypedValue, error) {
 	return NewRole(val)
 }
@@ -391,6 +464,8 @@ func (t *Role) Assign(val interface{}) error {
 }
 
 func (t *Role) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToRole(t.value, key, val)
 }
 
@@ -399,18 +474,24 @@ func (t *Role) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access Role's underlying value (*types.Role)
 // and it's fields
 //
-func (t Role) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *Role) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return roleGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.Role
 //
 // Similar to SelectGVal but returns typed values
-func (t Role) Select(k string) (TypedValue, error) {
+func (t *Role) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return roleTypedValueSelector(t.value, k)
 }
 
-func (t Role) Has(k string) bool {
+func (t *Role) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "roleID":
 		return true
@@ -529,7 +610,10 @@ func assignToRole(res *types.Role, k string, val interface{}) error {
 }
 
 // Template is an expression type, wrapper for *types.Template type
-type Template struct{ value *types.Template }
+type Template struct {
+	value *types.Template
+	mux   sync.RWMutex
+}
 
 // NewTemplate creates new instance of Template expression type
 func NewTemplate(val interface{}) (*Template, error) {
@@ -540,16 +624,24 @@ func NewTemplate(val interface{}) (*Template, error) {
 	}
 }
 
-// Return underlying value on Template
-func (t Template) Get() interface{} { return t.value }
+// Get return underlying value on Template
+func (t *Template) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Template
-func (t Template) GetValue() *types.Template { return t.value }
+// GetValue returns underlying value on Template
+func (t *Template) GetValue() *types.Template {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Template) Type() string { return "Template" }
 
-// Convert value to *types.Template
+// Cast converts value to *types.Template
 func (Template) Cast(val interface{}) (TypedValue, error) {
 	return NewTemplate(val)
 }
@@ -567,6 +659,8 @@ func (t *Template) Assign(val interface{}) error {
 }
 
 func (t *Template) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToTemplate(t.value, key, val)
 }
 
@@ -575,18 +669,24 @@ func (t *Template) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access Template's underlying value (*types.Template)
 // and it's fields
 //
-func (t Template) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *Template) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return templateGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.Template
 //
 // Similar to SelectGVal but returns typed values
-func (t Template) Select(k string) (TypedValue, error) {
+func (t *Template) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return templateTypedValueSelector(t.value, k)
 }
 
-func (t Template) Has(k string) bool {
+func (t *Template) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "templateID":
 		return true
@@ -769,7 +869,10 @@ func assignToTemplate(res *types.Template, k string, val interface{}) error {
 }
 
 // TemplateMeta is an expression type, wrapper for types.TemplateMeta type
-type TemplateMeta struct{ value types.TemplateMeta }
+type TemplateMeta struct {
+	value types.TemplateMeta
+	mux   sync.RWMutex
+}
 
 // NewTemplateMeta creates new instance of TemplateMeta expression type
 func NewTemplateMeta(val interface{}) (*TemplateMeta, error) {
@@ -780,16 +883,24 @@ func NewTemplateMeta(val interface{}) (*TemplateMeta, error) {
 	}
 }
 
-// Return underlying value on TemplateMeta
-func (t TemplateMeta) Get() interface{} { return t.value }
+// Get return underlying value on TemplateMeta
+func (t *TemplateMeta) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on TemplateMeta
-func (t TemplateMeta) GetValue() types.TemplateMeta { return t.value }
+// GetValue returns underlying value on TemplateMeta
+func (t *TemplateMeta) GetValue() types.TemplateMeta {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (TemplateMeta) Type() string { return "TemplateMeta" }
 
-// Convert value to types.TemplateMeta
+// Cast converts value to types.TemplateMeta
 func (TemplateMeta) Cast(val interface{}) (TypedValue, error) {
 	return NewTemplateMeta(val)
 }
@@ -807,6 +918,8 @@ func (t *TemplateMeta) Assign(val interface{}) error {
 }
 
 func (t *TemplateMeta) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToTemplateMeta(t.value, key, val)
 }
 
@@ -815,18 +928,24 @@ func (t *TemplateMeta) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access TemplateMeta's underlying value (types.TemplateMeta)
 // and it's fields
 //
-func (t TemplateMeta) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *TemplateMeta) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return templateMetaGValSelector(t.value, k)
 }
 
 // Select is field accessor for types.TemplateMeta
 //
 // Similar to SelectGVal but returns typed values
-func (t TemplateMeta) Select(k string) (TypedValue, error) {
+func (t *TemplateMeta) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return templateMetaTypedValueSelector(t.value, k)
 }
 
-func (t TemplateMeta) Has(k string) bool {
+func (t *TemplateMeta) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "short":
 		return true
@@ -885,7 +1004,10 @@ func assignToTemplateMeta(res types.TemplateMeta, k string, val interface{}) err
 }
 
 // User is an expression type, wrapper for *types.User type
-type User struct{ value *types.User }
+type User struct {
+	value *types.User
+	mux   sync.RWMutex
+}
 
 // NewUser creates new instance of User expression type
 func NewUser(val interface{}) (*User, error) {
@@ -896,16 +1018,24 @@ func NewUser(val interface{}) (*User, error) {
 	}
 }
 
-// Return underlying value on User
-func (t User) Get() interface{} { return t.value }
+// Get return underlying value on User
+func (t *User) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on User
-func (t User) GetValue() *types.User { return t.value }
+// GetValue returns underlying value on User
+func (t *User) GetValue() *types.User {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (User) Type() string { return "User" }
 
-// Convert value to *types.User
+// Cast converts value to *types.User
 func (User) Cast(val interface{}) (TypedValue, error) {
 	return NewUser(val)
 }
@@ -923,6 +1053,8 @@ func (t *User) Assign(val interface{}) error {
 }
 
 func (t *User) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return assignToUser(t.value, key, val)
 }
 
@@ -931,18 +1063,24 @@ func (t *User) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access User's underlying value (*types.User)
 // and it's fields
 //
-func (t User) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *User) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return userGValSelector(t.value, k)
 }
 
 // Select is field accessor for *types.User
 //
 // Similar to SelectGVal but returns typed values
-func (t User) Select(k string) (TypedValue, error) {
+func (t *User) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return userTypedValueSelector(t.value, k)
 }
 
-func (t User) Has(k string) bool {
+func (t *User) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	case "ID", "userID":
 		return true

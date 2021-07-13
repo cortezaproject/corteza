@@ -11,6 +11,7 @@ package {{ .Package }}
 import (
 	"context"
 	"fmt"
+	"sync"
 {{- range .Imports }}
   {{ normalizeImport . }}
 {{- end }}
@@ -25,7 +26,10 @@ var _ = fmt.Errorf
 {{ range $exprType, $def := .Types }}
 {{ if not $def.CustomType }}
 // {{ $exprType }} is an expression type, wrapper for {{ $def.As }} type
-type {{ $exprType }} struct{ value {{ $def.As }} }
+type {{ $exprType }} struct{
+	value {{ $def.As }}
+	mux sync.RWMutex
+}
 
 // New{{ $exprType }} creates new instance of {{ $exprType }} expression type
 func New{{ $exprType }}(val interface{}) (*{{ $exprType }}, error) {
@@ -37,16 +41,24 @@ func New{{ $exprType }}(val interface{}) (*{{ $exprType }}, error) {
 }
 
 
-// Return underlying value on {{ $exprType }}
-func (t {{ $exprType }}) Get() interface{}                         { return t.value }
+// Get return underlying value on {{ $exprType }}
+func (t *{{ $exprType }}) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on {{ $exprType }}
-func (t {{ $exprType }}) GetValue()  {{ $def.As }}                 { return t.value }
+// GetValue returns underlying value on {{ $exprType }}
+func (t *{{ $exprType }}) GetValue()  {{ $def.As }} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func ({{ $exprType }}) Type() string                               { return "{{ $exprType }}" }
 
-// Convert value to {{ $def.As }}
+// Cast converts value to {{ $def.As }}
 func ({{ $exprType }}) Cast(val interface{}) (TypedValue, error) {
 	return New{{ $exprType }}(val)
 }
@@ -67,6 +79,8 @@ func (t *{{ $exprType }}) Assign(val interface{}) (error) {
 {{ if $def.Struct }}
 {{ if not $def.CustomFieldAssigner }}
 func (t *{{ $exprType }}) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
 	return {{ $def.AssignerFn }}(t.value, key, val)
 }
 {{ end }}
@@ -77,7 +91,9 @@ func (t *{{ $exprType }}) AssignFieldValue(key string, val TypedValue) error {
 // It allows gval lib to access {{ $exprType }}'s underlying value ({{ $def.As }})
 // and it's fields
 //
-func (t {{ $exprType }}) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+func (t *{{ $exprType }}) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return {{ unexport $exprType "GValSelector" }}(t.value, k)
 }
 {{ end }}
@@ -86,12 +102,16 @@ func (t {{ $exprType }}) SelectGVal(ctx context.Context, k string) (interface{},
 // Select is field accessor for {{ $def.As }}
 //
 // Similar to SelectGVal but returns typed values
-func (t {{ $exprType }}) Select(k string) (TypedValue, error) {
+func (t *{{ $exprType }}) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	return {{ unexport $exprType "TypedValueSelector" }}(t.value, k)
 }
 {{ end }}
 
-func (t {{ $exprType }}) Has(k string) bool {
+func (t *{{ $exprType }}) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 	switch k {
 	{{- range $def.Struct }}
 		{{- if .ExprType }}

@@ -13,11 +13,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-func (t Vars) Len() int {
+func (t *Vars) Len() int {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	return len(t.value)
 }
 
-func (t Vars) Select(k string) (TypedValue, error) {
+func (t *Vars) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if v, is := t.value[k]; is {
 		return v, nil
 	} else {
@@ -26,6 +32,9 @@ func (t Vars) Select(k string) (TypedValue, error) {
 }
 
 func (t *Vars) AssignFieldValue(key string, val TypedValue) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	if t.value == nil {
 		t.value = make(map[string]TypedValue)
 	}
@@ -35,7 +44,14 @@ func (t *Vars) AssignFieldValue(key string, val TypedValue) (err error) {
 	return err
 }
 
-func (t Vars) ResolveTypes(res func(typ string) Type) (err error) {
+func (t *Vars) ResolveTypes(res func(typ string) Type) (err error) {
+	if t == nil {
+		return nil
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	for k, v := range t.value {
 		if u, is := v.(*Unresolved); is {
 			if res(u.Type()) == nil {
@@ -61,27 +77,21 @@ func (t Vars) ResolveTypes(res func(typ string) Type) (err error) {
 // Merge combines the given Vars(es) into Vars
 // NOTE: It will return CLONE of the original Vars, if its called without any parameters
 func (t *Vars) Merge(nn ...Iterator) (out TypedValue, err error) {
-	vars := EmptyVars()
-
-	nn = append([]Iterator{t}, nn...)
-
-	for _, i := range nn {
-		_ = i.Each(func(k string, v TypedValue) error {
-			vars.value[k] = v
-			return nil
-		})
-	}
-
-	return vars, nil
+	return t.MustMerge(nn...), nil
 }
 
 // MustMerge returns Vars after merging the given Vars(es) into it
 func (t *Vars) MustMerge(nn ...Iterator) *Vars {
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
+
+		nn = append([]Iterator{t}, nn...)
+	}
+
 	var (
 		out = &Vars{value: make(map[string]TypedValue)}
 	)
-
-	nn = append([]Iterator{t}, nn...)
 
 	for _, i := range nn {
 		_ = i.Each(func(k string, v TypedValue) error {
@@ -95,6 +105,13 @@ func (t *Vars) MustMerge(nn ...Iterator) *Vars {
 
 // Copy takes base variables and copies all to dst
 func (t *Vars) Copy(dst *Vars, kk ...string) {
+	if t == nil {
+		return
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t == nil {
 		return
 	}
@@ -115,6 +132,13 @@ func (t *Vars) Has(key string) bool {
 
 // HasAll returns true if all keys are present
 func (t *Vars) HasAll(key string, kk ...string) bool {
+	if t == nil {
+		return false
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t == nil {
 		return false
 	}
@@ -146,6 +170,9 @@ func (t *Vars) HasAny(key string, kk ...string) bool {
 var _ gval.Selector = &Vars{}
 
 func (t *Vars) Dict() map[string]interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	dict := make(map[string]interface{})
 	for k, v := range t.value {
 		switch v := v.(type) {
@@ -176,6 +203,9 @@ func (t *Vars) Decode(dst interface{}) (err error) {
 	if t == nil {
 		return nil
 	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 
 	dstRef := reflect.ValueOf(dst)
 
@@ -234,10 +264,18 @@ func (t *Vars) Scan(value interface{}) error {
 }
 
 func (t *Vars) Value() (driver.Value, error) {
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
+	}
+
 	return json.Marshal(t)
 }
 
-func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
+func (t *Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	val, err := t.Select(k)
 	switch c := val.(type) {
 	case gval.Selector:
@@ -249,6 +287,9 @@ func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
 
 // UnmarshalJSON unmarshal JSON value into Vars
 func (t *Vars) UnmarshalJSON(in []byte) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	var (
 		aux = make(map[string]*typedValueWrap)
 	)
@@ -275,7 +316,14 @@ func (t *Vars) UnmarshalJSON(in []byte) (err error) {
 }
 
 func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
-	if t == nil || t.value == nil {
+	if t == nil {
+		return nil
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	if t.value == nil {
 		return
 	}
 
@@ -290,6 +338,9 @@ func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
 
 // Set set/update the specific key value in KV
 func (t *Vars) Set(k string, v interface{}) (err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		t.value = make(map[string]TypedValue)
 	}
@@ -299,7 +350,10 @@ func (t *Vars) Set(k string, v interface{}) (err error) {
 }
 
 // MarshalJSON returns JSON encoding of expression
-func (t Vars) MarshalJSON() ([]byte, error) {
+func (t *Vars) MarshalJSON() ([]byte, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	aux := make(map[string]*typedValueWrap)
 	for k, v := range t.value {
 		if v == nil {
@@ -410,6 +464,9 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 
 	switch c := val.(type) {
 	case *Vars:
+		c.mux.RLock()
+		defer c.mux.RUnlock()
+
 		return c.value, nil
 	case map[string]TypedValue:
 		return c, nil
@@ -430,6 +487,9 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 
 // Filter take keys returns KV with only those key value pair
 func (t *Vars) Filter(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}
@@ -447,6 +507,9 @@ func (t *Vars) Filter(keys ...string) (out TypedValue, err error) {
 
 // Delete take keys returns KV without those key value pair
 func (t *Vars) Delete(keys ...string) (out TypedValue, err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		return
 	}

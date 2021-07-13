@@ -96,7 +96,7 @@ func TestSession_SplitAndMerge(t *testing.T) {
 		ctx = context.Background()
 		req = require.New(t)
 		wf  = NewGraph()
-		ses = NewSession(ctx, wf)
+		ses = NewSession(ctx, wf, SetDumpStacktraceOnPanic(true))
 
 		start  = &sesTestStep{name: "start"}
 		split1 = &sesTestStep{name: "split1"}
