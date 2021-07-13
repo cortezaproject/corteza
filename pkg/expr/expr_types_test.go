@@ -2,10 +2,11 @@ package expr
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTypedValueOperations(t *testing.T) {
@@ -159,10 +160,10 @@ func TestArrayDecode(t *testing.T) {
 	req.NoError(err)
 
 	vars, err := NewVars(map[string]interface{}{
-		"strings": &Array{arr},
+		"strings": &Array{value: arr},
 		"iface":   Must(NewString("typed")),
 		"typed":   Must(NewString("typed")),
-		"values":  &Array{arr},
+		"values":  &Array{value: arr},
 	})
 
 	req.NoError(err)

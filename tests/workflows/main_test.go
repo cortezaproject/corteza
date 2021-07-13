@@ -101,14 +101,12 @@ func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 	}
 }
 
-func bypassRBAC(ctx context.Context) context.Context {
+func superUser(ctx context.Context) context.Context {
 	u := &sysTypes.User{
 		ID: id.Next(),
 	}
 
-	u.SetRoles(auth.BypassRoles().IDs()...)
-
-	return auth.SetIdentityToContext(ctx, u)
+	return auth.SetSuperUserContext(auth.SetIdentityToContext(ctx, u))
 }
 
 func execWorkflow(ctx context.Context, name string, p autTypes.WorkflowExecParams) (*expr.Vars, autTypes.Stacktrace, error) {

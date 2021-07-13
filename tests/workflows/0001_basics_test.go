@@ -12,7 +12,7 @@ import (
 )
 
 func Test0001_basics(t *testing.T) {
-	ctx := bypassRBAC(context.Background())
+	ctx := superUser(context.Background())
 	ctx, fn := context.WithTimeout(ctx, time.Second)
 	defer fn()
 	loadScenario(ctx, t)
@@ -28,7 +28,7 @@ func Test0001_basics(t *testing.T) {
 }
 
 func Test0001_basics_detect_datarace_issues(t *testing.T) {
-	ctx := bypassRBAC(context.Background())
+	ctx := superUser(context.Background())
 	loadScenarioWithName(ctx, t, "S0001_basics")
 
 	var (

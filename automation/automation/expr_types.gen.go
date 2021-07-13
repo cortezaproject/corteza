@@ -12,13 +12,17 @@ import (
 	"context"
 	"fmt"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
+	"sync"
 )
 
 var _ = context.Background
 var _ = fmt.Errorf
 
 // EmailMessage is an expression type, wrapper for *emailMessage type
-type EmailMessage struct{ value *emailMessage }
+type EmailMessage struct {
+	value *emailMessage
+	mux   sync.RWMutex
+}
 
 // NewEmailMessage creates new instance of EmailMessage expression type
 func NewEmailMessage(val interface{}) (*EmailMessage, error) {
@@ -29,16 +33,24 @@ func NewEmailMessage(val interface{}) (*EmailMessage, error) {
 	}
 }
 
-// Return underlying value on EmailMessage
-func (t EmailMessage) Get() interface{} { return t.value }
+// Get return underlying value on EmailMessage
+func (t *EmailMessage) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on EmailMessage
-func (t EmailMessage) GetValue() *emailMessage { return t.value }
+// GetValue returns underlying value on EmailMessage
+func (t *EmailMessage) GetValue() *emailMessage {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (EmailMessage) Type() string { return "EmailMessage" }
 
-// Convert value to *emailMessage
+// Cast converts value to *emailMessage
 func (EmailMessage) Cast(val interface{}) (TypedValue, error) {
 	return NewEmailMessage(val)
 }

@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 )
 
@@ -19,7 +20,10 @@ var _ = context.Background
 var _ = fmt.Errorf
 
 // Any is an expression type, wrapper for interface{} type
-type Any struct{ value interface{} }
+type Any struct {
+	value interface{}
+	mux   sync.RWMutex
+}
 
 // NewAny creates new instance of Any expression type
 func NewAny(val interface{}) (*Any, error) {
@@ -30,16 +34,24 @@ func NewAny(val interface{}) (*Any, error) {
 	}
 }
 
-// Return underlying value on Any
-func (t Any) Get() interface{} { return t.value }
+// Get return underlying value on Any
+func (t *Any) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Any
-func (t Any) GetValue() interface{} { return t.value }
+// GetValue returns underlying value on Any
+func (t *Any) GetValue() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Any) Type() string { return "Any" }
 
-// Convert value to interface{}
+// Cast converts value to interface{}
 func (Any) Cast(val interface{}) (TypedValue, error) {
 	return NewAny(val)
 }
@@ -57,7 +69,10 @@ func (t *Any) Assign(val interface{}) error {
 }
 
 // Array is an expression type, wrapper for []TypedValue type
-type Array struct{ value []TypedValue }
+type Array struct {
+	value []TypedValue
+	mux   sync.RWMutex
+}
 
 // NewArray creates new instance of Array expression type
 func NewArray(val interface{}) (*Array, error) {
@@ -68,16 +83,24 @@ func NewArray(val interface{}) (*Array, error) {
 	}
 }
 
-// Return underlying value on Array
-func (t Array) Get() interface{} { return t.value }
+// Get return underlying value on Array
+func (t *Array) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Array
-func (t Array) GetValue() []TypedValue { return t.value }
+// GetValue returns underlying value on Array
+func (t *Array) GetValue() []TypedValue {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Array) Type() string { return "Array" }
 
-// Convert value to []TypedValue
+// Cast converts value to []TypedValue
 func (Array) Cast(val interface{}) (TypedValue, error) {
 	return NewArray(val)
 }
@@ -95,7 +118,10 @@ func (t *Array) Assign(val interface{}) error {
 }
 
 // Boolean is an expression type, wrapper for bool type
-type Boolean struct{ value bool }
+type Boolean struct {
+	value bool
+	mux   sync.RWMutex
+}
 
 // NewBoolean creates new instance of Boolean expression type
 func NewBoolean(val interface{}) (*Boolean, error) {
@@ -106,16 +132,24 @@ func NewBoolean(val interface{}) (*Boolean, error) {
 	}
 }
 
-// Return underlying value on Boolean
-func (t Boolean) Get() interface{} { return t.value }
+// Get return underlying value on Boolean
+func (t *Boolean) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Boolean
-func (t Boolean) GetValue() bool { return t.value }
+// GetValue returns underlying value on Boolean
+func (t *Boolean) GetValue() bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Boolean) Type() string { return "Boolean" }
 
-// Convert value to bool
+// Cast converts value to bool
 func (Boolean) Cast(val interface{}) (TypedValue, error) {
 	return NewBoolean(val)
 }
@@ -133,7 +167,10 @@ func (t *Boolean) Assign(val interface{}) error {
 }
 
 // DateTime is an expression type, wrapper for *time.Time type
-type DateTime struct{ value *time.Time }
+type DateTime struct {
+	value *time.Time
+	mux   sync.RWMutex
+}
 
 // NewDateTime creates new instance of DateTime expression type
 func NewDateTime(val interface{}) (*DateTime, error) {
@@ -144,16 +181,24 @@ func NewDateTime(val interface{}) (*DateTime, error) {
 	}
 }
 
-// Return underlying value on DateTime
-func (t DateTime) Get() interface{} { return t.value }
+// Get return underlying value on DateTime
+func (t *DateTime) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on DateTime
-func (t DateTime) GetValue() *time.Time { return t.value }
+// GetValue returns underlying value on DateTime
+func (t *DateTime) GetValue() *time.Time {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (DateTime) Type() string { return "DateTime" }
 
-// Convert value to *time.Time
+// Cast converts value to *time.Time
 func (DateTime) Cast(val interface{}) (TypedValue, error) {
 	return NewDateTime(val)
 }
@@ -171,7 +216,10 @@ func (t *DateTime) Assign(val interface{}) error {
 }
 
 // Duration is an expression type, wrapper for time.Duration type
-type Duration struct{ value time.Duration }
+type Duration struct {
+	value time.Duration
+	mux   sync.RWMutex
+}
 
 // NewDuration creates new instance of Duration expression type
 func NewDuration(val interface{}) (*Duration, error) {
@@ -182,16 +230,24 @@ func NewDuration(val interface{}) (*Duration, error) {
 	}
 }
 
-// Return underlying value on Duration
-func (t Duration) Get() interface{} { return t.value }
+// Get return underlying value on Duration
+func (t *Duration) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Duration
-func (t Duration) GetValue() time.Duration { return t.value }
+// GetValue returns underlying value on Duration
+func (t *Duration) GetValue() time.Duration {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Duration) Type() string { return "Duration" }
 
-// Convert value to time.Duration
+// Cast converts value to time.Duration
 func (Duration) Cast(val interface{}) (TypedValue, error) {
 	return NewDuration(val)
 }
@@ -209,7 +265,10 @@ func (t *Duration) Assign(val interface{}) error {
 }
 
 // Float is an expression type, wrapper for float64 type
-type Float struct{ value float64 }
+type Float struct {
+	value float64
+	mux   sync.RWMutex
+}
 
 // NewFloat creates new instance of Float expression type
 func NewFloat(val interface{}) (*Float, error) {
@@ -220,16 +279,24 @@ func NewFloat(val interface{}) (*Float, error) {
 	}
 }
 
-// Return underlying value on Float
-func (t Float) Get() interface{} { return t.value }
+// Get return underlying value on Float
+func (t *Float) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Float
-func (t Float) GetValue() float64 { return t.value }
+// GetValue returns underlying value on Float
+func (t *Float) GetValue() float64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Float) Type() string { return "Float" }
 
-// Convert value to float64
+// Cast converts value to float64
 func (Float) Cast(val interface{}) (TypedValue, error) {
 	return NewFloat(val)
 }
@@ -247,7 +314,10 @@ func (t *Float) Assign(val interface{}) error {
 }
 
 // Handle is an expression type, wrapper for string type
-type Handle struct{ value string }
+type Handle struct {
+	value string
+	mux   sync.RWMutex
+}
 
 // NewHandle creates new instance of Handle expression type
 func NewHandle(val interface{}) (*Handle, error) {
@@ -258,16 +328,24 @@ func NewHandle(val interface{}) (*Handle, error) {
 	}
 }
 
-// Return underlying value on Handle
-func (t Handle) Get() interface{} { return t.value }
+// Get return underlying value on Handle
+func (t *Handle) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Handle
-func (t Handle) GetValue() string { return t.value }
+// GetValue returns underlying value on Handle
+func (t *Handle) GetValue() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Handle) Type() string { return "Handle" }
 
-// Convert value to string
+// Cast converts value to string
 func (Handle) Cast(val interface{}) (TypedValue, error) {
 	return NewHandle(val)
 }
@@ -285,7 +363,10 @@ func (t *Handle) Assign(val interface{}) error {
 }
 
 // ID is an expression type, wrapper for uint64 type
-type ID struct{ value uint64 }
+type ID struct {
+	value uint64
+	mux   sync.RWMutex
+}
 
 // NewID creates new instance of ID expression type
 func NewID(val interface{}) (*ID, error) {
@@ -296,16 +377,24 @@ func NewID(val interface{}) (*ID, error) {
 	}
 }
 
-// Return underlying value on ID
-func (t ID) Get() interface{} { return t.value }
+// Get return underlying value on ID
+func (t *ID) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on ID
-func (t ID) GetValue() uint64 { return t.value }
+// GetValue returns underlying value on ID
+func (t *ID) GetValue() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (ID) Type() string { return "ID" }
 
-// Convert value to uint64
+// Cast converts value to uint64
 func (ID) Cast(val interface{}) (TypedValue, error) {
 	return NewID(val)
 }
@@ -323,7 +412,10 @@ func (t *ID) Assign(val interface{}) error {
 }
 
 // Integer is an expression type, wrapper for int64 type
-type Integer struct{ value int64 }
+type Integer struct {
+	value int64
+	mux   sync.RWMutex
+}
 
 // NewInteger creates new instance of Integer expression type
 func NewInteger(val interface{}) (*Integer, error) {
@@ -334,16 +426,24 @@ func NewInteger(val interface{}) (*Integer, error) {
 	}
 }
 
-// Return underlying value on Integer
-func (t Integer) Get() interface{} { return t.value }
+// Get return underlying value on Integer
+func (t *Integer) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Integer
-func (t Integer) GetValue() int64 { return t.value }
+// GetValue returns underlying value on Integer
+func (t *Integer) GetValue() int64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Integer) Type() string { return "Integer" }
 
-// Convert value to int64
+// Cast converts value to int64
 func (Integer) Cast(val interface{}) (TypedValue, error) {
 	return NewInteger(val)
 }
@@ -361,7 +461,10 @@ func (t *Integer) Assign(val interface{}) error {
 }
 
 // KV is an expression type, wrapper for map[string]string type
-type KV struct{ value map[string]string }
+type KV struct {
+	value map[string]string
+	mux   sync.RWMutex
+}
 
 // NewKV creates new instance of KV expression type
 func NewKV(val interface{}) (*KV, error) {
@@ -372,16 +475,24 @@ func NewKV(val interface{}) (*KV, error) {
 	}
 }
 
-// Return underlying value on KV
-func (t KV) Get() interface{} { return t.value }
+// Get return underlying value on KV
+func (t *KV) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on KV
-func (t KV) GetValue() map[string]string { return t.value }
+// GetValue returns underlying value on KV
+func (t *KV) GetValue() map[string]string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (KV) Type() string { return "KV" }
 
-// Convert value to map[string]string
+// Cast converts value to map[string]string
 func (KV) Cast(val interface{}) (TypedValue, error) {
 	return NewKV(val)
 }
@@ -399,7 +510,10 @@ func (t *KV) Assign(val interface{}) error {
 }
 
 // KVV is an expression type, wrapper for map[string][]string type
-type KVV struct{ value map[string][]string }
+type KVV struct {
+	value map[string][]string
+	mux   sync.RWMutex
+}
 
 // NewKVV creates new instance of KVV expression type
 func NewKVV(val interface{}) (*KVV, error) {
@@ -410,16 +524,24 @@ func NewKVV(val interface{}) (*KVV, error) {
 	}
 }
 
-// Return underlying value on KVV
-func (t KVV) Get() interface{} { return t.value }
+// Get return underlying value on KVV
+func (t *KVV) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on KVV
-func (t KVV) GetValue() map[string][]string { return t.value }
+// GetValue returns underlying value on KVV
+func (t *KVV) GetValue() map[string][]string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (KVV) Type() string { return "KVV" }
 
-// Convert value to map[string][]string
+// Cast converts value to map[string][]string
 func (KVV) Cast(val interface{}) (TypedValue, error) {
 	return NewKVV(val)
 }
@@ -437,7 +559,10 @@ func (t *KVV) Assign(val interface{}) error {
 }
 
 // Reader is an expression type, wrapper for io.Reader type
-type Reader struct{ value io.Reader }
+type Reader struct {
+	value io.Reader
+	mux   sync.RWMutex
+}
 
 // NewReader creates new instance of Reader expression type
 func NewReader(val interface{}) (*Reader, error) {
@@ -448,16 +573,24 @@ func NewReader(val interface{}) (*Reader, error) {
 	}
 }
 
-// Return underlying value on Reader
-func (t Reader) Get() interface{} { return t.value }
+// Get return underlying value on Reader
+func (t *Reader) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Reader
-func (t Reader) GetValue() io.Reader { return t.value }
+// GetValue returns underlying value on Reader
+func (t *Reader) GetValue() io.Reader {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Reader) Type() string { return "Reader" }
 
-// Convert value to io.Reader
+// Cast converts value to io.Reader
 func (Reader) Cast(val interface{}) (TypedValue, error) {
 	return NewReader(val)
 }
@@ -475,7 +608,10 @@ func (t *Reader) Assign(val interface{}) error {
 }
 
 // String is an expression type, wrapper for string type
-type String struct{ value string }
+type String struct {
+	value string
+	mux   sync.RWMutex
+}
 
 // NewString creates new instance of String expression type
 func NewString(val interface{}) (*String, error) {
@@ -486,16 +622,24 @@ func NewString(val interface{}) (*String, error) {
 	}
 }
 
-// Return underlying value on String
-func (t String) Get() interface{} { return t.value }
+// Get return underlying value on String
+func (t *String) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on String
-func (t String) GetValue() string { return t.value }
+// GetValue returns underlying value on String
+func (t *String) GetValue() string {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (String) Type() string { return "String" }
 
-// Convert value to string
+// Cast converts value to string
 func (String) Cast(val interface{}) (TypedValue, error) {
 	return NewString(val)
 }
@@ -513,7 +657,10 @@ func (t *String) Assign(val interface{}) error {
 }
 
 // UnsignedInteger is an expression type, wrapper for uint64 type
-type UnsignedInteger struct{ value uint64 }
+type UnsignedInteger struct {
+	value uint64
+	mux   sync.RWMutex
+}
 
 // NewUnsignedInteger creates new instance of UnsignedInteger expression type
 func NewUnsignedInteger(val interface{}) (*UnsignedInteger, error) {
@@ -524,16 +671,24 @@ func NewUnsignedInteger(val interface{}) (*UnsignedInteger, error) {
 	}
 }
 
-// Return underlying value on UnsignedInteger
-func (t UnsignedInteger) Get() interface{} { return t.value }
+// Get return underlying value on UnsignedInteger
+func (t *UnsignedInteger) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on UnsignedInteger
-func (t UnsignedInteger) GetValue() uint64 { return t.value }
+// GetValue returns underlying value on UnsignedInteger
+func (t *UnsignedInteger) GetValue() uint64 {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (UnsignedInteger) Type() string { return "UnsignedInteger" }
 
-// Convert value to uint64
+// Cast converts value to uint64
 func (UnsignedInteger) Cast(val interface{}) (TypedValue, error) {
 	return NewUnsignedInteger(val)
 }
@@ -551,7 +706,10 @@ func (t *UnsignedInteger) Assign(val interface{}) error {
 }
 
 // Vars is an expression type, wrapper for map[string]TypedValue type
-type Vars struct{ value map[string]TypedValue }
+type Vars struct {
+	value map[string]TypedValue
+	mux   sync.RWMutex
+}
 
 // NewVars creates new instance of Vars expression type
 func NewVars(val interface{}) (*Vars, error) {
@@ -562,16 +720,24 @@ func NewVars(val interface{}) (*Vars, error) {
 	}
 }
 
-// Return underlying value on Vars
-func (t Vars) Get() interface{} { return t.value }
+// Get return underlying value on Vars
+func (t *Vars) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return underlying value on Vars
-func (t Vars) GetValue() map[string]TypedValue { return t.value }
+// GetValue returns underlying value on Vars
+func (t *Vars) GetValue() map[string]TypedValue {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
 
-// Return type name
+// Type return type name
 func (Vars) Type() string { return "Vars" }
 
-// Convert value to map[string]TypedValue
+// Cast converts value to map[string]TypedValue
 func (Vars) Cast(val interface{}) (TypedValue, error) {
 	return NewVars(val)
 }

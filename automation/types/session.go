@@ -126,6 +126,9 @@ func (s *Session) GC() bool {
 
 // Wait blocks until workflow session is completed or fails (or context is canceled) and returns resuts
 func (s *Session) WaitResults(ctx context.Context) (*expr.Vars, wfexec.SessionStatus, Stacktrace, error) {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
 	if err := s.session.WaitUntil(ctx, wfexec.SessionFailed, wfexec.SessionCompleted); err != nil {
 		return nil, -1, s.Stacktrace, err
 	}
@@ -151,6 +154,16 @@ func (s *Session) Apply(ssp SessionStartParams) {
 		// set Stacktrace prop to signal status handler
 		// that we're interested in storing stacktrace
 		s.Stacktrace = Stacktrace{}
+	}
+}
+
+func (s *Session) CopyRuntimeStacktrace() {
+	s.l.Lock()
+	defer s.l.Unlock()
+
+	if s.Stacktrace != nil || s.Error != "" {
+		// Save stacktrace when we know we're tracing workflows OR whenever there is an error...
+		s.Stacktrace = s.RuntimeStacktrace
 	}
 }
 

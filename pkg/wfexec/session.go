@@ -192,7 +192,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 	return s
 }
 
-func (s Session) Status() SessionStatus {
+func (s *Session) Status() SessionStatus {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -214,14 +214,14 @@ func (s Session) Status() SessionStatus {
 	}
 }
 
-func (s Session) ID() uint64 {
+func (s *Session) ID() uint64 {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
 	return s.id
 }
 
-func (s Session) Idle() bool {
+func (s *Session) Idle() bool {
 	return s.Status() != SessionActive
 }
 
@@ -501,7 +501,7 @@ func (s *Session) Stop() {
 	s.qErr <- nil
 }
 
-func (s Session) Suspended() bool {
+func (s *Session) Suspended() bool {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 	return len(s.delayed) > 0

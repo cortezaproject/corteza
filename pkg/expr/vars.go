@@ -13,11 +13,17 @@ import (
 	"github.com/spf13/cast"
 )
 
-func (t Vars) Len() int {
+func (t *Vars) Len() int {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	return len(t.value)
 }
 
-func (t Vars) Select(k string) (TypedValue, error) {
+func (t *Vars) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if v, is := t.value[k]; is {
 		return v, nil
 	} else {
@@ -26,6 +32,9 @@ func (t Vars) Select(k string) (TypedValue, error) {
 }
 
 func (t *Vars) AssignFieldValue(key string, val TypedValue) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	if t.value == nil {
 		t.value = make(map[string]TypedValue)
 	}
@@ -35,7 +44,10 @@ func (t *Vars) AssignFieldValue(key string, val TypedValue) (err error) {
 	return err
 }
 
-func (t Vars) ResolveTypes(res func(typ string) Type) (err error) {
+func (t *Vars) ResolveTypes(res func(typ string) Type) (err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	for k, v := range t.value {
 		if u, is := v.(*Unresolved); is {
 			if res(u.Type()) == nil {
@@ -58,13 +70,18 @@ func (t Vars) ResolveTypes(res func(typ string) Type) (err error) {
 	return nil
 }
 
-// Assign takes base variables and assigns all new variables
+// Merge takes base variables and assigns all new variables
 func (t *Vars) Merge(nn ...Iterator) *Vars {
 	var (
 		out = &Vars{value: make(map[string]TypedValue)}
 	)
 
-	nn = append([]Iterator{t}, nn...)
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
+
+		nn = append([]Iterator{t}, nn...)
+	}
 
 	for _, i := range nn {
 		_ = i.Each(func(k string, v TypedValue) error {
@@ -76,11 +93,14 @@ func (t *Vars) Merge(nn ...Iterator) *Vars {
 	return out
 }
 
-// Assign takes base variables and assigns all new variables
+// Copy takes base variables and assigns all new variables
 func (t *Vars) Copy(dst *Vars, kk ...string) {
 	if t == nil {
 		return
 	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 
 	if dst.value == nil {
 		dst.value = make(map[string]TypedValue)
@@ -98,6 +118,9 @@ func (t *Vars) Has(key string) bool {
 
 // Returns true if all keys are present
 func (t *Vars) HasAll(key string, kk ...string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t == nil {
 		return false
 	}
@@ -129,6 +152,9 @@ func (t *Vars) HasAny(key string, kk ...string) bool {
 var _ gval.Selector = &Vars{}
 
 func (t *Vars) Dict() map[string]interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	dict := make(map[string]interface{})
 	for k, v := range t.value {
 		switch v := v.(type) {
@@ -159,6 +185,9 @@ func (t *Vars) Decode(dst interface{}) (err error) {
 	if t == nil {
 		return nil
 	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
 
 	dstRef := reflect.ValueOf(dst)
 
@@ -217,10 +246,18 @@ func (t *Vars) Scan(value interface{}) error {
 }
 
 func (t *Vars) Value() (driver.Value, error) {
+	if t != nil {
+		t.mux.RLock()
+		defer t.mux.RUnlock()
+	}
+
 	return json.Marshal(t)
 }
 
-func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
+func (t *Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	val, err := t.Select(k)
 	switch c := val.(type) {
 	case gval.Selector:
@@ -232,6 +269,9 @@ func (t Vars) SelectGVal(_ context.Context, k string) (interface{}, error) {
 
 // UnmarshalJSON
 func (t *Vars) UnmarshalJSON(in []byte) (err error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
 	var (
 		aux = make(map[string]*typedValueWrap)
 	)
@@ -258,7 +298,14 @@ func (t *Vars) UnmarshalJSON(in []byte) (err error) {
 }
 
 func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
-	if t == nil || t.value == nil {
+	if t == nil {
+		return nil
+	}
+
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
+	if t.value == nil {
 		return
 	}
 
@@ -272,6 +319,9 @@ func (t *Vars) Each(fn func(k string, v TypedValue) error) (err error) {
 }
 
 func (t *Vars) Set(k string, v interface{}) (err error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	if t.value == nil {
 		t.value = make(map[string]TypedValue)
 	}
@@ -280,8 +330,11 @@ func (t *Vars) Set(k string, v interface{}) (err error) {
 	return
 }
 
-// UnmarshalJSON parses sort expression when passed inside JSON
-func (t Vars) MarshalJSON() ([]byte, error) {
+// MarshalJSON returns JSON encoding of expression
+func (t *Vars) MarshalJSON() ([]byte, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+
 	aux := make(map[string]*typedValueWrap)
 	for k, v := range t.value {
 		if v == nil {
@@ -392,6 +445,9 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 
 	switch c := val.(type) {
 	case *Vars:
+		c.mux.RLock()
+		defer c.mux.RUnlock()
+
 		return c.value, nil
 	case map[string]TypedValue:
 		return c, nil
