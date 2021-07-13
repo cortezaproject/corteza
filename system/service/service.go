@@ -181,6 +181,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		automation.Template{},
 		automation.RenderOptions{},
 		automation.RenderedDocument{},
+		automation.RbacResource{},
 	)
 
 	automation.UsersHandler(
@@ -196,6 +197,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.RolesHandler(
 		automationService.Registry(),
 		DefaultRole,
+	)
+
+	automation.RbacHandler(
+		automationService.Registry(),
+		rbac.Global(),
 	)
 
 	return

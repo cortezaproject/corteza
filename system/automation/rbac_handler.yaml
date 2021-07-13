@@ -1,0 +1,64 @@
+imports:
+  - github.com/cortezaproject/corteza-server/system/types
+  - github.com/cortezaproject/corteza-server/pkg/rbac
+
+params:
+  manageParams: &manageParams
+    resource:
+      required: true
+      types:
+        # Note that we can not accept string here because
+        # we need whole resource with all the info loaded
+        - { wf: RbacResource }
+    role:
+      required: true
+      types:
+        - { wf: ID }
+        - { wf: Handle }
+        - { wf: Role,   suffix: res }
+    operation:
+      required: true
+      types:
+        - { wf: String }
+
+labels: &labels
+  users:  "rbac"
+
+functions:
+  allow:
+    meta:
+      short: 'RBAC: Allow operation on resource to a role'
+    labels:
+      <<: *labels
+    params: *manageParams
+
+  deny:
+    meta:
+      short: 'RBAC: Deny operation on resource to a role'
+    labels:
+      <<: *labels
+    params: *manageParams
+
+  inherit:
+    meta:
+      short: 'RBAC: Remove allow/deny operation of a role from resource'
+    labels:
+      <<: *labels
+    params: *manageParams
+
+  check:
+    meta:
+      short: 'RBAC: Can user perform an operation on a resource'
+    labels:
+      <<: *labels
+    params:
+      resource:
+        required: true
+        types: [ { wf: RbacResource } ]
+      operation:
+        required: true
+        types: [ { wf: String } ]
+      user:
+        types: [ { wf: User } ]
+    results:
+      can: { wf: Boolean }
