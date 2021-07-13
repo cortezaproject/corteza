@@ -69,13 +69,13 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 
 			// same as &ComposeRecord{value: &types.Record{}},
 			"validRecZero":    &ComposeRecord{value: &types.Record{ID: 0, Values: types.RecordValueSet{}}},
-			"validRecValidID": &ComposeRecord{&types.Record{ID: 42, Values: types.RecordValueSet{}}},
+			"validRecValidID": &ComposeRecord{value: &types.Record{ID: 42, Values: types.RecordValueSet{}}},
 
 			// "record" (not really) set to nil
 			"fooRec": nil,
 
 			// record with id and value set (this was) fixme
-			"record": &ComposeRecord{&types.Record{ID: 99, Values: rawValues}},
+			"record": &ComposeRecord{value: &types.Record{ID: 99, Values: rawValues}},
 		})
 	)
 
@@ -139,8 +139,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 		e.SetEval(evaluable)
 
 		input, _ := expr.NewVars(map[string]expr.TypedValue{
-			"record":      &ComposeRecord{inputRec},
-			"recordClone": &ComposeRecord{cloneRec},
+			"record":      &ComposeRecord{value: inputRec},
+			"recordClone": &ComposeRecord{value: cloneRec},
 		})
 
 		output, err = (aTypes.ExprSet{e}).Eval(context.Background(), input)
