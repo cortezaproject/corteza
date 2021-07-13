@@ -38,12 +38,13 @@ func (s session) Context() context.Context { return s.ctx }
 var _ Session = &session{}
 
 func ContextToSession(ctx context.Context) *session {
-	i := auth.GetIdentityFromContext(ctx)
-	s := &session{
+	return NewSession(ctx, auth.GetIdentityFromContext(ctx))
+}
+
+func NewSession(ctx context.Context, i auth.Identifiable) *session {
+	return &session{
 		id:  i.Identity(),
 		rr:  i.Roles(),
 		ctx: ctx,
 	}
-
-	return s
 }

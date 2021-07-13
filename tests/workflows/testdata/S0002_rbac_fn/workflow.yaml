@@ -1,0 +1,66 @@
+roles:
+  testers:
+
+users:
+  tester:
+    email: tester@testing-samples.tld
+
+workflows:
+  check-and-grant:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: function
+        ref: rolesLookup
+        arguments:
+          - { target: lookup, type: Handle, value: "testers" }
+        results:
+          - { target: res,    expr: role }
+
+      - stepID: 2
+        kind: function
+        ref: rbacCheck
+        arguments:
+          - { target: resource,  type: RbacResource, expr: "res" }
+          - { target: operation, type: String,       value: "read" }
+        results:
+          - { target: canCurrentRead,   type: String,       expr: 'can ? "y":"n"' }
+
+
+      - stepID: 3
+        kind: function
+        ref: usersLookup
+        arguments:
+          - { target: lookup, type: Handle, value: "tester" }
+        results:
+          - { target: usr,    expr: user }
+
+      - stepID: 4
+        kind: function
+        ref: rbacCheck
+        arguments:
+          - { target: resource,  type: RbacResource, expr: "res" }
+          - { target: operation, type: String,       value: "read" }
+          - { target: user,      type: User,         expr: "usr" }
+        results:
+          - { target: canOtherRead,   type: String,       expr: 'can ? "y":"n"' }
+
+
+      - stepID: 5
+        kind: function
+        ref: rbacAllow
+        arguments:
+          - { target: resource,  type: RbacResource, expr: "res" }
+          - { target: operation, type: String,       value: "read" }
+          - { target: role,      type: Role,         expr: "res" }
+
+    paths:
+      - { parentID: 1, childID: 2 }
+      - { parentID: 2, childID: 3 }
+      - { parentID: 3, childID: 4 }
+      - { parentID: 4, childID: 5 }
