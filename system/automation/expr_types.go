@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
 )
@@ -151,4 +152,15 @@ func CastToQueueMessage(val interface{}) (out *types.QueueMessage, err error) {
 func (doc renderedDocument) String() string {
 	aux, _ := ioutil.ReadAll(doc.Document)
 	return string(aux)
+}
+
+func CastToRbacResource(val interface{}) (out rbac.Resource, err error) {
+	switch val := expr.UntypedValue(val).(type) {
+	case rbac.Resource:
+		return val, nil
+	case RbacResource:
+		return val.value, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
 }

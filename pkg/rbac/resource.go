@@ -17,6 +17,7 @@ type (
 
 const (
 	nsSep    = "::"
+	cmpSep   = ":"
 	pathSep  = "/"
 	wildcard = "*"
 )
@@ -31,6 +32,21 @@ func ResourceType(r string) string {
 		return r[:p]
 	} else {
 		return r
+	}
+}
+
+func ResourceComponent(r string) string {
+	var (
+		t  = ResourceType(r)
+		ns = strings.Index(t, nsSep)
+		c  = strings.LastIndex(t, cmpSep)
+	)
+
+	// make sure that we have both namespace + component separators
+	if c > ns+1 && ns > -1 {
+		return t[:c]
+	} else {
+		return t
 	}
 }
 

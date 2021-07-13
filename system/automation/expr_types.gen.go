@@ -11,7 +11,9 @@ package automation
 import (
 	"context"
 	"fmt"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
 
@@ -176,6 +178,44 @@ func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) er
 	}
 
 	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// RbacResource is an expression type, wrapper for rbac.Resource type
+type RbacResource struct{ value rbac.Resource }
+
+// NewRbacResource creates new instance of RbacResource expression type
+func NewRbacResource(val interface{}) (*RbacResource, error) {
+	if c, err := CastToRbacResource(val); err != nil {
+		return nil, fmt.Errorf("unable to create RbacResource: %w", err)
+	} else {
+		return &RbacResource{value: c}, nil
+	}
+}
+
+// Return underlying value on RbacResource
+func (t RbacResource) Get() interface{} { return t.value }
+
+// Return underlying value on RbacResource
+func (t RbacResource) GetValue() rbac.Resource { return t.value }
+
+// Return type name
+func (RbacResource) Type() string { return "RbacResource" }
+
+// Convert value to rbac.Resource
+func (RbacResource) Cast(val interface{}) (TypedValue, error) {
+	return NewRbacResource(val)
+}
+
+// Assign new value to RbacResource
+//
+// value is first passed through CastToRbacResource
+func (t *RbacResource) Assign(val interface{}) error {
+	if c, err := CastToRbacResource(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
 }
 
 // RenderOptions is an expression type, wrapper for map[string]string type

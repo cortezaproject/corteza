@@ -29,6 +29,27 @@ func TestResourceType(t *testing.T) {
 	}
 }
 
+func TestResourceComponent(t *testing.T) {
+	var (
+		tcc = []struct {
+			in  string
+			exp string
+		}{
+			{"ns::cmp:r/1/2/3", "ns::cmp"},
+			{"ns::cmp:r", "ns::cmp"},
+			{"ns::cmp/", "ns::cmp"},
+			{"ns::cmp", "ns::cmp"},
+			{"cmp", "cmp"},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.in, func(t *testing.T) {
+			require.Equal(t, tc.exp, ResourceComponent(tc.in))
+		})
+	}
+}
+
 func TestResourceMatch(t *testing.T) {
 	var (
 		tcc = []struct {
