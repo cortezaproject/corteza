@@ -191,6 +191,8 @@ func (s SessionStatus) String() string {
 		return "started"
 	case SessionSuspended:
 		return "suspended"
+	case SessionPrompted:
+		return "prompted"
 	case SessionFailed:
 		return "failed"
 	case SessionCompleted:
