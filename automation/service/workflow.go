@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza-server/pkg/options"
 	"reflect"
 	"sync"
+
+	"github.com/cortezaproject/corteza-server/pkg/options"
 
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -634,8 +635,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			evScope *expr.Vars
 			wait    WaitFn
 
-			// This needs to happen!%&!/("#")
-			// The returned closure needs to have it's own instance so it doesn't
+			// The returned closure needs to have its own instance, so it doesn't
 			// affect the instance bound to the workflow handler
 			runAs = runAs
 		)

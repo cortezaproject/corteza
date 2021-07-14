@@ -158,8 +158,8 @@ func (s *Session) Apply(ssp SessionStartParams) {
 }
 
 func (s *Session) CopyRuntimeStacktrace() {
-	s.l.Lock()
-	defer s.l.Unlock()
+	s.l.RLock()
+	defer s.l.RUnlock()
 
 	if s.Stacktrace != nil || s.Error != "" {
 		// Save stacktrace when we know we're tracing workflows OR whenever there is an error...
