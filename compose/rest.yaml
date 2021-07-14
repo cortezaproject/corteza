@@ -548,10 +548,6 @@ endpoints:
         type: string
         required: false
         title: Record filtering query
-      - name: filter
-        type: string
-        required: false
-        title: Filtering condition (same as query, deprecated)
       - type: map[string]string
         name: labels
         title: Labels
