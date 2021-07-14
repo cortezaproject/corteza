@@ -89,7 +89,7 @@ type (
 	}
 
 	// ExecRequest is passed to Exec() functions and contains all information
-	// for ste pexecution
+	// for step execution
 	ExecRequest struct {
 		SessionID uint64
 		StateID   uint64
@@ -208,9 +208,6 @@ func (s *Session) Status() SessionStatus {
 }
 
 func (s *Session) ID() uint64 {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
-
 	return s.id
 }
 
@@ -365,6 +362,7 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 		indexed[status] = true
 	}
 
+	// already at the expected status
 	if indexed[s.Status()] {
 		return s.err
 	}
@@ -389,6 +387,7 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 
 		case <-ctx.Done():
 			s.log.Debug("wait context done", zap.Error(ctx.Err()))
+			s.Cancel()
 			return s.err
 		}
 	}
@@ -412,7 +411,6 @@ func (s *Session) worker(ctx context.Context) {
 			return
 
 		case <-workerTicker.C:
-			s.log.Debug("checking for delayed states")
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
@@ -455,7 +453,8 @@ func (s *Session) worker(ctx context.Context) {
 
 				st.completed = now()
 
-				// remove single
+				// remove protection that prevents multiple
+				// steps executing at the same time
 				<-s.execLock
 
 				status := s.Status()
@@ -467,10 +466,7 @@ func (s *Session) worker(ctx context.Context) {
 						st.err,
 					)
 
-					s.mux.Lock()
-					defer s.mux.Unlock()
-
-					// when the err handler is defined, the error was handled and should not kill the workflow
+					// when the error handler is defined, the error was handled and should not kill the workflow
 					if !st.errHandled {
 						// We need to force failed session status
 						// because it's not set early enough to pick it up with s.Status()
@@ -489,7 +485,6 @@ func (s *Session) worker(ctx context.Context) {
 					zap.Error(st.err),
 				)
 
-				// after exec lock is released call event handler with (new) session status
 				s.eventHandler(status, st, s)
 			}()
 
@@ -509,8 +504,13 @@ func (s *Session) worker(ctx context.Context) {
 	}
 }
 
+func (s *Session) Cancel() {
+	s.log.Debug("canceling")
+	s.qErr <- fmt.Errorf("canceled")
+}
+
 func (s *Session) Stop() {
-	s.log.Debug("stopping session worker", zap.Stringer("status", s.Status()))
+	s.log.Debug("stopping worker")
 	s.qErr <- nil
 }
 
