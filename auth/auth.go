@@ -4,6 +4,13 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/Masterminds/sprig"
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/auth/handlers"
@@ -20,12 +27,6 @@ import (
 	"github.com/go-chi/chi"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
-	"html/template"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type (
@@ -216,7 +217,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		Settings:       svc.settings,
 	}
 
-	external.Init(log, sesManager.Store())
+	external.Init(sesManager.Store())
 
 	return
 }
@@ -248,7 +249,7 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 
 	if len(svc.settings.Providers) != len(s.Providers) {
 		svc.log.Debug("setting changed", zap.Int("providers", len(s.Providers)))
-		external.SetupGothProviders(svc.opt.ExternalRedirectURL, s.Providers...)
+		external.SetupGothProviders(svc.log, svc.opt.ExternalRedirectURL, s.Providers...)
 	}
 
 	svc.settings = s

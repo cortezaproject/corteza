@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
+
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
 	autService "github.com/cortezaproject/corteza-server/automation/service"
@@ -30,7 +32,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
-	"strings"
 )
 
 const (
@@ -419,7 +420,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	)
 
 	for _, p := range cas.External.Providers {
-		if !p.Enabled {
+		if !p.Enabled || p.Handle == "" || p.IssuerUrl == "" || p.Key == "" || p.Secret == "" {
 			continue
 		}
 

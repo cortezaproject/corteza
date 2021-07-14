@@ -5,6 +5,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -44,6 +45,7 @@ func General(app serviceInitializer, opt options.AuthOpt) *cobra.Command {
 			ctx := auth.SetSuperUserContext(cli.Context())
 			_, err := external.RegisterOidcProvider(
 				ctx,
+				logger.Default(),
 				opt,
 				args[0],
 				args[1],

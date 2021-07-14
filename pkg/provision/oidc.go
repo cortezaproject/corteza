@@ -3,12 +3,13 @@ package provision
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"strings"
 )
 
 // Provisions OIDC providers from PROVISION_OIDC_PROVIDER env variable
@@ -48,7 +49,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, opt options.AuthOpt
 		//
 		// enable:   true
 		// we want provider & the entire external auth to be validated
-		eap, err = external.RegisterOidcProvider(ctx, opt, name, purl, false, false, true)
+		eap, err = external.RegisterOidcProvider(ctx, log, opt, name, purl, false, false, true)
 
 		if err != nil {
 			log.Error(
@@ -115,7 +116,7 @@ func authAddExternals(ctx context.Context, log *zap.Logger) (err error) {
 
 		ctx = auth.SetSuperUserContext(ctx)
 
-		_ = external.AddProvider(ctx, eap, false)
+		_ = external.AddProvider(ctx, log, eap, false)
 	}
 
 	return

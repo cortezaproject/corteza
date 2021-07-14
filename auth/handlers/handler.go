@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/auth/external"
@@ -269,32 +268,30 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	d["alerts"] = append(req.PrevAlerts, req.NewAlerts...)
 
 	dSettings := *h.Settings
-	dSettings.Providers = nil
-	d["settings"] = dSettings
 
-	providers := h.AuthService.GetProviders()
-	sort.Sort(providers)
-
-	var pp = make([]provider, 0, len(providers))
-	for i := range providers {
-		if !providers[i].Enabled {
+	var pp = make([]provider, 0, len(dSettings.Providers))
+	for _, p := range dSettings.Providers {
+		if _, err := goth.GetProvider(p.Handle); err != nil {
 			continue
 		}
 
-		p := provider{
-			Label:  providers[i].Label,
-			Handle: providers[i].Handle,
-			Icon:   providers[i].Handle,
+		out := provider{
+			Label:  p.Label,
+			Handle: p.Handle,
+			Icon:   p.Handle,
 		}
 
-		if strings.HasPrefix(p.Icon, external.OIDC_PROVIDER_PREFIX) {
-			p.Icon = "key"
+		if strings.HasPrefix(out.Icon, external.OIDC_PROVIDER_PREFIX) {
+			out.Icon = "key"
 		}
 
-		pp = append(pp, p)
+		pp = append(pp, out)
 	}
 
 	d["providers"] = pp
+
+	dSettings.Providers = nil
+	d["settings"] = dSettings
 
 	return d
 }
