@@ -4,9 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/seeder"
-	"strings"
-
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/saml"
@@ -32,12 +29,14 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/scheduler"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/pkg/websocket"
+	"github.com/cortezaproject/corteza-server/seeder"
 	"github.com/cortezaproject/corteza-server/store"
 	sysService "github.com/cortezaproject/corteza-server/system/service"
 	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
+	"strings"
 )
 
 const (
@@ -499,7 +498,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	)
 
 	for _, p := range cas.External.Providers {
-		if !p.Enabled {
+		if !p.Enabled || p.Handle == "" || p.IssuerUrl == "" || p.Key == "" || p.Secret == "" {
 			continue
 		}
 

@@ -50,7 +50,7 @@ func oidcAutoDiscovery(ctx context.Context, log *zap.Logger, s store.Settings, o
 		//
 		// enable:   true
 		// we want provider & the entire external auth to be validated
-		eap, err = external.RegisterOidcProvider(ctx, s, opt, name, purl, false, false, true)
+		eap, err = external.RegisterOidcProvider(ctx, log, s, opt, name, purl, false, false, true)
 
 		if err != nil {
 			log.Error(
@@ -126,7 +126,7 @@ func authAddExternals(ctx context.Context, log *zap.Logger, s store.Settings) (e
 			eap.Handle = kind
 		}
 
-		_ = external.AddProvider(ctx, s, eap, false)
+		_ = external.AddProvider(ctx, log, s, eap, false)
 	}
 
 	return

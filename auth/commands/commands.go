@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/external"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -50,6 +51,7 @@ func Command(ctx context.Context, app serviceInitializer, storeInit func(ctx con
 
 			_, err = external.RegisterOidcProvider(
 				ctx,
+				logger.Default(),
 				s,
 				app.Options().Auth,
 				args[0],
