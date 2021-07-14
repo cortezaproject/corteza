@@ -16,11 +16,12 @@ import (
 	"go.uber.org/zap"
 )
 
-// AddProvider is used by provisioning process
-func AddProvider(ctx context.Context, s store.Settings, eap *types.ExternalAuthProvider, force bool) error {
-	prefix := "auth.external.providers." + eap.Key + "."
+func AddProvider(ctx context.Context, log *zap.Logger, s store.Settings, eap *types.ExternalAuthProvider, force bool) error {
+	var (
+		prefix = "auth.external.providers." + eap.Key + "."
+	)
 
-	log := log.With(
+	log = log.With(
 		zap.Bool("force", force),
 		zap.String("handle", eap.Handle),
 		zap.String("key", eap.Key),
@@ -61,16 +62,16 @@ func AddProvider(ctx context.Context, s store.Settings, eap *types.ExternalAuthP
 
 // @todo remove dependency on github.com/crusttech/go-oidc (and github.com/coreos/go-oidc)
 //       and move client registration to corteza codebase
-func DiscoverOidcProvider(ctx context.Context, opt options.AuthOpt, name, url string) (eap *types.ExternalAuthProvider, err error) {
+func DiscoverOidcProvider(ctx context.Context, log *zap.Logger, opt options.AuthOpt, name, url string) (eap *types.ExternalAuthProvider, err error) {
 	var (
 		provider    *oidc.Provider
 		client      *oidc.Client
 		redirectUrl = strings.Replace(opt.ExternalRedirectURL, "{provider}", OIDC_PROVIDER_PREFIX+name, 1)
+	)
 
-		log = log.With(
-			zap.String("name", name),
-			zap.String("url", url),
-		)
+	log = log.With(
+		zap.String("name", name),
+		zap.String("url", url),
 	)
 
 	if provider, err = oidc.NewProvider(ctx, url); err != nil {
@@ -101,7 +102,7 @@ func DiscoverOidcProvider(ctx context.Context, opt options.AuthOpt, name, url st
 	return
 }
 
-func RegisterOidcProvider(ctx context.Context, s store.Settings, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
+func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.Settings, opt options.AuthOpt, name, providerUrl string, force, validate, enable bool) (eap *types.ExternalAuthProvider, err error) {
 	if !force {
 		prefix := "auth.external.providers." + eap.Key + "."
 
@@ -136,7 +137,7 @@ func RegisterOidcProvider(ctx context.Context, s store.Settings, opt options.Aut
 		return
 	}
 
-	eap, err = DiscoverOidcProvider(ctx, opt, name, p.String())
+	eap, err = DiscoverOidcProvider(ctx, log, opt, name, p.String())
 	if err != nil {
 		return
 	}

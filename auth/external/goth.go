@@ -1,6 +1,8 @@
 package external
 
 import (
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/facebook"
@@ -9,7 +11,6 @@ import (
 	"github.com/markbates/goth/providers/linkedin"
 	"github.com/markbates/goth/providers/openidConnect"
 	"go.uber.org/zap"
-	"strings"
 )
 
 // We're expecting that our users will be able to complete
@@ -18,7 +19,7 @@ const (
 	WellKnown = "/.well-known/openid-configuration"
 )
 
-func SetupGothProviders(redirectUrl string, ep ...settings.Provider) {
+func SetupGothProviders(log *zap.Logger, redirectUrl string, ep ...settings.Provider) {
 	var (
 		err error
 	)
@@ -43,7 +44,7 @@ func SetupGothProviders(redirectUrl string, ep ...settings.Provider) {
 			redirect = strings.Replace(redirectUrl, "{provider}", pc.Handle, 1)
 		}
 
-		if strings.Index(pc.Handle, OIDC_PROVIDER_PREFIX) == 0 {
+		if strings.HasPrefix(pc.Handle, OIDC_PROVIDER_PREFIX) {
 			if pc.IssuerUrl == "" {
 				log.Error("failed to discover OIDC provider, URL empty")
 				continue

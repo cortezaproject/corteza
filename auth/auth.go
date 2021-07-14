@@ -219,7 +219,7 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 		Settings:       svc.settings,
 	}
 
-	external.Init(log, sesManager.Store())
+	external.Init(sesManager.Store())
 
 	svc.log.Info(
 		"auth server ready",
@@ -341,7 +341,7 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 
 	if len(svc.settings.Providers) != len(s.Providers) {
 		svc.log.Debug("setting changed", zap.Int("providers", len(s.Providers)))
-		external.SetupGothProviders(svc.opt.ExternalRedirectURL, s.Providers...)
+		external.SetupGothProviders(svc.log, svc.opt.ExternalRedirectURL, s.Providers...)
 	}
 
 	svc.settings = s
