@@ -1,6 +1,3 @@
-imports:
-  - time
-
 docs:
   title: Seeder
   description: A seeder is the initial seeding of a database with fake data.
