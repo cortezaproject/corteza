@@ -78,11 +78,6 @@ type (
 		// Record filtering query
 		Query string
 
-		// Filter GET parameter
-		//
-		// Filtering condition (same as query, deprecated)
-		Filter string
-
 		// Labels GET parameter
 		//
 		// Labels
@@ -526,7 +521,6 @@ func (r RecordList) Auditable() map[string]interface{} {
 		"namespaceID":       r.NamespaceID,
 		"moduleID":          r.ModuleID,
 		"query":             r.Query,
-		"filter":            r.Filter,
 		"labels":            r.Labels,
 		"deleted":           r.Deleted,
 		"limit":             r.Limit,
@@ -550,11 +544,6 @@ func (r RecordList) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r RecordList) GetQuery() string {
 	return r.Query
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r RecordList) GetFilter() string {
-	return r.Filter
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -601,12 +590,6 @@ func (r *RecordList) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["query"]; ok && len(val) > 0 {
 			r.Query, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["filter"]; ok && len(val) > 0 {
-			r.Filter, err = val[0], nil
 			if err != nil {
 				return err
 			}

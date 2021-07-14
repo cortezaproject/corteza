@@ -99,10 +99,6 @@ func (ctrl *Record) List(ctx context.Context, r *request.RecordList) (interface{
 	if r.Query != "" {
 		// Query param takes preference
 		f.Query = r.Query
-	} else if r.Filter != "" {
-		// Backward compatibility
-		// Filter param is deprecated
-		f.Query = r.Filter
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
