@@ -15,9 +15,8 @@ allow:
     corteza::compose:chart/*/*:
       - read
 
-# @todo implement support for record resource import in Envoy
-#    corteza::compose:record/*/*/*:
-#      - read
+    corteza::compose:record/*/*/*:
+      - read
 
   admins:
     corteza::compose/:
@@ -50,11 +49,10 @@ allow:
       - record.value.read
       - record.value.update
 
-# @todo implement support for record resource import in Envoy
-#    corteza::compose:record/*/*/*:
-#      - read
-#      - update
-#      - delete
+    corteza::compose:record/*/*/*:
+      - read
+      - update
+      - delete
 
     corteza::compose:chart/*/*:
       - read
@@ -97,11 +95,10 @@ allow:
       - record.value.read
       - record.value.update
 
-# @todo implement support for record resource import in Envoy
-#    corteza::compose:record/*/*/*:
-#      - read
-#      - update
-#      - delete
+    corteza::compose:record/*/*/*:
+      - read
+      - update
+      - delete
 
     corteza::compose:chart/*/*:
       - read
