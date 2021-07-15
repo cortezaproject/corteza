@@ -56,6 +56,18 @@ func (set RuleSet) Less(i, j int) bool {
 	return level(set[i].Resource) > level(set[j].Resource)
 }
 
+func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
+	out = make(RuleSet, 0, len(set))
+
+	for _, s := range set {
+		if s.Access == a {
+			out = append(out, s)
+		}
+	}
+
+	return out
+}
+
 // AllowRule helper func to create allow rule
 func AllowRule(id uint64, r, o string) *Rule {
 	return &Rule{id, r, o, Allow, false}

@@ -276,6 +276,20 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 	var nn rbac.RuleSet
 	var err error
 
+	c := func(r *resource.Ref, f *rbacFilter) (bool, error) {
+		if r == nil {
+			return true, nil
+		}
+
+		// the first identifier is the most specific .. the ID
+		id, err := cast.ToUint64E(r.Identifiers.First())
+		if err != nil {
+			return false, err
+		}
+
+		return f.resourceID[id], nil
+	}
+
 	for _, f := range ff {
 		aux := *f
 
@@ -301,20 +315,29 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 				}
 
 				// somesort of a generic rule; no specifc resource
-				if ref == nil {
+				// @todo check for pp inclusion!!
+				if ref == nil && len(pp) == 0 {
 					mm = append(mm, r)
 				} else {
-					// the first identifier is the most specific .. the ID
-					id, err := cast.ToUint64E(ref.Identifiers.First())
-					if err != nil {
+					// check the resource ref and the path refs for validity
+					if ok, err := c(ref, f); err != nil {
 						return &auxRsp{
 							err: err,
 						}
+					} else if !ok {
+						continue
+					}
+					for _, p := range pp {
+						if ok, err := c(p, f); err != nil {
+							return &auxRsp{
+								err: err,
+							}
+						} else if !ok {
+							continue
+						}
 					}
 
-					if f.resourceID[id] {
-						mm = append(mm, r)
-					}
+					mm = append(mm, r)
 				}
 			}
 

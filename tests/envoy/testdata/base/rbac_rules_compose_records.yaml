@@ -1,0 +1,45 @@
+roles:
+  r1:
+    name: r1 name
+  r2:
+    name: r2 name
+
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    name: mod1 name
+    fields:
+      f1:
+        label: f1 label
+        kind: String
+        required: true
+
+records:
+  mod1:
+    - values:
+        f1: "v1"
+
+allow:
+  r1:
+    corteza::compose:record/*/*/*:
+     - allow.op1
+    corteza::compose:record/ns1/*/*:
+     - allow.op2
+    corteza::compose:record/ns1/mod1/*:
+     - allow.op3
+    # corteza::compose:record/ns1/mod1/rec:
+    #  - delete
+
+deny:
+  r2:
+    corteza::compose:record/*/*/*:
+     - deny.op1
+    corteza::compose:record/ns1/*/*:
+     - deny.op2
+    corteza::compose:record/ns1/mod1/*:
+     - deny.op3
+    # corteza::compose:record/ns1/mod1/rec:
+    #  - delete
