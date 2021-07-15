@@ -351,7 +351,7 @@ type (
 	}
 )
 
-// Each function Tempates
+// Each function Templates
 //
 // expects implementation of each function:
 // func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (results *templatesEachResults, err error) {
@@ -363,7 +363,7 @@ func (h templatesHandler) Each() *atypes.Function {
 		Kind:   "iterator",
 		Labels: map[string]string{"templates": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Tempates",
+			Short: "Templates",
 		},
 
 		Parameters: []*atypes.Param{

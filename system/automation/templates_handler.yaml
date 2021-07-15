@@ -87,7 +87,7 @@ functions:
   each:
     kind: iterator
     meta:
-      short: Tempates
+      short: Templates
     params: *filterParams
     labels:
       <<: *labels
