@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -31,6 +32,8 @@ func rolesAddUser(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				roleStr, userStr = args[0], args[1]
 
@@ -62,6 +65,8 @@ func rolesList(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Short:   "List all roles",
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			f := types.RoleFilter{Query: ""}
 			if len(args) > 0 {
 				f.Query = args[0]

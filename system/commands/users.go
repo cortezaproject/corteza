@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/system/service"
@@ -32,6 +33,8 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				queryFlag = cmd.Flags().Lookup("query").Value.String()
 				limitFlag = cmd.Flags().Lookup("limit").Value.String()
@@ -85,6 +88,8 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				authSvc = service.Auth()
 
@@ -95,7 +100,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				password []byte
 			)
 
-			// Update current settings to be sure that we do not have outdated values
+			// Update current settings to be sure we do not have outdated values
 			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
 
 			if user, err = service.DefaultUser.Create(ctx, user); err != nil {
@@ -134,6 +139,8 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.MinimumNArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				user     *types.User
 				err      error

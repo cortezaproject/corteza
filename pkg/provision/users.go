@@ -49,9 +49,11 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 			u.CreatedAt = *now()
 
 			if err := store.UpsertUser(ctx, s, u); err != nil {
-				return nil, fmt.Errorf("failed to provision user %s: %w", u.Handle, err)
+				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
 		} else {
+			u.ID = m[u.Handle].ID
+
 			// There is no need to update system users if they are unchanged
 			if m[u.Handle].UpdatedAt == nil &&
 				m[u.Handle].SuspendedAt == nil &&
@@ -60,7 +62,6 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 			}
 
 			// Make sure all values are as they should be
-			u.ID = m[u.Handle].ID
 			u.CreatedAt = m[u.Handle].CreatedAt
 			u.Email = m[u.Handle].Email
 			u.Name = m[u.Handle].Name
@@ -69,7 +70,7 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 			u.DeletedAt = nil
 
 			if err := store.UpsertUser(ctx, s, u); err != nil {
-				return nil, fmt.Errorf("failed to provision user %s: %w", u.Handle, err)
+				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
 
 		}
