@@ -30,6 +30,8 @@ func CastToUser(val interface{}) (out *types.User, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.User:
 		return val, nil
+	case nil:
+		return &types.User{}, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -47,6 +49,8 @@ func CastToRole(val interface{}) (out *types.Role, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Role:
 		return val, nil
+	case nil:
+		return &types.Role{}, nil
 	default:
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
@@ -83,6 +87,8 @@ func CastToTemplateMeta(val interface{}) (out types.TemplateMeta, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case types.TemplateMeta:
 		return val, nil
+	case nil:
+		return types.TemplateMeta{}, nil
 	default:
 		return types.TemplateMeta{}, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
