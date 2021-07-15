@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ import (
 func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		flagNoPassword bool
+		flagRoles      []string
 	)
 
 	// User management commands.
@@ -98,16 +100,10 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 				err      error
 				password []byte
+
+				role *types.Role
+				mm   types.RoleMemberSet
 			)
-
-			// Update current settings to be sure we do not have outdated values
-			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
-
-			if user, err = service.DefaultUser.Create(ctx, user); err != nil {
-				cli.HandleError(err)
-			}
-
-			cmd.Printf("User created [%d].\n", user.ID)
 
 			if !flagNoPassword {
 				cmd.Print("Set password: ")
@@ -120,6 +116,37 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 					return
 				}
 
+				if !authSvc.CheckPasswordStrength(string(password)) {
+					cli.HandleError(service.AuthErrPasswordNotSecure())
+				}
+			}
+
+			for _, ri := range flagRoles {
+				role, err = service.DefaultRole.FindByAny(ctx, ri)
+				cli.HandleError(err)
+
+				mm = append(mm, &types.RoleMember{RoleID: role.ID})
+			}
+
+			// Update current settings to be sure we do not have outdated values
+			cli.HandleError(service.DefaultSettings.UpdateCurrent(ctx))
+
+			if user, err = service.DefaultUser.Create(ctx, user); err != nil {
+				cli.HandleError(err)
+			}
+
+			cmd.Printf("User created [%d].\n", user.ID)
+
+			if len(mm) > 0 {
+				_ = mm.Walk(func(m *types.RoleMember) error {
+					m.UserID = user.ID
+					return nil
+				})
+
+				cli.HandleError(store.CreateRoleMember(ctx, service.DefaultStore, mm...))
+			}
+
+			if !flagNoPassword {
 				if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
 					cli.HandleError(err)
 				}
@@ -131,7 +158,13 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		&flagNoPassword,
 		"no-password",
 		false,
-		"Create user without password")
+		"Do not ask for password")
+
+	addCmd.Flags().StringSliceVar(
+		&flagRoles,
+		"role",
+		nil,
+		"Add user to roles (use ID or handle, repeat for multiple roles)")
 
 	pwdCmd := &cobra.Command{
 		Use:     "password [email]",
