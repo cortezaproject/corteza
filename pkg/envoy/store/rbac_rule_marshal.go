@@ -85,6 +85,7 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 
 	p0ID := uint64(0)
 	p1ID := uint64(0)
+	p2ID := uint64(0)
 
 	switch n.rule.Resource {
 	case composeTypes.ComponentResourceType:
@@ -178,24 +179,25 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 
 		res.Resource = composeTypes.PageRbacResource(p0ID, p1ID)
 	case composeTypes.RecordResourceType:
-		return fmt.Errorf("importing rbac rules on record level is not supported")
-		//p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)
-		//if p0 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[0].Identifiers)
-		//}
-		//
-		//p1 := resource.FindComposeModule(pl.state.ParentResources, n.res.RefPath[1].Identifiers)
-		//if p1 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[1].Identifiers)
-		//}
+		if len(n.res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.ID
+		}
+		if len(n.res.RefPath) > 1 {
+			p1 := resource.FindComposeModule(pl.state.ParentResources, n.res.RefPath[1].Identifiers)
+			if p1 == nil {
+				return resource.ComposeModuleErrUnresolved(n.res.RefPath[1].Identifiers)
+			}
+			p1ID = p1.ID
+		}
 
-		////
-		//p2 := resource.FindComposeRecord(pl.state.ParentResources, n.res.RefResource.Identifiers)
-		//if p2 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefResource.Identifiers)
-		//}
-		//
-		//res.Resource = composeTypes.RecordRbacResource(p0.ID, p1.ID, p2.ID)
+		// @todo specific record RBAC
+
+		res.Resource = composeTypes.RecordRbacResource(p0ID, p1ID, p2ID)
+
 	case composeTypes.ModuleFieldResourceType:
 		return fmt.Errorf("importing rbac rules on module field level is not supported")
 		//p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strconv"
 	"testing"
 
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
@@ -651,4 +652,109 @@ func TestYamlStore_base(t *testing.T) {
 
 		})
 	}
+}
+
+func TestYamlStore_ComposeRecordRBAC(t *testing.T) {
+	var (
+		ctx       = context.Background()
+		namespace = "base"
+		s         = initServices(ctx, t)
+		err       error
+	)
+
+	ni := uint64(10)
+	su.NextID = func() uint64 {
+		ni++
+		return ni
+	}
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
+	// Allow rec. field values to be updated for this user.
+	rbac.Global().Grant(
+		ctx,
+		rbac.AllowRule(
+			auth.ServiceUser().Roles()[0],
+			ctypes.ModuleFieldRbacResource(0, 0, 0),
+			"record.value.update",
+		),
+	)
+
+	f := "rbac_rules_compose_records.yaml"
+	t.Run(fmt.Sprintf("testdata/%s/%s", namespace, f), func(t *testing.T) {
+		// before running tests, reset ID and truncate store
+		ni = 10
+		truncateStore(ctx, s, t)
+
+		req := require.New(t)
+
+		var nn []resource.Interface
+		nn, err = decodeYaml(ctx, namespace, f)
+		req.NoError(err)
+
+		err = encode(ctx, s, nn)
+		req.NoError(err)
+
+		rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+		req.NoError(err)
+
+		// compose stuff
+		ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "ns1")
+		req.NoError(err)
+
+		mod1, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, ns.ID, "mod1")
+		req.NoError(err)
+
+		role1, err := store.LookupRoleByHandle(ctx, s, "r1")
+		req.NoError(err)
+		role2, err := store.LookupRoleByHandle(ctx, s, "r2")
+		req.NoError(err)
+
+		// size
+		req.Len(rr, 6)
+		req.Len(rr.FilterAccess(rbac.Allow), 3)
+		req.Len(rr.FilterAccess(rbac.Deny), 3)
+
+		// allows
+		var rule *rbac.Rule
+		const tpl = "corteza::compose:record/%s/%s/%s"
+
+		// allows
+		rule = rr[0]
+		req.Equal(role1.ID, rule.RoleID)
+		req.Equal("allow.op1", rule.Operation)
+		req.Equal(rbac.Allow, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, "*", "*", "*"), rule.Resource)
+
+		rule = rr[1]
+		req.Equal(role1.ID, rule.RoleID)
+		req.Equal("allow.op2", rule.Operation)
+		req.Equal(rbac.Allow, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), "*", "*"), rule.Resource)
+
+		rule = rr[2]
+		req.Equal(role1.ID, rule.RoleID)
+		req.Equal("allow.op3", rule.Operation)
+		req.Equal(rbac.Allow, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), "*"), rule.Resource)
+
+		// denies
+		rule = rr[3]
+		req.Equal(role2.ID, rule.RoleID)
+		req.Equal("deny.op1", rule.Operation)
+		req.Equal(rbac.Deny, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, "*", "*", "*"), rule.Resource)
+
+		rule = rr[4]
+		req.Equal(role2.ID, rule.RoleID)
+		req.Equal("deny.op2", rule.Operation)
+		req.Equal(rbac.Deny, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), "*", "*"), rule.Resource)
+
+		rule = rr[5]
+		req.Equal(role2.ID, rule.RoleID)
+		req.Equal("deny.op3", rule.Operation)
+		req.Equal(rbac.Deny, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), "*"), rule.Resource)
+	})
 }

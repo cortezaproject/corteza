@@ -630,6 +630,88 @@ func TestStoreYaml_base(t *testing.T) {
 				}
 			},
 		},
+
+		{
+			name: "ComposeRecord rbac",
+			pre: func(ctx context.Context, s store.Storer) (error, *su.DecodeFilter) {
+				rl := sTestRole(ctx, t, s, "base")
+				ns := sTestComposeNamespace(ctx, t, s, "base")
+				mod := sTestComposeModule(ctx, t, s, ns.ID, "base")
+
+				rr := rbac.RuleSet{
+					{
+						RoleID:    rl.ID,
+						Resource:  ctypes.RecordRbacResource(0, 0, 0),
+						Operation: "allow.op1",
+						Access:    rbac.Allow,
+					},
+					{
+						RoleID:    rl.ID,
+						Resource:  ctypes.RecordRbacResource(ns.ID, 0, 0),
+						Operation: "allow.op2",
+						Access:    rbac.Deny,
+					},
+					{
+						RoleID:    rl.ID,
+						Resource:  ctypes.RecordRbacResource(ns.ID, mod.ID, 0),
+						Operation: "allow.op3",
+						Access:    rbac.Allow,
+					},
+				}
+				if err := store.CreateRbacRule(ctx, s, rr...); err != nil {
+					t.Fatal(err)
+				}
+
+				df := su.NewDecodeFilter().
+					Roles(&stypes.RoleFilter{
+						Handle: "base_role",
+					}).
+					ComposeNamespace(&ctypes.NamespaceFilter{
+						Slug: "base_namespace",
+					}).
+					ComposeModule(&ctypes.ModuleFilter{
+						Handle: "base_module",
+					}).
+					Rbac(&rbac.RuleFilter{})
+				return nil, df
+			},
+			check: func(ctx context.Context, s store.Storer, req *require.Assertions) {
+				rl, err := store.LookupRoleByHandle(ctx, s, "base_role")
+				req.NoError(err)
+
+				ns, err := store.LookupComposeNamespaceBySlug(ctx, s, "base_namespace")
+				req.NoError(err)
+
+				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, ns.ID, "base_module")
+				req.NoError(err)
+
+				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+				req.NoError(err)
+				req.Len(rr, 3)
+
+				for _, r := range rr {
+					switch r.Operation {
+					case "allow.op1":
+						req.Equal(rl.ID, r.RoleID)
+						req.Equal(rbac.Allow, r.Access)
+						req.Equal(ctypes.RecordRbacResource(0, 0, 0), r.Resource)
+
+					case "allow.op2":
+						req.Equal(rl.ID, r.RoleID)
+						req.Equal(rbac.Deny, r.Access)
+						req.Equal(ctypes.RecordRbacResource(ns.ID, 0, 0), r.Resource)
+
+					case "allow.op3":
+						req.Equal(rl.ID, r.RoleID)
+						req.Equal(rbac.Allow, r.Access)
+						req.Equal(ctypes.RecordRbacResource(ns.ID, mod.ID, 0), r.Resource)
+
+					default:
+						req.FailNow("unexpected rbac operation for test cases: ", r.Operation)
+					}
+				}
+			},
+		},
 	}
 
 	for _, c := range cases {

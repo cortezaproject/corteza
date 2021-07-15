@@ -35,20 +35,5 @@ func rbacResToRef(rr string) (*resource.Ref, error) {
 		return ref, nil
 	}
 
-	// When len is 1; only top-level defined (system, compose, ....)
-	//if len(parts) == 1 {
-	//	ref.ResourceType = rr
-	//	return ref, nil
-	//}
-
-	//When len is 3; both levels defined; resource ref also provided
-	//if len(parts) == 3 {
-	//	ref.ResourceType = strings.Join(parts[0:2], rbacSep) + rbacSep
-	//	if parts[2] != "*" {
-	//		ref.Identifiers = resource.MakeIdentifiers(parts[2])
-	//	}
-	//	return ref, nil
-	//}
-
 	return nil, fmt.Errorf("invalid resource provided: %s", rr)
 }
