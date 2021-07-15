@@ -175,7 +175,7 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 					}
 				}
 			} else if typedValue, err = e.typ.Cast(value); err != nil {
-				return nil, fmt.Errorf("cannot cast value %T to %s (target %s)", value, e.typ.Type(), e.Target)
+				return nil, fmt.Errorf("cannot cast value %T to %s (target %s): %w", value, e.typ.Type(), e.Target, err)
 			}
 		}
 

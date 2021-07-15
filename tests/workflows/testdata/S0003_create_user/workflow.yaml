@@ -1,0 +1,24 @@
+workflows:
+  create-user:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: expressions
+        arguments:
+          - { target: dummy,       type: User }
+          - { target: dummy.email, type: String, value: "some.email@domain.tld" }
+          - { target: dummy.name,  type: String, value: "Not Sure" }
+
+      - stepID: 2
+        kind: function
+        ref: usersCreate
+        arguments:
+          - { target: user, type: User, expr: "dummy" }
+
+    paths:
+      - { parentID: 1, childID: 2 }
