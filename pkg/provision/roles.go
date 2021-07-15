@@ -49,14 +49,14 @@ func SystemRoles(ctx context.Context, log *zap.Logger, s store.Storer) (rr []*ty
 	for i := range rr {
 		r := rr[i]
 		if m[r.Handle] == nil {
-			log.Info("creating role", zap.String("handle", r.Handle))
+			log.Info("creating system role", zap.String("handle", r.Handle))
 			// this is a new role
 			r.ID = id.Next()
 			r.CreatedAt = *now()
 
 			m[r.Handle] = r
 		} else {
-			log.Info("updating role", zap.String("handle", r.Handle))
+			log.Info("updating system role", zap.String("handle", r.Handle))
 			// use existing role
 			rr[i] = m[r.Handle]
 
@@ -69,7 +69,7 @@ func SystemRoles(ctx context.Context, log *zap.Logger, s store.Storer) (rr []*ty
 	}
 
 	if err := store.UpsertRole(ctx, s, rr...); err != nil {
-		return nil, fmt.Errorf("failed to provision roles: %w", err)
+		return nil, fmt.Errorf("failed to provision system roles: %w", err)
 	}
 
 	return

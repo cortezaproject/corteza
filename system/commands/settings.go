@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/system/types"
 
 	"github.com/spf13/cobra"
@@ -27,6 +28,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Short:   "List all",
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			prefix := cmd.Flags().Lookup("prefix").Value.String()
 			if kv, err := service.DefaultSettings.FindByPrefix(ctx, prefix); err != nil {
 				cli.HandleError(err)
@@ -54,6 +57,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			if v, err := service.DefaultSettings.Get(ctx, args[0], 0); err != nil {
 				cli.HandleError(err)
 			} else if v != nil {
@@ -68,6 +73,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			value := args[1]
 
 			v := &types.SettingValue{
@@ -98,6 +105,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				fh  *os.File
 				err error
@@ -137,6 +146,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				fh  *os.File
 				err error
@@ -169,6 +180,8 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Args:    cobra.MinimumNArgs(0),
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				names = []string{}
 			)

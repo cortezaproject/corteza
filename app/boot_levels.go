@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
+
 	authService "github.com/cortezaproject/corteza-server/auth"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/saml"
@@ -36,7 +38,6 @@ import (
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
-	"strings"
 )
 
 const (
@@ -255,24 +256,9 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		return err
 	}
 
-	var (
-		uu []*types.User
-		rr []*types.Role
-	)
-
-	// Basic provision for system resources that we need before anything else
-	if rr, err = provision.SystemRoles(ctx, app.Log, app.Store); err != nil {
+	if err = app.initSystemEntities(ctx); err != nil {
 		return
 	}
-
-	// Basic provision for system users that we need before anything else
-	if uu, err = provision.SystemUsers(ctx, app.Log, app.Store); err != nil {
-		return
-	}
-
-	// set system users & roles with so that the whole app knows what to use
-	auth.SetSystemUsers(uu, rr)
-	auth.SetSystemRoles(rr)
 
 	{
 		// register temporary RBAC with bypass roles
@@ -320,7 +306,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return err
 	}
 
-	// Load users
+	if err = app.initSystemEntities(ctx); err != nil {
+		return
+	}
 
 	app.WsServer = websocket.Server(app.Log, app.Opt.Websocket)
 
@@ -487,6 +475,43 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	}
 
 	app.lvl = bootLevelActivated
+	return nil
+}
+
+// Provisions and initializes system roles and users
+func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
+	if app.systemEntitiesInitialized {
+		// make sure we do this once.
+		return nil
+	}
+
+	app.systemEntitiesInitialized = true
+
+	var (
+		uu types.UserSet
+		rr types.RoleSet
+	)
+
+	// Basic provision for system resources that we need before anything else
+	if rr, err = provision.SystemRoles(ctx, app.Log, app.Store); err != nil {
+		return
+	}
+
+	// Basic provision for system users that we need before anything else
+	if uu, err = provision.SystemUsers(ctx, app.Log, app.Store); err != nil {
+		return
+	}
+
+	// set system users & roles with so that the whole app knows what to use
+	auth.SetSystemUsers(uu, rr)
+	auth.SetSystemRoles(rr)
+
+	app.Log.Debug(
+		"system entities set",
+		zap.Uint64s("users", uu.IDs()),
+		zap.Uint64s("roles", rr.IDs()),
+	)
+
 	return nil
 }
 

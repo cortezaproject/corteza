@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/spf13/cobra"
 
@@ -27,6 +28,8 @@ func Export(ctx context.Context, storeInit func(ctx context.Context) (store.Stor
 		Long:  `Export data to YAML files.`,
 
 		Run: func(cmd *cobra.Command, args []string) {
+			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 			var (
 				f = su.NewDecodeFilter()
 			)

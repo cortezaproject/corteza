@@ -57,6 +57,8 @@ type (
 		WsServer   wsServer
 
 		AuthService authServicer
+
+		systemEntitiesInitialized bool
 	}
 )
 
