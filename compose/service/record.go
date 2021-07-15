@@ -622,6 +622,10 @@ func RecordUpdateOwner(invokerID uint64, r, old *types.Record) *types.Record {
 
 func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessController, m *types.Module, vv types.RecordValueSet) *types.RecordValueErrorSet {
 	rve := &types.RecordValueErrorSet{}
+	if ac == nil {
+		return rve
+	}
+
 	_ = vv.Walk(func(v *types.RecordValue) error {
 		f := m.Fields.FindByName(v.Name)
 
