@@ -221,9 +221,6 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 	rm := n.recMap
 	im := n.res.IDMap
 
-	createAcChecked := false
-	updateAcChecked := false
-
 	getKey := func(i int, k string) string {
 		if k == "" {
 			return strconv.FormatInt(int64(i), 10)
@@ -424,7 +421,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 				rve *composeTypes.RecordValueErrorSet
 
 				canAccessField = func(f *composeTypes.ModuleField) bool {
-					return pl.composeAccessControl.CanUpdateRecordValue(ctx, f)
+					return true
 				}
 			)
 
@@ -436,7 +433,7 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 				return mod.Fields.HasName(v.Name), nil
 			})
 
-			rve = service.RecordValueUpdateOpCheck(ctx, pl.composeAccessControl, mod, rec.Values)
+			rve = service.RecordValueUpdateOpCheck(ctx, nil, mod, rec.Values)
 			if !rve.IsValid() {
 				return rve
 			}
@@ -444,22 +441,6 @@ func (n *composeRecord) Encode(ctx context.Context, pl *payload) (err error) {
 			rve = service.RecordPreparer(ctx, pl.s, rvSanitizer, rvValidator, rvFormatter, mod, rec)
 			if !rve.IsValid() {
 				return rve
-			}
-
-			// AC
-			//
-			// AC needs to happen down here, because we are either creating or updating
-			// records and we don't know that for sure in the Prepare method.
-			if !exists && !createAcChecked {
-				createAcChecked = true
-				if !pl.composeAccessControl.CanCreateRecordOnModule(ctx, mod) {
-					return fmt.Errorf("not allowed to create records for module %d", mod.ID)
-				}
-			} else if exists && !updateAcChecked {
-				updateAcChecked = true
-				if !pl.composeAccessControl.CanUpdateRecord(ctx, rec) {
-					return fmt.Errorf("not allowed to update record")
-				}
 			}
 
 			// Create a new record

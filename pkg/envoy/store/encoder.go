@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -67,9 +66,7 @@ type (
 		s     store.Storer
 		state *envoy.ResourceState
 
-		composeAccessControl composeAccessController
-		systemAC             accessControlRBACServicer
-		invokerID            uint64
+		invokerID uint64
 	}
 
 	// resourceState allows each conforming struct to be initialized and encoded
@@ -189,10 +186,9 @@ func (se *storeEncoder) Encode(ctx context.Context, p envoy.Provider) error {
 
 func (se *storeEncoder) makePayload(ctx context.Context, s store.Storer, ers *envoy.ResourceState) *payload {
 	return &payload{
-		s:                    s,
-		state:                ers,
-		composeAccessControl: service.AccessControl(),
-		invokerID:            auth.GetIdentityFromContext(ctx).Identity(),
+		s:         s,
+		state:     ers,
+		invokerID: auth.GetIdentityFromContext(ctx).Identity(),
 	}
 }
 
