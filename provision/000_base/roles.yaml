@@ -14,11 +14,11 @@ roles:
     name: Owners
     meta:
       description: |-
-        Automatically assinged to resource owner
-        Applickable to compose records, auth clients and workflows
+        Automatically assigned to resource owner
+        Applicable to compose records, auth clients and workflows
 
       context:
-        expr: resource.createdBy == userID
+        expr: resource.ownedBy == userID
         resourceType:
           - corteza::compose:record
           - corteza::system:authClient
@@ -28,8 +28,8 @@ roles:
     name: Creators
     meta:
       description: |-
-        Automatically assinged to user created the resource.
-        Applickable on records, auth clients and workflows
+        Automatically assigned to user created the resource.
+        Applicable on records, auth clients and workflows
       context:
         expr: resource.createdBy == userID
         resourceType:
@@ -41,8 +41,8 @@ roles:
     name: Updaters
     meta:
       description: |-
-        Automatically assinged to user that was the last to update the resource.
-        Applickable to compose records, auth clients and workflows
+        Automatically assigned to user that was the last to update the resource.
+        Applicable to compose records, auth clients and workflows
 
       context:
         expr: resource.updatedBy == userID
@@ -55,11 +55,11 @@ roles:
     name: Deleters
     meta:
       description: |-
-        Automatically assinged to user that was the last to update the resource.
-        Applickable to compose records, auth clients and workflows
+        Automatically assigned to user that was the last to update the resource.
+        Applicable to compose records, auth clients and workflows
 
       context:
-        expr: resource.updatedBy == userID
+        expr: resource.deletedBy == userID
         resourceType:
           - corteza::compose:record
           - corteza::system:authClient
