@@ -10,7 +10,6 @@ package store
 
 import (
 	"context"
-
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
@@ -36,11 +35,11 @@ type (
 		// ComposeRecordReport (custom function)
 		ComposeRecordReport(ctx context.Context, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error)
 
+		// ComposeRecordDatasource (custom function)
+		ComposeRecordDatasource(ctx context.Context, _mod *types.Module, _ld *report.LoadStepDefinition) (report.Datasource, error)
+
 		// PartialComposeRecordValueUpdate (custom function)
 		PartialComposeRecordValueUpdate(ctx context.Context, _mod *types.Module, _values ...*types.RecordValue) error
-
-		// @todo !!!
-		ComposeRecordDatasource(ctx context.Context, _mod *types.Module, _ld *report.LoadStepDefinition) (report.Datasource, error)
 	}
 )
 
@@ -92,10 +91,10 @@ func ComposeRecordReport(ctx context.Context, s ComposeRecords, _mod *types.Modu
 	return s.ComposeRecordReport(ctx, _mod, _metrics, _dimensions, _filters)
 }
 
-func PartialComposeRecordValueUpdate(ctx context.Context, s ComposeRecords, _mod *types.Module, _values ...*types.RecordValue) error {
-	return s.PartialComposeRecordValueUpdate(ctx, _mod, _values...)
-}
-
 func ComposeRecordDatasource(ctx context.Context, s ComposeRecords, _mod *types.Module, _ld *report.LoadStepDefinition) (report.Datasource, error) {
 	return s.ComposeRecordDatasource(ctx, _mod, _ld)
+}
+
+func PartialComposeRecordValueUpdate(ctx context.Context, s ComposeRecords, _mod *types.Module, _values ...*types.RecordValue) error {
+	return s.PartialComposeRecordValueUpdate(ctx, _mod, _values...)
 }
