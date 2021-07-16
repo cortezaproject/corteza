@@ -109,57 +109,15 @@ type (
 			Mail struct {
 				FromAddress string `kv:"from-address"`
 				FromName    string `kv:"from-name"`
-
-				EmailConfirmation struct {
-					Subject string `kv:"subject.en"`
-					Body    string `kv:"body.en"`
-				} `kv:"email-confirmation"`
-
-				PasswordReset struct {
-					Subject string `kv:"subject.en"`
-					Body    string `kv:"body.en"`
-				} `kv:"password-reset"`
 			} `json:"-"`
 		} `json:"-"`
 
-		UI struct {
-			// Corteza One configuration settings
-			One struct {
-				Logo  string `kv:"logo" json:"logo"`
-				Title string `kv:"title" json:"title"`
-
-				PanelsEnabled bool `kv:"panels-enabled" json:"panelsEnabled"`
-				Panels        []struct {
-					Visible        bool `json:"visible"`
-					Sticky         bool `json:"sticky"`
-					Width          uint `json:"width"`
-					Height         uint `json:"height"`
-					ActiveTabIndex uint `json:"activeTabIndex"`
-					Tabs           []struct {
-						Title  string `json:"title"`
-						Url    string `json:"url"`
-						Logo   string `json:"logo"`
-						Icon   string `json:"icon"`
-						Sticky bool   `json:"sticky"`
-					} `json:"tabs"`
-				} `kv:"panels,final" json:"panels"`
-			} `kv:"one" json:"one"`
-
-			// Admin struct {} `kv:"admin"`
-		} `kv:"ui" json:"ui"`
-
 		Compose struct {
 			// UI related settings
-			UI struct {
-				// Emoji
-				// @todo implementation
-				NamespaceSwitcher struct {
-					Enabled     bool
-					DefaultOpen bool
-				} `kv:"namespace-switcher"`
-			} `kv:"ui"`
+			// (placeholder)
+			UI struct{} `kv:"ui"`
 
-			// Message related settings
+			// Record related settings
 			Record struct {
 				// @todo implementation
 				Attachments struct {
