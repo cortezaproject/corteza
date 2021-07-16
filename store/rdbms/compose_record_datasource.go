@@ -21,7 +21,7 @@ type (
 		module *types.Module
 
 		// @todo use these
-		supportedAggregationFunctions map[string]bool
+		supportedAggregationFunctions map[string]string
 		supportedFilterFunctions      map[string]bool
 
 		store *Store
@@ -32,8 +32,20 @@ type (
 		cols         report.FrameColumnSet
 		qBuilder     squirrel.SelectBuilder
 		nestLevel    int
-		levelColumns map[string]bool
+		levelColumns map[string]string
 	}
+)
+
+var (
+	supportedAggregationFunctions = slice.ToStringBoolMap([]string{
+		"COUNT",
+		"SUM",
+		"MAX",
+		"MIN",
+		"AVG",
+	})
+
+	// supportedGroupingFunctions = ...
 )
 
 func ComposeRecordDatasourceBuilder(s *Store, module *types.Module, ld *report.LoadStepDefinition) (report.Datasource, error) {
@@ -44,26 +56,7 @@ func ComposeRecordDatasourceBuilder(s *Store, module *types.Module, ld *report.L
 		module:       module,
 		store:        s,
 		cols:         ld.Columns,
-		levelColumns: make(map[string]bool),
-
-		supportedAggregationFunctions: slice.ToStringBoolMap([]string{
-			"COUNT",
-			"SUM",
-			"MAX",
-			"MIN",
-			"AVG",
-		}),
-
-		supportedFilterFunctions: slice.ToStringBoolMap([]string{
-			"CONCAT",
-			"QUARTER",
-			"YEAR",
-			"DATE",
-			"NOW",
-			"DATE_ADD",
-			"DATE_SUB",
-			"DATE_FORMAT",
-		}),
+		levelColumns: make(map[string]string),
 	}
 
 	r.qBuilder, err = r.baseQuery(ld.Rows)
@@ -95,33 +88,27 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		r.name = name
 	}()
 
+	var (
+		q       = squirrel.Select()
+		auxKind = ""
+		ok      = false
+	)
+
 	cls := r.levelColumns
-	r.levelColumns = make(map[string]bool)
+	r.levelColumns = make(map[string]string)
 
 	gCols := make(report.FrameColumnSet, 0, 10)
 
-	q := squirrel.Select()
-
-	// @todo allow some transformation functions within the agg. functions
-	parser := ql.NewParser()
-	parser.OnFunction = r.stdAggregationHandler
-	parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-		if !cls[i.Value] {
-			return i, fmt.Errorf("column %s does not exist on level %d", i.Value, r.nestLevel)
+	for _, g := range d.Keys {
+		auxKind, ok = cls[g.Column]
+		if !ok {
+			return false, fmt.Errorf("column %s does not exist on level %d", g.Column, r.nestLevel)
 		}
 
-		i.Value = fmt.Sprintf("l%d.%s", r.nestLevel, i.Value)
-		return i, nil
-	}
+		// @todo...
+		// if g.Group != "" {...}
 
-	for _, g := range d.Groups {
-		e, err := parser.ParseExpression(g.Expr)
-		if err != nil {
-			return false, err
-		}
-
-		// @todo imply based on context
-		c := report.MakeColumnOfKind(g.Kind)
+		c := report.MakeColumnOfKind(auxKind)
 		c.Name = g.Name
 		c.Label = g.Label
 		if c.Label == "" {
@@ -129,43 +116,51 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		}
 		gCols = append(gCols, c)
 
-		r.levelColumns[g.Name] = true
-		q = q.Column(fmt.Sprintf("(%s) as `%s`", e.String(), g.Name)).
-			GroupBy(e.String())
+		r.levelColumns[g.Name] = auxKind
+		q = q.Column(fmt.Sprintf("%s as `%s`", g.Column, g.Name)).
+			GroupBy(g.Column)
 	}
 
-	var e ql.ASTNode
-	var err error
+	var aggregate string
 	for _, c := range d.Columns {
-		if c.Aggregate != "" {
-			e, err = parser.ParseExpression(fmt.Sprintf("%s(%s)", c.Aggregate, c.Expr))
-			if err != nil {
-				return false, err
+		aggregate = strings.ToUpper(c.Aggregate)
+
+		if c.Column == "" {
+			if c.Aggregate == "" {
+				return false, fmt.Errorf("the aggregation function is required when the column is omitted")
 			}
 		} else {
-			e, err = parser.ParseExpression(c.Expr)
-			if err != nil {
-				return false, err
+			auxKind, ok = cls[c.Column]
+			if !ok {
+				return false, fmt.Errorf("column %s does not exist on level %d", c.Column, r.nestLevel)
 			}
 		}
 
-		var col *report.FrameColumn
-		if c.Kind != "" {
-			col = report.MakeColumnOfKind(c.Kind)
-		} else {
-			// @todo imply based on context
-			col = report.MakeColumnOfKind("Number")
+		qParam := c.Column
+		if c.Aggregate != "" {
+			if !supportedAggregationFunctions[aggregate] {
+				return false, fmt.Errorf("aggregation function not supported: %s", c.Aggregate)
+			}
+
+			// when an aggregation function is defined, the output is always numeric
+			auxKind = "Number"
+
+			qParam = fmt.Sprintf("%s(%s)", aggregate, c.Column)
+		} else if qParam == "" {
+			qParam = "*"
 		}
+
+		col := report.MakeColumnOfKind(auxKind)
 		col.Name = c.Name
 		col.Label = c.Label
 		if col.Label == "" {
 			col.Label = col.Name
 		}
 		gCols = append(gCols, col)
-		r.levelColumns[c.Name] = true
+		r.levelColumns[c.Name] = auxKind
 
 		q = q.
-			Column(fmt.Sprintf("%s as `%s`", e.String(), c.Name))
+			Column(fmt.Sprintf("%s as `%s`", qParam, c.Name))
 	}
 
 	if d.Rows != nil {
@@ -367,14 +362,14 @@ func (r *recordDatasource) baseQuery(f *report.RowDefinition) (sqb squirrel.Sele
 		report = report.LeftJoin(strings.ReplaceAll(joinTpl, "%s", f.Name)).
 			Column(f.Name + ".value as " + f.Name)
 
-		r.levelColumns[f.Name] = true
+		r.levelColumns[f.Name] = f.Kind
 	}
 
 	if f != nil {
 		// @todo functions and function validation
 		parser := ql.NewParser()
 		parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-			if !r.levelColumns[i.Value] {
+			if _, ok := r.levelColumns[i.Value]; !ok {
 				return i, fmt.Errorf("column %s does not exist on level %d", i.Value, r.nestLevel)
 			}
 
@@ -456,7 +451,7 @@ func (b *recordDatasource) Cast(row sqlx.ColScanner, out *report.Frame) error {
 
 // Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
 func (b *recordDatasource) stdAggregationHandler(f ql.Function) (ql.ASTNode, error) {
-	if !b.supportedAggregationFunctions[strings.ToUpper(f.Name)] {
+	if !supportedAggregationFunctions[strings.ToUpper(f.Name)] {
 		return f, fmt.Errorf("unsupported aggregate function %q", f.Name)
 	}
 

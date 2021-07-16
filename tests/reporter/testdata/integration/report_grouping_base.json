@@ -18,12 +18,12 @@
           { "group": {
             "name": "grouped",
             "source": "users",
-            "groups": [
-              { "name": "by_name", "expr": "first_name", "kind": "String" }
+            "keys": [
+              { "name": "by_name", "column": "first_name" }
             ],
             "columns": [
-              { "name": "count", "aggregate": "count", "expr": "*" , "kind": "Number"},
-              { "name": "total", "aggregate": "sum", "expr": "number_of_numbers", "kind": "Number" }
+              { "name": "count", "aggregate": "count" },
+              { "name": "total", "aggregate": "sum", "column": "number_of_numbers" }
             ]
           }}
         ]

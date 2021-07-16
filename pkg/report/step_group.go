@@ -18,7 +18,7 @@ type (
 	}
 
 	GroupDefinition struct {
-		Groups  []*GroupColumn `json:"groups"`
+		Keys    []*GroupKey    `json:"keys"`
 		Columns []*GroupColumn `json:"columns"`
 		Rows    *RowDefinition `json:"rows,omitempty"`
 	}
@@ -29,18 +29,26 @@ type (
 		GroupDefinition
 	}
 
+	GroupKey struct {
+		// Name defines the alias for the new column
+		Name string `json:"name"`
+		// Label defines the user friendly name for the column
+		Label string `json:"label"`
+		// Column defines what column to use when defining the group
+		Column string `json:"column"`
+		// Group defines the grouping function to apply
+		Group string `json:"group"`
+	}
+
 	GroupColumn struct {
 		// Name defines the alias for the new column
 		Name string `json:"name"`
 		// Label defines the user friendly name for the column
 		Label string `json:"label"`
-		// Expr defines the expression to transform the column
-		Expr string `json:"expr"`
+		// Column defines the column to produce the aggregated data
+		Column string `json:"column"`
 		// Aggregate defines the aggregation function to apply
 		Aggregate string `json:"aggregate"`
-
-		// @todo imply from context
-		Kind string `json:"kind"`
 	}
 )
 
@@ -76,12 +84,12 @@ func (j *stepGroup) Validate() error {
 
 	case j.def.Source == "":
 		return errors.New(pfx + "groupping dimension not defined")
-	case len(j.def.Groups) == 0:
+	case len(j.def.Keys) == 0:
 		return errors.New(pfx + "no group defined")
 	}
 
 	// columns...
-	for i, g := range j.def.Groups {
+	for i, g := range j.def.Keys {
 		if g.Name == "" {
 			return fmt.Errorf("%sgroup key alias missing for group: %d", pfx, i)
 		}
