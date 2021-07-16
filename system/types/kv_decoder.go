@@ -154,8 +154,9 @@ func DecodeKV(kv SettingsKV, dst interface{}, pp ...string) (err error) {
 
 				switch cnv := tmp.(type) {
 				case string:
-					num, _ := strconv.ParseUint(cnv, 10, 64)
-					structField.SetUint(num)
+					if num, err := strconv.ParseUint(cnv, 10, 64); err == nil {
+						structField.SetUint(num)
+					}
 				}
 			}
 		}
