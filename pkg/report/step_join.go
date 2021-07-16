@@ -93,6 +93,34 @@ func (d *joinedDataset) Name() string {
 	return d.def.Name
 }
 
+func (d *joinedDataset) Describe() FrameDescriptionSet {
+	out := make(FrameDescriptionSet, 0, 2)
+
+	local := d.base.Describe()
+	for _, l := range local {
+		out = append(out,
+			&FrameDescription{
+				Source:  d.Name(),
+				Ref:     l.Source,
+				Columns: l.Columns,
+			},
+		)
+	}
+
+	foreign := d.foreign.Describe()
+	for _, f := range foreign {
+		out = append(out,
+			&FrameDescription{
+				Source:  d.Name(),
+				Ref:     f.Source,
+				Columns: f.Columns,
+			},
+		)
+	}
+
+	return out
+}
+
 // @todo allow x-join filtering
 func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loader, Closer, error) {
 	// to hold closer references for all underlying datasources

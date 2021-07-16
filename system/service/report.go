@@ -288,6 +288,45 @@ func (svc *report) Run(ctx context.Context, ID uint64, dd rep.FrameDefinitionSet
 	return nil, nil
 }
 
+// actionlog?
+func (svc *report) DescribeFresh(ctx context.Context, src types.ReportDataSourceSet, st rep.StepDefinitionSet, sources ...string) (out rep.FrameDescriptionSet, err error) {
+	// var (
+	// 	aaProps = &reportActionProps{}
+	// )
+
+	out = make(rep.FrameDescriptionSet, 0, len(sources)*2)
+
+	err = func() (err error) {
+		ss := src.ModelSteps()
+		ss = append(ss, st...)
+
+		// Model the report
+		model, err := rep.Model(ctx, reporters, ss...)
+		if err != nil {
+			return
+		}
+
+		err = model.Run(ctx)
+		if err != nil {
+			return
+		}
+
+		var auxOut rep.FrameDescriptionSet
+		for _, s := range sources {
+			auxOut, err = model.Describe(s)
+			if err != nil {
+				return err
+			}
+
+			out = append(out, auxOut...)
+		}
+
+		return nil
+	}()
+
+	return out, err
+}
+
 func (svc *report) RunFresh(ctx context.Context, src types.ReportDataSourceSet, st rep.StepDefinitionSet, dd rep.FrameDefinitionSet) (out []*rep.Frame, err error) {
 	var (
 		aaProps = &reportActionProps{}

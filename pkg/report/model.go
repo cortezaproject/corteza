@@ -19,6 +19,7 @@ type (
 		Add(...Step) M
 		Run(context.Context) error
 		Load(context.Context, ...*FrameDefinition) ([]*Frame, error)
+		Describe(source string) (FrameDescriptionSet, error)
 	}
 
 	StepSet []Step
@@ -128,6 +129,15 @@ func (m *model) Run(ctx context.Context) (err error) {
 	}
 
 	return nil
+}
+
+func (m *model) Describe(source string) (out FrameDescriptionSet, err error) {
+	ds := m.datasources.Find(source)
+	if ds == nil {
+		return nil, fmt.Errorf("model does not contain the datasource: %s", source)
+	}
+
+	return ds.Describe(), nil
 }
 
 func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) ([]*Frame, error) {
