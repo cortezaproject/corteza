@@ -1,5 +1,6 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
+  - github.com/cortezaproject/corteza-server/pkg/report
 
 types:
   type: types.Record
@@ -24,6 +25,12 @@ functions:
       - { name: dimensions, type: string }
       - { name: filters,    type: string }
     return: [ "[]map[string]interface{}", error ]
+
+  - name: ComposeRecordDatasource
+    arguments:
+      - { name: mod, type: "*types.Module" }
+      - { name: ld,  type: "*report.LoadStepDefinition" }
+    return: [ report.Datasource, error ]
 
   - name: PartialComposeRecordValueUpdate
     arguments:
