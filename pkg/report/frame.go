@@ -54,6 +54,15 @@ type (
 		Paging  *filter.Paging     `json:"paging"`
 		Sorting filter.SortExprSet `json:"sorting"`
 	}
+
+	FrameDescriptionSet []*FrameDescription
+	FrameDescription    struct {
+		Source  string         `json:"source"`
+		Ref     string         `json:"ref,omitempty"`
+		Columns FrameColumnSet `json:"columns"`
+
+		// @todo size and other shape related bits
+	}
 )
 
 const (

@@ -174,6 +174,15 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 	return true, nil
 }
 
+func (r *recordDatasource) Describe() report.FrameDescriptionSet {
+	return report.FrameDescriptionSet{
+		&report.FrameDescription{
+			Source:  r.Name(),
+			Columns: r.cols,
+		},
+	}
+}
+
 func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
 	def := dd[0]
 

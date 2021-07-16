@@ -148,6 +148,23 @@ type (
 		ReportID uint64 `json:",string"`
 	}
 
+	ReportDescribe struct {
+		// Sources POST parameter
+		//
+		// Report steps definition
+		Sources types.ReportDataSourceSet
+
+		// Steps POST parameter
+		//
+		// Report steps definition
+		Steps report.StepDefinitionSet
+
+		// Describe POST parameter
+		//
+		// The source descriptions to generate
+		Describe []string
+	}
+
 	ReportRunFresh struct {
 		// Sources POST parameter
 		//
@@ -618,6 +635,81 @@ func (r *ReportUndelete) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewReportDescribe request
+func NewReportDescribe() *ReportDescribe {
+	return &ReportDescribe{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportDescribe) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"sources":  r.Sources,
+		"steps":    r.Steps,
+		"describe": r.Describe,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportDescribe) GetSources() types.ReportDataSourceSet {
+	return r.Sources
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportDescribe) GetSteps() report.StepDefinitionSet {
+	return r.Steps
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportDescribe) GetDescribe() []string {
+	return r.Describe
+}
+
+// Fill processes request and fills internal variables
+func (r *ReportDescribe) Fill(req *http.Request) (err error) {
+
+	if strings.ToLower(req.Header.Get("content-type")) == "application/json" {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["sources[]"]; ok && len(val) > 0  {
+		//    r.Sources, err = types.ReportDataSourceSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["steps[]"]; ok && len(val) > 0  {
+		//    r.Steps, err = report.StepDefinitionSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["describe[]"]; ok && len(val) > 0  {
+		//    r.Describe, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
 	}
 
 	return err

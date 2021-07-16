@@ -21,6 +21,7 @@ type (
 	Datasource    interface {
 		Name() string
 		Load(context.Context, ...*FrameDefinition) (Loader, Closer, error)
+		Describe() FrameDescriptionSet
 	}
 
 	// GroupableDatasource is able to provide groupped data
