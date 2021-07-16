@@ -91,7 +91,7 @@ func NewServer(manager *manage.Manager) *server.Server {
 		}
 
 		logger.Default().
-			Error(msg)
+			Warn(msg)
 	})
 
 	return srv
