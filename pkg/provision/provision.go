@@ -30,6 +30,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return migrateEmailTemplates(ctx, log.Named("email-templates"), s) },
 		func() error { return migratePre202106Roles(ctx, log.Named("pre-202106-roles"), s) },
 		func() error { return migratePre202106RbacRules(ctx, log.Named("pre-202106-rbac-rules"), s) },
+		func() error { return cleanupPre202109Settings(ctx, log.Named("pre-202106-rbac-rules"), s) },
 
 		// Config (full & partial)
 		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
