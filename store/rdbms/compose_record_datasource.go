@@ -123,6 +123,10 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		// @todo imply based on context
 		c := report.MakeColumnOfKind(g.Kind)
 		c.Name = g.Name
+		c.Label = g.Label
+		if c.Label == "" {
+			c.Label = c.Name
+		}
 		gCols = append(gCols, c)
 
 		r.levelColumns[g.Name] = true
@@ -153,6 +157,10 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 			col = report.MakeColumnOfKind("Number")
 		}
 		col.Name = c.Name
+		col.Label = c.Label
+		if col.Label == "" {
+			col.Label = col.Name
+		}
 		gCols = append(gCols, col)
 		r.levelColumns[c.Name] = true
 
