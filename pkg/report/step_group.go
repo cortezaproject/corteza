@@ -32,6 +32,8 @@ type (
 	GroupColumn struct {
 		// Name defines the alias for the new column
 		Name string `json:"name"`
+		// Label defines the user friendly name for the column
+		Label string `json:"label"`
 		// Expr defines the expression to transform the column
 		Expr string `json:"expr"`
 		// Aggregate defines the aggregation function to apply
