@@ -19,14 +19,14 @@ type (
 		dispatcher dispatcher
 
 		// Read & write locking
-		l *sync.RWMutex
+		l sync.RWMutex
 
 		// Simple chan to control if service is running or not
 		ticker *time.Ticker
 	}
 
 	dispatcher interface {
-		Dispatch(ctx context.Context, ev eventbus.Event)
+		WaitFor(ctx context.Context, ev eventbus.Event) error
 	}
 )
 
@@ -65,7 +65,7 @@ func NewService(log *zap.Logger, d dispatcher, interval time.Duration) *service 
 	}
 
 	var svc = &service{
-		l:          &sync.RWMutex{},
+		l:          sync.RWMutex{},
 		log:        log.Named("scheduler"),
 		interval:   interval,
 		dispatcher: d,
@@ -130,7 +130,7 @@ func (svc *service) Start(ctx context.Context) {
 	}()
 }
 
-func (svc service) watch(ctx context.Context) {
+func (svc *service) watch(ctx context.Context) {
 	defer sentry.Recover()
 	defer func() {
 		defer svc.log.Debug("stopped")
@@ -155,14 +155,14 @@ func (svc service) watch(ctx context.Context) {
 	}
 }
 
-func (svc service) Started() (started bool) {
+func (svc *service) Started() (started bool) {
 	svc.l.RLock()
 	defer svc.l.RUnlock()
 
 	return svc.ticker != nil
 }
 
-func (svc service) dispatch(ctx context.Context) {
+func (svc *service) dispatch(ctx context.Context) {
 	svc.l.RLock()
 
 	ee := make([]eventbus.Event, len(svc.events))
@@ -173,6 +173,11 @@ func (svc service) dispatch(ctx context.Context) {
 	defer svc.l.RUnlock()
 
 	for _, ev := range ee {
-		go svc.dispatcher.Dispatch(ctx, ev)
+		go func(ev eventbus.Event) {
+			err := svc.dispatcher.WaitFor(ctx, ev)
+			if err != nil {
+				svc.log.Warn("failed to execute scheduled trigger", zap.Error(err))
+			}
+		}(ev)
 	}
 }

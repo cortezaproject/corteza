@@ -465,7 +465,7 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 	}
 
 	if wf.RunAs > 0 {
-		if runAs, err = DefaultUser.FindByID(ctx, wf.RunAs); err != nil {
+		if runAs, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
 			return fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err)
 		} else if !runAs.Valid() {
 			return fmt.Errorf("invalid user %d used for workflow run-as", wf.RunAs)

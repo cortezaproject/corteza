@@ -3,14 +3,17 @@ package scheduler
 import (
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/getsentry/sentry-go"
 	"github.com/gorhill/cronexpr"
+	"go.uber.org/zap"
 )
 
 // OnInterval parses all given strings as crontab expressions (ii) and returns true if any of them matches current time
 func OnInterval(ii ...string) bool {
 	match, err := onInterval(now(), ii...)
 	if err != nil {
+		logger.Default().Error("failed to parse interval value", zap.Strings("value", ii), zap.Error(err))
 		sentry.CaptureException(err)
 	}
 	return match
@@ -44,6 +47,7 @@ func onInterval(now time.Time, ii ...string) (bool, error) {
 func OnTimestamp(tt ...string) bool {
 	match, err := onTimestamp(now(), tt...)
 	if err != nil {
+		logger.Default().Error("failed to parse timestamp value", zap.Strings("value", tt), zap.Error(err))
 		sentry.CaptureException(err)
 	}
 	return match
