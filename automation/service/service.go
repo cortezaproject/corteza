@@ -30,7 +30,7 @@ type (
 	}
 
 	userService interface {
-		FindByID(ctx context.Context, userID uint64) (*types.User, error)
+		FindByAny(ctx context.Context, identifier interface{}) (*types.User, error)
 	}
 )
 
