@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/cortezaproject/corteza-server/pkg/options"
-
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
@@ -16,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/handle"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
@@ -570,7 +569,7 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 		ssp.Input = scope.MustMerge(p.Input)
 
 		if wf.RunAs > 0 {
-			if runAs, err = DefaultUser.FindByID(ctx, wf.RunAs); err != nil {
+			if runAs, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
 				return
 			}
 		}
@@ -604,12 +603,8 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 	return results, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
 }
 
-func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, runAs intAuth.Identifiable) eventbus.HandlerFn {
+func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, _runAs intAuth.Identifiable) eventbus.HandlerFn {
 	return func(ctx context.Context, ev eventbus.Event) (err error) {
-		if !ac.CanExecuteWorkflow(ctx, wf) {
-			return WorkflowErrNotAllowedToExecute()
-		}
-
 		var (
 			// create session scope from predefined workflow scope and trigger input
 			scope   = wf.Scope.MustMerge(t.Input)
@@ -618,7 +613,7 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 
 			// The returned closure needs to have its own instance, so it doesn't
 			// affect the instance bound to the workflow handler
-			runAs = runAs
+			runAs = _runAs
 		)
 
 		if enc, is := ev.(varsEncoder); is {
@@ -638,6 +633,15 @@ func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger
 			//         - use http auth header and get username
 			//         - use from/to/replyTo and use that as an identifier
 			runAs = intAuth.GetIdentityFromContext(ctx)
+		} else {
+			// Running workflow with a different security context
+			ctx = intAuth.SetIdentityToContext(ctx, runAs)
+		}
+
+		// User (either invoker or one set in the security descriptor) MUST have
+		// permissions to execute this workflow
+		if !ac.CanExecuteWorkflow(ctx, wf) {
+			return WorkflowErrNotAllowedToExecute()
 		}
 
 		wait, err = s.Start(g, runAs, types.SessionStartParams{
