@@ -81,7 +81,7 @@ func (svc namespace) Find(ctx context.Context, filter types.NamespaceFilter) (se
 
 	err = func() error {
 		if !svc.ac.CanSearchNamespaces(ctx) {
-			return ChartErrNotAllowedToRead()
+			return NamespaceErrNotAllowedToSearch()
 		}
 
 		if len(filter.Labels) > 0 {
