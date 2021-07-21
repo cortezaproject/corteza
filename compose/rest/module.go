@@ -49,8 +49,6 @@ type (
 		CanDeleteModule(context.Context, *types.Module) bool
 		CanCreateRecordOnModule(context.Context, *types.Module) bool
 		CanReadRecord(context.Context, *types.Record) bool
-		CanUpdateRecord(context.Context, *types.Record) bool
-		CanDeleteRecord(context.Context, *types.Record) bool
 
 		CanReadRecordValue(context.Context, *types.ModuleField) bool
 		CanUpdateRecordValue(context.Context, *types.ModuleField) bool
