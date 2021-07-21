@@ -168,5 +168,5 @@ func ClaimsToIdentity(c jwt.MapClaims) (i *identity) {
 		}
 	}
 
-	return
+	return Authenticated(i.id, i.memberOf...)
 }
