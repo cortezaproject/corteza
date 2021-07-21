@@ -34,6 +34,7 @@ type (
 
 		CanUpdateRecord bool `json:"canUpdateRecord"`
 		CanDeleteRecord bool `json:"canDeleteRecord"`
+		CanGrant        bool `json:"canGrant"`
 	}
 
 	recordSetPayload struct {
@@ -52,6 +53,8 @@ type (
 	}
 
 	recordAccessController interface {
+		CanGrant(context.Context) bool
+
 		CanUpdateRecord(context.Context, *types.Record) bool
 		CanDeleteRecord(context.Context, *types.Record) bool
 	}
@@ -570,6 +573,8 @@ func (ctrl Record) makePayload(ctx context.Context, m *types.Module, r *types.Re
 
 	return &recordPayload{
 		Record: r,
+
+		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateRecord: ctrl.ac.CanUpdateRecord(ctx, r),
 		CanDeleteRecord: ctrl.ac.CanDeleteRecord(ctx, r),
