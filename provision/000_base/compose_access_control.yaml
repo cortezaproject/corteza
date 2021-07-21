@@ -5,9 +5,13 @@ allow:
 
     corteza::compose:namespace/*:
       - read
+      - pages.search
+      - modules.search
+      - charts.search
 
     corteza::compose:module/*/*:
       - read
+      - records.search
 
     corteza::compose:page/*/*:
       - read
@@ -26,7 +30,7 @@ allow:
       - namespace.create
       - namespaces.search
 
-    corteza::compose:namespace/*/*:
+    corteza::compose:namespace/*:
       - read
       - update
       - delete
@@ -72,7 +76,7 @@ allow:
       - namespace.create
       - namespaces.search
 
-    corteza::compose:namespace/*/*:
+    corteza::compose:namespace/*:
       - read
       - update
       - delete
