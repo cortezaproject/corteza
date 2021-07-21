@@ -199,24 +199,25 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 		res.Resource = composeTypes.RecordRbacResource(p0ID, p1ID, p2ID)
 
 	case composeTypes.ModuleFieldResourceType:
-		return fmt.Errorf("importing rbac rules on module field level is not supported")
-		//p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)
-		//if p0 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[0].Identifiers)
-		//}
-		//
-		//p1 := resource.FindComposeModule(pl.state.ParentResources, n.res.RefPath[1].Identifiers)
-		//if p1 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[1].Identifiers)
-		//}
+		if len(n.res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(pl.state.ParentResources, n.res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(n.res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.ID
+		}
+		if len(n.res.RefPath) > 1 {
+			p1 := resource.FindComposeModule(pl.state.ParentResources, n.res.RefPath[1].Identifiers)
+			if p1 == nil {
+				return resource.ComposeModuleErrUnresolved(n.res.RefPath[1].Identifiers)
+			}
+			p1ID = p1.ID
+		}
 
-		//p1.fields
-		//if p2 == nil {
-		//	return resource.ComposeNamespaceErrUnresolved(n.res.RefResource.Identifiers)
-		//}
-		//
-		//res.Resource = composeTypes.ModuleFieldRbacResource(p0.ID, p1.ID, p2.ID)
-		//return nil
+		// @todo specific ModuleField RBAC
+
+		res.Resource = composeTypes.ModuleFieldRbacResource(p0ID, p1ID, p2ID)
+
 	case systemTypes.UserResourceType:
 		if n.res.RefResource != nil {
 			p1 := resource.FindUser(pl.state.ParentResources, n.res.RefResource.Identifiers)
