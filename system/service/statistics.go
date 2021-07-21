@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/store"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
@@ -10,8 +11,15 @@ import (
 
 type (
 	statistics struct {
+		ac        statsAccessControl
 		actionlog actionlog.Recorder
 		store     store.Storer
+	}
+
+	statsAccessControl interface {
+		CanSearchUsers(context.Context) bool
+		CanSearchRoles(context.Context) bool
+		CanSearchApplications(context.Context) bool
 	}
 
 	StatisticsMetricsPayload struct {
@@ -23,6 +31,7 @@ type (
 
 func Statistics() *statistics {
 	return &statistics{
+		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 	}
@@ -35,16 +44,22 @@ func (svc statistics) Metrics(ctx context.Context) (rval *StatisticsMetricsPaylo
 	err = func() error {
 		rval = &StatisticsMetricsPayload{}
 
-		if rval.Users, err = svc.store.UserMetrics(ctx); err != nil {
-			return err
+		if svc.ac.CanSearchUsers(ctx) {
+			if rval.Users, err = svc.store.UserMetrics(ctx); err != nil {
+				return err
+			}
 		}
 
-		if rval.Roles, err = svc.store.RoleMetrics(ctx); err != nil {
-			return err
+		if svc.ac.CanSearchRoles(ctx) {
+			if rval.Roles, err = svc.store.RoleMetrics(ctx); err != nil {
+				return err
+			}
 		}
 
-		if rval.Applications, err = svc.store.ApplicationMetrics(ctx); err != nil {
-			return err
+		if svc.ac.CanSearchApplications(ctx) {
+			if rval.Applications, err = svc.store.ApplicationMetrics(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil
