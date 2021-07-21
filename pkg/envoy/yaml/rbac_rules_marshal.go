@@ -153,11 +153,26 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 		}
 
 		// @todo specific record RBAC
-
 		r.res.Resource = fmt.Sprintf(composeTypes.RecordRbacResourceTpl(), composeTypes.RecordResourceType, p0ID, p1ID, p2ID)
 
 	case composeTypes.ModuleFieldResourceType:
-		return fmt.Errorf("importing rbac rules on module field level is not supported")
+		if len(res.RefPath) > 0 {
+			p0 := resource.FindComposeNamespace(state.ParentResources, res.RefPath[0].Identifiers)
+			if p0 == nil {
+				return resource.ComposeNamespaceErrUnresolved(res.RefPath[0].Identifiers)
+			}
+			p0ID = p0.Slug
+		}
+		if len(res.RefPath) > 1 {
+			p1 := resource.FindComposeModule(state.ParentResources, res.RefPath[1].Identifiers)
+			if p1 == nil {
+				return resource.ComposeModuleErrUnresolved(res.RefPath[1].Identifiers)
+			}
+			p1ID = p1.Handle
+		}
+
+		// @todo specific module field RBAC
+		r.res.Resource = fmt.Sprintf(composeTypes.ModuleFieldRbacResourceTpl(), composeTypes.ModuleFieldResourceType, p0ID, p1ID, p2ID)
 	case systemTypes.UserResourceType:
 		if res.RefResource != nil {
 			p1 := resource.FindUser(state.ParentResources, res.RefResource.Identifiers)
