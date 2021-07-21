@@ -19,6 +19,7 @@ import (
 func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
 		flagNoPassword bool
+		flagPassword   string
 		flagRoles      []string
 	)
 
@@ -98,27 +99,25 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				// @todo email validation
 				user = &types.User{Email: args[0]}
 
-				err      error
-				password []byte
+				err error
+
+				// Use provided password...
+				password = []byte(flagPassword)
 
 				role *types.Role
 				mm   types.RoleMemberSet
 			)
 
-			if !flagNoPassword {
+			if !flagNoPassword && len(password) == 0 {
 				cmd.Print("Set password: ")
 				if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
 					cli.HandleError(err)
 				}
 
-				if len(password) == 0 {
-					// Password not set, that's ok too.
-					return
-				}
+			}
 
-				if !authSvc.CheckPasswordStrength(string(password)) {
-					cli.HandleError(service.AuthErrPasswordNotSecure())
-				}
+			if len(password) > 0 && !authSvc.CheckPasswordStrength(string(password)) {
+				cli.HandleError(service.AuthErrPasswordNotSecure())
 			}
 
 			for _, ri := range flagRoles {
@@ -146,7 +145,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				cli.HandleError(store.CreateRoleMember(ctx, service.DefaultStore, mm...))
 			}
 
-			if !flagNoPassword {
+			if len(password) > 0 {
 				if err = authSvc.SetPassword(ctx, user.ID, string(password)); err != nil {
 					cli.HandleError(err)
 				}
@@ -159,6 +158,12 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		"no-password",
 		false,
 		"Do not ask for password")
+
+	addCmd.Flags().StringVar(
+		&flagPassword,
+		"password",
+		"",
+		"Provide password (as alternative to interactive way)")
 
 	addCmd.Flags().StringSliceVar(
 		&flagRoles,
