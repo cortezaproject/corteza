@@ -32,5 +32,3 @@ allow:
       - execute
       - triggers.manage
       - sessions.manage
-
-

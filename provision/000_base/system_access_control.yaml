@@ -7,20 +7,18 @@ allow:
 
     corteza::system:application/*:
       - read
+      - application.flag.self
 
     corteza::system:role/*:
       - read
 
-    corteza::system:template/*:
-      - read
-      - render
-
-    corteza::system:queue/*:
-      - queue.read
+    corteza::system:auth-client/*:
+      - authorize
 
   admins:
     corteza::system/:
       - grant
+      - action-log.read
       - settings.read
       - settings.manage
       - application.create
@@ -36,6 +34,13 @@ allow:
       - reminder.assign
       - queue.create
       - queues.search
+      - application.flag.global
+
+    corteza::system:auth-client/*:
+      - read
+      - update
+      - delete
+      - authorize
 
     corteza::system:application/*:
       - read
@@ -73,6 +78,7 @@ allow:
   security_admins:
     corteza::compose/:
       - grant
+      - action-log.read
       - settings.read
       - settings.manage
 
@@ -103,6 +109,12 @@ allow:
       - reminder.assign
       - queue.create
       - queues.search
+
+    corteza::system:auth-client/*:
+      - read
+      - update
+      - delete
+      - authorize
 
     corteza::system:application/*:
       - read
