@@ -9,7 +9,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/cli"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
-	fakerCommands "github.com/cortezaproject/corteza-server/seeder/commands"
+	fakerCommands "github.com/cortezaproject/corteza-server/pkg/seeder/commands"
 	"github.com/cortezaproject/corteza-server/store"
 	systemCommands "github.com/cortezaproject/corteza-server/system/commands"
 )
