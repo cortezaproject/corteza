@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_migratePre202106RbacRule(t *testing.T) {
+func Test_migratePre202109RbacRule(t *testing.T) {
 	tcc := []struct {
 		wantOp   int
 		rule     *rbac.Rule
@@ -23,7 +23,7 @@ func Test_migratePre202106RbacRule(t *testing.T) {
 	}
 	for _, tc := range tcc {
 		t.Run(tc.rule.String(), func(t *testing.T) {
-			require.Equal(t, tc.wantOp, migratePre202106RbacRule(tc.rule))
+			require.Equal(t, tc.wantOp, migratePre202109RbacRule(tc.rule))
 			if tc.wantRule != nil {
 				require.Equal(t, tc.wantRule.String(), tc.rule.String())
 			}

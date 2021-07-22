@@ -14,7 +14,7 @@ import (
 )
 
 // MigrateOperations creates system roles
-func migratePre202106RbacRules(ctx context.Context, log *zap.Logger, s store.Storer) error {
+func migratePre202109RbacRules(ctx context.Context, log *zap.Logger, s store.Storer) error {
 	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) error {
 		rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 		if err != nil {
@@ -25,7 +25,7 @@ func migratePre202106RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 		for _, r := range rr {
 			var (
 				cr     = *r
-				action = migratePre202106RbacRule(r)
+				action = migratePre202109RbacRule(r)
 			)
 
 			if action != 0 {
@@ -50,7 +50,7 @@ func migratePre202106RbacRules(ctx context.Context, log *zap.Logger, s store.Sto
 //  0 - no action
 // -1 - remove
 //  1 - update
-func migratePre202106RbacRule(r *rbac.Rule) (op int) {
+func migratePre202109RbacRule(r *rbac.Rule) (op int) {
 	const (
 		nsSep = "::"
 		nsDef = "corteza"

@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func migratePre202106Roles(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
+func migratePre202109Roles(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	const (
 		obsoleteEveryoneID uint64 = 1
 		obsoleteAdminsID   uint64 = 2
