@@ -10,7 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	lType "github.com/cortezaproject/corteza-server/pkg/label/types"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
-	"github.com/cortezaproject/corteza-server/seeder"
+	"github.com/cortezaproject/corteza-server/pkg/seeder"
 	"github.com/cortezaproject/corteza-server/store"
 	sTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"

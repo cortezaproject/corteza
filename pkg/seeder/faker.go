@@ -1,8 +1,9 @@
 package seeder
 
 import (
-	"github.com/brianvoe/gofakeit/v6"
 	"strings"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 type (

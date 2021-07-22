@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/seeder"
+	"github.com/cortezaproject/corteza-server/pkg/seeder"
 
 	"github.com/spf13/cobra"
 )
@@ -141,7 +141,7 @@ func deleteAll(ctx context.Context, app serviceInitializer) (cmd *cobra.Command)
 	)
 	cmd = &cobra.Command{
 		Use:     "delete",
-		Short:   "delete all data",
+		Short:   "delete all seeded data",
 		PreRunE: commandPreRunInitService(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			var (
