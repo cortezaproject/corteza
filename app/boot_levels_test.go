@@ -70,11 +70,10 @@ func Test_updateAuthSettings(t *testing.T) {
 						Secret:    "sec",
 					},
 					{ // add (w/o issuer)
-						Enabled:   true,
-						Handle:    "google",
-						IssuerUrl: "issuer",
-						Key:       "key",
-						Secret:    "sec",
+						Enabled: true,
+						Handle:  "google",
+						Key:     "key",
+						Secret:  "sec",
 					},
 					{ // add
 						Enabled: true,

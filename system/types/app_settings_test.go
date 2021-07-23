@@ -1,13 +1,29 @@
 package types
 
 import (
-	sqlTypes "github.com/jmoiron/sqlx/types"
-	"github.com/stretchr/testify/require"
 	"sort"
 	"testing"
+
+	sqlTypes "github.com/jmoiron/sqlx/types"
+	"github.com/stretchr/testify/require"
 )
 
 // 	Hello! This file is auto-generated.
+
+func Test_settingsExtAuthProvidersValidConfiguration(t *testing.T) {
+
+	var (
+		empty        = ExternalAuthProvider{}
+		google       = ExternalAuthProvider{Enabled: true, Handle: "google", Key: "some-guid", Secret: "s3cret"}
+		noIssuerOIDC = ExternalAuthProvider{Enabled: true, Handle: "openid-connect.bar", Key: "some-guid", Secret: "s3cret"}
+		goodOIDC     = ExternalAuthProvider{Enabled: true, Handle: "openid-connect.bar", Key: "some-guid", Secret: "s3cret", IssuerUrl: "https://example.org"}
+	)
+
+	require.False(t, noIssuerOIDC.ValidConfiguration())
+	require.True(t, goodOIDC.ValidConfiguration())
+	require.False(t, empty.ValidConfiguration())
+	require.True(t, google.ValidConfiguration())
+}
 
 func Test_settingsExtAuthProvidersDecode(t *testing.T) {
 	type (
