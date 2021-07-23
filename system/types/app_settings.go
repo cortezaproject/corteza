@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	oidcPrefix = "openid-connect." // must match const in "github.com/cortezaproject/corteza-server/auth/external" external.go
+)
+
 type (
 	// AppSettings type is structured representation of all application settings
 	//
@@ -157,6 +161,19 @@ type (
 	}
 )
 
+func (set *ExternalAuthProvider) ValidConfiguration() bool {
+	if !set.Enabled || set.Handle == "" || set.Key == "" || set.Secret == "" {
+		return false
+	}
+
+	if strings.HasPrefix(set.Handle, oidcPrefix) && set.IssuerUrl == "" {
+		// OIDC IdPs need to have issuer URL
+		return false
+	}
+
+	return true
+}
+
 // DecodeKV translates settings' KV into internal system external auth settings
 func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err error) {
 	if *set == nil {
@@ -170,7 +187,6 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 	kv = kv.CutPrefix(prefix + ".")
 
 	// add all additional providers (prefixed with "openid-connect.")
-	oidcPrefix := "openid-connect."
 	for p := range kv {
 		if !strings.HasPrefix(p, oidcPrefix) {
 			continue

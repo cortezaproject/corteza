@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
-	"github.com/cortezaproject/corteza-server/auth/external"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
@@ -517,51 +516,37 @@ func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
 }
 
 func updateAuthSettings(svc authServicer, current *types.AppSettings) {
-	var (
-		// current auth settings
-		cas       = current.Auth
-		providers []authSettings.Provider
-	)
-
-	for _, p := range cas.External.Providers {
-		if !p.Enabled || p.Handle == "" || p.Key == "" || p.Secret == "" {
-			continue
-		}
-
-		if strings.HasPrefix(p.Handle, external.OIDC_PROVIDER_PREFIX) {
-			if p.IssuerUrl == "" {
-				// OIDC IdPs need to have issuer URL
-				continue
-			}
-		} else {
-			// non-OIDC provider do not need issuer URL
-			p.IssuerUrl = ""
-		}
-
-		providers = append(providers, authSettings.Provider{
-			Handle:      p.Handle,
-			Label:       p.Label,
-			IssuerUrl:   p.IssuerUrl,
-			Key:         p.Key,
-			RedirectUrl: p.RedirectUrl,
-			Secret:      p.Secret,
-		})
-	}
-
 	as := &authSettings.Settings{
-		LocalEnabled:              cas.Internal.Enabled,
-		SignupEnabled:             cas.Internal.Signup.Enabled,
-		EmailConfirmationRequired: cas.Internal.Signup.EmailConfirmationRequired,
-		PasswordResetEnabled:      cas.Internal.PasswordReset.Enabled,
-		ExternalEnabled:           cas.External.Enabled,
-		Providers:                 providers,
+		LocalEnabled:              current.Auth.Internal.Enabled,
+		SignupEnabled:             current.Auth.Internal.Signup.Enabled,
+		EmailConfirmationRequired: current.Auth.Internal.Signup.EmailConfirmationRequired,
+		PasswordResetEnabled:      current.Auth.Internal.PasswordReset.Enabled,
+		ExternalEnabled:           current.Auth.External.Enabled,
+		MultiFactor: authSettings.MultiFactor{
+			TOTP: authSettings.TOTP{
+				Enabled:  current.Auth.MultiFactor.TOTP.Enabled,
+				Enforced: current.Auth.MultiFactor.TOTP.Enforced,
+				Issuer:   current.Auth.MultiFactor.TOTP.Issuer,
+			},
+			EmailOTP: authSettings.EmailOTP{
+				Enabled:  current.Auth.MultiFactor.EmailOTP.Enabled,
+				Enforced: current.Auth.MultiFactor.EmailOTP.Enforced,
+			},
+		},
 	}
 
-	as.MultiFactor.TOTP.Enabled = cas.MultiFactor.TOTP.Enabled
-	as.MultiFactor.TOTP.Enforced = cas.MultiFactor.TOTP.Enforced
-	as.MultiFactor.TOTP.Issuer = cas.MultiFactor.TOTP.Issuer
-	as.MultiFactor.EmailOTP.Enabled = cas.MultiFactor.EmailOTP.Enabled
-	as.MultiFactor.EmailOTP.Enforced = cas.MultiFactor.EmailOTP.Enforced
+	for _, p := range current.Auth.External.Providers {
+		if p.ValidConfiguration() {
+			as.Providers = append(as.Providers, authSettings.Provider{
+				Handle:      p.Handle,
+				Label:       p.Label,
+				IssuerUrl:   p.IssuerUrl,
+				Key:         p.Key,
+				RedirectUrl: p.RedirectUrl,
+				Secret:      p.Secret,
+			})
+		}
+	}
 
 	// SAML
 	saml.UpdateSettings(current, as)
