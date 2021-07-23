@@ -9,9 +9,11 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
+	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -30,8 +32,9 @@ type (
 		baseFilter *report.RowDefinition
 
 		cols         report.FrameColumnSet
-		qBuilder     squirrel.SelectBuilder
+		q            squirrel.SelectBuilder
 		nestLevel    int
+		nestLabel    string
 		levelColumns map[string]string
 	}
 )
@@ -48,22 +51,29 @@ var (
 	// supportedGroupingFunctions = ...
 )
 
+// ComposeRecordDatasourceBuilder initializes and returns a datasource builder for compose record resource
+//
+// @todo try to make the resulting query as flat as possible
 func ComposeRecordDatasourceBuilder(s *Store, module *types.Module, ld *report.LoadStepDefinition) (report.Datasource, error) {
 	var err error
 
 	r := &recordDatasource{
-		name:         ld.Name,
-		module:       module,
-		store:        s,
-		cols:         ld.Columns,
+		name:   ld.Name,
+		module: module,
+		store:  s,
+		cols:   ld.Columns,
+
+		// levelColumns help us keep track of what columns are currently available
 		levelColumns: make(map[string]string),
 	}
 
-	r.qBuilder, err = r.baseQuery(ld.Rows)
-
+	r.q, err = r.baseQuery(ld.Rows)
 	return r, err
 }
 
+// Name returns the name we should use when referencing this datasource
+//
+// The name is determined from the user-specified name, or implied from the context.
 func (r *recordDatasource) Name() string {
 	if r.name != "" {
 		return r.name
@@ -79,12 +89,31 @@ func (r *recordDatasource) Name() string {
 	return r.module.Handle
 }
 
-// @todo add Transform
-// @todo try to make Group and Transform use the base query
+func (r *recordDatasource) Describe() report.FrameDescriptionSet {
+	return report.FrameDescriptionSet{
+		&report.FrameDescription{
+			Source:  r.Name(),
+			Columns: r.cols,
+		},
+	}
+}
 
+func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
+	def := dd[0]
+
+	q, err := r.preloadQuery(def)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return r.load(ctx, def, q)
+}
+
+// Group instructs the datasource to provide grouped and aggregated output
 func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, error) {
 	defer func() {
 		r.nestLevel++
+		r.nestLabel = "group"
 		r.name = name
 	}()
 
@@ -94,13 +123,12 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		ok      = false
 	)
 
-	cls := r.levelColumns
+	auxLevelColumns := r.levelColumns
 	r.levelColumns = make(map[string]string)
-
-	gCols := make(report.FrameColumnSet, 0, 10)
+	groupCols := make(report.FrameColumnSet, 0, 10)
 
 	for _, g := range d.Keys {
-		auxKind, ok = cls[g.Column]
+		auxKind, ok = auxLevelColumns[g.Column]
 		if !ok {
 			return false, fmt.Errorf("column %s does not exist on level %d", g.Column, r.nestLevel)
 		}
@@ -114,7 +142,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		if c.Label == "" {
 			c.Label = c.Name
 		}
-		gCols = append(gCols, c)
+		groupCols = append(groupCols, c)
 
 		r.levelColumns[g.Name] = auxKind
 		q = q.Column(fmt.Sprintf("%s as `%s`", g.Column, g.Name)).
@@ -130,7 +158,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 				return false, fmt.Errorf("the aggregation function is required when the column is omitted")
 			}
 		} else {
-			auxKind, ok = cls[c.Column]
+			auxKind, ok = auxLevelColumns[c.Column]
 			if !ok {
 				return false, fmt.Errorf("column %s does not exist on level %d", c.Column, r.nestLevel)
 			}
@@ -156,46 +184,28 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		if col.Label == "" {
 			col.Label = col.Name
 		}
-		gCols = append(gCols, col)
+		groupCols = append(groupCols, col)
 		r.levelColumns[c.Name] = auxKind
 
 		q = q.
-			Column(fmt.Sprintf("%s as `%s`", qParam, c.Name))
+			Column(squirrel.Alias(squirrel.Expr(qParam), c.Name))
 	}
 
 	if d.Rows != nil {
 		// @todo validate groupping functions
-		hh, err := r.rowFilterToString("", gCols, d.Rows)
+		hh, err := r.rowFilterToString("", groupCols, d.Rows)
 		if err != nil {
 			return false, err
 		}
 		q = q.Having(hh)
 	}
 
-	r.cols = gCols
-	r.qBuilder = q.FromSelect(r.qBuilder, fmt.Sprintf("l%d", r.nestLevel))
+	r.cols = groupCols
+	r.q = q.FromSelect(r.q, fmt.Sprintf("l%d", r.nestLevel))
 	return true, nil
 }
 
-func (r *recordDatasource) Describe() report.FrameDescriptionSet {
-	return report.FrameDescriptionSet{
-		&report.FrameDescription{
-			Source:  r.Name(),
-			Columns: r.cols,
-		},
-	}
-}
-
-func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
-	def := dd[0]
-
-	q, err := r.preloadQuery(def)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return r.load(ctx, def, q)
-}
+// @todo add Transform
 
 func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, partitionCol string, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
 	def := dd[0]
@@ -205,29 +215,31 @@ func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, pa
 		return nil, nil, err
 	}
 
+	var ss []string
+	if len(def.Sorting) > 0 {
+		ss, err = r.sortExpr(def.Sorting)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	// the partitioning wrap
 	// @todo move this to the DB driver package?
 	// @todo squash the query a bit? try to move most of this to the base query to remove
 	//       one sub-select
-	prt := squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, partitionCol)).
+	prt := squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, strings.Join(ss, ","))).
 		FromSelect(q, "partition_base")
 
-	// @odo make it better, please...
-	ss, err := r.sortExpr(def)
-	if err != nil {
-		return nil, nil, err
-	}
-
+	// the sort is already defined when partitioning so it's unneeded here
 	q = squirrel.Select("*").
 		FromSelect(prt, "partition_wrap").
-		Where(fmt.Sprintf("pp_rank <= %d", partitionSize)).
-		OrderBy(ss...)
+		Where(fmt.Sprintf("pp_rank <= %d", partitionSize))
 
 	return r.load(ctx, def, q)
 }
 
 func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.SelectBuilder, error) {
-	q := r.qBuilder
+	q := r.q
 
 	// assure columns
 	// - undefined columns = all columns
@@ -248,56 +260,59 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
-	//
-	// @todo flatten the query
 	if def.Rows != nil || def.Sorting != nil {
-		wrap := squirrel.Select("*").FromSelect(q, "w_base")
+		q = squirrel.Select("*").FromSelect(q, "w_base")
+	}
 
-		// additional filtering
-		if def.Rows != nil {
-			f, err := r.rowFilterToString("", r.cols, def.Rows)
-			if err != nil {
-				return q, err
-			}
-			wrap = wrap.Where(f)
+	// - filtering
+	if def.Rows != nil {
+		f, err := r.rowFilterToString("", r.cols, def.Rows)
+		if err != nil {
+			return q, err
 		}
-
-		// additional sorting
-		if len(def.Sorting) > 0 {
-			ss, err := r.sortExpr(def)
-			if err != nil {
-				return q, err
-			}
-
-			wrap = wrap.OrderBy(ss...)
-		}
-
-		q = wrap
+		q = q.Where(f)
 	}
 
 	return q, nil
 }
 
-func (r *recordDatasource) sortExpr(def *report.FrameDefinition) ([]string, error) {
-	ss := make([]string, len(def.Sorting))
-	for i, c := range def.Sorting {
-		ci := r.cols.Find(c.Column)
-		if ci == -1 {
-			return nil, fmt.Errorf("sort column not resolved: %s", c.Column)
-		}
+func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
+	sort := def.Sorting
 
-		_, _, typeCast, err := r.store.config.CastModuleFieldToColumnType(r.cols[ci], c.Column)
-		if err != nil {
-			return nil, err
+	// - paging related stuff
+	if def.Paging.PageCursor != nil {
+		// Page cursor exists so we need to validate it against used sort
+		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
+		// from the cursor.
+		// This (extracted sorting info) is then returned as part of response
+		if def.Sorting, err = def.Paging.PageCursor.Sort(def.Sorting); err != nil {
+			return nil, nil, err
 		}
-
-		ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
 	}
 
-	return ss, nil
-}
+	// Cloned sorting instructions for the actual sorting
+	// Original must be kept for cursor creation
+	sort = def.Sorting.Clone()
 
-func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
+	// When cursor for a previous page is used it's marked as reversed
+	// This tells us to flip the descending flag on all used sort keys
+	if def.Paging.PageCursor != nil && def.Paging.PageCursor.ROrder {
+		sort.Reverse()
+	}
+
+	if def.Paging.PageCursor != nil {
+		q = q.Where(builders.CursorCondition(def.Paging.PageCursor, nil))
+	}
+
+	if len(sort) > 0 {
+		ss, err := r.sortExpr(sort)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		q = q.OrderBy(ss...)
+	}
+
 	r.rows, err = r.store.Query(ctx, q)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot execute query: %w", err)
@@ -312,30 +327,32 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 
 			checkCap := cap > 0
 
-			// fetch & convert the data
+			// Fetch & convert the data.
+			// Go 1 over the requested cap to be able to determine if there are
+			// any additional pages
 			i := 0
-			// @todo make it in place
 			f.Columns = def.Columns
-			f.Rows = make(report.FrameRowSet, 0, cap)
+			f.Rows = make(report.FrameRowSet, 0, cap+1)
 
 			for r.rows.Next() {
 				i++
 
-				err = r.Cast(r.rows, f)
+				err = r.cast(r.rows, f)
 				if err != nil {
 					return nil, err
 				}
 
-				if checkCap && i >= cap {
+				// If the count goes over the capacity, then we have a next page
+				if checkCap && i > cap {
 					out := []*report.Frame{f}
 					f = &report.Frame{}
 					i = 0
-					return out, nil
+					return r.calculatePaging(out, def.Sorting, uint(cap), def.Paging.PageCursor), nil
 				}
 			}
 
 			if i > 0 {
-				return []*report.Frame{f}, nil
+				return r.calculatePaging([]*report.Frame{f}, def.Sorting, uint(cap), def.Paging.PageCursor), nil
 			}
 			return nil, nil
 		}, func() {
@@ -346,31 +363,61 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 		}, nil
 }
 
-// @todo handle those rv_ prefixes; for now omitted
+// baseQuery prepares the initial SQL that will be used for data access
+//
+// The query includes all of the requested columns in the required types to avid the need to type cast.
 func (r *recordDatasource) baseQuery(f *report.RowDefinition) (sqb squirrel.SelectBuilder, err error) {
 	var (
 		joinTpl = "compose_record_value AS %s ON (%s.record_id = crd.id AND %s.name = '%s' AND %s.deleted_at IS NULL)"
-
-		report = r.store.composeRecordsSelectBuilder().
-			Where("crd.deleted_at IS NULL").
-			Where("crd.module_id = ?", r.module.ID)
 	)
 
-	// Prepare all of the mod columns
-	// @todo make this as small as possible!
-	for _, f := range r.module.Fields {
-		report = report.LeftJoin(strings.ReplaceAll(joinTpl, "%s", f.Name)).
-			Column(f.Name + ".value as " + f.Name)
-
-		r.levelColumns[f.Name] = f.Kind
+	// - the initial set of available columns
+	//
+	// @todo at what level should the requested columns be validated?
+	r.nestLevel = 0
+	r.nestLabel = "base"
+	for _, c := range r.cols {
+		r.levelColumns[c.Name] = c.Kind
 	}
 
+	// - base query
+	sqb = r.store.SelectBuilder("compose_record AS crd").
+		Where("crd.deleted_at IS NULL").
+		Where("crd.module_id = ?", r.module.ID).
+		Where("crd.rel_namespace = ?", r.module.NamespaceID)
+
+	// - based on the definition, preload the columns
+	var (
+		col      string
+		is       bool
+		isJoined = make(map[string]bool)
+	)
+	for _, c := range r.cols {
+		if isJoined[c.Name] {
+			continue
+		}
+		isJoined[c.Name] = true
+
+		// native record columns don't need any extra handling
+		if col, _, is = isRealRecordCol(c.Name); is {
+			sqb = sqb.Column(squirrel.Alias(squirrel.Expr(col), c.Name))
+			continue
+		}
+
+		// non-native record columns need to have their type casted before use
+		_, _, tcp, _ := r.store.config.CastModuleFieldToColumnType(c, c.Name)
+		sqb = sqb.LeftJoin(strings.ReplaceAll(joinTpl, "%s", c.Name)).
+			Column(squirrel.Alias(squirrel.Expr(fmt.Sprintf(tcp, c.Name+".value")), c.Name))
+	}
+
+	// - any initial filtering we may need to do
+	//
+	// @todo better support functions and their validation.
 	if f != nil {
-		// @todo functions and function validation
 		parser := ql.NewParser()
 		parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
 			if _, ok := r.levelColumns[i.Value]; !ok {
-				return i, fmt.Errorf("column %s does not exist on level %d", i.Value, r.nestLevel)
+				return i, fmt.Errorf("column %s does not exist on level %d (%s)", i.Value, r.nestLevel, r.nestLabel)
 			}
 
 			return i, nil
@@ -380,17 +427,66 @@ func (r *recordDatasource) baseQuery(f *report.RowDefinition) (sqb squirrel.Sele
 		if err != nil {
 			return sqb, err
 		}
+
 		astq, err := parser.ParseExpression(fl)
 		if err != nil {
 			return sqb, err
 		}
-		report = report.Where(astq.String())
+
+		sqb = sqb.Where(astq.String())
 	}
 
-	return report, nil
+	return sqb, nil
 }
 
-func (b *recordDatasource) Cast(row sqlx.ColScanner, out *report.Frame) error {
+func (b *recordDatasource) calculatePaging(out []*report.Frame, sorting filter.SortExprSet, limit uint, cursor *filter.PagingCursor) []*report.Frame {
+	for _, o := range out {
+		var (
+			hasPrev       = cursor != nil
+			hasNext       bool
+			ignoreLimit   = limit == 0
+			reversedOrder = cursor != nil && cursor.ROrder
+		)
+
+		hasNext = uint(len(o.Rows)) > limit
+		if !ignoreLimit && uint(len(o.Rows)) > limit {
+			o.Rows = o.Rows[:limit]
+		}
+
+		if reversedOrder {
+			// Fetched set needs to be reversed because we've forced a descending order to get the previous page
+			for i, j := 0, len(o.Rows)-1; i < j; i, j = i+1, j-1 {
+				o.Rows[i], o.Rows[j] = o.Rows[j], o.Rows[i]
+			}
+
+			// when in reverse-order rules on what cursor to return change
+			hasPrev, hasNext = hasNext, hasPrev
+		}
+
+		if ignoreLimit {
+			return out
+		}
+
+		if hasPrev {
+			o.Paging = &filter.Paging{}
+			o.Paging.PrevPage = o.CollectCursorValues(o.FirstRow(), sorting...)
+			o.Paging.PrevPage.ROrder = true
+			o.Paging.PrevPage.LThen = !sorting.Reversed()
+		}
+
+		if hasNext {
+			if o.Paging == nil {
+				o.Paging = &filter.Paging{}
+			}
+			o.Paging.NextPage = o.CollectCursorValues(o.LastRow(), sorting...)
+			o.Paging.NextPage.LThen = sorting.Reversed()
+		}
+	}
+
+	return out
+}
+
+func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) error {
 	var err error
 	aux := make(map[string]interface{})
 	if err = sqlx.MapScan(row, aux); err != nil {
@@ -536,4 +632,23 @@ func isNil(i interface{}) bool {
 		return reflect.ValueOf(i).IsNil()
 	}
 	return false
+}
+
+func (r *recordDatasource) sortExpr(sorting filter.SortExprSet) ([]string, error) {
+	ss := make([]string, len(sorting))
+	for i, c := range sorting {
+		ci := r.cols.Find(c.Column)
+		if ci == -1 {
+			return nil, fmt.Errorf("sort column not resolved: %s", c.Column)
+		}
+
+		_, _, typeCast, err := r.store.config.CastModuleFieldToColumnType(r.cols[ci], c.Column)
+		if err != nil {
+			return nil, err
+		}
+
+		ss[i] = r.store.config.SqlSortHandler(fmt.Sprintf(typeCast, c.Column), c.Descending)
+	}
+
+	return ss, nil
 }

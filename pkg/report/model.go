@@ -6,24 +6,25 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/spf13/cast"
 )
 
 type (
 	model struct {
-		steps       []Step
+		ran         bool
+		steps       []step
 		datasources DatasourceSet
 	}
 
+	// M is the model interface that should be used when trying to model the datasource
 	M interface {
-		Add(...Step) M
+		Add(...step) M
 		Run(context.Context) error
 		Load(context.Context, ...*FrameDefinition) ([]*Frame, error)
 		Describe(source string) (FrameDescriptionSet, error)
 	}
 
-	StepSet []Step
-	Step    interface {
+	stepSet []step
+	step    interface {
 		Name() string
 		Source() []string
 		Run(context.Context, ...Datasource) (Datasource, error)
@@ -38,18 +39,15 @@ type (
 		Group *GroupStepDefinition `json:"group,omitempty"`
 		// @todo Transform
 	}
-
-	modelGraphNode struct {
-		step Step
-		ds   Datasource
-
-		pp []*modelGraphNode
-		cc []*modelGraphNode
-	}
 )
 
+// Model initializes the model based on the provided sources and step definitions.
+//
+// Additional steps may be added after the model is constructed.
+// Call `M.Run(context.Context)` to allow the model to be used for requesting data.
+// Additional steps may not be added after the `M.Run(context.Context)` was called
 func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*StepDefinition) (M, error) {
-	steps := make([]Step, 0, len(dd))
+	steps := make([]step, 0, len(dd))
 	ss := make(DatasourceSet, 0, len(steps)*2)
 
 	err := func() error {
@@ -62,7 +60,7 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 
 				s, ok := sources[d.Load.Source]
 				if !ok {
-					return fmt.Errorf("unresolved data source: %s", d.Load.Source)
+					return fmt.Errorf("unresolved datasource: %s", d.Load.Source)
 				}
 				ds, err := s.Datasource(ctx, d.Load)
 				if err != nil {
@@ -80,7 +78,7 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 			// @todo Transform
 
 			default:
-				return errors.New("malformed step definition")
+				return errors.New("malformed step definition: unsupported step kind")
 			}
 		}
 		return nil
@@ -96,348 +94,180 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 	}, nil
 }
 
-func (m *model) Add(ss ...Step) M {
+// Add adds additional steps to the model
+func (m *model) Add(ss ...step) M {
 	m.steps = append(m.steps, ss...)
 	return m
 }
 
+// Run bakes the model configuration and makes the requested data available
 func (m *model) Run(ctx context.Context) (err error) {
-	// initial validation
-	err = m.validateModel()
-	if err != nil {
-		return fmt.Errorf("failed to validate the model: %w", err)
-	}
+	const errPfx = "failed to run the model"
+	defer func() {
+		m.ran = true
+	}()
 
-	// nothing left to do
-	if len(m.steps) == 0 {
+	// initial validation
+	err = func() (err error) {
+		if m.ran {
+			return errors.New("model already ran")
+		}
+
+		if len(m.steps)+len(m.datasources) == 0 {
+			return errors.New("no model steps defined")
+		}
+
+		for _, s := range m.steps {
+			err = s.Validate()
+			if err != nil {
+				return err
+			}
+		}
+
 		return nil
+	}()
+	if err != nil {
+		return fmt.Errorf("%s: failed to validate the model: %w", errPfx, err)
 	}
 
 	// construct the step graph
-	gg, err := m.buildStepGraph(m.steps, m.datasources)
-	if err != nil {
-		return err
+	//
+	// If there are no steps, there is nothing to reduce
+	if len(m.steps) == 0 {
+		return nil
 	}
-
-	m.datasources = nil
-	for _, n := range gg {
-		aux, err := m.reduceGraph(ctx, n)
+	err = func() (err error) {
+		gg, err := m.buildStepGraph(m.steps, m.datasources)
 		if err != nil {
 			return err
 		}
-		m.datasources = append(m.datasources, aux)
+
+		m.datasources = nil
+		for _, n := range gg {
+			aux, err := m.reduceGraph(ctx, n)
+			if err != nil {
+				return err
+			}
+			m.datasources = append(m.datasources, aux)
+		}
+		return nil
+	}()
+	if err != nil {
+		return fmt.Errorf("%s: %w", errPfx, err)
 	}
 
 	return nil
 }
 
+// Describe returns the descriptions for the requested model datasources
+//
+// The Run method must be called before the description can be provided.
 func (m *model) Describe(source string) (out FrameDescriptionSet, err error) {
-	ds := m.datasources.Find(source)
-	if ds == nil {
-		return nil, fmt.Errorf("model does not contain the datasource: %s", source)
+	var ds Datasource
+
+	err = func() error {
+		if !m.ran {
+			return fmt.Errorf("model was not yet ran")
+		}
+
+		ds := m.datasources.Find(source)
+		if ds == nil {
+			return fmt.Errorf("model does not contain the datasource: %s", source)
+		}
+
+		return nil
+	}()
+	if err != nil {
+		return nil, fmt.Errorf("unable to describe the model source: %w", err)
 	}
 
 	return ds.Describe(), nil
 }
 
-func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) ([]*Frame, error) {
-	var err error
-
-	for _, d := range dd {
-		err = m.applyPaging(d, d.Paging, d.Sorting)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// @todo variable root def
-	def := dd[0]
-
-	ds := m.datasources.Find(def.Source)
-	if ds == nil {
-		return nil, fmt.Errorf("unresolved source: %s", def.Source)
-	}
-
-	l, c, err := ds.Load(ctx, dd...)
-	if err != nil {
-		return nil, err
-	}
-	defer c()
-
-	i := 0
-	if def.Paging != nil && def.Paging.Limit > 0 {
-		i = int(def.Paging.Limit)
-	} else {
-		i = -1
-	}
-
-	ff, err := l(i + 1)
-	if err != nil {
-		return nil, err
-	}
-
-	dds := FrameDefinitionSet(dd)
-	for _, f := range ff {
-		def = dds.FindBySourceRef(f.Source, f.Ref)
-		if def == nil {
-			return nil, fmt.Errorf("unable to find frame definition for frame: src-%s, ref-%s", f.Source, f.Ref)
-		}
-
-		// ff[i], err = m.calculatePaging(f, def.Paging, def.Sorting)
-		// if err != nil {
-		// 	return nil, err
-		// }
-	}
-
-	return ff, err
-}
-
-func (m *model) calculatePaging(f *Frame, p *filter.Paging, ss filter.SortExprSet) (*Frame, error) {
-	if p == nil {
-		p = &filter.Paging{}
-	}
-
+// Load returns the Frames based on the provided FrameDefinitions
+//
+// The Run method must be called before the frames can be provided.
+func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, err error) {
 	var (
-		hasPrev = p.PageCursor != nil
-		hasNext = f.Size() > int(p.Limit)
-		out     = &filter.Paging{}
+		def *FrameDefinition
+		ds  Datasource
 	)
 
-	out.Limit = p.Limit
+	// request validation
+	err = func() error {
+		// - all frame definitions must define the same datasource; call Load multiple times if
+		//   you need to access multiple datasources
+		for i, d := range dd {
+			if i == 0 {
+				continue
+			}
+			if d.Source != dd[i-1].Source {
+				return fmt.Errorf("frame definition source missmatch: expected %s, got %s", dd[i-1].Source, d.Source)
+			}
+		}
 
-	if hasNext {
-		f, _ = f.Slice(0, f.Size()-1)
-		out.NextPage = m.calculatePageCursor(f.LastRow(), f.Columns, ss)
-	}
+		def = dd[0]
 
-	if hasPrev {
-		out.PrevPage = m.calculatePageCursor(f.FirstRow(), f.Columns, ss)
-	}
+		ds = m.datasources.Find(def.Source)
+		if ds == nil {
+			return fmt.Errorf("unresolved datasource: %s", def.Source)
+		}
 
-	f.Paging = out
-	f.Sorting = &filter.Sorting{
-		Sort: ss,
-	}
-
-	return f, nil
-}
-
-func (m *model) calculatePageCursor(r FrameRow, cc FrameColumnSet, ss filter.SortExprSet) *filter.PagingCursor {
-	out := &filter.PagingCursor{LThen: ss.Reversed()}
-
-	for _, s := range ss {
-		ci := cc.Find(s.Column)
-		out.Set(s.Column, r[ci].Get(), s.Descending)
-	}
-
-	return out
-}
-
-func (m *model) applyPaging(def *FrameDefinition, p *filter.Paging, ss filter.SortExprSet) (err error) {
-	if p == nil {
 		return nil
-	}
-
-	ss, err = p.PageCursor.Sort(ss)
+	}()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("unable to load frames: invalid request: %w", err)
 	}
 
-	// @todo somesort of a primary key to avoid edgecases
-	sort := ss.Clone()
-	if p.PageCursor != nil && p.PageCursor.ROrder {
-		sort.Reverse()
-	}
-	def.Sorting = sort
+	// apply any frame definition defaults
+	aux := make([]*FrameDefinition, len(dd))
+	for i, d := range dd {
+		aux[i] = d.Clone()
 
-	// convert cursor to rows def
-	if p.PageCursor == nil {
+		// assure paging is always provided so we can ignore nil checks
+		if aux[i].Paging == nil {
+			aux[i].Paging = &filter.Paging{
+				Limit: defaultPageSize,
+			}
+		}
+
+		// assure sorting is always provided so we can ignore nil checks
+		if aux[i].Sorting == nil {
+			aux[i].Sorting = filter.SortExprSet{}
+		}
+	}
+	dd = aux
+
+	// assure paging is always provided so we can ignore nil checks
+	if def.Paging == nil {
+		def.Paging = &filter.Paging{
+			Limit: defaultPageSize,
+		}
+	}
+
+	// assure sorting is always provided so we can ignore nil checks
+	if def.Sorting == nil {
+		def.Sorting = filter.SortExprSet{}
+	}
+
+	// load the data
+	err = func() error {
+		l, c, err := ds.Load(ctx, dd...)
+		if err != nil {
+			return err
+		}
+		defer c()
+
+		ff, err = l(int(def.Paging.Limit))
+		if err != nil {
+			return err
+		}
+
 		return nil
+	}()
+	if err != nil {
+		return nil, fmt.Errorf("unable to load frames: %w", err)
 	}
 
-	rd := &RowDefinition{
-		Cells: make(map[string]*CellDefinition),
-	}
-	kk := p.PageCursor.Keys()
-	vv := p.PageCursor.Values()
-	for i, k := range kk {
-		v, err := cast.ToStringE(vv[i])
-		if err != nil {
-			return err
-		}
-
-		lt := p.PageCursor.Desc()[i]
-		if p.PageCursor.IsROrder() {
-			lt = !lt
-		}
-		op := ""
-		if lt {
-			op = "lt"
-		} else {
-			op = "gt"
-		}
-
-		rd.Cells[k] = &CellDefinition{
-			Op:    op,
-			Value: fmt.Sprintf("'%s'", v),
-		}
-	}
-	def.Rows = rd.MergeAnd(def.Rows)
-
-	return nil
-}
-
-func (m *model) validateModel() error {
-	if len(m.steps)+len(m.datasources) == 0 {
-		return errors.New("no model steps defined")
-	}
-
-	var err error
-	for _, s := range m.steps {
-		err = s.Validate()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *model) buildStepGraph(ss StepSet, dd DatasourceSet) ([]*modelGraphNode, error) {
-	mp := make(map[string]*modelGraphNode)
-
-	for _, s := range ss {
-		s := s
-
-		// make sure that the step is in the graph
-		n, ok := mp[s.Name()]
-		if !ok {
-			n = &modelGraphNode{
-				step: s,
-			}
-			mp[s.Name()] = n
-		} else {
-			n.step = s
-		}
-
-		// make sure the child step is in there
-		for _, src := range s.Source() {
-			c, ok := mp[src]
-			if !ok {
-				c = &modelGraphNode{
-					// will be added later
-					step: nil,
-					pp:   []*modelGraphNode{n},
-
-					ds: dd.Find(src),
-				}
-				mp[src] = c
-			}
-			n.cc = append(n.cc, c)
-		}
-	}
-
-	// return all of the root nodes
-	out := make([]*modelGraphNode, 0, len(ss))
-	for _, n := range mp {
-		if len(n.pp) == 0 {
-			out = append(out, n)
-		}
-	}
-
-	return out, nil
-}
-
-func (m *model) reduceGraph(ctx context.Context, n *modelGraphNode) (out Datasource, err error) {
-	auxO := make([]Datasource, len(n.cc))
-	if len(n.cc) > 0 {
-		for i, c := range n.cc {
-			out, err = m.reduceGraph(ctx, c)
-			if err != nil {
-				return nil, err
-			}
-			auxO[i] = out
-		}
-	}
-
-	bail := func() (out Datasource, err error) {
-		if n.step == nil {
-			if n.ds != nil {
-				return n.ds, nil
-			}
-
-			return out, nil
-		}
-
-		aux, err := n.step.Run(ctx, auxO...)
-		if err != nil {
-			return nil, err
-		}
-
-		return aux, nil
-	}
-
-	if n.step == nil {
-		return bail()
-	}
-
-	// check if this one can reduce the existing datasources
-	//
-	// for now, only "simple branches are supported"
-	var o Datasource
-	if len(auxO) > 1 {
-		return bail()
-	} else if len(auxO) > 0 {
-		// use the only available output
-		o = auxO[0]
-	} else {
-		// use own datasource (in case of leaves nodes)
-		o = n.ds
-	}
-
-	if n.step.Def().Group != nil {
-		gds, ok := o.(GroupableDatasource)
-		if !ok {
-			return bail()
-		}
-
-		ok, err = gds.Group(n.step.Def().Group.GroupDefinition, n.step.Name())
-		if err != nil {
-			return nil, err
-		} else if !ok {
-			return bail()
-		}
-
-		out = gds
-		// we've covered this step with the child step; ignore it
-		return out, nil
-	}
-
-	return bail()
-}
-
-// @todo cleanup the bellow two?
-
-func (sd *StepDefinition) source() string {
-	switch {
-	case sd.Load != nil:
-		return sd.Load.Source
-	case sd.Group != nil:
-		return sd.Group.Source
-	// @todo Transform
-	default:
-		return ""
-	}
-}
-
-func (sd *StepDefinition) name() string {
-	switch {
-	case sd.Load != nil:
-		return sd.Load.Name
-	case sd.Group != nil:
-		return sd.Group.Name
-	// @todo Transform
-	default:
-		return ""
-	}
+	return ff, nil
 }

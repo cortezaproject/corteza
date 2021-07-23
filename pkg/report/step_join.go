@@ -139,11 +139,10 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			if foreignDef == nil {
 				return nil, fmt.Errorf("definition for foreign datasource not found: %s", d.def.ForeignSource)
 			}
-			if localDef.Paging == nil {
-				localDef.Paging = &filter.Paging{}
-			}
-			if foreignDef.Paging == nil {
-				foreignDef.Paging = &filter.Paging{}
+
+			// - page cursor on foreign datasource is not allowed
+			if foreignDef.Paging.PageCursor != nil {
+				return nil, fmt.Errorf("definition for foreign datasource may not define a page cursor")
 			}
 
 			// - key columns
@@ -164,6 +163,11 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			useSubSort := foreignDS != ""
 			if err != nil {
 				return nil, err
+			}
+
+			// @todo support this
+			if useSubSort && localDef.Paging.PageCursor != nil {
+				return nil, fmt.Errorf("paging not supported when the foreign datasource defines base sort")
 			}
 
 			if foreignDS != "" {
@@ -206,10 +210,8 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				// - prepare loader, closer
 				mainLoader, mainCloser, err = prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
 			} else {
-				mainPageCap = defaultPageSize
-				if localDef.Paging != nil && localDef.Paging.Limit > 0 {
-					mainPageCap = localDef.Paging.Limit
-				}
+				mainPageCap = localDef.Paging.Limit
+
 				// nothing special needed
 				mainLoader, mainCloser, err = d.base.Load(ctx, localDef)
 			}
@@ -381,10 +383,8 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				}
 
 				// - determine partition size
-				partitionSize := defaultPartitionSize
-				if foreignDef.Paging != nil && foreignDef.Paging.Limit > 0 {
-					partitionSize = foreignDef.Paging.Limit
-				}
+				//   +1 for paging reasons
+				partitionSize := foreignDef.Paging.Limit + 1
 
 				// - prepare key pre-filter
 				foreignDef.Rows = d.keySliceToFilter(d.def.ForeignColumn, keys).MergeAnd(foreignDef.Rows)
@@ -404,9 +404,21 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				}
 
 				for i := range subFrames {
+					// meta
 					subFrames[i].Name = foreignDef.Name
 					subFrames[i].Source = foreignDef.Source
 					subFrames[i].Ref = foreignDef.Ref
+
+					// paging
+					if uint(len(subFrames[i].Rows)) >= partitionSize {
+						subFrames[i].Rows = subFrames[i].Rows[0 : partitionSize-1]
+
+						if subFrames[i].Paging == nil {
+							subFrames[i].Paging = &filter.Paging{}
+						}
+						subFrames[i].Paging.NextPage = subFrames[i].CollectCursorValues(subFrames[i].LastRow(), foreignDef.Sorting...)
+						subFrames[i].Paging.NextPage.LThen = foreignDef.Sorting.Reversed()
+					}
 				}
 			}
 			if err != nil {

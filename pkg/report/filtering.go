@@ -60,3 +60,35 @@ func (base *RowDefinition) MergeOr(merge *RowDefinition) *RowDefinition {
 
 	return rr
 }
+
+func (base *RowDefinition) Clone() (out *RowDefinition) {
+	if base == nil {
+		return
+	}
+	out = &RowDefinition{}
+
+	if base.Cells != nil {
+		out.Cells = make(map[string]*CellDefinition)
+		for k, v := range base.Cells {
+			out.Cells[k] = &CellDefinition{
+				Op:    v.Op,
+				Value: v.Value,
+			}
+		}
+	}
+
+	if base.And != nil {
+		out.And = make([]*RowDefinition, len(base.And))
+		for i, def := range base.And {
+			out.And[i] = def.Clone()
+		}
+	}
+	if base.Or != nil {
+		out.Or = make([]*RowDefinition, len(base.Or))
+		for i, def := range base.Or {
+			out.Or[i] = def.Clone()
+		}
+	}
+
+	return
+}

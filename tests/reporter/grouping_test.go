@@ -112,4 +112,74 @@ func TestReporterGrouping(t *testing.T) {
 			return nil
 		})
 	})
+
+	t.Run("paging", func(t *testing.T) {
+		fd.Sorting = filter.SortExprSet{
+			&filter.SortExpr{Column: "by_name", Descending: false},
+		}
+		fd.Paging = &filter.Paging{
+			Limit: 4,
+		}
+
+		// ^ going up ^
+		rr, err := model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r := rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.Nil(r.Paging.PrevPage)
+		h.a.Equal(4, r.Size())
+
+		req := []string{
+			"Engel, 3, 179",
+			"Manu, 1, 61",
+			"Maria, 3, 183",
+			"Sascha, 1, 38",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Equal(req[i], r.String())
+			return nil
+		})
+
+		fd.Paging.PageCursor = r.Paging.NextPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.Nil(r.Paging.NextPage)
+		h.a.NotNil(r.Paging.PrevPage)
+		h.a.Equal(2, r.Size())
+		req = []string{
+			"Sigi, 1, 67",
+			"Ulli, 3, 122",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Equal(req[i], r.String())
+			return nil
+		})
+
+		// v going down v
+		fd.Paging.PageCursor = r.Paging.PrevPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.Nil(r.Paging.PrevPage)
+		h.a.Equal(4, r.Size())
+
+		req = []string{
+			"Engel, 3, 179",
+			"Manu, 1, 61",
+			"Maria, 3, 183",
+			"Sascha, 1, 38",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Equal(req[i], r.String())
+			return nil
+		})
+	})
 }

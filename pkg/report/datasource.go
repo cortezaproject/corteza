@@ -7,12 +7,11 @@ import (
 type (
 	// DatasourceProvider provides access to system datasources, such as ComposeRecords
 	DatasourceProvider interface {
-		// Datasource initializes and returns the Datasource the reporter can use
+		// Datasource initializes and returns the Datasource we can use
 		Datasource(context.Context, *LoadStepDefinition) (Datasource, error)
 	}
 
-	// Loader returns the next Frame from the Datasource
-	// @todo better memory reuse
+	// Loader returns the next Frame from the Datasource; returns nil, nil if no more
 	Loader func(cap int) ([]*Frame, error)
 	// Closer closes the Datasource
 	Closer func()
@@ -20,6 +19,7 @@ type (
 	DatasourceSet []Datasource
 	Datasource    interface {
 		Name() string
+		// Closer return argument may be omitted for some datasources
 		Load(context.Context, ...*FrameDefinition) (Loader, Closer, error)
 		Describe() FrameDescriptionSet
 	}
