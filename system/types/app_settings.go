@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	oidcProviderPrefix = "openid-connect." // must match const in "github.com/cortezaproject/corteza-server/auth/external" external.go
+)
+
 type (
 	// AppSettings type is structured representation of all application settings
 	//
@@ -177,6 +181,19 @@ type (
 	}
 )
 
+func (set *ExternalAuthProvider) ValidConfiguration() bool {
+	if !set.Enabled || set.Handle == "" || set.Key == "" || set.Secret == "" {
+		return false
+	}
+
+	if strings.HasPrefix(set.Handle, oidcProviderPrefix) && set.IssuerUrl == "" {
+		// OIDC IdPs need to have issuer URL
+		return false
+	}
+
+	return true
+}
+
 // DecodeKV translates settings' KV into internal system external auth settings
 func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err error) {
 	if *set == nil {
@@ -190,13 +207,12 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 	kv = kv.CutPrefix(prefix + ".")
 
 	// add all additional providers (prefixed with "openid-connect.")
-	oidcPrefix := "openid-connect."
 	for p := range kv {
-		if !strings.HasPrefix(p, oidcPrefix) {
+		if !strings.HasPrefix(p, oidcProviderPrefix) {
 			continue
 		}
 
-		l := len(oidcPrefix)
+		l := len(oidcProviderPrefix)
 		dotPos := strings.Index(p[l:], ".") + l
 		if dotPos > 0 {
 			providers[p[:dotPos]] = true
@@ -227,8 +243,8 @@ func (set *ExternalAuthProviderSet) DecodeKV(kv SettingsKV, prefix string) (err 
 			case "crust-iam", "crust", "crust-unify":
 				p.Label = "Crust IAM"
 			default:
-				if strings.HasPrefix(p.Handle, oidcPrefix) {
-					p.Label = strings.Title(p.Handle[len(oidcPrefix):])
+				if strings.HasPrefix(p.Handle, oidcProviderPrefix) {
+					p.Label = strings.Title(p.Handle[len(oidcProviderPrefix):])
 				} else {
 					p.Label = strings.Title(p.Handle)
 				}
