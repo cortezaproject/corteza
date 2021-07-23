@@ -8,48 +8,53 @@ type (
 		PasswordResetEnabled      bool
 		ExternalEnabled           bool
 		Providers                 []Provider
+		Saml                      SAML
+		MultiFactor               MultiFactor
+	}
 
-		Saml struct {
-			Enabled bool
+	SAML struct {
+		Enabled bool
 
-			// SAML certificate
-			Cert string
+		// SAML certificate
+		Cert string
 
-			// SAML certificate private key
-			Key string
+		// SAML certificate private key
+		Key string
 
-			// Identity provider hostname
-			IDP struct {
-				URL  string
-				Name string
+		// Identity provider hostname
+		IDP struct {
+			URL  string
+			Name string
 
-				// identifier payload from idp
-				IdentName       string
-				IdentHandle     string
-				IdentIdentifier string
-			}
+			// identifier payload from idp
+			IdentName       string
+			IdentHandle     string
+			IdentIdentifier string
 		}
+	}
 
-		MultiFactor struct {
-			EmailOTP struct {
-				// Can users use email for MFA
-				Enabled bool
+	MultiFactor struct {
+		EmailOTP EmailOTP
+		TOTP     TOTP
+	}
 
-				// Is MFA with email enforced?
-				Enforced bool
-			}
+	EmailOTP struct {
+		// Can users use email for MFA
+		Enabled bool
 
-			TOTP struct {
-				// Can users use TOTP MFA?
-				Enabled bool
+		// Is MFA with email enforced?
+		Enforced bool
+	}
 
-				// Is TOTP MFA enforced?
-				Enforced bool
+	TOTP struct {
+		// Can users use TOTP MFA?
+		Enabled bool
 
-				// TOTP issuer
-				Issuer string
-			}
-		}
+		// Is TOTP MFA enforced?
+		Enforced bool
+
+		// TOTP issuer
+		Issuer string
 	}
 
 	Provider struct {
