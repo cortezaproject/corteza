@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	authService "github.com/cortezaproject/corteza-server/auth"
+	"github.com/cortezaproject/corteza-server/auth/external"
 	authHandlers "github.com/cortezaproject/corteza-server/auth/handlers"
 	"github.com/cortezaproject/corteza-server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza-server/auth/settings"
@@ -523,8 +524,18 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 	)
 
 	for _, p := range cas.External.Providers {
-		if !p.Enabled || p.Handle == "" || p.IssuerUrl == "" || p.Key == "" || p.Secret == "" {
+		if !p.Enabled || p.Handle == "" || p.Key == "" || p.Secret == "" {
 			continue
+		}
+
+		if strings.HasPrefix(p.Handle, external.OIDC_PROVIDER_PREFIX) {
+			if p.IssuerUrl == "" {
+				// OIDC IdPs need to have issuer URL
+				continue
+			}
+		} else {
+			// non-OIDC provider do not need issuer URL
+			p.IssuerUrl = ""
 		}
 
 		providers = append(providers, authSettings.Provider{
