@@ -493,6 +493,331 @@ func TestReporterJoining(t *testing.T) {
 			return nil
 		})
 	})
+
+	t.Run("paging", func(t *testing.T) {
+		rp.Frames[0].Paging = &filter.Paging{
+			Limit: 5,
+		}
+		rp.Frames[0].Sorting = filter.SortExprSet{
+			&filter.SortExpr{Column: "join_key", Descending: false},
+		}
+
+		rp.Frames[1].Paging = &filter.Paging{
+			Limit: 2,
+		}
+		rp.Frames[1].Sorting = filter.SortExprSet{
+			&filter.SortExpr{Column: "name", Descending: false},
+		}
+
+		// ^ going up ^
+
+		// // // PAGE 1
+		rr, err := model.Load(ctx, rp.Frames...)
+		h.a.NoError(err)
+		h.a.Len(rr, 4)
+		local := rr[0]
+		ix := indexJoinedResult(rr)
+		_ = ix
+
+		// local
+		h.a.Equal(5, local.Size())
+		h.a.NotNil(local.Paging)
+		h.a.NotNil(local.Paging.NextPage)
+		h.a.Nil(local.Paging.PrevPage)
+		req := []string{
+			", Engel_Kempf, Engel, Kempf",
+			", Engel_Kiefer, Engel, Kiefer",
+			", Engel_Loritz, Engel, Loritz",
+			", Manu_Specht, Manu, Specht",
+			", Maria_Krüger, Maria, Krüger",
+		}
+		local.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Manu_Specht
+		f := ix["Manu_Specht"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Manu_Specht, u10 j1, d, 45, 56",
+			", Manu_Specht, u10 j2, c, 83, 70",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Kiefer
+		f = ix["Engel_Kiefer"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Engel_Kiefer, u12 j1, a, 42, 69",
+			", Engel_Kiefer, u12 j10, c, 79, 25",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Loritz
+		f = ix["Engel_Loritz"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Engel_Loritz, u3 j1, a, 10, 1",
+			", Engel_Loritz, u3 j2, a, 0, 0",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// // // PAGE 2
+		rp.Frames[0].Paging.PageCursor = local.Paging.NextPage
+		rr, err = model.Load(ctx, rp.Frames...)
+		h.a.NoError(err)
+
+		h.a.Len(rr, 4)
+		local = rr[0]
+		ix = indexJoinedResult(rr)
+		_ = ix
+
+		// local
+		h.a.Equal(5, local.Size())
+		h.a.NotNil(local.Paging)
+		h.a.NotNil(local.Paging.NextPage)
+		h.a.NotNil(local.Paging.PrevPage)
+		req = []string{
+			", Maria_Königsmann, Maria, Königsmann",
+			", Maria_Spannagel, Maria, Spannagel",
+			", Sascha_Jans, Sascha, Jans",
+			", Sigi_Goldschmidt, Sigi, Goldschmidt",
+			", Ulli_Böhler, Ulli, Böhler",
+			", Ulli_Förstner, Ulli, Förstner",
+		}
+		local.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Maria_Königsmann
+		f = ix["Maria_Königsmann"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Maria_Königsmann, u1 j1, a, 10, 2",
+			", Maria_Königsmann, u1 j2, b, 20, 5",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Kiefer
+		f = ix["Ulli_Böhler"]
+		h.a.NotNil(f)
+		h.a.Nil(f.Paging)
+		req = []string{
+			", Ulli_Böhler, u5 j1, a, 1, 2",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Sigi_Goldschmidt
+		f = ix["Sigi_Goldschmidt"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Sigi_Goldschmidt, u7 j1, d, 10, 29",
+			", Sigi_Goldschmidt, u7 j2, a, 10, 21",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// // // PAGE 3
+		rp.Frames[0].Paging.PageCursor = local.Paging.NextPage
+		rr, err = model.Load(ctx, rp.Frames...)
+		h.a.NoError(err)
+
+		h.a.Len(rr, 1)
+		local = rr[0]
+		ix = indexJoinedResult(rr)
+		_ = ix
+
+		// local
+		h.a.Equal(2, local.Size())
+		h.a.NotNil(local.Paging)
+		h.a.Nil(local.Paging.NextPage)
+		h.a.NotNil(local.Paging.PrevPage)
+		req = []string{
+			", Ulli_Förstner, Ulli, Förstner",
+			", Ulli_Haupt, Ulli, Haupt",
+		}
+		local.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// v going down v
+
+		// // // PAGE 2
+		rp.Frames[0].Paging.PageCursor = local.Paging.PrevPage
+		rr, err = model.Load(ctx, rp.Frames...)
+		h.a.NoError(err)
+
+		h.a.Len(rr, 4)
+		local = rr[0]
+		ix = indexJoinedResult(rr)
+		_ = ix
+
+		// local
+		h.a.Equal(5, local.Size())
+		h.a.NotNil(local.Paging)
+		h.a.NotNil(local.Paging.NextPage)
+		h.a.NotNil(local.Paging.PrevPage)
+		req = []string{
+			", Maria_Königsmann, Maria, Königsmann",
+			", Maria_Spannagel, Maria, Spannagel",
+			", Sascha_Jans, Sascha, Jans",
+			", Sigi_Goldschmidt, Sigi, Goldschmidt",
+			", Ulli_Böhler, Ulli, Böhler",
+			", Ulli_Förstner, Ulli, Förstner",
+		}
+		local.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Maria_Königsmann
+		f = ix["Maria_Königsmann"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Maria_Königsmann, u1 j1, a, 10, 2",
+			", Maria_Königsmann, u1 j2, b, 20, 5",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Kiefer
+		f = ix["Ulli_Böhler"]
+		h.a.NotNil(f)
+		h.a.Nil(f.Paging)
+		req = []string{
+			", Ulli_Böhler, u5 j1, a, 1, 2",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Sigi_Goldschmidt
+		f = ix["Sigi_Goldschmidt"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Sigi_Goldschmidt, u7 j1, d, 10, 29",
+			", Sigi_Goldschmidt, u7 j2, a, 10, 21",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// // // PAGE 1
+		rp.Frames[0].Paging.PageCursor = local.Paging.PrevPage
+		rr, err = model.Load(ctx, rp.Frames...)
+		h.a.NoError(err)
+		h.a.Len(rr, 4)
+		local = rr[0]
+		ix = indexJoinedResult(rr)
+		_ = ix
+
+		// local
+		h.a.Equal(5, local.Size())
+		h.a.NotNil(local.Paging)
+		h.a.NotNil(local.Paging.NextPage)
+		h.a.Nil(local.Paging.PrevPage)
+		req = []string{
+			", Engel_Kempf, Engel, Kempf",
+			", Engel_Kiefer, Engel, Kiefer",
+			", Engel_Loritz, Engel, Loritz",
+			", Manu_Specht, Manu, Specht",
+			", Maria_Krüger, Maria, Krüger",
+		}
+		local.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Manu_Specht
+		f = ix["Manu_Specht"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Manu_Specht, u10 j1, d, 45, 56",
+			", Manu_Specht, u10 j2, c, 83, 70",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Kiefer
+		f = ix["Engel_Kiefer"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Engel_Kiefer, u12 j1, a, 42, 69",
+			", Engel_Kiefer, u12 j10, c, 79, 25",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// Engel_Loritz
+		f = ix["Engel_Loritz"]
+		h.a.NotNil(f)
+		h.a.NotNil(f.Paging)
+		h.a.NotNil(f.Paging.NextPage)
+		h.a.Nil(f.Paging.PrevPage)
+		req = []string{
+			", Engel_Loritz, u3 j1, a, 10, 1",
+			", Engel_Loritz, u3 j2, a, 0, 0",
+		}
+		f.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+	})
 }
 
 func indexJoinedResult(ff []*report.Frame) map[string]*report.Frame {

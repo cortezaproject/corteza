@@ -75,6 +75,8 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 		c = report.MakeColumnOfKind("Record")
 		c.Name = "id"
 		c.Label = "Record ID"
+		c.Primary = true
+		c.Unique = true
 		cols = append(cols, c)
 
 		for _, f := range mod.Fields {

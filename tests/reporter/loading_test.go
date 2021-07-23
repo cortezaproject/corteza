@@ -124,6 +124,129 @@ func TestReporterLoading(t *testing.T) {
 			return nil
 		})
 	})
+
+	t.Run("paging", func(t *testing.T) {
+		fd.Paging = &filter.Paging{
+			Limit: 5,
+		}
+		fd.Sorting = filter.SortExprSet{
+			&filter.SortExpr{Column: "join_key", Descending: false},
+		}
+		fd.Columns = report.FrameColumnSet{
+			&report.FrameColumn{Name: "id", Kind: "Record"},
+			&report.FrameColumn{Name: "join_key", Kind: "String"},
+			&report.FrameColumn{Name: "first_name", Kind: "String"},
+		}
+
+		// ^ going up ^
+		rr, err := model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r := rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.Nil(r.Paging.PrevPage)
+		h.a.Equal(5, r.Size())
+
+		// omit the ID's because they are generated
+		req := []string{
+			", Engel_Kempf, Engel",
+			", Engel_Kiefer, Engel",
+			", Engel_Loritz, Engel",
+			", Manu_Specht, Manu",
+			", Maria_Krüger, Maria",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		fd.Paging.PageCursor = r.Paging.NextPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.NotNil(r.Paging.PrevPage)
+		h.a.Equal(5, r.Size())
+
+		req = []string{
+			", Maria_Königsmann, Maria",
+			", Maria_Spannagel, Maria",
+			", Sascha_Jans, Sascha",
+			", Sigi_Goldschmidt, Sigi",
+			", Ulli_Böhler, Ulli",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		fd.Paging.PageCursor = r.Paging.NextPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.Nil(r.Paging.NextPage)
+		h.a.NotNil(r.Paging.PrevPage)
+		h.a.Equal(2, r.Size())
+
+		req = []string{
+			", Ulli_Förstner, Ulli",
+			", Ulli_Haupt, Ulli",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		// v going down v
+		fd.Paging.PageCursor = r.Paging.PrevPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.NotNil(r.Paging.PrevPage)
+		h.a.Equal(5, r.Size())
+
+		req = []string{
+			", Maria_Königsmann, Maria",
+			", Maria_Spannagel, Maria",
+			", Sascha_Jans, Sascha",
+			", Sigi_Goldschmidt, Sigi",
+			", Ulli_Böhler, Ulli",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+
+		fd.Paging.PageCursor = r.Paging.PrevPage
+		rr, err = model.Load(ctx, fd)
+		h.a.NoError(err)
+		h.a.Len(rr, 1)
+		r = rr[0]
+		h.a.NotNil(r.Paging)
+		h.a.NotNil(r.Paging.NextPage)
+		h.a.Nil(r.Paging.PrevPage)
+		h.a.Equal(5, r.Size())
+
+		req = []string{
+			", Engel_Kempf, Engel",
+			", Engel_Kiefer, Engel",
+			", Engel_Loritz, Engel",
+			", Manu_Specht, Manu",
+			", Maria_Krüger, Maria",
+		}
+		r.WalkRows(func(i int, r report.FrameRow) error {
+			h.a.Contains(r.String(), req[i])
+			return nil
+		})
+	})
 }
 
 func prepare(t *testing.T, report string) (context.Context, helper, store.Storer, *auxReport) {

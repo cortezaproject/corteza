@@ -37,9 +37,12 @@ type (
 	frameCellCaster func(in interface{}) (expr.TypedValue, error)
 	FrameColumnSet  []*FrameColumn
 	FrameColumn     struct {
-		Name   string          `json:"name"`
-		Label  string          `json:"label"`
-		Kind   string          `json:"kind"`
+		Name    string `json:"name"`
+		Label   string `json:"label"`
+		Kind    string `json:"kind"`
+		Primary bool   `json:"primary"`
+		Unique  bool   `json:"unique"`
+
 		Caster frameCellCaster `json:"-"`
 	}
 
@@ -63,10 +66,6 @@ type (
 
 		// @todo size and other shape related bits
 	}
-)
-
-const (
-	columnWildcard = "*"
 )
 
 func MakeColumnOfKind(k string) *FrameColumn {
@@ -148,32 +147,6 @@ func (b CellDefinition) OpToCmp() string {
 	default:
 		return "="
 	}
-}
-
-// Slice in place
-func (f *Frame) Slice(startIndex, size int) (a, b *Frame) {
-	a = &Frame{
-		Name:      f.Name,
-		Source:    f.Source,
-		Ref:       f.Ref,
-		RefValue:  f.RefValue,
-		RelColumn: f.RelColumn,
-
-		Columns: f.Columns,
-	}
-	b = &Frame{
-		Name:      f.Name,
-		Source:    f.Source,
-		Ref:       f.Ref,
-		RefValue:  f.RefValue,
-		RelColumn: f.RelColumn,
-
-		Columns: f.Columns,
-	}
-
-	a.Rows = f.Rows[startIndex:size]
-	b.Rows = f.Rows[size:]
-	return a, b
 }
 
 // With guard element
@@ -285,6 +258,33 @@ func (f *Frame) String() string {
 	return out
 }
 
+func (f *Frame) CollectCursorValues(r FrameRow, cc ...*filter.SortExpr) *filter.PagingCursor {
+	// @todo pk and unique things; how should we do it?
+
+	cursor := &filter.PagingCursor{LThen: filter.SortExprSet(cc).Reversed()}
+
+	for _, c := range cc {
+		// the check for existence should be performed way in advanced so we won't bother here
+		cursor.Set(c.Column, r[f.Columns.Find(c.Column)].Get(), c.Descending)
+	}
+
+	return cursor
+}
+
+func (cc FrameColumnSet) Clone() (out FrameColumnSet) {
+	out = make(FrameColumnSet, len(cc))
+	for i, c := range cc {
+		out[i] = &FrameColumn{
+			Name:   c.Name,
+			Label:  c.Label,
+			Kind:   c.Kind,
+			Caster: c.Caster,
+		}
+	}
+
+	return
+}
+
 func (cc FrameColumnSet) Find(name string) int {
 	for i, c := range cc {
 		if c.Name == name {
@@ -339,6 +339,19 @@ func (r FrameRow) ToVars(cc FrameColumnSet) (vv *expr.Vars, err error) {
 		}
 	}
 	return
+}
+
+func (f *FrameDefinition) Clone() (out *FrameDefinition) {
+	return &FrameDefinition{
+		Name:   f.Name,
+		Source: f.Source,
+		Ref:    f.Ref,
+
+		Rows:    f.Rows.Clone(),
+		Columns: f.Columns.Clone(),
+		Paging:  f.Paging.Clone(),
+		Sorting: f.Sorting.Clone(),
+	}
 }
 
 func (dd FrameDefinitionSet) Find(name string) *FrameDefinition {
