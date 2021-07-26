@@ -498,6 +498,102 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 	return e
 }
 
+// AuthClientErrUnableToChangeDefaultClientHandle returns "system:auth-client.unableToChangeDefaultClientHandle" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthClientErrUnableToChangeDefaultClientHandle(mm ...*authClientActionProps) *errors.Error {
+	var p = &authClientActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unable to change the handle of the default auth client", nil),
+
+		errors.Meta("type", "unableToChangeDefaultClientHandle"),
+		errors.Meta("resource", "system:auth-client"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to change the default auth client handle"),
+		errors.Meta(authClientPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthClientErrUnableToDisableDefaultClient returns "system:auth-client.unableToDisableDefaultClient" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthClientErrUnableToDisableDefaultClient(mm ...*authClientActionProps) *errors.Error {
+	var p = &authClientActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unable to disable the default auth client", nil),
+
+		errors.Meta("type", "unableToDisableDefaultClient"),
+		errors.Meta("resource", "system:auth-client"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to disable the default auth client"),
+		errors.Meta(authClientPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthClientErrUnableToDeleteDefaultClient returns "system:auth-client.unableToDeleteDefaultClient" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthClientErrUnableToDeleteDefaultClient(mm ...*authClientActionProps) *errors.Error {
+	var p = &authClientActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("unable to delete the default auth client", nil),
+
+		errors.Meta("type", "unableToDeleteDefaultClient"),
+		errors.Meta("resource", "system:auth-client"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to delete the default auth client"),
+		errors.Meta(authClientPropsMetaKey{}, p),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AuthClientErrNotAllowedToRead returns "system:auth-client.notAllowedToRead" as *errors.Error
 //
 //

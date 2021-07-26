@@ -61,6 +61,18 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: unableToChangeDefaultClientHandle
+    message: "unable to change the handle of the default auth client"
+    log: "failed to update {authClient}; unable to change the default auth client handle"
+
+  - error: unableToDisableDefaultClient
+    message: "unable to disable the default auth client"
+    log: "failed to update {authClient}; unable to disable the default auth client"
+
+  - error: unableToDeleteDefaultClient
+    message: "unable to delete the default auth client"
+    log: "failed to update {authClient}; unable to delete the default auth client"
+
   - error: notAllowedToRead
     message: "not allowed to read this auth client"
     log: "failed to read {authClient}; insufficient permissions"

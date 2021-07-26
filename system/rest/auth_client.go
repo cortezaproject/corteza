@@ -2,8 +2,10 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -16,6 +18,7 @@ type (
 	AuthClient struct {
 		authClient authClientService
 		ac         authClientAccessController
+		opt        options.AuthOpt
 	}
 
 	authClientService interface {
@@ -27,6 +30,7 @@ type (
 		Undelete(ctx context.Context, ID uint64) (err error)
 		ExposeSecret(ctx context.Context, ID uint64) (secret string, err error)
 		RegenerateSecret(ctx context.Context, ID uint64) (secret string, err error)
+		IsDefaultClient(c *types.AuthClient) bool
 	}
 
 	authClientAccessController interface {
@@ -38,6 +42,8 @@ type (
 
 	authClientPayload struct {
 		*types.AuthClient
+
+		IsDefault bool `json:"isDefault"`
 
 		CanGrant            bool `json:"canGrant"`
 		CanUpdateAuthClient bool `json:"canUpdateAuthClient"`
@@ -152,6 +158,8 @@ func (ctrl AuthClient) makePayload(ctx context.Context, m *types.AuthClient, err
 
 	return &authClientPayload{
 		AuthClient: m,
+
+		IsDefault: ctrl.authClient.IsDefaultClient(m),
 
 		CanGrant: ctrl.ac.CanGrant(ctx),
 

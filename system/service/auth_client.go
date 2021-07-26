@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/label"
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/rand"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/service/event"
@@ -20,6 +21,7 @@ type (
 		eventbus  eventDispatcher
 		actionlog actionlog.Recorder
 		store     store.Storer
+		opt       options.AuthOpt
 	}
 
 	authClientAccessController interface {
@@ -32,8 +34,14 @@ type (
 )
 
 // AuthClient is a default authClient service initializer
-func AuthClient(s store.Storer, ac authClientAccessController, al actionlog.Recorder, eb eventDispatcher) *authClient {
-	return &authClient{store: s, ac: ac, actionlog: al, eventbus: eb}
+func AuthClient(s store.Storer, ac authClientAccessController, al actionlog.Recorder, eb eventDispatcher, opt options.AuthOpt) *authClient {
+	return &authClient{
+		store:     s,
+		ac:        ac,
+		actionlog: al,
+		eventbus:  eb,
+		opt:       opt,
+	}
 }
 
 func (svc *authClient) LookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
@@ -78,6 +86,14 @@ func (svc *authClient) RegenerateSecret(ctx context.Context, ID uint64) (secret 
 	}
 
 	return secret, svc.recordAction(ctx, aaProps, AuthClientActionRegenerateSecret, err)
+}
+
+func (svc *authClient) IsDefaultClient(c *types.AuthClient) bool {
+	if c == nil {
+		return false
+	}
+
+	return c.Handle == svc.opt.DefaultClient
 }
 
 func (svc *authClient) lookupByID(ctx context.Context, ID uint64) (client *types.AuthClient, err error) {
@@ -222,7 +238,24 @@ func (svc *authClient) Create(ctx context.Context, new *types.AuthClient) (app *
 
 func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (app *types.AuthClient, err error) {
 	var (
-		aaProps = &authClientActionProps{update: upd}
+		aaProps                = &authClientActionProps{update: upd}
+		defaultClientValidator = func(old, upd *types.AuthClient) error {
+			if old.Handle != svc.opt.DefaultClient {
+				return nil
+			}
+
+			// The handle may not change
+			if old.Handle != upd.Handle {
+				return AuthClientErrUnableToChangeDefaultClientHandle()
+			}
+
+			// The client may not get disabled
+			if !upd.Enabled {
+				return AuthClientErrUnableToDisableDefaultClient()
+			}
+
+			return nil
+		}
 	)
 
 	err = func() (err error) {
@@ -247,8 +280,18 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (app *
 			return AuthClientErrNotAllowedToUpdate()
 		}
 
+		// Firstly validate before the automation occurs
+		if err = defaultClientValidator(app, upd); err != nil {
+			return err
+		}
+
 		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeUpdate(upd, app)); err != nil {
 			return
+		}
+
+		// Next validate after the automation occurs
+		if err = defaultClientValidator(app, upd); err != nil {
+			return err
 		}
 
 		// Assign changed values after afterUpdate events are emitted
@@ -307,6 +350,10 @@ func (svc *authClient) Delete(ctx context.Context, ID uint64) (err error) {
 
 		if !svc.ac.CanDeleteAuthClient(ctx, app) {
 			return AuthClientErrNotAllowedToDelete()
+		}
+
+		if app.Handle == svc.opt.DefaultClient {
+			return AuthClientErrUnableToDeleteDefaultClient()
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.AuthClientBeforeDelete(nil, app)); err != nil {
