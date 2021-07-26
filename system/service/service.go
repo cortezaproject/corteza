@@ -159,7 +159,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultRenderer = Renderer(c.Template)
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth()
-	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
+	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)
 	DefaultUser = User()
 	DefaultRole = Role()
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
