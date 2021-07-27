@@ -1,12 +1,10 @@
 # build stage
-FROM golang:1.16-alpine as build-stage
+FROM golang:1.16-buster as build-stage
 
 ENV GOFLAGS='-mod=readonly'
 ENV BUILD_OS=linux
 ENV BUILD_ARCH=amd64
 ENV BUILD_VERSION=latest
-
-RUN apk add build-base --no-cache
 
 WORKDIR /corteza
 
@@ -16,7 +14,7 @@ RUN make release-clean release
 
 
 # deploy stage
-FROM alpine:3
+FROM ubuntu:20.04
 
 ENV STORAGE_PATH "/data"
 ENV CORREDOR_ADDR "corredor:80"
