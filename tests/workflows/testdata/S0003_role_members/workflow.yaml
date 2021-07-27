@@ -1,0 +1,74 @@
+workflows:
+  role-members:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      # Adding membership
+      - stepID: 10
+        kind: function
+        ref: rolesAddMember
+        arguments:
+          - { target: role, type: Handle, value: r1 }
+          - { target: user, type: Handle, value: u1 }
+      - stepID: 11
+        kind: function
+        ref: rolesAddMember
+        arguments:
+          - { target: role, type: Handle, value: r2 }
+          - { target: user, type: Handle, value: u1 }
+
+      # Get current state
+      - stepID: 20
+        kind: function
+        ref: rolesSearchMembers
+        arguments:
+          - { target: lookup, type: Handle, value: r1 }
+        results:
+          - { target: usersPre_r1, expr: "users" }
+          - { target: totalPre_r1, expr: "total" }
+      - stepID: 21
+        kind: function
+        ref: rolesSearchMembers
+        arguments:
+          - { target: lookup, type: Handle, value: r2 }
+        results:
+          - { target: usersPre_r2, expr: "users" }
+          - { target: totalPre_r2, expr: "total" }
+
+      # Removing membership
+      - stepID: 30
+        kind: function
+        ref: rolesRemoveMember
+        arguments:
+          - { target: role, type: Handle, value: r1 }
+          - { target: user, type: Handle, value: u1 }
+
+      # Get final state
+      - stepID: 40
+        kind: function
+        ref: rolesSearchMembers
+        arguments:
+          - { target: lookup, type: Handle, value: r1 }
+        results:
+          - { target: usersPost_r1, expr: "users" }
+          - { target: totalPost_r1, expr: "total" }
+      - stepID: 41
+        kind: function
+        ref: rolesSearchMembers
+        arguments:
+          - { target: lookup, type: Handle, value: r2 }
+        results:
+          - { target: usersPost_r2, expr: "users" }
+          - { target: totalPost_r2, expr: "total" }
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 11, childID: 20 }
+      - { parentID: 20, childID: 21 }
+      - { parentID: 21, childID: 30 }
+      - { parentID: 30, childID: 40 }
+      - { parentID: 40, childID: 41 }

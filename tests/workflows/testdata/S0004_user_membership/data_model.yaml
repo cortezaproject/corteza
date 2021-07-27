@@ -1,0 +1,7 @@
+users:
+  u1: u1@example.tld
+  u2: u2@example.tld
+
+roles:
+  r1: Role1
+  r2: Role2
