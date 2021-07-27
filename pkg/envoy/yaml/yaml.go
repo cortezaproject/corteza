@@ -202,6 +202,10 @@ func addMap(n *yaml.Node, pp ...interface{}) (*yaml.Node, error) {
 			}
 			vn, err = encodeNode(v)
 
+			if v == "\n" {
+				vn.Style = yaml.DoubleQuotedStyle
+			}
+
 		default:
 			vn, err = encodeNode(vRaw)
 		}
