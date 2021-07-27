@@ -2,6 +2,7 @@ package automation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
@@ -23,11 +24,17 @@ type (
 		Archive(ctx context.Context, id uint64) error
 		Unarchive(ctx context.Context, id uint64) error
 		Undelete(ctx context.Context, id uint64) error
+
+		Membership(ctx context.Context, userID uint64) (types.RoleMemberSet, error)
+		MemberList(ctx context.Context, roleID uint64) (types.RoleMemberSet, error)
+		MemberAdd(ctx context.Context, roleID, userID uint64) error
+		MemberRemove(ctx context.Context, roleID, userID uint64) error
 	}
 
 	rolesHandler struct {
 		reg  rolesHandlerRegistry
 		rSvc roleService
+		uSvc userService
 	}
 
 	roleSetIterator struct {
@@ -41,10 +48,11 @@ type (
 	}
 )
 
-func RolesHandler(reg rolesHandlerRegistry, rSvc roleService) *rolesHandler {
+func RolesHandler(reg rolesHandlerRegistry, rSvc roleService, uSvc userService) *rolesHandler {
 	h := &rolesHandler{
 		reg:  reg,
 		rSvc: rSvc,
+		uSvc: uSvc,
 	}
 
 	h.register()
@@ -55,6 +63,143 @@ func (h rolesHandler) lookup(ctx context.Context, args *rolesLookupArgs) (result
 	results = &rolesLookupResults{}
 	results.Role, err = lookupRole(ctx, h.rSvc, args)
 	return
+}
+
+func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMembersArgs) (results *rolesSearchMembersResults, err error) {
+	results = &rolesSearchMembersResults{}
+
+	rl, err := lookupRole(ctx, h.rSvc, args)
+	if err != nil {
+		return
+	}
+	if rl == nil {
+		return nil, errors.New("role not found")
+	}
+
+	// Get membership info
+	mm, err := h.rSvc.MemberList(ctx, rl.ID)
+	if err != nil {
+		return
+	}
+
+	if len(mm) == 0 {
+		results.Users = []*types.User{}
+		return
+	}
+
+	// Get actual users
+	uu := make([]uint64, len(mm))
+	for i, m := range mm {
+		uu[i] = m.UserID
+	}
+	results.Users, _, err = h.uSvc.Find(ctx, types.UserFilter{
+		UserID: uu,
+	})
+	results.Total = uint64(len(results.Users))
+
+	return
+}
+
+func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs) (out wfexec.IteratorHandler, err error) {
+	var (
+		i = &userSetIterator{}
+	)
+
+	rl, err := lookupRole(ctx, h.rSvc, args)
+	if err != nil {
+		return
+	}
+	if rl == nil {
+		return nil, errors.New("role not found")
+	}
+
+	// Get membership info
+	mm, err := h.rSvc.MemberList(ctx, rl.ID)
+	if err != nil {
+		return
+	}
+
+	if len(mm) == 0 {
+		i.set = []*types.User{}
+		i.filter = types.UserFilter{}
+		return i, nil
+	}
+
+	// Get actual users
+	uu := make([]uint64, len(mm))
+	for i, m := range mm {
+		uu[i] = m.UserID
+	}
+	i.set, i.filter, err = h.uSvc.Find(ctx, types.UserFilter{
+		UserID: uu,
+	})
+	return i, err
+}
+
+func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (err error) {
+	role, err := lookupRole(ctx, h.rSvc, &rolesLookupArgs{
+		hasLookup:    args.hasRole,
+		Lookup:       args.Role,
+		lookupID:     args.roleID,
+		lookupHandle: args.roleHandle,
+		lookupRes:    args.roleRes,
+	})
+	if err != nil {
+		return
+	}
+	if role == nil {
+		return errors.New("role not found")
+	}
+
+	user, err := lookupUser(ctx, h.uSvc, &usersLookupArgs{
+		hasLookup:    args.hasUser,
+		Lookup:       args.User,
+		lookupID:     args.userID,
+		lookupHandle: args.userHandle,
+		lookupEmail:  args.userEmail,
+		lookupRes:    args.userRes,
+	})
+	if err != nil {
+		return
+	}
+	if role == nil {
+		return errors.New("user not found")
+	}
+
+	return h.rSvc.MemberAdd(ctx, role.ID, user.ID)
+}
+
+func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberArgs) (err error) {
+	role, err := lookupRole(ctx, h.rSvc, &rolesLookupArgs{
+		hasLookup:    args.hasRole,
+		Lookup:       args.Role,
+		lookupID:     args.roleID,
+		lookupHandle: args.roleHandle,
+		lookupRes:    args.roleRes,
+	})
+	if err != nil {
+		return
+	}
+	if role == nil {
+		return errors.New("role not found")
+	}
+
+	user, err := lookupUser(ctx, h.uSvc, &usersLookupArgs{
+		hasLookup:    args.hasUser,
+		Lookup:       args.User,
+		lookupID:     args.userID,
+		lookupHandle: args.userHandle,
+		lookupEmail:  args.userEmail,
+		lookupRes:    args.userRes,
+	})
+	if err != nil {
+		return
+	}
+	if role == nil {
+		return errors.New("user not found")
+	}
+
+	return h.rSvc.MemberRemove(ctx, role.ID, user.ID)
 }
 
 func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (results *rolesSearchResults, err error) {

@@ -1,0 +1,115 @@
+workflows:
+  user-membership:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      # Adding membership
+      - stepID: 10
+        kind: function
+        ref: rolesAddMember
+        arguments:
+          - { target: role, type: Handle, value: r1 }
+          - { target: user, type: Handle, value: u1 }
+      - stepID: 11
+        kind: function
+        ref: rolesAddMember
+        arguments:
+          - { target: role, type: Handle, value: r2 }
+          - { target: user, type: Handle, value: u1 }
+
+      # Get current state
+      - stepID: 20
+        kind: function
+        ref: usersSearchMembership
+        arguments:
+          - { target: lookup, type: Handle, value: u1 }
+        results:
+          - { target: rolesPre_u1, expr: "roles" }
+          - { target: totalPre_u1, expr: "total" }
+      - stepID: 21
+        kind: function
+        ref: usersSearchMembership
+        arguments:
+          - { target: lookup, type: Handle, value: u2 }
+        results:
+          - { target: rolesPre_u2, expr: "roles" }
+          - { target: totalPre_u2, expr: "total" }
+
+      - stepID: 22
+        kind: function
+        ref: usersCheckMembership
+        arguments:
+          - { target: user, type: Handle, value: u1 }
+          - { target: role, type: Handle, value: r1 }
+        results:
+          - { target: memberPre_u1, expr: "member" }
+      - stepID: 23
+        kind: function
+        ref: usersCheckMembership
+        arguments:
+          - { target: user, type: Handle, value: u2 }
+          - { target: role, type: Handle, value: r1 }
+        results:
+          - { target: memberPre_u2, expr: "member" }
+      
+
+      # Removing membership
+      - stepID: 30
+        kind: function
+        ref: rolesRemoveMember
+        arguments:
+          - { target: role, type: Handle, value: r1 }
+          - { target: user, type: Handle, value: u1 }
+
+      # Get final state
+      - stepID: 40
+        kind: function
+        ref: usersSearchMembership
+        arguments:
+          - { target: lookup, type: Handle, value: u1 }
+        results:
+          - { target: rolesPost_u1, expr: "roles" }
+          - { target: totalPost_u1, expr: "total" }
+      - stepID: 41
+        kind: function
+        ref: usersSearchMembership
+        arguments:
+          - { target: lookup, type: Handle, value: u2 }
+        results:
+          - { target: rolesPost_u2, expr: "roles" }
+          - { target: totalPost_u2, expr: "total" }
+
+      - stepID: 42
+        kind: function
+        ref: usersCheckMembership
+        arguments:
+          - { target: user, type: Handle, value: u1 }
+          - { target: role, type: Handle, value: r1 }
+        results:
+          - { target: memberPost_u1, expr: "member" }
+      - stepID: 43
+        kind: function
+        ref: usersCheckMembership
+        arguments:
+          - { target: user, type: Handle, value: u2 }
+          - { target: role, type: Handle, value: r1 }
+        results:
+          - { target: memberPost_u2, expr: "member" }
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 11, childID: 20 }
+      - { parentID: 20, childID: 21 }
+      - { parentID: 21, childID: 22 }
+      - { parentID: 22, childID: 23 }
+
+      - { parentID: 23, childID: 30 }
+
+      - { parentID: 30, childID: 40 }
+      - { parentID: 40, childID: 41 }
+      - { parentID: 41, childID: 42 }
+      - { parentID: 42, childID: 43 }
