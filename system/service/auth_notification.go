@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/url"
 
+	intAuth "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -82,17 +83,21 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 		tmp []byte
 		ntf = svc.newMail()
 		hdl string
+
+		// context with service user
+		// we need this for retrieving & rendering email templates
+		suCtx = intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
 	)
 
 	// Fetch parts
 	hdl = name + "_subject"
-	st, err := svc.ts.FindByHandle(ctx, hdl)
+	st, err := svc.ts.FindByHandle(suCtx, hdl)
 	if err != nil {
 		return fmt.Errorf("cannot generate auth email with template %s: %w", hdl, err)
 	}
 
 	hdl = name + "_content"
-	ct, err := svc.ts.FindByHandle(ctx, hdl)
+	ct, err := svc.ts.FindByHandle(suCtx, hdl)
 	if err != nil {
 		return fmt.Errorf("cannot generate auth email with template %s: %w", hdl, err)
 	}
@@ -105,12 +110,12 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 	payload["EmailAddress"] = sendTo
 
 	// Render document
-	subject, err := svc.ts.Render(ctx, st.ID, "text/plain", payload, nil)
+	subject, err := svc.ts.Render(suCtx, st.ID, "text/plain", payload, nil)
 	if err != nil {
 		return err
 	}
 
-	content, err := svc.ts.Render(ctx, ct.ID, "text/plain", payload, nil)
+	content, err := svc.ts.Render(suCtx, ct.ID, "text/plain", payload, nil)
 	if err != nil {
 		return err
 	}

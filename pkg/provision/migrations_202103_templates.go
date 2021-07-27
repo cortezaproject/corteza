@@ -40,12 +40,12 @@ func migrateEmailTemplates(ctx context.Context, log *zap.Logger, s store.Storer)
 			},
 			"auth.mail.email-confirmation.subject.en": {
 				Type:   "text/plain",
-				Handle: "auth_email_confirmation_subject",
+				Handle: "auth_email_confirm_subject",
 				Meta:   types.TemplateMeta{Short: "Password reset subject"},
 			},
 			"auth.mail.email-confirmation.body.en": {
 				Type:   "text/html",
-				Handle: "auth_email_confirmation_body",
+				Handle: "auth_email_confirm_body",
 				Meta:   types.TemplateMeta{Short: "Password reset content"},
 			},
 			"auth.mail.password-reset.subject.en": {
