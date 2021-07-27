@@ -28,6 +28,10 @@ type (
 func (h rolesHandler) register() {
 	h.reg.AddFunctions(
 		h.Lookup(),
+		h.SearchMembers(),
+		h.EachMember(),
+		h.AddMember(),
+		h.RemoveMember(),
 		h.Search(),
 		h.Each(),
 		h.Create(),
@@ -133,6 +137,406 @@ func (h rolesHandler) Lookup() *atypes.Function {
 			}
 
 			return
+		},
+	}
+}
+
+type (
+	rolesSearchMembersArgs struct {
+		hasLookup    bool
+		Lookup       interface{}
+		lookupID     uint64
+		lookupHandle string
+		lookupRes    *types.Role
+	}
+
+	rolesSearchMembersResults struct {
+		Users []*types.User
+		Total uint64
+	}
+)
+
+func (a rolesSearchMembersArgs) GetLookup() (bool, uint64, string, *types.Role) {
+	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
+}
+
+// SearchMembers function Role members search
+//
+// expects implementation of searchMembers function:
+// func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMembersArgs) (results *rolesSearchMembersResults, err error) {
+//    return
+// }
+func (h rolesHandler) SearchMembers() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "rolesSearchMembers",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "Role members search",
+			Description: "Find members for a specific roleby ID or handle",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "lookup",
+				Types: []string{"ID", "Handle", "Role"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:    "users",
+				Types:   []string{"User"},
+				IsArray: true,
+			},
+
+			{
+				Name:  "total",
+				Types: []string{"UnsignedInteger"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &rolesSearchMembersArgs{
+					hasLookup: in.Has("lookup"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Lookup argument
+			if args.hasLookup {
+				aux := expr.Must(expr.Select(in, "lookup"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.lookupID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.lookupHandle = aux.Get().(string)
+				case h.reg.Type("Role").Type():
+					args.lookupRes = aux.Get().(*types.Role)
+				}
+			}
+
+			var results *rolesSearchMembersResults
+			if results, err = h.searchMembers(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Users (*types.User) to Array (of User)
+				var (
+					tval expr.TypedValue
+					tarr = make([]expr.TypedValue, len(results.Users))
+				)
+
+				for i := range results.Users {
+					if tarr[i], err = h.reg.Type("User").Cast(results.Users[i]); err != nil {
+						return
+					}
+				}
+
+				if tval, err = expr.NewArray(tarr); err != nil {
+					return
+				} else if err = expr.Assign(out, "users", tval); err != nil {
+					return
+				}
+			}
+
+			{
+				// converting results.Total (uint64) to UnsignedInteger
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("UnsignedInteger").Cast(results.Total); err != nil {
+					return
+				} else if err = expr.Assign(out, "total", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	rolesEachMemberArgs struct {
+		hasLookup    bool
+		Lookup       interface{}
+		lookupID     uint64
+		lookupHandle string
+		lookupRes    *types.Role
+	}
+
+	rolesEachMemberResults struct {
+		User  *types.User
+		Total uint64
+	}
+)
+
+func (a rolesEachMemberArgs) GetLookup() (bool, uint64, string, *types.Role) {
+	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupRes
+}
+
+// EachMember function Iterate over role members
+//
+// expects implementation of eachMember function:
+// func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs) (results *rolesEachMemberResults, err error) {
+//    return
+// }
+func (h rolesHandler) EachMember() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "rolesEachMember",
+		Kind:   "iterator",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Iterate over role members",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "lookup",
+				Types: []string{"ID", "Handle", "Role"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "user",
+				Types: []string{"User"},
+			},
+
+			{
+				Name:  "total",
+				Types: []string{"UnsignedInteger"},
+			},
+		},
+
+		Iterator: func(ctx context.Context, in *expr.Vars) (out wfexec.IteratorHandler, err error) {
+			var (
+				args = &rolesEachMemberArgs{
+					hasLookup: in.Has("lookup"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Lookup argument
+			if args.hasLookup {
+				aux := expr.Must(expr.Select(in, "lookup"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.lookupID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.lookupHandle = aux.Get().(string)
+				case h.reg.Type("Role").Type():
+					args.lookupRes = aux.Get().(*types.Role)
+				}
+			}
+
+			return h.eachMember(ctx, args)
+		},
+	}
+}
+
+type (
+	rolesAddMemberArgs struct {
+		hasRole    bool
+		Role       interface{}
+		roleID     uint64
+		roleHandle string
+		roleRes    *types.Role
+
+		hasUser    bool
+		User       interface{}
+		userID     uint64
+		userHandle string
+		userEmail  string
+		userRes    *types.User
+	}
+)
+
+func (a rolesAddMemberArgs) GetRole() (bool, uint64, string, *types.Role) {
+	return a.hasRole, a.roleID, a.roleHandle, a.roleRes
+}
+
+func (a rolesAddMemberArgs) GetUser() (bool, uint64, string, string, *types.User) {
+	return a.hasUser, a.userID, a.userHandle, a.userEmail, a.userRes
+}
+
+// AddMember function Role membership add
+//
+// expects implementation of addMember function:
+// func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (err error) {
+//    return
+// }
+func (h rolesHandler) AddMember() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "rolesAddMember",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Role membership add",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "role",
+				Types: []string{"ID", "Handle", "Role"}, Required: true,
+			},
+			{
+				Name:  "user",
+				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &rolesAddMemberArgs{
+					hasRole: in.Has("role"),
+					hasUser: in.Has("user"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Role argument
+			if args.hasRole {
+				aux := expr.Must(expr.Select(in, "role"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.roleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.roleHandle = aux.Get().(string)
+				case h.reg.Type("Role").Type():
+					args.roleRes = aux.Get().(*types.Role)
+				}
+			}
+
+			// Converting User argument
+			if args.hasUser {
+				aux := expr.Must(expr.Select(in, "user"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.userID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.userHandle = aux.Get().(string)
+				case h.reg.Type("String").Type():
+					args.userEmail = aux.Get().(string)
+				case h.reg.Type("User").Type():
+					args.userRes = aux.Get().(*types.User)
+				}
+			}
+
+			return out, h.addMember(ctx, args)
+		},
+	}
+}
+
+type (
+	rolesRemoveMemberArgs struct {
+		hasRole    bool
+		Role       interface{}
+		roleID     uint64
+		roleHandle string
+		roleRes    *types.Role
+
+		hasUser    bool
+		User       interface{}
+		userID     uint64
+		userHandle string
+		userEmail  string
+		userRes    *types.User
+	}
+)
+
+func (a rolesRemoveMemberArgs) GetRole() (bool, uint64, string, *types.Role) {
+	return a.hasRole, a.roleID, a.roleHandle, a.roleRes
+}
+
+func (a rolesRemoveMemberArgs) GetUser() (bool, uint64, string, string, *types.User) {
+	return a.hasUser, a.userID, a.userHandle, a.userEmail, a.userRes
+}
+
+// RemoveMember function Role membership remove
+//
+// expects implementation of removeMember function:
+// func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberArgs) (err error) {
+//    return
+// }
+func (h rolesHandler) RemoveMember() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "rolesRemoveMember",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short: "Role membership remove",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "role",
+				Types: []string{"ID", "Handle", "Role"}, Required: true,
+			},
+			{
+				Name:  "user",
+				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &rolesRemoveMemberArgs{
+					hasRole: in.Has("role"),
+					hasUser: in.Has("user"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Role argument
+			if args.hasRole {
+				aux := expr.Must(expr.Select(in, "role"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.roleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.roleHandle = aux.Get().(string)
+				case h.reg.Type("Role").Type():
+					args.roleRes = aux.Get().(*types.Role)
+				}
+			}
+
+			// Converting User argument
+			if args.hasUser {
+				aux := expr.Must(expr.Select(in, "user"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.userID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.userHandle = aux.Get().(string)
+				case h.reg.Type("String").Type():
+					args.userEmail = aux.Get().(string)
+				case h.reg.Type("User").Type():
+					args.userRes = aux.Get().(*types.User)
+				}
+			}
+
+			return out, h.removeMember(ctx, args)
 		},
 	}
 }

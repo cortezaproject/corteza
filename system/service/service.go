@@ -181,6 +181,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automation.UsersHandler(
 		automationService.Registry(),
 		DefaultUser,
+		DefaultRole,
 	)
 
 	automation.TemplatesHandler(
@@ -191,6 +192,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	automation.RolesHandler(
 		automationService.Registry(),
 		DefaultRole,
+		DefaultUser,
 	)
 
 	return

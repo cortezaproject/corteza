@@ -16,12 +16,22 @@ params:
   rvRole: &rvRole
     wf: Role
 
+  rvUser: &rvUser
+    wf: User
 
   rvTotal: &rvTotal
     wf: UnsignedInteger
 
   rvPageCursor: &rvPageCursor
     wf: String
+
+  lookupUser: &lookupUser
+    required: true
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: String, suffix: email }
+      - { wf: User,   suffix: res }
 
   filterParams: &filterParams
     query:
@@ -75,6 +85,50 @@ functions:
       lookup: *lookup
     results:
       role: *rvRole
+
+  searchMembers:
+    meta:
+      short: Role members search
+      description: Find members for a specific roleby ID or handle
+    labels:
+      <<: *labels
+    params:
+      lookup: *lookup
+    results:
+      users:
+        <<: *rvUser
+        isArray: true
+      total: *rvTotal
+
+  eachMember:
+    kind: iterator
+    meta:
+      short: Iterate over role members
+    labels:
+      <<: *labels
+    params:
+      lookup: *lookup
+    results:
+      user:  *rvUser
+      total: *rvTotal
+
+  addMember:
+    meta:
+      short: Role membership add
+    labels:
+      <<: *labels
+    params:
+      role: *lookup
+      user: *lookupUser
+
+  removeMember:
+    meta:
+      short: Role membership remove
+    labels:
+      <<: *labels
+    params:
+      role: *lookup
+      user: *lookupUser
 
   search:
     meta:
