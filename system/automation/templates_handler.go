@@ -176,7 +176,12 @@ func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs)
 		return nil, err
 	}
 
-	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, args.Variables.Dict(), opts)
+	var vars map[string]interface{}
+	if args.hasVariables {
+		vars = args.Variables.Dict()
+	}
+
+	doc, err := h.tSvc.Render(ctx, tplID, args.DocumentType, vars, opts)
 	if err != nil {
 		return nil, err
 	}
