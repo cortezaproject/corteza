@@ -10,6 +10,13 @@ snippets:
       - { wf: String, suffix: email }
       - { wf: User,   suffix: res }
 
+  lookupRole: &lookupRole
+    required: true
+    types:
+      - { wf: ID,     }
+      - { wf: Handle, }
+      - { wf: Role,   suffix: res }
+
   user: &user
     types:
       - { wf: User }
@@ -17,8 +24,14 @@ snippets:
   rvUser: &rvUser
     wf: User
 
+  rvRole: &rvRole
+    wf: Role
+
   rvTotal: &rvTotal
     wf: UnsignedInteger
+
+  rvInclusion: &rvInclusion
+    wf: Boolean
 
   rvPageCursor: &rvPageCursor
     wf: String
@@ -72,6 +85,32 @@ functions:
       <<: *labels
     results:
       user:  *rvUser
+
+  searchMembership:
+    meta:
+      short: User role search
+      description: Search user role membership by ID, handle or string
+    params:
+      lookup: *lookup
+    labels:
+      <<: *labels
+    results:
+      roles:
+        <<: *rvRole
+        isArray: true
+      total: *rvTotal
+
+  checkMembership:
+    meta:
+      short: User membership check
+      description: Find user role membership by ID, handle or string
+    params:
+      user: *lookup
+      role: *lookupRole
+    labels:
+      <<: *labels
+    results:
+      member: *rvInclusion
 
   search:
     meta:

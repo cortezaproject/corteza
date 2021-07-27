@@ -28,6 +28,8 @@ type (
 func (h usersHandler) register() {
 	h.reg.AddFunctions(
 		h.Lookup(),
+		h.SearchMembership(),
+		h.CheckMembership(),
 		h.Search(),
 		h.Each(),
 		h.Create(),
@@ -131,6 +133,263 @@ func (h usersHandler) Lookup() *atypes.Function {
 				if tval, err = h.reg.Type("User").Cast(results.User); err != nil {
 					return
 				} else if err = expr.Assign(out, "user", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	usersSearchMembershipArgs struct {
+		hasLookup    bool
+		Lookup       interface{}
+		lookupID     uint64
+		lookupHandle string
+		lookupEmail  string
+		lookupRes    *types.User
+	}
+
+	usersSearchMembershipResults struct {
+		Roles []*types.Role
+		Total uint64
+	}
+)
+
+func (a usersSearchMembershipArgs) GetLookup() (bool, uint64, string, string, *types.User) {
+	return a.hasLookup, a.lookupID, a.lookupHandle, a.lookupEmail, a.lookupRes
+}
+
+// SearchMembership function User role search
+//
+// expects implementation of searchMembership function:
+// func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMembershipArgs) (results *usersSearchMembershipResults, err error) {
+//    return
+// }
+func (h usersHandler) SearchMembership() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "usersSearchMembership",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "User role search",
+			Description: "Search user role membership by ID, handle or string",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "lookup",
+				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:    "roles",
+				Types:   []string{"Role"},
+				IsArray: true,
+			},
+
+			{
+				Name:  "total",
+				Types: []string{"UnsignedInteger"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &usersSearchMembershipArgs{
+					hasLookup: in.Has("lookup"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Lookup argument
+			if args.hasLookup {
+				aux := expr.Must(expr.Select(in, "lookup"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.lookupID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.lookupHandle = aux.Get().(string)
+				case h.reg.Type("String").Type():
+					args.lookupEmail = aux.Get().(string)
+				case h.reg.Type("User").Type():
+					args.lookupRes = aux.Get().(*types.User)
+				}
+			}
+
+			var results *usersSearchMembershipResults
+			if results, err = h.searchMembership(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Roles (*types.Role) to Array (of Role)
+				var (
+					tval expr.TypedValue
+					tarr = make([]expr.TypedValue, len(results.Roles))
+				)
+
+				for i := range results.Roles {
+					if tarr[i], err = h.reg.Type("Role").Cast(results.Roles[i]); err != nil {
+						return
+					}
+				}
+
+				if tval, err = expr.NewArray(tarr); err != nil {
+					return
+				} else if err = expr.Assign(out, "roles", tval); err != nil {
+					return
+				}
+			}
+
+			{
+				// converting results.Total (uint64) to UnsignedInteger
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("UnsignedInteger").Cast(results.Total); err != nil {
+					return
+				} else if err = expr.Assign(out, "total", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
+	usersCheckMembershipArgs struct {
+		hasUser    bool
+		User       interface{}
+		userID     uint64
+		userHandle string
+		userEmail  string
+		userRes    *types.User
+
+		hasRole    bool
+		Role       interface{}
+		roleID     uint64
+		roleHandle string
+		roleRes    *types.Role
+	}
+
+	usersCheckMembershipResults struct {
+		Member bool
+	}
+)
+
+func (a usersCheckMembershipArgs) GetUser() (bool, uint64, string, string, *types.User) {
+	return a.hasUser, a.userID, a.userHandle, a.userEmail, a.userRes
+}
+
+func (a usersCheckMembershipArgs) GetRole() (bool, uint64, string, *types.Role) {
+	return a.hasRole, a.roleID, a.roleHandle, a.roleRes
+}
+
+// CheckMembership function User membership check
+//
+// expects implementation of checkMembership function:
+// func (h usersHandler) checkMembership(ctx context.Context, args *usersCheckMembershipArgs) (results *usersCheckMembershipResults, err error) {
+//    return
+// }
+func (h usersHandler) CheckMembership() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "usersCheckMembership",
+		Kind:   "function",
+		Labels: map[string]string{"users": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "User membership check",
+			Description: "Find user role membership by ID, handle or string",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "user",
+				Types: []string{"ID", "Handle", "String", "User"}, Required: true,
+			},
+			{
+				Name:  "role",
+				Types: []string{"ID", "Handle", "Role"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "member",
+				Types: []string{"Boolean"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &usersCheckMembershipArgs{
+					hasUser: in.Has("user"),
+					hasRole: in.Has("role"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting User argument
+			if args.hasUser {
+				aux := expr.Must(expr.Select(in, "user"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.userID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.userHandle = aux.Get().(string)
+				case h.reg.Type("String").Type():
+					args.userEmail = aux.Get().(string)
+				case h.reg.Type("User").Type():
+					args.userRes = aux.Get().(*types.User)
+				}
+			}
+
+			// Converting Role argument
+			if args.hasRole {
+				aux := expr.Must(expr.Select(in, "role"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.roleID = aux.Get().(uint64)
+				case h.reg.Type("Handle").Type():
+					args.roleHandle = aux.Get().(string)
+				case h.reg.Type("Role").Type():
+					args.roleRes = aux.Get().(*types.Role)
+				}
+			}
+
+			var results *usersCheckMembershipResults
+			if results, err = h.checkMembership(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Member (bool) to Boolean
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("Boolean").Cast(results.Member); err != nil {
+					return
+				} else if err = expr.Assign(out, "member", tval); err != nil {
 					return
 				}
 			}
