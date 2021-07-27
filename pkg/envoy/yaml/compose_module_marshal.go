@@ -153,6 +153,7 @@ func (c *composeModule) MarshalYAML() (interface{}, error) {
 }
 
 func (c *composeModuleField) MarshalYAML() (interface{}, error) {
+	var err error
 
 	auxOpt := c.res.Options
 	if auxOpt == nil {
@@ -179,9 +180,11 @@ func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 		delete(auxOpt, "roleID")
 	}
 
-	if _, has := auxOpt["multiDelimiter"]; has {
-		if auxOpt["multiDelimiter"] == "\n" {
-			auxOpt["multiDelimiter"] = "\\n"
+	nopt, _ := makeMap()
+	for k, v := range auxOpt {
+		nopt, err = addMap(nopt, k, v)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -190,7 +193,7 @@ func (c *composeModuleField) MarshalYAML() (interface{}, error) {
 		"name", c.res.Name,
 		"label", c.res.Label,
 
-		"options", auxOpt,
+		"options", nopt,
 
 		"private", c.res.Private,
 		"required", c.res.Required,
