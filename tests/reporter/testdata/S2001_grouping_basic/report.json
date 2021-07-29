@@ -38,6 +38,6 @@
       { "name": "count", "label": "count" },
       { "name": "total", "label": "total" }
     ],
-    "sort": "by_name ASC"
+    "sorting": "by_name ASC"
   }]
 }

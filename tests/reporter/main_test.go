@@ -2,8 +2,11 @@ package reporter
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/app"
@@ -12,10 +15,21 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/api/server"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
+	"github.com/cortezaproject/corteza-server/pkg/envoy"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/csv"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/directory"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
+	es "github.com/cortezaproject/corteza-server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza-server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/objstore/plain"
+	"github.com/cortezaproject/corteza-server/pkg/rand"
+	"github.com/cortezaproject/corteza-server/pkg/rbac"
+	"github.com/cortezaproject/corteza-server/pkg/report"
+	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/types"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
 	"github.com/go-chi/chi"
@@ -33,6 +47,14 @@ type (
 		cUser  *sysTypes.User
 		roleID uint64
 	}
+
+	auxReport struct {
+		*types.Report
+
+		Frames report.FrameDefinitionSet `json:"frames"`
+	}
+
+	valueDef map[string][]string
 )
 
 var (
@@ -44,6 +66,16 @@ var (
 
 func init() {
 	helpers.RecursiveDotEnvLoad()
+}
+
+// random string, 10 chars long by default
+func rs(a ...int) string {
+	var l = 10
+	if len(a) > 0 {
+		l = a[0]
+	}
+
+	return string(rand.Bytes(l))
 }
 
 func InitTestApp() {
@@ -92,6 +124,10 @@ func newHelper(t *testing.T) helper {
 	return h
 }
 
+func (h helper) MyRole() uint64 {
+	return h.roleID
+}
+
 // Returns context w/ security details
 func (h helper) secCtx() context.Context {
 	return auth.SetIdentityToContext(context.Background(), h.cUser)
@@ -108,6 +144,14 @@ func (h helper) apiInit() *apitest.APITest {
 
 }
 
+func (h helper) mockPermissions(rules ...*rbac.Rule) {
+	h.noError(rbac.Global().Grant(
+		// TestService we use does not have any backend storage,
+		context.Background(),
+		rules...,
+	))
+}
+
 // Unwraps error before it passes it to the tester
 func (h helper) noError(err error) {
 	for errors.Unwrap(err) != nil {
@@ -115,4 +159,106 @@ func (h helper) noError(err error) {
 	}
 
 	h.a.NoError(err)
+}
+
+func setup(t *testing.T) (context.Context, helper, store.Storer) {
+	h := newHelper(t)
+	s := service.DefaultStore
+
+	u := &sysTypes.User{
+		ID: id.Next(),
+	}
+	u.SetRoles(auth.BypassRoles().IDs()...)
+
+	ctx := auth.SetIdentityToContext(context.Background(), u)
+
+	return ctx, h, s
+}
+
+func loadNoErr(ctx context.Context, h helper, m report.M, dd ...*report.FrameDefinition) (ff []*report.Frame) {
+	ff, err := m.Load(ctx, dd...)
+	h.a.NoError(err)
+	return
+}
+
+func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) (report.M, *auxReport, report.FrameDefinitionSet) {
+	return loadScenarioWithName(ctx, s, t, h, "S"+t.Name()[4:])
+}
+
+func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) (report.M, *auxReport, report.FrameDefinitionSet) {
+	var (
+		providers = map[string]report.DatasourceProvider{
+			"composeRecords": service.DefaultRecord,
+		}
+	)
+
+	cleanup(ctx, h, s)
+	parseEnvoy(ctx, s, h, "testdata/data_model")
+	rr := parseReport(h, path.Join("testdata", scenario, "report.json"))
+	m := modelReport(ctx, h, providers, rr)
+
+	return m, rr, rr.Frames
+}
+
+func cleanup(ctx context.Context, h helper, s store.Storer) {
+	h.noError(s.TruncateComposeNamespaces(ctx))
+	h.noError(s.TruncateComposeModules(ctx))
+	h.noError(s.TruncateComposeModuleFields(ctx))
+	h.noError(s.TruncateComposeRecords(ctx, nil))
+}
+
+func parseEnvoy(ctx context.Context, s store.Storer, h helper, path string) {
+	nn, err := directory.Decode(
+		ctx,
+		path,
+		yaml.Decoder(),
+		csv.Decoder(),
+	)
+	if err != nil {
+		h.t.Fatalf("failed to decode scenario data: %v", err)
+	}
+
+	crs := resource.ComposeRecordShaper()
+	nn, err = resource.Shape(nn, crs)
+	h.a.NoError(err)
+
+	// import into the store
+	se := es.NewStoreEncoder(s, nil)
+	bld := envoy.NewBuilder(se)
+	g, err := bld.Build(ctx, nn...)
+	h.a.NoError(err)
+	err = envoy.Encode(ctx, g, se)
+	h.a.NoError(err)
+}
+
+func parseReport(h helper, path string) *auxReport {
+	f, err := os.Open(path)
+	h.a.NoError(err)
+	defer f.Close()
+
+	aux := &auxReport{}
+	raw, err := ioutil.ReadAll(f)
+	h.a.NoError(err)
+
+	err = json.Unmarshal(raw, &aux)
+	h.a.NoError(err)
+
+	return aux
+}
+
+func modelReport(ctx context.Context, h helper, pp map[string]report.DatasourceProvider, rr *auxReport) report.M {
+	ss := rr.Sources.ModelSteps()
+	model, err := report.Model(ctx, pp, ss...)
+	h.a.NoError(err)
+	err = model.Run(ctx)
+	h.a.NoError(err)
+
+	return model
+}
+
+func checkRows(h helper, f *report.Frame, req ...string) {
+	f.WalkRows(func(i int, r report.FrameRow) error {
+		h.a.Contains(r.String(), req[i])
+		return nil
+	})
 }
