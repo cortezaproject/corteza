@@ -10,9 +10,9 @@ import (
 
 type (
 	model struct {
-		ran         bool
-		steps       []step
-		datasources DatasourceSet
+		ran   bool
+		steps []step
+		nodes map[string]*modelGraphNode
 	}
 
 	// M is the model interface that should be used when trying to model the datasource
@@ -20,7 +20,7 @@ type (
 		Add(...step) M
 		Run(context.Context) error
 		Load(context.Context, ...*FrameDefinition) ([]*Frame, error)
-		Describe(source string) (FrameDescriptionSet, error)
+		Describe(ctx context.Context, source string) (FrameDescriptionSet, error)
 	}
 
 	stepSet []step
@@ -48,26 +48,15 @@ type (
 // Additional steps may not be added after the `M.Run(context.Context)` was called
 func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*StepDefinition) (M, error) {
 	steps := make([]step, 0, len(dd))
-	ss := make(DatasourceSet, 0, len(steps)*2)
 
 	err := func() error {
 		for _, d := range dd {
 			switch {
 			case d.Load != nil:
 				if sources == nil {
-					return errors.New("no datasources defined")
+					return errors.New("no datasource providers defined")
 				}
-
-				s, ok := sources[d.Load.Source]
-				if !ok {
-					return fmt.Errorf("unresolved datasource: %s", d.Load.Source)
-				}
-				ds, err := s.Datasource(ctx, d.Load)
-				if err != nil {
-					return err
-				}
-
-				ss = append(ss, ds)
+				steps = append(steps, &stepLoad{def: d.Load, dsp: sources[d.Load.Source]})
 
 			case d.Join != nil:
 				steps = append(steps, &stepJoin{def: d.Join})
@@ -89,8 +78,7 @@ func Model(ctx context.Context, sources map[string]DatasourceProvider, dd ...*St
 	}
 
 	return &model{
-		steps:       steps,
-		datasources: ss,
+		steps: steps,
 	}, nil
 }
 
@@ -113,7 +101,7 @@ func (m *model) Run(ctx context.Context) (err error) {
 			return errors.New("model already ran")
 		}
 
-		if len(m.steps)+len(m.datasources) == 0 {
+		if len(m.steps) == 0 {
 			return errors.New("no model steps defined")
 		}
 
@@ -130,28 +118,8 @@ func (m *model) Run(ctx context.Context) (err error) {
 		return fmt.Errorf("%s: failed to validate the model: %w", errPfx, err)
 	}
 
-	// construct the step graph
-	//
-	// If there are no steps, there is nothing to reduce
-	if len(m.steps) == 0 {
-		return nil
-	}
-	err = func() (err error) {
-		gg, err := m.buildStepGraph(m.steps, m.datasources)
-		if err != nil {
-			return err
-		}
-
-		m.datasources = nil
-		for _, n := range gg {
-			aux, err := m.reduceGraph(ctx, n)
-			if err != nil {
-				return err
-			}
-			m.datasources = append(m.datasources, aux)
-		}
-		return nil
-	}()
+	// construct a model graph for future optimizations
+	m.nodes, err = m.buildStepGraph(m.steps)
 	if err != nil {
 		return fmt.Errorf("%s: %w", errPfx, err)
 	}
@@ -162,7 +130,7 @@ func (m *model) Run(ctx context.Context) (err error) {
 // Describe returns the descriptions for the requested model datasources
 //
 // The Run method must be called before the description can be provided.
-func (m *model) Describe(source string) (out FrameDescriptionSet, err error) {
+func (m *model) Describe(ctx context.Context, source string) (out FrameDescriptionSet, err error) {
 	var ds Datasource
 
 	err = func() error {
@@ -170,8 +138,8 @@ func (m *model) Describe(source string) (out FrameDescriptionSet, err error) {
 			return fmt.Errorf("model was not yet ran")
 		}
 
-		ds := m.datasources.Find(source)
-		if ds == nil {
+		ds, err = m.datasource(ctx, &FrameDefinition{Source: source})
+		if err != nil {
 			return fmt.Errorf("model does not contain the datasource: %s", source)
 		}
 
@@ -207,10 +175,9 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, 
 		}
 
 		def = dd[0]
-
-		ds = m.datasources.Find(def.Source)
-		if ds == nil {
-			return fmt.Errorf("unresolved datasource: %s", def.Source)
+		ds, err = m.datasource(ctx, def)
+		if err != nil {
+			return err
 		}
 
 		return nil

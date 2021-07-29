@@ -313,7 +313,7 @@ func (svc *report) DescribeFresh(ctx context.Context, src types.ReportDataSource
 
 		var auxOut rep.FrameDescriptionSet
 		for _, s := range sources {
-			auxOut, err = model.Describe(s)
+			auxOut, err = model.Describe(ctx, s)
 			if err != nil {
 				return err
 			}
