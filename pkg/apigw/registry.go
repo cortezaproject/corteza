@@ -57,4 +57,5 @@ func (r *registry) Preload() {
 	r.Add("expediterRedirection", NewExpediterRedirection())
 	r.Add("processerWorkflow", NewProcesserWorkflow(NewWorkflow()))
 	r.Add("processerProxy", NewProcesserProxy(service.DefaultLogger, http.DefaultClient))
+	r.Add("processerPayload", NewProcesserPayload(service.DefaultLogger))
 }
