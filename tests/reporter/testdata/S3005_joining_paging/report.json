@@ -1,0 +1,68 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "name": "unnamed_src",
+    "groups": [
+      {
+        "name": "unnamed_grp",
+        "steps": [
+          { "load": {
+            "name": "users",
+            "source": "composeRecords",
+            "definition": {
+              "module": "user",
+              "namespace": "ns"
+            }
+          }},
+          { "load": {
+            "name": "jobs",
+            "source": "composeRecords",
+            "definition": {
+              "module": "job",
+              "namespace": "ns"
+            }
+          }},
+
+          { "join": {
+            "name": "joined",
+            "localSource": "users",
+            "localColumn": "join_key",
+            "foreignSource": "jobs",
+            "foreignColumn": "usr"
+          }}
+        ]
+      }
+    ]
+  }],
+  "frames": [{
+    "name":   "result",
+    "source": "joined",
+    "ref": "users",
+    "columns": [
+      { "name": "id", "label": "id" },
+      { "name": "join_key", "label": "join_key" },
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" }
+    ],
+    "sorting": "join_key ASC",
+    "paging": {
+      "limit": 5
+    }
+  }, {
+    "name":   "result",
+    "source": "joined",
+    "ref": "jobs",
+    "columns": [
+      { "name": "id", "label": "id" },
+      { "name": "usr", "label": "usr" },
+      { "name": "name", "label": "name" },
+      { "name": "type", "label": "type" },
+      { "name": "cost", "label": "cost" },
+      { "name": "time_spent", "label": "time_spent" }
+    ],
+    "sorting": "name ASC",
+    "paging": {
+      "limit": 2
+    }
+  }]
+}

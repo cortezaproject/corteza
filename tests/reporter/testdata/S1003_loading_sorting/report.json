@@ -1,0 +1,32 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "name": "unnamed_src",
+    "groups": [
+      {
+        "name": "unnamed_grp",
+        "steps": [
+          { "load": {
+            "name": "users",
+            "source": "composeRecords",
+            "definition": {
+              "module": "user",
+              "namespace": "ns"
+            }
+          }}
+        ]
+      }
+    ]
+  }],
+  "frames": [{
+    "name":   "result",
+    "source": "users",
+    "columns": [
+      { "name": "id", "label": "id" },
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" },
+      { "name": "number_of_numbers", "label": "number_of_numbers" }
+    ],
+    "sorting": "first_name ASC, last_name DESC, id ASC"
+  }]
+}
