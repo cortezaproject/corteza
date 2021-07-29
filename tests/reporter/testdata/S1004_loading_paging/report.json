@@ -26,7 +26,7 @@
       { "name": "join_key", "label": "join_key" },
       { "name": "first_name", "label": "first_name" }
     ],
-    "sorting": "join_key ASC",
+    "sort": "join_key ASC",
     "paging": {
       "limit": 5
     }

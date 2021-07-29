@@ -44,7 +44,7 @@
       { "name": "first_name", "label": "first_name" },
       { "name": "last_name", "label": "last_name" }
     ],
-    "sorting": "join_key ASC",
+    "sort": "join_key ASC",
     "paging": {
       "limit": 5
     }
@@ -60,7 +60,7 @@
       { "name": "cost", "label": "cost" },
       { "name": "time_spent", "label": "time_spent" }
     ],
-    "sorting": "name ASC",
+    "sort": "name ASC",
     "paging": {
       "limit": 2
     }

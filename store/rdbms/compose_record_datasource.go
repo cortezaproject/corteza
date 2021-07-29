@@ -216,8 +216,8 @@ func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, pa
 	}
 
 	var ss []string
-	if len(def.Sorting) > 0 {
-		ss, err = r.sortExpr(def.Sorting)
+	if len(def.Sort) > 0 {
+		ss, err = r.sortExpr(def.Sort)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -260,7 +260,7 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
-	if def.Rows != nil || def.Sorting != nil {
+	if def.Rows != nil || def.Sort != nil {
 		q = squirrel.Select("*").FromSelect(q, "w_base")
 	}
 
@@ -277,7 +277,7 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 }
 
 func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition, q squirrel.SelectBuilder) (l report.Loader, c report.Closer, err error) {
-	sort := def.Sorting
+	sort := def.Sort
 
 	// - paging related stuff
 	if def.Paging.PageCursor != nil {
@@ -285,14 +285,14 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 		// To cover the case when paging cursor is set but sorting is empty, we collect the sorting instructions
 		// from the cursor.
 		// This (extracted sorting info) is then returned as part of response
-		if def.Sorting, err = def.Paging.PageCursor.Sort(def.Sorting); err != nil {
+		if def.Sort, err = def.Paging.PageCursor.Sort(def.Sort); err != nil {
 			return nil, nil, err
 		}
 	}
 
 	// Cloned sorting instructions for the actual sorting
 	// Original must be kept for cursor creation
-	sort = def.Sorting.Clone()
+	sort = def.Sort.Clone()
 
 	// When cursor for a previous page is used it's marked as reversed
 	// This tells us to flip the descending flag on all used sort keys
@@ -347,12 +347,12 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 					out := []*report.Frame{f}
 					f = &report.Frame{}
 					i = 0
-					return r.calculatePaging(out, def.Sorting, uint(cap), def.Paging.PageCursor), nil
+					return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor), nil
 				}
 			}
 
 			if i > 0 {
-				return r.calculatePaging([]*report.Frame{f}, def.Sorting, uint(cap), def.Paging.PageCursor), nil
+				return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor), nil
 			}
 			return nil, nil
 		}, func() {
