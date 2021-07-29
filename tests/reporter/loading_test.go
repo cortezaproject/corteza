@@ -8,8 +8,10 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/service"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/id"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
+	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 )
 
 func TestReporterLoading(t *testing.T) {
@@ -252,7 +254,13 @@ func TestReporterLoading(t *testing.T) {
 func prepare(t *testing.T, report string) (context.Context, helper, store.Storer, *auxReport) {
 	h := newHelper(t)
 	s := service.DefaultStore
-	ctx := auth.SetSuperUserContext(context.Background())
+
+	u := &sysTypes.User{
+		ID: id.Next(),
+	}
+	u.SetRoles(auth.BypassRoles().IDs()...)
+
+	ctx := auth.SetIdentityToContext(context.Background(), u)
 
 	err := bmReporterPrepareDM(ctx, h, s, "integration")
 	h.a.NoError(err)
