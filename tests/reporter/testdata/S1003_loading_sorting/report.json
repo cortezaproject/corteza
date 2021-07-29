@@ -27,6 +27,6 @@
       { "name": "last_name", "label": "last_name" },
       { "name": "number_of_numbers", "label": "number_of_numbers" }
     ],
-    "sorting": "first_name ASC, last_name DESC, id ASC"
+    "sort": "first_name ASC, last_name DESC, id ASC"
   }]
 }

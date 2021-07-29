@@ -199,8 +199,8 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, 
 		}
 
 		// assure sorting is always provided so we can ignore nil checks
-		if aux[i].Sorting == nil {
-			aux[i].Sorting = filter.SortExprSet{}
+		if aux[i].Sort == nil {
+			aux[i].Sort = filter.SortExprSet{}
 		}
 	}
 	dd = aux
@@ -213,8 +213,8 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, 
 	}
 
 	// assure sorting is always provided so we can ignore nil checks
-	if def.Sorting == nil {
-		def.Sorting = filter.SortExprSet{}
+	if def.Sort == nil {
+		def.Sort = filter.SortExprSet{}
 	}
 
 	// load the data

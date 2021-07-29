@@ -42,6 +42,6 @@
       "limit": 4
     },
 
-    "sorting": "by_name ASC"
+    "sort": "by_name ASC"
   }]
 }

@@ -158,8 +158,8 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			// if the local datasource is being initially sorted by the foreign
 			// datasource, we need to resolve the foreign datasource first and
 			// adjust the local sorting based on that
-			localSort, foreignSort, foreignDS, err := d.splitSort(localDef.Sorting)
-			localDef.Sorting = localSort
+			localSort, foreignSort, foreignDS, err := d.splitSort(localDef.Sort)
+			localDef.Sort = localSort
 			useSubSort := foreignDS != ""
 			if err != nil {
 				return nil, err
@@ -175,7 +175,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					return nil, fmt.Errorf("foreign sort datasource not part of the join: %s", foreignDS)
 				}
 
-				foreignDef.Sorting = append(foreignSort, foreignDef.Sorting...)
+				foreignDef.Sort = append(foreignSort, foreignDef.Sort...)
 			}
 
 			// pull frames from the datasource that defines the initial sort
@@ -326,8 +326,8 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					bucketIndex       = 0
 				)
 
-				sortKeyColIndexes := make([]int, 0, len(foreignDef.Sorting))
-				for _, s := range foreignDef.Sorting {
+				sortKeyColIndexes := make([]int, 0, len(foreignDef.Sort))
+				for _, s := range foreignDef.Sort {
 					sortKeyColIndexes = append(sortKeyColIndexes, mainFrames[0].Columns.Find(s.Column))
 				}
 
@@ -366,7 +366,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 
 				localColIndex := subFrames[0].Columns.Find(d.def.LocalColumn)
 				for i := range subFrames {
-					subFrames[i], err = d.bucketSort(subFrames[i], buckets, localColIndex, localDef.Sorting...)
+					subFrames[i], err = d.bucketSort(subFrames[i], buckets, localColIndex, localDef.Sort...)
 					if err != nil {
 						return nil, err
 					}
@@ -416,8 +416,8 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 						if subFrames[i].Paging == nil {
 							subFrames[i].Paging = &filter.Paging{}
 						}
-						subFrames[i].Paging.NextPage = subFrames[i].CollectCursorValues(subFrames[i].LastRow(), foreignDef.Sorting...)
-						subFrames[i].Paging.NextPage.LThen = foreignDef.Sorting.Reversed()
+						subFrames[i].Paging.NextPage = subFrames[i].CollectCursorValues(subFrames[i].LastRow(), foreignDef.Sort...)
+						subFrames[i].Paging.NextPage.LThen = foreignDef.Sort.Reversed()
 					}
 				}
 			}
@@ -492,7 +492,7 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) 
 				RelColumn: relCol,
 				Columns:   ff[0].Columns,
 				Paging:    ff[0].Paging,
-				Sorting:   ff[0].Sorting,
+				Sort:      ff[0].Sort,
 			})
 		}
 

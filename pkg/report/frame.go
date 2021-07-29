@@ -22,8 +22,8 @@ type (
 		Columns FrameColumnSet `json:"columns"`
 		Rows    FrameRowSet    `json:"rows"`
 
-		Paging  *filter.Paging  `json:"paging"`
-		Sorting *filter.Sorting `json:"sorting"`
+		Paging *filter.Paging  `json:"paging"`
+		Sort   *filter.Sorting `json:"sort"`
 
 		// params to help us perform things in place
 		startIndex int
@@ -54,8 +54,8 @@ type (
 		Rows    *RowDefinition `json:"rows"`
 		Columns FrameColumnSet `json:"columns"`
 
-		Paging  *filter.Paging     `json:"paging"`
-		Sorting filter.SortExprSet `json:"sorting"`
+		Paging *filter.Paging     `json:"paging"`
+		Sort   filter.SortExprSet `json:"sort"`
 	}
 
 	FrameDescriptionSet []*FrameDescription
@@ -245,9 +245,9 @@ func (f *Frame) String() string {
 		out += fmt.Sprintf("< %s; =%s; > %s", f.Paging.PrevPage.String(), f.Paging.PageCursor.String(), f.Paging.NextPage.String())
 	}
 
-	if f.Sorting != nil {
+	if f.Sort != nil {
 		out += "\n"
-		out += f.Sorting.Sort.String()
+		out += f.Sort.Sort.String()
 	}
 
 	out += "\n"
@@ -348,7 +348,7 @@ func (f *FrameDefinition) Clone() (out *FrameDefinition) {
 		Rows:    f.Rows.Clone(),
 		Columns: f.Columns.Clone(),
 		Paging:  f.Paging.Clone(),
-		Sorting: f.Sorting.Clone(),
+		Sort:    f.Sort.Clone(),
 	}
 }
 

@@ -44,7 +44,7 @@
       { "name": "first_name", "label": "first_name" },
       { "name": "last_name", "label": "last_name" }
     ],
-    "sorting": "first_name ASC"
+    "sort": "first_name ASC"
   }, {
     "name":   "result",
     "source": "joined",
@@ -57,6 +57,6 @@
       { "name": "cost", "label": "cost" },
       { "name": "time_spent", "label": "time_spent" }
     ],
-    "sorting": "type ASC"
+    "sort": "type ASC"
   }]
 }
