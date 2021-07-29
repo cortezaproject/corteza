@@ -1,22 +1,21 @@
 package report
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type (
 	modelGraphNode struct {
 		step step
-		ds   Datasource
-
-		pp []*modelGraphNode
-		cc []*modelGraphNode
+		pp   []*modelGraphNode
+		cc   []*modelGraphNode
 	}
 )
 
 // Internally, the model uses a stepGraph to resolve the dependencies between the steps
 // allowing us to perform some preprocessing, such as size reduction and shape validation
-//
-// @todo most of this might need to be done at runtime, not buildtime
-func (m *model) buildStepGraph(ss stepSet, dd DatasourceSet) ([]*modelGraphNode, error) {
+func (m *model) buildStepGraph(ss stepSet) (map[string]*modelGraphNode, error) {
 	mp := make(map[string]*modelGraphNode)
 
 	for _, s := range ss {
@@ -30,7 +29,7 @@ func (m *model) buildStepGraph(ss stepSet, dd DatasourceSet) ([]*modelGraphNode,
 			}
 			mp[s.Name()] = n
 		} else {
-			n.step = s
+			return nil, fmt.Errorf("step name not unique: %s", s.Name())
 		}
 
 		// make sure the child step is in there
@@ -38,11 +37,9 @@ func (m *model) buildStepGraph(ss stepSet, dd DatasourceSet) ([]*modelGraphNode,
 			c, ok := mp[src]
 			if !ok {
 				c = &modelGraphNode{
-					// will be added later
+					// step is added later when we get to it
 					step: nil,
 					pp:   []*modelGraphNode{n},
-
-					ds: dd.Find(src),
 				}
 				mp[src] = c
 			}
@@ -50,81 +47,64 @@ func (m *model) buildStepGraph(ss stepSet, dd DatasourceSet) ([]*modelGraphNode,
 		}
 	}
 
-	// return all of the root nodes
-	out := make([]*modelGraphNode, 0, len(ss))
-	for _, n := range mp {
-		if len(n.pp) == 0 {
-			out = append(out, n)
-		}
-	}
-
-	return out, nil
+	return mp, nil
 }
 
-func (m *model) reduceGraph(ctx context.Context, n *modelGraphNode) (out Datasource, err error) {
+// Datasource attempts to return the smallest possible sub-tree for the given request
+//
+// Flow outline:
+// * Find the start node that corresponds to the provided definition
+// * Recursively traverse down the branches
+// * When returning, see if the given node can be merged with it's datasource
+//
+// We try to offload as much work to the datasource to reduce the size of the output frames to reduce
+// additional processing.
+func (m *model) datasource(ctx context.Context, def *FrameDefinition) (ds Datasource, err error) {
+	start, ok := m.nodes[def.Source]
+	if !ok {
+		return nil, fmt.Errorf("unresolved source: %s", def.Source)
+	}
+
+	return m.reduceBranch(ctx, start)
+}
+
+func (m *model) reduceBranch(ctx context.Context, n *modelGraphNode) (out Datasource, err error) {
+	// leaf node, nothing else to do
+	if len(n.cc) == 0 {
+		return n.step.Run(ctx)
+	}
+
+	// traverse down the branches
 	auxO := make([]Datasource, len(n.cc))
-	if len(n.cc) > 0 {
-		for i, c := range n.cc {
-			out, err = m.reduceGraph(ctx, c)
-			if err != nil {
-				return nil, err
-			}
-			auxO[i] = out
-		}
-	}
-
-	bail := func() (out Datasource, err error) {
-		if n.step == nil {
-			if n.ds != nil {
-				return n.ds, nil
-			}
-
-			return out, nil
-		}
-
-		aux, err := n.step.Run(ctx, auxO...)
+	for i, c := range n.cc {
+		auxO[i], err = m.reduceBranch(ctx, c)
 		if err != nil {
-			return nil, err
+			return
 		}
-
-		return aux, nil
 	}
 
-	if n.step == nil {
-		return bail()
-	}
-
-	// check if this one can reduce the existing datasources
-	//
-	// for now, only "simple branches are supported"
-	var o Datasource
+	// for now only the join step expects multiple inputs; it can't be reduced
 	if len(auxO) > 1 {
-		return bail()
-	} else if len(auxO) > 0 {
-		// use the only available output
-		o = auxO[0]
-	} else {
-		// use own datasource (in case of leaves nodes)
-		o = n.ds
+		return n.step.Run(ctx, auxO...)
 	}
 
+	// try to reduce the group step
+	o := auxO[0]
 	if n.step.Def().Group != nil {
 		gds, ok := o.(GroupableDatasource)
 		if !ok {
-			return bail()
+			return n.step.Run(ctx, auxO...)
 		}
 
 		ok, err = gds.Group(n.step.Def().Group.GroupDefinition, n.step.Name())
 		if err != nil {
 			return nil, err
 		} else if !ok {
-			return bail()
+			return n.step.Run(ctx, auxO...)
 		}
 
-		out = gds
-		// we've covered this step with the child step; ignore it
-		return out, nil
+		return gds, nil
 	}
 
-	return bail()
+	return n.step.Run(ctx, auxO...)
 }
