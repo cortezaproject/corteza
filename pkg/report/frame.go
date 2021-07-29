@@ -121,10 +121,8 @@ func (b *CellDefinition) UnmarshalJSON(data []byte) (err error) {
 		return err
 	}
 
-	for op, val := range aux {
-		b.Value = val
-		b.Op = op
-	}
+	b.Op = aux["op"]
+	b.Value = aux["value"]
 
 	return nil
 }
