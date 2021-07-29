@@ -1,7 +1,10 @@
 package apigw
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 
@@ -27,9 +30,16 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		scope = scp{}
 	)
 
+	b, _ := io.ReadAll(req.Body)
+	body := string(b)
+
+	// write again
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+
 	scope.Set("request", req)
 	scope.Set("writer", w)
 	scope.Set("opts", r.opts)
+	scope.Set("payload", body)
 
 	if err := r.validate(req); err != nil {
 		r.log.Debug("error validating request on route", zap.Error(err))
