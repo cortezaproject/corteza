@@ -297,9 +297,145 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 		req.NotNil(recChecked.Values.Get("bool", 0), "should checked again")
 		req.Equal("1", recChecked.Values.Get("bool", 0).Value, "should checked again")
+	}
+}
 
+func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
+	var (
+		req    = require.New(t)
+		ctx    = context.Background()
+		s, err = sqlite3.ConnectInMemoryWithDebug(ctx)
+	)
+
+	t.Log("setting up the test environment")
+
+	req.NoError(err)
+	req.NoError(store.Upgrade(ctx, zap.NewNop(), s))
+	req.NoError(store.TruncateComposeNamespaces(ctx, s))
+	req.NoError(store.TruncateComposeModules(ctx, s))
+	req.NoError(store.TruncateComposeModuleFields(ctx, s))
+	req.NoError(store.TruncateComposeRecords(ctx, s, nil))
+	req.NoError(store.TruncateRbacRules(ctx, s))
+
+	var (
+		rbacService = rbac.NewService(
+			//zap.NewNop(),
+			logger.MakeDebugLogger(),
+			nil,
+		)
+		ac = &accessControl{rbac: rbacService}
+
+		svc = &record{
+			sanitizer: values.Sanitizer(),
+			formatter: values.Formatter(),
+			ac:        ac,
+			store:     s,
+		}
+
+		ns            = &types.Namespace{ID: nextID()}
+		mod           = &types.Module{ID: nextID(), NamespaceID: ns.ID}
+		writableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "writable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-w"}}}
+		readableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "readable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-r"}}}
+
+		userID     = nextID()
+		authRoleID = nextID()
+		editorRole = &sysTypes.Role{Name: "editor", ID: nextID()}
+
+		recPartial *types.Record
+
+		valueExtractor = func(rec *types.Record, ff ...string) (out string) {
+			for _, f := range ff {
+				out += "<"
+				if v := rec.Values.Get(f, 0); v != nil {
+					out += v.Value
+				} else {
+					out += "NULL"
+				}
+				out += ">"
+			}
+
+			return
+		}
+	)
+
+	t.Log("creating namespace, module and fields")
+
+	svc.validator = defaultValidator(svc)
+
+	req.NoError(store.CreateComposeNamespace(ctx, s, ns))
+	req.NoError(store.CreateComposeModule(ctx, s, mod))
+	req.NoError(store.CreateComposeModuleField(ctx, s, writableField, readableField))
+
+	t.Log("setting up security")
+
+	rbacService.UpdateRoles(
+		rbac.CommonRole.Make(editorRole.ID, editorRole.Name),
+		rbac.AuthenticatedRole.Make(authRoleID, "authenticated"),
+	)
+
+	rbacService.Grant(ctx,
+		// base permissions
+		rbac.AllowRule(authRoleID, mod.RbacResource(), "record.create"),
+		rbac.AllowRule(authRoleID, types.RecordRbacResource(0, 0, 0), "read"),
+		rbac.AllowRule(authRoleID, types.RecordRbacResource(0, 0, 0), "update"),
+
+		rbac.AllowRule(authRoleID, types.ModuleFieldRbacResource(0, 0, 0), "record.value.read"),
+		rbac.AllowRule(authRoleID, types.ModuleFieldRbacResource(0, 0, 0), "record.value.update"),
+
+		// expl. deny value updates for editor on readable field (still allowed to write on writable field)
+		rbac.DenyRule(editorRole.ID, writableField.RbacResource(), "record.value.update"),
+	)
+
+	{
+		t.Log("creating record with w/o editor role (expecting defaults")
+
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, authRoleID))
+
+		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
+
+		req.NoError(errors.Unwrap(err))
+		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
+
+		t.Log("creating record with w/o editor role (must be able to crate & update record and modify both fields)")
+
+		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
+			&types.RecordValue{Name: "writable", Value: "w"},
+			&types.RecordValue{Name: "readable", Value: "r"},
+		}})
+
+		req.NoError(errors.Unwrap(err))
+		req.Equal("<w><r>", valueExtractor(recPartial, "writable", "readable"))
+
+		t.Log("updating record removing one of the values")
+
+		recPartial.Values = types.RecordValueSet{&types.RecordValue{Name: "writable", Value: "w2"}}
+
+		recPartial, err = svc.Update(ctx, recPartial)
+		req.NoError(errors.Unwrap(err))
+		req.Equal("<w2><NULL>", valueExtractor(recPartial, "writable", "readable"))
 	}
 
+	{
+		t.Log("creating record with editor role (expecting defaults")
+
+		ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(userID, authRoleID, editorRole.ID))
+
+		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{}})
+
+		req.NoError(errors.Unwrap(err))
+		req.Equal("<def-w><def-r>", valueExtractor(recPartial, "writable", "readable"))
+
+		t.Log("creating record with editor role (must be able to crate & update record and modify both fields)")
+
+		recPartial, err = svc.Create(ctx, &types.Record{ModuleID: mod.ID, NamespaceID: ns.ID, Values: types.RecordValueSet{
+			// this is the def. value set
+			&types.RecordValue{Name: "writable", Value: "def-w"},
+			&types.RecordValue{Name: "readable", Value: "r"},
+		}})
+
+		req.NoError(errors.Unwrap(err))
+		req.Equal("<def-w><r>", valueExtractor(recPartial, "writable", "readable"))
+	}
 }
 
 func TestRecord_refAccessControl(t *testing.T) {
