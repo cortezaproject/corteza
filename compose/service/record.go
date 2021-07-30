@@ -20,6 +20,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -827,6 +828,26 @@ func (svc record) Create(ctx context.Context, new *types.Record) (rec *types.Rec
 // Both these points introduce external data that need to be checked fully in the same manner
 func (svc record) procCreate(ctx context.Context, s store.Storer, invokerID uint64, m *types.Module, new *types.Record) (rve *types.RecordValueErrorSet) {
 	new.Values.SetUpdatedFlag(true)
+
+	new.Values.Walk(func(v *types.RecordValue) error {
+		f := m.Fields.FindByName(v.Name)
+		if f == nil {
+			return nil
+		}
+
+		d := f.DefaultValue.Get("", v.Place)
+		if d == nil {
+			// just so that we do not miss any defaults that MIGHT have
+			// field name set to it
+			// this is highly unlikely but it does not hurt to try
+			d = f.DefaultValue.Get(v.Name, v.Place)
+		}
+
+		// Mark as updated ONLY if value set is different from the default one
+		v.Updated = d == nil || d.Value != v.Value
+
+		return nil
+	})
 
 	// Reset values to new record
 	// to make sure nobody slips in something we do not want
