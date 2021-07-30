@@ -51,7 +51,8 @@ type (
 	auxReport struct {
 		*types.Report
 
-		Frames report.FrameDefinitionSet `json:"frames"`
+		Frames   report.FrameDefinitionSet `json:"frames"`
+		Describe []string                  `json:"describe"`
 	}
 
 	valueDef map[string][]string
@@ -178,6 +179,60 @@ func setup(t *testing.T) (context.Context, helper, store.Storer) {
 func loadNoErr(ctx context.Context, h helper, m report.M, dd ...*report.FrameDefinition) (ff []*report.Frame) {
 	ff, err := m.Load(ctx, dd...)
 	h.a.NoError(err)
+	return
+}
+
+// loadNoErrMulti is a little wrapper that does some preprocessing on the frame definitions.
+// It is a copy from the system/service/report.
+//
+// @todo make this cleaner!
+func loadNoErrMulti(ctx context.Context, h helper, m report.M, dd ...*report.FrameDefinition) (ff []*report.Frame) {
+	ff = make([]*report.Frame, 0, len(dd))
+
+	auxdd := make([]*report.FrameDefinition, 0, len(dd))
+	for i, d := range dd {
+		// first one; nothing special needed
+		if i == 0 {
+			auxdd = append(auxdd, d)
+			continue
+		}
+
+		// if the current source matches the prev. source, and they both define references,
+		// they fall into the same chunk.
+		if (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
+			auxdd = append(auxdd, d)
+			continue
+		}
+
+		// if the current one doesn't fall into the current chunk, process
+		// the chunk and reset it
+		aux, err := m.Load(ctx, auxdd...)
+		h.a.NoError(err)
+		ff = append(ff, aux...)
+
+		auxdd = make([]*report.FrameDefinition, 0, len(dd))
+		auxdd = append(auxdd, d)
+	}
+
+	if len(auxdd) > 0 {
+		aux, err := m.Load(ctx, auxdd...)
+		h.a.NoError(err)
+		ff = append(ff, aux...)
+	}
+
+	return
+}
+
+func describeNoErr(ctx context.Context, h helper, m report.M, dd ...string) (ff report.FrameDescriptionSet) {
+	ff = make(report.FrameDescriptionSet, 0, len(dd))
+
+	for _, d := range dd {
+		aux, err := m.Describe(ctx, d)
+		h.a.NoError(err)
+
+		ff = append(ff, aux...)
+	}
+
 	return
 }
 

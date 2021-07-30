@@ -1,0 +1,38 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "name": "unnamed_src",
+    "groups": [
+      {
+        "name": "unnamed_grp",
+        "steps": [
+          { "load": {
+            "name": "users",
+            "source": "composeRecords",
+            "definition": {
+              "module": "user",
+              "namespace": "ns"
+            }
+          }},
+          { "load": {
+            "name": "jobs",
+            "source": "composeRecords",
+            "definition": {
+              "module": "job",
+              "namespace": "ns"
+            }
+          }},
+
+          { "join": {
+            "name": "joined",
+            "localSource": "users",
+            "localColumn": "join_key",
+            "foreignSource": "jobs",
+            "foreignColumn": "usr"
+          }}
+        ]
+      }
+    ]
+  }],
+  "describe": ["users", "jobs", "joined"]
+}
