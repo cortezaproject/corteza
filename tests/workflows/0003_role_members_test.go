@@ -11,7 +11,7 @@ import (
 
 func Test0003_role_members(t *testing.T) {
 	var (
-		ctx = superUser(context.Background())
+		ctx = bypassRBAC(context.Background())
 		req = require.New(t)
 	)
 
