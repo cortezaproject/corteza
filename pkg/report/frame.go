@@ -407,3 +407,27 @@ func (r FrameRow) String() string {
 
 	return strings.Trim(out, ", ")
 }
+
+func (dd FrameDescriptionSet) FilterBySource(source string) FrameDescriptionSet {
+	out := make(FrameDescriptionSet, 0, len(dd))
+
+	for _, d := range dd {
+		if d.Source == source {
+			out = append(out, d)
+		}
+	}
+
+	return out
+}
+
+func (dd FrameDescriptionSet) FilterByRef(ref string) FrameDescriptionSet {
+	out := make(FrameDescriptionSet, 0, len(dd))
+
+	for _, d := range dd {
+		if d.Ref == ref {
+			out = append(out, d)
+		}
+	}
+
+	return out
+}
