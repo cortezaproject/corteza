@@ -1,35 +1,27 @@
 {
   "handle": "testing_report",
-  "sources": [{
-    "name": "unnamed_src",
-    "groups": [
-      {
-        "name": "unnamed_grp",
-        "steps": [
-          { "load": {
-            "name": "users",
-            "source": "composeRecords",
-            "definition": {
-              "module": "user",
-              "namespace": "ns"
-            }
-          }},
-
-          { "group": {
-            "name": "grouped",
-            "source": "users",
-            "keys": [
-              { "name": "by_name", "column": "first_name" }
-            ],
-            "columns": [
-              { "name": "count", "aggregate": "count" },
-              { "name": "total", "aggregate": "sum", "column": "number_of_numbers" }
-            ]
-          }}
-        ]
+  "sources": [
+    { "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
       }
-    ]
-  }],
+    }}},
+
+    { "step": { "group": {
+      "name": "grouped",
+      "source": "users",
+      "keys": [
+        { "name": "by_name", "column": "first_name" }
+      ],
+      "columns": [
+        { "name": "count", "aggregate": "count" },
+        { "name": "total", "aggregate": "sum", "column": "number_of_numbers" }
+      ]
+    }}}
+  ],
   "frames": [{
     "name":   "result",
     "source": "grouped",

@@ -1,23 +1,14 @@
 {
   "handle": "testing_report",
   "sources": [{
-    "name": "unnamed_src",
-    "groups": [
-      {
-        "name": "unnamed_grp",
-        "steps": [
-          { "load": {
-            "name": "users",
-            "source": "composeRecords",
-            "definition": {
-              "module": "user",
-              "namespace": "ns"
-            }
-          }}
-        ]
+    "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
       }
-    ]
-  }],
+  }}}],
   "frames": [{
     "name":   "result",
     "source": "users",

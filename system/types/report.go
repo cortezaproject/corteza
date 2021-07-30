@@ -32,15 +32,10 @@ type (
 	}
 
 	ReportDataSource struct {
-		Name   string `json:"name,omitempty"`
-		Groups []*ReportStepGroup
+		Meta interface{}            `json:"meta,omitempty"`
+		Step *report.StepDefinition `json:"step"`
 	}
 	ReportDataSourceSet []*ReportDataSource
-
-	ReportStepGroup struct {
-		Name  string                   `json:"name,omitempty"`
-		Steps report.StepDefinitionSet `json:"steps"`
-	}
 
 	ReportMeta struct {
 		Name        string `json:"name"`
@@ -87,9 +82,7 @@ func (ss ReportDataSourceSet) ModelSteps() report.StepDefinitionSet {
 	out := make(report.StepDefinitionSet, 0, 124)
 
 	for _, s := range ss {
-		for _, g := range s.Groups {
-			out = append(out, g.Steps...)
-		}
+		out = append(out, s.Step)
 	}
 
 	return out

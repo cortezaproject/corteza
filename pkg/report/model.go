@@ -34,6 +34,8 @@ type (
 
 	StepDefinitionSet []*StepDefinition
 	StepDefinition    struct {
+		Kind string `json:"kind,omitempty"`
+
 		Load  *LoadStepDefinition  `json:"load,omitempty"`
 		Join  *JoinStepDefinition  `json:"join,omitempty"`
 		Group *GroupStepDefinition `json:"group,omitempty"`
