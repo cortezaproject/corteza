@@ -3,6 +3,8 @@ package expr
 import (
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -22,20 +24,39 @@ func StringFunctions() []gval.Language {
 		gval.Function("format", fmt.Sprintf),
 		gval.Function("title", title),
 		gval.Function("untitle", untitle),
-		gval.Function("repeat", strings.Repeat),
-		gval.Function("replace", strings.Replace),
+		gvalFunc("repeat", strings.Repeat),
+		gvalFunc("replace", strings.Replace),
 		gval.Function("isUrl", valid.IsURL),
 		gval.Function("isEmail", valid.IsEmail),
 		gval.Function("split", strings.Split),
 		gval.Function("join", join),
 		gval.Function("hasSubstring", hasSubstring),
-		gval.Function("substring", substring),
+		gvalFunc("substring", substring),
 		gval.Function("hasPrefix", strings.HasPrefix),
 		gval.Function("hasSuffix", strings.HasSuffix),
-		gval.Function("shorten", shorten),
+		gvalFunc("shorten", shorten),
 		gval.Function("camelize", camelize),
 		gval.Function("snakify", snakify),
 	}
+}
+
+// gvalFunc cast any nth number of float64 param to int
+func gvalFunc(name string, fn interface{}) gval.Language {
+	return gval.Function(name, func(params ...interface{}) (out interface{}) {
+		in := make([]reflect.Value, len(params))
+		for i, param := range params {
+			if reflect.TypeOf(param).Kind() == reflect.Float64 {
+				param = cast.ToInt(param)
+			}
+			in[i] = reflect.ValueOf(param)
+		}
+		fun := reflect.ValueOf(fn)
+		res := fun.Call(in)
+		if len(res) > 0 {
+			out = cast.ToString(reflect.ValueOf(res[0]).Interface())
+		}
+		return
+	})
 }
 
 func shortest(f string, aa ...string) string {

@@ -476,3 +476,73 @@ func TestIsNil(t *testing.T) {
 		})
 	}
 }
+
+func TestGvalStringFunctionParamsIntCasting(t *testing.T) {
+	var (
+		ctx = context.Background()
+		req = require.New(t)
+
+		scope = &expr.Vars{}
+	)
+
+	t.Run("substring", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`substring("foobar", 1, -1)`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal("oobar", res.(string))
+	})
+
+	t.Run("replace", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`replace(" foo foo foo", "foo", "bar", 1)`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal(" bar foo foo", res.(string))
+	})
+
+	t.Run("split", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`split("foo-bar", "-")`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal([]string{"foo", "bar"}, res.([]string))
+	})
+
+	t.Run("has", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`has([1,2], 2)`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal(true, res)
+	})
+
+	t.Run("repeat", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`repeat("! ", 3)`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal("! ! ! ", res.(string))
+	})
+
+	t.Run("shorten", func(t *testing.T) {
+		eval, err := expr.NewParser().Parse(`shorten("This is a whole sentence", "word", 4)`)
+		req.NoError(err)
+
+		res, err := eval.Eval(ctx, scope)
+		req.NoError(err)
+
+		req.Equal("This is a whole …", res.(string))
+	})
+
+}
