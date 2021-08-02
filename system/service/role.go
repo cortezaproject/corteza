@@ -353,11 +353,18 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return
 		}
 
+		raProps.setRole(r)
+
 		if svc.IsSystem(r) {
+			// prevent system role updates
+			// we need this here because of the clumsy way
+			// how rest endpoint handler is implemented ATM
+			if r.Handle == upd.Handle && r.Name == upd.Name {
+				// no change.
+				return nil
+			}
 			return RoleErrNotAllowedToUpdate()
 		}
-
-		raProps.setRole(r)
 
 		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
 			return
