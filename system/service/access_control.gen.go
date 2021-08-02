@@ -17,12 +17,11 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
+	"strings"
 )
 
 type (
@@ -740,8 +739,6 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ApplicationResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -752,22 +749,17 @@ func rbacApplicationResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Application", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -791,8 +783,6 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.AuthClientResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -803,22 +793,17 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for AuthClient", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -842,8 +827,6 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.RoleResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -854,22 +837,17 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Role", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -893,8 +871,6 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.TemplateResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -905,22 +881,17 @@ func rbacTemplateResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Template", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -944,8 +915,6 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.UserResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -956,22 +925,17 @@ func rbacUserResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for User", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
