@@ -18,11 +18,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -602,8 +603,6 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ChartResourceType):], sep), sep)
 		prc = []string{
 			"namespaceID",
@@ -615,22 +614,17 @@ func rbacChartResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Chart", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -654,8 +648,6 @@ func rbacModuleFieldResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ModuleFieldResourceType):], sep), sep)
 		prc = []string{
 			"namespaceID",
@@ -668,22 +660,17 @@ func rbacModuleFieldResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for ModuleField", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -707,8 +694,6 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ModuleResourceType):], sep), sep)
 		prc = []string{
 			"namespaceID",
@@ -720,22 +705,17 @@ func rbacModuleResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Module", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -759,8 +739,6 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.NamespaceResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -771,22 +749,17 @@ func rbacNamespaceResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Namespace", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -810,8 +783,6 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.PageResourceType):], sep), sep)
 		prc = []string{
 			"namespaceID",
@@ -823,22 +794,17 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Page", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -862,8 +828,6 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.RecordResourceType):], sep), sep)
 		prc = []string{
 			"namespaceID",
@@ -876,22 +840,17 @@ func rbacRecordResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Record", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 

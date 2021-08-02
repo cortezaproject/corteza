@@ -311,8 +311,6 @@ func rbacExposedModuleResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.ExposedModuleResourceType):], sep), sep)
 		prc = []string{
 			"nodeID",
@@ -324,22 +322,17 @@ func rbacExposedModuleResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for ExposedModule", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -363,8 +356,6 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.NodeResourceType):], sep), sep)
 		prc = []string{
 			"ID",
@@ -375,22 +366,17 @@ func rbacNodeResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for Node", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -414,8 +400,6 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp  = strings.Split(strings.Trim(r[len(types.SharedModuleResourceType):], sep), sep)
 		prc = []string{
 			"nodeID",
@@ -427,22 +411,17 @@ func rbacSharedModuleResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for SharedModule", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
-
 	return nil
 }
 

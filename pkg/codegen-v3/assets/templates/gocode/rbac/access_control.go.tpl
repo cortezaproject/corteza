@@ -219,8 +219,6 @@ func rbac{{ .Resource }}ResourceValidator(r string, oo ...string) error {
 {{ if .RBAC.Resource.References }}
 	const sep = "/"
 	var (
-		specIdUsed = true
-
 		pp = strings.Split(strings.Trim(r[len({{ $GoType }}ResourceType):], sep), sep)
 		prc = []string{
 	{{- range .RBAC.Resource.References }}
@@ -233,23 +231,18 @@ func rbac{{ .Resource }}ResourceValidator(r string, oo ...string) error {
 		return fmt.Errorf("invalid resource path structure")
 	}
 
-	for i, p := range pp {
-		if p == "*" {
-			if !specIdUsed {
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid resource path wildcard level (%d) for {{ .Resource }}", i)
 			}
 
-			specIdUsed = false
-			continue
-		}
-
-		specIdUsed = true
-		if _, err := cast.ToUint64E(p); err != nil {
-			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
 		}
 	}
 {{- end }}
-
 	return nil
 }
 {{- end }}
