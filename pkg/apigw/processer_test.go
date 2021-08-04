@@ -174,7 +174,7 @@ func Test_processerProxy(t *testing.T) {
 				rq, _ = http.NewRequest("POST", "/foo", strings.NewReader(`custom request body`))
 			}
 
-			proxy := NewProcesserProxy(zap.NewNop(), c)
+			proxy := NewProcesserProxy(zap.NewNop(), c, secureStorageTodo{})
 			proxy.Merge([]byte(tc.params))
 
 			scope := &scp{

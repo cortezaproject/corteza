@@ -228,7 +228,7 @@ func (svc *apigwFunction) Search(ctx context.Context, filter types.ApigwFunction
 	return r, f, svc.recordAction(ctx, aProps, ApigwFunctionActionSearch, err)
 }
 
-func (svc *apigwFunction) Definitions(ctx context.Context, kind string) (l interface{}, err error) {
+func (svc *apigwFunction) DefFunction(ctx context.Context, kind string) (l interface{}, err error) {
 	var (
 		qProps = &apigwFunctionActionProps{}
 	)
@@ -240,6 +240,26 @@ func (svc *apigwFunction) Definitions(ctx context.Context, kind string) (l inter
 
 		// get the definitions from registry
 		l = apigw.Service().Funcs(kind)
+
+		return nil
+	}()
+
+	return l, svc.recordAction(ctx, qProps, ApigwFunctionActionSearch, err)
+
+}
+
+func (svc *apigwFunction) DefProxyAuth(ctx context.Context) (l interface{}, err error) {
+	var (
+		qProps = &apigwFunctionActionProps{}
+	)
+
+	err = func() error {
+		if !svc.ac.CanSearchApiGwFunctions(ctx) {
+			return ApigwFunctionErrNotAllowedToRead(qProps)
+		}
+
+		// get the definitions from registry
+		l = apigw.Service().ProxyAuthDef()
 
 		return nil
 	}()

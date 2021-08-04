@@ -151,11 +151,14 @@ type (
 		FunctionID uint64 `json:",string"`
 	}
 
-	ApigwFunctionDefinitions struct {
+	ApigwFunctionDefFunction struct {
 		// Kind GET parameter
 		//
 		// Filter functions by kind
 		Kind string
+	}
+
+	ApigwFunctionDefProxyAuth struct {
 	}
 )
 
@@ -601,25 +604,25 @@ func (r *ApigwFunctionUndelete) Fill(req *http.Request) (err error) {
 	return err
 }
 
-// NewApigwFunctionDefinitions request
-func NewApigwFunctionDefinitions() *ApigwFunctionDefinitions {
-	return &ApigwFunctionDefinitions{}
+// NewApigwFunctionDefFunction request
+func NewApigwFunctionDefFunction() *ApigwFunctionDefFunction {
+	return &ApigwFunctionDefFunction{}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApigwFunctionDefinitions) Auditable() map[string]interface{} {
+func (r ApigwFunctionDefFunction) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"kind": r.Kind,
 	}
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApigwFunctionDefinitions) GetKind() string {
+func (r ApigwFunctionDefFunction) GetKind() string {
 	return r.Kind
 }
 
 // Fill processes request and fills internal variables
-func (r *ApigwFunctionDefinitions) Fill(req *http.Request) (err error) {
+func (r *ApigwFunctionDefFunction) Fill(req *http.Request) (err error) {
 
 	{
 		// GET params
@@ -632,6 +635,22 @@ func (r *ApigwFunctionDefinitions) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
+
+	return err
+}
+
+// NewApigwFunctionDefProxyAuth request
+func NewApigwFunctionDefProxyAuth() *ApigwFunctionDefProxyAuth {
+	return &ApigwFunctionDefProxyAuth{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwFunctionDefProxyAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *ApigwFunctionDefProxyAuth) Fill(req *http.Request) (err error) {
 
 	return err
 }

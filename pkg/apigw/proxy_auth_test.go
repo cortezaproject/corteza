@@ -21,7 +21,7 @@ func Test_authDo(t *testing.T) {
 			name   string
 			err    string
 			errv   string
-			params authParams
+			params proxyAuthParams
 			exp    http.Header
 		}
 	)
@@ -30,8 +30,8 @@ func Test_authDo(t *testing.T) {
 		tcc = []tf{
 			{
 				name: "auth header match headers",
-				params: authParams{
-					Type: authTypeHeader,
+				params: proxyAuthParams{
+					Type: proxyAuthTypeHeader,
 					Params: map[string]interface{}{
 						"Client-Id":          "123455",
 						"Client_credentials": "pass1234",
@@ -44,8 +44,8 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth header match canonicalized headers",
-				params: authParams{
-					Type: authTypeHeader,
+				params: proxyAuthParams{
+					Type: proxyAuthTypeHeader,
 					Params: map[string]interface{}{
 						"camelCaseHeader": "123455",
 					},
@@ -56,8 +56,8 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers",
-				params: authParams{
-					Type: authTypeBasic,
+				params: proxyAuthParams{
+					Type: proxyAuthTypeBasic,
 					Params: map[string]interface{}{
 						"username": "user",
 						"password": "pass1234",
@@ -67,8 +67,8 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers fail user validation",
-				params: authParams{
-					Type:   authTypeBasic,
+				params: proxyAuthParams{
+					Type:   proxyAuthTypeBasic,
 					Params: map[string]interface{}{"password": "pass1234"},
 				},
 				exp:  http.Header{},
@@ -76,8 +76,8 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers fail pass validation",
-				params: authParams{
-					Type:   authTypeBasic,
+				params: proxyAuthParams{
+					Type:   proxyAuthTypeBasic,
 					Params: map[string]interface{}{"username": "user"},
 				},
 				exp:  http.Header{},
@@ -85,7 +85,7 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name:   "noop default fallback",
-				params: authParams{},
+				params: proxyAuthParams{},
 				exp:    http.Header{},
 			},
 		}
@@ -102,7 +102,7 @@ func Test_authDo(t *testing.T) {
 
 			rq, _ := http.NewRequest("POST", "/foo", http.NoBody)
 
-			authServicer, err := NewAuthServicer(c, tc.params)
+			authServicer, err := NewProxyAuthServicer(c, tc.params, secureStorageTodo{})
 
 			if tc.errv != "" {
 				req.EqualError(err, tc.errv)
