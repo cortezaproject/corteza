@@ -20,7 +20,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/store"
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
