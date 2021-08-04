@@ -25,18 +25,20 @@ type (
 		Read(context.Context, *request.ApigwFunctionRead) (interface{}, error)
 		Delete(context.Context, *request.ApigwFunctionDelete) (interface{}, error)
 		Undelete(context.Context, *request.ApigwFunctionUndelete) (interface{}, error)
-		Definitions(context.Context, *request.ApigwFunctionDefinitions) (interface{}, error)
+		DefFunction(context.Context, *request.ApigwFunctionDefFunction) (interface{}, error)
+		DefProxyAuth(context.Context, *request.ApigwFunctionDefProxyAuth) (interface{}, error)
 	}
 
 	// HTTP API interface
 	ApigwFunction struct {
-		List        func(http.ResponseWriter, *http.Request)
-		Create      func(http.ResponseWriter, *http.Request)
-		Update      func(http.ResponseWriter, *http.Request)
-		Read        func(http.ResponseWriter, *http.Request)
-		Delete      func(http.ResponseWriter, *http.Request)
-		Undelete    func(http.ResponseWriter, *http.Request)
-		Definitions func(http.ResponseWriter, *http.Request)
+		List         func(http.ResponseWriter, *http.Request)
+		Create       func(http.ResponseWriter, *http.Request)
+		Update       func(http.ResponseWriter, *http.Request)
+		Read         func(http.ResponseWriter, *http.Request)
+		Delete       func(http.ResponseWriter, *http.Request)
+		Undelete     func(http.ResponseWriter, *http.Request)
+		DefFunction  func(http.ResponseWriter, *http.Request)
+		DefProxyAuth func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -138,15 +140,31 @@ func NewApigwFunction(h ApigwFunctionAPI) *ApigwFunction {
 
 			api.Send(w, r, value)
 		},
-		Definitions: func(w http.ResponseWriter, r *http.Request) {
+		DefFunction: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
-			params := request.NewApigwFunctionDefinitions()
+			params := request.NewApigwFunctionDefFunction()
 			if err := params.Fill(r); err != nil {
 				api.Send(w, r, err)
 				return
 			}
 
-			value, err := h.Definitions(r.Context(), params)
+			value, err := h.DefFunction(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		DefProxyAuth: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewApigwFunctionDefProxyAuth()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.DefProxyAuth(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -166,6 +184,7 @@ func (h ApigwFunction) MountRoutes(r chi.Router, middlewares ...func(http.Handle
 		r.Get("/apigw/function/{functionID}", h.Read)
 		r.Delete("/apigw/function/{functionID}", h.Delete)
 		r.Post("/apigw/function/{functionID}/undelete", h.Undelete)
-		r.Get("/apigw/function/def", h.Definitions)
+		r.Get("/apigw/function/def", h.DefFunction)
+		r.Get("/apigw/function/proxy_auth/def", h.DefProxyAuth)
 	})
 }

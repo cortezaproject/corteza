@@ -1635,10 +1635,14 @@ endpoints:
     title: Undelete function
     path: "/{functionID}/undelete"
     parameters: { path: [ { name: functionID, type: uint64, required: true, title: "Function ID" } ] }
-  - name: definitions
+  - name: defFunction
     method: GET
     title: Function definitions
     path: "/def"
     parameters:
       get:
       - { name: kind, type: "string", title: "Filter functions by kind" }
+  - name: defProxyAuth
+    method: GET
+    title: Proxu auth definitions
+    path: "/proxy_auth/def"

@@ -32,7 +32,9 @@ type (
 		Update(ctx context.Context, upd *types.ApigwFunction) (*types.ApigwFunction, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
-		Definitions(context.Context, string) (interface{}, error)
+
+		DefFunction(context.Context, string) (interface{}, error)
+		DefProxyAuth(context.Context) (interface{}, error)
 	}
 )
 
@@ -108,8 +110,12 @@ func (ctrl *ApigwFunction) Delete(ctx context.Context, r *request.ApigwFunctionD
 	return api.OK(), ctrl.svc.DeleteByID(ctx, r.FunctionID)
 }
 
-func (ctrl *ApigwFunction) Definitions(ctx context.Context, r *request.ApigwFunctionDefinitions) (interface{}, error) {
-	return ctrl.svc.Definitions(ctx, r.Kind)
+func (ctrl *ApigwFunction) DefFunction(ctx context.Context, r *request.ApigwFunctionDefFunction) (interface{}, error) {
+	return ctrl.svc.DefFunction(ctx, r.Kind)
+}
+
+func (ctrl *ApigwFunction) DefProxyAuth(ctx context.Context, r *request.ApigwFunctionDefProxyAuth) (interface{}, error) {
+	return ctrl.svc.DefProxyAuth(ctx)
 }
 
 func (ctrl *ApigwFunction) Undelete(ctx context.Context, r *request.ApigwFunctionUndelete) (interface{}, error) {

@@ -210,6 +210,11 @@ func (s *apigw) Funcs(kind string) (list functionMetaList) {
 	return
 }
 
+func (s *apigw) ProxyAuthDef() (list []*proxyAuthDefinition) {
+	list = ProxyAuthDef()
+	return
+}
+
 func NewWorkflow() (wf WfExecer) {
 	return as.Workflow(&zap.Logger{}, options.CorredorOpt{})
 }

@@ -11,6 +11,8 @@ type (
 	registry struct {
 		h map[string]Handler
 	}
+
+	secureStorageTodo struct{}
 )
 
 func NewRegistry() *registry {
@@ -56,6 +58,6 @@ func (r *registry) Preload() {
 	r.Add("validatorHeader", NewValidatorHeader())
 	r.Add("expediterRedirection", NewExpediterRedirection())
 	r.Add("processerWorkflow", NewProcesserWorkflow(NewWorkflow()))
-	r.Add("processerProxy", NewProcesserProxy(service.DefaultLogger, http.DefaultClient))
+	r.Add("processerProxy", NewProcesserProxy(service.DefaultLogger, http.DefaultClient, secureStorageTodo{}))
 	r.Add("processerPayload", NewProcesserPayload(service.DefaultLogger))
 }
