@@ -45,6 +45,12 @@ type (
 
 				// Can users reset their passwords
 				PasswordReset struct{ Enabled bool } `kv:"password-reset"`
+
+				// Splits credentials check into 2 parts
+				// If user has password credentials it offers him to enter the password
+				// Otherwise we offer the user to choose among the enabled external providers
+				// If only one ext. provider is enabled, user is automatically redirected there
+				SplitCredentialsCheck bool `kv:"splitCredentialsCheck"`
 			}
 
 			External struct {

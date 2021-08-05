@@ -450,6 +450,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 		SignupEnabled:             cas.Internal.Signup.Enabled,
 		EmailConfirmationRequired: cas.Internal.Signup.EmailConfirmationRequired,
 		PasswordResetEnabled:      cas.Internal.PasswordReset.Enabled,
+		SplitCredentialsCheck:     cas.Internal.SplitCredentialsCheck,
 		ExternalEnabled:           cas.External.Enabled,
 		Providers:                 providers,
 	}

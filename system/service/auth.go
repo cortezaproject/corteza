@@ -658,6 +658,31 @@ func (svc auth) ValidatePasswordResetToken(ctx context.Context, token string) (u
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeResetPasswordToken)
 }
 
+// PasswordSet checks and returns true if user's password is set
+// False is also returned in case user does not exist.
+func (svc *auth) PasswordSet(ctx context.Context, email string) (is bool) {
+
+	//svc.settings.Auth.External.Enabled
+	u, err := store.LookupUserByEmail(ctx, svc.store, email)
+	if err != nil {
+		return
+	}
+
+	cc, _, err := store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{
+		OwnerID: u.ID,
+		Kind:    credentialsTypePassword,
+	})
+	if err != nil {
+		return
+	}
+
+	if len(cc) > 0 && svc.settings.Auth.Internal.Enabled {
+		return true
+	}
+
+	return
+}
+
 // loadFromTokenAndConfirmEmail loads token, confirms user's
 func (svc auth) loadFromTokenAndConfirmEmail(ctx context.Context, token, tokenType string) (u *types.User, err error) {
 	var (
