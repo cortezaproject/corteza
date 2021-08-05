@@ -29,7 +29,6 @@ func Test_logoutProc(t *testing.T) {
 		rq = require.New(t)
 	)
 
-	authSettings = &settings.Settings{}
 	service.CurrentSettings = &types.AppSettings{}
 	service.CurrentSettings.Auth.Internal.Enabled = true
 
