@@ -42,6 +42,7 @@ type (
 	userAuth interface {
 		CheckPasswordStrength(string) bool
 		SetPasswordCredentials(context.Context, uint64, string) error
+		RemovePasswordCredentials(context.Context, uint64) error
 	}
 
 	userAccessController interface {
@@ -635,16 +636,16 @@ func (svc user) Unsuspend(ctx context.Context, userID uint64) (err error) {
 	}()
 
 	return svc.recordAction(ctx, uaProps, UserActionUnsuspend, err)
-
 }
 
 // SetPassword sets new password for a user
 //
-// Expecting setter to have permissions to update modify users and internal authentication enabled
+// Expecting setter to have permissions to update users
 func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword string) (err error) {
 	var (
 		u       *types.User
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
+		a       = UserActionSetPassword
 	)
 
 	err = func() error {
@@ -658,6 +659,11 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 			return UserErrNotAllowedToUpdate()
 		}
 
+		if newPassword == "" {
+			a = UserActionRemovePassword
+			return svc.auth.RemovePasswordCredentials(ctx, userID)
+		}
+
 		if !svc.auth.CheckPasswordStrength(newPassword) {
 			return UserErrPasswordNotSecure()
 		}
@@ -669,7 +675,7 @@ func (svc user) SetPassword(ctx context.Context, userID uint64, newPassword stri
 		return nil
 	}()
 
-	return svc.recordAction(ctx, uaProps, UserActionSetPassword, err)
+	return svc.recordAction(ctx, uaProps, a, err)
 
 }
 

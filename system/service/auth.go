@@ -613,26 +613,13 @@ func (svc auth) CheckPasswordStrength(password string) bool {
 func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, password string) (err error) {
 	var (
 		hash []byte
-		cc   types.CredentialsSet
-		f    = types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID}
 	)
 
 	if hash, err = svc.hashPassword(password); err != nil {
 		return
 	}
 
-	if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
-		return nil
-	}
-
-	// Mark all credentials as deleted
-	_ = cc.Walk(func(c *types.Credentials) error {
-		c.DeletedAt = now()
-		return nil
-	})
-
-	// Do a partial update and soft-delete all
-	if err = store.UpdateCredentials(ctx, svc.store, cc...); err != nil {
+	if err = svc.removePasswordCredentials(ctx, userID); err != nil {
 		return
 	}
 
@@ -648,6 +635,33 @@ func (svc auth) SetPasswordCredentials(ctx context.Context, userID uint64, passw
 	return store.CreateCredentials(ctx, svc.store, c)
 }
 
+// RemovePasswordCredentials (soft) deletes old password entry
+func (svc auth) RemovePasswordCredentials(ctx context.Context, userID uint64) (err error) {
+	// Do a partial update and soft-delete all
+	return svc.removePasswordCredentials(ctx, userID)
+}
+
+// RemovePasswordCredentials (soft) deletes old password entry
+func (svc auth) removePasswordCredentials(ctx context.Context, userID uint64) (err error) {
+	var (
+		cc types.CredentialsSet
+		f  = types.CredentialsFilter{Kind: credentialsTypePassword, OwnerID: userID}
+	)
+
+	if cc, _, err = store.SearchCredentials(ctx, svc.store, f); err != nil {
+		return nil
+	}
+
+	// Mark all credentials as deleted
+	_ = cc.Walk(func(c *types.Credentials) error {
+		c.DeletedAt = now()
+		return nil
+	})
+
+	// Do a partial update and soft-delete all
+	return store.UpdateCredentials(ctx, svc.store, cc...)
+}
+
 // ValidateEmailConfirmationToken issues a validation token that can be used for
 func (svc auth) ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error) {
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeEmailAuthToken)
@@ -656,6 +670,31 @@ func (svc auth) ValidateEmailConfirmationToken(ctx context.Context, token string
 // ValidatePasswordResetToken validates password reset token
 func (svc auth) ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error) {
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeResetPasswordToken)
+}
+
+// PasswordSet checks and returns true if user's password is set
+// False is also returned in case user does not exist.
+func (svc *auth) PasswordSet(ctx context.Context, email string) (is bool) {
+
+	//svc.settings.Auth.External.Enabled
+	u, err := store.LookupUserByEmail(ctx, svc.store, email)
+	if err != nil {
+		return
+	}
+
+	cc, _, err := store.SearchCredentials(ctx, svc.store, types.CredentialsFilter{
+		OwnerID: u.ID,
+		Kind:    credentialsTypePassword,
+	})
+	if err != nil {
+		return
+	}
+
+	if len(cc) > 0 && svc.settings.Auth.Internal.Enabled {
+		return true
+	}
+
+	return
 }
 
 // loadFromTokenAndConfirmEmail loads token, confirms user's

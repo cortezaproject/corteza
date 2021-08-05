@@ -59,6 +59,9 @@ actions:
   - action: setPassword
     log: "password changed for {user}"
 
+  - action: removePassword
+    log: "password removed for {user}"
+
 errors:
   - error: notFound
     message: "user not found"
