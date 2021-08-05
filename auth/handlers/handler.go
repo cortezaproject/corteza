@@ -35,7 +35,7 @@ type (
 		SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error)
 		SendPasswordResetToken(ctx context.Context, email string) (err error)
 		GetProviders() types.ExternalAuthProviderSet
-
+		PasswordSet(ctx context.Context, email string) (is bool)
 		ValidateTOTP(ctx context.Context, code string) (err error)
 		ConfigureTOTP(ctx context.Context, secret string, code string) (u *types.User, err error)
 		RemoveTOTP(ctx context.Context, userID uint64, code string) (u *types.User, err error)

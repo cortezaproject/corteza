@@ -39,6 +39,11 @@ login:
       SignupEnabled: false
       PasswordResetEnabled: false
 
+  With Split credentials check / username:
+    form:
+      splitCredentialsCheck: true
+    settings:
+      LocalEnabled: true
 
   With errors after submit:
     settings:

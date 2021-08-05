@@ -301,6 +301,10 @@ func (svc *service) UpdateSettings(s *settings.Settings) {
 		svc.log.Debug("setting changed", zap.Bool("passwordResetEnabled", s.PasswordResetEnabled))
 	}
 
+	if svc.settings.SplitCredentialsCheck != s.SplitCredentialsCheck {
+		svc.log.Debug("setting changed", zap.Bool("splitCredentialsCheck", s.SplitCredentialsCheck))
+	}
+
 	if svc.settings.ExternalEnabled != s.ExternalEnabled {
 		svc.log.Debug("setting changed", zap.Bool("externalEnabled", s.ExternalEnabled))
 	}

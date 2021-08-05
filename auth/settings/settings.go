@@ -7,6 +7,7 @@ type (
 		EmailConfirmationRequired bool
 		PasswordResetEnabled      bool
 		ExternalEnabled           bool
+		SplitCredentialsCheck     bool
 		Providers                 []Provider
 		Saml                      SAML
 		MultiFactor               MultiFactor

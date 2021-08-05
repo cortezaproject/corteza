@@ -152,6 +152,41 @@ func Test_loginProc(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:    "split credentials check",
+			payload: map[string]string{"email": "mockuser@example.tld"},
+			alerts:  []request.Alert(nil),
+			link:    GetLinks().Login,
+			fn: func(authSettings *settings.Settings) {
+				req.PostForm.Add("email", "mockuser@example.tld")
+				authSettings.SplitCredentialsCheck = true
+
+				authService = &authServiceMocked{
+					passwordSet: func(ctx context.Context, email string) bool {
+						return false
+					},
+				}
+			},
+		},
+		{
+			name:    "split credentials check with providers",
+			payload: map[string]string{"email": "mockuser@example.tld"},
+			alerts:  []request.Alert(nil),
+			link:    GetLinks().External + "/test-idp",
+			fn: func(authSettings *settings.Settings) {
+				req.PostForm.Add("email", "mockuser@example.tld")
+				authSettings.SplitCredentialsCheck = true
+				authSettings.Providers = []settings.Provider{
+					{Handle: "test-idp"},
+				}
+
+				authService = &authServiceMocked{
+					passwordSet: func(ctx context.Context, email string) bool {
+						return false
+					},
+				}
+			},
+		},
 	}
 
 	for _, tc := range tcc {
