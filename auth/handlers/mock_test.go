@@ -72,7 +72,7 @@ type (
 		template    string
 		alerts      []request.Alert
 		userService userService
-		fn          func()
+		fn          func(*settings.Settings)
 	}
 
 	userServiceMocked struct {
@@ -89,6 +89,7 @@ type (
 		validatePasswordResetToken        func(context.Context, string) (user *types.User, err error)
 		sendEmailAddressConfirmationToken func(context.Context, *types.User) (err error)
 		sendPasswordResetToken            func(context.Context, string) (err error)
+		passwordSet                       func(context.Context, string) bool
 		getProviders                      func() types.ExternalAuthProviderSet
 		validateTOTP                      func(context.Context, string) (err error)
 		configureTOTP                     func(context.Context, string, string) (u *types.User, err error)
@@ -135,6 +136,10 @@ func (s authServiceMocked) ValidateEmailConfirmationToken(ctx context.Context, t
 
 func (s authServiceMocked) ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error) {
 	return s.validatePasswordResetToken(ctx, token)
+}
+
+func (s authServiceMocked) PasswordSet(ctx context.Context, email string) (is bool) {
+	return s.passwordSet(ctx, email)
 }
 
 func (s authServiceMocked) SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error) {

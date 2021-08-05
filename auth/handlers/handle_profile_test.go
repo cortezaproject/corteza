@@ -65,8 +65,6 @@ func Test_profileFormProc(t *testing.T) {
 		userService  userService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -76,7 +74,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "primary", Text: "Profile successfully updated.", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string(nil),
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -96,7 +94,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid ID", "handle": "handle", "name": "name"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -113,7 +111,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid handle", "handle": "handle", "name": "name"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -130,7 +128,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid email", "handle": "handle", "name": "name"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -147,7 +145,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "handle not unique", "handle": "handle", "name": "name"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -164,7 +162,7 @@ func Test_profileFormProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "not allowed to update this user", "handle": "handle", "name": "name"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
 				req.PostForm.Add("name", "name")
 
@@ -185,7 +183,9 @@ func Test_profileFormProc(t *testing.T) {
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)

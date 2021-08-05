@@ -67,8 +67,6 @@ func Test_loginProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	service.CurrentSettings = &types.AppSettings{}
@@ -79,7 +77,7 @@ func Test_loginProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "primary", Text: "You are now logged-in", Html: ""}},
 			link:    GetLinks().Profile,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalLogin: func(ctx context.Context, email, password string) (u *types.User, err error) {
 						u = &types.User{Meta: &types.UserMeta{}}
@@ -97,7 +95,7 @@ func Test_loginProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "danger", Text: "Local accounts disabled", Html: ""}},
 			link:    GetLinks().Profile,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalLogin: func(ctx context.Context, email, password string) (u *types.User, err error) {
 						err = service.AuthErrInternalLoginDisabledByConfig()
@@ -111,7 +109,7 @@ func Test_loginProc(t *testing.T) {
 			payload: map[string]string{"email": "email@", "error": "invalid email"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Login,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("email", "email@")
 
 				authService = &authServiceMocked{
@@ -127,7 +125,7 @@ func Test_loginProc(t *testing.T) {
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid username and password combination"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Login,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("email", "mockuser@example.tld")
 
 				authService = &authServiceMocked{
@@ -143,7 +141,7 @@ func Test_loginProc(t *testing.T) {
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "credentials {credentials.kind} linked to disabled or deleted user {user}"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Login,
-			fn: func() {
+			fn: func(*settings.Settings) {
 				req.PostForm.Add("email", "mockuser@example.tld")
 
 				authService = &authServiceMocked{
@@ -165,7 +163,9 @@ func Test_loginProc(t *testing.T) {
 			req.PostForm = url.Values{}
 			user.Meta = &types.UserMeta{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)

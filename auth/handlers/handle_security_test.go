@@ -54,8 +54,6 @@ func Test_securityProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -63,7 +61,7 @@ func Test_securityProc(t *testing.T) {
 			name:    "reconfigureTOTP",
 			link:    GetLinks().MfaTotpNewSecret,
 			payload: map[interface{}]interface{}{},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "reconfigureTOTP")
 			},
 		},
@@ -71,7 +69,7 @@ func Test_securityProc(t *testing.T) {
 			name:    "disableTOTP",
 			link:    GetLinks().MfaTotpDisable,
 			payload: map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "disableTOTP")
 			},
 		},
@@ -80,7 +78,7 @@ func Test_securityProc(t *testing.T) {
 			err:     "custom error",
 			link:    GetLinks().Security,
 			payload: map[interface{}]interface{}{"totpSecret": "SECRET_VALUE"},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "disableEmailOTP")
 
 				authService = &authServiceMocked{
@@ -100,7 +98,9 @@ func Test_securityProc(t *testing.T) {
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
