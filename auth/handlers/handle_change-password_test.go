@@ -56,8 +56,6 @@ func Test_changePasswordProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 	service.CurrentSettings = &types.AppSettings{}
 
@@ -67,7 +65,7 @@ func Test_changePasswordProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "primary", Text: "Password successfully changed.", Html: ""}},
 			link:    GetLinks().Profile,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 						return nil
@@ -79,7 +77,7 @@ func Test_changePasswordProc(t *testing.T) {
 			name:    "provided password is not secure",
 			payload: map[string]string{"error": "provided password is not secure; use longer password with more non-alphanumeric character"},
 			link:    GetLinks().ChangePassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 						return service.AuthErrPasswordNotSecure()
@@ -91,7 +89,7 @@ func Test_changePasswordProc(t *testing.T) {
 			name:    "internal login is not enabled",
 			payload: map[string]string{"error": "internal login (username/password) is disabled"},
 			link:    GetLinks().ChangePassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 						return service.AuthErrInternalLoginDisabledByConfig()
@@ -103,7 +101,7 @@ func Test_changePasswordProc(t *testing.T) {
 			name:    "password change failed old password does not match",
 			payload: map[string]string{"error": "failed to change password, old password does not match"},
 			link:    GetLinks().ChangePassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 						return service.AuthErrPasswodResetFailedOldPasswordCheckFailed()
@@ -115,7 +113,7 @@ func Test_changePasswordProc(t *testing.T) {
 			name:    "password change failed for unknown user",
 			payload: map[string]string{"error": "failed to change password for the unknown user"},
 			link:    GetLinks().ChangePassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					changePassword: func(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error) {
 						return service.AuthErrPasswordChangeFailedForUnknownUser()
@@ -131,7 +129,9 @@ func Test_changePasswordProc(t *testing.T) {
 
 			req.PostForm = url.Values{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)

@@ -61,8 +61,6 @@ func Test_signupProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -72,7 +70,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "primary", Text: "Sign-up successful.", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string(nil),
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						u = &types.User{
@@ -96,7 +94,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().PendingEmailConfirmation,
 			payload: map[string]string(nil),
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return &types.User{EmailConfirmed: false}, nil
@@ -110,7 +108,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert{{Type: "danger", Text: "Signup disabled", Html: ""}},
 			link:    GetLinks().Login,
 			payload: map[string]string(nil),
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return nil, service.AuthErrInternalSignupDisabledByConfig()
@@ -124,7 +122,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Signup,
 			payload: map[string]string{"email": "", "error": "invalid email", "handle": "", "name": ""},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return nil, service.AuthErrInvalidEmailFormat()
@@ -138,7 +136,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Signup,
 			payload: map[string]string{"email": "", "error": "invalid handle", "handle": "", "name": ""},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return nil, service.AuthErrInvalidHandle()
@@ -152,7 +150,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Signup,
 			payload: map[string]string{"email": "", "error": "provided password is not secure; use longer password with more non-alphanumeric character", "handle": "", "name": ""},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return nil, service.AuthErrPasswordNotSecure()
@@ -166,7 +164,7 @@ func Test_signupProc(t *testing.T) {
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Signup,
 			payload: map[string]string{"email": "", "error": "invalid username and password combination", "handle": "", "name": ""},
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalSignUp: func(c context.Context, user *types.User, s string) (u *types.User, err error) {
 						return nil, service.AuthErrInvalidCredentials()
@@ -184,7 +182,9 @@ func Test_signupProc(t *testing.T) {
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
