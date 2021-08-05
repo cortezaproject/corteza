@@ -521,6 +521,7 @@ func updateAuthSettings(svc authServicer, current *types.AppSettings) {
 		SignupEnabled:             current.Auth.Internal.Signup.Enabled,
 		EmailConfirmationRequired: current.Auth.Internal.Signup.EmailConfirmationRequired,
 		PasswordResetEnabled:      current.Auth.Internal.PasswordReset.Enabled,
+		SplitCredentialsCheck:     current.Auth.Internal.SplitCredentialsCheck,
 		ExternalEnabled:           current.Auth.External.Enabled,
 		MultiFactor: authSettings.MultiFactor{
 			TOTP: authSettings.TOTP{

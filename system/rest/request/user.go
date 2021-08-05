@@ -221,7 +221,7 @@ type (
 
 		// Password POST parameter
 		//
-		// New password
+		// New password or empty to unset
 		Password string
 	}
 

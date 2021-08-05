@@ -27,6 +27,7 @@
 				autocomplete="username"
 				aria-label="Email">
 		</div>
+		{{ if not .form.splitCredentialsCheck }}
 		<div class="mb-3">
             <label>
                 Password *
@@ -58,6 +59,20 @@
 				</button>
 			</div>
 		</div>
+		{{ else }}
+		<div class="row">
+			<div class="col text-right">
+				<button
+					class="btn btn-primary btn-block btn-lg"
+					name="keep-session"
+					value="true"
+					type="submit"
+				>
+					Continue
+				</button>
+			</div>
+		</div>
+		{{ end }}
 	</form>
 	<div class="row text-center">
         {{ if .settings.PasswordResetEnabled }}

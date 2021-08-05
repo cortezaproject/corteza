@@ -595,9 +595,8 @@ endpoints:
       post:
       - name: password
         type: string
-        required: true
         sensitive: true
-        title: New password
+        title: New password or empty to unset
 
   - name: membershipList
     method: GET

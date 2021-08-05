@@ -59,6 +59,9 @@ actions:
   - action: setPassword
     log: "password changed for {user}"
 
+  - action: removePassword
+    log: "password removed for {user}"
+
   - action: deleteAuthTokens
     log: "deleted auth tokens of {user}"
 
