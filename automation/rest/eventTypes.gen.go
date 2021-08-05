@@ -2364,13 +2364,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "response",
-					Type:      "",
+					Type:      "SinkResponse",
 					Immutable: false,
 				},
 
 				{
 					Name:      "request",
-					Type:      "",
+					Type:      "SinkRequest",
 					Immutable: true,
 				},
 			},

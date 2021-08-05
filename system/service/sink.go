@@ -5,17 +5,19 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/api"
-	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
-	"github.com/cortezaproject/corteza-server/pkg/eventbus"
-	"github.com/cortezaproject/corteza-server/system/service/event"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/api"
+	internalAuth "github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/cortezaproject/corteza-server/system/service/event"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -365,11 +367,18 @@ func (svc *sink) process(srup *SinkRequestUrlParams, w http.ResponseWriter, r *h
 
 		w.WriteHeader(rsp.Status)
 
+		var auxb interface{}
+		if cb, ok := rsp.Body.(expr.TypedValue); ok {
+			auxb = cb.Get()
+		} else {
+			auxb = rsp.Body
+		}
+
 		var output []byte
-		if bb, ok := rsp.Body.([]byte); ok {
+		if bb, ok := auxb.([]byte); ok {
 			// Ok, handled
 			output = bb
-		} else if s, ok := rsp.Body.(string); ok {
+		} else if s, ok := auxb.(string); ok {
 			output = []byte(s)
 		}
 

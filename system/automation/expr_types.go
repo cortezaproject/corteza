@@ -141,3 +141,41 @@ func (doc renderedDocument) String() string {
 	aux, _ := ioutil.ReadAll(doc.Document)
 	return string(aux)
 }
+
+func CastToSinkRequest(val interface{}) (out *types.SinkRequest, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.SinkRequest{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToSinkRequest(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.SinkRequest:
+		return val, nil
+	case nil:
+		return &types.SinkRequest{}, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
+func CastToSinkResponse(val interface{}) (out *types.SinkResponse, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.SinkResponse{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToSinkResponse(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.SinkResponse:
+		return val, nil
+	case nil:
+		return &types.SinkResponse{}, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}

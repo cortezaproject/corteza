@@ -37,6 +37,10 @@ types:
     as: 'string'
     default: '""'
 
+  Bytes:
+    as: '[]byte'
+    default: 'byte{}'
+
   Handle:
     as: 'string'
     default: '""'

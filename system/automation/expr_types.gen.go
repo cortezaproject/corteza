@@ -11,9 +11,10 @@ package automation
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"sync"
 )
 
 var _ = context.Background
@@ -462,6 +463,414 @@ func assignToRole(res *types.Role, k string, val interface{}) error {
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "deletedAt":
 		return fmt.Errorf("field '%s' is read-only", k)
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// SinkRequest is an expression type, wrapper for *types.SinkRequest type
+type SinkRequest struct {
+	value *types.SinkRequest
+	mux   sync.RWMutex
+}
+
+// NewSinkRequest creates new instance of SinkRequest expression type
+func NewSinkRequest(val interface{}) (*SinkRequest, error) {
+	if c, err := CastToSinkRequest(val); err != nil {
+		return nil, fmt.Errorf("unable to create SinkRequest: %w", err)
+	} else {
+		return &SinkRequest{value: c}, nil
+	}
+}
+
+// Get return underlying value on SinkRequest
+func (t *SinkRequest) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on SinkRequest
+func (t *SinkRequest) GetValue() *types.SinkRequest {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (SinkRequest) Type() string { return "SinkRequest" }
+
+// Cast converts value to *types.SinkRequest
+func (SinkRequest) Cast(val interface{}) (TypedValue, error) {
+	return NewSinkRequest(val)
+}
+
+// Assign new value to SinkRequest
+//
+// value is first passed through CastToSinkRequest
+func (t *SinkRequest) Assign(val interface{}) error {
+	if c, err := CastToSinkRequest(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *SinkRequest) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToSinkRequest(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access SinkRequest's underlying value (*types.SinkRequest)
+// and it's fields
+//
+func (t *SinkRequest) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return sinkRequestGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.SinkRequest
+//
+// Similar to SelectGVal but returns typed values
+func (t *SinkRequest) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return sinkRequestTypedValueSelector(t.value, k)
+}
+
+func (t *SinkRequest) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "method":
+		return true
+	case "path":
+		return true
+	case "host":
+		return true
+	case "header":
+		return true
+	case "query":
+		return true
+	case "username":
+		return true
+	case "password":
+		return true
+	case "remoteAddr":
+		return true
+	case "postForm":
+		return true
+	case "body":
+		return true
+	}
+	return false
+}
+
+// sinkRequestGValSelector is field accessor for *types.SinkRequest
+func sinkRequestGValSelector(res *types.SinkRequest, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "method":
+		return res.Method, nil
+	case "path":
+		return res.Path, nil
+	case "host":
+		return res.Host, nil
+	case "header":
+		return res.Header, nil
+	case "query":
+		return res.Query, nil
+	case "username":
+		return res.Username, nil
+	case "password":
+		return res.Password, nil
+	case "remoteAddr":
+		return res.RemoteAddr, nil
+	case "postForm":
+		return res.PostForm, nil
+	case "body":
+		return res.Body, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// sinkRequestTypedValueSelector is field accessor for *types.SinkRequest
+func sinkRequestTypedValueSelector(res *types.SinkRequest, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "method":
+		return NewString(res.Method)
+	case "path":
+		return NewString(res.Path)
+	case "host":
+		return NewString(res.Host)
+	case "header":
+		return NewKVV(res.Header)
+	case "query":
+		return NewKVV(res.Query)
+	case "username":
+		return NewString(res.Username)
+	case "password":
+		return NewString(res.Password)
+	case "remoteAddr":
+		return NewString(res.RemoteAddr)
+	case "postForm":
+		return NewKVV(res.PostForm)
+	case "body":
+		return NewBytes(res.Body)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToSinkRequest is field value setter for *types.SinkRequest
+func assignToSinkRequest(res *types.SinkRequest, k string, val interface{}) error {
+	switch k {
+	case "method":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Method = aux
+		return nil
+	case "path":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Path = aux
+		return nil
+	case "host":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Host = aux
+		return nil
+	case "header":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Header = aux
+		return nil
+	case "query":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Query = aux
+		return nil
+	case "username":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Username = aux
+		return nil
+	case "password":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Password = aux
+		return nil
+	case "remoteAddr":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.RemoteAddr = aux
+		return nil
+	case "postForm":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.PostForm = aux
+		return nil
+	case "body":
+		aux, err := CastToBytes(val)
+		if err != nil {
+			return err
+		}
+
+		res.Body = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
+// SinkResponse is an expression type, wrapper for *types.SinkResponse type
+type SinkResponse struct {
+	value *types.SinkResponse
+	mux   sync.RWMutex
+}
+
+// NewSinkResponse creates new instance of SinkResponse expression type
+func NewSinkResponse(val interface{}) (*SinkResponse, error) {
+	if c, err := CastToSinkResponse(val); err != nil {
+		return nil, fmt.Errorf("unable to create SinkResponse: %w", err)
+	} else {
+		return &SinkResponse{value: c}, nil
+	}
+}
+
+// Get return underlying value on SinkResponse
+func (t *SinkResponse) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on SinkResponse
+func (t *SinkResponse) GetValue() *types.SinkResponse {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (SinkResponse) Type() string { return "SinkResponse" }
+
+// Cast converts value to *types.SinkResponse
+func (SinkResponse) Cast(val interface{}) (TypedValue, error) {
+	return NewSinkResponse(val)
+}
+
+// Assign new value to SinkResponse
+//
+// value is first passed through CastToSinkResponse
+func (t *SinkResponse) Assign(val interface{}) error {
+	if c, err := CastToSinkResponse(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *SinkResponse) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToSinkResponse(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access SinkResponse's underlying value (*types.SinkResponse)
+// and it's fields
+//
+func (t *SinkResponse) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return sinkResponseGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.SinkResponse
+//
+// Similar to SelectGVal but returns typed values
+func (t *SinkResponse) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return sinkResponseTypedValueSelector(t.value, k)
+}
+
+func (t *SinkResponse) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "status":
+		return true
+	case "header":
+		return true
+	case "body":
+		return true
+	}
+	return false
+}
+
+// sinkResponseGValSelector is field accessor for *types.SinkResponse
+func sinkResponseGValSelector(res *types.SinkResponse, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "status":
+		return res.Status, nil
+	case "header":
+		return res.Header, nil
+	case "body":
+		return res.Body, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// sinkResponseTypedValueSelector is field accessor for *types.SinkResponse
+func sinkResponseTypedValueSelector(res *types.SinkResponse, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "status":
+		return NewInteger(res.Status)
+	case "header":
+		return NewKVV(res.Header)
+	case "body":
+		return NewAny(res.Body)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToSinkResponse is field value setter for *types.SinkResponse
+func assignToSinkResponse(res *types.SinkResponse, k string, val interface{}) error {
+	switch k {
+	case "status":
+		aux, err := CastToInteger(val)
+		if err != nil {
+			return err
+		}
+
+		res.Status = int(aux)
+		return nil
+	case "header":
+		aux, err := CastToKVV(val)
+		if err != nil {
+			return err
+		}
+
+		res.Header = aux
+		return nil
+	case "body":
+		aux, err := CastToAny(val)
+		if err != nil {
+			return err
+		}
+
+		res.Body = aux
+		return nil
 	}
 
 	return fmt.Errorf("unknown field '%s'", k)

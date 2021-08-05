@@ -2783,9 +2783,21 @@ func (res sinkBase) EncodeVars() (out *expr.Vars, err error) {
 	out = &expr.Vars{}
 	var v expr.TypedValue
 
-	// Could not found expression-type counterpart for *types.SinkResponse
+	if v, err = automation.NewSinkResponse(res.response); err == nil {
+		err = out.Set("response", v)
+	}
 
-	// Could not found expression-type counterpart for *types.SinkRequest
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewSinkRequest(res.request); err == nil {
+		err = out.Set("request", v)
+	}
+
+	if err != nil {
+		return
+	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
@@ -2832,7 +2844,15 @@ func (res *sinkBase) DecodeVars(vars *expr.Vars) (err error) {
 		// Respect immutability
 		return
 	}
-	// Could not find expression-type counterpart for *types.SinkResponse
+	if res.response != nil && vars.Has("response") {
+		var aux *automation.SinkResponse
+		aux, err = automation.NewSinkResponse(expr.Must(vars.Select("response")))
+		if err != nil {
+			return
+		}
+
+		res.response = aux.GetValue()
+	}
 	// request marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 

@@ -48,6 +48,28 @@ types:
       - { name: 'archivedAt',      exprType: 'DateTime',   goType: '*time.Time', mode: ro }
       - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
 
+  SinkResponse:
+    as: '*types.SinkResponse'
+    struct:
+      - { name: 'status',          exprType: 'Integer',   goType: 'int64'          }
+      - { name: 'header',          exprType: 'KVV',       goType: 'map[string][]string'}
+      - { name: 'body',            exprType: 'Any',       goType: 'interface{}'}
+
+  SinkRequest:
+    as: '*types.SinkRequest'
+    struct:
+      - { name: 'method',         exprType: 'String', goType: 'string'}
+      - { name: 'path',           exprType: 'String', goType: 'string'}
+      - { name: 'host',           exprType: 'String', goType: 'string'}
+      - { name: 'header',         exprType: 'KVV',    goType: 'map[string][]string'}
+      - { name: 'query',          exprType: 'KVV',    goType: 'map[string][]string'}
+      - { name: 'username',       exprType: 'String', goType: 'string'}
+      - { name: 'password',       exprType: 'String', goType: 'string'}
+      - { name: 'remoteAddr',     exprType: 'String', goType: 'string'}
+      - { name: 'postForm',       exprType: 'KVV',    goType: 'map[string][]string'}
+      - { name: 'body',           exprType: 'Bytes',  goType: '[]byte'}
+
+
   DocumentType:
     as: 'types.DocumentType'
   TemplateMeta:

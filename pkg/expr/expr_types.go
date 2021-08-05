@@ -305,6 +305,23 @@ func CastStringSlice(val interface{}) (out []string, err error) {
 	return cast.ToStringSliceE(UntypedValue(val))
 }
 
+func CastToBytes(val interface{}) (out []byte, err error) {
+	switch v := val.(type) {
+	case io.Reader:
+		buf := bytes.Buffer{}
+		buf.ReadFrom(v)
+		return buf.Bytes(), nil
+	case string:
+		return []byte(v), nil
+	default:
+		aux, err := cast.ToStringE(v)
+		if err != nil {
+			return nil, err
+		}
+		return []byte(aux), nil
+	}
+}
+
 func CastToHandle(val interface{}) (string, error) {
 	val = UntypedValue(val)
 
