@@ -9,6 +9,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/spf13/cast"
 )
 
@@ -25,12 +26,12 @@ type (
 	}
 
 	JoinStepDefinition struct {
-		Name          string         `json:"name"`
-		LocalSource   string         `json:"localSource"`
-		LocalColumn   string         `json:"localColumn"`
-		ForeignSource string         `json:"foreignSource"`
-		ForeignColumn string         `json:"foreignColumn"`
-		Rows          *RowDefinition `json:"rows,omitempty"`
+		Name          string  `json:"name"`
+		LocalSource   string  `json:"localSource"`
+		LocalColumn   string  `json:"localColumn"`
+		ForeignSource string  `json:"foreignSource"`
+		ForeignColumn string  `json:"foreignColumn"`
+		Filter        *Filter `json:"filter,omitempty"`
 	}
 )
 
@@ -301,7 +302,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 			if useSubSort {
 				// here we use the LOCAL datasource, because it's flipped
 				// - prepare key pre-filter
-				localDef.Rows = d.keySliceToFilter(d.def.LocalColumn, keys).MergeAnd(localDef.Rows)
+				localDef.Filter = d.keySliceToFilter(d.def.LocalColumn, keys).mergeAnd(localDef.Filter)
 
 				// - go!
 				loader, closer, err := d.base.Load(ctx, localDef)
@@ -387,7 +388,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 				partitionSize := foreignDef.Paging.Limit + 1
 
 				// - prepare key pre-filter
-				foreignDef.Rows = d.keySliceToFilter(d.def.ForeignColumn, keys).MergeAnd(foreignDef.Rows)
+				foreignDef.Filter = d.keySliceToFilter(d.def.ForeignColumn, keys).mergeAnd(foreignDef.Filter)
 
 				// - go!
 				loader, closer, err := prtDS.Partition(ctx, partitionSize, d.def.ForeignColumn, foreignDef)
@@ -461,17 +462,30 @@ func (d *joinedDataset) splitSort(ss filter.SortExprSet) (local filter.SortExprS
 	return
 }
 
-func (d *joinedDataset) keySliceToFilter(col string, keys []string) *RowDefinition {
-	cf := &RowDefinition{Or: make([]*RowDefinition, 0, len(keys))}
-	for _, k := range keys {
-		cf.Or = append(cf.Or, &RowDefinition{
-			Cells: map[string]*CellDefinition{
-				col: {Op: "eq", Value: "'" + k + "'"},
+func (d *joinedDataset) keySliceToFilter(col string, keys []string) *Filter {
+	aa := make(qlng.ASTNodeSet, len(keys))
+
+	for i, k := range keys {
+		aa[i] = &qlng.ASTNode{
+			Ref: "eq",
+			Args: qlng.ASTNodeSet{
+				&qlng.ASTNode{Symbol: col},
+				&qlng.ASTNode{Value: qlng.MakeValueOf("String", k)},
 			},
-		})
+		}
 	}
 
-	return cf
+	return &Filter{
+		ASTNode: &qlng.ASTNode{
+			Ref: "group",
+			Args: qlng.ASTNodeSet{
+				&qlng.ASTNode{
+					Ref:  "or",
+					Args: aa,
+				},
+			},
+		},
+	}
 }
 
 func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) (out []*Frame, err error) {

@@ -20,7 +20,7 @@ type (
 	GroupDefinition struct {
 		Keys    []*GroupKey    `json:"keys"`
 		Columns []*GroupColumn `json:"columns"`
-		Rows    *RowDefinition `json:"rows,omitempty"`
+		Filter  *Filter        `json:"filter,omitempty"`
 	}
 
 	GroupStepDefinition struct {

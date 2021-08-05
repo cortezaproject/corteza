@@ -36,15 +36,28 @@
       { "name": "last_name", "label": "last_name" }
     ],
     "sort": "first_name ASC",
-    "rows": {
-      "or": [{
-        "cells": {
-          "last_name": {"op": "eq", "value": "'Königsmann'"}
-        }
+    "filter": {
+      "ref": "or",
+      "args": [{
+        "ref": "eq",
+        "args": [{
+          "symbol": "last_name"
+        }, {
+          "value": {
+            "@type": "String",
+            "@value": "Königsmann"
+          }
+        }]
       }, {
-        "cells": {
-          "last_name": {"op": "eq", "value": "'Kiefer'"}
-        }
+        "ref": "eq",
+        "args": [{
+          "symbol": "last_name"
+        }, {
+          "value": {
+            "@type": "String",
+            "@value": "Kiefer"
+          }
+        }]
       }]
     }
   }, {
@@ -60,10 +73,14 @@
       { "name": "time_spent", "label": "time_spent" }
     ],
     "sort": "type ASC",
-    "rows": {
-      "and": [{
-        "cells": {
-          "type": {"op": "eq", "value": "'a'"}
+    "filter": {
+      "ref": "eq",
+      "args": [{
+        "symbol": "type"
+      }, {
+        "value": {
+          "@type": "String",
+          "@value": "a"
         }
       }]
     }

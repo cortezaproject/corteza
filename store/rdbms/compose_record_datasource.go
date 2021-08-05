@@ -10,7 +10,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
@@ -29,7 +29,7 @@ type (
 		store *Store
 		rows  *sql.Rows
 
-		baseFilter *report.RowDefinition
+		baseFilter *qlng.ASTNode
 
 		cols         report.FrameColumnSet
 		q            squirrel.SelectBuilder
@@ -67,7 +67,7 @@ func ComposeRecordDatasourceBuilder(s *Store, module *types.Module, ld *report.L
 		levelColumns: make(map[string]string),
 	}
 
-	r.q, err = r.baseQuery(ld.Rows)
+	r.q, err = r.baseQuery(ld.Filter)
 	return r, err
 }
 
@@ -191,13 +191,8 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 			Column(squirrel.Alias(squirrel.Expr(qParam), c.Name))
 	}
 
-	if d.Rows != nil {
-		// @todo validate groupping functions
-		hh, err := r.rowFilterToString("", groupCols, d.Rows)
-		if err != nil {
-			return false, err
-		}
-		q = q.Having(hh)
+	if d.Filter != nil {
+		q = q.Having(r.store.FormatAST(d.Filter.ASTNode))
 	}
 
 	r.cols = groupCols
@@ -260,17 +255,13 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
-	if def.Rows != nil || def.Sort != nil {
+	if def.Filter != nil || def.Sort != nil {
 		q = squirrel.Select("*").FromSelect(q, "w_base")
 	}
 
 	// - filtering
-	if def.Rows != nil {
-		f, err := r.rowFilterToString("", r.cols, def.Rows)
-		if err != nil {
-			return q, err
-		}
-		q = q.Where(f)
+	if def.Filter != nil {
+		q = q.Where(r.store.FormatAST(def.Filter.ASTNode))
 	}
 
 	return q, nil
@@ -366,7 +357,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 // baseQuery prepares the initial SQL that will be used for data access
 //
 // The query includes all of the requested columns in the required types to avid the need to type cast.
-func (r *recordDatasource) baseQuery(f *report.RowDefinition) (sqb squirrel.SelectBuilder, err error) {
+func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuilder, err error) {
 	var (
 		joinTpl = "compose_record_value AS %s ON (%s.record_id = crd.id AND %s.name = '%s' AND %s.deleted_at IS NULL)"
 	)
@@ -414,26 +405,21 @@ func (r *recordDatasource) baseQuery(f *report.RowDefinition) (sqb squirrel.Sele
 	//
 	// @todo better support functions and their validation.
 	if f != nil {
-		parser := ql.NewParser()
-		parser.OnIdent = func(i ql.Ident) (ql.Ident, error) {
-			if _, ok := r.levelColumns[i.Value]; !ok {
-				return i, fmt.Errorf("column %s does not exist on level %d (%s)", i.Value, r.nestLevel, r.nestLabel)
+		err = f.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+			// for now, a symbol indicates a column
+			if n.Symbol != "" {
+				if _, ok := r.levelColumns[n.Symbol]; !ok {
+					return false, n, fmt.Errorf("column %s does not exist on level %d (%s)", n.Symbol, r.nestLevel, r.nestLabel)
+				}
 			}
 
-			return i, nil
-		}
-
-		fl, err := r.rowFilterToString("", r.cols, f)
+			return true, n, nil
+		})
 		if err != nil {
-			return sqb, err
+			return
 		}
 
-		astq, err := parser.ParseExpression(fl)
-		if err != nil {
-			return sqb, err
-		}
-
-		sqb = sqb.Where(astq.String())
+		sqb = sqb.Where(r.store.FormatAST(f.ASTNode))
 	}
 
 	return sqb, nil
@@ -543,84 +529,6 @@ func (b *recordDatasource) cast(row sqlx.ColScanner, out *report.Frame) error {
 
 	out.Rows = append(out.Rows, r)
 	return nil
-}
-
-// Identifiers should be names of the fields (physical table columns OR json fields, defined in module)
-func (b *recordDatasource) stdAggregationHandler(f ql.Function) (ql.ASTNode, error) {
-	if !supportedAggregationFunctions[strings.ToUpper(f.Name)] {
-		return f, fmt.Errorf("unsupported aggregate function %q", f.Name)
-	}
-
-	return b.store.SqlFunctionHandler(f)
-}
-
-func (ds *recordDatasource) rowFilterToString(conjunction string, cc report.FrameColumnSet, def ...*report.RowDefinition) (string, error) {
-	// The fields on the root level of the definition take priority
-	base := ""
-	for _, f := range def {
-		if f == nil {
-			continue
-		}
-
-		if f.Cells != nil {
-			for k, op := range f.Cells {
-				ci := cc.Find(k)
-				if ci == -1 {
-					return "", fmt.Errorf("filtered column not found in the data frame: %s", k)
-				}
-				_, _, typeCast, err := ds.store.config.CastModuleFieldToColumnType(cc[ci], k)
-				if err != nil {
-					return "", err
-				}
-
-				col := fmt.Sprintf(typeCast, k)
-				base += fmt.Sprintf("%s%s%s %s ", col, op.OpToCmp(), fmt.Sprintf(typeCast, op.Value), conjunction)
-			}
-		}
-	}
-	if strings.TrimSpace(base) != "" {
-		base = strings.TrimSuffix(base, " "+conjunction+" ")
-	}
-
-	// Nested AND
-	for _, f := range def {
-		if f == nil {
-			continue
-		}
-
-		if f.And != nil {
-			na, err := ds.rowFilterToString("AND", cc, f.And...)
-			if err != nil {
-				return "", err
-			}
-			if strings.TrimSpace(base) != "" {
-				base += fmt.Sprintf(" %s (%s)", conjunction, na)
-			} else {
-				base = na
-			}
-		}
-	}
-
-	// Nested OR
-	for _, f := range def {
-		if f == nil {
-			continue
-		}
-
-		if f.Or != nil {
-			na, err := ds.rowFilterToString("OR", cc, f.Or...)
-			if err != nil {
-				return "", err
-			}
-			if strings.TrimSpace(base) != "" {
-				base += fmt.Sprintf(" %s (%s)", conjunction, na)
-			} else {
-				base = na
-			}
-		}
-	}
-
-	return strings.TrimSpace(base), nil
 }
 
 func isNil(i interface{}) bool {

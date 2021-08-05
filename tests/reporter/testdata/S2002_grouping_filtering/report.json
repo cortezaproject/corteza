@@ -32,12 +32,28 @@
     ],
     "sort": "by_name ASC",
 
-    "rows": {
-      "and": [{
-        "cells": {
-          "total": {"op": "gt", "value": "50"},
-          "count": {"op": "lt", "value": "2"}
-        }
+    "filter": {
+      "ref": "and",
+      "args": [{
+        "ref": "gt",
+        "args": [{
+          "symbol": "total"
+        }, {
+          "value": {
+            "@type": "Integer",
+            "@value": 50
+          }
+        }]
+      }, {
+        "ref": "lt",
+        "args": [{
+          "symbol": "count"
+        }, {
+          "value": {
+            "@type": "Integer",
+            "@value": 2
+          }
+        }]
       }]
     }
   }]
