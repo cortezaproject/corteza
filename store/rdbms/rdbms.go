@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/pkg/sentry"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
@@ -215,6 +216,14 @@ func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error)
 	}
 
 	return rr, nil
+}
+
+func (s Store) FormatAST(n *qlng.ASTNode) squirrel.Sqlizer {
+	if n == nil {
+		return nil
+	}
+
+	return newASTFormatter(n, s.config.ASTFormatter)
 }
 
 // QueryRow returns row instead of filling in the passed struct

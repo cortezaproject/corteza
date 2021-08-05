@@ -22,7 +22,7 @@ type (
 		Source     string                 `json:"source"`
 		Definition map[string]interface{} `json:"definition"`
 		Columns    FrameColumnSet         `json:"columns"`
-		Rows       *RowDefinition         `json:"rows,omitempty"`
+		Filter     *Filter                `json:"filter,omitempty"`
 	}
 )
 

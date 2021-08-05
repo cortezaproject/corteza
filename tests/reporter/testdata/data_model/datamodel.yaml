@@ -19,6 +19,8 @@ modules:
           field: email
         number_of_numbers:
           field: number_of_numbers
+        dob:
+          field: dob
 
     fields:
       join_key:
@@ -36,6 +38,9 @@ modules:
       number_of_numbers:
         label: number_of_numbers label
         kind: Number
+      dob:
+        label: dob label
+        kind: DateTime
 
   job:
     records:

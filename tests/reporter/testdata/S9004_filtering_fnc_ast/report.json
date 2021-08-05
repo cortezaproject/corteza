@@ -1,0 +1,38 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+  }}}],
+  "frames": [{
+    "name":   "result",
+    "source": "users",
+    "columns": [
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" }
+    ],
+
+    "filter": {
+      "ref": "eq",
+      "args": [{
+        "ref": "year",
+        "args": [{
+          "symbol": "dob"
+        }]
+      }, {
+        "ref": "year",
+        "args": [{
+          "value": {
+            "@type": "String",
+            "@value": "2021-01-01"
+          }
+        }]
+      }]
+    }
+  }]
+}

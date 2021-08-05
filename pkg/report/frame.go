@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/spf13/cast"
 )
 
@@ -51,9 +52,9 @@ type (
 		Name    string         `json:"name"`
 		Source  string         `json:"source"`
 		Ref     string         `json:"ref"`
-		Rows    *RowDefinition `json:"rows"`
 		Columns FrameColumnSet `json:"columns"`
 
+		Filter *Filter            `json:"filter"`
 		Paging *filter.Paging     `json:"paging"`
 		Sort   filter.SortExprSet `json:"sort"`
 	}
@@ -66,7 +67,25 @@ type (
 
 		// @todo size and other shape related bits
 	}
+
+	// Filter is a qlng.ASTNode wrapper to get some unmarshal/marshal features
+	Filter struct {
+		*qlng.ASTNode
+	}
 )
+
+func (f *Filter) Clone() *Filter {
+	if f == nil {
+		return nil
+	}
+	if f.ASTNode == nil {
+		return nil
+	}
+
+	return &Filter{
+		ASTNode: f.ASTNode.Clone(),
+	}
+}
 
 func MakeColumnOfKind(k string) *FrameColumn {
 	return &FrameColumn{
@@ -111,40 +130,47 @@ func KindOf(v expr.TypedValue) string {
 	}
 }
 
-func (b *CellDefinition) UnmarshalJSON(data []byte) (err error) {
-	if b == nil {
-		*b = *(&CellDefinition{})
-	}
-
-	aux := make(map[string]string)
+func (f *Filter) UnmarshalJSON(data []byte) (err error) {
+	var aux interface{}
 	if err = json.Unmarshal(data, &aux); err != nil {
-		return err
+		return
 	}
 
-	b.Op = aux["op"]
-	b.Value = aux["value"]
+	p := qlng.NewParser()
 
-	return nil
-}
-
-func (b CellDefinition) OpToCmp() string {
-	switch b.Op {
-	case "eq":
-		return "="
-	case "ne":
-		return "!="
-	case "lt":
-		return "<"
-	case "gt":
-		return ">"
-	case "le":
-		return "<="
-	case "ge":
-		return ">="
-
-	default:
-		return "="
+	// String expr. needs to be parsed to the AST
+	switch v := aux.(type) {
+	case string:
+		if f.ASTNode, err = p.Parse(v); err != nil {
+			return
+		}
+		f.ASTNode.Raw = v
+		return
 	}
+
+	// non-string is considered an AST and we parse that
+	if err = json.Unmarshal(data, &f.ASTNode); err != nil {
+		return
+	}
+
+	// traverse the AST to parse any raw exprs.
+	if f.ASTNode == nil {
+		return
+	}
+
+	// A raw expression takes priority and replaces the original AST sub-tree
+	return f.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+		if n.Raw == "" {
+			return true, n, nil
+		}
+
+		aux, err := p.Parse(n.Raw)
+		if err != nil {
+			return false, n, err
+		}
+
+		return false, aux, nil
+	})
 }
 
 // With guard element
@@ -345,10 +371,10 @@ func (f *FrameDefinition) Clone() (out *FrameDefinition) {
 		Source: f.Source,
 		Ref:    f.Ref,
 
-		Rows:    f.Rows.Clone(),
 		Columns: f.Columns.Clone(),
 		Paging:  f.Paging.Clone(),
 		Sort:    f.Sort.Clone(),
+		Filter:  f.Filter.Clone(),
 	}
 }
 
