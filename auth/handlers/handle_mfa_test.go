@@ -23,8 +23,6 @@ func Test_mfaProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	service.CurrentSettings = &types.AppSettings{}
@@ -35,7 +33,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "primary", Text: "Email OTP valid"}},
 			link:    GetLinks().Profile,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
 				req.PostForm.Add("code", "123456")
 
@@ -51,7 +49,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "primary", Text: "TOTP valid"}},
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")
 				req.PostForm.Add("code", "123456")
 
@@ -67,7 +65,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"emailOtpError": "multi factor authentication with email OTP is disabled"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
 
 				authService = &authServiceMocked{
@@ -82,7 +80,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"emailOtpError": "invalid username and password combination"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
 
 				authService = &authServiceMocked{
@@ -97,7 +95,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"emailOtpError": "invalid code"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
 				req.PostForm.Add("code", "token_TOO_LONG")
 
@@ -113,7 +111,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"emailOtpError": "invalid code"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
 				req.PostForm.Add("code", "123456")
 
@@ -129,7 +127,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"totpError": "multi factor authentication with TOTP is disabled"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")
 
 				authService = &authServiceMocked{
@@ -144,7 +142,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"totpError": "invalid username and password combination"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")
 
 				authService = &authServiceMocked{
@@ -159,7 +157,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"totpError": "invalid code"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")
 				req.PostForm.Add("code", "token_TOO_LONG")
 
@@ -175,7 +173,7 @@ func Test_mfaProc(t *testing.T) {
 			payload: map[string]string{"totpError": "invalid code"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Mfa,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")
 				req.PostForm.Add("code", "123456")
 
@@ -197,7 +195,9 @@ func Test_mfaProc(t *testing.T) {
 			req.PostForm = url.Values{}
 			user.Meta = &types.UserMeta{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)

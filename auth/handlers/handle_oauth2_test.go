@@ -27,8 +27,6 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -37,7 +35,7 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 			payload:  -1,
 			err:      "",
 			template: "",
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				oauthService = &oauth2ServiceMocked{
 					handleAuthorizeRequest: func(w http.ResponseWriter, r *http.Request) error {
 						return nil
@@ -50,7 +48,7 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 			payload:  http.StatusInternalServerError,
 			err:      "not authorized",
 			template: TmplInternalError,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				oauthService = &oauth2ServiceMocked{
 					handleAuthorizeRequest: func(w http.ResponseWriter, r *http.Request) error {
 						return errors.New("not authorized")
@@ -64,7 +62,9 @@ func Test_oauth2AuthorizeSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			rq := require.New(t)
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = &AuthHandlers{

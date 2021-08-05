@@ -55,8 +55,6 @@ func Test_resetPasswordForm(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -66,7 +64,7 @@ func Test_resetPasswordForm(t *testing.T) {
 			alerts:   []request.Alert(nil),
 			link:     GetLinks().ResetPassword,
 			template: TmplResetPassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.URL = &url.URL{RawQuery: "token=NOT_EMPTY"}
 
 				authService = &authServiceMocked{
@@ -85,7 +83,7 @@ func Test_resetPasswordForm(t *testing.T) {
 			alerts:   []request.Alert{{Type: "warning", Text: "Invalid or expired password reset token, please repeat password reset request."}},
 			link:     GetLinks().RequestPasswordReset,
 			template: TmplResetPassword,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				req.URL = &url.URL{RawQuery: "token=NOT_EMPTY"}
 
 				authService = &authServiceMocked{
@@ -105,7 +103,9 @@ func Test_resetPasswordForm(t *testing.T) {
 			req.Form = url.Values{}
 			req.PostForm = url.Values{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, nil)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
@@ -134,8 +134,6 @@ func Test_requestPasswordReset(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -144,7 +142,7 @@ func Test_requestPasswordReset(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().PasswordResetRequested,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					sendPasswordResetToken: func(ctx context.Context, email string) (err error) {
 						return nil
@@ -157,7 +155,7 @@ func Test_requestPasswordReset(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "danger", Text: "Password reset disabled"}},
 			link:    GetLinks().Login,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					sendPasswordResetToken: func(ctx context.Context, email string) (err error) {
 						return service.AuthErrPasswordResetDisabledByConfig()
@@ -176,7 +174,9 @@ func Test_requestPasswordReset(t *testing.T) {
 			req.PostForm = url.Values{}
 			user.Meta = &types.UserMeta{}
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
@@ -201,8 +201,6 @@ func Test_requestPasswordProc(t *testing.T) {
 		authService  authService
 		authHandlers *AuthHandlers
 		authReq      *request.AuthReq
-
-		authSettings = &settings.Settings{}
 	)
 
 	tcc := []testingExpect{
@@ -211,7 +209,7 @@ func Test_requestPasswordProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "primary", Text: "Password successfully reset.", Html: ""}},
 			link:    GetLinks().Profile,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					setPassword: func(ctx context.Context, userID uint64, password string) (err error) {
 						return nil
@@ -224,7 +222,7 @@ func Test_requestPasswordProc(t *testing.T) {
 			payload: map[string]string(nil),
 			alerts:  []request.Alert{{Type: "danger", Text: "Password reset disabled", Html: ""}},
 			link:    GetLinks().Login,
-			fn: func() {
+			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					setPassword: func(ctx context.Context, userID uint64, password string) (err error) {
 						return service.AuthErrPasswordResetDisabledByConfig()
@@ -238,7 +236,9 @@ func Test_requestPasswordProc(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			rq := require.New(t)
 
-			tc.fn()
+			authSettings := &settings.Settings{}
+
+			tc.fn(authSettings)
 
 			authReq = prepareClientAuthReq(ctx, req, user)
 			authHandlers = prepareClientAuthHandlers(ctx, authService, authSettings)
