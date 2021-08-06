@@ -1,0 +1,14 @@
+settings:
+  auth.external.enabled: true
+  auth.mail.from-address: info@example.tld
+  auth.mail.from-name: Corteza
+  auth.internal.enabled: true
+  auth.internal.signup.enabled: true
+
+  # We add this through provision procedures
+  # if we detect valid SMTP settings
+  # auth.internal.signup.email-confirmation-required: true
+
+  # We add this through provision procedures
+  # if we detect valid SMTP settings
+  # auth.internal.password-reset.enabled: true

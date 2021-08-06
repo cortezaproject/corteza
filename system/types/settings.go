@@ -41,6 +41,12 @@ const (
 	settingsFilterPerPageMax = 100
 )
 
+func MakeSettingValue(name string, value interface{}) *SettingValue {
+	o := &SettingValue{Name: name}
+	_ = o.SetValue(value)
+	return o
+}
+
 func (v *SettingValue) SetRawValue(str string) error {
 	var dummy interface{}
 	// Test input to be sure we can save it...
@@ -60,7 +66,7 @@ func (v *SettingValue) SetValue(value interface{}) (err error) {
 		return err
 	}
 
-	v.Value = buf.Bytes()
+	v.Value = bytes.TrimSpace(buf.Bytes())
 	return
 }
 
