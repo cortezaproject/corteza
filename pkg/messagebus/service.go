@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/cortezaproject/corteza-server/pkg/messagebus/consumer"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus/store"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 )
@@ -16,21 +19,15 @@ var (
 
 type (
 	messageBus struct {
-		opts   *options.MessagebusOpt
-		logger *zap.Logger
-		mutex  sync.Mutex
-		queues QueueSet
+		opts      *options.MessagebusOpt
+		qservicer types.QueueServicer
+		logger    *zap.Logger
+		mutex     sync.Mutex
+		queues    types.QueueSet
 
-		in     chan message
+		in     chan types.Message
 		quit   chan bool
 		reload chan bool
-	}
-
-	QueueStorer interface {
-		SearchMessagebusQueueSettings(ctx context.Context, f QueueSettingsFilter) (QueueSettingsSet, QueueSettingsFilter, error)
-		SearchMessagebusQueueMessages(ctx context.Context, f QueueMessageFilter) (QueueMessageSet, QueueMessageFilter, error)
-		CreateMessagebusQueueMessage(ctx context.Context, rr ...*QueueMessage) error
-		UpdateMessagebusQueueMessage(ctx context.Context, rr ...*QueueMessage) error
 	}
 )
 
@@ -55,9 +52,9 @@ func New(opts *options.MessagebusOpt, logger *zap.Logger) *messageBus {
 	return &messageBus{
 		opts:   opts,
 		logger: logger,
-		queues: QueueSet{},
+		queues: types.QueueSet{},
 
-		in:     make(chan message),
+		in:     make(chan types.Message),
 		quit:   make(chan bool),
 		reload: make(chan bool),
 	}
@@ -65,8 +62,11 @@ func New(opts *options.MessagebusOpt, logger *zap.Logger) *messageBus {
 
 // Init takes care of preloading the queue and creating
 // a connection to the store of their choice
-func (mb *messageBus) Init(ctx context.Context, storer QueueStorer) {
-	mb.initQueues(ctx, storer)
+func (mb *messageBus) Init(ctx context.Context, storer types.QueueServicer) {
+	// set store now, on New() we do not have store yet
+	mb.qservicer = storer
+
+	mb.initQueues(ctx)
 }
 
 // Listen sets read and write channel listeners,
@@ -77,8 +77,8 @@ func (mb *messageBus) Listen(ctx context.Context) {
 		for {
 			select {
 			case t := <-mb.in:
-				q := mb.queue(t.q)
-				log := mb.logger.With(zap.String("queue", t.q))
+				q := mb.queue(t.Q)
+				log := mb.logger.With(zap.String("queue", t.Q))
 
 				if q == nil {
 					log.Warn("could not get queue settings")
@@ -86,7 +86,7 @@ func (mb *messageBus) Listen(ctx context.Context) {
 				}
 
 				// get the consumer
-				err := q.consumer.Write(ctx, t.p)
+				err := q.Consumer.Write(ctx, t.P)
 
 				if err != nil {
 					log.Warn("could not add message to queue", zap.Error(err))
@@ -109,7 +109,7 @@ func (mb *messageBus) Listen(ctx context.Context) {
 
 // Watch checks the channel for restart and loads the queues
 // and adds the listeners again (the same process as on boot)
-func (mb *messageBus) Watch(ctx context.Context, storer QueueStorer) {
+func (mb *messageBus) Watch(ctx context.Context, storer types.QueueServicer) {
 	go func() {
 		for {
 			select {
@@ -150,18 +150,14 @@ func (mb *messageBus) Push(q string, p []byte) {
 		return
 	}
 
-	mb.in <- message{p: p, q: q}
+	mb.in <- types.Message{P: p, Q: q}
 }
 
-func (mb *messageBus) Register(ctx context.Context, qs *QueueSettings, consumer Consumer) {
-	// associate consumer with the queue
-	mb.queues[qs.Queue] = &Queue{
-		settings: *qs,
-		consumer: consumer,
-	}
+func (mb *messageBus) Register(ctx context.Context, qs *types.Queue) {
+	mb.queues[qs.Name] = qs
 }
 
-func (mb *messageBus) queue(q string) *Queue {
+func (mb *messageBus) queue(q string) *types.Queue {
 	if _, ok := mb.queues[q]; ok {
 		return mb.queues[q]
 	}
@@ -169,8 +165,8 @@ func (mb *messageBus) queue(q string) *Queue {
 	return nil
 }
 
-func (mb *messageBus) initQueues(ctx context.Context, storer QueueStorer) error {
-	list, _, err := storer.SearchMessagebusQueueSettings(ctx, QueueSettingsFilter{})
+func (mb *messageBus) initQueues(ctx context.Context) error {
+	list, _, err := mb.qservicer.SearchQueues(ctx, types.QueueFilter{})
 
 	if err != nil {
 		return err
@@ -180,43 +176,46 @@ func (mb *messageBus) initQueues(ctx context.Context, storer QueueStorer) error 
 	defer mb.mutex.Unlock()
 
 	// empty first
-	mb.queues = make(QueueSet)
+	mb.queues = make(types.QueueSet)
 
 	// add to list of consumers
-	for _, qs := range list {
-		c, err := mb.initConsumer(ctx, *qs)
-		mb.logger.Debug("initializing queue", zap.String("queue", qs.Queue))
+	for _, q := range list {
+		mb.logger.Debug("initializing queue", zap.String("queue", q.Queue))
+
+		c, err := mb.initConsumer(ctx, q.Queue, q.Consumer)
 
 		if err != nil {
-			mb.logger.Warn("could not init consumer for queue", zap.String("queue", qs.Queue), zap.Error(err))
+			mb.logger.Warn("could not init consumer for queue", zap.String("queue", q.Queue), zap.Error(err))
 			continue
 		}
 
-		if _, is := c.(Storer); is {
-			c.SetStore(storer)
+		if _, is := c.(store.Storer); is {
+			c.(store.Storer).SetStore(mb.qservicer)
 		}
 
-		mb.Register(ctx, qs, c)
+		mb.Register(ctx, &types.Queue{
+			Consumer: c,
+			Name:     q.Queue,
+			Meta:     types.QueueMeta(q.Meta),
+		})
 	}
 
 	return nil
 }
 
 // initHandler returns a new instance for a specific handler
-func (mb *messageBus) initConsumer(ctx context.Context, settings QueueSettings) (consumer Consumer, err error) {
-	handle := settings.Consumer
-
-	switch handle {
-	case string(ConsumerEventbus):
-		consumer = NewEventbusConsumer(settings)
+func (mb *messageBus) initConsumer(ctx context.Context, q string, c string) (cns types.Consumer, err error) {
+	switch c {
+	case string(types.ConsumerEventbus):
+		cns = consumer.NewEventbusConsumer(q, mb.qservicer)
 		return
 
-	case string(ConsumerStore):
-		consumer = NewStoreConsumer(settings)
+	case string(types.ConsumerStore):
+		cns = consumer.NewStoreConsumer(q, mb.qservicer)
 		return
 
 	default:
-		err = fmt.Errorf("message queue consumer %s not implemented", handle)
+		err = fmt.Errorf("message queue consumer %s not implemented", c)
 		return
 	}
 }

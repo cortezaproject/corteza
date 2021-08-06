@@ -10,20 +10,20 @@ defaultActionSeverity: notice
 defaultErrorSeverity: error
 
 import:
-  - github.com/cortezaproject/corteza-server/pkg/messagebus
+  - github.com/cortezaproject/corteza-server/system/types
 
 props:
   - name: queue
-    type: "*messagebus.QueueSettings"
+    type: "*types.Queue"
     fields: [ queue, ID ]
   - name: new
-    type: "*messagebus.QueueSettings"
+    type: "*types.Queue"
     fields: [ queue, consumer, ID ]
   - name: update
-    type: "*messagebus.QueueSettings"
+    type: "*types.Queue"
     fields: [ queue, consumer, ID ]
   - name: search
-    type: "*messagebus.QueueSettingsFilter"
+    type: "*types.QueueFilter"
     fields: [ ]
 
 actions:

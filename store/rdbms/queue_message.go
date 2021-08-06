@@ -3,11 +3,11 @@ package rdbms
 import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
-func (s Store) convertMessagebusQueueMessageFilter(f messagebus.QueueMessageFilter) (query squirrel.SelectBuilder, err error) {
-	query = s.messagebusQueueMessagesSelectBuilder()
+func (s Store) convertQueueMessageFilter(f types.QueueMessageFilter) (query squirrel.SelectBuilder, err error) {
+	query = s.queueMessagesSelectBuilder()
 
 	if f.Queue != "" {
 		query = query.Where("mqm.queue = ?", f.Queue)

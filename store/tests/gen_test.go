@@ -30,8 +30,8 @@ package tests
 //  - store/federation_shared_modules.yaml
 //  - store/flags.yaml
 //  - store/labels.yaml
-//  - store/messagebus_queue_message.yaml
-//  - store/messagebus_queue_settings.yaml
+//  - store/queue.yaml
+//  - store/queue_message.yaml
 //  - store/rbac_rules.yaml
 //  - store/reminders.yaml
 //  - store/reports.yaml
@@ -48,8 +48,9 @@ package tests
 //
 
 import (
-	"github.com/cortezaproject/corteza-server/store"
 	"testing"
+
+	"github.com/cortezaproject/corteza-server/store"
 )
 
 func testAllGenerated(t *testing.T, s store.Storer) {
@@ -193,14 +194,14 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 		testLabels(t, s)
 	})
 
-	// Run generated tests for MessagebusQueueMessage
-	t.Run("MessagebusQueueMessage", func(t *testing.T) {
-		testMessagebusQueueMessage(t, s)
+	// Run generated tests for Queue
+	t.Run("Queue", func(t *testing.T) {
+		testQueue(t, s)
 	})
 
-	// Run generated tests for MessagebusQueueSettings
-	t.Run("MessagebusQueueSettings", func(t *testing.T) {
-		testMessagebusQueueSettings(t, s)
+	// Run generated tests for QueueMessage
+	t.Run("QueueMessage", func(t *testing.T) {
+		testQueueMessage(t, s)
 	})
 
 	// Run generated tests for RbacRules
