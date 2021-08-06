@@ -36,7 +36,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return importConfig(ctx, log.Named("config"), s, provisionOpt.Path) },
 
 		// Auto-discoveries and other parts that cannot be imported from static files
-		func() error { return authSettingsAutoDiscovery(ctx, log.Named("auth.settings-discovery"), s) },
+		func() error { return emailSettings(ctx, s) },
 		func() error { return authAddExternals(ctx, log.Named("auth.externals"), s) },
 		func() error { return oidcAutoDiscovery(ctx, log.Named("auth.oidc-auto-discovery"), s, authOpt) },
 		func() error { return defaultAuthClient(ctx, log.Named("auth.clients"), s, authOpt) },
