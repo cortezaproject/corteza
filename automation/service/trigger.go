@@ -489,8 +489,8 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 				WithOptions(zap.AddStacktrace(zap.DPanicLevel)).
 				With(zap.Uint64("workflowID", wf.ID))
 
-			// register only enabled, undeleted workflows
-		registerWorkflow = wf.Enabled || wf.DeletedAt == nil
+		// register only enabled, undeleted workflows
+		registerWorkflow = wf.Enabled && wf.DeletedAt == nil
 	)
 
 	// convert only registerable and issuless workflwos
