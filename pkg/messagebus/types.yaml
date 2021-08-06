@@ -1,4 +1,0 @@
-package: messagebus
-types:
-  QueueMessage: {}
-  QueueSettings: {}

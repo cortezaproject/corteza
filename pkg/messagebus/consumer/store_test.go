@@ -1,4 +1,4 @@
-package messagebus
+package consumer
 
 import (
 	"context"
@@ -6,46 +6,34 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/messagebus/store"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus/types"
 	"github.com/stretchr/testify/require"
 )
 
 type (
 	mockClient struct {
-		get     func(context.Context, string) (QueueMessageSet, error)
 		add     func(context.Context, string, []byte) (err error)
-		process func(context.Context, QueueMessage) (err error)
+		process func(context.Context, uint64, types.QueueMessage) (err error)
 
-		setStorer func(QueueStorer)
-		getStorer func() QueueStorer
+		setStore func(types.QueueStorer)
+		getStore func() types.QueueStorer
 	}
 )
 
 var (
-	fooMessageSet = QueueMessageSet{
-		{ID: 1},
-		{ID: 2},
-	}
-
 	successfulClient = mockClient{
-		get: func(c context.Context, q string) (QueueMessageSet, error) {
-			return fooMessageSet, nil
-		},
 		add: func(c context.Context, q string, p []byte) error {
 			return nil
 		},
-		process: func(c context.Context, m QueueMessage) error {
-			return nil
-		},
+		process: func(c context.Context, u uint64, qm types.QueueMessage) (err error) { return },
 	}
 
 	unsuccessfulClient = mockClient{
-		get: func(c context.Context, s string) (QueueMessageSet, error) {
-			return QueueMessageSet{}, errors.New("could not get messages")
-		},
 		add: func(c context.Context, q string, p []byte) error {
 			return errors.New("could not write messages")
 		},
-		process: func(c context.Context, m QueueMessage) error {
+		process: func(c context.Context, u uint64, qm types.QueueMessage) (err error) {
 			return errors.New("could not process messages")
 		},
 	}
@@ -58,19 +46,16 @@ func Test_handlerSqlWrite(t *testing.T) {
 			name    string
 			err     error
 			payload []byte
-			expect  QueueMessageSet
-			client  StoreClient
+			client  store.StoreClient
 		}{
 			{
 				name:   "write success",
 				err:    nil,
-				expect: fooMessageSet,
 				client: &successfulClient,
 			},
 			{
 				name:   "write error",
 				err:    errors.New("could not write messages"),
-				expect: QueueMessageSet{},
 				client: &unsuccessfulClient,
 			},
 		}
@@ -79,7 +64,7 @@ func Test_handlerSqlWrite(t *testing.T) {
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
 			req := require.New(t)
-			h := StoreConsumer{queue: "foobar", handle: ConsumerStore, client: tc.client}
+			h := StoreConsumer{queue: "foobar", handle: types.ConsumerStore, client: tc.client}
 
 			err := h.Write(ctx, []byte("foo bar"))
 
@@ -88,24 +73,20 @@ func Test_handlerSqlWrite(t *testing.T) {
 	}
 }
 
-func (mc *mockClient) Get(ctx context.Context, q string) (set QueueMessageSet, err error) {
-	return mc.get(ctx, q)
-}
-
 func (mc *mockClient) Add(ctx context.Context, q string, p []byte) error {
 	return mc.add(ctx, q, p)
 }
 
-func (mc *mockClient) Process(ctx context.Context, m QueueMessage) error {
-	return mc.process(ctx, m)
+func (mc *mockClient) Process(ctx context.Context, ID uint64, m types.QueueMessage) error {
+	return mc.process(ctx, ID, m)
 }
 
-func (mc *mockClient) GetStorer() QueueStorer {
-	return mc.getStorer()
+func (mc *mockClient) GetStore() types.QueueStorer {
+	return mc.getStore()
 }
 
-func (mc *mockClient) SetStorer(s QueueStorer) {
-	mc.setStorer(s)
+func (mc *mockClient) SetStore(s types.QueueStorer) {
+	mc.setStore(s)
 }
 
 func makeDelay(d time.Duration) *time.Duration {

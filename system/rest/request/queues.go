@@ -11,8 +11,8 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
@@ -75,7 +75,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta data for queue
-		Meta messagebus.QueueSettingsMeta
+		Meta types.QueueMeta
 	}
 
 	QueuesRead struct {
@@ -104,7 +104,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta data for queue
-		Meta messagebus.QueueSettingsMeta
+		Meta types.QueueMeta
 	}
 
 	QueuesDelete struct {
@@ -230,7 +230,7 @@ func (r QueuesCreate) GetConsumer() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesCreate) GetMeta() messagebus.QueueSettingsMeta {
+func (r QueuesCreate) GetMeta() types.QueueMeta {
 	return r.Meta
 }
 
@@ -270,12 +270,12 @@ func (r *QueuesCreate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["meta[]"]; ok {
-			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			r.Meta, err = types.ParseQueueMeta(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["meta"]; ok {
-			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			r.Meta, err = types.ParseQueueMeta(val)
 			if err != nil {
 				return err
 			}
@@ -351,7 +351,7 @@ func (r QueuesUpdate) GetConsumer() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r QueuesUpdate) GetMeta() messagebus.QueueSettingsMeta {
+func (r QueuesUpdate) GetMeta() types.QueueMeta {
 	return r.Meta
 }
 
@@ -391,12 +391,12 @@ func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["meta[]"]; ok {
-			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			r.Meta, err = types.ParseQueueMeta(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["meta"]; ok {
-			r.Meta, err = messagebus.ParseQueueSettingsMeta(val)
+			r.Meta, err = types.ParseQueueMeta(val)
 			if err != nil {
 				return err
 			}

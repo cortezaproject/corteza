@@ -11,10 +11,11 @@ package automation
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
-	"sync"
 )
 
 var _ = context.Background
@@ -197,14 +198,14 @@ func assignToQueueMessage(res *types.QueueMessage, k string, val interface{}) er
 
 		res.Queue = aux
 		return nil
-	case "Payload":
-		aux, err := CastToString(val)
-		if err != nil {
-			return err
-		}
+		// case "Payload":
+		// 	aux, err := CastToString(val)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 
-		res.Payload = aux
-		return nil
+		// 	res.Payload = aux
+		// 	return nil
 	}
 
 	return fmt.Errorf("unknown field '%s'", k)

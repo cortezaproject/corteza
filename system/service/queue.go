@@ -4,8 +4,12 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
+	mt "github.com/cortezaproject/corteza-server/pkg/messagebus/types"
 	"github.com/cortezaproject/corteza-server/store"
+	"github.com/cortezaproject/corteza-server/system/service/event"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -18,9 +22,9 @@ type (
 	queueAccessController interface {
 		CanCreateQueue(ctx context.Context) bool
 		CanSearchQueues(ctx context.Context) bool
-		CanReadQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-		CanUpdateQueue(ctx context.Context, c *messagebus.QueueSettings) bool
-		CanDeleteQueue(ctx context.Context, c *messagebus.QueueSettings) bool
+		CanReadQueue(ctx context.Context, c *types.Queue) bool
+		CanUpdateQueue(ctx context.Context, c *types.Queue) bool
+		CanDeleteQueue(ctx context.Context, c *types.Queue) bool
 	}
 )
 
@@ -32,7 +36,66 @@ func Queue() *queue {
 	}
 }
 
-func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueSettings, err error) {
+func (svc *queue) CreateQueueEvent(q string, p []byte) eventbus.Event {
+	return event.QueueOnMessage(&types.QueueMessage{
+		Queue:   q,
+		Payload: p,
+	})
+}
+
+func (svc *queue) ProcessQueueMessage(ctx context.Context, ID uint64, m mt.QueueMessage) error {
+	svc.store.UpdateQueueMessage(ctx, &types.QueueMessage{
+		ID:        ID,
+		Processed: now(),
+		Queue:     m.Queue,
+		Payload:   m.Payload,
+	})
+
+	return nil
+}
+
+func (svc *queue) CreateQueueMessage(ctx context.Context, m mt.QueueMessage) error {
+	svc.store.CreateQueueMessage(ctx, &types.QueueMessage{
+		ID:      nextID(),
+		Created: now(),
+		Queue:   m.Queue,
+		Payload: m.Payload,
+	})
+
+	return nil
+}
+
+func (svc *queue) SearchQueues(ctx context.Context, ff mt.QueueFilter) (l []mt.QueueDb, f mt.QueueFilter, err error) {
+	list, _, err := svc.store.SearchQueues(ctx, *(makeFilter(&ff)))
+
+	if err != nil {
+		return
+	}
+
+	l = make([]mt.QueueDb, len(list))
+
+	for i, q := range list {
+		l[i] = mt.QueueDb{
+			Queue:    q.Queue,
+			Consumer: q.Consumer,
+			Meta:     mt.QueueMeta(q.Meta),
+		}
+	}
+
+	return
+}
+
+func makeFilter(ff *mt.QueueFilter) (f *types.QueueFilter) {
+	return &types.QueueFilter{
+		Queue:    ff.Queue,
+		Consumer: ff.Consumer,
+		Deleted:  ff.Deleted,
+		Sorting:  ff.Sorting,
+		Paging:   ff.Paging,
+	}
+}
+
+func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *types.Queue, err error) {
 	var (
 		qProps = &queueActionProps{}
 	)
@@ -42,7 +105,7 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueS
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupQueueByID(ctx, svc.store, ID); err != nil {
 			return TemplateErrInvalidID().Wrap(err)
 		}
 
@@ -58,7 +121,7 @@ func (svc *queue) FindByID(ctx context.Context, ID uint64) (q *messagebus.QueueS
 	return q, svc.recordAction(ctx, qProps, QueueActionLookup, err)
 }
 
-func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q *messagebus.QueueSettings, err error) {
+func (svc *queue) Create(ctx context.Context, new *types.Queue) (q *types.Queue, err error) {
 	var (
 		qProps = &queueActionProps{new: new}
 	)
@@ -68,7 +131,7 @@ func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q 
 			return QueueErrNotAllowedToCreate(qProps)
 		}
 
-		if !svc.isValidHandler(messagebus.ConsumerType(new.Consumer)) {
+		if !svc.isValidHandler(mt.ConsumerType(new.Consumer)) {
 			return QueueErrInvalidConsumer(qProps)
 		}
 
@@ -76,7 +139,7 @@ func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q 
 		new.ID = nextID()
 		new.CreatedAt = *now()
 
-		if err = store.CreateMessagebusQueueSetting(ctx, svc.store, new); err != nil {
+		if err = store.CreateQueue(ctx, svc.store, new); err != nil {
 			return
 		}
 
@@ -91,10 +154,10 @@ func (svc *queue) Create(ctx context.Context, new *messagebus.QueueSettings) (q 
 	return q, svc.recordAction(ctx, qProps, QueueActionCreate, err)
 }
 
-func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q *messagebus.QueueSettings, err error) {
+func (svc *queue) Update(ctx context.Context, upd *types.Queue) (q *types.Queue, err error) {
 	var (
 		qProps = &queueActionProps{update: upd}
-		qq     *messagebus.QueueSettings
+		qq     *types.Queue
 		e      error
 	)
 
@@ -103,15 +166,15 @@ func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q 
 			return QueueErrNotAllowedToUpdate(qProps)
 		}
 
-		if qq, e = store.LookupMessagebusQueueSettingByID(ctx, svc.store, upd.ID); e != nil {
+		if qq, e = store.LookupQueueByID(ctx, svc.store, upd.ID); e != nil {
 			return QueueErrNotFound(qProps)
 		}
 
-		if qq, e := store.LookupMessagebusQueueSettingByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
+		if qq, e := store.LookupQueueByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {
 			return QueueErrAlreadyExists(qProps)
 		}
 
-		if !svc.isValidHandler(messagebus.ConsumerType(upd.Consumer)) {
+		if !svc.isValidHandler(mt.ConsumerType(upd.Consumer)) {
 			return QueueErrInvalidConsumer(qProps)
 		}
 
@@ -119,7 +182,7 @@ func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q 
 		upd.UpdatedAt = now()
 		upd.CreatedAt = qq.CreatedAt
 
-		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, upd); err != nil {
+		if err = store.UpdateQueue(ctx, svc.store, upd); err != nil {
 			return
 		}
 
@@ -137,7 +200,7 @@ func (svc *queue) Update(ctx context.Context, upd *messagebus.QueueSettings) (q 
 func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		qProps = &queueActionProps{}
-		q      *messagebus.QueueSettings
+		q      *types.Queue
 	)
 
 	err = func() (err error) {
@@ -145,7 +208,7 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupQueueByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -156,7 +219,7 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		q.DeletedAt = now()
-		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, q); err != nil {
+		if err = store.UpdateQueue(ctx, svc.store, q); err != nil {
 			return
 		}
 
@@ -172,7 +235,7 @@ func (svc *queue) DeleteByID(ctx context.Context, ID uint64) (err error) {
 func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		qProps = &queueActionProps{}
-		q      *messagebus.QueueSettings
+		q      *types.Queue
 	)
 
 	err = func() (err error) {
@@ -180,7 +243,7 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 			return QueueErrInvalidID()
 		}
 
-		if q, err = store.LookupMessagebusQueueSettingByID(ctx, svc.store, ID); err != nil {
+		if q, err = store.LookupQueueByID(ctx, svc.store, ID); err != nil {
 			return
 		}
 
@@ -191,7 +254,7 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 		}
 
 		q.DeletedAt = nil
-		if err = store.UpdateMessagebusQueueSetting(ctx, svc.store, q); err != nil {
+		if err = store.UpdateQueue(ctx, svc.store, q); err != nil {
 			return
 		}
 
@@ -204,13 +267,13 @@ func (svc *queue) UndeleteByID(ctx context.Context, ID uint64) (err error) {
 	return svc.recordAction(ctx, qProps, QueueActionDelete, err)
 }
 
-func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFilter) (q messagebus.QueueSettingsSet, f messagebus.QueueSettingsFilter, err error) {
+func (svc *queue) Search(ctx context.Context, filter types.QueueFilter) (q types.QueueSet, f types.QueueFilter, err error) {
 	var (
 		aProps = &queueActionProps{search: &filter}
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
-	filter.Check = func(res *messagebus.QueueSettings) (bool, error) {
+	filter.Check = func(res *types.Queue) (bool, error) {
 		if !svc.ac.CanReadQueue(ctx, res) {
 			return false, nil
 		}
@@ -223,7 +286,7 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 			return QueueErrNotAllowedToSearch()
 		}
 
-		if q, f, err = store.SearchMessagebusQueueSettings(ctx, svc.store, filter); err != nil {
+		if q, f, err = store.SearchQueues(ctx, svc.store, filter); err != nil {
 			return err
 		}
 
@@ -233,8 +296,8 @@ func (svc *queue) Search(ctx context.Context, filter messagebus.QueueSettingsFil
 	return q, f, svc.recordAction(ctx, aProps, QueueActionSearch, err)
 }
 
-func (svc *queue) isValidHandler(h messagebus.ConsumerType) bool {
-	for _, hh := range messagebus.ConsumerTypes() {
+func (svc *queue) isValidHandler(h mt.ConsumerType) bool {
+	for _, hh := range mt.ConsumerTypes() {
 		if h == hh {
 			return true
 		}
