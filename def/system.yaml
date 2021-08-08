@@ -50,12 +50,12 @@ rbac:
     queues.search:
       description: List, search or filter messagebus queues
 
-    api-gw-route.create:
+    apigw-route.create:
       description: Create API gateway route
-    api-gw-routes.search:
+    apigw-routes.search:
       description: List search or filter API gateway routes
 
-    api-gw-function.create:
-      description: Add API gateway function to route
-    api-gw-functions.search:
-      description: List, search or filter functions
+    apigw-filter.create:
+      description: Add API gateway filter to route
+    apigw-filters.search:
+      description: List, search or filter API gateway filters

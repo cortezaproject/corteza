@@ -10,10 +10,10 @@ package types
 
 type (
 
-	// ApigwFunctionSet slice of ApigwFunction
+	// ApigwFilterSet slice of ApigwFilter
 	//
 	// This type is auto-generated.
-	ApigwFunctionSet []*ApigwFunction
+	ApigwFilterSet []*ApigwFilter
 
 	// ApigwRouteSet slice of ApigwRoute
 	//
@@ -86,10 +86,10 @@ type (
 	UserSet []*User
 )
 
-// Walk iterates through every slice item and calls w(ApigwFunction) err
+// Walk iterates through every slice item and calls w(ApigwFilter) err
 //
 // This function is auto-generated.
-func (set ApigwFunctionSet) Walk(w func(*ApigwFunction) error) (err error) {
+func (set ApigwFilterSet) Walk(w func(*ApigwFilter) error) (err error) {
 	for i := range set {
 		if err = w(set[i]); err != nil {
 			return
@@ -99,12 +99,12 @@ func (set ApigwFunctionSet) Walk(w func(*ApigwFunction) error) (err error) {
 	return
 }
 
-// Filter iterates through every slice item, calls f(ApigwFunction) (bool, err) and return filtered slice
+// Filter iterates through every slice item, calls f(ApigwFilter) (bool, err) and return filtered slice
 //
 // This function is auto-generated.
-func (set ApigwFunctionSet) Filter(f func(*ApigwFunction) (bool, error)) (out ApigwFunctionSet, err error) {
+func (set ApigwFilterSet) Filter(f func(*ApigwFilter) (bool, error)) (out ApigwFilterSet, err error) {
 	var ok bool
-	out = ApigwFunctionSet{}
+	out = ApigwFilterSet{}
 	for i := range set {
 		if ok, err = f(set[i]); err != nil {
 			return
@@ -119,7 +119,7 @@ func (set ApigwFunctionSet) Filter(f func(*ApigwFunction) (bool, error)) (out Ap
 // FindByID finds items from slice by its ID property
 //
 // This function is auto-generated.
-func (set ApigwFunctionSet) FindByID(ID uint64) *ApigwFunction {
+func (set ApigwFilterSet) FindByID(ID uint64) *ApigwFilter {
 	for i := range set {
 		if set[i].ID == ID {
 			return set[i]
@@ -132,7 +132,7 @@ func (set ApigwFunctionSet) FindByID(ID uint64) *ApigwFunction {
 // IDs returns a slice of uint64s from all items in the set
 //
 // This function is auto-generated.
-func (set ApigwFunctionSet) IDs() (IDs []uint64) {
+func (set ApigwFilterSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

@@ -7,7 +7,7 @@ package types
 //
 
 // Definitions file that controls how this file is generated:
-// - system.apigw-function.yaml
+// - system.apigw-filter.yaml
 // - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
@@ -29,44 +29,44 @@ type (
 )
 
 const (
-	ApigwFunctionResourceType = "corteza::system:apigw-function"
-	ApigwRouteResourceType    = "corteza::system:apigw-route"
-	ApplicationResourceType   = "corteza::system:application"
-	AuthClientResourceType    = "corteza::system:auth-client"
-	RoleResourceType          = "corteza::system:role"
-	TemplateResourceType      = "corteza::system:template"
-	UserResourceType          = "corteza::system:user"
-	ComponentResourceType     = "corteza::system"
+	ApigwFilterResourceType = "corteza::system:apigw-filter"
+	ApigwRouteResourceType  = "corteza::system:apigw-route"
+	ApplicationResourceType = "corteza::system:application"
+	AuthClientResourceType  = "corteza::system:auth-client"
+	RoleResourceType        = "corteza::system:role"
+	TemplateResourceType    = "corteza::system:template"
+	UserResourceType        = "corteza::system:user"
+	ComponentResourceType   = "corteza::system"
 )
 
-// RbacResource returns string representation of RBAC resource for ApigwFunction by calling ApigwFunctionRbacResource fn
+// RbacResource returns string representation of RBAC resource for ApigwFilter by calling ApigwFilterRbacResource fn
 //
-// RBAC resource is in the corteza::system:apigw-function/... format
+// RBAC resource is in the corteza::system:apigw-filter/... format
 //
 // This function is auto-generated
-func (r ApigwFunction) RbacResource() string {
-	return ApigwFunctionRbacResource(r.ID)
+func (r ApigwFilter) RbacResource() string {
+	return ApigwFilterRbacResource(r.ID)
 }
 
-// ApigwFunctionRbacResource returns string representation of RBAC resource for ApigwFunction
+// ApigwFilterRbacResource returns string representation of RBAC resource for ApigwFilter
 //
-// RBAC resource is in the corteza::system:apigw-function/... format
+// RBAC resource is in the corteza::system:apigw-filter/... format
 //
 // This function is auto-generated
-func ApigwFunctionRbacResource(id uint64) string {
-	cpts := []interface{}{ApigwFunctionResourceType}
+func ApigwFilterRbacResource(id uint64) string {
+	cpts := []interface{}{ApigwFilterResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
 	} else {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ApigwFunctionRbacResourceTpl(), cpts...)
+	return fmt.Sprintf(ApigwFilterRbacResourceTpl(), cpts...)
 
 }
 
 // @todo template
-func ApigwFunctionRbacResourceTpl() string {
+func ApigwFilterRbacResourceTpl() string {
 	return "%s/%s"
 }
 

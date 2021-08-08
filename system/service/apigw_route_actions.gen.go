@@ -232,14 +232,14 @@ func (e *apigwRouteAction) ToAction() *actionlog.Action {
 // *********************************************************************************************************************
 // Action constructors
 
-// ApigwRouteActionSearch returns "system:route.search" action
+// ApigwRouteActionSearch returns "system:apigw-route.search" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionSearch(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "search",
 		log:       "searched for route",
 		severity:  actionlog.Info,
@@ -252,14 +252,14 @@ func ApigwRouteActionSearch(props ...*apigwRouteActionProps) *apigwRouteAction {
 	return a
 }
 
-// ApigwRouteActionLookup returns "system:route.lookup" action
+// ApigwRouteActionLookup returns "system:apigw-route.lookup" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionLookup(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "lookup",
 		log:       "looked-up for a {route}",
 		severity:  actionlog.Info,
@@ -272,14 +272,14 @@ func ApigwRouteActionLookup(props ...*apigwRouteActionProps) *apigwRouteAction {
 	return a
 }
 
-// ApigwRouteActionCreate returns "system:route.create" action
+// ApigwRouteActionCreate returns "system:apigw-route.create" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionCreate(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "create",
 		log:       "created {route}",
 		severity:  actionlog.Notice,
@@ -292,14 +292,14 @@ func ApigwRouteActionCreate(props ...*apigwRouteActionProps) *apigwRouteAction {
 	return a
 }
 
-// ApigwRouteActionUpdate returns "system:route.update" action
+// ApigwRouteActionUpdate returns "system:apigw-route.update" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionUpdate(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "update",
 		log:       "updated {route}",
 		severity:  actionlog.Notice,
@@ -312,14 +312,14 @@ func ApigwRouteActionUpdate(props ...*apigwRouteActionProps) *apigwRouteAction {
 	return a
 }
 
-// ApigwRouteActionDelete returns "system:route.delete" action
+// ApigwRouteActionDelete returns "system:apigw-route.delete" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionDelete(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "delete",
 		log:       "deleted {route}",
 		severity:  actionlog.Notice,
@@ -332,14 +332,14 @@ func ApigwRouteActionDelete(props ...*apigwRouteActionProps) *apigwRouteAction {
 	return a
 }
 
-// ApigwRouteActionUndelete returns "system:route.undelete" action
+// ApigwRouteActionUndelete returns "system:apigw-route.undelete" action
 //
 // This function is auto-generated.
 //
 func ApigwRouteActionUndelete(props ...*apigwRouteActionProps) *apigwRouteAction {
 	a := &apigwRouteAction{
 		timestamp: time.Now(),
-		resource:  "system:route",
+		resource:  "system:apigw-route",
 		action:    "undelete",
 		log:       "undeleted {route}",
 		severity:  actionlog.Notice,
@@ -356,7 +356,7 @@ func ApigwRouteActionUndelete(props ...*apigwRouteActionProps) *apigwRouteAction
 // *********************************************************************************************************************
 // Error constructors
 
-// ApigwRouteErrGeneric returns "system:route.generic" as *errors.Error
+// ApigwRouteErrGeneric returns "system:apigw-route.generic" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -373,7 +373,7 @@ func ApigwRouteErrGeneric(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("failed to complete request due to internal error", nil),
 
 		errors.Meta("type", "generic"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "{err}"),
@@ -388,7 +388,7 @@ func ApigwRouteErrGeneric(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrNotFound returns "system:route.notFound" as *errors.Error
+// ApigwRouteErrNotFound returns "system:apigw-route.notFound" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -405,7 +405,7 @@ func ApigwRouteErrNotFound(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("route not found", nil),
 
 		errors.Meta("type", "notFound"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
@@ -418,7 +418,7 @@ func ApigwRouteErrNotFound(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrInvalidID returns "system:route.invalidID" as *errors.Error
+// ApigwRouteErrInvalidID returns "system:apigw-route.invalidID" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -435,7 +435,7 @@ func ApigwRouteErrInvalidID(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("invalid ID", nil),
 
 		errors.Meta("type", "invalidID"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
@@ -448,7 +448,7 @@ func ApigwRouteErrInvalidID(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrInvalidEndpoint returns "system:route.invalidEndpoint" as *errors.Error
+// ApigwRouteErrInvalidEndpoint returns "system:apigw-route.invalidEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -465,7 +465,7 @@ func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("invalid endpoint", nil),
 
 		errors.Meta("type", "invalidEndpoint"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
@@ -478,7 +478,7 @@ func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrExistsEndpoint returns "system:route.existsEndpoint" as *errors.Error
+// ApigwRouteErrExistsEndpoint returns "system:apigw-route.existsEndpoint" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -495,7 +495,7 @@ func ApigwRouteErrExistsEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("route with this endpoint already exists", nil),
 
 		errors.Meta("type", "existsEndpoint"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
@@ -508,7 +508,7 @@ func ApigwRouteErrExistsEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrAlreadyExists returns "system:route.alreadyExists" as *errors.Error
+// ApigwRouteErrAlreadyExists returns "system:apigw-route.alreadyExists" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -525,7 +525,7 @@ func ApigwRouteErrAlreadyExists(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("route by that endpoint already exists", nil),
 
 		errors.Meta("type", "alreadyExists"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
@@ -538,7 +538,7 @@ func ApigwRouteErrAlreadyExists(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrNotAllowedToCreate returns "system:route.notAllowedToCreate" as *errors.Error
+// ApigwRouteErrNotAllowedToCreate returns "system:apigw-route.notAllowedToCreate" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -555,7 +555,7 @@ func ApigwRouteErrNotAllowedToCreate(mm ...*apigwRouteActionProps) *errors.Error
 		p.Format("not allowed to create a route", nil),
 
 		errors.Meta("type", "notAllowedToCreate"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to create a route; insufficient permissions"),
@@ -570,7 +570,7 @@ func ApigwRouteErrNotAllowedToCreate(mm ...*apigwRouteActionProps) *errors.Error
 	return e
 }
 
-// ApigwRouteErrNotAllowedToRead returns "system:route.notAllowedToRead" as *errors.Error
+// ApigwRouteErrNotAllowedToRead returns "system:apigw-route.notAllowedToRead" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -587,7 +587,7 @@ func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("not allowed to read this route", nil),
 
 		errors.Meta("type", "notAllowedToRead"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to read {route.endpoint}; insufficient permissions"),
@@ -602,7 +602,7 @@ func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
-// ApigwRouteErrNotAllowedToUpdate returns "system:route.notAllowedToUpdate" as *errors.Error
+// ApigwRouteErrNotAllowedToUpdate returns "system:apigw-route.notAllowedToUpdate" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -619,7 +619,7 @@ func ApigwRouteErrNotAllowedToUpdate(mm ...*apigwRouteActionProps) *errors.Error
 		p.Format("not allowed to update this route", nil),
 
 		errors.Meta("type", "notAllowedToUpdate"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to update {route.endpoint}; insufficient permissions"),
@@ -634,7 +634,7 @@ func ApigwRouteErrNotAllowedToUpdate(mm ...*apigwRouteActionProps) *errors.Error
 	return e
 }
 
-// ApigwRouteErrNotAllowedToDelete returns "system:route.notAllowedToDelete" as *errors.Error
+// ApigwRouteErrNotAllowedToDelete returns "system:apigw-route.notAllowedToDelete" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -651,7 +651,7 @@ func ApigwRouteErrNotAllowedToDelete(mm ...*apigwRouteActionProps) *errors.Error
 		p.Format("not allowed to delete this route", nil),
 
 		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to delete {route.endpoint}; insufficient permissions"),
@@ -666,7 +666,7 @@ func ApigwRouteErrNotAllowedToDelete(mm ...*apigwRouteActionProps) *errors.Error
 	return e
 }
 
-// ApigwRouteErrNotAllowedToUndelete returns "system:route.notAllowedToUndelete" as *errors.Error
+// ApigwRouteErrNotAllowedToUndelete returns "system:apigw-route.notAllowedToUndelete" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -683,7 +683,7 @@ func ApigwRouteErrNotAllowedToUndelete(mm ...*apigwRouteActionProps) *errors.Err
 		p.Format("not allowed to undelete this route", nil),
 
 		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to undelete {route.endpoint}; insufficient permissions"),
@@ -698,7 +698,7 @@ func ApigwRouteErrNotAllowedToUndelete(mm ...*apigwRouteActionProps) *errors.Err
 	return e
 }
 
-// ApigwRouteErrNotAllowedToExec returns "system:route.notAllowedToExec" as *errors.Error
+// ApigwRouteErrNotAllowedToExec returns "system:apigw-route.notAllowedToExec" as *errors.Error
 //
 //
 // This function is auto-generated.
@@ -715,7 +715,7 @@ func ApigwRouteErrNotAllowedToExec(mm ...*apigwRouteActionProps) *errors.Error {
 		p.Format("not allowed to execute this route", nil),
 
 		errors.Meta("type", "notAllowedToExec"),
-		errors.Meta("resource", "system:route"),
+		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to exec {route.endpoint}; insufficient permissions"),

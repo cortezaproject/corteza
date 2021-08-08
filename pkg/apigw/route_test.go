@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -16,9 +18,9 @@ func Test_pl(t *testing.T) {
 	type (
 		tf struct {
 			name       string
-			handler    Worker
+			handler    pipeline.Worker
 			method     string
-			errHandler ErrorHandler
+			errHandler types.ErrorHandler
 			expStatus  int
 			expError   error
 		}
@@ -28,14 +30,14 @@ func Test_pl(t *testing.T) {
 		tcc = []tf{
 			{
 				name: "successful exec",
-				handler: mockExecer{
-					exec: func(c context.Context, s *scp) (err error) {
+				handler: types.MockExecer{
+					Exec_: func(c context.Context, s *types.Scp) (err error) {
 						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
 						return
 					},
 				},
-				errHandler: mockErrorExecer{
-					exec: func(c context.Context, s *scp, e error) {
+				errHandler: types.MockErrorExecer{
+					Exec_: func(c context.Context, s *types.Scp, e error) {
 						s.Writer().Write([]byte(e.Error()))
 					},
 				},
@@ -45,14 +47,14 @@ func Test_pl(t *testing.T) {
 			},
 			{
 				name: "unsuccessful exec",
-				handler: mockExecer{
-					exec: func(c context.Context, s *scp) (err error) {
+				handler: types.MockExecer{
+					Exec_: func(c context.Context, s *types.Scp) (err error) {
 						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
 						return errors.New("test error")
 					},
 				},
-				errHandler: mockErrorExecer{
-					exec: func(c context.Context, s *scp, e error) {
+				errHandler: types.MockErrorExecer{
+					Exec_: func(c context.Context, s *types.Scp, e error) {
 						s.Writer().WriteHeader(http.StatusInternalServerError)
 						s.Writer().Write([]byte(e.Error()))
 					},
@@ -63,14 +65,14 @@ func Test_pl(t *testing.T) {
 			},
 			{
 				name: "request method validation fail",
-				handler: mockExecer{
-					exec: func(c context.Context, s *scp) (err error) {
+				handler: types.MockExecer{
+					Exec_: func(c context.Context, s *types.Scp) (err error) {
 						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
 						return errors.New("test error")
 					},
 				},
-				errHandler: mockErrorExecer{
-					exec: func(c context.Context, s *scp, e error) {
+				errHandler: types.MockErrorExecer{
+					Exec_: func(c context.Context, s *types.Scp, e error) {
 						s.Writer().WriteHeader(http.StatusInternalServerError)
 						s.Writer().Write([]byte(e.Error()))
 					},
@@ -87,7 +89,7 @@ func Test_pl(t *testing.T) {
 			var (
 				req  = require.New(t)
 				rr   = httptest.NewRecorder()
-				pipe = NewPl()
+				pipe = pipeline.NewPipeline(zap.NewNop())
 			)
 
 			r, err := http.NewRequest("POST", "/foo", http.NoBody)

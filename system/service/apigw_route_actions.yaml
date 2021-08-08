@@ -1,6 +1,6 @@
 # List of loggable service actions
 
-resource: system:route
+resource: system:apigw-route
 service: apigwRoute
 
 # Default sensitivity for actions
