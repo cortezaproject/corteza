@@ -37,7 +37,7 @@ type (
 
 func (ApigwRoute) New() *ApigwRoute {
 	return &ApigwRoute{
-		svc: service.DefaultRoute,
+		svc: service.DefaultApigwRoute,
 		ac:  service.DefaultAccessControl,
 	}
 }

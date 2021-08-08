@@ -22,4 +22,4 @@ types:
   Template:
     labelResourceType: template
   ApigwRoute: {}
-  ApigwFunction: {}
+  ApigwFilter: {}

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 )
@@ -20,14 +22,14 @@ type (
 
 		opts *options.ApigwOpt
 		log  *zap.Logger
-		pipe *pl
+		pipe *pipeline.Pl
 	}
 )
 
 func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		ctx   = req.Context()
-		scope = scp{}
+		scope = types.Scp{}
 	)
 
 	b, _ := io.ReadAll(req.Body)
@@ -43,7 +45,7 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if err := r.validate(req); err != nil {
 		r.log.Debug("error validating request on route", zap.Error(err))
-		r.pipe.err.Exec(ctx, &scope, fmt.Errorf("could not validate request: %s", err))
+		r.pipe.Error().Exec(ctx, &scope, fmt.Errorf("could not validate request: %s", err))
 		return
 	}
 
@@ -57,7 +59,7 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		// call the error handler
 		r.log.Debug("calling default error handler on error")
-		r.pipe.err.Exec(ctx, &scope, err)
+		r.pipe.Error().Exec(ctx, &scope, err)
 	}
 }
 

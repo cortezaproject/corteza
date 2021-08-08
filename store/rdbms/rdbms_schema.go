@@ -87,7 +87,7 @@ func (s Schema) Tables() []*Table {
 		s.MessagebusQueuemessage(),
 		s.MessagebusQueueSettings(),
 		s.ApigwRoute(),
-		s.ApigwFunction(),
+		s.ApigwFilter(),
 	}
 }
 
@@ -681,8 +681,8 @@ func (Schema) ApigwRoute() *Table {
 	)
 }
 
-func (Schema) ApigwFunction() *Table {
-	return TableDef("apigw_functions",
+func (Schema) ApigwFilter() *Table {
+	return TableDef("apigw_filters",
 		ID,
 		ColumnDef("rel_route", ColumnTypeIdentifier),
 		ColumnDef("weight", ColumnTypeInteger),

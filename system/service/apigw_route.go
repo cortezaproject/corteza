@@ -20,9 +20,9 @@ type (
 
 	routeAccessController interface {
 		CanGrant(context.Context) bool
-		CanSearchApiGwRoutes(ctx context.Context) bool
+		CanSearchApigwRoutes(ctx context.Context) bool
 
-		CanCreateApiGwRoute(context.Context) bool
+		CanCreateApigwRoute(context.Context) bool
 		CanReadApigwRoute(context.Context, *types.ApigwRoute) bool
 		CanUpdateApigwRoute(context.Context, *types.ApigwRoute) bool
 		CanDeleteApigwRoute(context.Context, *types.ApigwRoute) bool
@@ -47,7 +47,7 @@ func (svc *apigwRoute) FindByID(ctx context.Context, ID uint64) (q *types.ApigwR
 			return ApigwRouteErrInvalidID()
 		}
 
-		if !svc.ac.CanSearchApiGwRoutes(ctx) {
+		if !svc.ac.CanSearchApigwRoutes(ctx) {
 			return ApigwRouteErrNotAllowedToRead(rProps)
 		}
 
@@ -73,7 +73,7 @@ func (svc *apigwRoute) Create(ctx context.Context, new *types.ApigwRoute) (q *ty
 	)
 
 	err = func() (err error) {
-		if !svc.ac.CanCreateApiGwRoute(ctx) {
+		if !svc.ac.CanCreateApigwRoute(ctx) {
 			return ApigwRouteErrNotAllowedToCreate(qProps)
 		}
 

@@ -3,6 +3,9 @@ allow:
     corteza::compose/:
       - op1
 
+    corteza::system:apigw-route/*:
+      - op1
+
     corteza::compose:namespace/*:
       - op1
 
