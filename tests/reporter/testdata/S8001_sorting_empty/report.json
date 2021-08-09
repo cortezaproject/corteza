@@ -7,17 +7,18 @@
       "definition": {
         "module": "user",
         "namespace": "ns"
-      }
+      },
+
+      "sort": ""
   }}}],
   "frames": [{
     "name":   "result",
     "source": "users",
     "columns": [
-      { "name": "id", "label": "id" },
       { "name": "first_name", "label": "first_name" },
-      { "name": "last_name", "label": "last_name" },
-      { "name": "number_of_numbers", "label": "number_of_numbers" }
+      { "name": "last_name", "label": "last_name" }
     ],
-    "sort": "first_name, last_name DESC, id"
+
+    "sort": ""
   }]
 }

@@ -160,6 +160,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	// local
 	h.a.Equal(12, local.Size())
 	h.a.Equal("id<Record>, join_key<String>, first_name<String>, last_name<String>", local.Columns.String())
+	h.a.Equal("first_name, last_name DESC", local.Sort.String())
 	checkRows(h, local,
 		", Engel, Loritz",
 		", Engel, Kiefer",
@@ -178,6 +179,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Maria_Königsmann"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Maria_Königsmann, u1 j1, a, 10, 2",
 		", Maria_Königsmann, u1 j5, a, 4, 4",
@@ -191,6 +193,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Engel_Loritz"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Engel_Loritz, u3 j1, a, 10, 1",
 		", Engel_Loritz, u3 j2, a, 0, 0",
@@ -200,6 +203,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Sigi_Goldschmidt"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Sigi_Goldschmidt, u7 j2, a, 10, 21",
 		", Sigi_Goldschmidt, u7 j3, b, 10, 99",
@@ -209,6 +213,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Engel_Kiefer"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Engel_Kiefer, u12 j1, a, 42, 69",
 		", Engel_Kiefer, u12 j4, a, 35, 26",
@@ -226,6 +231,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Manu_Specht"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Manu_Specht, u10 j3, b, 53, 12",
 		", Manu_Specht, u10 j4, b, 60, 22",
@@ -236,6 +242,7 @@ func Test3003_joining_sorting_local(t *testing.T) {
 	foreign = ix["Ulli_Böhler"]
 	h.a.NotNil(foreign)
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
+	h.a.Equal("type", foreign.Sort.String())
 	checkRows(h, foreign,
 		", Ulli_Böhler, u5 j1, a, 1, 2")
 }
@@ -261,6 +268,7 @@ func Test3004_joining_sorting_foreign(t *testing.T) {
 	// local
 	h.a.Equal(6, local.Size())
 	h.a.Equal("id<Record>, join_key<String>, first_name<String>, last_name<String>", local.Columns.String())
+	h.a.Equal("jobs.type, first_name, last_name DESC", local.Sort.String())
 	checkRows(h, local,
 		", Engel, Loritz",
 		", Engel, Kiefer",

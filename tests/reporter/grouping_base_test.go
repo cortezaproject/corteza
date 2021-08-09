@@ -72,6 +72,8 @@ func Test2003_grouping_sorting(t *testing.T) {
 		"Manu, 1, 61",
 		"Sascha, 1, 38",
 		"Sigi, 1, 67")
+
+	h.a.Equal("count DESC, by_name", r.Sort.String())
 }
 
 func Test2004_grouping_paging(t *testing.T) {

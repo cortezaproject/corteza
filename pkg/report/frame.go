@@ -23,8 +23,8 @@ type (
 		Columns FrameColumnSet `json:"columns"`
 		Rows    FrameRowSet    `json:"rows"`
 
-		Paging *filter.Paging  `json:"paging"`
-		Sort   *filter.Sorting `json:"sort"`
+		Paging *filter.Paging     `json:"paging"`
+		Sort   filter.SortExprSet `json:"sort"`
 
 		// params to help us perform things in place
 		startIndex int
@@ -271,9 +271,9 @@ func (f *Frame) String() string {
 		out += fmt.Sprintf("< %s; =%s; > %s", f.Paging.PrevPage.String(), f.Paging.PageCursor.String(), f.Paging.NextPage.String())
 	}
 
-	if f.Sort != nil {
+	if len(f.Sort) > 0 {
 		out += "\n"
-		out += f.Sort.Sort.String()
+		out += f.Sort.String()
 	}
 
 	out += "\n"
