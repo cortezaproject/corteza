@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -46,6 +47,9 @@ func parseSort(in string) (set SortExprSet, err error) {
 	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_\.]+)(\s+(asc|ASC|desc|DESC))?`)
 
 	set = SortExprSet{}
+	if in == "" {
+		return
+	}
 
 	in = strings.TrimSpace(in)
 	if in == "" {
@@ -74,6 +78,11 @@ func parseSort(in string) (set SortExprSet, err error) {
 
 // UnmarshalJSON parses sort expression when passed inside JSON
 func (set *SortExprSet) UnmarshalJSON(in []byte) error {
+	// This is an edgecase where `sort: ""` is passed in
+	if bytes.Compare(in, []byte{34, 34}) == 0 {
+		return nil
+	}
+
 	tmp, err := parseSort(string(in))
 	*set = tmp
 	return err

@@ -75,6 +75,8 @@ func Test1003_loading_sorting(t *testing.T) {
 		", Ulli, Haupt, 21",
 		", Ulli, Förstner, 87",
 		", Ulli, Böhler, 14")
+
+	h.a.Equal("first_name, last_name DESC, id", f.Sort.String())
 }
 
 func Test1004_loading_paging(t *testing.T) {
