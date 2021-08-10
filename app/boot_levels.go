@@ -21,6 +21,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza-server/pkg/http"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/mail"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
@@ -89,6 +90,23 @@ func (app *CortezaApp) Setup() (err error) {
 	// Use Sentry right away to handle any panics
 	// that might occur inside auth, mail setup...
 	defer sentry.Recover()
+
+	{
+		var (
+			localeLog = zap.NewNop()
+			languages *locale.Languages
+		)
+
+		if app.Opt.Locale.Log {
+			localeLog = app.Log
+		}
+
+		if languages, err = locale.New(localeLog, strings.Split(app.Opt.Locale.Path, ":")...); err != nil {
+			return err
+		} else {
+			locale.SetGlobal(languages)
+		}
+	}
 
 	// set base path for links&routes in auth server
 	authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl

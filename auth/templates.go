@@ -17,7 +17,7 @@ type (
 	}
 
 	templateExecutor interface {
-		ExecuteTemplate(io.Writer, string, interface{}) error
+		ExecuteTemplate(io.Writer, string, interface{}, ...func(*template.Template) *template.Template) error
 	}
 
 	templateReloader struct {
@@ -40,8 +40,8 @@ func NewReloadableTemplates(base *template.Template, loader templateLoader) *tem
 // Reloads templates before every execution
 //
 // This is great for local development
-func (t templateReloader) ExecuteTemplate(w io.Writer, name string, data interface{}) error {
-	tpl, err := t.loader(t.base)
+func (t templateReloader) ExecuteTemplate(w io.Writer, name string, data interface{}, oo ...func(*template.Template) *template.Template) error {
+	tpl, err := t.loader(applyTemplateExecOpt(t.base, oo...))
 	if err != nil {
 		return err
 	}
@@ -56,11 +56,19 @@ func NewStaticTemplates(base *template.Template, loader templateLoader) (s *temp
 }
 
 // ExecuteTemplate executes preloaded templates
-func (t templateStatic) ExecuteTemplate(w io.Writer, name string, data interface{}) error {
-	return t.base.ExecuteTemplate(w, name, data)
+func (t templateStatic) ExecuteTemplate(w io.Writer, name string, data interface{}, oo ...func(*template.Template) *template.Template) error {
+	return applyTemplateExecOpt(t.base, oo...).ExecuteTemplate(w, name, data)
 }
 
 // EmbeddedTemplates returns embedded templates.
 func EmbeddedTemplates(t *template.Template) (tpl *template.Template, err error) {
 	return t.ParseFS(Templates, "assets/templates/*.html.tpl")
+}
+
+func applyTemplateExecOpt(t *template.Template, oo ...func(*template.Template) *template.Template) *template.Template {
+	for _, fn := range oo {
+		t = fn(t)
+	}
+
+	return t
 }

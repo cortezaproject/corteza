@@ -1,12 +1,15 @@
 package errors
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
 // ServeHTTP Prepares and encodes given error for HTTP transport
@@ -52,7 +55,7 @@ func serveHTTP(w http.ResponseWriter, r *http.Request, code int, err error, mask
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	writeHttpJSON(w, err, mask)
+	writeHttpJSON(r.Context(), w, err, mask)
 }
 
 func writeHttpPlain(w io.Writer, err error) {
@@ -103,7 +106,7 @@ func writeHttpPlain(w io.Writer, err error) {
 
 }
 
-func writeHttpJSON(w io.Writer, err error, mask bool) {
+func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 	var (
 		wrap = struct {
 			Error interface{} `json:"error"`
@@ -113,6 +116,14 @@ func writeHttpJSON(w io.Writer, err error, mask bool) {
 	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() {
 		// trim error details when not debugging or error is not safe
 		err = fmt.Errorf(err.Error())
+	}
+
+	if tr, is := err.(interface {
+		Translate(tr func(string, string, ...string) string) error
+	}); is {
+		err = tr.Translate(func(ns string, key string, pairs ...string) string {
+			return locale.Global().Get(ctx, ns, key, pairs...)
+		})
 	}
 
 	if c, is := err.(json.Marshaler); is {
