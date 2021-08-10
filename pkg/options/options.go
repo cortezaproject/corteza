@@ -24,6 +24,7 @@ type (
 		SCIM        SCIMOpt
 		Workflow    WorkflowOpt
 		RBAC        RBACOpt
+		Locale      LocaleOpt
 	}
 )
 
@@ -51,5 +52,6 @@ func Init() *Options {
 		SCIM:        *SCIM(),
 		Workflow:    *Workflow(),
 		RBAC:        *RBAC(),
+		Locale:      *Locale(),
 	}
 }

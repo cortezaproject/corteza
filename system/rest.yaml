@@ -1761,3 +1761,20 @@ endpoints:
     method: GET
     title: Proxy auth definitions
     path: "/proxy_auth/def"
+
+- title: Locale
+  entrypoint: locale
+  path: "/locale"
+  apis:
+  - name: list
+    method: GET
+    title: List all available languages
+    path: "/"
+  - name: get
+    method: GET
+    title: List all available translation in a language for a specific webapp
+    path: "/{lang}/{application}"
+    parameters:
+      path:
+      - { type: string, name: lang,      required: true,  title: Language  }
+      - { type: string, name: application, required: true, title: Application name }

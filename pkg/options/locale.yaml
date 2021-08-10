@@ -1,0 +1,7 @@
+props:
+  - name: path
+    description: Path to locale config and translation files, separated by colon
+
+  - name: log
+    type: bool
+    description: Log locale related events and actions

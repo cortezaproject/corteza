@@ -10,6 +10,8 @@ import (
 
 func MountRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
+		handlers.NewLocale(Locale{}.New()).MountRoutes(r)
+
 		handlers.NewAttachment(Attachment{}.New()).MountRoutes(r)
 		handlers.NewAuth((Auth{}).New()).MountRoutes(r)
 
