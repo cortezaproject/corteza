@@ -11,8 +11,9 @@ package {{ .Package }}
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 {{- range .Import }}
     {{ normalizeImport . }}
 {{- end }}
@@ -100,7 +101,7 @@ func (p {{ $.Service }}ActionProps) Serialize() actionlog.Meta {
 //
 func (p {{ $.Service }}ActionProps) Format(in string, err error) string {
     var (
-        pairs = []string{"{err}"}
+        pairs = []string{"{{"{{"}}err}}"}
 
 {{- if $.Props }}
         // first non-empty string
@@ -124,14 +125,14 @@ func (p {{ $.Service }}ActionProps) Format(in string, err error) string {
 
 {{- range $prop := $.Props }}
 	{{- if $prop.Builtin }}
-	    pairs = append(pairs, "{{"{"}}{{ $prop.Name }}}", fns(p.{{ $prop.Name }}))
+	    pairs = append(pairs, "{{"{{"}}{{ $prop.Name }}}}", fns(p.{{ $prop.Name }}))
 	{{- else }}
 
 	if p.{{ $prop.Name }} != nil {
-	    // replacement for "{{"{"}}{{ $prop.Name }}}" (in order how fields are defined)
+	    // replacement for "{{"{{"}}{{ $prop.Name }}}}" (in order how fields are defined)
         pairs = append(
             pairs,
-            "{{"{"}}{{ $prop.Name }}}",
+            "{{"{{"}}{{ $prop.Name }}}}",
             fns(
             {{- range $f := $prop.Fields }}
                 p.{{ $prop.Name }}.{{ camelCase " " $f }},
@@ -140,7 +141,7 @@ func (p {{ $.Service }}ActionProps) Format(in string, err error) string {
         )
 
     {{- range $f := $prop.Fields }}
-        pairs = append(pairs, "{{"{"}}{{ $prop.Name }}.{{ $f }}}", fns(p.{{ $prop.Name }}.{{ camelCase " " $f }}))
+        pairs = append(pairs, "{{"{{"}}{{ $prop.Name }}.{{ $f }}}}", fns(p.{{ $prop.Name }}.{{ camelCase " " $f }}))
     {{- end }}
     }
     {{- end }}
@@ -249,8 +250,11 @@ func {{ camelCase "" $.Service "Err" $e.Error }}(mm ... *{{ $.Service }}ActionPr
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta({{ $.Service }}LogMetaKey{},           {{ printf "%q" $e.Log           }}),
 		{{ end -}}
-
 		errors.Meta({{ $.Service }}PropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, {{ printf "%q" $.Component }}),
+		errors.Meta(locale.ErrorMetaKey{}, "{{ $.Service }}.errors.{{ $e.Error }}"),
 
 		errors.StackSkip(1),
 	)
