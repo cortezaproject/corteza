@@ -353,7 +353,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 			if i > 0 {
 				return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor), nil
 			}
-			return nil, nil
+			return []*report.Frame{f}, nil
 		}, func() {
 			if r.rows == nil {
 				return

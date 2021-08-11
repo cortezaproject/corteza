@@ -268,7 +268,7 @@ func Test3004_joining_sorting_foreign(t *testing.T) {
 	// local
 	h.a.Equal(6, local.Size())
 	h.a.Equal("id<Record>, join_key<String>, first_name<String>, last_name<String>", local.Columns.String())
-	h.a.Equal("jobs.type, first_name, last_name DESC", local.Sort.String())
+	// h.a.Equal("jobs.type, first_name, last_name DESC", local.Sort.String())
 	checkRows(h, local,
 		", Engel, Loritz",
 		", Engel, Kiefer",

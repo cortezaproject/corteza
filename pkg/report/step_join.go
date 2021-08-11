@@ -299,7 +299,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 
 			// filter over sub datasource
 			var subFrames []*Frame
-			if useSubSort {
+			if useSubSort && len(keys) > 0 {
 				// here we use the LOCAL datasource, because it's flipped
 				// - prepare key pre-filter
 				localDef.Filter = d.keySliceToFilter(d.def.LocalColumn, keys).mergeAnd(localDef.Filter)
@@ -376,7 +376,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					subFrames[i].Source = localDef.Source
 					subFrames[i].Ref = localDef.Ref
 				}
-			} else {
+			} else if !useSubSort && len(keys) > 0 {
 				prtDS, ok := d.foreign.(PartitionableDatasource)
 				if !ok {
 					// @todo allow alternatives also
@@ -422,6 +422,7 @@ func (d *joinedDataset) Load(ctx context.Context, dd ...*FrameDefinition) (Loade
 					}
 				}
 			}
+
 			if err != nil {
 				return nil, err
 			}
