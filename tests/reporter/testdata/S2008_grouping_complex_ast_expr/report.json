@@ -13,12 +13,22 @@
     { "step": { "group": {
       "name": "grouped",
       "source": "users",
-      "keys": [
-        { "name": "by_name", "def": "first_name" }
-      ],
+      "keys": [{
+        "name": "by_year",
+        "def": "year(dob)/10"
+      }, {
+        "name": "is_maria",
+        "def": "first_name == 'Maria'"
+      }],
       "columns": [
-        { "name": "count", "def": "count()" },
-        { "name": "total", "def": "sum(number_of_numbers)" }
+        {
+          "name": "count",
+          "def": "count()"
+        },
+        {
+          "name": "total",
+          "def": "sum(number_of_numbers)/float(10)"
+        }
       ]
     }}}
   ],
@@ -26,14 +36,12 @@
     "name":   "result",
     "source": "grouped",
     "columns": [
-      { "name": "by_name", "label": "by_name" },
+      { "name": "by_year", "label": "by_year" },
+      { "name": "is_maria", "label": "is_maria" },
+
       { "name": "count", "label": "count" },
       { "name": "total", "label": "total" }
     ],
-    "paging": {
-      "limit": 4
-    },
-
-    "sort": "by_name ASC"
+    "sort": "is_maria ASC"
   }]
 }

@@ -2,89 +2,226 @@ package rdbms
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
 )
 
 type (
-	// ASTFormatterFn function signature for custom AST formatting
-	ASTFormatterFn func(n *qlng.ASTNode, aa ...FormattedASTArgs) (bool, string, []interface{}, error)
-	HandlerSig     func(aa ...FormattedASTArgs) (string, []interface{}, error)
-
 	astTransformer struct {
-		root   *qlng.ASTNode
-		custom []ASTFormatterFn
+		placeholders bool
+		root         *qlng.ASTNode
+		custom       []ASTFormatterFn
 	}
 
 	// FormattedASTArgs is a temporary storage for already handled nested arguments
 	FormattedASTArgs struct {
 		S    string
 		Args []interface{}
+
+		ResultType string
+	}
+	ASTFormatterFn func(n *qlng.ASTNode, aa ...FormattedASTArgs) (bool, string, []interface{}, error)
+	HandlerSig     func(aa ...FormattedASTArgs) (string, []interface{}, error)
+
+	exprHandler struct {
+		Args   argSet
+		RArgs  bool
+		Result *arg
+
+		Handler HandlerSig
+	}
+	argSet []*arg
+	arg    struct {
+		Required bool
+		Type     string
 	}
 )
 
 var (
+	bracketHandler = makeGenericBracketHandler("(", ")")
+
 	// @todo IS and IS NOT; should this be calculated with eq operators?
-	sqlExprRegistry = map[string]HandlerSig{
+	sqlExprRegistry = map[string]exprHandler{
 		// operators
 		// - bool
-		"and": makeGenericBoolHandler("AND"),
-		"or":  makeGenericBoolHandler("OR"),
-		"xor": makeGenericBoolHandler("XOR"),
+		"and": {
+			Args:    collectParams(true, "Boolean"),
+			RArgs:   true,
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericBoolHandler("AND"),
+		},
+		"or": {
+			Args:    collectParams(true, "Boolean"),
+			RArgs:   true,
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericBoolHandler("OR"),
+		},
+		"xor": {
+			Args:    collectParams(true, "Boolean"),
+			RArgs:   true,
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericBoolHandler("XOR"),
+		},
 
 		// - comp.
-		"eq":   makeGenericCompHandler("="),
-		"ne":   makeGenericCompHandler("!="),
-		"lt":   makeGenericCompHandler("<"),
-		"le":   makeGenericCompHandler("<="),
-		"gt":   makeGenericCompHandler(">"),
-		"ge":   makeGenericCompHandler(">="),
-		"add":  makeGenericCompHandler("+"),
-		"sub":  makeGenericCompHandler("-"),
-		"mult": makeGenericCompHandler("*"),
-		"div":  makeGenericCompHandler("/"),
+		"eq": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("="),
+		},
+		"ne": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("!="),
+		},
+		"lt": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("<"),
+		},
+		"le": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("<="),
+		},
+		"gt": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler(">"),
+		},
+		"ge": {
+			Args:    collectParams(true, "Any", "Any"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler(">="),
+		},
+
+		// - math
+		"add": {
+			Args:    collectParams(true, "Number", "Number"),
+			RArgs:   true,
+			Result:  wrapRes("Number"),
+			Handler: makeGenericCompHandler("+"),
+		},
+		"sub": {
+			Args:    collectParams(true, "Number", "Number"),
+			RArgs:   true,
+			Result:  wrapRes("Number"),
+			Handler: makeGenericCompHandler("-"),
+		},
+		"mult": {
+			Args:    collectParams(true, "Number", "Number"),
+			RArgs:   true,
+			Result:  wrapRes("Number"),
+			Handler: makeGenericCompHandler("*"),
+		},
+		"div": {
+			Args:    collectParams(true, "Number", "Number"),
+			RArgs:   true,
+			Result:  wrapRes("Number"),
+			Handler: makeGenericCompHandler("/"),
+		},
 
 		// @todo better negation?
-		"ptrn":  makeGenericCompHandler("LIKE"),
-		"nptrn": makeGenericCompHandler("NOT LIKE"),
+		"like": {
+			Args:    collectParams(true, "String", "String"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("LIKE"),
+		},
+		"nlike": {
+			Args:    collectParams(true, "String", "String"),
+			Result:  wrapRes("Boolean"),
+			Handler: makeGenericCompHandler("NOT LIKE"),
+		},
 
 		// functions
 		// - aggregation
-		"count": makeGenericAggFncHandler("COUNT"),
-		"sum":   makeGenericAggFncHandler("SUM"),
-		"max":   makeGenericAggFncHandler("MAX"),
-		"min":   makeGenericAggFncHandler("MIN"),
-		"avg":   makeGenericAggFncHandler("AVG"),
+		"count": {
+			Args:    collectParams(false, "Any"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericAggFncHandler("COUNT"),
+		},
+		"sum": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericAggFncHandler("SUM"),
+		},
+		"max": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericAggFncHandler("MAX"),
+		},
+		"min": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericAggFncHandler("MIN"),
+		},
+		"avg": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericAggFncHandler("AVG"),
+		},
 
 		// - filtering
-		"now":     makeGenericFilterFncHandler("NOW"),
-		"quarter": makeGenericFilterFncHandler("QUARTER"),
-		"year":    makeGenericFilterFncHandler("YEAR"),
-		"date":    makeGenericFilterFncHandler("DATE"),
+		"now": {
+			Result:  wrapRes("DateTime"),
+			Handler: makeGenericFilterFncHandler("NOW"),
+		},
+		"quarter": {
+			Args:    collectParams(true, "DateTime"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericFilterFncHandler("QUARTER"),
+		},
+		"year": {
+			Args:    collectParams(true, "DateTime"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericFilterFncHandler("YEAR"),
+		},
+		"date": {
+			Args:    collectParams(true, "DateTime"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericFilterFncHandler("DATE"),
+		},
 
 		// generic stuff
-		"group": makeGenericBracketHandler("(", ")"),
-		"null": func(aa ...FormattedASTArgs) (string, []interface{}, error) {
-			return "NULL", nil, nil
+		"null": {
+			Result: wrapRes("Null"),
+			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, error) {
+				return "NULL", nil, nil
+			},
+		},
+
+		// - typecast
+		"float": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Float"),
+			Handler: makeGenericTypecastHandler("FLOAT"),
+		},
+		"int": {
+			Args:    collectParams(true, "Any"),
+			Result:  wrapRes("Float"),
+			Handler: makeGenericTypecastHandler("INT"),
 		},
 	}
 )
 
-func newASTFormatter(n *qlng.ASTNode, custom ...ASTFormatterFn) squirrel.Sqlizer {
+func newASTFormatter(n *qlng.ASTNode, custom ...ASTFormatterFn) *astTransformer {
 	return &astTransformer{
-		root:   n,
-		custom: custom,
+		placeholders: true,
+		root:         n,
+		custom:       custom,
 	}
+}
+
+func (t *astTransformer) SetPlaceholder(use bool) {
+	t.placeholders = use
 }
 
 // ToSql conforms the struct to squirrel allowing trivial RDBMS use
 func (t *astTransformer) ToSql() (string, []interface{}, error) {
-	return t.format(t.root)
+	return t.toSql(t.root)
 }
 
-func (t *astTransformer) format(n *qlng.ASTNode) (string, []interface{}, error) {
+func (t *astTransformer) toSql(n *qlng.ASTNode) (string, []interface{}, error) {
 	// Leaf edge-cases
 	switch {
 	case n.Symbol != "":
@@ -96,7 +233,7 @@ func (t *astTransformer) format(n *qlng.ASTNode) (string, []interface{}, error) 
 	// Process arguments for the op.
 	args := make([]FormattedASTArgs, len(n.Args))
 	for i, a := range n.Args {
-		s, pp, err := t.format(a)
+		s, pp, err := t.toSql(a)
 		if err != nil {
 			return "", nil, err
 		}
@@ -118,11 +255,15 @@ func (t *astTransformer) format(n *qlng.ASTNode) (string, []interface{}, error) 
 		}
 	}
 
+	if n.Ref == "group" {
+		return bracketHandler(args...)
+	}
+
 	// Default handlers
 	if e, ok := sqlExprRegistry[n.Ref]; !ok {
 		return "", nil, fmt.Errorf("unknown expression: handler not defined: %s", n.Ref)
 	} else {
-		s, args, err := e(args...)
+		s, args, err := e.Handler(args...)
 		return s, args, err
 	}
 }
@@ -140,89 +281,125 @@ func mergeIntfs(aa ...[]interface{}) (out []interface{}) {
 	return out
 }
 
+// Analyze analyzes the AST and returns the resulting type and any errors
+func (t *astTransformer) Analyze(symbolIndex map[string]string) (string, error) {
+	return t.analyze(t.root, symbolIndex)
+}
+
+func (t *astTransformer) analyze(n *qlng.ASTNode, symbolIndex map[string]string) (string, error) {
+	// Leaf edge-cases
+	// - symbol
+	if n.Symbol != "" {
+		sy, ok := symbolIndex[n.Symbol]
+		if !ok {
+			return "", fmt.Errorf("unknown symbol %s", n.Symbol)
+		}
+		return sy, nil
+	}
+	// - plain value
+	if n.Value != nil {
+		return n.Value.V.Type(), nil
+	}
+
+	// expr. validity
+	args := make([]FormattedASTArgs, len(n.Args))
+	for i, a := range n.Args {
+		t, err := t.analyze(a, symbolIndex)
+		if err != nil {
+			return "", err
+		}
+
+		args[i] = FormattedASTArgs{
+			ResultType: t,
+		}
+	}
+
+	// groups proxy the type from their inner ops
+	if n.Ref == "group" {
+		if len(args) != 1 {
+			return "", fmt.Errorf("a group must have a single root operation")
+		}
+		return args[0].ResultType, nil
+	}
+
+	// custom handlers should have no affect on the input/output of the handler
+	e, ok := sqlExprRegistry[n.Ref]
+	if !ok {
+		return "", fmt.Errorf("unknown expression: handler not defined: %s", n.Ref)
+	}
+
+	// - check arg count
+	pc, opc := countParams(e)
+	if !e.RArgs {
+		if len(args) < pc-opc || len(args) > pc {
+			if opc > 0 {
+				return "", fmt.Errorf("%s: expecting %d + %d arguments, got %d", n.Ref, pc-opc, opc, len(args))
+			}
+			return "", fmt.Errorf("%s: expecting %d arguments, got %d", n.Ref, pc, len(args))
+		}
+	} else {
+		if len(args)%pc != 0 {
+			return "", fmt.Errorf("%s: expecting multiple of %d arguments, got %d", n.Ref, len(e.Args), len(args))
+		}
+	}
+
+	// - check arg types
+	for i, p := range args {
+		a := e.Args[i%len(e.Args)].Type
+		b := p.ResultType
+
+		if a == "Any" {
+			continue
+		}
+
+		// Number allows all numeric types
+		if a == "Number" && isNumber(b) {
+			continue
+		}
+
+		if a == b {
+			continue
+		}
+
+		return "", fmt.Errorf("argument type missmatch: expecting %s, got %s for argument %d", a, b, i)
+	}
+
+	return e.Result.Type, nil
+}
+
 // // // // // // // // // // // // // // // // // // // // // // // // //
-// Default handlers
 
-func (t *astTransformer) handleSymbol(n *qlng.ASTNode) (string, []interface{}, error) {
-	return n.Symbol, nil, nil
+func isNumber(t string) bool {
+	return t == "Number" || t == "Integer" || t == "UnsignedInteger" || t == "Float"
 }
 
-func (t *astTransformer) handleValue(n *qlng.ASTNode) (string, []interface{}, error) {
-	return "?", wrapIntfs(n.Value.Value), nil
-}
+func countParams(e exprHandler) (all int, opt int) {
+	all = len(e.Args)
 
-func makeGenericBoolHandler(op string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
-		outPts := make([]string, len(aa))
-		args = make([]interface{}, 0, 10)
-		for i, a := range aa {
-			outPts[i] = a.S
-			args = append(args, a.Args...)
+	for _, p := range e.Args {
+		if !p.Required {
+			opt++
 		}
+	}
 
-		out = strings.Join(outPts, " "+op+" ")
-		return
+	return
+}
+
+func collectParams(req bool, ss ...string) argSet {
+	pp := make(argSet, len(ss))
+	for i, t := range ss {
+		pp[i] = wrapParam(req, t)
+	}
+	return pp
+}
+
+func wrapParam(req bool, t string) *arg {
+	return &arg{
+		Required: req,
+		Type:     t,
 	}
 }
 
-func makeGenericBracketHandler(bb ...string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
-		if len(aa) != 1 {
-			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
-			return
-		}
-
-		out = fmt.Sprintf("%s%s%s", bb[0], aa[0].S, bb[1])
-		args = aa[0].Args
-		return
-	}
-}
-
-func makeGenericCompHandler(comp string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
-		if len(aa) != 2 {
-			err = fmt.Errorf("expecting 2 arguments, got %d", len(aa))
-			return
-		}
-
-		out = fmt.Sprintf("%s %s %s", aa[0].S, comp, aa[1].S)
-		args = mergeIntfs(aa[0].Args, aa[1].Args)
-		return
-	}
-}
-
-func makeGenericAggFncHandler(fnc string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
-		if fnc == "count" && len(aa) == 0 {
-			out = "COUNT(*)"
-			return
-		}
-
-		if len(aa) != 1 {
-			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
-			return
-		}
-
-		out = fmt.Sprintf("%s(%s)", fnc, aa[0].S)
-		args = aa[0].Args
-		return
-	}
-}
-
-func makeGenericFilterFncHandler(fnc string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
-		if len(aa) == 0 {
-			return fmt.Sprintf("%s()", fnc), nil, nil
-		}
-
-		args = make([]interface{}, 0, len(aa))
-		auxArgs := make([]string, len(aa))
-		for i, a := range aa {
-			auxArgs[i] = a.S
-			args = append(args, a.Args...)
-		}
-
-		out = fmt.Sprintf("%s(%s)", fnc, strings.Join(auxArgs, ", "))
-		return
-	}
+func wrapRes(t string) *arg {
+	return wrapParam(false, t)
 }

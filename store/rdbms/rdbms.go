@@ -218,11 +218,7 @@ func (s Store) Query(ctx context.Context, q squirrel.Sqlizer) (*sql.Rows, error)
 	return rr, nil
 }
 
-func (s Store) FormatAST(n *qlng.ASTNode) squirrel.Sqlizer {
-	if n == nil {
-		return nil
-	}
-
+func (s Store) ASTTransformer(n *qlng.ASTNode) *astTransformer {
 	return newASTFormatter(n, s.config.ASTFormatter)
 }
 

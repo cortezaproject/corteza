@@ -2,9 +2,12 @@ package report
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
+
+	"github.com/cortezaproject/corteza-server/pkg/qlng"
 )
 
 type (
@@ -18,7 +21,7 @@ type (
 	}
 
 	GroupDefinition struct {
-		Keys    []*GroupKey    `json:"keys"`
+		Keys    []*GroupColumn `json:"keys"`
 		Columns []*GroupColumn `json:"columns"`
 		Filter  *Filter        `json:"filter,omitempty"`
 	}
@@ -29,26 +32,15 @@ type (
 		GroupDefinition
 	}
 
-	GroupKey struct {
-		// Name defines the alias for the new column
-		Name string `json:"name"`
-		// Label defines the user friendly name for the column
-		Label string `json:"label"`
-		// Column defines what column to use when defining the group
-		Column string `json:"column"`
-		// Group defines the grouping function to apply
-		Group string `json:"group"`
+	GroupColumn struct {
+		Name  string  `json:"name"`
+		Label string  `json:"label"`
+		Def   *colDef `json:"def"`
 	}
 
-	GroupColumn struct {
-		// Name defines the alias for the new column
-		Name string `json:"name"`
-		// Label defines the user friendly name for the column
-		Label string `json:"label"`
-		// Column defines the column to produce the aggregated data
-		Column string `json:"column"`
-		// Aggregate defines the aggregation function to apply
-		Aggregate string `json:"aggregate"`
+	// Wrapper for easier marshal/unmarshal
+	colDef struct {
+		*qlng.ASTNode
 	}
 )
 
@@ -108,6 +100,49 @@ func (d *stepGroup) Source() []string {
 
 func (d *stepGroup) Def() *StepDefinition {
 	return &StepDefinition{Group: d.def}
+}
+
+func (def *colDef) UnmarshalJSON(data []byte) (err error) {
+	var aux interface{}
+	if err = json.Unmarshal(data, &aux); err != nil {
+		return
+	}
+
+	p := qlng.NewParser()
+
+	// String expr. needs to be parsed to the AST
+	switch v := aux.(type) {
+	case string:
+		if def.ASTNode, err = p.Parse(v); err != nil {
+			return
+		}
+		def.ASTNode.Raw = v
+		return
+	}
+
+	// non-string is considered an AST and we parse that
+	if err = json.Unmarshal(data, &def.ASTNode); err != nil {
+		return
+	}
+
+	// traverse the AST to parse any raw exprs.
+	if def.ASTNode == nil {
+		return
+	}
+
+	// A raw expression takes priority and replaces the original AST sub-tree
+	return def.ASTNode.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+		if n.Raw == "" {
+			return true, n, nil
+		}
+
+		aux, err := p.Parse(n.Raw)
+		if err != nil {
+			return false, n, err
+		}
+
+		return false, aux, nil
+	})
 }
 
 // // // //
