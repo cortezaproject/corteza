@@ -1,10 +1,11 @@
 package service
 
 import (
-	"github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"sort"
 	"sync"
+
+	"github.com/cortezaproject/corteza-server/automation/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 type (

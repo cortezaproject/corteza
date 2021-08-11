@@ -1,0 +1,25 @@
+imports:
+  - io
+
+functions:
+  execute:
+    meta:
+      short: Process arbitrary data in jsenv
+    params:
+      scope:
+        required: true
+        types:
+          - { wf: Any }
+          - { wf: String, suffix: String }
+          - { wf: Reader, suffix: Stream }
+      source:
+        required: true
+        types:
+          - { wf: String }
+    results:
+      resultString:
+        wf: String
+      resultInt:
+        wf: Integer
+      resultAny:
+        wf: Any
