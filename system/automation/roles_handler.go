@@ -38,9 +38,18 @@ type (
 	}
 
 	roleSetIterator struct {
-		ptr    int
-		set    types.RoleSet
+		// Item buffer, current item pointer, and total items traversed
+		ptr    uint
+		buffer types.RoleSet
+		total  uint
+
+		// When filter limit is set, this constraints it
+		iterLimit    uint
+		useIterLimit bool
+
+		// Item loader for additional chunks
 		filter types.RoleFilter
+		loader func() error
 	}
 
 	roleLookup interface {
@@ -120,7 +129,7 @@ func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs)
 	}
 
 	if len(mm) == 0 {
-		i.set = []*types.User{}
+		i.buffer = []*types.User{}
 		i.filter = types.UserFilter{}
 		return i, nil
 	}
@@ -130,7 +139,7 @@ func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs)
 	for i, m := range mm {
 		uu[i] = m.UserID
 	}
-	i.set, i.filter, err = h.uSvc.Find(ctx, types.UserFilter{
+	i.buffer, i.filter, err = h.uSvc.Find(ctx, types.UserFilter{
 		UserID: uu,
 	})
 	return i, err
@@ -274,11 +283,36 @@ func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (out wfexec
 	}
 
 	if args.hasLimit {
-		f.Limit = uint(args.Limit)
+		i.useIterLimit = true
+		i.iterLimit = uint(args.Limit)
+
+		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
+			f.Limit = wfexec.MaxIteratorBufferSize
+		}
+		i.iterLimit = uint(args.Limit)
+	} else {
+		f.Limit = wfexec.MaxIteratorBufferSize
 	}
 
-	i.set, i.filter, err = h.rSvc.Find(ctx, f)
-	return i, err
+	i.filter = f
+	i.loader = func() (err error) {
+		// Edgecase
+		if i.filter.PageCursor != nil && i.filter.NextPage == nil {
+			return
+		}
+
+		i.total += i.ptr
+		i.ptr = 0
+
+		i.filter.PageCursor = i.filter.NextPage
+		i.filter.NextPage = nil
+		i.buffer, i.filter, err = h.rSvc.Find(ctx, i.filter)
+
+		return
+	}
+
+	// Initial load
+	return i, i.loader()
 }
 
 func (h rolesHandler) create(ctx context.Context, args *rolesCreateArgs) (results *rolesCreateResults, err error) {
@@ -357,16 +391,23 @@ func lookupRole(ctx context.Context, svc roleService, args roleLookup) (*types.R
 }
 
 func (i *roleSetIterator) More(context.Context, *Vars) (bool, error) {
-	return i.ptr < len(i.set), nil
+	a := wfexec.GenericResourceNextCheck(i.useIterLimit, i.ptr, uint(len(i.buffer)), i.total, i.iterLimit, i.filter.NextPage != nil)
+	return a, nil
 }
 
 func (i *roleSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
-func (i *roleSetIterator) Next(context.Context, *Vars) (*Vars, error) {
-	out := &Vars{}
-	out.Set("role", Must(NewRole(i.set[i.ptr])))
-	out.Set("index", i.ptr)
-	out.Set("total", i.filter.Total)
+func (i *roleSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		if err = i.loader(); err != nil {
+			panic(err)
+		}
+	}
+
+	out = &Vars{}
+	out.Set("role", Must(NewRole(i.buffer[i.ptr])))
+	out.Set("index", Must(NewInteger(i.total+i.ptr)))
+	out.Set("total", Must(NewInteger(i.filter.Total)))
 
 	i.ptr++
 	return out, nil

@@ -1,0 +1,9 @@
+roles:
+  r1: r1 name
+
+users:
+  u1: u1@mail.tld
+  u2: u2@mail.tld
+  u3: u3@mail.tld
+  u4: u4@mail.tld
+  u5: u5@mail.tld

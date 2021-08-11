@@ -2,6 +2,7 @@ package wfexec
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
@@ -43,6 +44,14 @@ type (
 
 		h IteratorHandler
 	}
+)
+
+const (
+	DefaultMaxIteratorBufferSize uint = 1000
+)
+
+var (
+	MaxIteratorBufferSize uint = DefaultMaxIteratorBufferSize
 )
 
 // GenericIterator creates a wrapper around IteratorHandler and
@@ -88,4 +97,19 @@ func (i *genericIterator) Next(ctx context.Context, scope *expr.Vars) (next Step
 	next = i.next
 
 	return
+}
+
+func GenericResourceNextCheck(useLimit bool, ptr, buffSize, total, limit uint, hasMore bool) bool {
+	// if we can go more (inverted)...
+	if useLimit && ptr+total >= limit {
+		return false
+	}
+
+	// if we have some buffer left...
+	if ptr < buffSize {
+		return true
+	}
+
+	// if we can get more...
+	return hasMore
 }

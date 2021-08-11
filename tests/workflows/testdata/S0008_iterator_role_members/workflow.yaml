@@ -1,0 +1,28 @@
+workflows:
+  testing:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: iterator
+        ref: rolesEachMember
+        arguments:
+          - { "target": "lookup", "value": "r1", "type": "Handle" }
+        results:
+          - { "target": "u", "expr": "user" }
+          - { "target": "i", "expr": "index" }
+          - { "target": "t", "expr": "total" }
+
+      - stepID: 11
+        kind: continue
+
+      - stepID: 12
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
+      - { parentID: 10, childID: 12 }
