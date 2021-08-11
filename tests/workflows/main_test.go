@@ -23,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza-server/store"
 	sysTypes "github.com/cortezaproject/corteza-server/system/types"
 	"github.com/cortezaproject/corteza-server/tests/helpers"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -134,4 +135,22 @@ func mustExecWorkflow(ctx context.Context, t *testing.T, name string, p autTypes
 	}
 
 	return
+}
+
+func addRoleMember(ctx context.Context, req *require.Assertions, r string, uu ...string) {
+	role, err := store.LookupRoleByHandle(ctx, defStore, r)
+	req.NoError(err)
+
+	rr := make([]*sysTypes.RoleMember, len(uu))
+	for i, u := range uu {
+		usr, err := store.LookupUserByHandle(ctx, defStore, u)
+		req.NoError(err)
+
+		rr[i] = &sysTypes.RoleMember{
+			RoleID: role.ID,
+			UserID: usr.ID,
+		}
+	}
+
+	req.NoError(store.CreateRoleMember(ctx, defStore, rr...))
 }
