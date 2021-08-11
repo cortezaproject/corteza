@@ -12,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/qlng"
 	"github.com/cortezaproject/corteza-server/pkg/report"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 	"github.com/jmoiron/sqlx"
 )
@@ -37,18 +36,6 @@ type (
 		nestLabel    string
 		levelColumns map[string]string
 	}
-)
-
-var (
-	supportedAggregationFunctions = slice.ToStringBoolMap([]string{
-		"COUNT",
-		"SUM",
-		"MAX",
-		"MIN",
-		"AVG",
-	})
-
-	// supportedGroupingFunctions = ...
 )
 
 // ComposeRecordDatasourceBuilder initializes and returns a datasource builder for compose record resource
@@ -118,81 +105,99 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 	}()
 
 	var (
-		q       = squirrel.Select()
-		auxKind = ""
-		ok      = false
+		q   = squirrel.Select()
+		err error
 	)
 
 	auxLevelColumns := r.levelColumns
 	r.levelColumns = make(map[string]string)
 	groupCols := make(report.FrameColumnSet, 0, 10)
 
-	for _, g := range d.Keys {
-		auxKind, ok = auxLevelColumns[g.Column]
-		if !ok {
-			return false, fmt.Errorf("column %s does not exist on level %d", g.Column, r.nestLevel)
+	// firstly handle GROUP BY definitions
+	for _, k := range d.Keys {
+		// - validate columns & functions
+		err = k.Def.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+			if n.Symbol != "" {
+				if _, ok := auxLevelColumns[n.Symbol]; !ok {
+					return false, nil, fmt.Errorf("column %s does not exist on level %d", n.Symbol, r.nestLevel)
+				}
+			}
+
+			// @todo do we need additional function validation besides the built-in one?
+
+			return true, n, nil
+		})
+		if err != nil {
+			return false, err
 		}
 
-		// @todo...
-		// if g.Group != "" {...}
-
-		c := report.MakeColumnOfKind(auxKind)
-		c.Name = g.Name
-		c.Label = g.Label
+		// AST transformation tasks
+		tr := r.store.ASTTransformer(k.Def.ASTNode)
+		outType, err := tr.Analyze(auxLevelColumns)
+		if err != nil {
+			return false, err
+		}
+		// - prepare frame col. definition
+		c := report.MakeColumnOfKind(outType)
+		c.Name = k.Name
+		c.Label = k.Label
 		if c.Label == "" {
 			c.Label = c.Name
 		}
 		groupCols = append(groupCols, c)
+		r.levelColumns[k.Name] = outType
 
-		r.levelColumns[g.Name] = auxKind
-		q = q.Column(fmt.Sprintf("%s as `%s`", g.Column, g.Name)).
-			GroupBy(g.Column)
+		// - SQL things
+		tr.SetPlaceholder(false)
+		sql, _, err := tr.ToSql()
+		if err != nil {
+			return false, err
+		}
+
+		q = q.Column(squirrel.Alias(tr, c.Name)).
+			GroupBy(sql)
 	}
 
-	var aggregate string
-	for _, c := range d.Columns {
-		aggregate = strings.ToUpper(c.Aggregate)
-
-		if c.Column == "" {
-			if c.Aggregate == "" {
-				return false, fmt.Errorf("the aggregation function is required when the column is omitted")
-			}
-		} else {
-			auxKind, ok = auxLevelColumns[c.Column]
-			if !ok {
-				return false, fmt.Errorf("column %s does not exist on level %d", c.Column, r.nestLevel)
-			}
-		}
-
-		qParam := c.Column
-		if c.Aggregate != "" {
-			if !supportedAggregationFunctions[aggregate] {
-				return false, fmt.Errorf("aggregation function not supported: %s", c.Aggregate)
+	// secondly handle column definitions
+	for _, k := range d.Columns {
+		// - validate columns & functions
+		err = k.Def.Traverse(func(n *qlng.ASTNode) (bool, *qlng.ASTNode, error) {
+			if n.Symbol != "" {
+				if _, ok := auxLevelColumns[n.Symbol]; !ok {
+					return false, nil, fmt.Errorf("column %s does not exist on level %d", n.Symbol, r.nestLevel)
+				}
 			}
 
-			// when an aggregation function is defined, the output is always numeric
-			auxKind = "Number"
+			// @todo do we need additional function validation besides the built-in one?
 
-			qParam = fmt.Sprintf("%s(%s)", aggregate, c.Column)
-		} else if qParam == "" {
-			qParam = "*"
+			return true, n, nil
+		})
+		if err != nil {
+			return false, err
 		}
 
-		col := report.MakeColumnOfKind(auxKind)
-		col.Name = c.Name
-		col.Label = c.Label
-		if col.Label == "" {
-			col.Label = col.Name
+		// AST transformation tasks
+		tr := r.store.ASTTransformer(k.Def.ASTNode)
+		outType, err := tr.Analyze(auxLevelColumns)
+		if err != nil {
+			return false, err
 		}
-		groupCols = append(groupCols, col)
-		r.levelColumns[c.Name] = auxKind
+		// - prepare frame col. definition
+		c := report.MakeColumnOfKind(outType)
+		c.Name = k.Name
+		c.Label = k.Label
+		if c.Label == "" {
+			c.Label = c.Name
+		}
+		groupCols = append(groupCols, c)
+		r.levelColumns[k.Name] = outType
 
-		q = q.
-			Column(squirrel.Alias(squirrel.Expr(qParam), c.Name))
+		// - SQL things
+		q = q.Column(squirrel.Alias(tr, c.Name))
 	}
 
 	if d.Filter != nil {
-		q = q.Having(r.store.FormatAST(d.Filter.ASTNode))
+		q = q.Having(r.store.ASTTransformer(d.Filter.ASTNode))
 	}
 
 	r.cols = groupCols
@@ -261,7 +266,7 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// - filtering
 	if def.Filter != nil {
-		q = q.Where(r.store.FormatAST(def.Filter.ASTNode))
+		q = q.Where(r.store.ASTTransformer(def.Filter.ASTNode))
 	}
 
 	return q, nil
@@ -422,7 +427,7 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 			return
 		}
 
-		sqb = sqb.Where(r.store.FormatAST(f.ASTNode))
+		sqb = sqb.Where(r.store.ASTTransformer(f.ASTNode))
 	}
 
 	return sqb, nil

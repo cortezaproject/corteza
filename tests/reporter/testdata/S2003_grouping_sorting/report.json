@@ -14,11 +14,11 @@
       "name": "grouped",
       "source": "users",
       "keys": [
-        { "name": "by_name", "column": "first_name" }
+        { "name": "by_name", "def": "first_name" }
       ],
       "columns": [
-        { "name": "count", "aggregate": "count" },
-        { "name": "total", "aggregate": "sum", "column": "number_of_numbers" }
+        { "name": "count", "def": "count()" },
+        { "name": "total", "def": "sum(number_of_numbers)" }
       ]
     }}}
   ],

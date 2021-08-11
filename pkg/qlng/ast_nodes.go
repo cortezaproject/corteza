@@ -1,5 +1,11 @@
 package qlng
 
+import (
+	"encoding/json"
+
+	"github.com/cortezaproject/corteza-server/pkg/expr"
+)
+
 type (
 	ASTNode struct {
 		pMeta *parserMeta
@@ -7,15 +13,15 @@ type (
 		Ref  string     `json:"ref,omitempty"`
 		Args ASTNodeSet `json:"args,omitempty"`
 
-		Symbol string          `json:"symbol,omitempty"`
-		Value  *typedValueWrap `json:"value,omitempty"`
+		Symbol string      `json:"symbol,omitempty"`
+		Value  *typedValue `json:"value,omitempty"`
 
 		Raw string `json:"raw,omitempty"`
 	}
-	ASTNodeSet     []*ASTNode
-	typedValueWrap struct {
-		Value interface{} `json:"@value"`
-		Type  string      `json:"@type"`
+	ASTNodeSet []*ASTNode
+
+	typedValue struct {
+		V expr.TypedValue
 	}
 
 	parserMeta struct {
@@ -23,11 +29,47 @@ type (
 	}
 )
 
-func MakeValueOf(t string, v interface{}) *typedValueWrap {
-	return &typedValueWrap{
-		Type:  t,
-		Value: v,
+func MakeValueOf(t string, v interface{}) *typedValue {
+	return &typedValue{
+		V: expr.Must(qlTypeRegistry(t).Cast(v)),
 	}
+}
+
+func (t *typedValue) UnmarshalJSON(in []byte) (err error) {
+	var (
+		aux = struct {
+			Type  string      `json:"@type"`
+			Value interface{} `json:"@value"`
+		}{}
+	)
+
+	if len(in) == 0 {
+		return nil
+	}
+
+	if err = json.Unmarshal(in, &aux); err != nil {
+		return
+	}
+
+	t.V, err = qlTypeRegistry(aux.Type).Cast(aux.Value)
+	return
+}
+
+func (t *typedValue) MarshalJSON() ([]byte, error) {
+	var (
+		aux = struct {
+			Type  string      `json:"@type"`
+			Value interface{} `json:"@value"`
+		}{}
+	)
+
+	if t.V == nil {
+		return nil, nil
+	}
+
+	aux.Type = t.V.Type()
+	aux.Value = t.V.Get()
+	return json.Marshal(aux)
 }
 
 // Traverse traverses the AST down to leaf nodes.
@@ -69,9 +111,8 @@ func (n ASTNode) Clone() *ASTNode {
 	}
 
 	if n.Value != nil {
-		n.Value = &typedValueWrap{
-			Type:  n.Value.Type,
-			Value: n.Value.Value,
+		n.Value = &typedValue{
+			V: n.Value.V,
 		}
 	}
 
@@ -104,7 +145,7 @@ func (n lNumber) ToAST() (out *ASTNode) {
 		}
 	} else {
 		return &ASTNode{
-			Value: MakeValueOf("Int", n.value),
+			Value: MakeValueOf("Integer", n.value),
 		}
 	}
 }
@@ -228,4 +269,24 @@ func (nn parserNodes) ToAST() (out *ASTNode) {
 		Ref:  "group",
 		Args: auxArgs,
 	}
+}
+
+// A simplified type registry for the types that QL needs to understand
+func qlTypeRegistry(ref string) expr.Type {
+	switch ref {
+	case "Boolean", "Bool":
+		return &expr.Boolean{}
+	case "Integer":
+		return &expr.Integer{}
+	case "UnsignedInteger":
+		return &expr.UnsignedInteger{}
+	case "Float":
+		return &expr.Float{}
+	case "String":
+		return &expr.String{}
+	case "DateTime":
+		return &expr.DateTime{}
+	}
+
+	return nil
 }
