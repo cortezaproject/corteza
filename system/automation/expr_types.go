@@ -1,6 +1,7 @@
 package automation
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -30,6 +31,11 @@ func CastToUser(val interface{}) (out *types.User, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.User:
 		return val, nil
+	case map[string]interface{}:
+		out = &types.User{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return out, nil
 	case nil:
 		return &types.User{}, nil
 	default:
@@ -49,6 +55,11 @@ func CastToRole(val interface{}) (out *types.Role, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Role:
 		return val, nil
+	case map[string]interface{}:
+		out = &types.Role{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return out, nil
 	case nil:
 		return &types.Role{}, nil
 	default:
@@ -68,6 +79,11 @@ func CastToTemplate(val interface{}) (out *types.Template, err error) {
 	switch val := expr.UntypedValue(val).(type) {
 	case *types.Template:
 		return val, nil
+	case map[string]interface{}:
+		out = &types.Template{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return out, nil
 	case nil:
 		return &types.Template{}, nil
 	default:

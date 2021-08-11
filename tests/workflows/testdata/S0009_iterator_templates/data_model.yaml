@@ -1,0 +1,11 @@
+templates:
+  t1:
+    type: text/html
+  t2:
+    type: text/html
+  t3:
+    type: text/html
+  t4:
+    type: text/html
+  t5:
+    type: text/html

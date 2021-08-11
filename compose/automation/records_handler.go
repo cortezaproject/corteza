@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/cortezaproject/corteza-server/compose/types"
 	. "github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -33,9 +34,18 @@ type (
 	}
 
 	recordSetIterator struct {
-		ptr    int
-		set    types.RecordSet
+		// Item buffer, current item pointer, and total items traversed
+		ptr    uint
+		buffer types.RecordSet
+		total  uint
+
+		// When filter limit is set, this constraints it
+		iterLimit    uint
+		useIterLimit bool
+
+		// Item loader for additional chunks
 		filter types.RecordFilter
+		loader func() error
 	}
 
 	recordLookup interface {
@@ -167,11 +177,36 @@ func (h recordsHandler) each(ctx context.Context, args *recordsEachArgs) (out wf
 	}
 
 	if args.hasLimit {
-		f.Limit = uint(args.Limit)
+		i.useIterLimit = true
+		i.iterLimit = uint(args.Limit)
+
+		if args.Limit > uint64(wfexec.MaxIteratorBufferSize) {
+			f.Limit = wfexec.MaxIteratorBufferSize
+		}
+		i.iterLimit = uint(args.Limit)
+	} else {
+		f.Limit = wfexec.MaxIteratorBufferSize
 	}
 
-	i.set, i.filter, err = h.rec.Find(ctx, f)
-	return i, err
+	i.filter = f
+	i.loader = func() (err error) {
+		// Edgecase
+		if i.filter.PageCursor != nil && i.filter.NextPage == nil {
+			return
+		}
+
+		i.total += i.ptr
+		i.ptr = 0
+
+		i.filter.PageCursor = i.filter.NextPage
+		i.filter.NextPage = nil
+		i.buffer, i.filter, err = h.rec.Find(ctx, i.filter)
+
+		return
+	}
+
+	// Initial load
+	return i, i.loader()
 }
 
 func (h recordsHandler) validate(ctx context.Context, args *recordsValidateArgs) (*recordsValidateResults, error) {
@@ -312,16 +347,22 @@ func (h recordsHandler) fetchEdge(ctx context.Context, args interface{}, first b
 }
 
 func (i *recordSetIterator) More(context.Context, *Vars) (bool, error) {
-	return i.ptr < len(i.set), nil
+	return wfexec.GenericResourceNextCheck(i.useIterLimit, i.ptr, uint(len(i.buffer)), i.total, i.iterLimit, i.filter.NextPage != nil), nil
 }
 
 func (i *recordSetIterator) Start(context.Context, *Vars) error { i.ptr = 0; return nil }
 
-func (i *recordSetIterator) Next(context.Context, *Vars) (*Vars, error) {
-	out := &Vars{}
-	out.Set("record", Must(NewComposeRecord(i.set[i.ptr])))
-	out.Set("index", i.ptr)
-	out.Set("total", i.filter.Total)
+func (i *recordSetIterator) Next(context.Context, *Vars) (out *Vars, err error) {
+	if len(i.buffer)-int(i.ptr) <= 0 {
+		if err = i.loader(); err != nil {
+			panic(err)
+		}
+	}
+
+	out = &Vars{}
+	out.Set("record", Must(NewComposeRecord(i.buffer[i.ptr])))
+	out.Set("index", Must(NewInteger(i.total+i.ptr)))
+	out.Set("total", Must(NewInteger(i.filter.Total)))
 
 	i.ptr++
 	return out, nil
