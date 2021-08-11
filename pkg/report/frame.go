@@ -141,6 +141,10 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 	// String expr. needs to be parsed to the AST
 	switch v := aux.(type) {
 	case string:
+		if v == "" {
+			return
+		}
+
 		if f.ASTNode, err = p.Parse(v); err != nil {
 			return
 		}
