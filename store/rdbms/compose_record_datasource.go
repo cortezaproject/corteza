@@ -409,6 +409,9 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 			Column(squirrel.Alias(squirrel.Expr(fmt.Sprintf(tcp, c.Name+".value")), c.Name))
 	}
 
+	// @todo this is temporary!!
+	sqb = squirrel.Select("*").FromSelect(sqb, "q_base")
+
 	// - any initial filtering we may need to do
 	//
 	// @todo better support functions and their validation.
