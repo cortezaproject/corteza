@@ -320,6 +320,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 				Source: def.Source,
 				Ref:    def.Ref,
 				Sort:   def.Sort,
+				Filter: def.Filter,
 			}
 
 			checkCap := cap > 0
@@ -343,7 +344,8 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 				if checkCap && i > cap {
 					out := []*report.Frame{f}
 					f = &report.Frame{
-						Sort: def.Sort,
+						Sort:   def.Sort,
+						Filter: def.Filter,
 					}
 					i = 0
 					return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor), nil

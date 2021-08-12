@@ -10,5 +10,7 @@ func Test9009_filtering_validation(t *testing.T) {
 		m, _, dd  = loadScenario(ctx, s, t, h)
 	)
 
-	loadErr(ctx, h, m, dd[0], "could not build query: expecting 1 or more arguments, got 0")
+	t.Run("empty conjunction", func(t *testing.T) {
+		loadErr(ctx, h, m, dd[0], "could not build query: expecting 1 or more arguments, got 0")
+	})
 }

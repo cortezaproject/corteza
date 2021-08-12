@@ -26,6 +26,7 @@ type (
 
 		Paging *filter.Paging     `json:"paging"`
 		Sort   filter.SortExprSet `json:"sort"`
+		Filter *Filter            `json:"filter"`
 
 		// params to help us perform things in place
 		startIndex int
