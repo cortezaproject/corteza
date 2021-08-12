@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/label"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-chi/chi"
 	"io"
 	"mime/multipart"
@@ -87,11 +88,6 @@ type (
 		// Route method
 		Method string
 
-		// Debug POST parameter
-		//
-		// Debug route
-		Debug bool
-
 		// Enabled POST parameter
 		//
 		// Is route enabled
@@ -101,6 +97,11 @@ type (
 		//
 		// Route group
 		Group uint64 `json:",string"`
+
+		// Meta POST parameter
+		//
+		// Route meta
+		Meta types.ApigwRouteMeta
 	}
 
 	ApigwRouteUpdate struct {
@@ -119,11 +120,6 @@ type (
 		// Route method
 		Method string
 
-		// Debug POST parameter
-		//
-		// Debug route
-		Debug bool
-
 		// Enabled POST parameter
 		//
 		// Is route enabled
@@ -133,6 +129,11 @@ type (
 		//
 		// Route group
 		Group uint64 `json:",string"`
+
+		// Meta POST parameter
+		//
+		// Route meta
+		Meta types.ApigwRouteMeta
 	}
 
 	ApigwRouteRead struct {
@@ -296,9 +297,9 @@ func (r ApigwRouteCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"endpoint": r.Endpoint,
 		"method":   r.Method,
-		"debug":    r.Debug,
 		"enabled":  r.Enabled,
 		"group":    r.Group,
+		"meta":     r.Meta,
 	}
 }
 
@@ -313,11 +314,6 @@ func (r ApigwRouteCreate) GetMethod() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApigwRouteCreate) GetDebug() bool {
-	return r.Debug
-}
-
-// Auditable returns all auditable/loggable parameters
 func (r ApigwRouteCreate) GetEnabled() bool {
 	return r.Enabled
 }
@@ -325,6 +321,11 @@ func (r ApigwRouteCreate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwRouteCreate) GetGroup() uint64 {
 	return r.Group
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwRouteCreate) GetMeta() types.ApigwRouteMeta {
+	return r.Meta
 }
 
 // Fill processes request and fills internal variables
@@ -362,13 +363,6 @@ func (r *ApigwRouteCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["debug"]; ok && len(val) > 0 {
-			r.Debug, err = payload.ParseBool(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["enabled"]; ok && len(val) > 0 {
 			r.Enabled, err = payload.ParseBool(val[0]), nil
 			if err != nil {
@@ -378,6 +372,18 @@ func (r *ApigwRouteCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["group"]; ok && len(val) > 0 {
 			r.Group, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseApigwRouteMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseApigwRouteMeta(val)
 			if err != nil {
 				return err
 			}
@@ -398,9 +404,9 @@ func (r ApigwRouteUpdate) Auditable() map[string]interface{} {
 		"routeID":  r.RouteID,
 		"endpoint": r.Endpoint,
 		"method":   r.Method,
-		"debug":    r.Debug,
 		"enabled":  r.Enabled,
 		"group":    r.Group,
+		"meta":     r.Meta,
 	}
 }
 
@@ -420,11 +426,6 @@ func (r ApigwRouteUpdate) GetMethod() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApigwRouteUpdate) GetDebug() bool {
-	return r.Debug
-}
-
-// Auditable returns all auditable/loggable parameters
 func (r ApigwRouteUpdate) GetEnabled() bool {
 	return r.Enabled
 }
@@ -432,6 +433,11 @@ func (r ApigwRouteUpdate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwRouteUpdate) GetGroup() uint64 {
 	return r.Group
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwRouteUpdate) GetMeta() types.ApigwRouteMeta {
+	return r.Meta
 }
 
 // Fill processes request and fills internal variables
@@ -469,13 +475,6 @@ func (r *ApigwRouteUpdate) Fill(req *http.Request) (err error) {
 			}
 		}
 
-		if val, ok := req.Form["debug"]; ok && len(val) > 0 {
-			r.Debug, err = payload.ParseBool(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["enabled"]; ok && len(val) > 0 {
 			r.Enabled, err = payload.ParseBool(val[0]), nil
 			if err != nil {
@@ -485,6 +484,18 @@ func (r *ApigwRouteUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["group"]; ok && len(val) > 0 {
 			r.Group, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseApigwRouteMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseApigwRouteMeta(val)
 			if err != nil {
 				return err
 			}

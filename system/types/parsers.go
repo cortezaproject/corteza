@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 )
 
+func ParseApigwRouteMeta(ss []string) (p ApigwRouteMeta, err error) {
+	p = ApigwRouteMeta{}
+	return p, parseStringsInput(ss, p)
+}
+
 func ParseApigwfFilterParams(ss []string) (p ApigwFilterParams, err error) {
 	p = ApigwFilterParams{}
 	return p, parseStringsInput(ss, p)

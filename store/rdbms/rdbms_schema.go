@@ -674,7 +674,7 @@ func (Schema) ApigwRoute() *Table {
 		ColumnDef("endpoint", ColumnTypeText, ColumnTypeLength(resourceLength)),
 		ColumnDef("method", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("enabled", ColumnTypeBoolean),
-		ColumnDef("debug", ColumnTypeBoolean),
+		ColumnDef("meta", ColumnTypeJson),
 		ColumnDef("rel_group", ColumnTypeIdentifier),
 		CUDTimestamps,
 		CUDUsers,

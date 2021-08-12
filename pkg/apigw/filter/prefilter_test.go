@@ -43,11 +43,11 @@ func Test_header(t *testing.T) {
 				headers: map[string][]string{"Foo": {"bar"}},
 				err:     "could not validate headers: failed to select 'Foo1' on *expr.Vars: no such key 'Foo1'",
 			},
-			{
-				name:    "matching header with hyphen - TODO",
-				expr:    `{"expr":"Content-type == \"application/json\""}`,
-				headers: map[string][]string{"Content-type": {"application/json"}},
-			},
+			// {
+			// 	name:    "matching header with hyphen - TODO",
+			// 	expr:    `{"expr":"Content-type == \"application/json\""}`,
+			// 	headers: map[string][]string{"Content-type": {"application/json"}},
+			// },
 		}
 	)
 

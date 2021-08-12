@@ -12,6 +12,7 @@ import (
 type (
 	MockExecer struct {
 		Exec_ func(context.Context, *Scp) (err error)
+		Type_ func() FilterKind
 	}
 
 	MockErrorExecer struct {
@@ -32,6 +33,14 @@ type (
 
 func (h MockHandler) String() string {
 	return "MockHandler"
+}
+
+func (h MockHandler) Type() FilterKind {
+	return PreFilter
+}
+
+func (h MockHandler) Weight() int {
+	return 0
 }
 
 func (h MockHandler) Exec(_ context.Context, _ *Scp) error {
@@ -59,6 +68,14 @@ func (td MockStorer) SearchApigwFilters(ctx context.Context, f st.ApigwFilterFil
 
 func (me MockExecer) String() string {
 	return "MockExecer"
+}
+
+func (h MockExecer) Type() FilterKind {
+	return PreFilter
+}
+
+func (h MockExecer) Weight() int {
+	return 0
 }
 
 func (me MockExecer) Exec(ctx context.Context, s *Scp) (err error) {

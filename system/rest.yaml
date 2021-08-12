@@ -1510,6 +1510,7 @@ endpoints:
   entrypoint: apigwRoute
   authentication: []
   imports:
+    - github.com/cortezaproject/corteza-server/system/types
     - github.com/cortezaproject/corteza-server/pkg/label
   apis:
   - name: list
@@ -1534,9 +1535,9 @@ endpoints:
       post:
       - { name: endpoint, type: string, required: true, title: "Route endpoint" }
       - { name: method,   type: string,                 title: "Route method" }
-      - { name: debug,    type: bool,                   title: "Debug route" }
       - { name: enabled,  type: bool,                   title: "Is route enabled" }
       - { name: group,    type: uint64,                 title: "Route group" }
+      - { name: meta,     type: "types.ApigwRouteMeta", title: "Route meta", parser: "types.ParseApigwRouteMeta" }
   - name: update
     method: PUT
     title: Update route details
@@ -1546,9 +1547,9 @@ endpoints:
       post:
       - { name: endpoint, type: string, required: true, title: "Route endpoint" }
       - { name: method,   type: string,                 title: "Route method" }
-      - { name: debug,    type: bool,                   title: "Debug route" }
       - { name: enabled,  type: bool,                   title: "Is route enabled" }
       - { name: group,    type: uint64,                 title: "Route group" }
+      - { name: meta,     type: "types.ApigwRouteMeta", title: "Route meta", parser: "types.ParseApigwRouteMeta" }
   - name: read
     method: GET
     title: Read route details

@@ -22,7 +22,7 @@ func Test_pipelineAdd(t *testing.T) {
 	p := NewPl()
 	p.Add(types.MockExecer{})
 
-	req.Len(p.w, 1)
+	req.Len(p.w.prefilter, 1)
 }
 
 func Test_pipelineExec(t *testing.T) {
@@ -40,7 +40,7 @@ func Test_pipelineExec(t *testing.T) {
 		},
 	})
 
-	err := p.Exec(ctx, scope)
+	err := p.Exec(ctx, scope, false)
 
 	req.NoError(err)
 
@@ -64,7 +64,7 @@ func Test_pipelineExecErr(t *testing.T) {
 		},
 	})
 
-	err := p.Exec(ctx, scope)
+	err := p.Exec(ctx, scope, false)
 
 	req.Error(err, "error returned")
 }

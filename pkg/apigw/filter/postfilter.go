@@ -20,6 +20,19 @@ type (
 		}
 	}
 
+	// support for arbitrary response
+	// obfuscation
+	customResponse struct {
+		types.FilterMeta
+		params struct {
+			Source string `json:"source"`
+		}
+	}
+
+	defaultJsonResponse struct {
+		types.FilterMeta
+	}
+
 	errorHandler struct {
 		name string
 		args []string
@@ -29,7 +42,6 @@ type (
 func NewRedirection() (e *redirection) {
 	e = &redirection{}
 
-	e.Step = 3
 	e.Name = "redirection"
 	e.Label = "Redirection"
 	e.Kind = types.PostFilter
@@ -54,8 +66,16 @@ func (h redirection) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h redirection) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h redirection) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h redirection) Weight() int {
+	return h.Wgt
 }
 
 func (f *redirection) Merge(params []byte) (types.Handler, error) {
@@ -113,6 +133,45 @@ func (pp errorHandler) Exec(ctx context.Context, scope *types.Scp, err error) {
 	// set body
 	json.NewEncoder(scope.Writer()).Encode(resp)
 
+}
+
+func NewDefaultJsonResponse() (e *defaultJsonResponse) {
+	e = &defaultJsonResponse{}
+
+	e.Name = "defaultJsonResponse"
+	e.Label = "Default JSON response"
+	e.Kind = types.PostFilter
+
+	return
+}
+
+func (h defaultJsonResponse) String() string {
+	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
+}
+
+func (h defaultJsonResponse) Type() types.FilterKind {
+	return h.Kind
+}
+
+func (h defaultJsonResponse) Meta() types.FilterMeta {
+	return h.FilterMeta
+}
+
+func (h defaultJsonResponse) Weight() int {
+	return h.Wgt
+}
+
+func (f *defaultJsonResponse) Merge(params []byte) (h types.Handler, err error) {
+	return f, err
+}
+
+func (h defaultJsonResponse) Exec(ctx context.Context, scope *types.Scp) (err error) {
+	scope.Writer().Header().Set("Content-Type", "application/json")
+	scope.Writer().WriteHeader(http.StatusAccepted)
+
+	_, err = scope.Writer().Write([]byte(`{}`))
+
+	return
 }
 
 func checkStatus(typ string, status int) bool {

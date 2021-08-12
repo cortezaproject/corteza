@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"io"
 
+	atypes "github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/jsenv"
 	"go.uber.org/zap"
 )
@@ -41,7 +43,6 @@ func NewWorkflow(wf types.WfExecer) (p *workflow) {
 
 	p.d = wf
 
-	p.Step = 2
 	p.Name = "workflow"
 	p.Label = "Workflow processer"
 	p.Kind = types.Processer
@@ -61,8 +62,16 @@ func (h workflow) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h workflow) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h workflow) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h workflow) Weight() int {
+	return h.Wgt
 }
 
 func (f *workflow) Merge(params []byte) (types.Handler, error) {
@@ -76,85 +85,71 @@ func (h workflow) Exec(ctx context.Context, scope *types.Scp) error {
 		err error
 	)
 
-	// // pp := map[string]interface{}{
-	// // 	"payload": "test",
-	// // }
+	payload, err := scope.Get("payload")
 
-	// // ppe, err := expr.NewVars(pp)
+	if err != nil {
+		return err
+	}
 
-	// payload, err := scope.Get("payload")
+	rr, err := scope.Get("request")
 
-	// if err != nil {
-	// 	return err
-	// }
+	if err != nil {
+		return err
+	}
 
-	// // setup scope for workflow
-	// vv := map[string]interface{}{
-	// 	"payload": payload,
-	// }
+	// setup scope for workflow
+	vv := map[string]interface{}{
+		"payload": payload,
+		"request": rr,
+	}
 
-	// // temp
-	// // for i, v := range map[string]interface{}(*scope) {
-	// // 	vv[i] = v
-	// // }
+	// get the request data and put it into vars
+	in, err := expr.NewVars(vv)
 
-	// // get the request data and put it into vars
+	if err != nil {
+		return err
+	}
 
-	// in, err := expr.NewVars(vv)
-	// // rq, err := automation.NewRequest(*req)
+	wp := atypes.WorkflowExecParams{
+		Trace: true,
+		// todo depending on settings per-route
+		Async: false,
+		// todo depending on settings per-route
+		Wait:  true,
+		Input: in,
+	}
 
-	// if err != nil {
-	// 	return err
-	// }
+	out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
 
-	// // if err != nil {
-	// // 	return err
-	// // }
+	if err != nil {
+		return err
+	}
 
-	// wp := atypes.WorkflowExecParams{
-	// 	Trace: true,
-	// 	// todo depending on settings per-route
-	// 	Async: false,
-	// 	// todo depending on settings per-route
-	// 	Wait:  true,
-	// 	Input: in,
-	// }
+	// merge out with scope
+	merged, err := in.Merge(out)
 
-	// out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
+	if err != nil {
+		return err
+	}
 
-	// spew.Dump("OUTTT", out)
+	mm, err := expr.CastToVars(merged)
 
-	// if err != nil {
-	// 	return err
-	// }
+	for k, v := range mm {
+		scope.Set(k, v)
+	}
 
-	// // merge out with scope
-	// merged, err := in.Merge(out)
+	ss := scope.Filter(func(k string, v interface{}) bool {
+		if k == "eventType" || k == "resourceType" {
+			return false
+		}
 
-	// if err != nil {
-	// 	return err
-	// }
+		return true
+	})
 
-	// mm, err := expr.CastToVars(merged)
+	scope = ss
 
-	// for k, v := range mm {
-	// 	scope.Set(k, v)
-	// }
-
-	// // spew.Dump("MMMM", mm)
-
-	// ss := scope.Filter(func(k string, v interface{}) bool {
-	// 	if k == "eventType" || k == "resourceType" {
-	// 		return false
-	// 	}
-
-	// 	return true
-	// })
-
-	// // spew.Dump(scope.Get("payload"))
-	// trgt, _ := ss.Get("trgt")
-
-	// scope.Writer().Write([]byte(trgt.(*expr.String).GetValue()))
+	scope.Set("request", rr)
+	scope.Set("payload", payload)
 
 	return err
 }
@@ -166,8 +161,7 @@ func NewPayload(l *zap.Logger) (p *processerPayload) {
 	p.vm = jsenv.New(jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetES2016))
 	p.log = l
 
-	p.Step = 2
-	p.Name = "processerPayload"
+	p.Name = "payload"
 	p.Label = "Payload processer"
 	p.Kind = types.Processer
 
@@ -193,8 +187,16 @@ func (h processerPayload) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h processerPayload) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h processerPayload) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h processerPayload) Weight() int {
+	return h.Wgt
 }
 
 func (f *processerPayload) Merge(params []byte) (types.Handler, error) {
