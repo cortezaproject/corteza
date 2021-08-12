@@ -1,8 +1,8 @@
 package types
 
 const (
-	PreFilter  FilterKind = "pre"
-	PostFilter FilterKind = "post"
+	PreFilter  FilterKind = "prefilter"
+	PostFilter FilterKind = "postfilter"
 	Processer  FilterKind = "processer"
 )
 
@@ -10,12 +10,11 @@ type (
 	FilterKind string
 
 	FilterMeta struct {
-		Step   int              `json:"step"`
-		Weight int              `json:"-"`
-		Name   string           `json:"name"`
-		Label  string           `json:"label"`
-		Kind   FilterKind       `json:"kind"`
-		Args   []*FilterMetaArg `json:"params,omitempty"`
+		Wgt   int              `json:"-"`
+		Name  string           `json:"name"`
+		Label string           `json:"label"`
+		Kind  FilterKind       `json:"kind"`
+		Args  []*FilterMetaArg `json:"params,omitempty"`
 	}
 
 	FilterMetaList []*FilterMeta

@@ -10,7 +10,6 @@ fields:
   - { field: ID,        sortable: false }
   - { field: Endpoint }
   - { field: Method }
-  - { field: Debug }
   - { field: Enabled }
   - { field: Group }
   - { field: CreatedBy }

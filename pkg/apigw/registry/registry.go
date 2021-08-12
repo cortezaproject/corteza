@@ -70,6 +70,7 @@ func (r *Registry) Preload() {
 
 	// postfilters
 	r.Add("redirection", filter.NewRedirection())
+	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse())
 }
 
 func NewWorkflow() (wf types.WfExecer) {

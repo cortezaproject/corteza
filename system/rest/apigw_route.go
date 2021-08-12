@@ -69,7 +69,6 @@ func (ctrl *ApigwRoute) Create(ctx context.Context, r *request.ApigwRouteCreate)
 		q   = &types.ApigwRoute{
 			Endpoint: r.Endpoint,
 			Method:   r.Method,
-			Debug:    r.Debug,
 			Enabled:  r.Enabled,
 		}
 	)
@@ -90,7 +89,6 @@ func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate)
 			ID:       r.RouteID,
 			Endpoint: r.Endpoint,
 			Method:   r.Method,
-			Debug:    r.Debug,
 			Group:    uint64(r.Group),
 			Enabled:  r.Enabled,
 		}

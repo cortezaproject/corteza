@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/version"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/version"
 )
 
 type (

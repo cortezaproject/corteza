@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"sort"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"go.uber.org/zap"
@@ -11,10 +12,16 @@ type (
 	Worker interface {
 		types.Execer
 		types.Stringer
-		// Sorter
+		types.Sorter
 	}
 
-	workers []Worker
+	workerSet []Worker
+
+	workers struct {
+		prefilter  workerSet
+		processer  workerSet
+		postfilter workerSet
+	}
 
 	Pl struct {
 		w   workers
@@ -23,10 +30,10 @@ type (
 	}
 )
 
-func NewPipeline(log *zap.Logger, w ...Worker) *Pl {
+func NewPipeline(log *zap.Logger) *Pl {
 	return &Pl{
-		w:   w,
 		log: log,
+		w:   workers{},
 		err: types.DefaultErrorHandler{},
 	}
 }
@@ -37,11 +44,62 @@ func (pp *Pl) Error() types.ErrorHandler {
 
 // Exec takes care of error handling and main
 // functionality that takes place in worker
-func (pp *Pl) Exec(ctx context.Context, scope *types.Scp) (err error) {
-	for _, w := range pp.w {
+func (pp *Pl) Exec(ctx context.Context, scope *types.Scp, async bool) (err error) {
+	err = pp.process(ctx, scope, pp.w.prefilter...)
 
-		pp.log.Debug("executing worker", zap.Any("worker", w.String()))
+	if err != nil {
+		return
+	}
+
+	if async {
+		go pp.process(ctx, scope, pp.w.processer...)
+	} else {
+		err = pp.process(ctx, scope, pp.w.processer...)
+
+		if err != nil {
+			return
+		}
+	}
+
+	err = pp.process(ctx, scope, pp.w.postfilter...)
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// Add registers a new worker with parameters
+// fetched from store
+func (pp *Pl) Add(w Worker) {
+	var pipe *workerSet
+
+	switch w.Type() {
+	case types.PreFilter:
+		pipe = &pp.w.prefilter
+	case types.Processer:
+		pipe = &pp.w.processer
+	case types.PostFilter:
+		pipe = &pp.w.postfilter
+	}
+
+	*pipe = append(*pipe, w)
+	sort.Sort(pipe)
+
+	pp.log.Debug("registered worker", zap.Any("worker", w.String()))
+}
+
+// add error handler
+func (pp *Pl) ErrorHandler(ff types.ErrorHandler) {
+	pp.err = ff
+}
+
+func (pp *Pl) process(ctx context.Context, scope *types.Scp, w ...Worker) (err error) {
+	for _, w := range w {
+		pp.log.Debug("started worker", zap.Any("worker", w.String()))
 		err = w.Exec(ctx, scope)
+		pp.log.Debug("finished worker", zap.Any("worker", w.String()))
 
 		if err != nil {
 			pp.log.Debug("could not execute worker", zap.Error(err))
@@ -52,22 +110,8 @@ func (pp *Pl) Exec(ctx context.Context, scope *types.Scp) (err error) {
 	return
 }
 
-// Add registers a new worker with parameters
-// fetched from store
-func (pp *Pl) Add(w Worker) {
-	pp.w = append(pp.w, w)
-	// sort.Sort(pp.w)
-
-	pp.log.Debug("registered worker", zap.Any("worker", w.String()))
+func (a workerSet) Len() int { return len(a) }
+func (a workerSet) Less(i, j int) bool {
+	return a[i].Weight() < a[j].Weight()
 }
-
-// add error handler
-func (pp *Pl) ErrorHandler(ff types.ErrorHandler) {
-	pp.err = ff
-}
-
-// func (a workers) Len() int { return len(a) }
-// func (a workers) Less(i, j int) bool {
-// 	return a[i].worker.Weight() < a[j].worker.Weight()
-// }
-// func (a workers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a workerSet) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

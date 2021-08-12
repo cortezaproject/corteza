@@ -36,7 +36,6 @@ type (
 func NewHeader() (v *header) {
 	v = &header{}
 
-	v.Step = 3
 	v.Name = "header"
 	v.Label = "Header"
 	v.Kind = types.PreFilter
@@ -56,8 +55,16 @@ func (h header) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h header) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h header) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h header) Weight() int {
+	return h.Wgt
 }
 
 func (v *header) Merge(params []byte) (types.Handler, error) {
@@ -104,7 +111,6 @@ func (h header) Exec(ctx context.Context, scope *types.Scp) error {
 func NewOrigin() (v *origin) {
 	v = &origin{}
 
-	v.Step = 0
 	v.Name = "origin"
 	v.Label = "Origin"
 	v.Kind = types.PreFilter
@@ -124,8 +130,16 @@ func (h origin) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h origin) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h origin) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h origin) Weight() int {
+	return h.Wgt
 }
 
 func (v *origin) Merge(params []byte) (types.Handler, error) {
@@ -168,7 +182,6 @@ func (h origin) Exec(ctx context.Context, scope *types.Scp) error {
 func NewQueryParam() (v *queryParam) {
 	v = &queryParam{}
 
-	v.Step = 0
 	v.Name = "queryParam"
 	v.Label = "Query parameters"
 	v.Kind = types.PreFilter
@@ -188,8 +201,16 @@ func (h queryParam) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h queryParam) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h queryParam) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h queryParam) Weight() int {
+	return h.Wgt
 }
 
 func (v *queryParam) Merge(params []byte) (types.Handler, error) {
@@ -228,9 +249,6 @@ func (h queryParam) Exec(ctx context.Context, scope *types.Scp) error {
 	if !b {
 		return fmt.Errorf("could not validate query params")
 	}
-
-	// testing
-	scope.Request().Header.Add(fmt.Sprintf("step_%d", h.Step), h.Name)
 
 	return nil
 }
