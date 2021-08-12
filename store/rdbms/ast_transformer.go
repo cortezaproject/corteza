@@ -20,8 +20,8 @@ type (
 
 		ResultType string
 	}
-	ASTFormatterFn func(n *qlng.ASTNode, aa ...FormattedASTArgs) (bool, string, []interface{}, error)
-	HandlerSig     func(aa ...FormattedASTArgs) (string, []interface{}, error)
+	ASTFormatterFn func(n *qlng.ASTNode) HandlerSig
+	HandlerSig     func(aa ...FormattedASTArgs) (string, []interface{}, bool, error)
 
 	exprHandler struct {
 		Args   argSet
@@ -185,8 +185,8 @@ var (
 		// generic stuff
 		"null": {
 			Result: wrapRes("Null"),
-			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, error) {
-				return "NULL", nil, nil
+			Handler: func(aa ...FormattedASTArgs) (string, []interface{}, bool, error) {
+				return "NULL", nil, true, nil
 			},
 		},
 
@@ -218,10 +218,10 @@ func (t *astTransformer) SetPlaceholder(use bool) {
 
 // ToSql conforms the struct to squirrel allowing trivial RDBMS use
 func (t *astTransformer) ToSql() (string, []interface{}, error) {
-	return t.toSql(t.root)
+	return t.toSql(t.root, true)
 }
 
-func (t *astTransformer) toSql(n *qlng.ASTNode) (string, []interface{}, error) {
+func (t *astTransformer) toSql(n *qlng.ASTNode, isRoot bool) (string, []interface{}, error) {
 	// Leaf edge-cases
 	switch {
 	case n.Symbol != "":
@@ -233,7 +233,7 @@ func (t *astTransformer) toSql(n *qlng.ASTNode) (string, []interface{}, error) {
 	// Process arguments for the op.
 	args := make([]FormattedASTArgs, len(n.Args))
 	for i, a := range n.Args {
-		s, pp, err := t.toSql(a)
+		s, pp, err := t.toSql(a, false)
 		if err != nil {
 			return "", nil, err
 		}
@@ -250,21 +250,29 @@ func (t *astTransformer) toSql(n *qlng.ASTNode) (string, []interface{}, error) {
 			continue
 		}
 
-		if ok, s, args, err := c(n, args...); ok {
+		if h := c(n); h != nil {
+			s, args, encl, err := h(args...)
+			if !isRoot && !encl && len(args) > 1 {
+				s = "(" + s + ")"
+			}
 			return s, args, err
 		}
 	}
 
 	if n.Ref == "group" {
-		return bracketHandler(args...)
+		s, args, _, err := bracketHandler(args...)
+		return s, args, err
 	}
 
 	// Default handlers
 	if e, ok := sqlExprRegistry[n.Ref]; !ok {
 		return "", nil, fmt.Errorf("unknown expression: handler not defined: %s", n.Ref)
 	} else {
-		s, args, err := e.Handler(args...)
-		return s, args, err
+		s, _args, encl, err := e.Handler(args...)
+		if !isRoot && !encl && len(args) > 1 {
+			s = "(" + s + ")"
+		}
+		return s, _args, err
 	}
 }
 

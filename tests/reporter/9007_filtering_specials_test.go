@@ -11,7 +11,6 @@ func Test9007_filtering_specials(t *testing.T) {
 		ff        = loadNoErrMulti(ctx, h, m, dd...)
 	)
 
-	h.a.Len(ff, 3)
 	f := ff[0]
 	h.a.Equal(12, f.Size())
 	h.a.Equal("empty_filter", f.Name)
@@ -25,5 +24,20 @@ func Test9007_filtering_specials(t *testing.T) {
 	f = ff[2]
 	h.a.Equal(12, f.Size())
 	h.a.Equal("true_filter", f.Name)
+	h.a.Equal("first_name<String>, last_name<String>", f.Columns.String())
+
+	f = ff[3]
+	h.a.Equal(4, f.Size())
+	h.a.Equal("weird_filter", f.Name)
+	h.a.Equal("first_name<String>, last_name<String>", f.Columns.String())
+	checkRows(h, f,
+		"Maria, Königsmann",
+		"Engel, Loritz",
+		"Maria, Krüger",
+		"Engel, Kiefer")
+
+	f = ff[4]
+	h.a.Equal(12, f.Size())
+	h.a.Equal("empty_filter_object", f.Name)
 	h.a.Equal("first_name<String>, last_name<String>", f.Columns.String())
 }

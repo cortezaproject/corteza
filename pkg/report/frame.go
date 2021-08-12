@@ -1,6 +1,7 @@
 package report
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -108,28 +109,6 @@ func MakeColumnOfKind(k string) *FrameColumn {
 	}
 }
 
-func KindOf(v expr.TypedValue) string {
-	// @todo ...
-	if v == nil {
-		return "String"
-	}
-
-	switch v.Type() {
-	case "Integer",
-		"UnsignedInteger",
-		"Float":
-		return "Number"
-	case "DateTime":
-		return "DateTime"
-	case "ID":
-		return "Ref"
-	case "Boolean":
-		return "Checkbox"
-	default:
-		return "String"
-	}
-}
-
 func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 	var aux interface{}
 	if err = json.Unmarshal(data, &aux); err != nil {
@@ -152,6 +131,11 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
+	// special case for empty JSON
+	if bytes.Equal([]byte{'{', '}'}, data) {
+		return
+	}
+
 	// non-string is considered an AST and we parse that
 	if err = json.Unmarshal(data, &f.ASTNode); err != nil {
 		return
@@ -169,6 +153,7 @@ func (f *Filter) UnmarshalJSON(data []byte) (err error) {
 		}
 
 		aux, err := p.Parse(n.Raw)
+		aux.Raw = n.Raw
 		if err != nil {
 			return false, n, err
 		}
