@@ -42,6 +42,16 @@ var (
 			args = aa[0].Args
 			return
 		},
+		"month": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+			if len(aa) != 1 {
+				err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
+				return
+			}
+
+			out = fmt.Sprintf("STRFTIME('%%m', %s)", aa[0].S)
+			args = aa[0].Args
+			return
+		},
 		"date": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 			if len(aa) != 1 {
 				err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
@@ -49,6 +59,20 @@ var (
 			}
 
 			out = fmt.Sprintf("STRFTIME('%%Y-%%m-%%dT00:00:00Z', %s)", aa[0].S)
+			args = aa[0].Args
+			return
+		},
+
+		// - typecast
+		"float": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+			selfEnclosed = true
+
+			if len(aa) != 1 {
+				err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
+				return
+			}
+
+			out = fmt.Sprintf("CAST(%s AS FLOAT)", aa[0].S)
 			args = aa[0].Args
 			return
 		},
