@@ -508,6 +508,7 @@ func (d *joinedDataset) sliceFramesFurther(ff []*Frame, selfCol, relCol string) 
 				Columns:   ff[0].Columns,
 				Paging:    ff[0].Paging,
 				Sort:      ff[0].Sort,
+				Filter:    ff[0].Filter,
 			})
 		}
 

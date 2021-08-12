@@ -2,6 +2,7 @@ package qlng
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
@@ -49,6 +50,10 @@ func (t *typedValue) UnmarshalJSON(in []byte) (err error) {
 
 	if err = json.Unmarshal(in, &aux); err != nil {
 		return
+	}
+
+	if aux.Type == "" {
+		return errors.New("invalid value definition: missing @type definition")
 	}
 
 	t.V, err = qlTypeRegistry(aux.Type).Cast(aux.Value)
@@ -284,7 +289,7 @@ func qlTypeRegistry(ref string) expr.Type {
 		return &expr.Integer{}
 	case "UnsignedInteger":
 		return &expr.UnsignedInteger{}
-	case "Float":
+	case "Float", "Number":
 		return &expr.Float{}
 	case "String":
 		return &expr.String{}
