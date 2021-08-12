@@ -196,7 +196,7 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 		q = q.Column(squirrel.Alias(tr, c.Name))
 	}
 
-	if d.Filter != nil {
+	if d.Filter != nil && d.Filter.ASTNode != nil {
 		q = q.Having(r.store.ASTTransformer(d.Filter.ASTNode))
 	}
 
@@ -260,12 +260,12 @@ func (r *recordDatasource) preloadQuery(def *report.FrameDefinition) (squirrel.S
 
 	// when filtering/sorting, wrap the base query in a sub-select, so we don't need to
 	// worry about exact column names.
-	if def.Filter != nil || def.Sort != nil {
+	if def.Filter != nil && def.Filter.ASTNode != nil || def.Sort != nil {
 		q = squirrel.Select("*").FromSelect(q, "w_base")
 	}
 
 	// - filtering
-	if def.Filter != nil {
+	if def.Filter != nil && def.Filter.ASTNode != nil {
 		q = q.Where(r.store.ASTTransformer(def.Filter.ASTNode))
 	}
 
@@ -430,7 +430,9 @@ func (r *recordDatasource) baseQuery(f *report.Filter) (sqb squirrel.SelectBuild
 			return
 		}
 
-		sqb = sqb.Where(r.store.ASTTransformer(f.ASTNode))
+		if f != nil && f.ASTNode != nil {
+			sqb = sqb.Where(r.store.ASTTransformer(f.ASTNode))
+		}
 	}
 
 	return sqb, nil

@@ -1,6 +1,7 @@
 package report
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -120,6 +121,11 @@ func (def *colDef) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
+	// special case for empty JSON
+	if bytes.Equal([]byte{'{', '}'}, data) {
+		return
+	}
+
 	// non-string is considered an AST and we parse that
 	if err = json.Unmarshal(data, &def.ASTNode); err != nil {
 		return
@@ -137,6 +143,7 @@ func (def *colDef) UnmarshalJSON(data []byte) (err error) {
 		}
 
 		aux, err := p.Parse(n.Raw)
+		aux.Raw = n.Raw
 		if err != nil {
 			return false, n, err
 		}

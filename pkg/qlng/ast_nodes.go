@@ -265,10 +265,14 @@ func (nn parserNodes) ToAST() (out *ASTNode) {
 		auxArgs = aux
 	}
 
-	return &ASTNode{
-		Ref:  "group",
-		Args: auxArgs,
+	if len(auxArgs) > 1 {
+		return &ASTNode{
+			Ref:  "group",
+			Args: auxArgs,
+		}
 	}
+
+	return auxArgs[0]
 }
 
 // A simplified type registry for the types that QL needs to understand

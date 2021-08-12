@@ -13,7 +13,7 @@ var (
 	sqlExprRegistry = map[string]rdbms.HandlerSig{
 		// functions
 		// - filtering
-		"now": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, err error) {
+		"now": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 			if len(aa) != 0 {
 				err = fmt.Errorf("expecting 0 arguments, got %d", len(aa))
 				return
@@ -22,7 +22,7 @@ var (
 			out = "DATE('now')"
 			return
 		},
-		"quarter": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, err error) {
+		"quarter": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 			if len(aa) != 1 {
 				err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
 				return
@@ -32,7 +32,7 @@ var (
 			args = aa[0].Args
 			return
 		},
-		"year": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, err error) {
+		"year": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 			if len(aa) != 1 {
 				err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
 				return
@@ -42,7 +42,7 @@ var (
 			args = aa[0].Args
 			return
 		},
-		"date": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, err error) {
+		"date": func(aa ...rdbms.FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
 			if len(aa) != 1 {
 				err = fmt.Errorf("expecting 1 arguments, got %d", len(aa))
 				return
@@ -55,14 +55,8 @@ var (
 	}
 )
 
-func sqlASTFormatter(n *qlng.ASTNode, aa ...rdbms.FormattedASTArgs) (ok bool, out string, args []interface{}, err error) {
-	e, ok := sqlExprRegistry[n.Ref]
-	if !ok {
-		return
-	}
-
-	out, args, err = e(aa...)
-	return
+func sqlASTFormatter(n *qlng.ASTNode) rdbms.HandlerSig {
+	return sqlExprRegistry[n.Ref]
 }
 
 func sqlFunctionHandler(f ql.Function) (ql.ASTNode, error) {

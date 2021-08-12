@@ -7,7 +7,9 @@
       "definition": {
         "module": "user",
         "namespace": "ns"
-      }
+      },
+
+      "filter": {}
   }}}],
   "frames": [{
     "name":   "empty_filter",
@@ -36,5 +38,35 @@
     ],
 
     "filter": "true"
+  }, {
+    "name":   "weird_filter",
+    "source": "users",
+    "columns": [
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" }
+    ],
+
+    "filter": {
+      "ref": "and",
+      "args": [
+        {
+          "ref": "or",
+          "args": [
+            { "raw": "first_name = 'Maria'" },
+            { "raw": "first_name = 'Engel'" }
+          ]
+        },
+        { "ref": "or", "args": [{ "raw": "number_of_numbers > 40" }] }
+      ]
+    }
+  }, {
+    "name":   "empty_filter_object",
+    "source": "users",
+    "columns": [
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" }
+    ],
+
+    "filter": {}
   }]
 }

@@ -48,7 +48,12 @@ func (t *astTransformer) handleValue(n *qlng.ASTNode) (string, []interface{}, er
 }
 
 func makeGenericBoolHandler(op string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		if len(aa) < 1 {
+			err = fmt.Errorf("expecting 1 or more arguments, got %d", len(aa))
+			return
+		}
+
 		outPts := make([]string, len(aa))
 		args = make([]interface{}, 0, 10)
 		for i, a := range aa {
@@ -62,7 +67,9 @@ func makeGenericBoolHandler(op string) HandlerSig {
 }
 
 func makeGenericBracketHandler(bb ...string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
 		if len(aa) != 1 {
 			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
 			return
@@ -75,7 +82,9 @@ func makeGenericBracketHandler(bb ...string) HandlerSig {
 }
 
 func makeGenericCompHandler(comp string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
 		if len(aa) != 2 {
 			err = fmt.Errorf("expecting 2 arguments, got %d", len(aa))
 			return
@@ -88,7 +97,9 @@ func makeGenericCompHandler(comp string) HandlerSig {
 }
 
 func makeGenericAggFncHandler(fnc string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
 		if fnc == "COUNT" && len(aa) == 0 {
 			out = "COUNT(*)"
 			return
@@ -106,7 +117,9 @@ func makeGenericAggFncHandler(fnc string) HandlerSig {
 }
 
 func makeGenericTypecastHandler(t string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
 		if len(aa) != 1 {
 			err = fmt.Errorf("expecting 1 argument, got %d", len(aa))
 			return
@@ -119,9 +132,11 @@ func makeGenericTypecastHandler(t string) HandlerSig {
 }
 
 func makeGenericFilterFncHandler(fnc string) HandlerSig {
-	return func(aa ...FormattedASTArgs) (out string, args []interface{}, err error) {
+	return func(aa ...FormattedASTArgs) (out string, args []interface{}, selfEnclosed bool, err error) {
+		selfEnclosed = true
+
 		if len(aa) == 0 {
-			return fmt.Sprintf("%s()", fnc), nil, nil
+			return fmt.Sprintf("%s()", fnc), nil, selfEnclosed, nil
 		}
 
 		args = make([]interface{}, 0, len(aa))

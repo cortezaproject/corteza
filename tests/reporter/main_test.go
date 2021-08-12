@@ -182,6 +182,12 @@ func loadNoErr(ctx context.Context, h helper, m report.M, dd ...*report.FrameDef
 	return
 }
 
+func loadErr(ctx context.Context, h helper, m report.M, d *report.FrameDefinition, msg string) {
+	_, err := m.Load(ctx, d)
+	h.a.Error(err)
+	h.a.Contains(err.Error(), msg)
+}
+
 // loadNoErrMulti is a little wrapper that does some preprocessing on the frame definitions.
 // It is a copy from the system/service/report.
 //
@@ -249,6 +255,25 @@ func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h h
 
 	cleanup(ctx, h, s)
 	parseEnvoy(ctx, s, h, "testdata/data_model")
+	rr := parseReport(h, path.Join("testdata", scenario, "report.json"))
+	m := modelReport(ctx, h, providers, rr)
+
+	return m, rr, rr.Frames
+}
+
+func loadScenarioOwnDM(ctx context.Context, s store.Storer, t *testing.T, h helper) (report.M, *auxReport, report.FrameDefinitionSet) {
+	return loadScenarioOwnDMWithName(ctx, s, t, h, "S"+t.Name()[4:])
+}
+
+func loadScenarioOwnDMWithName(ctx context.Context, s store.Storer, t *testing.T, h helper, scenario string) (report.M, *auxReport, report.FrameDefinitionSet) {
+	var (
+		providers = map[string]report.DatasourceProvider{
+			"composeRecords": service.DefaultRecord,
+		}
+	)
+
+	cleanup(ctx, h, s)
+	parseEnvoy(ctx, s, h, path.Join("testdata", scenario, "data_model"))
 	rr := parseReport(h, path.Join("testdata", scenario, "report.json"))
 	m := modelReport(ctx, h, providers, rr)
 
