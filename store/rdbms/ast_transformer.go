@@ -176,6 +176,11 @@ var (
 			Result:  wrapRes("Number"),
 			Handler: makeGenericFilterFncHandler("YEAR"),
 		},
+		"month": {
+			Args:    collectParams(true, "DateTime"),
+			Result:  wrapRes("Number"),
+			Handler: makeGenericFilterFncHandler("MONTH"),
+		},
 		"date": {
 			Args:    collectParams(true, "DateTime"),
 			Result:  wrapRes("Number"),
@@ -194,12 +199,12 @@ var (
 		"float": {
 			Args:    collectParams(true, "Any"),
 			Result:  wrapRes("Float"),
-			Handler: makeGenericTypecastHandler("FLOAT"),
+			Handler: makeGenericTypecastHandler("DECIMAL"),
 		},
 		"int": {
 			Args:    collectParams(true, "Any"),
 			Result:  wrapRes("Float"),
-			Handler: makeGenericTypecastHandler("INT"),
+			Handler: makeGenericTypecastHandler("SIGNED"),
 		},
 	}
 )
