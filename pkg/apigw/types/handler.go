@@ -10,6 +10,7 @@ import (
 type (
 	Execer interface {
 		Exec(context.Context, *Scp) error
+		Type() FilterKind
 	}
 
 	Sorter interface {
@@ -31,6 +32,7 @@ type (
 	Handler interface {
 		Execer
 		Stringer
+		Sorter
 
 		Merge([]byte) (Handler, error)
 		Meta() FilterMeta

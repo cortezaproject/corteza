@@ -85,6 +85,10 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 			ID:       r.ID,
 			endpoint: r.Endpoint,
 			method:   r.Method,
+			meta: routeMeta{
+				debug: r.Meta.Debug,
+				async: r.Meta.Async,
+			},
 		}
 
 		rr = append(rr, route)
@@ -93,7 +97,7 @@ func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
 	return
 }
 
-func (s *apigw) loadFunctions(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
+func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
 	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{RouteID: route})
 	return
 }
@@ -147,19 +151,30 @@ func (s *apigw) Router(r chi.Router) {
 
 // init all the routes
 func (s *apigw) Init(ctx context.Context, route ...*route) {
+	var (
+		hasPostFilters    bool
+		defaultPostFilter types.Handler
+	)
+
 	s.routes = route
 
 	s.log.Debug("registering routes", zap.Int("count", len(s.routes)))
 
+	defaultPostFilter, err := s.reg.Get("defaultJsonResponse")
+
+	if err != nil {
+		s.log.Error("could not register default filter", zap.Error(err))
+	}
+
 	for _, r := range s.routes {
+		hasPostFilters = false
 		log := s.log.With(zap.String("route", r.String()))
 
 		r.pipe = pipeline.NewPipeline(log)
-
 		r.opts = s.opts
 		r.log = log
 
-		regFuncs, err := s.loadFunctions(ctx, r.ID)
+		regFilters, err := s.loadFilters(ctx, r.ID)
 
 		if err != nil {
 			log.Error("could not load functions for route", zap.Error(err))
@@ -168,18 +183,18 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 
 		r.pipe.ErrorHandler(filter.NewErrorHandler("error handler expediter", []string{}))
 
-		for _, f := range regFuncs {
+		for _, f := range regFilters {
 			h, err := s.reg.Get(f.Ref)
 
 			if err != nil {
-				log.Error("could not register function for route", zap.Error(err))
+				log.Error("could not register filter", zap.Error(err))
 				continue
 			}
 
 			enc, err := json.Marshal(f.Params)
 
 			if err != nil {
-				log.Error("could not load params for function", zap.String("ref", f.Ref), zap.Error(err))
+				log.Error("could not load params for filter", zap.String("ref", f.Ref), zap.Error(err))
 				continue
 			}
 
@@ -190,7 +205,19 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 				continue
 			}
 
+			// check if it's a postfilter for async support
+			if f.Kind == string(types.PostFilter) {
+				hasPostFilters = true
+			}
+
 			r.pipe.Add(h)
+		}
+
+		// add default postfilter on async
+		// routes if not present
+		if r.meta.async && !hasPostFilters {
+			log.Info("registering default postfilter", zap.Error(err))
+			r.pipe.Add(defaultPostFilter)
 		}
 
 		log.Debug("successfuly registered route")

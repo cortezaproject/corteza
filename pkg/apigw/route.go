@@ -19,10 +19,16 @@ type (
 		ID       uint64
 		endpoint string
 		method   string
+		meta     routeMeta
 
 		opts *options.ApigwOpt
 		log  *zap.Logger
 		pipe *pipeline.Pl
+	}
+
+	routeMeta struct {
+		debug bool
+		async bool
 	}
 )
 
@@ -54,7 +60,7 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.log.Debug("incoming request", zap.Any("request", string(o)))
 	}
 
-	err := r.pipe.Exec(ctx, &scope)
+	err := r.pipe.Exec(ctx, &scope, r.meta.async)
 
 	if err != nil {
 		// call the error handler

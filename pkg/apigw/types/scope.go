@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 )
 
@@ -20,8 +21,14 @@ func (s Scp) Keys() (kk []string) {
 }
 
 func (s Scp) Request() *http.Request {
+	// todo - fix with expr.Request
 	if _, ok := s["request"]; ok {
-		return s["request"].(*http.Request)
+		switch s["request"].(type) {
+		case *http.Request:
+			return s["request"].(*http.Request)
+		case *expr.Any:
+			return s["request"].(*expr.Any).Get().(*http.Request)
+		}
 	}
 
 	return nil

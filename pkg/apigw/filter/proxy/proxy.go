@@ -50,7 +50,6 @@ func New(l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 	p.s = s
 	p.log = l
 
-	p.Step = 2
 	p.Name = "proxy"
 	p.Label = "Proxy processer"
 	p.Kind = types.Processer
@@ -70,8 +69,16 @@ func (h proxy) String() string {
 	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
 }
 
+func (h proxy) Type() types.FilterKind {
+	return h.Kind
+}
+
 func (h proxy) Meta() types.FilterMeta {
 	return h.FilterMeta
+}
+
+func (h proxy) Weight() int {
+	return h.Wgt
 }
 
 func (f *proxy) Merge(params []byte) (types.Handler, error) {

@@ -27,8 +27,8 @@ func Test_serviceLoadRoutes(t *testing.T) {
 	mockStorer := &types.MockStorer{
 		R: func(c context.Context, arf st.ApigwRouteFilter) (s st.ApigwRouteSet, f st.ApigwRouteFilter, err error) {
 			s = st.ApigwRouteSet{
-				{ID: 1, Endpoint: "/endpoint", Method: "GET", Debug: false, Enabled: true, Group: 0},
-				{ID: 2, Endpoint: "/endpoint2", Method: "POST", Debug: false, Enabled: true, Group: 0},
+				{ID: 1, Endpoint: "/endpoint", Method: "GET", Enabled: true, Group: 0},
+				{ID: 2, Endpoint: "/endpoint2", Method: "POST", Enabled: true, Group: 0},
 			}
 			return
 		},
@@ -64,7 +64,7 @@ func Test_serviceLoadFunctions(t *testing.T) {
 		storer: mockStorer,
 	}
 
-	r, err := service.loadFunctions(ctx, 2)
+	r, err := service.loadFilters(ctx, 2)
 
 	req.NoError(err)
 	req.Len(r, 2)
