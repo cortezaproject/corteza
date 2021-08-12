@@ -1,0 +1,19 @@
+workflows:
+  testing:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: expressions
+        arguments:
+          - { "target": "test", "value": "42", "type": "Any" }
+
+      - stepID: 11
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11 }
