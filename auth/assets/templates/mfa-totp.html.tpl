@@ -4,8 +4,7 @@
 
 	{{ if .enforced }}
 	<p class="p-3 text-danger mb-0 font-weight-bold">
-		TOTP multi factor authentication is enforced by Corteza administrator.
-		Please configure it right away.
+		{{ tr "mfa_totp.template.paragraph" }}
 	</p>
 	{{ end }}
 
@@ -21,7 +20,7 @@
 					method="POST"
 								action="{{ links.MfaTotpNewSecret }}"
 				>
-					Complete the configuration by entering code from the authenticator application:
+					{{ tr "mfa_totp.template.form.title-2" }}
 
 					{{ if .form.error }}
 					<div class="alert alert-danger" role="alert">
@@ -51,34 +50,32 @@
 						value="true"
 						type="submit"
 					>
-						Submit
+						{{ tr "mfa_totp.template.form.button" }}
 					</button>
 				</form>
 			</div>
 			<div class="col-12 col-sm-6">
 				<p class="text-justify">
-					Corteza uses time based one time passwords (TOTP) as one of the
-					underlying technologies for two-factor authentication.
-					Use one of the applications listed below and type in the secret or scan the QR code.
+					{{ tr "mfa_totp.template.form.paragraph-one" }}
 				</p>
 				<p>
-					This will enable additional security for your account.
+					{{ tr "mfa_totp.template.form.paragraph-two" }}
 				</p>
 				<p>
-					You can use one of the following applications:
+					{{ tr "mfa_totp.template.form.paragraph-three" }}
 				</p>
 				<ul>
 					<li>
-						<a target="_blank" href="https://lastpass.com/auth/">LastPass Authenticator</a>
+						<a target="_blank" href="https://lastpass.com/auth/">{{ tr "mfa_totp.template.form.ul-links.auth" }}</a>
 					</li>
 					<li>
-						Google Authenticator in <br />
-						<a target="_blank" href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Android</a>
-						or
-						<a target="_blank" href="https://apps.apple.com/us/app/google-authenticator/id388497605">App Store</a>
+						{{ tr "mfa_totp.template.form.ul-links.text" }} <br />
+						<a target="_blank" href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">{{ tr "mfa_totp.template.form.ul-links.android" }}</a>
+						{{ tr "mfa_totp.template.form.ul-links.or" }}
+						<a target="_blank" href="https://apps.apple.com/us/app/google-authenticator/id388497605">{{ tr "mfa_totp.template.form.ul-links.store" }}</a>
 					</li>
 					<li>
-						<a target="_blank" href="https://authy.com">Authy</a>
+						<a target="_blank" href="https://authy.com">{{ tr "mfa_totp.template.form.ul-links.authy" }}</a>
 					</li>
 				</ul>
 			</div>

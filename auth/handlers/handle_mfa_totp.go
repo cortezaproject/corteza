@@ -3,13 +3,14 @@ package handlers
 import (
 	"encoding/base32"
 	"fmt"
+	"math/rand"
+	"net/url"
+
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"go.uber.org/zap"
-	"math/rand"
-	"net/url"
 	"rsc.io/qr"
 )
 
@@ -69,10 +70,11 @@ func (h AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
 		req.Request.PostFormValue("code"),
 	)
 
+	t := translator(req, "auth")
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Two factor authentication with TOTP enabled",
+			Text: t("mfa_totp.alerts.text-TFA-enabled"),
 		})
 
 		// Make sure we update User's data in the session
@@ -172,10 +174,11 @@ func (h AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
 		req.Request.PostFormValue("code"),
 	)
 
+	t := translator(req, "auth")
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Two factor authentication with TOTP disabled",
+			Text: t("mfa_totp.alerts.text-TFA_disabled"),
 		})
 
 		// Make sure we update User's data in the session

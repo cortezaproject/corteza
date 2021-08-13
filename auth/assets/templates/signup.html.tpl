@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Sign up</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "singup.template.title" }}</h1>
 	<form
 		method="POST"
 		action="{{ links.Signup }}"
@@ -15,67 +15,67 @@
 
         <div class="mb-3">
             <label>
-                E-mail *
+				{{ tr "singup.template.form.email.label" }}
             </label>
             <input
                 type="email"
                 class="form-control"
                 name="email"
                 required
-                placeholder="email@domain.ltd"
+                placeholder="{{ tr "singup.template.form.email.placeholder" }}"
                 autocomplete="username"
                 value="{{ .form.email }}"
-                aria-label="Email">
+                aria-label="{{ tr "singup.template.form.email.aria-label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Password *
+                {{ tr "singup.template.form.password.label" }}
             </label>
 			<input
 				type="password"
 				class="form-control"
 				name="password"
 				required
-				placeholder="Password"
+				placeholder="{{ tr "singup.template.form.password.placeholder" }}"
 				autocomplete="new-password"
-				aria-label="Password">
+				aria-label="{{ tr "singup.template.form.password.aria-label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Full Name
+                {{ tr "singup.template.form.name.label" }}
             </label>
 			<input
 				type="text"
 				class="form-control"
 				name="name"
-				placeholder="Your full name"
+				placeholder="{{ tr "singup.template.form.name.placeholder" }}"
 				value="{{ .form.name }}"
 				autocomplete="name"
-				aria-label="Full name">
+				aria-label="{{ tr "singup.template.form.name.aria-label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Short name, nickname or handle
+                {{ tr "singup.template.form.nickname.label" }}
             </label>
 			<input
 				type="text"
 				class="form-control handle-mask"
 				name="handle"
-				placeholder="Short name, nickname or handle"
+				placeholder="{{ tr "singup.template.form.nickname.placeholder" }}"
 				value="{{ .form.handle }}"
 				autocomplete="handle"
-				aria-label="Handle">
+				aria-label="{{ tr "singup.template.form.nickname.aria-label" }}">
         </div>
 		<div>
 			<button
 				id="submit"
 				class="btn btn-primary btn-block btn-lg"
 				type="submit"
-			>Submit</button>
+			>{{ tr "singup.template.form.button.sign-up" }}</button>
 		</div>
 	</form>
-	<div class="text-center my-3">Already have an account?
-		<a href="{{ links.Login }}">Log in here</a>
+	<div class="text-center my-3">{{ tr "singup.template.form.link.alternative" }}
+		<a href="{{ links.Login }}">{{ tr "singup.template.form.link.login" }}</a>
 	</div>
 </div>
 {{ template "inc_footer.html.tpl" . }}

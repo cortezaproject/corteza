@@ -26,7 +26,9 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 			return nil
 		}
 
-		req.PushAlert("Email OTP resent")
+		t := translator(req, "auth")
+
+		req.PushAlert(t("mfa.handle.email-resent"))
 		req.RedirectTo = GetLinks().Mfa
 	}
 
@@ -55,7 +57,9 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 			return nil
 		}
 
-		req.PushAlert("Email OTP valid")
+		t := translator(req, "auth")
+
+		req.PushAlert(t("mfa.handle.email-resent"))
 		req.AuthUser.CompleteEmailOTP()
 
 	case "verifyTotp":
@@ -69,7 +73,9 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 			return nil
 		}
 
-		req.PushAlert("TOTP valid")
+		t := translator(req, "auth")
+
+		req.PushAlert(t("mfa.handle.topt-valid"))
 		req.AuthUser.CompleteTOTP()
 	}
 

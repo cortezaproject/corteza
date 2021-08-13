@@ -22,10 +22,12 @@ func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 		req.Request.PostFormValue("newPassword"),
 	)
 
+	t := translator(req, "auth")
+
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Password successfully changed.",
+			Text: t("change-password.alerts.text"),
 		})
 
 		req.RedirectTo = GetLinks().Profile

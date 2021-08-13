@@ -3,10 +3,11 @@ package handlers
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"sort"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -74,9 +75,10 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 			}
 		}
 
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "All sessions but current deleted",
+			Text: t("session.alerts.delete-sessions-but-current"),
 		})
 	case len(req.Request.PostFormValue("delete")) > 0:
 		for _, s := range ss {
@@ -89,9 +91,10 @@ func (h *AuthHandlers) sessionsProc(req *request.AuthReq) error {
 			}
 		}
 
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Session deleted",
+			Text: t("session.alerts.session-deleted"),
 		})
 	}
 

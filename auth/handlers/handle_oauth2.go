@@ -91,9 +91,11 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		request.SetOauth2Client(req.Session, nil)
 		request.SetOauth2AuthParams(req.Session, nil)
 		req.RedirectTo = GetLinks().Profile
+
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
-			Text: fmt.Sprintf("cannot authorize '%s', no permissions.", req.Client),
+			Text: fmt.Sprintf(t("oauth2_authorize_client.alerts.no-auth-or-prems"), req.Client),
 		})
 		return nil
 	}
@@ -140,9 +142,10 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 	//
 	request.SetOauth2AuthParams(req.Session, nil)
 	req.RedirectTo = GetLinks().Profile
+	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: "Access for client denied",
+		Text: t("oauth2_authorize_client.alerts.client-access-denied"),
 	})
 	return
 }
