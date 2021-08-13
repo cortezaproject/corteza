@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "clients" }}
 <div class="card-body p-0">
-    <h1 class="h4 card-title p-3 border-bottom">Authorized clients</h1>
+    <h1 class="h4 card-title p-3 border-bottom">{{ tr "authorized-clients.template.title" }}</h1>
 	<form
 		method="POST"
 		class="clearfix"
@@ -14,7 +14,7 @@
         <div class="p-3">
             <div class="text-primary font-weight-bold">{{ .Name }}</div>
             <div>
-                Authorized on
+                {{ tr "authorized-clients.template.authorized" }}
                 <time
                     datetime="{{ .ConfirmedAt | date "2006-01-02T15:04:05Z07:00" }}"
                 >
@@ -27,12 +27,12 @@
                 value="{{ .ID }}"
                 class="btn btn-sm btn-danger"
             >
-                Revoke access
+                {{ tr "authorized-clients.template.button.revoke-access" }}
             </button>
         </div>
 	{{ else }}
 		<div class="text-center m-3 mb-5">
-			<i>No authorized clients found</i>
+			<i>{{ tr "authorized-clients.template.no-auth-clients" }}</i>
 		</div>
 	{{ end }}
 	</form>

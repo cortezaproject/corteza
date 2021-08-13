@@ -1,19 +1,11 @@
 		</main>
 		{{ template "inc_toasts.html.tpl" .alerts }}
-        {{ if .user }}
-            <div class="position-absolute user text-white m-2">
-                You're logged-in as
-                <a class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
-                |
-                <a class="font-weight-bold text-white" href="{{ links.Logout }}">Logout</a>
-            </div>
-        {{ end }}
         <div class="footer col text-center position-absolute mb-4">
             <a href="https://cortezaproject.org/" target="_blank" class="text-white mr-2">cortezaproject.org</a>
             <a href="https://github.com/cortezaproject/" target="_blank" class="text-white ml-2">GitHub</a>
         </div>
 		<i class="p-1 small text-white position-absolute version mr-3 mb-3">
-			version {{ version }}
+			{{ tr "inc_footer.version" "version" version }}
 		</small>
 	</body>
 	<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>

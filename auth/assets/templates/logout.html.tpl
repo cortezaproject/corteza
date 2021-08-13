@@ -7,7 +7,7 @@
 		</div>
 		{{ else }}
 		<div class="text-dark font-weight-bold" role="primary">
-			Log out successful.
+			{{ tr "logout.log-out" }}
 		</div>
 		{{ end }}
 
