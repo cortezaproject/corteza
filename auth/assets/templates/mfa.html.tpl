@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "hideNav" true }}
 <div class="card-body p-0 mb-2">
-	<h1 class="h4 card-title p-3 border-bottom">Multi-factor authentication</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa.template.title" }}</h1>
 
 	{{ if .emailOtpPending }}
 	<form
@@ -8,7 +8,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>Check your inbox and enter the received code</h5>
+		<h5>{{ tr "mfa.template.form-1.title" }}</h5>
 
 		{{ if .form.emailOtpError }}
 		<div class="text-danger my-4 font-weight-bold" role="alert">
@@ -27,10 +27,10 @@
 				maxlength="6"
 				minlength="6"
 				aria-required="true"
-				placeholder="000 000"
+				placeholder="{{ tr "mfa.template.input-group-my-3.placeholder" }}"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="Code">
+				aria-label="{{ tr "mfa.template.input-group-my-3.aria-label" }}">
 		</div>
 
 		<button
@@ -39,7 +39,7 @@
 			value="verifyEmailOtp"
 			type="submit"
 		>
-			Verify
+			{{ tr "mfa.buttons.verify" }}
 		</button>
 
 		<a
@@ -48,12 +48,12 @@
 			name="action"
 			value="resendEmailOtp"
 		>
-			Resend
+			{{ tr "mfa.buttons.resend" }}
 		</a>
 	</form>
 	{{ else if not .emailOtpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> Email OTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.paragraph-1" }}
 		</p>
 	{{ end }}
 
@@ -63,7 +63,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>Check your TOTP application and enter the code you received</h5>
+		<h5>{{ tr "mfa.template.form-2.title" }}</h5>
 
 		{{ if .form.totpError }}
 		<div class="alert alert-danger" role="alert">
@@ -82,10 +82,10 @@
 				maxlength="6"
 				minlength="6"
 				aria-required="true"
-				placeholder="000 000"
+				placeholder="{{ tr "mfa.template.input-group-my-3.placeholder" }}"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="Code">
+				aria-label="{{ tr "mfa.template.input-group-my-3.aria-label" }}">
 		</div>
 
 		<button
@@ -94,12 +94,12 @@
 			name="action"
 			value="verifyTotp"
 		>
-			Verify
+			{{ tr "mfa.buttons.verify" }}
 		</button>
 	</form>
 	{{ else if not .totpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> TOTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.paragraph-2" }}
 		</p>
 	{{ end }}
 </div>

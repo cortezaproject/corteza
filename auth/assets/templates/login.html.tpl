@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Log in</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "login.template.title" }}</h1>
 	{{ if .settings.LocalEnabled }}
 	<form
 		method="POST"
@@ -15,31 +15,31 @@
 		{{ end }}
 		<div class="mb-3">
 		    <label>
-                E-mail *
+                {{ tr "login.template.form.email.label" }} *
             </label>
 			<input
 				type="email"
 				class="form-control"
 				name="email"
 				required
-				placeholder="email@domain.ltd"
+				placeholder="{{ tr "login.template.form.email.placeholder" }}"
 				value="{{ if .form }}{{ .form.email }}{{ end }}"
 				autocomplete="username"
-				aria-label="Email">
+				aria-label="{{ tr "login.template.form.email.label" }}">
 		</div>
 		{{ if not .form.splitCredentialsCheck }}
 		<div class="mb-3">
             <label>
-                Password *
+                {{ tr "login.template.form.password.label" }} *
             </label>
 			<input
 				type="password"
 				required
 				class="form-control"
 				name="password"
-				placeholder="Password"
+				placeholder="{{ tr "login.template.form.password.placeholder" }}"
 				autocomplete="current-password"
-				aria-label="Password">
+				aria-label="{{ tr "login.template.form.password.labels" }}">
 		</div>
 		<div class="row">
 			<div class="col text-right">
@@ -49,13 +49,13 @@
 					value="true"
 					type="submit"
 				>
-					Log in and remember me
+					{{ tr "login.template.form.button.login-and-remember" }}
 				</button>
 				<button
 					class="btn btn-light btn-block"
 					type="submit"
 				>
-					Log in
+					{{ tr "login.template.form.button.login" }}
 				</button>
 			</div>
 		</div>
@@ -68,7 +68,7 @@
 					value="true"
 					type="submit"
 				>
-					Continue
+					{{ tr "login.template.form.button.continue" }}
 				</button>
 			</div>
 		</div>
@@ -77,12 +77,12 @@
 	<div class="row text-center">
         {{ if .settings.PasswordResetEnabled }}
         <div class="col cols-6 mb-5">
-            <a href="{{ links.RequestPasswordReset }}">Forgot your password?</a>
+            <a href="{{ links.RequestPasswordReset }}">{{ tr "login.template.links.request-password-reset" }}</a>
         </div>
         {{ end }}
         {{ if .settings.SignupEnabled }}
         <div class="col cols-6 mb-5">
-            <a href="{{ links.Signup }}">Create a new account</a>
+            <a href="{{ links.Signup }}">{{ tr "login.template.links.signup" }}</a>
         </div>
         {{ end }}
 	</div>
@@ -92,7 +92,7 @@
 	{{ range .providers }}
 		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 text-dark">
 			<i class="bi bi-{{ .Icon }} mr-1"></i>
-			Login with {{ coalesce .Label .Handle }}
+			{{ tr "login.template.external.login-with" "idp" (coalesce .Label .Handle) }}
 		</a>
 	{{ end }}
 	</div>
