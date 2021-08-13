@@ -13,7 +13,7 @@ type (
 	ApigwFilterParams map[string]interface{}
 
 	ApigwFilter struct {
-		ID     uint64            `json:"functionID,string"`
+		ID     uint64            `json:"filterID,string"`
 		Route  uint64            `json:"routeID,string"`
 		Weight uint64            `json:"weight,string"`
 		Ref    string            `json:"ref,omitempty"`
