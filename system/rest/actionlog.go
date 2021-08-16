@@ -121,12 +121,17 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 	return &actionlogPayload{Filter: f, Set: pp}, nil
 }
 
-// Making sure JS can read our values
+// Making sure JS can read old entries that were encoded
+// as numeric. When decoded from the JSON stored in the DB
+// they are of type float64. We'll cast them and store as uint64
+//
+// We do not want to do that to any numeric values just for the keys ending with
+// "ID" or "By"
 func sanitizeMapStringInterface(m map[string]interface{}) {
 	for k := range m {
 		switch v := m[k].(type) {
 		case float64:
-			if strings.HasSuffix(k, "ID") {
+			if strings.HasSuffix(k, "ID") || strings.HasSuffix(k, "By") {
 				// make sure uint64 values on fields ending with ID
 				// are properly encoded as strings
 				m[k] = strconv.FormatUint(uint64(v), 10)
