@@ -1,8 +1,9 @@
 package expr
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPathSplit(t *testing.T) {
@@ -16,6 +17,7 @@ func TestPathSplit(t *testing.T) {
 		{p: "a.b[1]", r: []string{"a", "b", "1"}},
 		{p: "a.b[1].baz[0]", r: []string{"a", "b", "1", "baz", "0"}},
 		{p: "a.[]", err: invalidPathErr.Error()},
+		{p: "a[]", r: []string{"a", ""}},
 		{p: "a[1]bzz", err: invalidPathErr.Error()},
 	}
 

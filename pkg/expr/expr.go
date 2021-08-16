@@ -20,7 +20,8 @@ func PathSplit(path string) ([]string, error) {
 	s.Split(pathSplitter)
 
 	for s.Scan() {
-		if len(s.Text()) == 0 {
+		// checks if two consecutive path parts are empty
+		if len(s.Text()) == 0 && len(out) > 0 && len(out[len(out)-1]) == 0 {
 			return nil, invalidPathErr
 		}
 		out = append(out, s.Text())
