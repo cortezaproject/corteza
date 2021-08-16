@@ -2,6 +2,8 @@ package rest
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
@@ -26,7 +28,8 @@ type (
 	// provide user's email
 	actionlogActionPayload struct {
 		*actionlog.Action
-		Actor string `json:"actor,omitempty"`
+		Actor string                 `json:"actor,omitempty"`
+		Meta  map[string]interface{} `json:"meta,omitempty"`
 	}
 
 	actionlogPayload struct {
@@ -78,6 +81,9 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 	// Remap events to payload structs
 	for e := range ee {
 		pp[e] = &actionlogActionPayload{Action: ee[e]}
+		pp[e].Meta = ee[e].Meta
+
+		sanitizeMapStringInterface(pp[e].Meta)
 	}
 
 	err = userPreloader(
@@ -113,6 +119,23 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 	}
 
 	return &actionlogPayload{Filter: f, Set: pp}, nil
+}
+
+// Making sure JS can read our values
+func sanitizeMapStringInterface(m map[string]interface{}) {
+	for k := range m {
+		switch v := m[k].(type) {
+		case float64:
+			if strings.HasSuffix(k, "ID") {
+				// make sure uint64 values on fields ending with ID
+				// are properly encoded as strings
+				m[k] = strconv.FormatUint(uint64(v), 10)
+			}
+
+		case map[string]interface{}:
+			sanitizeMapStringInterface(v)
+		}
+	}
 }
 
 // Preloader collects all ids of users, loads them and sets them back
