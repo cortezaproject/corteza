@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -203,9 +204,14 @@ func loadNoErrMulti(ctx context.Context, h helper, m report.M, dd ...*report.Fra
 			continue
 		}
 
+		stp := m.GetStep(d.Source)
+		if stp == nil {
+			h.a.FailNow(fmt.Sprintf("unknown source: %s", d.Source))
+		}
+
 		// if the current source matches the prev. source, and they both define references,
 		// they fall into the same chunk.
-		if (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
+		if stp.Def().Join != nil && (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
 			auxdd = append(auxdd, d)
 			continue
 		}
