@@ -151,6 +151,12 @@ type (
 				}
 			}
 		} `kv:"compose" json:"compose"`
+
+		// UserInterface settings
+		UI struct {
+			MainLogo   string `kv:"main-logo" json:"mainLogo"`
+			HeaderLogo string `kv:"header-logo" json:"headerLogo"`
+		} `kv:"ui" json:"ui"`
 	}
 
 	ExternalAuthProviderSet []*ExternalAuthProvider
