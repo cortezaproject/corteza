@@ -154,8 +154,8 @@ type (
 
 		// UserInterface settings
 		UI struct {
-			MainLogo   string `kv:"main-logo" json:"mainLogo"`
-			HeaderLogo string `kv:"header-logo" json:"headerLogo"`
+			MainLogo string `kv:"main-logo" json:"mainLogo"`
+			IconLogo string `kv:"icon-logo" json:"iconLogo"`
 		} `kv:"ui" json:"ui"`
 	}
 
