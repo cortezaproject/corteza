@@ -637,6 +637,7 @@ func TestStoreYaml_base(t *testing.T) {
 				rl := sTestRole(ctx, t, s, "base")
 				ns := sTestComposeNamespace(ctx, t, s, "base")
 				mod := sTestComposeModule(ctx, t, s, ns.ID, "base")
+				rec := sTestComposeRecord(ctx, t, s, ns.ID, mod.ID, 0)
 
 				rr := rbac.RuleSet{
 					{
@@ -657,6 +658,12 @@ func TestStoreYaml_base(t *testing.T) {
 						Operation: "allow.op3",
 						Access:    rbac.Allow,
 					},
+					{
+						RoleID:    rl.ID,
+						Resource:  ctypes.RecordRbacResource(ns.ID, mod.ID, rec.ID),
+						Operation: "allow.op4",
+						Access:    rbac.Allow,
+					},
 				}
 				if err := store.CreateRbacRule(ctx, s, rr...); err != nil {
 					t.Fatal(err)
@@ -672,6 +679,10 @@ func TestStoreYaml_base(t *testing.T) {
 					ComposeModule(&ctypes.ModuleFilter{
 						Handle: "base_module",
 					}).
+					ComposeRecord(&ctypes.RecordFilter{
+						NamespaceID: ns.ID,
+						ModuleID:    mod.ID,
+					}).
 					Rbac(&rbac.RuleFilter{})
 				return nil, df
 			},
@@ -685,9 +696,13 @@ func TestStoreYaml_base(t *testing.T) {
 				mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, ns.ID, "base_module")
 				req.NoError(err)
 
+				rcs, _, err := store.SearchComposeRecords(ctx, s, mod, ctypes.RecordFilter{})
+				req.NoError(err)
+				rec := rcs[0]
+
 				rr, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
 				req.NoError(err)
-				req.Len(rr, 3)
+				req.Len(rr, 4)
 
 				for _, r := range rr {
 					switch r.Operation {
@@ -705,6 +720,11 @@ func TestStoreYaml_base(t *testing.T) {
 						req.Equal(rl.ID, r.RoleID)
 						req.Equal(rbac.Allow, r.Access)
 						req.Equal(ctypes.RecordRbacResource(ns.ID, mod.ID, 0), r.Resource)
+
+					case "allow.op4":
+						req.Equal(rl.ID, r.RoleID)
+						req.Equal(rbac.Allow, r.Access)
+						req.Equal(ctypes.RecordRbacResource(ns.ID, mod.ID, rec.ID), r.Resource)
 
 					default:
 						req.FailNow("unexpected rbac operation for test cases: ", r.Operation)

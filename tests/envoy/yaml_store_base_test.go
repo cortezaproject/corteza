@@ -705,15 +705,19 @@ func TestYamlStore_ComposeRecordRBAC(t *testing.T) {
 		mod1, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, s, ns.ID, "mod1")
 		req.NoError(err)
 
+		rcs, _, err := store.SearchComposeRecords(ctx, s, mod1, ctypes.RecordFilter{})
+		rec1 := rcs[0]
+		req.NoError(err)
+
 		role1, err := store.LookupRoleByHandle(ctx, s, "r1")
 		req.NoError(err)
 		role2, err := store.LookupRoleByHandle(ctx, s, "r2")
 		req.NoError(err)
 
 		// size
-		req.Len(rr, 6)
-		req.Len(rr.FilterAccess(rbac.Allow), 3)
-		req.Len(rr.FilterAccess(rbac.Deny), 3)
+		req.Len(rr, 8)
+		req.Len(rr.FilterAccess(rbac.Allow), 4)
+		req.Len(rr.FilterAccess(rbac.Deny), 4)
 
 		// allows
 		var rule *rbac.Rule
@@ -738,23 +742,35 @@ func TestYamlStore_ComposeRecordRBAC(t *testing.T) {
 		req.Equal(rbac.Allow, rule.Access)
 		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), "*"), rule.Resource)
 
-		// denies
 		rule = rr[3]
+		req.Equal(role1.ID, rule.RoleID)
+		req.Equal("allow.op4", rule.Operation)
+		req.Equal(rbac.Allow, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), strconv.FormatUint(rec1.ID, 10)), rule.Resource)
+
+		// denies
+		rule = rr[4]
 		req.Equal(role2.ID, rule.RoleID)
 		req.Equal("deny.op1", rule.Operation)
 		req.Equal(rbac.Deny, rule.Access)
 		req.Equal(fmt.Sprintf(tpl, "*", "*", "*"), rule.Resource)
 
-		rule = rr[4]
+		rule = rr[5]
 		req.Equal(role2.ID, rule.RoleID)
 		req.Equal("deny.op2", rule.Operation)
 		req.Equal(rbac.Deny, rule.Access)
 		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), "*", "*"), rule.Resource)
 
-		rule = rr[5]
+		rule = rr[6]
 		req.Equal(role2.ID, rule.RoleID)
 		req.Equal("deny.op3", rule.Operation)
 		req.Equal(rbac.Deny, rule.Access)
 		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), "*"), rule.Resource)
+
+		rule = rr[7]
+		req.Equal(role2.ID, rule.RoleID)
+		req.Equal("deny.op4", rule.Operation)
+		req.Equal(rbac.Deny, rule.Access)
+		req.Equal(fmt.Sprintf(tpl, strconv.FormatUint(ns.ID, 10), strconv.FormatUint(mod1.ID, 10), strconv.FormatUint(rec1.ID, 10)), rule.Resource)
 	})
 }

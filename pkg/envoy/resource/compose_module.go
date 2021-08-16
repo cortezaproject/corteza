@@ -86,22 +86,6 @@ func FindComposeModule(rr InterfaceSet, ii Identifiers) (ns *types.Module) {
 	return nil
 }
 
-func FindComposeModuleResource(rr InterfaceSet, ii Identifiers) (mod *ComposeModule) {
-	rr.Walk(func(r Interface) error {
-		mr, ok := r.(*ComposeModule)
-		if !ok {
-			return nil
-		}
-
-		if mr.Identifiers().HasAny(ii) {
-			mod = mr
-		}
-		return nil
-	})
-
-	return mod
-}
-
 func ComposeModuleErrUnresolved(ii Identifiers) error {
 	return fmt.Errorf("compose module unresolved %v", ii.StringSlice())
 }

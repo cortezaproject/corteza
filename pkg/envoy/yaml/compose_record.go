@@ -7,6 +7,7 @@ import (
 
 type (
 	composeRecord struct {
+		id     string
 		values map[string]string
 		ts     *resource.Timestamps
 		us     *resource.Userstamps
@@ -16,6 +17,8 @@ type (
 
 		refModule    string
 		refNamespace string
+
+		rbac rbacRuleSet
 	}
 	composeRecordSet []*composeRecord
 

@@ -1,7 +1,9 @@
 package yaml
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/y7s"
@@ -57,11 +59,6 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 		wrap.values = make(map[string]string)
 	}
 
-	// @todo enable when records are ready for RBAC
-	//if wrap.rbac, err = decodeRbac(&types.Component{}, n); err != nil {
-	//	return
-	//}
-
 	if wrap.config, err = decodeEnvoyConfig(n); err != nil {
 		return
 	}
@@ -74,9 +71,16 @@ func (wrap *composeRecord) UnmarshalYAML(n *yaml.Node) (err error) {
 	}
 
 	return y7s.EachMap(n, func(k, v *yaml.Node) error {
-		switch k.Value {
+		switch strings.ToLower(k.Value) {
+		case "id",
+			"recordid":
+			return y7s.DecodeScalar(v, "recordID", &wrap.id)
+
 		case "module":
 			return decodeRef(v, "module", &wrap.refModule)
+
+		case "allow", "deny":
+			return errors.New("compose record RBAC rules not supported on resource level")
 
 		case "values":
 			// Use aux structure to decode record values into RVS
@@ -177,6 +181,10 @@ func (wset composeRecordSet) setNamespaceRef(ref string) error {
 // Utilities
 
 func (wrap *composeRecord) getID() string {
+	if wrap.id != "" {
+		return wrap.id
+	}
+
 	if wrap.values["id"] != "" {
 		return wrap.values["id"]
 	} else if wrap.values["ID"] != "" {

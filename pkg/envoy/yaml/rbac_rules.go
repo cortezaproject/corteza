@@ -17,7 +17,6 @@ type (
 
 		refResource string
 		refRes      *resource.Ref
-		relResource resource.Interface
 
 		// PathRes and PathResource slices hold parent resources we should nest the rule by
 		refPathRes      []*resource.Ref

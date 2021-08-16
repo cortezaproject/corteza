@@ -19,7 +19,8 @@ modules:
 
 records:
   mod1:
-    - values:
+    - id: "rec"
+      values:
         f1: "v1"
 
 allow:
@@ -30,8 +31,8 @@ allow:
      - allow.op2
     corteza::compose:record/ns1/mod1/*:
      - allow.op3
-    # corteza::compose:record/ns1/mod1/rec:
-    #  - delete
+    corteza::compose:record/ns1/mod1/rec:
+     - allow.op4
 
 deny:
   r2:
@@ -41,5 +42,5 @@ deny:
      - deny.op2
     corteza::compose:record/ns1/mod1/*:
      - deny.op3
-    # corteza::compose:record/ns1/mod1/rec:
-    #  - delete
+    corteza::compose:record/ns1/mod1/rec:
+     - deny.op4

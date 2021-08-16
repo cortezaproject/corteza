@@ -4,7 +4,6 @@ records:
   - values:
       Name: "Service"
       HourCost: "50"
-    allow: { somerole: [ read ] }
   EmailTemplate:
   - values:
       Name: "Case Update"

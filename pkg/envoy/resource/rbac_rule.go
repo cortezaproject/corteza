@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 )
@@ -32,6 +33,11 @@ func NewRbacRule(res *rbac.Rule, refRole string, resRef *Ref, refPath ...*Ref) *
 	// any additional constraints
 	for _, rp := range refPath {
 		r.RefPath = append(r.RefPath, r.AddRef(rp.ResourceType, rp.Identifiers.StringSlice()...))
+	}
+
+	// ComposeRecords are internally grouped and identified with the module identifier.
+	if res.Resource == composeTypes.RecordResourceType && resRef != nil && len(refPath) == 2 {
+		r.AddRef(res.Resource, refPath[1].Identifiers.StringSlice()...)
 	}
 
 	return r

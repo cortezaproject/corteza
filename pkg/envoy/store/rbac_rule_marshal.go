@@ -57,7 +57,13 @@ func (n *rbacRule) Prepare(ctx context.Context, pl *payload) (err error) {
 	// also present.
 	// Here we check if we can find it in case we're handling a resource specific rule.
 	refRes := n.res.RefResource
-	if refRes != nil && len(refRes.Identifiers) > 0 {
+	if refRes != nil && refRes.ResourceType == composeTypes.RecordResourceType {
+		for _, r := range pl.state.ParentResources {
+			if r.ResourceType() == composeTypes.RecordResourceType && r.Identifiers().HasAny(n.res.RefPath[1].Identifiers) {
+				return
+			}
+		}
+	} else if refRes != nil && len(refRes.Identifiers) > 0 {
 		for _, r := range pl.state.ParentResources {
 			if refRes.ResourceType == r.ResourceType() && r.Identifiers().HasAny(refRes.Identifiers) {
 				return
@@ -193,8 +199,23 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 			}
 			p1ID = p1.ID
 		}
+		if n.res.RefResource != nil {
+			ref := n.res.RefPath[1]
 
-		// @todo specific record RBAC
+			p2 := resource.FindComposeRecordResource(pl.state.ParentResources, ref.Identifiers)
+			if p2 == nil {
+				return resource.ComposeRecordErrUnresolved(n.res.RefResource.Identifiers)
+			}
+
+			for i := range n.res.RefResource.Identifiers {
+				if p2ID = p2.IDMap[i]; p2ID > 0 {
+					break
+				}
+			}
+			if p2ID == 0 {
+				return resource.ComposeRecordErrUnresolved(n.res.RefResource.Identifiers)
+			}
+		}
 
 		res.Resource = composeTypes.RecordRbacResource(p0ID, p1ID, p2ID)
 

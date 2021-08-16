@@ -30,19 +30,22 @@ func (n *rbacRule) Prepare(ctx context.Context, state *envoy.ResourceState) (err
 	// For now we will only allow resource specific RBAC rules if that resource is
 	// also present.
 	// Here we check if we can find it in case we're handling a resource specific rule.
-	refRes := n.refRes
-	if refRes != nil && len(refRes.Identifiers) > 0 {
+	res := state.Res.(*resource.RbacRule)
+	refRes := res.RefResource
+	if refRes != nil && refRes.ResourceType == composeTypes.RecordResourceType {
 		for _, r := range state.ParentResources {
-			if refRes.ResourceType == r.ResourceType() && r.Identifiers().HasAny(refRes.Identifiers) {
-				n.relResource = r
-				break
+			if r.ResourceType() == composeTypes.RecordResourceType && r.Identifiers().HasAny(res.RefPath[1].Identifiers) {
+				return
 			}
 		}
-
-		if n.relResource == nil {
-			// We couldn't find it...
-			return resource.RbacResourceErrNotFound(refRes.Identifiers)
+	} else if refRes != nil && len(refRes.Identifiers) > 0 {
+		for _, r := range state.ParentResources {
+			if refRes.ResourceType == r.ResourceType() && r.Identifiers().HasAny(refRes.Identifiers) {
+				return
+			}
 		}
+		// We couldn't find it...
+		return resource.RbacResourceErrNotFound(refRes.Identifiers)
 	}
 
 	return nil
@@ -152,7 +155,26 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 			p1ID = p1.Handle
 		}
 
-		// @todo specific record RBAC
+		if res.RefResource != nil {
+			ref := res.RefPath[1]
+
+			p2 := resource.FindComposeRecordResource(state.ParentResources, ref.Identifiers)
+			if p2 == nil {
+				return resource.ComposeRecordErrUnresolved(res.RefResource.Identifiers)
+			}
+
+			for i := range res.RefResource.Identifiers {
+				if _, ok := p2.IDMap[i]; ok {
+					p2ID = res.RefResource.Identifiers.First()
+					break
+				}
+			}
+
+			if p2ID == "" {
+				return resource.ComposeRecordErrUnresolved(res.RefResource.Identifiers)
+			}
+		}
+
 		r.res.Resource = fmt.Sprintf(composeTypes.RecordRbacResourceTpl(), composeTypes.RecordResourceType, p0ID, p1ID, p2ID)
 
 	case composeTypes.ModuleFieldResourceType:
