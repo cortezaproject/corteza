@@ -77,6 +77,7 @@ var (
 	DefaultQueue       *queue
 	DefaultApigwRoute  *apigwRoute
 	DefaultApigwFilter *apigwFilter
+	DefaultReport      *report
 
 	DefaultStatistics *statistics
 
@@ -159,6 +160,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
 
 	DefaultRenderer = Renderer(c.Template)
+	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultAuthNotification = AuthNotification(CurrentSettings, DefaultRenderer, c.Auth)
 	DefaultAuth = Auth()
 	DefaultAuthClient = AuthClient(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service(), c.Auth)

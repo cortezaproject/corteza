@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
+	"github.com/cortezaproject/corteza-server/pkg/report"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/store/rdbms/builders"
 )
@@ -445,6 +446,10 @@ func (s Store) TruncateComposeRecords(ctx context.Context, m *types.Module) (err
 
 func (s Store) ComposeRecordReport(ctx context.Context, m *types.Module, metrics, dimensions, filter string) ([]map[string]interface{}, error) {
 	return ComposeRecordReportBuilder(&s, m, metrics, dimensions, filter).Run(ctx)
+}
+
+func (s Store) ComposeRecordDatasource(ctx context.Context, m *types.Module, ld *report.LoadStepDefinition) (report.Datasource, error) {
+	return ComposeRecordDatasourceBuilder(&s, m, ld)
 }
 
 func (s Store) convertComposeRecordFilter(m *types.Module, f types.RecordFilter) (query squirrel.SelectBuilder, err error) {

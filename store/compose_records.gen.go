@@ -11,6 +11,7 @@ package store
 import (
 	"context"
 	"github.com/cortezaproject/corteza-server/compose/types"
+	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
 type (
@@ -33,6 +34,9 @@ type (
 
 		// ComposeRecordReport (custom function)
 		ComposeRecordReport(ctx context.Context, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error)
+
+		// ComposeRecordDatasource (custom function)
+		ComposeRecordDatasource(ctx context.Context, _mod *types.Module, _ld *report.LoadStepDefinition) (report.Datasource, error)
 
 		// PartialComposeRecordValueUpdate (custom function)
 		PartialComposeRecordValueUpdate(ctx context.Context, _mod *types.Module, _values ...*types.RecordValue) error
@@ -85,6 +89,10 @@ func TruncateComposeRecords(ctx context.Context, s ComposeRecords, _mod *types.M
 
 func ComposeRecordReport(ctx context.Context, s ComposeRecords, _mod *types.Module, _metrics string, _dimensions string, _filters string) ([]map[string]interface{}, error) {
 	return s.ComposeRecordReport(ctx, _mod, _metrics, _dimensions, _filters)
+}
+
+func ComposeRecordDatasource(ctx context.Context, s ComposeRecords, _mod *types.Module, _ld *report.LoadStepDefinition) (report.Datasource, error) {
+	return s.ComposeRecordDatasource(ctx, _mod, _ld)
 }
 
 func PartialComposeRecordValueUpdate(ctx context.Context, s ComposeRecords, _mod *types.Module, _values ...*types.RecordValue) error {

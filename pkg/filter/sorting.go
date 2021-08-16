@@ -1,11 +1,13 @@
 package filter
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/slice"
 	"regexp"
 	"strings"
+
+	"github.com/cortezaproject/corteza-server/pkg/slice"
 )
 
 type (
@@ -42,9 +44,12 @@ func NewSorting(sort string) (s Sorting, err error) {
 // Unlike before, we do not use pkg/ql for parsing this as we do not allow
 // any complex sorting expressions
 func parseSort(in string) (set SortExprSet, err error) {
-	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_]+)(\s+(asc|ASC|desc|DESC))?`)
+	exprMatcher := regexp.MustCompile(`([0-9a-zA-Z_\.]+)(\s+(asc|ASC|desc|DESC))?`)
 
 	set = SortExprSet{}
+	if in == "" {
+		return
+	}
 
 	in = strings.TrimSpace(in)
 	if in == "" {
@@ -73,6 +78,11 @@ func parseSort(in string) (set SortExprSet, err error) {
 
 // UnmarshalJSON parses sort expression when passed inside JSON
 func (set *SortExprSet) UnmarshalJSON(in []byte) error {
+	// This is an edgecase where `sort: ""` is passed in
+	if bytes.Compare(in, []byte{34, 34}) == 0 {
+		return nil
+	}
+
 	tmp, err := parseSort(string(in))
 	*set = tmp
 	return err
