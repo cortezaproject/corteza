@@ -43,6 +43,11 @@ func Test_header(t *testing.T) {
 				headers: map[string][]string{"Foo": {"bar"}},
 				err:     "could not validate headers: failed to select 'Foo1' on *expr.Vars: no such key 'Foo1'",
 			},
+			{
+				name:    "regex matching key",
+				expr:    `{"expr":"match(Foo, \"^b\\\\wr\\\\s.*$\")"}`,
+				headers: map[string][]string{"Foo": {"bar "}},
+			},
 			// {
 			// 	name:    "matching header with hyphen - TODO",
 			// 	expr:    `{"expr":"Content-type == \"application/json\""}`,
