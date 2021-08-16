@@ -20,11 +20,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -845,6 +847,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacUserResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
+	// added as an exception, will be fixed in the next
+	// queues refactoring
+	case messagebus.QueueResourceType:
+		return rbacQueueResourceValidator(r, oo...)
 	}
 
 	return fmt.Errorf("unknown resource type '%q'", r)
