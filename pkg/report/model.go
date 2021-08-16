@@ -21,6 +21,7 @@ type (
 		Run(context.Context) error
 		Load(context.Context, ...*FrameDefinition) ([]*Frame, error)
 		Describe(ctx context.Context, source string) (FrameDescriptionSet, error)
+		GetStep(name string) step
 	}
 
 	stepSet []step
@@ -152,6 +153,17 @@ func (m *model) Describe(ctx context.Context, source string) (out FrameDescripti
 	}
 
 	return ds.Describe(), nil
+}
+
+// GetStep returns the details of the requested step
+func (m *model) GetStep(name string) step {
+	for _, s := range m.steps {
+		if s.Name() == name {
+			return s
+		}
+	}
+
+	return nil
 }
 
 // Load returns the Frames based on the provided FrameDefinitions

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/label"
@@ -360,9 +361,14 @@ func (svc *report) RunFresh(ctx context.Context, src types.ReportDataSourceSet, 
 				continue
 			}
 
+			stp := model.GetStep(d.Source)
+			if stp == nil {
+				return fmt.Errorf("unknown source: %s", d.Source)
+			}
+
 			// if the current source matches the prev. source, and they both define references,
 			// they fall into the same chunk.
-			if (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
+			if stp.Def().Join != nil && (d.Source == dd[i-1].Source) && (d.Ref != "" && dd[i-1].Ref != "") {
 				auxdd = append(auxdd, d)
 				continue
 			}
