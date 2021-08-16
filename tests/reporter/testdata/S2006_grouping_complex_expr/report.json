@@ -1,0 +1,47 @@
+{
+  "handle": "testing_report",
+  "sources": [
+    { "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+    }}},
+
+    { "step": { "group": {
+      "name": "grouped",
+      "source": "users",
+      "keys": [{
+        "name": "by_year",
+        "def": "year(dob)"
+      }, {
+        "name": "by_name",
+        "def": "first_name"
+      }],
+      "columns": [
+        {
+          "name": "count",
+          "def": "count()"
+        },
+        {
+          "name": "total",
+          "def": "sum(number_of_numbers)/float(10)"
+        }
+      ]
+    }}}
+  ],
+  "frames": [{
+    "name":   "result",
+    "source": "grouped",
+    "columns": [
+      { "name": "by_year", "label": "by_year" },
+      { "name": "by_name", "label": "by_name" },
+
+      { "name": "count", "label": "count" },
+      { "name": "total", "label": "total" }
+    ],
+    "sort": "by_name ASC"
+  }]
+}

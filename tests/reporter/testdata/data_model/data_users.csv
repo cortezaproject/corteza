@@ -1,0 +1,13 @@
+id,join_key,first_name,last_name,email,number_of_numbers,dob
+u1,Maria_Königsmann,Maria,Königsmann,maria.Königsmann@mail.tld,61,2020-01-01T01:01:01Z
+u2,Ulli_Haupt,Ulli,Haupt,ulli.Haupt@mail.tld,21,2021-01-01T01:01:01Z
+u3,Engel_Loritz,Engel,Loritz,engel.Loritz@mail.tld,46,2021-01-01T01:01:01Z
+u4,Sascha_Jans,Sascha,Jans,sascha.Jans@mail.tld,38,2020-01-01T01:01:01Z
+u5,Ulli_Böhler,Ulli,Böhler,ulli.Böhler@mail.tld,14,2020-01-01T01:01:01Z
+u6,Maria_Spannagel,Maria,Spannagel,maria.Spannagel@mail.tld,23,2021-01-01T01:01:01Z
+u7,Sigi_Goldschmidt,Sigi,Goldschmidt,sigi.Goldschmidt@mail.tld,67,2021-01-01T01:01:01Z
+u8,Engel_Kempf,Engel,Kempf,engel.Kempf@mail.tld,36,2021-01-01T01:01:01Z
+u9,Maria_Krüger,Maria,Krüger,maria.Krüger@mail.tld,99,2020-01-01T01:01:01Z
+u10,Manu_Specht,Manu,Specht,manu.Specht@mail.tld,61,2021-01-01T01:01:01Z
+u11,Ulli_Förstner,Ulli,Förstner,ulli.Förstner@mail.tld,87,2021-01-01T01:01:01Z
+u12,Engel_Kiefer,Engel,Kiefer,engel.Kiefer@mail.tld,97,2020-01-01T01:01:01Z

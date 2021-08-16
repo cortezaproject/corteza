@@ -1,6 +1,8 @@
 package expr
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type (
 	Type interface {
@@ -12,6 +14,10 @@ type (
 		Type
 		Assigner
 		Get() interface{}
+	}
+
+	Comparable interface {
+		Compare(TypedValue) (int, error)
 	}
 
 	typedValueWrap struct {

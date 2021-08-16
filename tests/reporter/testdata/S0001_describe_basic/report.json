@@ -1,0 +1,29 @@
+{
+  "handle": "testing_report",
+  "sources": [
+    { "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+    }}},
+    { "step": { "load": {
+      "name": "jobs",
+      "source": "composeRecords",
+      "definition": {
+        "module": "job",
+        "namespace": "ns"
+      }
+    }}},
+    { "step": { "join": {
+      "name": "joined",
+      "localSource": "users",
+      "localColumn": "join_key",
+      "foreignSource": "jobs",
+      "foreignColumn": "usr"
+    }}}
+  ],
+  "describe": ["users", "jobs", "joined"]
+}

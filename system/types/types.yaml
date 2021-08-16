@@ -23,3 +23,5 @@ types:
     labelResourceType: template
   ApigwRoute: {}
   ApigwFilter: {}
+  Report:
+    labelResourceType: report

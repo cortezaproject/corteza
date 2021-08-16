@@ -11,6 +11,7 @@ package types
 // - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
+// - system.report.yaml
 // - system.role.yaml
 // - system.template.yaml
 // - system.user.yaml
@@ -33,6 +34,7 @@ const (
 	ApigwRouteResourceType  = "corteza::system:apigw-route"
 	ApplicationResourceType = "corteza::system:application"
 	AuthClientResourceType  = "corteza::system:auth-client"
+	ReportResourceType      = "corteza::system:report"
 	RoleResourceType        = "corteza::system:role"
 	TemplateResourceType    = "corteza::system:template"
 	UserResourceType        = "corteza::system:user"
@@ -160,6 +162,37 @@ func AuthClientRbacResource(id uint64) string {
 
 // @todo template
 func AuthClientRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for Report by calling ReportRbacResource fn
+//
+// RBAC resource is in the corteza::system:report/... format
+//
+// This function is auto-generated
+func (r Report) RbacResource() string {
+	return ReportRbacResource(r.ID)
+}
+
+// ReportRbacResource returns string representation of RBAC resource for Report
+//
+// RBAC resource is in the corteza::system:report/... format
+//
+// This function is auto-generated
+func ReportRbacResource(id uint64) string {
+	cpts := []interface{}{ReportResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ReportRbacResourceTpl(), cpts...)
+
+}
+
+// @todo template
+func ReportRbacResourceTpl() string {
 	return "%s/%s"
 }
 

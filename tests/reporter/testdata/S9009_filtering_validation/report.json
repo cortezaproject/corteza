@@ -1,0 +1,25 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+  }}}],
+  "frames": [{
+    "name":   "empty_conjunction",
+    "source": "users",
+    "columns": [
+      { "name": "first_name", "label": "first_name" },
+      { "name": "last_name", "label": "last_name" }
+    ],
+
+    "filter": {
+      "ref": "and",
+      "args": []
+    }
+  }]
+}

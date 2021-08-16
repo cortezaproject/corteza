@@ -115,6 +115,9 @@ type (
 		SqlSortHandler func(exp string, desc bool) string
 
 		CastModuleFieldToColumnType func(ModuleFieldTypeDetector, string) (string, string, string, error)
+
+		// ASTFormatter allows different SQL flavours to alater the default AST formatting flow.
+		ASTFormatter ASTFormatterFn
 	}
 )
 

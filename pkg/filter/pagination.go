@@ -71,6 +71,23 @@ func NewPaging(limit uint, cursor string) (p Paging, err error) {
 	return
 }
 
+func (p *Paging) Clone() *Paging {
+	if p == nil {
+		return nil
+	}
+
+	return &Paging{
+		Limit:             p.Limit,
+		PageCursor:        p.PageCursor,
+		NextPage:          p.NextPage,
+		PrevPage:          p.PrevPage,
+		IncPageNavigation: p.IncPageNavigation,
+		IncTotal:          p.IncTotal,
+		PageNavigation:    p.PageNavigation,
+		Total:             p.Total,
+	}
+}
+
 func (p *PagingCursor) Walk(fn func(string, interface{}, bool)) {
 	for i, key := range p.keys {
 		fn(key, p.values[i], p.desc[i])

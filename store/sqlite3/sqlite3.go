@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/cortezaproject/corteza-server/pkg/ql"
 	"github.com/cortezaproject/corteza-server/store"
@@ -13,7 +15,6 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/ngrok/sqlmw"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type (
@@ -46,6 +47,7 @@ func Connect(ctx context.Context, dsn string) (store.Storer, error) {
 	// @todo there must be a better way to go around this
 	cfg.TxDisabled = true
 	cfg.SqlFunctionHandler = sqlFunctionHandler
+	cfg.ASTFormatter = sqlASTFormatter
 	cfg.CastModuleFieldToColumnType = fieldToColumnTypeCaster
 
 	if s.Store, err = rdbms.Connect(ctx, cfg); err != nil {

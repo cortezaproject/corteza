@@ -11,6 +11,7 @@ package service
 // - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
+// - system.report.yaml
 // - system.role.yaml
 // - system.template.yaml
 // - system.user.yaml
@@ -127,6 +128,26 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.AuthClientResourceType,
 			"any":  types.AuthClientRbacResource(0),
 			"op":   "authorize",
+		},
+		{
+			"type": types.ReportResourceType,
+			"any":  types.ReportRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ReportResourceType,
+			"any":  types.ReportRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ReportResourceType,
+			"any":  types.ReportRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ReportResourceType,
+			"any":  types.ReportRbacResource(0),
+			"op":   "run",
 		},
 		{
 			"type": types.RoleResourceType,
@@ -287,6 +308,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "templates.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "report.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "reports.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -474,6 +505,34 @@ func (svc accessControl) CanDeleteAuthClient(ctx context.Context, r *types.AuthC
 // This function is auto-generated
 func (svc accessControl) CanAuthorizeAuthClient(ctx context.Context, r *types.AuthClient) bool {
 	return svc.can(ctx, "authorize", r)
+}
+
+// CanReadReport checks if current user can read report
+//
+// This function is auto-generated
+func (svc accessControl) CanReadReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateReport checks if current user can update report
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteReport checks if current user can delete report
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanRunReport checks if current user can run report
+//
+// This function is auto-generated
+func (svc accessControl) CanRunReport(ctx context.Context, r *types.Report) bool {
+	return svc.can(ctx, "run", r)
 }
 
 // CanReadRole checks if current user can read role
@@ -700,6 +759,20 @@ func (svc accessControl) CanSearchTemplates(ctx context.Context) bool {
 	return svc.can(ctx, "templates.search", &types.Component{})
 }
 
+// CanCreateReport checks if current user can create report
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateReport(ctx context.Context) bool {
+	return svc.can(ctx, "report.create", &types.Component{})
+}
+
+// CanSearchReports checks if current user can list, search or filter reports
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchReports(ctx context.Context) bool {
+	return svc.can(ctx, "reports.search", &types.Component{})
+}
+
 // CanAssignReminder checks if current user can assign reminders
 //
 // This function is auto-generated
@@ -762,6 +835,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacApplicationResourceValidator(r, oo...)
 	case types.AuthClientResourceType:
 		return rbacAuthClientResourceValidator(r, oo...)
+	case types.ReportResourceType:
+		return rbacReportResourceValidator(r, oo...)
 	case types.RoleResourceType:
 		return rbacRoleResourceValidator(r, oo...)
 	case types.TemplateResourceType:
@@ -804,6 +879,13 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update":    true,
 			"delete":    true,
 			"authorize": true,
+		}
+	case types.ReportResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+			"run":    true,
 		}
 	case types.RoleResourceType:
 		return map[string]bool{
@@ -848,6 +930,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"application.flag.global": true,
 			"template.create":         true,
 			"templates.search":        true,
+			"report.create":           true,
+			"reports.search":          true,
 			"reminder.assign":         true,
 			"queue.create":            true,
 			"queues.search":           true,
@@ -1034,6 +1118,57 @@ func rbacAuthClientResourceValidator(r string, oo ...string) error {
 			}
 		}
 	}
+	return nil
+}
+
+// rbacReportResourceValidator checks validity of rbac resource and operations
+//
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacReportResourceValidator(r string, oo ...string) error {
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for system Report resource", o)
+		}
+	}
+
+	if !strings.HasPrefix(r, types.ReportResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	const sep = "/"
+	var (
+		specIdUsed = true
+
+		pp  = strings.Split(strings.Trim(r[len(types.ReportResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i, p := range pp {
+		if p == "*" {
+			if !specIdUsed {
+				return fmt.Errorf("invalid resource path wildcard level (%d) for Report", i)
+			}
+
+			specIdUsed = false
+			continue
+		}
+
+		specIdUsed = true
+		if _, err := cast.ToUint64E(p); err != nil {
+			return fmt.Errorf("invalid reference for %s: '%s'", prc[i], p)
+		}
+	}
+
 	return nil
 }
 
