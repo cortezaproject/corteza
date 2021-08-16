@@ -1504,3 +1504,134 @@ endpoints:
     parameters:
       path:
       - { type: uint64, name: queueID, required: true, title: Queue ID }
+
+- title: API Gateway routes
+  path: "/apigw/route"
+  entrypoint: apigwRoute
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+    - github.com/cortezaproject/corteza-server/pkg/label
+  apis:
+  - name: list
+    method: GET
+    title: List routes
+    path: "/"
+    parameters:
+      get:
+      - { name: routeID,    type: "[]uint64",          title: "Filter by route ID" }
+      - { name: query,      type: "string",            title: "Filter routes" }
+      - { name: deleted,    type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) deleted routes" }
+      - { name: disabled,   type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) disabled routes" }
+      - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,      type: "uint",              title: "Limit" }
+      - { name: pageCursor, type: "string",            title: "Page cursor" }
+      - { name: sort,       type: "string",            title: "Sort items" }
+  - name: create
+    method: POST
+    title: Create route
+    path: ""
+    parameters:
+      post:
+      - { name: endpoint, type: string, required: true, title: "Route endpoint" }
+      - { name: method,   type: string,                 title: "Route method" }
+      - { name: enabled,  type: bool,                   title: "Is route enabled" }
+      - { name: group,    type: uint64,                 title: "Route group" }
+      - { name: meta,     type: "types.ApigwRouteMeta", title: "Route meta", parser: "types.ParseApigwRouteMeta" }
+  - name: update
+    method: PUT
+    title: Update route details
+    path: "/{routeID}"
+    parameters:
+      path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ]
+      post:
+      - { name: endpoint, type: string, required: true, title: "Route endpoint" }
+      - { name: method,   type: string,                 title: "Route method" }
+      - { name: enabled,  type: bool,                   title: "Is route enabled" }
+      - { name: group,    type: uint64,                 title: "Route group" }
+      - { name: meta,     type: "types.ApigwRouteMeta", title: "Route meta", parser: "types.ParseApigwRouteMeta" }
+  - name: read
+    method: GET
+    title: Read route details
+    path: "/{routeID}"
+    parameters: { path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove route
+    path: "/{routeID}"
+    parameters: { path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete route
+    path: "/{routeID}/undelete"
+    parameters: { path: [ { name: routeID, type: uint64, required: true, title: "Route ID" } ] }
+
+- title: API Gateway filters
+  path: "/apigw/filter"
+  entrypoint: apigwFilter
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza-server/system/types
+  apis:
+  - name: list
+    method: GET
+    title: List filters
+    path: "/"
+    parameters:
+      get:
+      - { name: routeID,    type: "uint64",   title: "Filter by route ID" }
+      - { name: query,      type: "string",   title: "Filter filters" }
+      - { name: deleted,    type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) deleted filters" }
+      - { name: disabled,   type: "uint64",   title: "Exclude (0, default), include (1) or return only (2) disabled filters" }
+      - { name: limit,      type: "uint",     title: "Limit" }
+      - { name: pageCursor, type: "string",   title: "Page cursor" }
+      - { name: sort,       type: "string",   title: "Sort items" }
+  - name: create
+    method: PUT
+    title: Create filter
+    path: ""
+    parameters:
+      post:
+      - { name: routeID, type: uint64,                  title: "Route", required: true }
+      - { name: weight,  type: uint64,                  title: "Filter priority" }
+      - { name: kind,    type: string,                  title: "Filter kind" }
+      - { name: ref,     type: string,                  title: "Filter ref" }
+      - { name: params,  type: "types.ApigwFilterParams", title: "Filter parameters", parser: "types.ParseApigwfFilterParams" }
+  - name: update
+    method: POST
+    title: Update filter details
+    path: "/{filterID}"
+    parameters:
+      path: [ { name: filterID, type: uint64, required: true, title: "Filter ID" } ]
+      post:
+      - { name: routeID,  type: uint64,                  title: "Route", required: true }
+      - { name: weight,   type: uint64,                  title: "Filter priority" }
+      - { name: kind,     type: string,                  title: "Filter kind" }
+      - { name: ref,      type: string,                  title: "Filter ref" }
+      - { name: params,   type: "types.ApigwFilterParams", title: "Filter parameters", parser: "types.ParseApigwfFilterParams" }
+  - name: read
+    method: GET
+    title: Read filter details
+    path: "/{filterID}"
+    parameters: { path: [ { name: filterID, type: uint64, required: true, title: "Filter ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove filter
+    path: "/{filterID}"
+    parameters: { path: [ { name: filterID, type: uint64, required: true, title: "Filter ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete filter
+    path: "/{filterID}/undelete"
+    parameters: { path: [ { name: filterID, type: uint64, required: true, title: "Filter ID" } ] }
+  - name: defFilter
+    method: GET
+    title: Filter definitions
+    path: "/def"
+    parameters:
+      get:
+      - { name: kind, type: "string", title: "Filter filters by kind" }
+  - name: defProxyAuth
+    method: GET
+    title: Proxy auth definitions
+    path: "/proxy_auth/def"

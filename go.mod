@@ -3,6 +3,7 @@ module github.com/cortezaproject/corteza-server
 go 1.16
 
 require (
+	github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1 // indirect
 	github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -14,6 +15,8 @@ require (
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v6 v6.5.0
+	github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4 // indirect
+	github.com/codegangsta/gin v0.0.0-20171026143024-cafe2ce98974 // indirect
 	github.com/crewjam/saml v0.4.5
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
 	github.com/davecgh/go-spew v1.1.1
@@ -21,7 +24,9 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.0
+	github.com/dop251/goja v0.0.0-20210726224656-a55e4cfac4cf
 	github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
+	github.com/evanw/esbuild v0.12.16
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gabriel-vasile/mimetype v1.1.2
@@ -50,6 +55,7 @@ require (
 	github.com/lestrrat-go/strftime v1.0.3
 	github.com/lib/pq v1.1.0
 	github.com/markbates/goth v1.67.1
+	github.com/mattn/go-shellwords v1.0.12 // indirect
 	github.com/mattn/go-sqlite3 v1.14.0
 	github.com/microcosm-cc/bluemonday v1.0.10
 	github.com/minio/minio-go/v6 v6.0.39
@@ -73,14 +79,14 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
+	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
 	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 	rsc.io/qr v0.2.0
 )

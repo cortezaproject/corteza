@@ -21,3 +21,5 @@ types:
     noIdField: true
   Template:
     labelResourceType: template
+  ApigwRoute: {}
+  ApigwFilter: {}

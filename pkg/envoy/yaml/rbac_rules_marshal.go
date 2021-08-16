@@ -203,6 +203,11 @@ func (r *rbacRule) Encode(ctx context.Context, doc *Document, state *envoy.Resou
 		}
 
 		r.res.Resource = fmt.Sprintf(systemTypes.ApplicationRbacResourceTpl(), systemTypes.ApplicationResourceType, p1ID)
+
+	// // @todo
+	// case systemTypes.ApigwRouteResourceType:
+	// case systemTypes.ApigwFilterResourceType:
+
 	default:
 		return fmt.Errorf("unsupported resource type '%s' for RBAC YAML encode", r.res.Resource)
 	}

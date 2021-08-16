@@ -7,6 +7,8 @@ package resource
 //
 
 // Definitions file that controls how this file is generated:
+// - system.apigw-filter.yaml
+// - system.apigw-route.yaml
 // - system.application.yaml
 // - system.auth-client.yaml
 // - system.role.yaml
@@ -17,6 +19,32 @@ package resource
 import (
 	"github.com/cortezaproject/corteza-server/system/types"
 )
+
+// SystemApigwFilterRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemApigwFilterRbacReferences(apigwFilter string) (res *Ref, pp []*Ref, err error) {
+	if apigwFilter != "*" {
+		res = &Ref{ResourceType: types.ApigwFilterResourceType, Identifiers: MakeIdentifiers(apigwFilter)}
+	}
+
+	return
+}
+
+// SystemApigwRouteRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemApigwRouteRbacReferences(apigwRoute string) (res *Ref, pp []*Ref, err error) {
+	if apigwRoute != "*" {
+		res = &Ref{ResourceType: types.ApigwRouteResourceType, Identifiers: MakeIdentifiers(apigwRoute)}
+	}
+
+	return
+}
 
 // SystemApplicationRbacReferences generates RBAC references
 //

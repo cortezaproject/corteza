@@ -248,6 +248,10 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 		}
 
 		res.Resource = systemTypes.ApplicationRbacResource(p1ID)
+	case systemTypes.ApigwRouteResourceType:
+		res.Resource = systemTypes.ApigwRouteRbacResource(p1ID)
+	case systemTypes.ApigwFilterResourceType:
+		res.Resource = systemTypes.ApigwFilterRbacResource(p1ID)
 	case systemTypes.AuthClientResourceType:
 		// @todo add support for importing rbac rules for specific client
 		res.Resource = systemTypes.AuthClientRbacResource(p1ID)
