@@ -58,7 +58,7 @@ func HTTPServer() (o *HTTPServerOpt) {
 		WebappEnabled:          false,
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
-		WebappList:             "admin,compose,workflow",
+		WebappList:             "admin,compose,workflow,reporter",
 		SslTerminated:          isSecure(),
 	}
 

@@ -107,7 +107,7 @@ props:
 
   - name: webappList
     env: HTTP_WEBAPP_LIST
-    default: "admin,compose,workflow"
+    default: "admin,compose,workflow,reporter"
 
   - name: sslTerminated
     env: HTTP_SSL_TERMINATED
