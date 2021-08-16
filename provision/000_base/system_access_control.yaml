@@ -39,6 +39,8 @@ allow:
       - apigw-routes.search
       - apigw-filter.create
       - apigw-filters.search
+      - report.create
+      - reports.search
 
     corteza::system:auth-client/*:
       - read
@@ -89,6 +91,12 @@ allow:
       - update
       - delete
 
+    corteza::system:report/*:
+      - read
+      - update
+      - delete
+      - run
+
   security_admins:
     corteza::compose/:
       - grant
@@ -123,6 +131,8 @@ allow:
       - reminder.assign
       - queue.create
       - queues.search
+      - report.create
+      - reports.search
 
     corteza::system:auth-client/*:
       - read
@@ -147,3 +157,9 @@ allow:
       - update
       - delete
       - members.manage
+
+    corteza::system:report/*:
+      - read
+      - update
+      - delete
+      - run

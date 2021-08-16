@@ -258,6 +258,8 @@ func (n *rbacRule) Encode(ctx context.Context, pl *payload) (err error) {
 	case systemTypes.TemplateResourceType:
 		// @todo add support for importing rbac rules for specific template
 		res.Resource = systemTypes.TemplateRbacResource(p1ID)
+	case systemTypes.ReportResourceType:
+		res.Resource = systemTypes.ReportRbacResource(p1ID)
 	case messagebus.QueueResourceType:
 		// @todo add support for importing rbac rules for specific queue
 		res.Resource = messagebus.QueueRbacResource(p1ID)
