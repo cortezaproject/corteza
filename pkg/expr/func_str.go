@@ -3,10 +3,11 @@ package expr
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/cast"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"github.com/spf13/cast"
 
 	"github.com/PaesslerAG/gval"
 	valid "github.com/asaskevich/govalidator"
@@ -37,6 +38,7 @@ func StringFunctions() []gval.Language {
 		gvalFunc("shorten", shorten),
 		gval.Function("camelize", camelize),
 		gval.Function("snakify", snakify),
+		gval.Function("match", match),
 	}
 }
 
@@ -197,4 +199,22 @@ func camelize(s string) string {
 
 func snakify(s string) string {
 	return strings.ToLower(strings.Replace(strings.Title(s), " ", "_", -1))
+}
+
+func match(s string, regex interface{}) (b bool, err error) {
+	var (
+		r *regexp.Regexp
+	)
+
+	switch v := regex.(type) {
+	case *regexp.Regexp:
+		r = v
+	case string:
+		if r, err = regexp.Compile(v); err != nil {
+			return
+		}
+	}
+
+	b = r.MatchString(s)
+	return
 }

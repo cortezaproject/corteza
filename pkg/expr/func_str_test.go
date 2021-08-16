@@ -189,3 +189,10 @@ func Example_substring_endOverflow() {
 	// output:
 	// o bar baz_test
 }
+
+func Example_match() {
+	eval(`match("foo bar baz_test", "^foo\\s.*$")`, nil)
+
+	// output:
+	// true
+}
