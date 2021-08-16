@@ -3,6 +3,8 @@ package automation
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+
 	"github.com/cortezaproject/corteza-server/pkg/corredor"
 	"github.com/cortezaproject/corteza-server/pkg/eventbus"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
@@ -51,7 +53,10 @@ func (h corredorHandler) exec(ctx context.Context, args *corredorExecArgs) (r *c
 }
 
 func makeScriptArgs(in *expr.Vars) *scriptArgs {
-	return &scriptArgs{payload: in.Dict()}
+	payload := in.Dict()
+	sanitizeMapStringInterface(payload)
+
+	return &scriptArgs{payload: payload}
 }
 
 // mimic onManual event on system:
@@ -84,4 +89,19 @@ func (a *scriptArgs) Decode(enc map[string][]byte) (err error) {
 	}
 
 	return
+}
+
+// Sanitizing all uint64 values that are encoded into JSON
+func sanitizeMapStringInterface(m map[string]interface{}) {
+	for k := range m {
+		switch v := m[k].(type) {
+		case uint64:
+			// make sure uint64 values on fields ending with ID
+			// are properly encoded as strings
+			m[k] = strconv.FormatUint(v, 10)
+
+		case map[string]interface{}:
+			sanitizeMapStringInterface(v)
+		}
+	}
 }
