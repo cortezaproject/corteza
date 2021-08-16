@@ -86,6 +86,8 @@ func (s Schema) Tables() []*Table {
 		//s.AutomationState(),
 		s.MessagebusQueuemessage(),
 		s.MessagebusQueueSettings(),
+		s.ApigwRoute(),
+		s.ApigwFilter(),
 	}
 }
 
@@ -661,6 +663,32 @@ func (Schema) MessagebusQueueSettings() *Table {
 		ColumnDef("consumer", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("queue", ColumnTypeText, ColumnTypeLength(handleLength)),
 		ColumnDef("meta", ColumnTypeJson),
+		CUDTimestamps,
+		CUDUsers,
+	)
+}
+
+func (Schema) ApigwRoute() *Table {
+	return TableDef("apigw_routes",
+		ID,
+		ColumnDef("endpoint", ColumnTypeText, ColumnTypeLength(resourceLength)),
+		ColumnDef("method", ColumnTypeText, ColumnTypeLength(handleLength)),
+		ColumnDef("enabled", ColumnTypeBoolean),
+		ColumnDef("meta", ColumnTypeJson),
+		ColumnDef("rel_group", ColumnTypeIdentifier),
+		CUDTimestamps,
+		CUDUsers,
+	)
+}
+
+func (Schema) ApigwFilter() *Table {
+	return TableDef("apigw_filters",
+		ID,
+		ColumnDef("rel_route", ColumnTypeIdentifier),
+		ColumnDef("weight", ColumnTypeInteger),
+		ColumnDef("kind", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("ref", ColumnTypeVarchar, ColumnTypeLength(handleLength)),
+		ColumnDef("params", ColumnTypeJson),
 		CUDTimestamps,
 		CUDUsers,
 	)

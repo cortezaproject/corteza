@@ -1,0 +1,75 @@
+# List of loggable service actions
+
+resource: system:filter
+service: apigwFilter
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza-server/system/types
+
+props:
+  - name: filter
+    type: "*types.ApigwFilter"
+    fields: [ ID, ref ]
+  - name: search
+    type: "*types.ApigwFilterFilter"
+    fields: []
+
+actions:
+  - action: search
+    log: "searched for filter"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {filter}"
+    severity: info
+
+  - action: create
+    log: "created {filter}"
+
+  - action: update
+    log: "updated {filter}"
+
+  - action: delete
+    log: "deleted {filter}"
+
+  - action: undelete
+    log: "undeleted {filter}"
+
+errors:
+  - error: notFound
+    message: "filter not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidRoute
+    message: "invalid route"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create a filter"
+    log: "failed to create a route; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this filter"
+    log: "failed to read {filter}; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this filter"
+    log: "failed to update {filter}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this filter"
+    log: "failed to delete {filter}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this filter"
+    log: "failed to undelete {filter}; insufficient permissions"

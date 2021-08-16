@@ -10,6 +10,16 @@ package types
 
 type (
 
+	// ApigwFilterSet slice of ApigwFilter
+	//
+	// This type is auto-generated.
+	ApigwFilterSet []*ApigwFilter
+
+	// ApigwRouteSet slice of ApigwRoute
+	//
+	// This type is auto-generated.
+	ApigwRouteSet []*ApigwRoute
+
 	// ApplicationSet slice of Application
 	//
 	// This type is auto-generated.
@@ -75,6 +85,118 @@ type (
 	// This type is auto-generated.
 	UserSet []*User
 )
+
+// Walk iterates through every slice item and calls w(ApigwFilter) err
+//
+// This function is auto-generated.
+func (set ApigwFilterSet) Walk(w func(*ApigwFilter) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ApigwFilter) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ApigwFilterSet) Filter(f func(*ApigwFilter) (bool, error)) (out ApigwFilterSet, err error) {
+	var ok bool
+	out = ApigwFilterSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ApigwFilterSet) FindByID(ID uint64) *ApigwFilter {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ApigwFilterSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(ApigwRoute) err
+//
+// This function is auto-generated.
+func (set ApigwRouteSet) Walk(w func(*ApigwRoute) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(ApigwRoute) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set ApigwRouteSet) Filter(f func(*ApigwRoute) (bool, error)) (out ApigwRouteSet, err error) {
+	var ok bool
+	out = ApigwRouteSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set ApigwRouteSet) FindByID(ID uint64) *ApigwRoute {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set ApigwRouteSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
 
 // Walk iterates through every slice item and calls w(Application) err
 //

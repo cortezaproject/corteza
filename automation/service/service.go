@@ -120,6 +120,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.HttpRequestHandler(Registry())
 	automation.LogHandler(Registry())
 	automation.QueueHandler(Registry())
+	automation.JsenvHandler(Registry())
 	automation.LoopHandler(Registry(), DefaultWorkflow.parser)
 	automation.CorredorHandler(Registry(), corredor.Service())
 	automation.EmailHandler(Registry())

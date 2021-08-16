@@ -35,6 +35,10 @@ allow:
       - queue.create
       - queues.search
       - application.flag.global
+      - apigw-route.create
+      - apigw-routes.search
+      - apigw-filter.create
+      - apigw-filters.search
 
     corteza::system:auth-client/*:
       - read
@@ -74,6 +78,16 @@ allow:
       - delete
       - queue.read
       - queue.write
+
+    corteza::system:apigw-route/*:
+      - read
+      - update
+      - delete
+
+    corteza::system:apigw-filter/*:
+      - read
+      - update
+      - delete
 
   security_admins:
     corteza::compose/:

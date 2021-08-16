@@ -46,6 +46,16 @@ rbac:
       description:  Assign reminders
 
     queue.create:
-      description: Create message queue
+      description: Create messagebus queues
     queues.search:
-      description: List, search or filter message queues
+      description: List, search or filter messagebus queues
+
+    apigw-route.create:
+      description: Create API gateway route
+    apigw-routes.search:
+      description: List search or filter API gateway routes
+
+    apigw-filter.create:
+      description: Add API gateway filter to route
+    apigw-filters.search:
+      description: List, search or filter API gateway filters

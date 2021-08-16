@@ -1,5 +1,7 @@
 # cloud.google.com/go v0.67.0
 cloud.google.com/go/compute/metadata
+# github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
+## explicit
 # github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 ## explicit
 github.com/766b/chi-prometheus
@@ -38,15 +40,15 @@ github.com/aymerick/douceur/parser
 github.com/beevik/etree
 # github.com/beorn7/perks v1.0.0
 github.com/beorn7/perks/quantile
-# github.com/brianvoe/gofakeit v3.18.0+incompatible
-## explicit
 # github.com/brianvoe/gofakeit/v6 v6.5.0
 ## explicit
 github.com/brianvoe/gofakeit/v6
 github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/chris-ramon/douceur v0.2.0
+# github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4
+## explicit
+# github.com/codegangsta/gin v0.0.0-20171026143024-cafe2ce98974
 ## explicit
 # github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da
 github.com/crewjam/httperr
@@ -73,9 +75,48 @@ github.com/dgryski/dgoogauth
 # github.com/disintegration/imaging v1.6.0
 ## explicit
 github.com/disintegration/imaging
+# github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91
+github.com/dlclark/regexp2
+github.com/dlclark/regexp2/syntax
+# github.com/dop251/goja v0.0.0-20210726224656-a55e4cfac4cf
+## explicit
+github.com/dop251/goja
+github.com/dop251/goja/ast
+github.com/dop251/goja/file
+github.com/dop251/goja/ftoa
+github.com/dop251/goja/ftoa/internal/fast
+github.com/dop251/goja/parser
+github.com/dop251/goja/token
+github.com/dop251/goja/unistring
 # github.com/edwvee/exiffix v0.0.0-20180602190213-b57537c92a6b
 ## explicit
 github.com/edwvee/exiffix
+# github.com/evanw/esbuild v0.12.16
+## explicit
+github.com/evanw/esbuild/internal/api_helpers
+github.com/evanw/esbuild/internal/ast
+github.com/evanw/esbuild/internal/bundler
+github.com/evanw/esbuild/internal/cache
+github.com/evanw/esbuild/internal/compat
+github.com/evanw/esbuild/internal/config
+github.com/evanw/esbuild/internal/css_ast
+github.com/evanw/esbuild/internal/css_lexer
+github.com/evanw/esbuild/internal/css_parser
+github.com/evanw/esbuild/internal/css_printer
+github.com/evanw/esbuild/internal/fs
+github.com/evanw/esbuild/internal/graph
+github.com/evanw/esbuild/internal/helpers
+github.com/evanw/esbuild/internal/js_ast
+github.com/evanw/esbuild/internal/js_lexer
+github.com/evanw/esbuild/internal/js_parser
+github.com/evanw/esbuild/internal/js_printer
+github.com/evanw/esbuild/internal/logger
+github.com/evanw/esbuild/internal/renamer
+github.com/evanw/esbuild/internal/resolver
+github.com/evanw/esbuild/internal/runtime
+github.com/evanw/esbuild/internal/sourcemap
+github.com/evanw/esbuild/internal/xxhash
+github.com/evanw/esbuild/pkg/api
 # github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239
 ## explicit
 # github.com/fsnotify/fsnotify v1.4.9
@@ -111,6 +152,9 @@ github.com/go-oauth2/oauth2/v4/generates
 github.com/go-oauth2/oauth2/v4/manage
 github.com/go-oauth2/oauth2/v4/models
 github.com/go-oauth2/oauth2/v4/server
+# github.com/go-sourcemap/sourcemap v2.1.3+incompatible
+github.com/go-sourcemap/sourcemap
+github.com/go-sourcemap/sourcemap/internal/base64vlq
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -192,6 +236,8 @@ github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
 # github.com/mattermost/xml-roundtrip-validator v0.0.0-20201213122252-bcd7e1b9601e
 github.com/mattermost/xml-roundtrip-validator
+# github.com/mattn/go-shellwords v1.0.12
+## explicit
 # github.com/mattn/go-sqlite3 v1.14.0
 ## explicit
 github.com/mattn/go-sqlite3
@@ -325,9 +371,13 @@ golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
+# golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
+## explicit
 golang.org/x/oauth2
+golang.org/x/oauth2/authhandler
+golang.org/x/oauth2/clientcredentials
 golang.org/x/oauth2/google
+golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
@@ -337,6 +387,14 @@ golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.6
+golang.org/x/text/cases
+golang.org/x/text/collate
+golang.org/x/text/internal
+golang.org/x/text/internal/colltab
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -430,8 +488,6 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 ## explicit
 gopkg.in/alexcesaro/quotedprintable.v3
-# gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
-## explicit
 # gopkg.in/ini.v1 v1.51.0
 ## explicit
 gopkg.in/ini.v1
@@ -443,9 +499,8 @@ gopkg.in/mail.v2
 gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
-# gopkg.in/yaml.v2 v2.3.0
+# gopkg.in/urfave/cli.v1 v1.20.0
 ## explicit
-gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 ## explicit
 gopkg.in/yaml.v3
