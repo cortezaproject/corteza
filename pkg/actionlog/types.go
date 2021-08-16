@@ -1,6 +1,7 @@
 package actionlog
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -81,6 +82,8 @@ const (
 	Debug
 )
 
+const maxSafeJavascriptInteger = 9007199254740991
+
 func (a *Action) ToAction() *Action { return a }
 
 // Set value as key to meta, or skip it if value is empty (and omitempty is set)
@@ -92,13 +95,6 @@ func (m Meta) Set(key string, in interface{}, omitempty bool) {
 			m[key] = v
 		}
 
-		return
-	}
-
-	if !omitempty {
-		// Nothing special,
-		// assign value and quit
-		m[key] = in
 		return
 	}
 
@@ -125,62 +121,66 @@ func (m Meta) Set(key string, in interface{}, omitempty bool) {
 		return
 	}
 
-	// cast to (int|uint|float)64
-	num := func(n interface{}) interface{} {
-		switch n := n.(type) {
-		case int:
-			return int64(n)
-		case int8:
-			return int64(n)
-		case int16:
-			return int64(n)
-		case int32:
-			return int64(n)
+	{
+		// properly encode big numbers
+		// before storing them as JSON
+
+		num := func(n interface{}) interface{} {
+			switch n := n.(type) {
+			case int:
+				return int64(n)
+			case int8:
+				return int64(n)
+			case int16:
+				return int64(n)
+			case int32:
+				return int64(n)
+			case int64:
+				return int64(n)
+			case uint:
+				return uint64(n)
+			case uintptr:
+				return uint64(n)
+			case uint8:
+				return uint64(n)
+			case uint16:
+				return uint64(n)
+			case uint32:
+				return uint64(n)
+			case uint64:
+				return uint64(n)
+			case float32:
+				return float64(n)
+			case float64:
+				return n
+			}
+			return n
+		}(in)
+
+		switch num := num.(type) {
 		case int64:
-			return n
-		case uint:
-			return uint64(n)
-		case uintptr:
-			return uint64(n)
-		case uint8:
-			return uint64(n)
-		case uint16:
-			return uint64(n)
-		case uint32:
-			return uint64(n)
+			if num > maxSafeJavascriptInteger {
+				m[key] = strconv.FormatInt(num, 10)
+			} else if !omitempty || num > 0 {
+				m[key] = in
+			}
+			return
 		case uint64:
-			return n
-		case float32:
-			return float64(n)
+			if !omitempty || num > 0 {
+				m[key] = strconv.FormatUint(num, 10)
+			}
+			return
+
 		case float64:
-			return n
-		}
-		return n
-	}(in)
+			if !omitempty || num > 0 {
+				m[key] = in
+			}
 
-	switch num := num.(type) {
-	case nil:
-	case uint64:
-		if !omitempty || num > 0 {
-			m[key] = in
+			return
 		}
-		return
-
-	case int64:
-		if !omitempty || num > 0 {
-			m[key] = in
-		}
-		return
-
-	case float64:
-		if !omitempty || num > 0 {
-			m[key] = in
-		}
-
-		return
 	}
 
-	// for the rest (slices, etc..)
+	// for the rest (string, slices, etc..)
 	// just set the value
 	m[key] = in
 }

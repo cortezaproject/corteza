@@ -40,6 +40,12 @@ func TestMeta_Set(t *testing.T) {
 		{"int value, keep", 1, false, Meta{"t": 1}},
 		{"int empty, omit", 0, true, Meta{}},
 		{"int empty, keep", 0, false, Meta{"t": 0}},
+		{"uint64 empty, omit", uint64(0), true, Meta{}},
+		{"uint64 empty, keep", uint64(0), false, Meta{"t": "0"}},
+		{"bigint", 244783268048994492, false, Meta{"t": "244783268048994492"}},
+		{"int64", int64(244783268048994492), false, Meta{"t": "244783268048994492"}},
+		{"uint64()", uint64(244783268048994492), false, Meta{"t": "244783268048994492"}},
+		{"int", 42, false, Meta{"t": 42}},
 
 		{"slice", []int{0, 1}, false, Meta{"t": []int{0, 1}}},
 
