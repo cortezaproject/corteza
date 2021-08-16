@@ -540,18 +540,56 @@ func (t *KV) Delete(keys ...string) (out TypedValue, err error) {
 	return kv, nil
 }
 
-func (t *KVV) AssignFieldValue(key string, val TypedValue) error {
+func (t *KVV) AssignFieldValue(key []string, val TypedValue) error {
 	return assignToKVV(t, key, val)
 }
 
-func assignToKVV(t *KVV, key string, val TypedValue) error {
+func assignToKVV(t *KVV, kk []string, val TypedValue) error {
 	if t.value == nil {
 		t.value = make(map[string][]string)
 	}
 
-	str, err := cast.ToStringSliceE(val.Get())
-	t.value[key] = str
-	return err
+	switch len(kk) {
+	case 2:
+		str, err := cast.ToStringE(val.Get())
+		if err != nil {
+			return err
+		}
+
+		key, ind := kk[0], kk[1]
+
+		if len(ind) > 0 {
+			// handles kvv.field[42] = "value"
+			index, err := cast.ToIntE(ind)
+			if err != nil {
+				return err
+			}
+
+			if index >= 0 && index < len(t.value[key]) {
+				// handles positive & in-range indexes
+				t.value[key][index] = str
+				return nil
+			}
+
+			//negative & out-of-range indexes are always appended
+		}
+
+		// handles kvv.field[] = "value"
+		t.value[key] = append(t.value[key], str)
+
+	case 1:
+		str, err := cast.ToStringSliceE(val.Get())
+		if err != nil {
+			return err
+		}
+
+		t.value[kk[0]] = str
+
+	default:
+		return fmt.Errorf("cannot set value on %s with path '%s'", t.Type(), strings.Join(kk, "."))
+	}
+
+	return nil
 }
 
 func CastToKVV(val interface{}) (out map[string][]string, err error) {

@@ -362,6 +362,17 @@ func TestKVV_Assign(t *testing.T) {
 	req.NoError(kvv.Assign(url.Values{"foo": []string{"bar"}}))
 	req.Contains(kvv.value, "foo")
 	req.Equal([]string{"bar"}, kvv.value["foo"])
+
+	kvv = KVV{}
+	req.NoError(Assign(&kvv, "deep", Must(NewString("bar"))))
+	req.NoError(Assign(&kvv, "deep[0]", Must(NewString("bar"))))
+	req.NoError(Assign(&kvv, "deep[]", Must(NewString("baz"))))
+	req.NoError(Assign(&kvv, "deep[]", Must(NewString("bar"))))
+	req.NoError(Assign(&kvv, "deep[3]", Must(NewString("baz"))))
+	req.NoError(Assign(&kvv, "deep[3]", Must(NewString("b4z"))))
+	req.Contains(kvv.value, "deep")
+	req.Equal([]string{"bar", "baz", "bar", "b4z"}, kvv.value["deep"])
+
 }
 
 func TestKVV_Set(t *testing.T) {
