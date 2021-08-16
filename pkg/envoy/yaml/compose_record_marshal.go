@@ -3,6 +3,7 @@ package yaml
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
@@ -54,8 +55,14 @@ func (n *composeRecordEncoder) Prepare(ctx context.Context, state *envoy.Resourc
 }
 
 func (n *composeRecordEncoder) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
-	return n.res.Walker(func(r *resource.ComposeRecordRaw) error {
+	return n.res.Walker(func(r *resource.ComposeRecordRaw) (err error) {
+		n.res.IDMap[r.ID], err = strconv.ParseUint(r.ID, 10, 64)
+		if err != nil {
+			return err
+		}
+
 		cr := &composeRecord{
+			id:           r.ID,
 			us:           r.Us,
 			config:       r.Config,
 			refModule:    n.refModule,
@@ -122,6 +129,7 @@ func (rr composeRecordSet) MarshalYAML() (interface{}, error) {
 
 func (c *composeRecord) MarshalYAML() (interface{}, error) {
 	nn, err := makeMap(
+		"recordID", c.id,
 		"values", c.values,
 	)
 	if err != nil {

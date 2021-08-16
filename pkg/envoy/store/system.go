@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	composeTypes "github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/envoy"
 	"github.com/cortezaproject/corteza-server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
@@ -305,7 +306,7 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 				r := newRbacRule(n)
 
 				// parse the resource wo we can define relations/check if we can unmarshal it
-				_, ref, pp, err := resource.ParseRule(n.Resource)
+				rt, ref, pp, err := resource.ParseRule(n.Resource)
 				r.refRes = ref
 				r.refPathRes = pp
 				if err != nil {
@@ -319,14 +320,18 @@ func (d *systemDecoder) decodeRbac(ctx context.Context, s store.Storer, ff []*rb
 				if ref == nil && len(pp) == 0 {
 					mm = append(mm, r)
 				} else {
-					// check the resource ref and the path refs for validity
-					if ok, err := c(ref, f); err != nil {
-						return &auxRsp{
-							err: err,
+					// Check the resource ref and the path refs for validity.
+					// ComposeRecords are fetched in chunks so this check is not valid here.
+					if rt != composeTypes.RecordResourceType {
+						if ok, err := c(ref, f); err != nil {
+							return &auxRsp{
+								err: err,
+							}
+						} else if !ok {
+							continue
 						}
-					} else if !ok {
-						continue
 					}
+
 					for _, p := range pp {
 						if ok, err := c(p, f); err != nil {
 							return &auxRsp{
