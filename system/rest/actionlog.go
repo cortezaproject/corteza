@@ -2,10 +2,13 @@ package rest
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/filter"
 	"github.com/cortezaproject/corteza-server/pkg/payload"
+	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/rest/request"
 	"github.com/cortezaproject/corteza-server/system/service"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -21,7 +24,8 @@ type (
 	// provide user's email
 	actionlogActionPayload struct {
 		*actionlog.Action
-		Actor string `json:"actor,omitempty"`
+		Actor string                 `json:"actor,omitempty"`
+		Meta  map[string]interface{} `json:"meta,omitempty"`
 	}
 
 	actionlogPayload struct {
@@ -68,6 +72,9 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 	// Remap events to payload structs
 	for e := range ee {
 		pp[e] = &actionlogActionPayload{Action: ee[e]}
+		pp[e].Meta = ee[e].Meta
+
+		sanitizeMapStringInterface(pp[e].Meta)
 	}
 
 	err = ctrl.userSvc.Preloader(
@@ -102,4 +109,76 @@ func (ctrl Actionlog) makeFilterPayload(ctx context.Context, ee []*actionlog.Act
 	}
 
 	return &actionlogPayload{Filter: f, Set: pp}, nil
+}
+
+// Making sure JS can read old entries that were encoded
+// as numeric. When decoded from the JSON stored in the DB
+// they are of type float64. We'll cast them and store as uint64
+//
+// We do not want to do that to any numeric values just for the keys ending with
+// "ID" or "By"
+func sanitizeMapStringInterface(m map[string]interface{}) {
+	for k := range m {
+		switch v := m[k].(type) {
+		case float64:
+			if strings.HasSuffix(k, "ID") || strings.HasSuffix(k, "By") {
+				// make sure uint64 values on fields ending with ID
+				// are properly encoded as strings
+				m[k] = strconv.FormatUint(uint64(v), 10)
+			}
+
+		case map[string]interface{}:
+			sanitizeMapStringInterface(v)
+		}
+	}
+}
+
+// Preloader collects all ids of users, loads them and sets them back
+//
+// We'll be accessing the store directly since this is protected with action-log.read operation check.
+//
+// @todo move action log collection and user merging to dedicated service
+func userPreloader(ctx context.Context, s store.Users, g func(chan uint64), f types.UserFilter, collect func(*types.User) error) error {
+	var (
+		// channel that will collect the IDs in the getter
+		ch = make(chan uint64, 0)
+
+		// unique index for IDs
+		unq = make(map[uint64]bool)
+	)
+
+	// Reset the collection of the IDs
+	f.UserID = make([]uint64, 0)
+
+	// Call getter and collect the IDs
+	go g(ch)
+
+rangeLoop:
+	for {
+		select {
+		case <-ctx.Done():
+			close(ch)
+			break rangeLoop
+		case id, ok := <-ch:
+			if !ok {
+				// Channel closed
+				break rangeLoop
+			}
+
+			if !unq[id] {
+				unq[id] = true
+				f.UserID = append(f.UserID, id)
+			}
+		}
+
+	}
+
+	// Load all users (even if deleted, suspended) from the given list of IDs
+	uu, _, err := store.SearchUsers(ctx, s, f)
+
+	if err != nil {
+		return err
+	}
+
+	return uu.Walk(collect)
 }
