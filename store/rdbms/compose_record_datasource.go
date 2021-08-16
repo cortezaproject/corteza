@@ -227,8 +227,14 @@ func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, pa
 	// @todo move this to the DB driver package?
 	// @todo squash the query a bit? try to move most of this to the base query to remove
 	//       one sub-select
-	prt := squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, strings.Join(ss, ","))).
-		FromSelect(q, "partition_base")
+	var prt squirrel.SelectBuilder
+	if len(ss) > 0 {
+		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s order by %s) as pp_rank", partitionCol, strings.Join(ss, ","))).
+			FromSelect(q, "partition_base")
+	} else {
+		prt = squirrel.Select(fmt.Sprintf("*, row_number() over(partition by %s) as pp_rank", partitionCol)).
+			FromSelect(q, "partition_base")
+	}
 
 	// the sort is already defined when partitioning so it's unneeded here
 	q = squirrel.Select("*").
