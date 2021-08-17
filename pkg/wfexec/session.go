@@ -310,13 +310,22 @@ func (s *Session) Resume(ctx context.Context, stateId uint64, input *expr.Vars) 
 	return s.enqueue(ctx, p.state)
 }
 
-func (s *Session) enqueue(ctx context.Context, st *State) error {
+func (s *Session) canEnqueue(st *State) error {
 	if st == nil {
 		return fmt.Errorf("state is nil")
 	}
 
-	if st.step == nil {
+	// when the step is completed right away, it is considered as special
+	if st.step == nil && st.completed == nil {
 		return fmt.Errorf("state step is nil")
+	}
+
+	return nil
+}
+
+func (s *Session) enqueue(ctx context.Context, st *State) error {
+	if err := s.canEnqueue(st); err != nil {
+		return err
 	}
 
 	if st.stateId == 0 {
@@ -432,17 +441,24 @@ func (s *Session) worker(ctx context.Context) {
 			s.execLock <- struct{}{}
 
 			go func() {
-				err := s.exec(ctx, st)
+				defer func() {
+					// remove protection that prevents multiple
+					// steps executing at the same time
+					<-s.execLock
+				}()
+
+				var (
+					err error
+					log = s.log.With(zap.Uint64("stateID", st.stateId))
+				)
+
+				nxt, err := s.exec(ctx, log, st)
 				if err != nil && st.err == nil {
 					// override the error from the execution
 					st.err = err
 				}
 
 				st.completed = now()
-
-				// remove protection that prevents multiple
-				// steps executing at the same time
-				<-s.execLock
 
 				status := s.Status()
 				if st.err != nil {
@@ -473,6 +489,18 @@ func (s *Session) worker(ctx context.Context) {
 				)
 
 				s.eventHandler(status, st, s)
+
+				for _, n := range nxt {
+					if n.step != nil {
+						log.Debug("next step queued", zap.Uint64("nextStepId", n.step.ID()))
+					} else {
+						log.Debug("next step queued", zap.Uint64("nextStepId", 0))
+					}
+					if err = s.enqueue(ctx, n); err != nil {
+						log.Error("unable to enqueue", zap.Error(err))
+						return
+					}
+				}
 			}()
 
 		case err := <-s.qErr:
@@ -527,7 +555,7 @@ func (s *Session) queueScheduledSuspended() {
 }
 
 // executes single step, resolves response and schedule following steps for execution
-func (s *Session) exec(ctx context.Context, st *State) (err error) {
+func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*State, err error) {
 	st.created = *now()
 
 	defer func() {
@@ -559,8 +587,6 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		scope  = (&expr.Vars{}).Merge(st.scope)
 
 		currLoop = st.loopCurr()
-
-		log = s.log.With(zap.Uint64("stateID", st.stateId))
 	)
 
 	if st.step != nil {
@@ -595,7 +621,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		if st.err != nil {
 			if st.errHandler == nil {
 				// no error handler set
-				return st.err
+				return nil, st.err
 			}
 
 			// handling error with error handling
@@ -612,11 +638,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			eh := st.errHandler
 			st.errHandler = nil
 			st.errHandled = true
-			if err = s.enqueue(ctx, st.Next(eh, scope)); err != nil {
-				log.Warn("unable to queue", zap.Error(err))
-			}
-
-			return nil
+			return []*State{st.Next(eh, scope)}, nil
 		}
 
 		switch l := result.(type) {
@@ -628,7 +650,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			)
 			n, result, st.err = l.Next(ctx, scope)
 			if st.err != nil {
-				return st.err
+				return nil, st.err
 			}
 
 			if n == nil {
@@ -664,7 +686,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		case *loopBreak:
 			st.action = "loop break"
 			if currLoop == nil {
-				return fmt.Errorf("break step not inside a loop")
+				return nil, fmt.Errorf("break step not inside a loop")
 			}
 
 			// jump out of the loop
@@ -674,7 +696,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		case *loopContinue:
 			st.action = "loop continue"
 			if currLoop == nil {
-				return fmt.Errorf("continue step not inside a loop")
+				return nil, fmt.Errorf("continue step not inside a loop")
 			}
 
 			// jump back to iterator
@@ -691,9 +713,10 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			st.action = "termination"
 			// terminate all activities, all delayed tasks and exit right away
 			log.Debug("termination", zap.Int("delayed", len(s.delayed)))
+			s.mux.Lock()
 			s.delayed = nil
-			s.qState <- FinalState(s, scope)
-			return
+			s.mux.Unlock()
+			return []*State{FinalState(s, scope)}, nil
 
 		case *delayed:
 			st.action = "delayed"
@@ -712,7 +735,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		case *prompted:
 			st.action = "prompted"
 			if result.ownerId == 0 {
-				return fmt.Errorf("without an owner")
+				return nil, fmt.Errorf("without an owner")
 			}
 
 			result.state = st
@@ -734,7 +757,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 			st.next = Steps{result}
 
 		default:
-			return fmt.Errorf("unknown exec response type %T", result)
+			return nil, fmt.Errorf("unknown exec response type %T", result)
 		}
 	}
 
@@ -748,7 +771,7 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 		// do a quick sanity check
 		cc := s.g.Children(st.step)
 		if len(cc) > 0 && !cc.Contains(st.next...) {
-			return fmt.Errorf("inconsistent relationship")
+			return nil, fmt.Errorf("inconsistent relationship")
 		}
 	}
 
@@ -762,19 +785,21 @@ func (s *Session) exec(ctx context.Context, st *State) (err error) {
 	if len(st.next) == 0 {
 		log.Debug("zero paths, finalizing")
 		// using state to transport results and complete the worker loop
-		s.qState <- FinalState(s, scope)
-		return
+		return []*State{FinalState(s, scope)}, nil
 	}
 
-	for _, step := range st.next {
-		log.Debug("next step queued", zap.Uint64("nextStepId", step.ID()))
-		if err = s.enqueue(ctx, st.Next(step, scope)); err != nil {
+	nxt = make([]*State, len(st.next))
+	for i, step := range st.next {
+		nn := st.Next(step, scope)
+		if err = s.canEnqueue(nn); err != nil {
 			log.Error("unable to queue", zap.Error(err))
 			return
 		}
+
+		nxt[i] = nn
 	}
 
-	return
+	return nxt, nil
 }
 
 func SetWorkerInterval(i time.Duration) SessionOpt {

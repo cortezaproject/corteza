@@ -105,15 +105,15 @@ func NewSession(s *wfexec.Session) *Session {
 	}
 }
 
-func (s Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
+func (s *Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
 	return s.session.Exec(ctx, step, input)
 }
 
-func (s Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) error {
+func (s *Session) Resume(ctx context.Context, stateID uint64, input *expr.Vars) error {
 	return s.session.Resume(ctx, stateID, input)
 }
 
-func (s Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
+func (s *Session) PendingPrompts(ownerId uint64) []*wfexec.PendingPrompt {
 	return s.session.PendingPrompts(ownerId)
 }
 
@@ -155,6 +155,13 @@ func (s *Session) Apply(ssp SessionStartParams) {
 		// that we're interested in storing stacktrace
 		s.Stacktrace = Stacktrace{}
 	}
+}
+
+func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
 }
 
 func (s *Session) CopyRuntimeStacktrace() {

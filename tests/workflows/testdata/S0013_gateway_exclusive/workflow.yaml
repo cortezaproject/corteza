@@ -1,0 +1,120 @@
+workflows:
+  case1:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: gateway
+        ref: excl
+
+      - stepID: 11
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 1", type: "String"}
+      - stepID: 12
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 2", type: "String"}
+      - stepID: 13
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 3", type: "String"}
+
+      - stepID: 14
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11, expr: "true == true" }
+      - { parentID: 10, childID: 12, expr: "true == true" }
+      - { parentID: 10, childID: 13, expr: "" }
+
+      - { parentID: 11, childID: 14 }
+      - { parentID: 12, childID: 14 }
+      - { parentID: 13, childID: 14 }
+
+  case2:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: gateway
+        ref: excl
+
+      - stepID: 11
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 1", type: "String"}
+      - stepID: 12
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 2", type: "String"}
+      - stepID: 13
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 3", type: "String"}
+
+      - stepID: 14
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11, expr: "true == false" }
+      - { parentID: 10, childID: 12, expr: "true == true" }
+      - { parentID: 10, childID: 13, expr: "" }
+
+      - { parentID: 11, childID: 14 }
+      - { parentID: 12, childID: 14 }
+      - { parentID: 13, childID: 14 }
+
+  case3:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 10
+
+    steps:
+      - stepID: 10
+        kind: gateway
+        ref: excl
+
+      - stepID: 11
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 1", type: "String"}
+      - stepID: 12
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 2", type: "String"}
+      - stepID: 13
+        kind: function
+        ref: logInfo
+        arguments:
+          - {target: "message", value: "log 3", type: "String"}
+
+      - stepID: 14
+        kind: termination
+
+    paths:
+      - { parentID: 10, childID: 11, expr: "true == false" }
+      - { parentID: 10, childID: 12, expr: "true == false" }
+      - { parentID: 10, childID: 13, expr: "" }
+
+      - { parentID: 11, childID: 14 }
+      - { parentID: 12, childID: 14 }
+      - { parentID: 13, childID: 14 }
