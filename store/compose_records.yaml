@@ -1,6 +1,5 @@
 import:
   - github.com/cortezaproject/corteza-server/compose/types
-  - github.com/cortezaproject/corteza-server/pkg/report
 
 types:
   type: types.Record
@@ -27,6 +26,8 @@ functions:
     return: [ "[]map[string]interface{}", error ]
 
   - name: ComposeRecordDatasource
+    import:
+      - github.com/cortezaproject/corteza-server/pkg/report
     arguments:
       - { name: mod, type: "*types.Module" }
       - { name: ld,  type: "*report.LoadStepDefinition" }

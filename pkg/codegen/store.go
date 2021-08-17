@@ -99,6 +99,7 @@ type (
 		Name      string                      `yaml:"name"`
 		Arguments []storeTypeExtraArgumentDef `yaml:"arguments"`
 		Return    []string                    `yaml:"return"`
+		Import    []string                    `yaml:"import"`
 	}
 
 	storeTypeExtraArgumentDef struct {
