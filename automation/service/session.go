@@ -376,7 +376,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			frame.ElapsedTime = uint(frame.CreatedAt.Sub(ses.RuntimeStacktrace[0].CreatedAt) / time.Millisecond)
 		}
 
-		ses.RuntimeStacktrace = append(ses.RuntimeStacktrace, frame)
+		ses.AppendRuntimeStacktrace(frame)
 
 		switch i {
 		case wfexec.SessionPrompted:
