@@ -1,0 +1,25 @@
+namespaces:
+  ns1:
+    name: ns1 name
+
+modules:
+  mod1:
+    name: mod1 name
+    fields:
+      f1:
+        label: f1 label
+        kind: String
+        required: false
+
+records:
+  mod1:
+    - values:
+        f1: 1
+    - values:
+        f1: 2
+    - values:
+        f1: 3
+    - values:
+        f1: 4
+    - values:
+        f1: 5
