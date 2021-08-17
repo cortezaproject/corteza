@@ -13,6 +13,16 @@ import (
 {{- range .Import }}
 	{{ normalizeImport . }}
 {{- end }}
+
+{{- if .Functions}}
+	{{- range .Functions }}
+		{{- if .Import }}
+			{{- range .Import }}
+				{{ normalizeImport . }}
+			{{- end }}
+		{{- end }}
+	{{- end }}
+{{- end -}}
 )
 
 type (
