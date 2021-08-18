@@ -266,7 +266,7 @@ func TestRecordCreateForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create records")).
+		Assert(helpers.AssertError("record.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -438,7 +438,7 @@ func TestRecordUpdateForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this record")).
+		Assert(helpers.AssertError("record.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -704,7 +704,7 @@ func TestRecordDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this record")).
+		Assert(helpers.AssertError("record.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -899,7 +899,7 @@ func TestRecordImportRun_sessionNotFound(t *testing.T) {
 // 			r.JSON(rsp)
 
 // 			h.apiRunRecordImport(api, fmt.Sprintf("%s/%s", url, rsp.Response.SessionID), `{"fields":{"fname":"name","femail":"email"},"onError":"fail"}`).
-// 				Assert(helpers.AssertErrorP("not allowed to create records for module")).
+// 				Assert(helpers.AssertErrorP("record.errors.notAllowedToCreate for module")).
 // 				End()
 // 		})
 // 	}

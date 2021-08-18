@@ -149,8 +149,10 @@ func (set *Languages) Get(ctx context.Context, ns, key string, rr ...string) str
 }
 
 func (set *Languages) get(code language.Tag, ns, key string, rr ...string) string {
-	if l, has := set.ll[code]; has {
-		return l.get(ns, key, rr...)
+	if set != nil && set.ll != nil {
+		if l, has := set.ll[code]; has {
+			return l.get(ns, key, rr...)
+		}
 	}
 
 	return key
