@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -137,7 +138,7 @@ func (p templateActionProps) Serialize() actionlog.Meta {
 //
 func (p templateActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -157,58 +158,58 @@ func (p templateActionProps) Format(in string, err error) string {
 	}
 
 	if p.template != nil {
-		// replacement for "{template}" (in order how fields are defined)
+		// replacement for "{{template}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{template}",
+			"{{template}}",
 			fns(
 				p.template.Handle,
 				p.template.Type,
 				p.template.ID,
 			),
 		)
-		pairs = append(pairs, "{template.handle}", fns(p.template.Handle))
-		pairs = append(pairs, "{template.type}", fns(p.template.Type))
-		pairs = append(pairs, "{template.ID}", fns(p.template.ID))
+		pairs = append(pairs, "{{template.handle}}", fns(p.template.Handle))
+		pairs = append(pairs, "{{template.type}}", fns(p.template.Type))
+		pairs = append(pairs, "{{template.ID}}", fns(p.template.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.Type,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.type}", fns(p.new.Type))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.type}}", fns(p.new.Type))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.Type,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.type}", fns(p.update.Type))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.type}}", fns(p.update.Type))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.TemplateID,
 				p.filter.Handle,
@@ -218,12 +219,12 @@ func (p templateActionProps) Format(in string, err error) string {
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.templateID}", fns(p.filter.TemplateID))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.type}", fns(p.filter.Type))
-		pairs = append(pairs, "{filter.ownerID}", fns(p.filter.OwnerID))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.templateID}}", fns(p.filter.TemplateID))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.type}}", fns(p.filter.Type))
+		pairs = append(pairs, "{{filter.ownerID}}", fns(p.filter.OwnerID))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -289,7 +290,7 @@ func TemplateActionLookup(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "lookup",
-		log:       "looked-up for a {template}",
+		log:       "looked-up for a {{template}}",
 		severity:  actionlog.Info,
 	}
 
@@ -309,7 +310,7 @@ func TemplateActionCreate(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "create",
-		log:       "created {template}",
+		log:       "created {{template}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -329,7 +330,7 @@ func TemplateActionUpdate(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "update",
-		log:       "updated {template}",
+		log:       "updated {{template}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -349,7 +350,7 @@ func TemplateActionDelete(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "delete",
-		log:       "deleted {template}",
+		log:       "deleted {{template}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -369,7 +370,7 @@ func TemplateActionUndelete(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "undelete",
-		log:       "undeleted {template}",
+		log:       "undeleted {{template}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -389,7 +390,7 @@ func TemplateActionRender(props ...*templateActionProps) *templateAction {
 		timestamp: time.Now(),
 		resource:  "system:template",
 		action:    "render",
-		log:       "rendered {template}",
+		log:       "rendered {{template}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -427,6 +428,10 @@ func TemplateErrGeneric(mm ...*templateActionProps) *errors.Error {
 		errors.Meta(templateLogMetaKey{}, "{err}"),
 		errors.Meta(templatePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -456,6 +461,10 @@ func TemplateErrNotFound(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -487,6 +496,10 @@ func TemplateErrInvalidID(mm ...*templateActionProps) *errors.Error {
 
 		errors.Meta(templatePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -516,6 +529,10 @@ func TemplateErrInvalidHandle(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.invalidHandle"),
 
 		errors.StackSkip(1),
 	)
@@ -547,6 +564,10 @@ func TemplateErrCannotRenderPartial(mm ...*templateActionProps) *errors.Error {
 
 		errors.Meta(templatePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.cannotRenderPartial"),
+
 		errors.StackSkip(1),
 	)
 
@@ -576,8 +597,12 @@ func TemplateErrNotAllowedToRead(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to read {template.handle}; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to read {{template.handle}}; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -611,6 +636,10 @@ func TemplateErrNotAllowedToSearch(mm ...*templateActionProps) *errors.Error {
 		errors.Meta(templateLogMetaKey{}, "failed to search or list templates; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -643,6 +672,10 @@ func TemplateErrNotAllowedToCreate(mm ...*templateActionProps) *errors.Error {
 		errors.Meta(templateLogMetaKey{}, "failed to create template; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -672,8 +705,12 @@ func TemplateErrNotAllowedToUpdate(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to update {template.handle}; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to update {{template.handle}}; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -704,8 +741,12 @@ func TemplateErrNotAllowedToDelete(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to delete {template.handle}; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to delete {{template.handle}}; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -736,8 +777,12 @@ func TemplateErrNotAllowedToUndelete(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to undelete {template.handle}; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to undelete {{template.handle}}; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -768,8 +813,12 @@ func TemplateErrNotAllowedToRender(mm ...*templateActionProps) *errors.Error {
 		errors.Meta("resource", "system:template"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(templateLogMetaKey{}, "failed to render {template.handle}; insufficient permissions"),
+		errors.Meta(templateLogMetaKey{}, "failed to render {{template.handle}}; insufficient permissions"),
 		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.notAllowedToRender"),
 
 		errors.StackSkip(1),
 	)

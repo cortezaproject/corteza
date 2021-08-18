@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -191,7 +192,7 @@ func (p roleActionProps) Serialize() actionlog.Meta {
 //
 func (p roleActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -211,10 +212,10 @@ func (p roleActionProps) Format(in string, err error) string {
 	}
 
 	if p.member != nil {
-		// replacement for "{member}" (in order how fields are defined)
+		// replacement for "{{member}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{member}",
+			"{{member}}",
 			fns(
 				p.member.Handle,
 				p.member.Email,
@@ -222,97 +223,97 @@ func (p roleActionProps) Format(in string, err error) string {
 				p.member.ID,
 			),
 		)
-		pairs = append(pairs, "{member.handle}", fns(p.member.Handle))
-		pairs = append(pairs, "{member.email}", fns(p.member.Email))
-		pairs = append(pairs, "{member.name}", fns(p.member.Name))
-		pairs = append(pairs, "{member.ID}", fns(p.member.ID))
+		pairs = append(pairs, "{{member.handle}}", fns(p.member.Handle))
+		pairs = append(pairs, "{{member.email}}", fns(p.member.Email))
+		pairs = append(pairs, "{{member.name}}", fns(p.member.Name))
+		pairs = append(pairs, "{{member.ID}}", fns(p.member.ID))
 	}
 
 	if p.role != nil {
-		// replacement for "{role}" (in order how fields are defined)
+		// replacement for "{{role}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{role}",
+			"{{role}}",
 			fns(
 				p.role.Handle,
 				p.role.Name,
 				p.role.ID,
 			),
 		)
-		pairs = append(pairs, "{role.handle}", fns(p.role.Handle))
-		pairs = append(pairs, "{role.name}", fns(p.role.Name))
-		pairs = append(pairs, "{role.ID}", fns(p.role.ID))
+		pairs = append(pairs, "{{role.handle}}", fns(p.role.Handle))
+		pairs = append(pairs, "{{role.name}}", fns(p.role.Name))
+		pairs = append(pairs, "{{role.ID}}", fns(p.role.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.Name,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.name}", fns(p.new.Name))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.Name,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.name}", fns(p.update.Name))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.existing != nil {
-		// replacement for "{existing}" (in order how fields are defined)
+		// replacement for "{{existing}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{existing}",
+			"{{existing}}",
 			fns(
 				p.existing.Handle,
 				p.existing.Name,
 				p.existing.ID,
 			),
 		)
-		pairs = append(pairs, "{existing.handle}", fns(p.existing.Handle))
-		pairs = append(pairs, "{existing.name}", fns(p.existing.Name))
-		pairs = append(pairs, "{existing.ID}", fns(p.existing.ID))
+		pairs = append(pairs, "{{existing.handle}}", fns(p.existing.Handle))
+		pairs = append(pairs, "{{existing.name}}", fns(p.existing.Name))
+		pairs = append(pairs, "{{existing.ID}}", fns(p.existing.ID))
 	}
 
 	if p.target != nil {
-		// replacement for "{target}" (in order how fields are defined)
+		// replacement for "{{target}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{target}",
+			"{{target}}",
 			fns(
 				p.target.Handle,
 				p.target.Name,
 				p.target.ID,
 			),
 		)
-		pairs = append(pairs, "{target.handle}", fns(p.target.Handle))
-		pairs = append(pairs, "{target.name}", fns(p.target.Name))
-		pairs = append(pairs, "{target.ID}", fns(p.target.ID))
+		pairs = append(pairs, "{{target.handle}}", fns(p.target.Handle))
+		pairs = append(pairs, "{{target.name}}", fns(p.target.Name))
+		pairs = append(pairs, "{{target.ID}}", fns(p.target.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.RoleID,
@@ -324,14 +325,14 @@ func (p roleActionProps) Format(in string, err error) string {
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.roleID}", fns(p.filter.RoleID))
-		pairs = append(pairs, "{filter.memberID}", fns(p.filter.MemberID))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.name}", fns(p.filter.Name))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.archived}", fns(p.filter.Archived))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.roleID}}", fns(p.filter.RoleID))
+		pairs = append(pairs, "{{filter.memberID}}", fns(p.filter.MemberID))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.name}}", fns(p.filter.Name))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.archived}}", fns(p.filter.Archived))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -397,7 +398,7 @@ func RoleActionLookup(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "lookup",
-		log:       "looked-up for a {role}",
+		log:       "looked-up for a {{role}}",
 		severity:  actionlog.Info,
 	}
 
@@ -417,7 +418,7 @@ func RoleActionCreate(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "create",
-		log:       "created {role}",
+		log:       "created {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -437,7 +438,7 @@ func RoleActionUpdate(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "update",
-		log:       "updated {role}",
+		log:       "updated {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -457,7 +458,7 @@ func RoleActionDelete(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "delete",
-		log:       "deleted {role}",
+		log:       "deleted {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -477,7 +478,7 @@ func RoleActionUndelete(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "undelete",
-		log:       "undeleted {role}",
+		log:       "undeleted {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -497,7 +498,7 @@ func RoleActionArchive(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "archive",
-		log:       "archived {role}",
+		log:       "archived {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -517,7 +518,7 @@ func RoleActionUnarchive(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "unarchive",
-		log:       "unarchived {role}",
+		log:       "unarchived {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -537,7 +538,7 @@ func RoleActionMerge(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "merge",
-		log:       "merged {target} with {role}",
+		log:       "merged {{target}} with {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -557,7 +558,7 @@ func RoleActionMembers(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "members",
-		log:       "searched for members of {role}",
+		log:       "searched for members of {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -577,7 +578,7 @@ func RoleActionMemberAdd(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "memberAdd",
-		log:       "added {member.email} to {role}",
+		log:       "added {{member.email}} to {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -597,7 +598,7 @@ func RoleActionMemberRemove(props ...*roleActionProps) *roleAction {
 		timestamp: time.Now(),
 		resource:  "system:role",
 		action:    "memberRemove",
-		log:       "removed {member.email} from {role}",
+		log:       "removed {{member.email}} from {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -635,6 +636,10 @@ func RoleErrGeneric(mm ...*roleActionProps) *errors.Error {
 		errors.Meta(roleLogMetaKey{}, "{err}"),
 		errors.Meta(rolePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -664,6 +669,10 @@ func RoleErrNotFound(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -695,6 +704,10 @@ func RoleErrInvalidID(mm ...*roleActionProps) *errors.Error {
 
 		errors.Meta(rolePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -725,6 +738,10 @@ func RoleErrInvalidHandle(mm ...*roleActionProps) *errors.Error {
 
 		errors.Meta(rolePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -754,8 +771,12 @@ func RoleErrNotAllowedToRead(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to read {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to read {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -789,6 +810,10 @@ func RoleErrNotAllowedToSearch(mm ...*roleActionProps) *errors.Error {
 		errors.Meta(roleLogMetaKey{}, "failed to search or list roles; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -821,6 +846,10 @@ func RoleErrNotAllowedToCreate(mm ...*roleActionProps) *errors.Error {
 		errors.Meta(roleLogMetaKey{}, "failed to create role; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -850,8 +879,12 @@ func RoleErrNotAllowedToUpdate(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to update {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to update {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -882,8 +915,12 @@ func RoleErrNotAllowedToDelete(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to delete {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to delete {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -914,8 +951,12 @@ func RoleErrNotAllowedToUndelete(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to undelete {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to undelete {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -946,8 +987,12 @@ func RoleErrNotAllowedToArchive(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to archive {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to archive {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToArchive"),
 
 		errors.StackSkip(1),
 	)
@@ -978,8 +1023,12 @@ func RoleErrNotAllowedToUnarchive(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to unarchive {role.handle}; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to unarchive {{role.handle}}; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToUnarchive"),
 
 		errors.StackSkip(1),
 	)
@@ -1010,8 +1059,12 @@ func RoleErrNotAllowedToManageMembers(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "failed to manage {role.handle} members; insufficient permissions"),
+		errors.Meta(roleLogMetaKey{}, "failed to manage {{role.handle}} members; insufficient permissions"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.notAllowedToManageMembers"),
 
 		errors.StackSkip(1),
 	)
@@ -1042,8 +1095,12 @@ func RoleErrHandleNotUnique(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "used duplicate handle ({role.handle}) for role"),
+		errors.Meta(roleLogMetaKey{}, "used duplicate handle ({{role.handle}}) for role"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -1074,8 +1131,12 @@ func RoleErrNameNotUnique(mm ...*roleActionProps) *errors.Error {
 		errors.Meta("resource", "system:role"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(roleLogMetaKey{}, "used duplicate name ({role.name}) for role"),
+		errors.Meta(roleLogMetaKey{}, "used duplicate name ({{role.name}}) for role"),
 		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.nameNotUnique"),
 
 		errors.StackSkip(1),
 	)

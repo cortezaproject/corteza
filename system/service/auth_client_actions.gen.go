@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -131,7 +132,7 @@ func (p authClientActionProps) Serialize() actionlog.Meta {
 //
 func (p authClientActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -151,61 +152,61 @@ func (p authClientActionProps) Format(in string, err error) string {
 	}
 
 	if p.authClient != nil {
-		// replacement for "{authClient}" (in order how fields are defined)
+		// replacement for "{{authClient}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{authClient}",
+			"{{authClient}}",
 			fns(
 				p.authClient.Handle,
 				p.authClient.ID,
 			),
 		)
-		pairs = append(pairs, "{authClient.handle}", fns(p.authClient.Handle))
-		pairs = append(pairs, "{authClient.ID}", fns(p.authClient.ID))
+		pairs = append(pairs, "{{authClient.handle}}", fns(p.authClient.Handle))
+		pairs = append(pairs, "{{authClient.ID}}", fns(p.authClient.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Handle,
 				p.filter.Deleted,
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -271,7 +272,7 @@ func AuthClientActionLookup(props ...*authClientActionProps) *authClientAction {
 		timestamp: time.Now(),
 		resource:  "system:auth-client",
 		action:    "lookup",
-		log:       "looked-up for a {authClient}",
+		log:       "looked-up for a {{authClient}}",
 		severity:  actionlog.Info,
 	}
 
@@ -291,7 +292,7 @@ func AuthClientActionCreate(props ...*authClientActionProps) *authClientAction {
 		timestamp: time.Now(),
 		resource:  "system:auth-client",
 		action:    "create",
-		log:       "created {authClient}",
+		log:       "created {{authClient}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -311,7 +312,7 @@ func AuthClientActionUpdate(props ...*authClientActionProps) *authClientAction {
 		timestamp: time.Now(),
 		resource:  "system:auth-client",
 		action:    "update",
-		log:       "updated {authClient}",
+		log:       "updated {{authClient}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -331,7 +332,7 @@ func AuthClientActionDelete(props ...*authClientActionProps) *authClientAction {
 		timestamp: time.Now(),
 		resource:  "system:auth-client",
 		action:    "delete",
-		log:       "deleted {authClient}",
+		log:       "deleted {{authClient}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -351,7 +352,7 @@ func AuthClientActionUndelete(props ...*authClientActionProps) *authClientAction
 		timestamp: time.Now(),
 		resource:  "system:auth-client",
 		action:    "undelete",
-		log:       "undeleted {authClient}",
+		log:       "undeleted {{authClient}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -429,6 +430,10 @@ func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 		errors.Meta(authClientLogMetaKey{}, "{err}"),
 		errors.Meta(authClientPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -458,6 +463,10 @@ func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth-client"),
 
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -489,6 +498,10 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 
 		errors.Meta(authClientPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -518,8 +531,12 @@ func AuthClientErrUnableToChangeDefaultClientHandle(mm ...*authClientActionProps
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to change the default auth client handle"),
+		errors.Meta(authClientLogMetaKey{}, "failed to update {{authClient}}; unable to change the default auth client handle"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToChangeDefaultClientHandle"),
 
 		errors.StackSkip(1),
 	)
@@ -550,8 +567,12 @@ func AuthClientErrUnableToDisableDefaultClient(mm ...*authClientActionProps) *er
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to disable the default auth client"),
+		errors.Meta(authClientLogMetaKey{}, "failed to update {{authClient}}; unable to disable the default auth client"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToDisableDefaultClient"),
 
 		errors.StackSkip(1),
 	)
@@ -582,8 +603,12 @@ func AuthClientErrUnableToDeleteDefaultClient(mm ...*authClientActionProps) *err
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; unable to delete the default auth client"),
+		errors.Meta(authClientLogMetaKey{}, "failed to update {{authClient}}; unable to delete the default auth client"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.unableToDeleteDefaultClient"),
 
 		errors.StackSkip(1),
 	)
@@ -614,8 +639,12 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to read {authClient}; insufficient permissions"),
+		errors.Meta(authClientLogMetaKey{}, "failed to read {{authClient}}; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -649,6 +678,10 @@ func AuthClientErrNotAllowedToSearch(mm ...*authClientActionProps) *errors.Error
 		errors.Meta(authClientLogMetaKey{}, "failed to search or list authClient; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -681,6 +714,10 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 		errors.Meta(authClientLogMetaKey{}, "failed to create authClient; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -710,8 +747,12 @@ func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to update {authClient}; insufficient permissions"),
+		errors.Meta(authClientLogMetaKey{}, "failed to update {{authClient}}; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -742,8 +783,12 @@ func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to delete {authClient}; insufficient permissions"),
+		errors.Meta(authClientLogMetaKey{}, "failed to delete {{authClient}}; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -774,8 +819,12 @@ func AuthClientErrNotAllowedToUndelete(mm ...*authClientActionProps) *errors.Err
 		errors.Meta("resource", "system:auth-client"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authClientLogMetaKey{}, "failed to undelete {authClient}; insufficient permissions"),
+		errors.Meta(authClientLogMetaKey{}, "failed to undelete {{authClient}}; insufficient permissions"),
 		errors.Meta(authClientPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "authClient.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

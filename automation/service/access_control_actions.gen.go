@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/rbac"
 	"strings"
 	"time"
@@ -84,7 +85,7 @@ func (p accessControlActionProps) Serialize() actionlog.Meta {
 //
 func (p accessControlActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -104,10 +105,10 @@ func (p accessControlActionProps) Format(in string, err error) string {
 	}
 
 	if p.rule != nil {
-		// replacement for "{rule}" (in order how fields are defined)
+		// replacement for "{{rule}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{rule}",
+			"{{rule}}",
 			fns(
 				p.rule.Operation,
 				p.rule.RoleID,
@@ -115,10 +116,10 @@ func (p accessControlActionProps) Format(in string, err error) string {
 				p.rule.Resource,
 			),
 		)
-		pairs = append(pairs, "{rule.operation}", fns(p.rule.Operation))
-		pairs = append(pairs, "{rule.roleID}", fns(p.rule.RoleID))
-		pairs = append(pairs, "{rule.access}", fns(p.rule.Access))
-		pairs = append(pairs, "{rule.resource}", fns(p.rule.Resource))
+		pairs = append(pairs, "{{rule.operation}}", fns(p.rule.Operation))
+		pairs = append(pairs, "{{rule.roleID}}", fns(p.rule.RoleID))
+		pairs = append(pairs, "{{rule.access}}", fns(p.rule.Access))
+		pairs = append(pairs, "{{rule.resource}}", fns(p.rule.Resource))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -202,6 +203,10 @@ func AccessControlErrGeneric(mm ...*accessControlActionProps) *errors.Error {
 		errors.Meta(accessControlLogMetaKey{}, "{err}"),
 		errors.Meta(accessControlPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "accessControl.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -231,6 +236,10 @@ func AccessControlErrNotAllowedToSetPermissions(mm ...*accessControlActionProps)
 		errors.Meta("resource", "automation:access_control"),
 
 		errors.Meta(accessControlPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "accessControl.errors.notAllowedToSetPermissions"),
 
 		errors.StackSkip(1),
 	)

@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -211,7 +212,7 @@ func (p recordActionProps) Serialize() actionlog.Meta {
 //
 func (p recordActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -231,10 +232,10 @@ func (p recordActionProps) Format(in string, err error) string {
 	}
 
 	if p.record != nil {
-		// replacement for "{record}" (in order how fields are defined)
+		// replacement for "{{record}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{record}",
+			"{{record}}",
 			fns(
 				p.record.ID,
 				p.record.ModuleID,
@@ -242,17 +243,17 @@ func (p recordActionProps) Format(in string, err error) string {
 				p.record.OwnedBy,
 			),
 		)
-		pairs = append(pairs, "{record.ID}", fns(p.record.ID))
-		pairs = append(pairs, "{record.moduleID}", fns(p.record.ModuleID))
-		pairs = append(pairs, "{record.namespaceID}", fns(p.record.NamespaceID))
-		pairs = append(pairs, "{record.ownedBy}", fns(p.record.OwnedBy))
+		pairs = append(pairs, "{{record.ID}}", fns(p.record.ID))
+		pairs = append(pairs, "{{record.moduleID}}", fns(p.record.ModuleID))
+		pairs = append(pairs, "{{record.namespaceID}}", fns(p.record.NamespaceID))
+		pairs = append(pairs, "{{record.ownedBy}}", fns(p.record.OwnedBy))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.ID,
 				p.changed.ModuleID,
@@ -260,17 +261,17 @@ func (p recordActionProps) Format(in string, err error) string {
 				p.changed.OwnedBy,
 			),
 		)
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.moduleID}", fns(p.changed.ModuleID))
-		pairs = append(pairs, "{changed.namespaceID}", fns(p.changed.NamespaceID))
-		pairs = append(pairs, "{changed.ownedBy}", fns(p.changed.OwnedBy))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.moduleID}}", fns(p.changed.ModuleID))
+		pairs = append(pairs, "{{changed.namespaceID}}", fns(p.changed.NamespaceID))
+		pairs = append(pairs, "{{changed.ownedBy}}", fns(p.changed.OwnedBy))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.NamespaceID,
@@ -280,35 +281,35 @@ func (p recordActionProps) Format(in string, err error) string {
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.namespaceID}", fns(p.filter.NamespaceID))
-		pairs = append(pairs, "{filter.moduleID}", fns(p.filter.ModuleID))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.namespaceID}}", fns(p.filter.NamespaceID))
+		pairs = append(pairs, "{{filter.moduleID}}", fns(p.filter.ModuleID))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
 				p.namespace.ID,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
 	}
 
 	if p.module != nil {
-		// replacement for "{module}" (in order how fields are defined)
+		// replacement for "{{module}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{module}",
+			"{{module}}",
 			fns(
 				p.module.Name,
 				p.module.Handle,
@@ -316,25 +317,25 @@ func (p recordActionProps) Format(in string, err error) string {
 				p.module.NamespaceID,
 			),
 		)
-		pairs = append(pairs, "{module.name}", fns(p.module.Name))
-		pairs = append(pairs, "{module.handle}", fns(p.module.Handle))
-		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
-		pairs = append(pairs, "{module.namespaceID}", fns(p.module.NamespaceID))
+		pairs = append(pairs, "{{module.name}}", fns(p.module.Name))
+		pairs = append(pairs, "{{module.handle}}", fns(p.module.Handle))
+		pairs = append(pairs, "{{module.ID}}", fns(p.module.ID))
+		pairs = append(pairs, "{{module.namespaceID}}", fns(p.module.NamespaceID))
 	}
-	pairs = append(pairs, "{bulkOperation}", fns(p.bulkOperation))
-	pairs = append(pairs, "{field}", fns(p.field))
-	pairs = append(pairs, "{value}", fns(p.value))
+	pairs = append(pairs, "{{bulkOperation}}", fns(p.bulkOperation))
+	pairs = append(pairs, "{{field}}", fns(p.field))
+	pairs = append(pairs, "{{value}}", fns(p.value))
 
 	if p.valueErrors != nil {
-		// replacement for "{valueErrors}" (in order how fields are defined)
+		// replacement for "{{valueErrors}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{valueErrors}",
+			"{{valueErrors}}",
 			fns(
 				p.valueErrors.Set,
 			),
 		)
-		pairs = append(pairs, "{valueErrors.set}", fns(p.valueErrors.Set))
+		pairs = append(pairs, "{{valueErrors.set}}", fns(p.valueErrors.Set))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -400,7 +401,7 @@ func RecordActionLookup(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "lookup",
-		log:       "looked-up for a {record}",
+		log:       "looked-up for a {{record}}",
 		severity:  actionlog.Info,
 	}
 
@@ -460,7 +461,7 @@ func RecordActionCreate(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "create",
-		log:       "created {record}",
+		log:       "created {{record}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -480,7 +481,7 @@ func RecordActionUpdate(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "update",
-		log:       "updated {record}",
+		log:       "updated {{record}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -500,7 +501,7 @@ func RecordActionDelete(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "delete",
-		log:       "deleted {record}",
+		log:       "deleted {{record}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -520,7 +521,7 @@ func RecordActionUndelete(props ...*recordActionProps) *recordAction {
 		timestamp: time.Now(),
 		resource:  "compose:record",
 		action:    "undelete",
-		log:       "undeleted {record}",
+		log:       "undeleted {{record}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -718,6 +719,10 @@ func RecordErrGeneric(mm ...*recordActionProps) *errors.Error {
 		errors.Meta(recordLogMetaKey{}, "{err}"),
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -747,6 +752,10 @@ func RecordErrNotFound(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -778,6 +787,10 @@ func RecordErrNamespaceNotFound(mm ...*recordActionProps) *errors.Error {
 
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.namespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -807,6 +820,10 @@ func RecordErrModuleNotFoundModule(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.moduleNotFoundModule"),
 
 		errors.StackSkip(1),
 	)
@@ -838,6 +855,10 @@ func RecordErrInvalidID(mm ...*recordActionProps) *errors.Error {
 
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -867,6 +888,10 @@ func RecordErrInvalidNamespaceID(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidNamespaceID"),
 
 		errors.StackSkip(1),
 	)
@@ -898,6 +923,10 @@ func RecordErrInvalidModuleID(mm ...*recordActionProps) *errors.Error {
 
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidModuleID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -928,6 +957,10 @@ func RecordErrStaleData(mm ...*recordActionProps) *errors.Error {
 
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -957,8 +990,12 @@ func RecordErrNotAllowedToRead(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to read {record}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to read {{record}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -992,6 +1029,10 @@ func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
 		errors.Meta(recordLogMetaKey{}, "failed to search or list records; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1021,8 +1062,12 @@ func RecordErrNotAllowedToReadNamespace(mm ...*recordActionProps) *errors.Error 
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to read namespace {namespace}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to read namespace {{namespace}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToReadNamespace"),
 
 		errors.StackSkip(1),
 	)
@@ -1053,8 +1098,12 @@ func RecordErrNotAllowedToReadModule(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to read module {module}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to read module {{module}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToReadModule"),
 
 		errors.StackSkip(1),
 	)
@@ -1088,6 +1137,10 @@ func RecordErrNotAllowedToListRecords(mm ...*recordActionProps) *errors.Error {
 		errors.Meta(recordLogMetaKey{}, "failed to list record; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToListRecords"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1120,6 +1173,10 @@ func RecordErrNotAllowedToCreate(mm ...*recordActionProps) *errors.Error {
 		errors.Meta(recordLogMetaKey{}, "failed to create record; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1149,8 +1206,12 @@ func RecordErrNotAllowedToUpdate(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to update {record}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to update {{record}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -1181,8 +1242,12 @@ func RecordErrNotAllowedToDelete(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to delete {record}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to delete {{record}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -1213,8 +1278,12 @@ func RecordErrNotAllowedToUndelete(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to undelete {record}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to undelete {{record}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -1239,14 +1308,18 @@ func RecordErrNotAllowedToChangeFieldValue(mm ...*recordActionProps) *errors.Err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to change value of field {field}", nil),
+		p.Format("not allowed to change value of field {{field}}", nil),
 
 		errors.Meta("type", "notAllowedToChangeFieldValue"),
 		errors.Meta("resource", "compose:record"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(recordLogMetaKey{}, "failed to change value of field {field}; insufficient permissions"),
+		errors.Meta(recordLogMetaKey{}, "failed to change value of field {{field}}; insufficient permissions"),
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.notAllowedToChangeFieldValue"),
 
 		errors.StackSkip(1),
 	)
@@ -1280,6 +1353,10 @@ func RecordErrImportSessionAlreadActive(mm ...*recordActionProps) *errors.Error 
 		errors.Meta(recordLogMetaKey{}, "failed to start import session"),
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.importSessionAlreadActive"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1303,12 +1380,16 @@ func RecordErrFieldNotFound(mm ...*recordActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("no such field {field}", nil),
+		p.Format("no such field {{field}}", nil),
 
 		errors.Meta("type", "fieldNotFound"),
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.fieldNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -1333,12 +1414,16 @@ func RecordErrInvalidValueStructure(mm ...*recordActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("more than one value for a single-value field {field}", nil),
+		p.Format("more than one value for a single-value field {{field}}", nil),
 
 		errors.Meta("type", "invalidValueStructure"),
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidValueStructure"),
 
 		errors.StackSkip(1),
 	)
@@ -1363,12 +1448,16 @@ func RecordErrUnknownBulkOperation(mm ...*recordActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("unknown bulk operation {bulkOperation}", nil),
+		p.Format("unknown bulk operation {{bulkOperation}}", nil),
 
 		errors.Meta("type", "unknownBulkOperation"),
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.unknownBulkOperation"),
 
 		errors.StackSkip(1),
 	)
@@ -1400,6 +1489,10 @@ func RecordErrInvalidReferenceFormat(mm ...*recordActionProps) *errors.Error {
 
 		errors.Meta(recordPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.invalidReferenceFormat"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1429,6 +1522,10 @@ func RecordErrValueInput(mm ...*recordActionProps) *errors.Error {
 		errors.Meta("resource", "compose:record"),
 
 		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.valueInput"),
 
 		errors.StackSkip(1),
 	)

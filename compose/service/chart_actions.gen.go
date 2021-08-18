@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -139,7 +140,7 @@ func (p chartActionProps) Serialize() actionlog.Meta {
 //
 func (p chartActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -159,10 +160,10 @@ func (p chartActionProps) Format(in string, err error) string {
 	}
 
 	if p.chart != nil {
-		// replacement for "{chart}" (in order how fields are defined)
+		// replacement for "{{chart}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{chart}",
+			"{{chart}}",
 			fns(
 				p.chart.Name,
 				p.chart.Handle,
@@ -170,17 +171,17 @@ func (p chartActionProps) Format(in string, err error) string {
 				p.chart.NamespaceID,
 			),
 		)
-		pairs = append(pairs, "{chart.name}", fns(p.chart.Name))
-		pairs = append(pairs, "{chart.handle}", fns(p.chart.Handle))
-		pairs = append(pairs, "{chart.ID}", fns(p.chart.ID))
-		pairs = append(pairs, "{chart.namespaceID}", fns(p.chart.NamespaceID))
+		pairs = append(pairs, "{{chart.name}}", fns(p.chart.Name))
+		pairs = append(pairs, "{{chart.handle}}", fns(p.chart.Handle))
+		pairs = append(pairs, "{{chart.ID}}", fns(p.chart.ID))
+		pairs = append(pairs, "{{chart.namespaceID}}", fns(p.chart.NamespaceID))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.Name,
 				p.changed.Handle,
@@ -189,18 +190,18 @@ func (p chartActionProps) Format(in string, err error) string {
 				p.changed.Config,
 			),
 		)
-		pairs = append(pairs, "{changed.name}", fns(p.changed.Name))
-		pairs = append(pairs, "{changed.handle}", fns(p.changed.Handle))
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.namespaceID}", fns(p.changed.NamespaceID))
-		pairs = append(pairs, "{changed.config}", fns(p.changed.Config))
+		pairs = append(pairs, "{{changed.name}}", fns(p.changed.Name))
+		pairs = append(pairs, "{{changed.handle}}", fns(p.changed.Handle))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.namespaceID}}", fns(p.changed.NamespaceID))
+		pairs = append(pairs, "{{changed.config}}", fns(p.changed.Config))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Handle,
@@ -209,27 +210,27 @@ func (p chartActionProps) Format(in string, err error) string {
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.namespaceID}", fns(p.filter.NamespaceID))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.namespaceID}}", fns(p.filter.NamespaceID))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
 				p.namespace.ID,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -295,7 +296,7 @@ func ChartActionLookup(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "lookup",
-		log:       "looked-up for a {chart}",
+		log:       "looked-up for a {{chart}}",
 		severity:  actionlog.Info,
 	}
 
@@ -315,7 +316,7 @@ func ChartActionCreate(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "create",
-		log:       "created {chart}",
+		log:       "created {{chart}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -335,7 +336,7 @@ func ChartActionUpdate(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "update",
-		log:       "updated {chart}",
+		log:       "updated {{chart}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -355,7 +356,7 @@ func ChartActionDelete(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "delete",
-		log:       "deleted {chart}",
+		log:       "deleted {{chart}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -375,7 +376,7 @@ func ChartActionUndelete(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "undelete",
-		log:       "undeleted {chart}",
+		log:       "undeleted {{chart}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -395,7 +396,7 @@ func ChartActionReorder(props ...*chartActionProps) *chartAction {
 		timestamp: time.Now(),
 		resource:  "compose:chart",
 		action:    "reorder",
-		log:       "reordered {chart}",
+		log:       "reordered {{chart}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -433,6 +434,10 @@ func ChartErrGeneric(mm ...*chartActionProps) *errors.Error {
 		errors.Meta(chartLogMetaKey{}, "{err}"),
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -462,6 +467,10 @@ func ChartErrNotFound(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -493,6 +502,10 @@ func ChartErrNamespaceNotFound(mm ...*chartActionProps) *errors.Error {
 
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.namespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -522,6 +535,10 @@ func ChartErrModuleNotFound(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.moduleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -553,6 +570,10 @@ func ChartErrInvalidID(mm ...*chartActionProps) *errors.Error {
 
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -583,6 +604,10 @@ func ChartErrInvalidHandle(mm ...*chartActionProps) *errors.Error {
 
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -612,8 +637,12 @@ func ChartErrHandleNotUnique(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "used duplicate handle ({chart.handle}) for chart"),
+		errors.Meta(chartLogMetaKey{}, "used duplicate handle ({{chart.handle}}) for chart"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -645,6 +674,10 @@ func ChartErrStaleData(mm ...*chartActionProps) *errors.Error {
 
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -675,6 +708,10 @@ func ChartErrInvalidNamespaceID(mm ...*chartActionProps) *errors.Error {
 
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.invalidNamespaceID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -704,8 +741,12 @@ func ChartErrNotAllowedToRead(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not read {chart}; insufficient permissions"),
+		errors.Meta(chartLogMetaKey{}, "could not read {{chart}}; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -739,6 +780,10 @@ func ChartErrNotAllowedToSearch(mm ...*chartActionProps) *errors.Error {
 		errors.Meta(chartLogMetaKey{}, "could not search or list charts; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -768,8 +813,12 @@ func ChartErrNotAllowedToReadNamespace(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(chartLogMetaKey{}, "could not read namespace {{namespace}}; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToReadNamespace"),
 
 		errors.StackSkip(1),
 	)
@@ -803,6 +852,10 @@ func ChartErrNotAllowedToCreate(mm ...*chartActionProps) *errors.Error {
 		errors.Meta(chartLogMetaKey{}, "could not create charts; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -832,8 +885,12 @@ func ChartErrNotAllowedToUpdate(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not update {chart}; insufficient permissions"),
+		errors.Meta(chartLogMetaKey{}, "could not update {{chart}}; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -864,8 +921,12 @@ func ChartErrNotAllowedToDelete(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not delete {chart}; insufficient permissions"),
+		errors.Meta(chartLogMetaKey{}, "could not delete {{chart}}; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -896,8 +957,12 @@ func ChartErrNotAllowedToUndelete(mm ...*chartActionProps) *errors.Error {
 		errors.Meta("resource", "compose:chart"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(chartLogMetaKey{}, "could not undelete {chart}; insufficient permissions"),
+		errors.Meta(chartLogMetaKey{}, "could not undelete {{chart}}; insufficient permissions"),
 		errors.Meta(chartPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "chart.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

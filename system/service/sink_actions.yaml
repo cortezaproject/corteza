@@ -36,7 +36,7 @@ actions:
 
 errors:
   - error: failedToSign
-    message: "could not sign request params: {err}"
+    message: "could not sign request params: {{err}}"
     severity: error
 
   - error: failedToCreateEvent

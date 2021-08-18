@@ -32,23 +32,23 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {reminder}"
+    log: "looked-up for a {{reminder}}"
     severity: info
 
   - action: create
-    log: "created {reminder}"
+    log: "created {{reminder}}"
 
   - action: update
-    log: "updated {reminder}"
+    log: "updated {{reminder}}"
 
   - action: delete
-    log: "deleted {reminder}"
+    log: "deleted {{reminder}}"
 
   - action: dismiss
-    log: "deleted {reminder}"
+    log: "deleted {{reminder}}"
 
   - action: snooze
-    log: "deleted {reminder}"
+    log: "deleted {{reminder}}"
 
 errors:
   - error: notFound

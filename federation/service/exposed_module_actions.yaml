@@ -38,20 +38,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {module}"
+    log: "looked-up for a {{module}}"
     severity: info
 
   - action: create
-    log: "created {module}"
+    log: "created {{module}}"
 
   - action: update
-    log: "updated {module}"
+    log: "updated {{module}}"
 
   - action: delete
-    log: "deleted {module}"
+    log: "deleted {{module}}"
 
   - action: undelete
-    log: "undeleted {module}"
+    log: "undeleted {{module}}"
 
 errors:
   - error: notFound
@@ -68,7 +68,7 @@ errors:
 
   - error: notUnique
     message: "node not unique"
-    log: "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module"
+    log: "used duplicate node TODO - {{module.NodeID}} for this compose module TODO - module.rel_compose_module"
     severity: warning
 
   - error: nodeNotFound
@@ -93,5 +93,5 @@ errors:
 
   - error: notAllowedToManage
     message: "not allowed to manage this module"
-    log: "could not manage {module}; insufficient permissions"
+    log: "could not manage {{module}}; insufficient permissions"
 

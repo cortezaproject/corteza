@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {route}"
+    log: "looked-up for a {{route}}"
     severity: info
 
   - action: create
-    log: "created {route}"
+    log: "created {{route}}"
 
   - action: update
-    log: "updated {route}"
+    log: "updated {{route}}"
 
   - action: delete
-    log: "deleted {route}"
+    log: "deleted {{route}}"
 
   - action: undelete
-    log: "undeleted {route}"
+    log: "undeleted {{route}}"
 
 errors:
   - error: notFound
@@ -74,21 +74,21 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this route"
-    log: "failed to read {route.endpoint}; insufficient permissions"
+    log: "failed to read {{route.endpoint}}; insufficient permissions"
 
   - error: notAllowedToUpdate
     message: "not allowed to update this route"
-    log: "failed to update {route.endpoint}; insufficient permissions"
+    log: "failed to update {{route.endpoint}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this route"
-    log: "failed to delete {route.endpoint}; insufficient permissions"
+    log: "failed to delete {{route.endpoint}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this route"
-    log: "failed to undelete {route.endpoint}; insufficient permissions"
+    log: "failed to undelete {{route.endpoint}}; insufficient permissions"
 
   - error: notAllowedToExec
     message: "not allowed to execute this route"
-    log: "failed to exec {route.endpoint}; insufficient permissions"
+    log: "failed to exec {{route.endpoint}}; insufficient permissions"
 

@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {report}"
+    log: "looked-up for a {{report}}"
     severity: info
 
   - action: create
-    log: "created {report}"
+    log: "created {{report}}"
 
   - action: update
-    log: "updated {report}"
+    log: "updated {{report}}"
 
   - action: delete
-    log: "deleted {report}"
+    log: "deleted {{report}}"
 
   - action: undelete
-    log: "undeleted {report}"
+    log: "undeleted {{report}}"
 
   - action: run
     log: report ran
@@ -61,7 +61,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this report"
-    log: "failed to read {report}; insufficient permissions"
+    log: "failed to read {{report}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to list or search reports"
@@ -77,16 +77,16 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this report"
-    log: "failed to update {report}; insufficient permissions"
+    log: "failed to update {{report}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this report"
-    log: "failed to delete {report}; insufficient permissions"
+    log: "failed to delete {{report}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this report"
-    log: "failed to undelete {report}; insufficient permissions"
+    log: "failed to undelete {{report}}; insufficient permissions"
 
   - error: notAllowedToRun
     message: "not allowed to run this report"
-    log: "failed to run {report}; insufficient permissions"
+    log: "failed to run {{report}}; insufficient permissions"

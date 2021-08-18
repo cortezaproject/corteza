@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -142,7 +143,7 @@ func (p moduleActionProps) Serialize() actionlog.Meta {
 //
 func (p moduleActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -162,10 +163,10 @@ func (p moduleActionProps) Format(in string, err error) string {
 	}
 
 	if p.module != nil {
-		// replacement for "{module}" (in order how fields are defined)
+		// replacement for "{{module}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{module}",
+			"{{module}}",
 			fns(
 				p.module.Name,
 				p.module.Handle,
@@ -173,17 +174,17 @@ func (p moduleActionProps) Format(in string, err error) string {
 				p.module.NamespaceID,
 			),
 		)
-		pairs = append(pairs, "{module.name}", fns(p.module.Name))
-		pairs = append(pairs, "{module.handle}", fns(p.module.Handle))
-		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
-		pairs = append(pairs, "{module.namespaceID}", fns(p.module.NamespaceID))
+		pairs = append(pairs, "{{module.name}}", fns(p.module.Name))
+		pairs = append(pairs, "{{module.handle}}", fns(p.module.Handle))
+		pairs = append(pairs, "{{module.ID}}", fns(p.module.ID))
+		pairs = append(pairs, "{{module.namespaceID}}", fns(p.module.NamespaceID))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.Name,
 				p.changed.Handle,
@@ -193,19 +194,19 @@ func (p moduleActionProps) Format(in string, err error) string {
 				p.changed.Fields,
 			),
 		)
-		pairs = append(pairs, "{changed.name}", fns(p.changed.Name))
-		pairs = append(pairs, "{changed.handle}", fns(p.changed.Handle))
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.namespaceID}", fns(p.changed.NamespaceID))
-		pairs = append(pairs, "{changed.meta}", fns(p.changed.Meta))
-		pairs = append(pairs, "{changed.fields}", fns(p.changed.Fields))
+		pairs = append(pairs, "{{changed.name}}", fns(p.changed.Name))
+		pairs = append(pairs, "{{changed.handle}}", fns(p.changed.Handle))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.namespaceID}}", fns(p.changed.NamespaceID))
+		pairs = append(pairs, "{{changed.meta}}", fns(p.changed.Meta))
+		pairs = append(pairs, "{{changed.fields}}", fns(p.changed.Fields))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Name,
@@ -216,29 +217,29 @@ func (p moduleActionProps) Format(in string, err error) string {
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.name}", fns(p.filter.Name))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.name}", fns(p.filter.Name))
-		pairs = append(pairs, "{filter.namespaceID}", fns(p.filter.NamespaceID))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.name}}", fns(p.filter.Name))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.name}}", fns(p.filter.Name))
+		pairs = append(pairs, "{{filter.namespaceID}}", fns(p.filter.NamespaceID))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
 				p.namespace.ID,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -304,7 +305,7 @@ func ModuleActionLookup(props ...*moduleActionProps) *moduleAction {
 		timestamp: time.Now(),
 		resource:  "compose:module",
 		action:    "lookup",
-		log:       "looked-up for a {module}",
+		log:       "looked-up for a {{module}}",
 		severity:  actionlog.Info,
 	}
 
@@ -324,7 +325,7 @@ func ModuleActionCreate(props ...*moduleActionProps) *moduleAction {
 		timestamp: time.Now(),
 		resource:  "compose:module",
 		action:    "create",
-		log:       "created {module}",
+		log:       "created {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -344,7 +345,7 @@ func ModuleActionUpdate(props ...*moduleActionProps) *moduleAction {
 		timestamp: time.Now(),
 		resource:  "compose:module",
 		action:    "update",
-		log:       "updated {module}",
+		log:       "updated {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -364,7 +365,7 @@ func ModuleActionDelete(props ...*moduleActionProps) *moduleAction {
 		timestamp: time.Now(),
 		resource:  "compose:module",
 		action:    "delete",
-		log:       "deleted {module}",
+		log:       "deleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -384,7 +385,7 @@ func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 		timestamp: time.Now(),
 		resource:  "compose:module",
 		action:    "undelete",
-		log:       "undeleted {module}",
+		log:       "undeleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -422,6 +423,10 @@ func ModuleErrGeneric(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta(moduleLogMetaKey{}, "{err}"),
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -451,6 +456,10 @@ func ModuleErrNotFound(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -482,6 +491,10 @@ func ModuleErrNamespaceNotFound(mm ...*moduleActionProps) *errors.Error {
 
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.namespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -511,6 +524,10 @@ func ModuleErrInvalidID(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -542,6 +559,10 @@ func ModuleErrInvalidHandle(mm ...*moduleActionProps) *errors.Error {
 
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -571,8 +592,12 @@ func ModuleErrHandleNotUnique(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "used duplicate handle ({module.handle}) for module"),
+		errors.Meta(moduleLogMetaKey{}, "used duplicate handle ({{module.handle}}) for module"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -603,8 +628,12 @@ func ModuleErrNameNotUnique(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "used duplicate username ({module.name}) for module"),
+		errors.Meta(moduleLogMetaKey{}, "used duplicate username ({{module.name}}) for module"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.nameNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -636,6 +665,10 @@ func ModuleErrStaleData(mm ...*moduleActionProps) *errors.Error {
 
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -666,6 +699,10 @@ func ModuleErrInvalidNamespaceID(mm ...*moduleActionProps) *errors.Error {
 
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.invalidNamespaceID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -695,8 +732,12 @@ func ModuleErrNotAllowedToRead(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "could not read {module}; insufficient permissions"),
+		errors.Meta(moduleLogMetaKey{}, "could not read {{module}}; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -730,6 +771,10 @@ func ModuleErrNotAllowedToSearch(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta(moduleLogMetaKey{}, "could not search or list modules; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -759,8 +804,12 @@ func ModuleErrNotAllowedToReadNamespace(mm ...*moduleActionProps) *errors.Error 
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(moduleLogMetaKey{}, "could not read namespace {{namespace}}; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToReadNamespace"),
 
 		errors.StackSkip(1),
 	)
@@ -794,6 +843,10 @@ func ModuleErrNotAllowedToListModules(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta(moduleLogMetaKey{}, "could not list modules; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToListModules"),
+
 		errors.StackSkip(1),
 	)
 
@@ -826,6 +879,10 @@ func ModuleErrNotAllowedToCreate(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta(moduleLogMetaKey{}, "could not create modules; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -855,8 +912,12 @@ func ModuleErrNotAllowedToUpdate(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "could not update {module}; insufficient permissions"),
+		errors.Meta(moduleLogMetaKey{}, "could not update {{module}}; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -887,8 +948,12 @@ func ModuleErrNotAllowedToDelete(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(moduleLogMetaKey{}, "could not delete {{module}}; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -919,8 +984,12 @@ func ModuleErrNotAllowedToUndelete(mm ...*moduleActionProps) *errors.Error {
 		errors.Meta("resource", "compose:module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(moduleLogMetaKey{}, "could not undelete {module}; insufficient permissions"),
+		errors.Meta(moduleLogMetaKey{}, "could not undelete {{module}}; insufficient permissions"),
 		errors.Meta(modulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "module.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

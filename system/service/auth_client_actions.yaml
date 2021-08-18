@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {authClient}"
+    log: "looked-up for a {{authClient}}"
     severity: info
 
   - action: create
-    log: "created {authClient}"
+    log: "created {{authClient}}"
 
   - action: update
-    log: "updated {authClient}"
+    log: "updated {{authClient}}"
 
   - action: delete
-    log: "deleted {authClient}"
+    log: "deleted {{authClient}}"
 
   - action: undelete
-    log: "undeleted {authClient}"
+    log: "undeleted {{authClient}}"
 
   - action: exposeSecret
     log: "secret exposed"
@@ -63,19 +63,19 @@ errors:
 
   - error: unableToChangeDefaultClientHandle
     message: "unable to change the handle of the default auth client"
-    log: "failed to update {authClient}; unable to change the default auth client handle"
+    log: "failed to update {{authClient}}; unable to change the default auth client handle"
 
   - error: unableToDisableDefaultClient
     message: "unable to disable the default auth client"
-    log: "failed to update {authClient}; unable to disable the default auth client"
+    log: "failed to update {{authClient}}; unable to disable the default auth client"
 
   - error: unableToDeleteDefaultClient
     message: "unable to delete the default auth client"
-    log: "failed to update {authClient}; unable to delete the default auth client"
+    log: "failed to update {{authClient}}; unable to delete the default auth client"
 
   - error: notAllowedToRead
     message: "not allowed to read this auth client"
-    log: "failed to read {authClient}; insufficient permissions"
+    log: "failed to read {{authClient}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list auth clients"
@@ -87,12 +87,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this auth client"
-    log: "failed to update {authClient}; insufficient permissions"
+    log: "failed to update {{authClient}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this auth client"
-    log: "failed to delete {authClient}; insufficient permissions"
+    log: "failed to delete {{authClient}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this auth client"
-    log: "failed to undelete {authClient}; insufficient permissions"
+    log: "failed to undelete {{authClient}}; insufficient permissions"
