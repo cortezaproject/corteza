@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -225,7 +226,7 @@ func (p attachmentActionProps) Serialize() actionlog.Meta {
 //
 func (p attachmentActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -243,16 +244,16 @@ func (p attachmentActionProps) Format(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{size}", fns(p.size))
-	pairs = append(pairs, "{name}", fns(p.name))
-	pairs = append(pairs, "{mimetype}", fns(p.mimetype))
-	pairs = append(pairs, "{url}", fns(p.url))
+	pairs = append(pairs, "{{size}}", fns(p.size))
+	pairs = append(pairs, "{{name}}", fns(p.name))
+	pairs = append(pairs, "{{mimetype}}", fns(p.mimetype))
+	pairs = append(pairs, "{{url}}", fns(p.url))
 
 	if p.attachment != nil {
-		// replacement for "{attachment}" (in order how fields are defined)
+		// replacement for "{{attachment}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{attachment}",
+			"{{attachment}}",
 			fns(
 				p.attachment.Name,
 				p.attachment.Kind,
@@ -264,94 +265,94 @@ func (p attachmentActionProps) Format(in string, err error) string {
 				p.attachment.NamespaceID,
 			),
 		)
-		pairs = append(pairs, "{attachment.name}", fns(p.attachment.Name))
-		pairs = append(pairs, "{attachment.kind}", fns(p.attachment.Kind))
-		pairs = append(pairs, "{attachment.url}", fns(p.attachment.Url))
-		pairs = append(pairs, "{attachment.previewUrl}", fns(p.attachment.PreviewUrl))
-		pairs = append(pairs, "{attachment.meta}", fns(p.attachment.Meta))
-		pairs = append(pairs, "{attachment.ownerID}", fns(p.attachment.OwnerID))
-		pairs = append(pairs, "{attachment.ID}", fns(p.attachment.ID))
-		pairs = append(pairs, "{attachment.namespaceID}", fns(p.attachment.NamespaceID))
+		pairs = append(pairs, "{{attachment.name}}", fns(p.attachment.Name))
+		pairs = append(pairs, "{{attachment.kind}}", fns(p.attachment.Kind))
+		pairs = append(pairs, "{{attachment.url}}", fns(p.attachment.Url))
+		pairs = append(pairs, "{{attachment.previewUrl}}", fns(p.attachment.PreviewUrl))
+		pairs = append(pairs, "{{attachment.meta}}", fns(p.attachment.Meta))
+		pairs = append(pairs, "{{attachment.ownerID}}", fns(p.attachment.OwnerID))
+		pairs = append(pairs, "{{attachment.ID}}", fns(p.attachment.ID))
+		pairs = append(pairs, "{{attachment.namespaceID}}", fns(p.attachment.NamespaceID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Filter,
 				p.filter.Kind,
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.filter}", fns(p.filter.Filter))
-		pairs = append(pairs, "{filter.kind}", fns(p.filter.Kind))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.filter}}", fns(p.filter.Filter))
+		pairs = append(pairs, "{{filter.kind}}", fns(p.filter.Kind))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
 				p.namespace.ID,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
 	}
 
 	if p.record != nil {
-		// replacement for "{record}" (in order how fields are defined)
+		// replacement for "{{record}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{record}",
+			"{{record}}",
 			fns(
 				p.record.ID,
 				p.record.ModuleID,
 				p.record.NamespaceID,
 			),
 		)
-		pairs = append(pairs, "{record.ID}", fns(p.record.ID))
-		pairs = append(pairs, "{record.moduleID}", fns(p.record.ModuleID))
-		pairs = append(pairs, "{record.namespaceID}", fns(p.record.NamespaceID))
+		pairs = append(pairs, "{{record.ID}}", fns(p.record.ID))
+		pairs = append(pairs, "{{record.moduleID}}", fns(p.record.ModuleID))
+		pairs = append(pairs, "{{record.namespaceID}}", fns(p.record.NamespaceID))
 	}
 
 	if p.page != nil {
-		// replacement for "{page}" (in order how fields are defined)
+		// replacement for "{{page}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{page}",
+			"{{page}}",
 			fns(
 				p.page.Handle,
 				p.page.Title,
 				p.page.ID,
 			),
 		)
-		pairs = append(pairs, "{page.handle}", fns(p.page.Handle))
-		pairs = append(pairs, "{page.title}", fns(p.page.Title))
-		pairs = append(pairs, "{page.ID}", fns(p.page.ID))
+		pairs = append(pairs, "{{page.handle}}", fns(p.page.Handle))
+		pairs = append(pairs, "{{page.title}}", fns(p.page.Title))
+		pairs = append(pairs, "{{page.ID}}", fns(p.page.ID))
 	}
 
 	if p.module != nil {
-		// replacement for "{module}" (in order how fields are defined)
+		// replacement for "{{module}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{module}",
+			"{{module}}",
 			fns(
 				p.module.Handle,
 				p.module.Name,
 				p.module.ID,
 			),
 		)
-		pairs = append(pairs, "{module.handle}", fns(p.module.Handle))
-		pairs = append(pairs, "{module.name}", fns(p.module.Name))
-		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
+		pairs = append(pairs, "{{module.handle}}", fns(p.module.Handle))
+		pairs = append(pairs, "{{module.name}}", fns(p.module.Name))
+		pairs = append(pairs, "{{module.ID}}", fns(p.module.ID))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -417,7 +418,7 @@ func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "compose:attachment",
 		action:    "lookup",
-		log:       "looked-up for a {attachment}",
+		log:       "looked-up for a {{attachment}}",
 		severity:  actionlog.Info,
 	}
 
@@ -437,7 +438,7 @@ func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "compose:attachment",
 		action:    "create",
-		log:       "created {attachment}",
+		log:       "created {{attachment}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -457,7 +458,7 @@ func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "compose:attachment",
 		action:    "delete",
-		log:       "deleted {attachment}",
+		log:       "deleted {{attachment}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -495,6 +496,10 @@ func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta(attachmentLogMetaKey{}, "{err}"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -524,6 +529,10 @@ func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -555,6 +564,10 @@ func AttachmentErrNamespaceNotFound(mm ...*attachmentActionProps) *errors.Error 
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.namespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -584,6 +597,10 @@ func AttachmentErrModuleNotFound(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.moduleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -615,6 +632,10 @@ func AttachmentErrPageNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.pageNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -644,6 +665,10 @@ func AttachmentErrRecordNotFound(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.recordNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -675,6 +700,10 @@ func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -704,6 +733,10 @@ func AttachmentErrInvalidNamespaceID(mm ...*attachmentActionProps) *errors.Error
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidNamespaceID"),
 
 		errors.StackSkip(1),
 	)
@@ -735,6 +768,10 @@ func AttachmentErrInvalidModuleID(mm ...*attachmentActionProps) *errors.Error {
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidModuleID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -765,6 +802,10 @@ func AttachmentErrInvalidPageID(mm ...*attachmentActionProps) *errors.Error {
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidPageID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -794,6 +835,10 @@ func AttachmentErrInvalidRecordID(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidRecordID"),
 
 		errors.StackSkip(1),
 	)
@@ -827,6 +872,10 @@ func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *err
 		errors.Meta(attachmentLogMetaKey{}, "could not list attachments; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToListAttachments"),
+
 		errors.StackSkip(1),
 	)
 
@@ -858,6 +907,10 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(attachmentLogMetaKey{}, "could not create attachments; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -891,6 +944,10 @@ func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps
 		errors.Meta(attachmentLogMetaKey{}, "failed to create attachment; empty file"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToCreateEmptyAttachment"),
+
 		errors.StackSkip(1),
 	)
 
@@ -920,6 +977,10 @@ func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.
 		errors.Meta("resource", "compose:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToExtractMimeType"),
 
 		errors.StackSkip(1),
 	)
@@ -951,6 +1012,10 @@ func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error 
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToStoreFile"),
+
 		errors.StackSkip(1),
 	)
 
@@ -981,6 +1046,10 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToProcessImage"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1010,8 +1079,12 @@ func AttachmentErrNotAllowedToRead(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not delete {module}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not delete {{module}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -1045,6 +1118,10 @@ func AttachmentErrNotAllowedToSearch(mm ...*attachmentActionProps) *errors.Error
 		errors.Meta(attachmentLogMetaKey{}, "could not search or list modules; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1074,8 +1151,12 @@ func AttachmentErrNotAllowedToReadNamespace(mm ...*attachmentActionProps) *error
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not delete {namespace}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not delete {{namespace}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToReadNamespace"),
 
 		errors.StackSkip(1),
 	)
@@ -1106,8 +1187,12 @@ func AttachmentErrNotAllowedToReadPage(mm ...*attachmentActionProps) *errors.Err
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not read {page}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not read {{page}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToReadPage"),
 
 		errors.StackSkip(1),
 	)
@@ -1138,8 +1223,12 @@ func AttachmentErrNotAllowedToReadRecord(mm ...*attachmentActionProps) *errors.E
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not read {record}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not read {{record}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToReadRecord"),
 
 		errors.StackSkip(1),
 	)
@@ -1170,8 +1259,12 @@ func AttachmentErrNotAllowedToUpdatePage(mm ...*attachmentActionProps) *errors.E
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not update {page}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not update {{page}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToUpdatePage"),
 
 		errors.StackSkip(1),
 	)
@@ -1205,6 +1298,10 @@ func AttachmentErrNotAllowedToCreateRecords(mm ...*attachmentActionProps) *error
 		errors.Meta(attachmentLogMetaKey{}, "could not create records; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToCreateRecords"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1234,8 +1331,12 @@ func AttachmentErrNotAllowedToUpdateRecord(mm ...*attachmentActionProps) *errors
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not update {record}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not update {{record}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToUpdateRecord"),
 
 		errors.StackSkip(1),
 	)
@@ -1266,8 +1367,12 @@ func AttachmentErrNotAllowedToUpdateNamespace(mm ...*attachmentActionProps) *err
 		errors.Meta("resource", "compose:attachment"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(attachmentLogMetaKey{}, "could not update {namespace}; insufficient permissions"),
+		errors.Meta(attachmentLogMetaKey{}, "could not update {{namespace}}; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToUpdateNamespace"),
 
 		errors.StackSkip(1),
 	)

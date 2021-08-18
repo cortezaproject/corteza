@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -156,7 +157,7 @@ func (p attachmentActionProps) Serialize() actionlog.Meta {
 //
 func (p attachmentActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -174,16 +175,16 @@ func (p attachmentActionProps) Format(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{size}", fns(p.size))
-	pairs = append(pairs, "{name}", fns(p.name))
-	pairs = append(pairs, "{mimetype}", fns(p.mimetype))
-	pairs = append(pairs, "{url}", fns(p.url))
+	pairs = append(pairs, "{{size}}", fns(p.size))
+	pairs = append(pairs, "{{name}}", fns(p.name))
+	pairs = append(pairs, "{{mimetype}}", fns(p.mimetype))
+	pairs = append(pairs, "{{url}}", fns(p.url))
 
 	if p.attachment != nil {
-		// replacement for "{attachment}" (in order how fields are defined)
+		// replacement for "{{attachment}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{attachment}",
+			"{{attachment}}",
 			fns(
 				p.attachment.Name,
 				p.attachment.Kind,
@@ -194,29 +195,29 @@ func (p attachmentActionProps) Format(in string, err error) string {
 				p.attachment.ID,
 			),
 		)
-		pairs = append(pairs, "{attachment.name}", fns(p.attachment.Name))
-		pairs = append(pairs, "{attachment.kind}", fns(p.attachment.Kind))
-		pairs = append(pairs, "{attachment.url}", fns(p.attachment.Url))
-		pairs = append(pairs, "{attachment.previewUrl}", fns(p.attachment.PreviewUrl))
-		pairs = append(pairs, "{attachment.meta}", fns(p.attachment.Meta))
-		pairs = append(pairs, "{attachment.ownerID}", fns(p.attachment.OwnerID))
-		pairs = append(pairs, "{attachment.ID}", fns(p.attachment.ID))
+		pairs = append(pairs, "{{attachment.name}}", fns(p.attachment.Name))
+		pairs = append(pairs, "{{attachment.kind}}", fns(p.attachment.Kind))
+		pairs = append(pairs, "{{attachment.url}}", fns(p.attachment.Url))
+		pairs = append(pairs, "{{attachment.previewUrl}}", fns(p.attachment.PreviewUrl))
+		pairs = append(pairs, "{{attachment.meta}}", fns(p.attachment.Meta))
+		pairs = append(pairs, "{{attachment.ownerID}}", fns(p.attachment.OwnerID))
+		pairs = append(pairs, "{{attachment.ID}}", fns(p.attachment.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Filter,
 				p.filter.Kind,
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.filter}", fns(p.filter.Filter))
-		pairs = append(pairs, "{filter.kind}", fns(p.filter.Kind))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.filter}}", fns(p.filter.Filter))
+		pairs = append(pairs, "{{filter.kind}}", fns(p.filter.Kind))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -282,7 +283,7 @@ func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "system:attachment",
 		action:    "lookup",
-		log:       "looked-up for a {attachment}",
+		log:       "looked-up for a {{attachment}}",
 		severity:  actionlog.Info,
 	}
 
@@ -302,7 +303,7 @@ func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "system:attachment",
 		action:    "create",
-		log:       "created {attachment}",
+		log:       "created {{attachment}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -322,7 +323,7 @@ func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 		timestamp: time.Now(),
 		resource:  "system:attachment",
 		action:    "delete",
-		log:       "deleted {attachment}",
+		log:       "deleted {{attachment}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -360,6 +361,10 @@ func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta(attachmentLogMetaKey{}, "{err}"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -390,6 +395,10 @@ func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -419,6 +428,10 @@ func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 		errors.Meta("resource", "system:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.invalidID"),
 
 		errors.StackSkip(1),
 	)
@@ -452,6 +465,10 @@ func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *err
 		errors.Meta(attachmentLogMetaKey{}, "failed to list attachment; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToListAttachments"),
+
 		errors.StackSkip(1),
 	)
 
@@ -483,6 +500,10 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(attachmentLogMetaKey{}, "failed to create attachment; insufficient permissions"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToCreate"),
 
 		errors.StackSkip(1),
 	)
@@ -516,6 +537,10 @@ func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps
 		errors.Meta(attachmentLogMetaKey{}, "failed to create attachment; empty file"),
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.notAllowedToCreateEmptyAttachment"),
+
 		errors.StackSkip(1),
 	)
 
@@ -545,6 +570,10 @@ func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.
 		errors.Meta("resource", "system:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToExtractMimeType"),
 
 		errors.StackSkip(1),
 	)
@@ -576,6 +605,10 @@ func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error 
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToStoreFile"),
+
 		errors.StackSkip(1),
 	)
 
@@ -605,6 +638,10 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 		errors.Meta("resource", "system:attachment"),
 
 		errors.Meta(attachmentPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "attachment.errors.failedToProcessImage"),
 
 		errors.StackSkip(1),
 	)

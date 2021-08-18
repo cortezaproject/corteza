@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -131,7 +132,7 @@ func (p moduleMappingActionProps) Serialize() actionlog.Meta {
 //
 func (p moduleMappingActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -151,61 +152,61 @@ func (p moduleMappingActionProps) Format(in string, err error) string {
 	}
 
 	if p.created != nil {
-		// replacement for "{created}" (in order how fields are defined)
+		// replacement for "{{created}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{created}",
+			"{{created}}",
 			fns(
 				p.created.FederationModuleID,
 				p.created.ComposeModuleID,
 			),
 		)
-		pairs = append(pairs, "{created.FederationModuleID}", fns(p.created.FederationModuleID))
-		pairs = append(pairs, "{created.ComposeModuleID}", fns(p.created.ComposeModuleID))
+		pairs = append(pairs, "{{created.FederationModuleID}}", fns(p.created.FederationModuleID))
+		pairs = append(pairs, "{{created.ComposeModuleID}}", fns(p.created.ComposeModuleID))
 	}
 
 	if p.mapping != nil {
-		// replacement for "{mapping}" (in order how fields are defined)
+		// replacement for "{{mapping}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{mapping}",
+			"{{mapping}}",
 			fns(
 				p.mapping.FederationModuleID,
 				p.mapping.ComposeModuleID,
 			),
 		)
-		pairs = append(pairs, "{mapping.FederationModuleID}", fns(p.mapping.FederationModuleID))
-		pairs = append(pairs, "{mapping.ComposeModuleID}", fns(p.mapping.ComposeModuleID))
+		pairs = append(pairs, "{{mapping.FederationModuleID}}", fns(p.mapping.FederationModuleID))
+		pairs = append(pairs, "{{mapping.ComposeModuleID}}", fns(p.mapping.ComposeModuleID))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.FederationModuleID,
 				p.changed.ComposeModuleID,
 			),
 		)
-		pairs = append(pairs, "{changed.FederationModuleID}", fns(p.changed.FederationModuleID))
-		pairs = append(pairs, "{changed.ComposeModuleID}", fns(p.changed.ComposeModuleID))
+		pairs = append(pairs, "{{changed.FederationModuleID}}", fns(p.changed.FederationModuleID))
+		pairs = append(pairs, "{{changed.ComposeModuleID}}", fns(p.changed.ComposeModuleID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Sort,
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -369,6 +370,10 @@ func ModuleMappingErrGeneric(mm ...*moduleMappingActionProps) *errors.Error {
 		errors.Meta(moduleMappingLogMetaKey{}, "{err}"),
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -398,6 +403,10 @@ func ModuleMappingErrNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 		errors.Meta("resource", "federation:module_mapping"),
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -429,6 +438,10 @@ func ModuleMappingErrComposeModuleNotFound(mm ...*moduleMappingActionProps) *err
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.composeModuleNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -458,6 +471,10 @@ func ModuleMappingErrComposeNamespaceNotFound(mm ...*moduleMappingActionProps) *
 		errors.Meta("resource", "federation:module_mapping"),
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.composeNamespaceNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -489,6 +506,10 @@ func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.federationModuleNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -519,6 +540,10 @@ func ModuleMappingErrNodeNotFound(mm ...*moduleMappingActionProps) *errors.Error
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.nodeNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -548,6 +573,10 @@ func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *error
 		errors.Meta("resource", "federation:module_mapping"),
 
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.moduleMappingExists"),
 
 		errors.StackSkip(1),
 	)
@@ -580,6 +609,10 @@ func ModuleMappingErrNotAllowedToMap(mm ...*moduleMappingActionProps) *errors.Er
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(moduleMappingLogMetaKey{}, "could not manage mapping; insufficient permissions"),
 		errors.Meta(moduleMappingPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "moduleMapping.errors.notAllowedToMap"),
 
 		errors.StackSkip(1),
 	)

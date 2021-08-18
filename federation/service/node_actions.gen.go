@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -113,7 +114,7 @@ func (p nodeActionProps) Serialize() actionlog.Meta {
 //
 func (p nodeActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -133,10 +134,10 @@ func (p nodeActionProps) Format(in string, err error) string {
 	}
 
 	if p.node != nil {
-		// replacement for "{node}" (in order how fields are defined)
+		// replacement for "{{node}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{node}",
+			"{{node}}",
 			fns(
 				p.node.Name,
 				p.node.BaseURL,
@@ -144,25 +145,25 @@ func (p nodeActionProps) Format(in string, err error) string {
 				p.node.Status,
 			),
 		)
-		pairs = append(pairs, "{node.Name}", fns(p.node.Name))
-		pairs = append(pairs, "{node.BaseURL}", fns(p.node.BaseURL))
-		pairs = append(pairs, "{node.ID}", fns(p.node.ID))
-		pairs = append(pairs, "{node.Status}", fns(p.node.Status))
+		pairs = append(pairs, "{{node.Name}}", fns(p.node.Name))
+		pairs = append(pairs, "{{node.BaseURL}}", fns(p.node.BaseURL))
+		pairs = append(pairs, "{{node.ID}}", fns(p.node.ID))
+		pairs = append(pairs, "{{node.Status}}", fns(p.node.Status))
 	}
-	pairs = append(pairs, "{pairingURI}", fns(p.pairingURI))
+	pairs = append(pairs, "{{pairingURI}}", fns(p.pairingURI))
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Status,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.status}", fns(p.filter.Status))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.status}}", fns(p.filter.Status))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -228,7 +229,7 @@ func NodeActionLookup(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "lookup",
-		log:       "looked-up for a {node}",
+		log:       "looked-up for a {{node}}",
 		severity:  actionlog.Info,
 	}
 
@@ -248,7 +249,7 @@ func NodeActionCreate(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "create",
-		log:       "created {node}",
+		log:       "created {{node}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -268,7 +269,7 @@ func NodeActionCreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "createFromPairingURI",
-		log:       "created {node} from pairing URI",
+		log:       "created {{node}} from pairing URI",
 		severity:  actionlog.Notice,
 	}
 
@@ -288,7 +289,7 @@ func NodeActionRecreateFromPairingURI(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "recreateFromPairingURI",
-		log:       "recreate {node} from pairing URI",
+		log:       "recreate {{node}} from pairing URI",
 		severity:  actionlog.Notice,
 	}
 
@@ -308,7 +309,7 @@ func NodeActionUpdate(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "update",
-		log:       "updated {node}",
+		log:       "updated {{node}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -328,7 +329,7 @@ func NodeActionDelete(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "delete",
-		log:       "deleted {node}",
+		log:       "deleted {{node}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -348,7 +349,7 @@ func NodeActionUndelete(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "undelete",
-		log:       "undeleted {node}",
+		log:       "undeleted {{node}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -368,7 +369,7 @@ func NodeActionOttRegenerated(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "ottRegenerated",
-		log:       "regenerated one-time-token for {node}",
+		log:       "regenerated one-time-token for {{node}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -388,7 +389,7 @@ func NodeActionPair(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "pair",
-		log:       "{node} pairing started",
+		log:       "{{node}} pairing started",
 		severity:  actionlog.Notice,
 	}
 
@@ -408,7 +409,7 @@ func NodeActionHandshakeInit(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "handshakeInit",
-		log:       "{node} handshake initialized",
+		log:       "{{node}} handshake initialized",
 		severity:  actionlog.Notice,
 	}
 
@@ -428,7 +429,7 @@ func NodeActionHandshakeConfirm(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "handshakeConfirm",
-		log:       "{node} handshake confirmed",
+		log:       "{{node}} handshake confirmed",
 		severity:  actionlog.Notice,
 	}
 
@@ -448,7 +449,7 @@ func NodeActionHandshakeComplete(props ...*nodeActionProps) *nodeAction {
 		timestamp: time.Now(),
 		resource:  "federation:node",
 		action:    "handshakeComplete",
-		log:       "{node} handshake completed",
+		log:       "{{node}} handshake completed",
 		severity:  actionlog.Notice,
 	}
 
@@ -486,6 +487,10 @@ func NodeErrGeneric(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta(nodeLogMetaKey{}, "{err}"),
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -516,6 +521,10 @@ func NodeErrNotFound(mm ...*nodeActionProps) *errors.Error {
 
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.notFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -539,12 +548,16 @@ func NodeErrPairingURIInvalid(mm ...*nodeActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("pairing URI invalid: {err}", nil),
+		p.Format("pairing URI invalid: {{err}}", nil),
 
 		errors.Meta("type", "pairingURIInvalid"),
 		errors.Meta("resource", "federation:node"),
 
 		errors.Meta(nodePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.pairingURIInvalid"),
 
 		errors.StackSkip(1),
 	)
@@ -576,6 +589,10 @@ func NodeErrPairingURITokenInvalid(mm ...*nodeActionProps) *errors.Error {
 
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.pairingURITokenInvalid"),
+
 		errors.StackSkip(1),
 	)
 
@@ -606,6 +623,10 @@ func NodeErrPairingURISourceIDInvalid(mm ...*nodeActionProps) *errors.Error {
 
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.pairingURISourceIDInvalid"),
+
 		errors.StackSkip(1),
 	)
 
@@ -635,6 +656,10 @@ func NodeErrPairingTokenInvalid(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta("resource", "federation:node"),
 
 		errors.Meta(nodePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.pairingTokenInvalid"),
 
 		errors.StackSkip(1),
 	)
@@ -668,6 +693,10 @@ func NodeErrNotAllowedToCreate(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta(nodeLogMetaKey{}, "could not create nodes; insufficient permissions"),
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -700,6 +729,10 @@ func NodeErrNotAllowedToSearch(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta(nodeLogMetaKey{}, "could not search or list nodes; insufficient permissions"),
 		errors.Meta(nodePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -729,8 +762,12 @@ func NodeErrNotAllowedToManage(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta("resource", "federation:node"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(nodeLogMetaKey{}, "could not manage {node}; insufficient permissions"),
+		errors.Meta(nodeLogMetaKey{}, "could not manage {{node}}; insufficient permissions"),
 		errors.Meta(nodePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)
@@ -761,8 +798,12 @@ func NodeErrNotAllowedToPair(mm ...*nodeActionProps) *errors.Error {
 		errors.Meta("resource", "federation:node"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(nodeLogMetaKey{}, "could not pair {node}; insufficient permissions"),
+		errors.Meta(nodeLogMetaKey{}, "could not pair {{node}}; insufficient permissions"),
 		errors.Meta(nodePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "node.errors.notAllowedToPair"),
 
 		errors.StackSkip(1),
 	)

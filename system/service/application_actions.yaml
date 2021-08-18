@@ -35,26 +35,26 @@ actions:
     log: "reordered applications"
 
   - action: lookup
-    log: "looked-up for a {application}"
+    log: "looked-up for a {{application}}"
     severity: info
 
   - action: create
-    log: "created {application}"
+    log: "created {{application}}"
 
   - action: update
-    log: "updated {application}"
+    log: "updated {{application}}"
 
   - action: delete
-    log: "deleted {application}"
+    log: "deleted {{application}}"
 
   - action: undelete
-    log: "undeleted {application}"
+    log: "undeleted {{application}}"
 
   - action: flagManage
-    log: "managed flags for application {application}"
+    log: "managed flags for application {{application}}"
 
   - action: flagManageGlobal
-    log: "managed global flags for application {application}"
+    log: "managed global flags for application {{application}}"
 
 errors:
   - error: notFound
@@ -67,7 +67,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this application"
-    log: "failed to read {application.name}; insufficient permissions"
+    log: "failed to read {{application.name}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list applications"
@@ -79,20 +79,20 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this application"
-    log: "failed to update {application.name}; insufficient permissions"
+    log: "failed to update {{application.name}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this application"
-    log: "failed to delete {application.name}; insufficient permissions"
+    log: "failed to delete {{application.name}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this application"
-    log: "failed to undelete {application.name}; insufficient permissions"
+    log: "failed to undelete {{application.name}}; insufficient permissions"
 
   - error: notAllowedToManageFlag
     message: "not allowed to manage flags for applications"
-    log: "failed to manage flags {application.name}; insufficient permissions"
+    log: "failed to manage flags {{application.name}}; insufficient permissions"
 
   - error: notAllowedToManageFlagGlobal
     message: "not allowed to manage global flags for applications"
-    log: "failed to manage global flags {application.name}; insufficient permissions"
+    log: "failed to manage global flags {{application.name}}; insufficient permissions"

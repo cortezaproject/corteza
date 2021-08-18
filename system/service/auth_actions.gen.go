@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -146,7 +147,7 @@ func (p authActionProps) Serialize() actionlog.Meta {
 //
 func (p authActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -164,46 +165,46 @@ func (p authActionProps) Format(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{email}", fns(p.email))
-	pairs = append(pairs, "{provider}", fns(p.provider))
+	pairs = append(pairs, "{{email}}", fns(p.email))
+	pairs = append(pairs, "{{provider}}", fns(p.provider))
 
 	if p.credentials != nil {
-		// replacement for "{credentials}" (in order how fields are defined)
+		// replacement for "{{credentials}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{credentials}",
+			"{{credentials}}",
 			fns(
 				p.credentials.Kind,
 				p.credentials.Label,
 				p.credentials.ID,
 			),
 		)
-		pairs = append(pairs, "{credentials.kind}", fns(p.credentials.Kind))
-		pairs = append(pairs, "{credentials.label}", fns(p.credentials.Label))
-		pairs = append(pairs, "{credentials.ID}", fns(p.credentials.ID))
+		pairs = append(pairs, "{{credentials.kind}}", fns(p.credentials.Kind))
+		pairs = append(pairs, "{{credentials.label}}", fns(p.credentials.Label))
+		pairs = append(pairs, "{{credentials.ID}}", fns(p.credentials.ID))
 	}
 
 	if p.role != nil {
-		// replacement for "{role}" (in order how fields are defined)
+		// replacement for "{{role}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{role}",
+			"{{role}}",
 			fns(
 				p.role.Handle,
 				p.role.Name,
 				p.role.ID,
 			),
 		)
-		pairs = append(pairs, "{role.handle}", fns(p.role.Handle))
-		pairs = append(pairs, "{role.name}", fns(p.role.Name))
-		pairs = append(pairs, "{role.ID}", fns(p.role.ID))
+		pairs = append(pairs, "{{role.handle}}", fns(p.role.Handle))
+		pairs = append(pairs, "{{role.name}}", fns(p.role.Name))
+		pairs = append(pairs, "{{role.ID}}", fns(p.role.ID))
 	}
 
 	if p.user != nil {
-		// replacement for "{user}" (in order how fields are defined)
+		// replacement for "{{user}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{user}",
+			"{{user}}",
 			fns(
 				p.user.Handle,
 				p.user.Name,
@@ -213,12 +214,12 @@ func (p authActionProps) Format(in string, err error) string {
 				p.user.DeletedAt,
 			),
 		)
-		pairs = append(pairs, "{user.handle}", fns(p.user.Handle))
-		pairs = append(pairs, "{user.name}", fns(p.user.Name))
-		pairs = append(pairs, "{user.ID}", fns(p.user.ID))
-		pairs = append(pairs, "{user.email}", fns(p.user.Email))
-		pairs = append(pairs, "{user.suspendedAt}", fns(p.user.SuspendedAt))
-		pairs = append(pairs, "{user.deletedAt}", fns(p.user.DeletedAt))
+		pairs = append(pairs, "{{user.handle}}", fns(p.user.Handle))
+		pairs = append(pairs, "{{user.name}}", fns(p.user.Name))
+		pairs = append(pairs, "{{user.ID}}", fns(p.user.ID))
+		pairs = append(pairs, "{{user.email}}", fns(p.user.Email))
+		pairs = append(pairs, "{{user.suspendedAt}}", fns(p.user.SuspendedAt))
+		pairs = append(pairs, "{{user.deletedAt}}", fns(p.user.DeletedAt))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -264,7 +265,7 @@ func AuthActionAuthenticate(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "authenticate",
-		log:       "successfully authenticated with {credentials.kind}",
+		log:       "successfully authenticated with {{credentials.kind}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -284,7 +285,7 @@ func AuthActionIssueToken(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "issueToken",
-		log:       "token '{credentials.kind}' issued",
+		log:       "token '{{credentials.kind}}' issued",
 		severity:  actionlog.Notice,
 	}
 
@@ -304,7 +305,7 @@ func AuthActionValidateToken(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "validateToken",
-		log:       "token '{credentials.kind}' validated",
+		log:       "token '{{credentials.kind}}' validated",
 		severity:  actionlog.Notice,
 	}
 
@@ -344,7 +345,7 @@ func AuthActionInternalSignup(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "internalSignup",
-		log:       "{user.email} signed-up",
+		log:       "{{user.email}} signed-up",
 		severity:  actionlog.Notice,
 	}
 
@@ -364,7 +365,7 @@ func AuthActionConfirmEmail(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "confirmEmail",
-		log:       "email {user.email} confirmed",
+		log:       "email {{user.email}} confirmed",
 		severity:  actionlog.Notice,
 	}
 
@@ -384,7 +385,7 @@ func AuthActionExternalSignup(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "externalSignup",
-		log:       "{user.email} signed-up after successful external authentication via {credentials.kind}",
+		log:       "{{user.email}} signed-up after successful external authentication via {{credentials.kind}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -404,7 +405,7 @@ func AuthActionSendEmailConfirmationToken(props ...*authActionProps) *authAction
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "sendEmailConfirmationToken",
-		log:       "confirmation notification sent to {email}",
+		log:       "confirmation notification sent to {{email}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -424,7 +425,7 @@ func AuthActionSendPasswordResetToken(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "sendPasswordResetToken",
-		log:       "password reset token sent to {email}",
+		log:       "password reset token sent to {{email}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -464,7 +465,7 @@ func AuthActionAutoPromote(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "autoPromote",
-		log:       "auto-promoted to {role}",
+		log:       "auto-promoted to {{role}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -484,7 +485,7 @@ func AuthActionUpdateCredentials(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "updateCredentials",
-		log:       "credentials {credentials.kind} updated",
+		log:       "credentials {{credentials.kind}} updated",
 		severity:  actionlog.Notice,
 	}
 
@@ -504,7 +505,7 @@ func AuthActionCreateCredentials(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "createCredentials",
-		log:       "new credentials {credentials.kind} created",
+		log:       "new credentials {{credentials.kind}} created",
 		severity:  actionlog.Notice,
 	}
 
@@ -524,7 +525,7 @@ func AuthActionImpersonate(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "impersonate",
-		log:       "impersonating {user}",
+		log:       "impersonating {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -544,7 +545,7 @@ func AuthActionTotpConfigure(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "totpConfigure",
-		log:       "time-based one-time-password for {user} configured",
+		log:       "time-based one-time-password for {{user}} configured",
 		severity:  actionlog.Notice,
 	}
 
@@ -564,7 +565,7 @@ func AuthActionTotpRemove(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "totpRemove",
-		log:       "time-based one-time-password for {user} removed",
+		log:       "time-based one-time-password for {{user}} removed",
 		severity:  actionlog.Notice,
 	}
 
@@ -584,7 +585,7 @@ func AuthActionTotpValidate(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "totpValidate",
-		log:       "time-based one-time-password for {user} validated",
+		log:       "time-based one-time-password for {{user}} validated",
 		severity:  actionlog.Notice,
 	}
 
@@ -604,7 +605,7 @@ func AuthActionEmailOtpVerify(props ...*authActionProps) *authAction {
 		timestamp: time.Now(),
 		resource:  "system:auth",
 		action:    "emailOtpVerify",
-		log:       "email one-time-password for {user} verified",
+		log:       "email one-time-password for {{user}} verified",
 		severity:  actionlog.Notice,
 	}
 
@@ -642,6 +643,10 @@ func AuthErrGeneric(mm ...*authActionProps) *errors.Error {
 		errors.Meta(authLogMetaKey{}, "{err}"),
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -671,8 +676,12 @@ func AuthErrInvalidCredentials(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "{email} failed to authenticate with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "{{email}} failed to authenticate with {{credentials.kind}}"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidCredentials"),
 
 		errors.StackSkip(1),
 	)
@@ -704,6 +713,10 @@ func AuthErrInvalidEmailFormat(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidEmailFormat"),
+
 		errors.StackSkip(1),
 	)
 
@@ -733,6 +746,10 @@ func AuthErrInvalidHandle(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidHandle"),
 
 		errors.StackSkip(1),
 	)
@@ -764,8 +781,12 @@ func AuthErrFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "unknown user {email} tried to log-in with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "unknown user {{email}} tried to log-in with {{credentials.kind}}"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.failedForUnknownUser"),
 
 		errors.StackSkip(1),
 	)
@@ -800,8 +821,12 @@ func AuthErrFailedForDeletedUser(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "deleted user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "deleted user {{user}} tried to log-in with {{credentials.kind}}"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.failedForDeletedUser"),
 
 		errors.StackSkip(1),
 	)
@@ -836,8 +861,12 @@ func AuthErrFailedForSuspendedUser(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "suspended user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "suspended user {{user}} tried to log-in with {{credentials.kind}}"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.failedForSuspendedUser"),
 
 		errors.StackSkip(1),
 	)
@@ -872,8 +901,12 @@ func AuthErrFailedForSystemUser(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "system user {user} tried to log-in with {credentials.kind}"),
+		errors.Meta(authLogMetaKey{}, "system user {{user}} tried to log-in with {{credentials.kind}}"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.failedForSystemUser"),
 
 		errors.StackSkip(1),
 	)
@@ -910,6 +943,10 @@ func AuthErrFailedUnconfirmedEmail(mm ...*authActionProps) *errors.Error {
 		errors.Meta(authLogMetaKey{}, "failed to log-in with with unconfirmed email"),
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.failedUnconfirmedEmail"),
+
 		errors.StackSkip(1),
 	)
 
@@ -939,6 +976,10 @@ func AuthErrInternalLoginDisabledByConfig(mm ...*authActionProps) *errors.Error 
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.internalLoginDisabledByConfig"),
 
 		errors.StackSkip(1),
 	)
@@ -970,6 +1011,10 @@ func AuthErrInternalSignupDisabledByConfig(mm ...*authActionProps) *errors.Error
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.internalSignupDisabledByConfig"),
+
 		errors.StackSkip(1),
 	)
 
@@ -999,6 +1044,10 @@ func AuthErrPasswordChangeFailedForUnknownUser(mm ...*authActionProps) *errors.E
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordChangeFailedForUnknownUser"),
 
 		errors.StackSkip(1),
 	)
@@ -1030,6 +1079,10 @@ func AuthErrPasswodResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *er
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwodResetFailedOldPasswordCheckFailed"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1060,6 +1113,10 @@ func AuthErrPasswordResetDisabledByConfig(mm ...*authActionProps) *errors.Error 
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordResetDisabledByConfig"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1089,6 +1146,10 @@ func AuthErrPasswordNotSecure(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordNotSecure"),
 
 		errors.StackSkip(1),
 	)
@@ -1122,6 +1183,10 @@ func AuthErrExternalDisabledByConfig(mm ...*authActionProps) *errors.Error {
 		errors.Meta(authLogMetaKey{}, "external authentication is disabled"),
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.externalDisabledByConfig"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1151,8 +1216,12 @@ func AuthErrProfileWithoutValidEmail(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(authLogMetaKey{}, "external authentication provider {credentials.kind} returned profile without valid email"),
+		errors.Meta(authLogMetaKey{}, "external authentication provider {{credentials.kind}} returned profile without valid email"),
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.profileWithoutValidEmail"),
 
 		errors.StackSkip(1),
 	)
@@ -1177,12 +1246,16 @@ func AuthErrCredentialsLinkedToInvalidUser(mm ...*authActionProps) *errors.Error
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("credentials {credentials.kind} linked to disabled or deleted user {user}", nil),
+		p.Format("credentials {{credentials.kind}} linked to disabled or deleted user {{user}}", nil),
 
 		errors.Meta("type", "credentialsLinkedToInvalidUser"),
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.credentialsLinkedToInvalidUser"),
 
 		errors.StackSkip(1),
 	)
@@ -1214,6 +1287,10 @@ func AuthErrInvalidToken(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidToken"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1243,6 +1320,10 @@ func AuthErrNotAllowedToImpersonate(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.notAllowedToImpersonate"),
 
 		errors.StackSkip(1),
 	)
@@ -1274,6 +1355,10 @@ func AuthErrNotAllowedToRemoveTOTP(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.notAllowedToRemoveTOTP"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1303,6 +1388,10 @@ func AuthErrUnconfiguredTOTP(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.unconfiguredTOTP"),
 
 		errors.StackSkip(1),
 	)
@@ -1334,6 +1423,10 @@ func AuthErrNotAllowedToConfigureTOTP(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.notAllowedToConfigureTOTP"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1363,6 +1456,10 @@ func AuthErrEnforcedMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.enforcedMFAWithTOTP"),
 
 		errors.StackSkip(1),
 	)
@@ -1394,6 +1491,10 @@ func AuthErrInvalidTOTP(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidTOTP"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1423,6 +1524,10 @@ func AuthErrDisabledMFAWithTOTP(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.disabledMFAWithTOTP"),
 
 		errors.StackSkip(1),
 	)
@@ -1454,6 +1559,10 @@ func AuthErrDisabledMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.disabledMFAWithEmailOTP"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1484,6 +1593,10 @@ func AuthErrEnforcedMFAWithEmailOTP(mm ...*authActionProps) *errors.Error {
 
 		errors.Meta(authPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.enforcedMFAWithEmailOTP"),
+
 		errors.StackSkip(1),
 	)
 
@@ -1513,6 +1626,10 @@ func AuthErrInvalidEmailOTP(mm ...*authActionProps) *errors.Error {
 		errors.Meta("resource", "system:auth"),
 
 		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.invalidEmailOTP"),
 
 		errors.StackSkip(1),
 	)

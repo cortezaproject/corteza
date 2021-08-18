@@ -41,7 +41,7 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {record}"
+    log: "looked-up for a {{record}}"
     severity: info
 
   - action: report
@@ -52,16 +52,16 @@ actions:
     log: "bulk record operation"
 
   - action: create
-    log: "created {record}"
+    log: "created {{record}}"
 
   - action: update
-    log: "updated {record}"
+    log: "updated {{record}}"
 
   - action: delete
-    log: "deleted {record}"
+    log: "deleted {{record}}"
 
   - action: undelete
-    log: "undeleted {record}"
+    log: "undeleted {{record}}"
 
   - action: import
     log: "records imported"
@@ -118,7 +118,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this record"
-    log: "failed to read {record}; insufficient permissions"
+    log: "failed to read {{record}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list records"
@@ -126,11 +126,11 @@ errors:
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
-    log: "failed to read namespace {namespace}; insufficient permissions"
+    log: "failed to read namespace {{namespace}}; insufficient permissions"
 
   - error: notAllowedToReadModule
     message: "not allowed to read module"
-    log: "failed to read module {module}; insufficient permissions"
+    log: "failed to read module {{module}}; insufficient permissions"
 
   - error: notAllowedToListRecords
     message: "not allowed to list records"
@@ -142,19 +142,19 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this record"
-    log: "failed to update {record}; insufficient permissions"
+    log: "failed to update {{record}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this record"
-    log: "failed to delete {record}; insufficient permissions"
+    log: "failed to delete {{record}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this record"
-    log: "failed to undelete {record}; insufficient permissions"
+    log: "failed to undelete {{record}}; insufficient permissions"
 
   - error: notAllowedToChangeFieldValue
-    message: "not allowed to change value of field {field}"
-    log: "failed to change value of field {field}; insufficient permissions"
+    message: "not allowed to change value of field {{field}}"
+    log: "failed to change value of field {{field}}; insufficient permissions"
 
 
   - error: importSessionAlreadActive
@@ -162,13 +162,13 @@ errors:
     log: "failed to start import session"
 
   - error: fieldNotFound
-    message: "no such field {field}"
+    message: "no such field {{field}}"
 
   - error: invalidValueStructure
-    message: "more than one value for a single-value field {field}"
+    message: "more than one value for a single-value field {{field}}"
 
   - error: unknownBulkOperation
-    message: "unknown bulk operation {bulkOperation}"
+    message: "unknown bulk operation {{bulkOperation}}"
 
   - error: invalidReferenceFormat
     message: "invalid reference format"

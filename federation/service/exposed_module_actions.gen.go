@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -171,7 +172,7 @@ func (p exposedModuleActionProps) Serialize() actionlog.Meta {
 //
 func (p exposedModuleActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -191,10 +192,10 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 	}
 
 	if p.module != nil {
-		// replacement for "{module}" (in order how fields are defined)
+		// replacement for "{{module}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{module}",
+			"{{module}}",
 			fns(
 				p.module.ID,
 				p.module.ComposeNamespaceID,
@@ -202,17 +203,17 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 				p.module.NodeID,
 			),
 		)
-		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
-		pairs = append(pairs, "{module.ComposeNamespaceID}", fns(p.module.ComposeNamespaceID))
-		pairs = append(pairs, "{module.ComposeModuleID}", fns(p.module.ComposeModuleID))
-		pairs = append(pairs, "{module.NodeID}", fns(p.module.NodeID))
+		pairs = append(pairs, "{{module.ID}}", fns(p.module.ID))
+		pairs = append(pairs, "{{module.ComposeNamespaceID}}", fns(p.module.ComposeNamespaceID))
+		pairs = append(pairs, "{{module.ComposeModuleID}}", fns(p.module.ComposeModuleID))
+		pairs = append(pairs, "{{module.NodeID}}", fns(p.module.NodeID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.ID,
 				p.update.ComposeNamespaceID,
@@ -220,17 +221,17 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 				p.update.NodeID,
 			),
 		)
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
-		pairs = append(pairs, "{update.ComposeNamespaceID}", fns(p.update.ComposeNamespaceID))
-		pairs = append(pairs, "{update.ComposeModuleID}", fns(p.update.ComposeModuleID))
-		pairs = append(pairs, "{update.NodeID}", fns(p.update.NodeID))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.ComposeNamespaceID}}", fns(p.update.ComposeNamespaceID))
+		pairs = append(pairs, "{{update.ComposeModuleID}}", fns(p.update.ComposeModuleID))
+		pairs = append(pairs, "{{update.NodeID}}", fns(p.update.NodeID))
 	}
 
 	if p.create != nil {
-		// replacement for "{create}" (in order how fields are defined)
+		// replacement for "{{create}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{create}",
+			"{{create}}",
 			fns(
 				p.create.ID,
 				p.create.ComposeNamespaceID,
@@ -238,17 +239,17 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 				p.create.NodeID,
 			),
 		)
-		pairs = append(pairs, "{create.ID}", fns(p.create.ID))
-		pairs = append(pairs, "{create.ComposeNamespaceID}", fns(p.create.ComposeNamespaceID))
-		pairs = append(pairs, "{create.ComposeModuleID}", fns(p.create.ComposeModuleID))
-		pairs = append(pairs, "{create.NodeID}", fns(p.create.NodeID))
+		pairs = append(pairs, "{{create.ID}}", fns(p.create.ID))
+		pairs = append(pairs, "{{create.ComposeNamespaceID}}", fns(p.create.ComposeNamespaceID))
+		pairs = append(pairs, "{{create.ComposeModuleID}}", fns(p.create.ComposeModuleID))
+		pairs = append(pairs, "{{create.NodeID}}", fns(p.create.NodeID))
 	}
 
 	if p.delete != nil {
-		// replacement for "{delete}" (in order how fields are defined)
+		// replacement for "{{delete}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{delete}",
+			"{{delete}}",
 			fns(
 				p.delete.ID,
 				p.delete.ComposeNamespaceID,
@@ -256,40 +257,40 @@ func (p exposedModuleActionProps) Format(in string, err error) string {
 				p.delete.NodeID,
 			),
 		)
-		pairs = append(pairs, "{delete.ID}", fns(p.delete.ID))
-		pairs = append(pairs, "{delete.ComposeNamespaceID}", fns(p.delete.ComposeNamespaceID))
-		pairs = append(pairs, "{delete.ComposeModuleID}", fns(p.delete.ComposeModuleID))
-		pairs = append(pairs, "{delete.NodeID}", fns(p.delete.NodeID))
+		pairs = append(pairs, "{{delete.ID}}", fns(p.delete.ID))
+		pairs = append(pairs, "{{delete.ComposeNamespaceID}}", fns(p.delete.ComposeNamespaceID))
+		pairs = append(pairs, "{{delete.ComposeModuleID}}", fns(p.delete.ComposeModuleID))
+		pairs = append(pairs, "{{delete.NodeID}}", fns(p.delete.NodeID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Sort,
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.node != nil {
-		// replacement for "{node}" (in order how fields are defined)
+		// replacement for "{{node}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{node}",
+			"{{node}}",
 			fns(
 				p.node.ID,
 				p.node.Name,
 			),
 		)
-		pairs = append(pairs, "{node.ID}", fns(p.node.ID))
-		pairs = append(pairs, "{node.Name}", fns(p.node.Name))
+		pairs = append(pairs, "{{node.ID}}", fns(p.node.ID))
+		pairs = append(pairs, "{{node.Name}}", fns(p.node.Name))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -355,7 +356,7 @@ func ExposedModuleActionLookup(props ...*exposedModuleActionProps) *exposedModul
 		timestamp: time.Now(),
 		resource:  "federation:exposed_module",
 		action:    "lookup",
-		log:       "looked-up for a {module}",
+		log:       "looked-up for a {{module}}",
 		severity:  actionlog.Info,
 	}
 
@@ -375,7 +376,7 @@ func ExposedModuleActionCreate(props ...*exposedModuleActionProps) *exposedModul
 		timestamp: time.Now(),
 		resource:  "federation:exposed_module",
 		action:    "create",
-		log:       "created {module}",
+		log:       "created {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -395,7 +396,7 @@ func ExposedModuleActionUpdate(props ...*exposedModuleActionProps) *exposedModul
 		timestamp: time.Now(),
 		resource:  "federation:exposed_module",
 		action:    "update",
-		log:       "updated {module}",
+		log:       "updated {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -415,7 +416,7 @@ func ExposedModuleActionDelete(props ...*exposedModuleActionProps) *exposedModul
 		timestamp: time.Now(),
 		resource:  "federation:exposed_module",
 		action:    "delete",
-		log:       "deleted {module}",
+		log:       "deleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -435,7 +436,7 @@ func ExposedModuleActionUndelete(props ...*exposedModuleActionProps) *exposedMod
 		timestamp: time.Now(),
 		resource:  "federation:exposed_module",
 		action:    "undelete",
-		log:       "undeleted {module}",
+		log:       "undeleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -473,6 +474,10 @@ func ExposedModuleErrGeneric(mm ...*exposedModuleActionProps) *errors.Error {
 		errors.Meta(exposedModuleLogMetaKey{}, "{err}"),
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -502,6 +507,10 @@ func ExposedModuleErrNotFound(mm ...*exposedModuleActionProps) *errors.Error {
 		errors.Meta("resource", "federation:exposed_module"),
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -533,6 +542,10 @@ func ExposedModuleErrInvalidID(mm ...*exposedModuleActionProps) *errors.Error {
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -563,6 +576,10 @@ func ExposedModuleErrStaleData(mm ...*exposedModuleActionProps) *errors.Error {
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -592,8 +609,12 @@ func ExposedModuleErrNotUnique(mm ...*exposedModuleActionProps) *errors.Error {
 		errors.Meta("resource", "federation:exposed_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "used duplicate node TODO - {module.NodeID} for this compose module TODO - module.rel_compose_module"),
+		errors.Meta(exposedModuleLogMetaKey{}, "used duplicate node TODO - {{module.NodeID}} for this compose module TODO - module.rel_compose_module"),
 		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -625,6 +646,10 @@ func ExposedModuleErrNodeNotFound(mm ...*exposedModuleActionProps) *errors.Error
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.nodeNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -654,6 +679,10 @@ func ExposedModuleErrComposeModuleNotFound(mm ...*exposedModuleActionProps) *err
 		errors.Meta("resource", "federation:exposed_module"),
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.composeModuleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -685,6 +714,10 @@ func ExposedModuleErrComposeNamespaceNotFound(mm ...*exposedModuleActionProps) *
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.composeNamespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -714,6 +747,10 @@ func ExposedModuleErrRequestParametersInvalid(mm ...*exposedModuleActionProps) *
 		errors.Meta("resource", "federation:exposed_module"),
 
 		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.requestParametersInvalid"),
 
 		errors.StackSkip(1),
 	)
@@ -747,6 +784,10 @@ func ExposedModuleErrNotAllowedToCreate(mm ...*exposedModuleActionProps) *errors
 		errors.Meta(exposedModuleLogMetaKey{}, "could not create modules; insufficient permissions"),
 		errors.Meta(exposedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -776,8 +817,12 @@ func ExposedModuleErrNotAllowedToManage(mm ...*exposedModuleActionProps) *errors
 		errors.Meta("resource", "federation:exposed_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(exposedModuleLogMetaKey{}, "could not manage {module}; insufficient permissions"),
+		errors.Meta(exposedModuleLogMetaKey{}, "could not manage {{module}}; insufficient permissions"),
 		errors.Meta(exposedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "exposedModule.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

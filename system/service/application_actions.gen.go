@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -132,7 +133,7 @@ func (p applicationActionProps) Serialize() actionlog.Meta {
 //
 func (p applicationActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -152,52 +153,52 @@ func (p applicationActionProps) Format(in string, err error) string {
 	}
 
 	if p.application != nil {
-		// replacement for "{application}" (in order how fields are defined)
+		// replacement for "{{application}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{application}",
+			"{{application}}",
 			fns(
 				p.application.Name,
 				p.application.ID,
 			),
 		)
-		pairs = append(pairs, "{application.name}", fns(p.application.Name))
-		pairs = append(pairs, "{application.ID}", fns(p.application.ID))
+		pairs = append(pairs, "{{application.name}}", fns(p.application.Name))
+		pairs = append(pairs, "{{application.ID}}", fns(p.application.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Name,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.name}", fns(p.new.Name))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Name,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.name}", fns(p.update.Name))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Name,
@@ -205,10 +206,10 @@ func (p applicationActionProps) Format(in string, err error) string {
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.name}", fns(p.filter.Name))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.name}}", fns(p.filter.Name))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -294,7 +295,7 @@ func ApplicationActionLookup(props ...*applicationActionProps) *applicationActio
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "lookup",
-		log:       "looked-up for a {application}",
+		log:       "looked-up for a {{application}}",
 		severity:  actionlog.Info,
 	}
 
@@ -314,7 +315,7 @@ func ApplicationActionCreate(props ...*applicationActionProps) *applicationActio
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "create",
-		log:       "created {application}",
+		log:       "created {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -334,7 +335,7 @@ func ApplicationActionUpdate(props ...*applicationActionProps) *applicationActio
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "update",
-		log:       "updated {application}",
+		log:       "updated {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -354,7 +355,7 @@ func ApplicationActionDelete(props ...*applicationActionProps) *applicationActio
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "delete",
-		log:       "deleted {application}",
+		log:       "deleted {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -374,7 +375,7 @@ func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAct
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "undelete",
-		log:       "undeleted {application}",
+		log:       "undeleted {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -394,7 +395,7 @@ func ApplicationActionFlagManage(props ...*applicationActionProps) *applicationA
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "flagManage",
-		log:       "managed flags for application {application}",
+		log:       "managed flags for application {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -414,7 +415,7 @@ func ApplicationActionFlagManageGlobal(props ...*applicationActionProps) *applic
 		timestamp: time.Now(),
 		resource:  "system:application",
 		action:    "flagManageGlobal",
-		log:       "managed global flags for application {application}",
+		log:       "managed global flags for application {{application}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -452,6 +453,10 @@ func ApplicationErrGeneric(mm ...*applicationActionProps) *errors.Error {
 		errors.Meta(applicationLogMetaKey{}, "{err}"),
 		errors.Meta(applicationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -481,6 +486,10 @@ func ApplicationErrNotFound(mm ...*applicationActionProps) *errors.Error {
 		errors.Meta("resource", "system:application"),
 
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -512,6 +521,10 @@ func ApplicationErrInvalidID(mm ...*applicationActionProps) *errors.Error {
 
 		errors.Meta(applicationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -541,8 +554,12 @@ func ApplicationErrNotAllowedToRead(mm ...*applicationActionProps) *errors.Error
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to read {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to read {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -576,6 +593,10 @@ func ApplicationErrNotAllowedToSearch(mm ...*applicationActionProps) *errors.Err
 		errors.Meta(applicationLogMetaKey{}, "failed to search or list applications; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -608,6 +629,10 @@ func ApplicationErrNotAllowedToCreate(mm ...*applicationActionProps) *errors.Err
 		errors.Meta(applicationLogMetaKey{}, "failed to create application; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -637,8 +662,12 @@ func ApplicationErrNotAllowedToUpdate(mm ...*applicationActionProps) *errors.Err
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to update {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to update {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -669,8 +698,12 @@ func ApplicationErrNotAllowedToDelete(mm ...*applicationActionProps) *errors.Err
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to delete {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to delete {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -701,8 +734,12 @@ func ApplicationErrNotAllowedToUndelete(mm ...*applicationActionProps) *errors.E
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to undelete {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to undelete {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -733,8 +770,12 @@ func ApplicationErrNotAllowedToManageFlag(mm ...*applicationActionProps) *errors
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to manage flags {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to manage flags {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToManageFlag"),
 
 		errors.StackSkip(1),
 	)
@@ -765,8 +806,12 @@ func ApplicationErrNotAllowedToManageFlagGlobal(mm ...*applicationActionProps) *
 		errors.Meta("resource", "system:application"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(applicationLogMetaKey{}, "failed to manage global flags {application.name}; insufficient permissions"),
+		errors.Meta(applicationLogMetaKey{}, "failed to manage global flags {{application.name}}; insufficient permissions"),
 		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.notAllowedToManageFlagGlobal"),
 
 		errors.StackSkip(1),
 	)

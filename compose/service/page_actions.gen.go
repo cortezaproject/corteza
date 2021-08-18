@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -146,7 +147,7 @@ func (p pageActionProps) Serialize() actionlog.Meta {
 //
 func (p pageActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -166,10 +167,10 @@ func (p pageActionProps) Format(in string, err error) string {
 	}
 
 	if p.page != nil {
-		// replacement for "{page}" (in order how fields are defined)
+		// replacement for "{{page}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{page}",
+			"{{page}}",
 			fns(
 				p.page.Title,
 				p.page.Handle,
@@ -178,18 +179,18 @@ func (p pageActionProps) Format(in string, err error) string {
 				p.page.ModuleID,
 			),
 		)
-		pairs = append(pairs, "{page.title}", fns(p.page.Title))
-		pairs = append(pairs, "{page.handle}", fns(p.page.Handle))
-		pairs = append(pairs, "{page.ID}", fns(p.page.ID))
-		pairs = append(pairs, "{page.namespaceID}", fns(p.page.NamespaceID))
-		pairs = append(pairs, "{page.moduleID}", fns(p.page.ModuleID))
+		pairs = append(pairs, "{{page.title}}", fns(p.page.Title))
+		pairs = append(pairs, "{{page.handle}}", fns(p.page.Handle))
+		pairs = append(pairs, "{{page.ID}}", fns(p.page.ID))
+		pairs = append(pairs, "{{page.namespaceID}}", fns(p.page.NamespaceID))
+		pairs = append(pairs, "{{page.moduleID}}", fns(p.page.ModuleID))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.Title,
 				p.changed.Handle,
@@ -202,22 +203,22 @@ func (p pageActionProps) Format(in string, err error) string {
 				p.changed.Weight,
 			),
 		)
-		pairs = append(pairs, "{changed.title}", fns(p.changed.Title))
-		pairs = append(pairs, "{changed.handle}", fns(p.changed.Handle))
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.namespaceID}", fns(p.changed.NamespaceID))
-		pairs = append(pairs, "{changed.description}", fns(p.changed.Description))
-		pairs = append(pairs, "{changed.moduleID}", fns(p.changed.ModuleID))
-		pairs = append(pairs, "{changed.blocks}", fns(p.changed.Blocks))
-		pairs = append(pairs, "{changed.visible}", fns(p.changed.Visible))
-		pairs = append(pairs, "{changed.weight}", fns(p.changed.Weight))
+		pairs = append(pairs, "{{changed.title}}", fns(p.changed.Title))
+		pairs = append(pairs, "{{changed.handle}}", fns(p.changed.Handle))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.namespaceID}}", fns(p.changed.NamespaceID))
+		pairs = append(pairs, "{{changed.description}}", fns(p.changed.Description))
+		pairs = append(pairs, "{{changed.moduleID}}", fns(p.changed.ModuleID))
+		pairs = append(pairs, "{{changed.blocks}}", fns(p.changed.Blocks))
+		pairs = append(pairs, "{{changed.visible}}", fns(p.changed.Visible))
+		pairs = append(pairs, "{{changed.weight}}", fns(p.changed.Weight))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Handle,
@@ -228,29 +229,29 @@ func (p pageActionProps) Format(in string, err error) string {
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.root}", fns(p.filter.Root))
-		pairs = append(pairs, "{filter.namespaceID}", fns(p.filter.NamespaceID))
-		pairs = append(pairs, "{filter.parentID}", fns(p.filter.ParentID))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.root}}", fns(p.filter.Root))
+		pairs = append(pairs, "{{filter.namespaceID}}", fns(p.filter.NamespaceID))
+		pairs = append(pairs, "{{filter.parentID}}", fns(p.filter.ParentID))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
 				p.namespace.ID,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -316,7 +317,7 @@ func PageActionLookup(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "lookup",
-		log:       "looked-up for a {page}",
+		log:       "looked-up for a {{page}}",
 		severity:  actionlog.Info,
 	}
 
@@ -336,7 +337,7 @@ func PageActionCreate(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "create",
-		log:       "created {page}",
+		log:       "created {{page}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -356,7 +357,7 @@ func PageActionUpdate(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "update",
-		log:       "updated {page}",
+		log:       "updated {{page}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -376,7 +377,7 @@ func PageActionDelete(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "delete",
-		log:       "deleted {page}",
+		log:       "deleted {{page}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -396,7 +397,7 @@ func PageActionUndelete(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "undelete",
-		log:       "undeleted {page}",
+		log:       "undeleted {{page}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -416,7 +417,7 @@ func PageActionReorder(props ...*pageActionProps) *pageAction {
 		timestamp: time.Now(),
 		resource:  "compose:page",
 		action:    "reorder",
-		log:       "reordered {page}",
+		log:       "reordered {{page}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -454,6 +455,10 @@ func PageErrGeneric(mm ...*pageActionProps) *errors.Error {
 		errors.Meta(pageLogMetaKey{}, "{err}"),
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -483,6 +488,10 @@ func PageErrNotFound(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -514,6 +523,10 @@ func PageErrNamespaceNotFound(mm ...*pageActionProps) *errors.Error {
 
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.namespaceNotFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -543,6 +556,10 @@ func PageErrModuleNotFound(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.moduleNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -574,6 +591,10 @@ func PageErrInvalidID(mm ...*pageActionProps) *errors.Error {
 
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -604,6 +625,10 @@ func PageErrInvalidHandle(mm ...*pageActionProps) *errors.Error {
 
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -633,8 +658,12 @@ func PageErrHandleNotUnique(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "used duplicate handle ({page.handle}) for page"),
+		errors.Meta(pageLogMetaKey{}, "used duplicate handle ({{page.handle}}) for page"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -666,6 +695,10 @@ func PageErrStaleData(mm ...*pageActionProps) *errors.Error {
 
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -696,6 +729,10 @@ func PageErrInvalidNamespaceID(mm ...*pageActionProps) *errors.Error {
 
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.invalidNamespaceID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -725,8 +762,12 @@ func PageErrNotAllowedToRead(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "could not read {page}; insufficient permissions"),
+		errors.Meta(pageLogMetaKey{}, "could not read {{page}}; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -760,6 +801,10 @@ func PageErrNotAllowedToSearch(mm ...*pageActionProps) *errors.Error {
 		errors.Meta(pageLogMetaKey{}, "could not search pages; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -789,8 +834,12 @@ func PageErrNotAllowedToReadNamespace(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "could not read namespace {namespace}; insufficient permissions"),
+		errors.Meta(pageLogMetaKey{}, "could not read namespace {{namespace}}; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToReadNamespace"),
 
 		errors.StackSkip(1),
 	)
@@ -824,6 +873,10 @@ func PageErrNotAllowedToListPages(mm ...*pageActionProps) *errors.Error {
 		errors.Meta(pageLogMetaKey{}, "could not list pages; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToListPages"),
+
 		errors.StackSkip(1),
 	)
 
@@ -856,6 +909,10 @@ func PageErrNotAllowedToCreate(mm ...*pageActionProps) *errors.Error {
 		errors.Meta(pageLogMetaKey{}, "could not create pages; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -885,8 +942,12 @@ func PageErrNotAllowedToUpdate(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "could not update {page}; insufficient permissions"),
+		errors.Meta(pageLogMetaKey{}, "could not update {{page}}; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -917,8 +978,12 @@ func PageErrNotAllowedToDelete(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "could not delete {page}; insufficient permissions"),
+		errors.Meta(pageLogMetaKey{}, "could not delete {{page}}; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -949,8 +1014,12 @@ func PageErrNotAllowedToUndelete(mm ...*pageActionProps) *errors.Error {
 		errors.Meta("resource", "compose:page"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(pageLogMetaKey{}, "could not undelete {page}; insufficient permissions"),
+		errors.Meta(pageLogMetaKey{}, "could not undelete {{page}}; insufficient permissions"),
 		errors.Meta(pagePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

@@ -32,13 +32,13 @@ actions:
 
 errors:
   - error: failedToLoadUser
-    message: "could not load user for {recipient}"
+    message: "could not load user for {{recipient}}"
 
   - error: invalidReceipientFormat
-    message: "invalid recipient format ({recipient})"
+    message: "invalid recipient format ({{recipient}})"
 
   - error: noRecipients
     message: "cannot send email message without recipients"
 
   - error: failedToDownloadAttachment
-    message: "could not download attachment from {attachmentURL}: {err}"
+    message: "could not download attachment from {{attachmentURL}}: {{err}}"

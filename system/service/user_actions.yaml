@@ -35,38 +35,38 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {user}"
+    log: "looked-up for a {{user}}"
     severity: info
 
   - action: create
-    log: "created {user}"
+    log: "created {{user}}"
 
   - action: update
-    log: "updated {user}"
+    log: "updated {{user}}"
 
   - action: delete
-    log: "deleted {user}"
+    log: "deleted {{user}}"
 
   - action: undelete
-    log: "undeleted {user}"
+    log: "undeleted {{user}}"
 
   - action: suspend
-    log: "suspended {user}"
+    log: "suspended {{user}}"
 
   - action: unsuspend
-    log: "unsuspended {user}"
+    log: "unsuspended {{user}}"
 
   - action: setPassword
-    log: "password changed for {user}"
+    log: "password changed for {{user}}"
 
   - action: removePassword
-    log: "password removed for {user}"
+    log: "password removed for {{user}}"
 
   - action: deleteAuthTokens
-    log: "deleted auth tokens of {user}"
+    log: "deleted auth tokens of {{user}}"
 
   - action: deleteAuthSessions
-    log: "deleted auth sessions of {user}"
+    log: "deleted auth sessions of {{user}}"
 
 errors:
   - error: notFound
@@ -87,7 +87,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this user"
-    log: "failed to read {user.handle}; insufficient permissions"
+    log: "failed to read {{user.handle}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to list or search users"
@@ -107,7 +107,7 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this user"
-    log: "failed to update {user.handle}; insufficient permissions"
+    log: "failed to update {{user.handle}}; insufficient permissions"
 
   - error: notAllowedToUpdateSystem
     message: "not allowed to update system users"
@@ -115,33 +115,33 @@ errors:
 
   - error: notAllowedToDelete
     message: "not allowed to delete this user"
-    log: "failed to delete {user.handle}; insufficient permissions"
+    log: "failed to delete {{user.handle}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this user"
-    log: "failed to undelete {user.handle}; insufficient permissions"
+    log: "failed to undelete {{user.handle}}; insufficient permissions"
 
   - error: notAllowedToSuspend
     message: "not allowed to suspend this user"
-    log: "failed to suspend {user.handle}; insufficient permissions"
+    log: "failed to suspend {{user.handle}}; insufficient permissions"
 
   - error: notAllowedToUnsuspend
     message: "not allowed to unsuspend this user"
-    log: "failed to unsuspend {user.handle}; insufficient permissions"
+    log: "failed to unsuspend {{user.handle}}; insufficient permissions"
 
   - error: handleNotUnique
     message: "handle not unique"
-    log: "used duplicate handle ({user.handle}) for user"
+    log: "used duplicate handle ({{user.handle}}) for user"
     severity: warning
 
   - error: emailNotUnique
     message: "email not unique"
-    log: "used duplicate email ({user.email}) for user"
+    log: "used duplicate email ({{user.email}}) for user"
     severity: warning
 
   - error: usernameNotUnique
     message: "username not unique"
-    log: "used duplicate username ({user.username}) for user"
+    log: "used duplicate username ({{user.username}}) for user"
     severity: warning
 
   - error: passwordNotSecure

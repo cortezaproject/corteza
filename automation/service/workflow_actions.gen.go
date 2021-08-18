@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -146,7 +147,7 @@ func (p workflowActionProps) Serialize() actionlog.Meta {
 //
 func (p workflowActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -166,52 +167,52 @@ func (p workflowActionProps) Format(in string, err error) string {
 	}
 
 	if p.workflow != nil {
-		// replacement for "{workflow}" (in order how fields are defined)
+		// replacement for "{{workflow}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{workflow}",
+			"{{workflow}}",
 			fns(
 				p.workflow.Handle,
 				p.workflow.ID,
 			),
 		)
-		pairs = append(pairs, "{workflow.handle}", fns(p.workflow.Handle))
-		pairs = append(pairs, "{workflow.ID}", fns(p.workflow.ID))
+		pairs = append(pairs, "{{workflow.handle}}", fns(p.workflow.Handle))
+		pairs = append(pairs, "{{workflow.ID}}", fns(p.workflow.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.trigger != nil {
-		// replacement for "{trigger}" (in order how fields are defined)
+		// replacement for "{{trigger}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{trigger}",
+			"{{trigger}}",
 			fns(
 				p.trigger.EventType,
 				p.trigger.ResourceType,
@@ -219,17 +220,17 @@ func (p workflowActionProps) Format(in string, err error) string {
 				p.trigger.StepID,
 			),
 		)
-		pairs = append(pairs, "{trigger.eventType}", fns(p.trigger.EventType))
-		pairs = append(pairs, "{trigger.resourceType}", fns(p.trigger.ResourceType))
-		pairs = append(pairs, "{trigger.ID}", fns(p.trigger.ID))
-		pairs = append(pairs, "{trigger.stepID}", fns(p.trigger.StepID))
+		pairs = append(pairs, "{{trigger.eventType}}", fns(p.trigger.EventType))
+		pairs = append(pairs, "{{trigger.resourceType}}", fns(p.trigger.ResourceType))
+		pairs = append(pairs, "{{trigger.ID}}", fns(p.trigger.ID))
+		pairs = append(pairs, "{{trigger.stepID}}", fns(p.trigger.StepID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(),
 		)
 	}
@@ -297,7 +298,7 @@ func WorkflowActionLookup(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "lookup",
-		log:       "looked-up for a {workflow}",
+		log:       "looked-up for a {{workflow}}",
 		severity:  actionlog.Info,
 	}
 
@@ -317,7 +318,7 @@ func WorkflowActionCreate(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "create",
-		log:       "created {workflow}",
+		log:       "created {{workflow}}",
 		severity:  actionlog.Info,
 	}
 
@@ -337,7 +338,7 @@ func WorkflowActionUpdate(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "update",
-		log:       "updated {workflow}",
+		log:       "updated {{workflow}}",
 		severity:  actionlog.Info,
 	}
 
@@ -357,7 +358,7 @@ func WorkflowActionDelete(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "delete",
-		log:       "deleted {workflow}",
+		log:       "deleted {{workflow}}",
 		severity:  actionlog.Info,
 	}
 
@@ -377,7 +378,7 @@ func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "undelete",
-		log:       "undeleted {workflow}",
+		log:       "undeleted {{workflow}}",
 		severity:  actionlog.Info,
 	}
 
@@ -397,7 +398,7 @@ func WorkflowActionExecute(props ...*workflowActionProps) *workflowAction {
 		timestamp: time.Now(),
 		resource:  "automation:workflow",
 		action:    "execute",
-		log:       "{workflow} executed",
+		log:       "{{workflow}} executed",
 		severity:  actionlog.Info,
 	}
 
@@ -435,6 +436,10 @@ func WorkflowErrGeneric(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta(workflowLogMetaKey{}, "{err}"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -464,6 +469,10 @@ func WorkflowErrNotFound(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -495,6 +504,10 @@ func WorkflowErrInvalidID(mm ...*workflowActionProps) *errors.Error {
 
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -524,6 +537,10 @@ func WorkflowErrDisabled(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.disabled"),
 
 		errors.StackSkip(1),
 	)
@@ -555,6 +572,10 @@ func WorkflowErrInvalidHandle(mm ...*workflowActionProps) *errors.Error {
 
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -585,6 +606,10 @@ func WorkflowErrStaleData(mm ...*workflowActionProps) *errors.Error {
 
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -614,8 +639,12 @@ func WorkflowErrNotAllowedToRead(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to read {workflow.handle}; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to read {{workflow.handle}}; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -649,6 +678,10 @@ func WorkflowErrNotAllowedToSearch(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta(workflowLogMetaKey{}, "failed to search or list workflow; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -681,6 +714,10 @@ func WorkflowErrNotAllowedToCreate(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta(workflowLogMetaKey{}, "failed to create workflow; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -710,8 +747,12 @@ func WorkflowErrNotAllowedToUpdate(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to update {workflow}; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to update {{workflow}}; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -742,8 +783,12 @@ func WorkflowErrNotAllowedToDelete(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to delete {workflow}; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to delete {{workflow}}; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -774,8 +819,12 @@ func WorkflowErrNotAllowedToUndelete(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to undelete {workflow}; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to undelete {{workflow}}; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -806,8 +855,12 @@ func WorkflowErrNotAllowedToExecute(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow}; insufficient permissions"),
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {{workflow}}; insufficient permissions"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToExecute"),
 
 		errors.StackSkip(1),
 	)
@@ -838,8 +891,12 @@ func WorkflowErrUnknownWorkflowStep(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow}; unknown workflow step"),
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {{workflow}}; unknown workflow step"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.unknownWorkflowStep"),
 
 		errors.StackSkip(1),
 	)
@@ -870,8 +927,12 @@ func WorkflowErrHandleNotUnique(mm ...*workflowActionProps) *errors.Error {
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "duplicate handle used for workflow ({workflow})"),
+		errors.Meta(workflowLogMetaKey{}, "duplicate handle used for workflow ({{workflow}})"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -902,8 +963,12 @@ func WorkflowErrNotAllowedToExecuteCorredorStep(mm ...*workflowActionProps) *err
 		errors.Meta("resource", "automation:workflow"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(workflowLogMetaKey{}, "failed to execute {workflow} with corredorExec function step; corredor is disabled"),
+		errors.Meta(workflowLogMetaKey{}, "failed to execute {{workflow}} with corredorExec function step; corredor is disabled"),
 		errors.Meta(workflowPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "workflow.errors.notAllowedToExecuteCorredorStep"),
 
 		errors.StackSkip(1),
 	)

@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -125,7 +126,7 @@ func (p triggerActionProps) Serialize() actionlog.Meta {
 //
 func (p triggerActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -145,46 +146,46 @@ func (p triggerActionProps) Format(in string, err error) string {
 	}
 
 	if p.trigger != nil {
-		// replacement for "{trigger}" (in order how fields are defined)
+		// replacement for "{{trigger}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{trigger}",
+			"{{trigger}}",
 			fns(
 				p.trigger.ID,
 			),
 		)
-		pairs = append(pairs, "{trigger.ID}", fns(p.trigger.ID))
+		pairs = append(pairs, "{{trigger.ID}}", fns(p.trigger.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(),
 		)
 	}
@@ -252,7 +253,7 @@ func TriggerActionLookup(props ...*triggerActionProps) *triggerAction {
 		timestamp: time.Now(),
 		resource:  "automation:trigger",
 		action:    "lookup",
-		log:       "looked-up for a {trigger}",
+		log:       "looked-up for a {{trigger}}",
 		severity:  actionlog.Info,
 	}
 
@@ -272,7 +273,7 @@ func TriggerActionCreate(props ...*triggerActionProps) *triggerAction {
 		timestamp: time.Now(),
 		resource:  "automation:trigger",
 		action:    "create",
-		log:       "created {trigger}",
+		log:       "created {{trigger}}",
 		severity:  actionlog.Info,
 	}
 
@@ -292,7 +293,7 @@ func TriggerActionUpdate(props ...*triggerActionProps) *triggerAction {
 		timestamp: time.Now(),
 		resource:  "automation:trigger",
 		action:    "update",
-		log:       "updated {trigger}",
+		log:       "updated {{trigger}}",
 		severity:  actionlog.Info,
 	}
 
@@ -312,7 +313,7 @@ func TriggerActionDelete(props ...*triggerActionProps) *triggerAction {
 		timestamp: time.Now(),
 		resource:  "automation:trigger",
 		action:    "delete",
-		log:       "deleted {trigger}",
+		log:       "deleted {{trigger}}",
 		severity:  actionlog.Info,
 	}
 
@@ -332,7 +333,7 @@ func TriggerActionUndelete(props ...*triggerActionProps) *triggerAction {
 		timestamp: time.Now(),
 		resource:  "automation:trigger",
 		action:    "undelete",
-		log:       "undeleted {trigger}",
+		log:       "undeleted {{trigger}}",
 		severity:  actionlog.Info,
 	}
 
@@ -370,6 +371,10 @@ func TriggerErrGeneric(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta(triggerLogMetaKey{}, "{err}"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -399,6 +404,10 @@ func TriggerErrNotFound(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "automation:trigger"),
 
 		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -430,6 +439,10 @@ func TriggerErrInvalidID(mm ...*triggerActionProps) *errors.Error {
 
 		errors.Meta(triggerPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -460,6 +473,10 @@ func TriggerErrStaleData(mm ...*triggerActionProps) *errors.Error {
 
 		errors.Meta(triggerPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -489,8 +506,12 @@ func TriggerErrNotAllowedToRead(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "automation:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to read {trigger.ID}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to read {{trigger.ID}}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -524,6 +545,10 @@ func TriggerErrNotAllowedToSearch(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta(triggerLogMetaKey{}, "failed to search or list trigger; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -556,6 +581,10 @@ func TriggerErrNotAllowedToCreate(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta(triggerLogMetaKey{}, "failed to create trigger; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -585,8 +614,12 @@ func TriggerErrNotAllowedToUpdate(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "automation:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to update {trigger.ID}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to update {{trigger.ID}}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -617,8 +650,12 @@ func TriggerErrNotAllowedToDelete(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "automation:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to delete {trigger.ID}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to delete {{trigger.ID}}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -649,8 +686,12 @@ func TriggerErrNotAllowedToUndelete(mm ...*triggerActionProps) *errors.Error {
 		errors.Meta("resource", "automation:trigger"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(triggerLogMetaKey{}, "failed to undelete {trigger.ID}; insufficient permissions"),
+		errors.Meta(triggerLogMetaKey{}, "failed to undelete {{trigger.ID}}; insufficient permissions"),
 		errors.Meta(triggerPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "trigger.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

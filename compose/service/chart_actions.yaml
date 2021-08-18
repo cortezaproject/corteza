@@ -32,23 +32,23 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {chart}"
+    log: "looked-up for a {{chart}}"
     severity: info
 
   - action: create
-    log: "created {chart}"
+    log: "created {{chart}}"
 
   - action: update
-    log: "updated {chart}"
+    log: "updated {{chart}}"
 
   - action: delete
-    log: "deleted {chart}"
+    log: "deleted {{chart}}"
 
   - action: undelete
-    log: "undeleted {chart}"
+    log: "undeleted {{chart}}"
 
   - action: reorder
-    log: "reordered {chart}"
+    log: "reordered {{chart}}"
 
 errors:
   - error: notFound
@@ -73,7 +73,7 @@ errors:
 
   - error: handleNotUnique
     message: "handle not unique"
-    log: "used duplicate handle ({chart.handle}) for chart"
+    log: "used duplicate handle ({{chart.handle}}) for chart"
     severity: warning
 
   - error: staleData
@@ -86,7 +86,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this chart"
-    log: "could not read {chart}; insufficient permissions"
+    log: "could not read {{chart}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list charts"
@@ -94,7 +94,7 @@ errors:
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
-    log: "could not read namespace {namespace}; insufficient permissions"
+    log: "could not read namespace {{namespace}}; insufficient permissions"
 
   - error: notAllowedToCreate
     message: "not allowed to create charts"
@@ -102,12 +102,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this chart"
-    log: "could not update {chart}; insufficient permissions"
+    log: "could not update {{chart}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this chart"
-    log: "could not delete {chart}; insufficient permissions"
+    log: "could not delete {{chart}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this chart"
-    log: "could not undelete {chart}; insufficient permissions"
+    log: "could not undelete {{chart}}; insufficient permissions"

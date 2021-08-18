@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {module}"
+    log: "looked-up for a {{module}}"
     severity: info
 
   - action: create
-    log: "created {module}"
+    log: "created {{module}}"
 
   - action: update
-    log: "updated {module}"
+    log: "updated {{module}}"
 
   - action: delete
-    log: "deleted {module}"
+    log: "deleted {{module}}"
 
   - action: undelete
-    log: "undeleted {module}"
+    log: "undeleted {{module}}"
 
 errors:
   - error: notFound
@@ -66,12 +66,12 @@ errors:
 
   - error: handleNotUnique
     message: "handle not unique"
-    log: "used duplicate handle ({module.handle}) for module"
+    log: "used duplicate handle ({{module.handle}}) for module"
     severity: warning
 
   - error: nameNotUnique
     message: "name not unique"
-    log: "used duplicate username ({module.name}) for module"
+    log: "used duplicate username ({{module.name}}) for module"
     severity: warning
 
   - error: staleData
@@ -84,7 +84,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this module"
-    log: "could not read {module}; insufficient permissions"
+    log: "could not read {{module}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list modules"
@@ -92,7 +92,7 @@ errors:
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
-    log: "could not read namespace {namespace}; insufficient permissions"
+    log: "could not read namespace {{namespace}}; insufficient permissions"
 
   - error: notAllowedToListModules
     message: "not allowed to list modules"
@@ -104,12 +104,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this module"
-    log: "could not update {module}; insufficient permissions"
+    log: "could not update {{module}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this module"
-    log: "could not delete {module}; insufficient permissions"
+    log: "could not delete {{module}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this module"
-    log: "could not undelete {module}; insufficient permissions"
+    log: "could not undelete {{module}}; insufficient permissions"

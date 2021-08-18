@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {session}"
+    log: "looked-up for a {{session}}"
     severity: info
 
   - action: create
-    log: "created {session}"
+    log: "created {{session}}"
 
   - action: update
-    log: "updated {session}"
+    log: "updated {{session}}"
 
   - action: delete
-    log: "deleted {session}"
+    log: "deleted {{session}}"
 
   - action: undelete
-    log: "undeleted {session}"
+    log: "undeleted {{session}}"
 
 errors:
   - error: notFound
@@ -60,7 +60,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this session"
-    log: "failed to read {session}; insufficient permissions"
+    log: "failed to read {{session}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list sessions"
@@ -68,9 +68,9 @@ errors:
 
   - error: notAllowedToDelete
     message: "not allowed to delete this session"
-    log: "failed to delete {session}; insufficient permissions"
+    log: "failed to delete {{session}}; insufficient permissions"
 
   - error: notAllowedToManage
     message: "not allowed to manage session's workflow"
-    log: "failed to manage {session}; insufficient permissions"
+    log: "failed to manage {{session}}; insufficient permissions"
 
