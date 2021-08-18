@@ -106,11 +106,11 @@ func (svc *settings) notify(ctx context.Context, vv types.SettingValueSet) {
 	}
 }
 
-func (svc settings) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
+func (svc *settings) log(ctx context.Context, fields ...zapcore.Field) *zap.Logger {
 	return logger.AddRequestID(ctx, svc.logger).With(fields...)
 }
 
-func (svc settings) FindByPrefix(ctx context.Context, pp ...string) (types.SettingValueSet, error) {
+func (svc *settings) FindByPrefix(ctx context.Context, pp ...string) (types.SettingValueSet, error) {
 	if !svc.accessControl.CanReadSettings(ctx) {
 		return nil, ErrNoReadPermission
 	}
@@ -118,7 +118,7 @@ func (svc settings) FindByPrefix(ctx context.Context, pp ...string) (types.Setti
 	return svc.findByPrefix(ctx, pp...)
 }
 
-func (svc settings) findByPrefix(ctx context.Context, pp ...string) (types.SettingValueSet, error) {
+func (svc *settings) findByPrefix(ctx context.Context, pp ...string) (types.SettingValueSet, error) {
 	var (
 		f = types.SettingsFilter{
 			Prefix: strings.Join(pp, "."),
@@ -130,7 +130,7 @@ func (svc settings) findByPrefix(ctx context.Context, pp ...string) (types.Setti
 	return vv, err
 }
 
-func (svc settings) Get(ctx context.Context, name string, ownedBy uint64) (out *types.SettingValue, err error) {
+func (svc *settings) Get(ctx context.Context, name string, ownedBy uint64) (out *types.SettingValue, err error) {
 	if !svc.accessControl.CanReadSettings(ctx) {
 		return nil, ErrNoReadPermission
 	}
@@ -143,7 +143,7 @@ func (svc settings) Get(ctx context.Context, name string, ownedBy uint64) (out *
 	return out, nil
 }
 
-func (svc settings) UpdateCurrent(ctx context.Context) error {
+func (svc *settings) UpdateCurrent(ctx context.Context) error {
 	if vv, err := svc.findByPrefix(ctx); err != nil {
 		return err
 	} else {
@@ -151,7 +151,7 @@ func (svc settings) UpdateCurrent(ctx context.Context) error {
 	}
 }
 
-func (svc settings) updateCurrent(ctx context.Context, vv types.SettingValueSet) (err error) {
+func (svc *settings) updateCurrent(ctx context.Context, vv types.SettingValueSet) (err error) {
 	// update current settings with new values
 	if err = vv.KV().Decode(svc.current); err != nil {
 		return
@@ -169,7 +169,7 @@ func (svc settings) updateCurrent(ctx context.Context, vv types.SettingValueSet)
 	return nil
 }
 
-func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) {
+func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error) {
 	if !svc.accessControl.CanManageSettings(ctx) {
 		return ErrNoManagePermission
 	}
@@ -197,7 +197,7 @@ func (svc settings) Set(ctx context.Context, v *types.SettingValue) (err error) 
 	return svc.updateCurrent(ctx, types.SettingValueSet{v})
 }
 
-func (svc settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err error) {
+func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err error) {
 	if !svc.accessControl.CanManageSettings(ctx) {
 		return ErrNoManagePermission
 	}
@@ -230,7 +230,7 @@ func (svc settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err 
 	return svc.updateCurrent(ctx, vv)
 }
 
-func (svc settings) logChange(ctx context.Context, vv types.SettingValueSet) {
+func (svc *settings) logChange(ctx context.Context, vv types.SettingValueSet) {
 	for _, v := range vv {
 		svc.log(ctx,
 			zap.String("name", v.Name),
@@ -241,7 +241,7 @@ func (svc settings) logChange(ctx context.Context, vv types.SettingValueSet) {
 	}
 }
 
-func (svc settings) Delete(ctx context.Context, name string, ownedBy uint64) error {
+func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) error {
 	if !svc.accessControl.CanManageSettings(ctx) {
 		return ErrNoManagePermission
 	}
