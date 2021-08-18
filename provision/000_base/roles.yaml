@@ -1,17 +1,17 @@
 roles:
   # bypass and other system roles are
   # programmatically (re)created on server start
-  admins:
-    name: Administrators
+  admin:
+    name: Administrator
 
-  security_admins:
-    name: Security administrators
+  security-admin:
+    name: Security administrator
 
-  low_code_admins:
-    name: Low code administrators
+  low-code-admin:
+    name: Low code administrator
 
-  owners:
-    name: Owners
+  owner:
+    name: Owner
     meta:
       description: |-
         Automatically assigned to resource owner
@@ -24,8 +24,8 @@ roles:
           - corteza::system:authClient
           - corteza::automation:workflow
 
-  creators:
-    name: Creators
+  creator:
+    name: Creator
     meta:
       description: |-
         Automatically assigned to user created the resource.
@@ -37,8 +37,8 @@ roles:
           - corteza::system:authClient
           - corteza::automation:workflow
 
-  updaters:
-    name: Updaters
+  updater:
+    name: Updater
     meta:
       description: |-
         Automatically assigned to user that was the last to update the resource.
@@ -51,8 +51,8 @@ roles:
           - corteza::system:authClient
           - corteza::automation:workflow
 
-  deleters:
-    name: Deleters
+  deleter:
+    name: Deleter
     meta:
       description: |-
         Automatically assigned to user that was the last to update the resource.

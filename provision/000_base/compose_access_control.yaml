@@ -22,7 +22,7 @@ allow:
     corteza::compose:record/*/*/*:
       - read
 
-  admins:
+  admin:
     corteza::compose/:
       - grant
       - settings.read
@@ -68,7 +68,7 @@ allow:
       - update
       - delete
 
-  low_code_admins:
+  low-code-admin:
     corteza::compose/:
       - grant
       - settings.read

@@ -14,7 +14,7 @@ func migratePre202109Roles(ctx context.Context, log *zap.Logger, s store.Storer)
 		obsoleteAdminsID   uint64 = 2
 	)
 
-	log.Info("migrating pre-2021.6 roles")
+	log.Info("migrating pre-2021.9 roles")
 	m, err := loadRoles(ctx, s)
 	if err != nil {
 		return
@@ -38,12 +38,14 @@ func migratePre202109Roles(ctx context.Context, log *zap.Logger, s store.Storer)
 
 	// let's see if admin role is still here:
 	if m["admins"] != nil && m["admins"].ID == obsoleteAdminsID {
-		log.Info("migrating 'admins' role to new ID")
+		log.Info("migrating 'admins' role to new ID and renaming it to 'admin'")
 
 		// everyone role still present and it is using "hardcoded" ID
 		// we can remove it
 		m["admins"].ID = id.Next()
 		m["admins"].UpdatedAt = now()
+		m["admins"].Handle = "admin"
+		m["admins"].Name = "Administrator"
 
 		if err = store.DeleteRoleByID(ctx, s, obsoleteAdminsID); err != nil {
 			return

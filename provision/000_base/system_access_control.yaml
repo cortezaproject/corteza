@@ -15,7 +15,7 @@ allow:
     corteza::system:auth-client/*:
       - authorize
 
-  admins:
+  admin:
     corteza::system/:
       - grant
       - action-log.read
@@ -97,7 +97,7 @@ allow:
       - delete
       - run
 
-  security_admins:
+  security-admin:
     corteza::compose/:
       - grant
       - action-log.read

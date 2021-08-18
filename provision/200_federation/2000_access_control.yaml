@@ -1,5 +1,5 @@
 allow:
-  admins:
+  admin:
     corteza::federation/:
       - grant
       - pair
