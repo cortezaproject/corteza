@@ -89,10 +89,6 @@ func (h httpRequestHandler) makeRequest(ctx context.Context, args *httpRequestSe
 			return nil
 		}
 
-		if args.Body != nil {
-			return nil
-		}
-
 		if args.hasBody && args.bodyStream == nil {
 			if args.bodyString != "" {
 				args.bodyStream = strings.NewReader(args.bodyString)

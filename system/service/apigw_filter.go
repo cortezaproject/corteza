@@ -66,6 +66,7 @@ func (svc *apigwFilter) FindByID(ctx context.Context, ID uint64) (q *types.Apigw
 func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *types.ApigwFilter, err error) {
 	var (
 		qProps = &apigwFilterActionProps{filter: new}
+		r      *types.ApigwRoute
 	)
 
 	err = func() (err error) {
@@ -78,7 +79,7 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 		new.CreatedAt = *now()
 		new.CreatedBy = a.GetIdentityFromContext(ctx).Identity()
 
-		if _, err = svc.route.FindByID(ctx, new.Route); err != nil {
+		if r, err = svc.route.FindByID(ctx, new.Route); err != nil {
 			return ApigwFilterErrNotFound(qProps)
 		}
 
@@ -87,8 +88,11 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 		}
 
 		q = new
-		// send the signal to reload all functions
-		apigw.Service().Reload(ctx)
+
+		// send the signal to reload all routes
+		if r.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -100,6 +104,7 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 	var (
 		qProps = &apigwFilterActionProps{filter: upd}
 		qq     *types.ApigwFilter
+		r      *types.ApigwRoute
 		e      error
 	)
 
@@ -112,7 +117,7 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 			return ApigwFilterErrNotAllowedToUpdate(qProps)
 		}
 
-		if _, err = svc.route.FindByID(ctx, upd.Route); err != nil {
+		if r, err = svc.route.FindByID(ctx, upd.Route); err != nil {
 			return err
 		}
 
@@ -130,8 +135,10 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 
 		q = upd
 
-		// send the signal to reload all function
-		apigw.Service().Reload(ctx)
+		// send the signal to reload all routes
+		if r.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -143,6 +150,7 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 	var (
 		qProps = &apigwFilterActionProps{}
 		q      *types.ApigwFilter
+		r      *types.ApigwRoute
 	)
 
 	err = func() (err error) {
@@ -152,6 +160,10 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 
 		if !svc.ac.CanDeleteApigwFilter(ctx, q) {
 			return ApigwFilterErrNotAllowedToDelete(qProps)
+		}
+
+		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
+			return err
 		}
 
 		qProps.setFilter(q)
@@ -163,8 +175,10 @@ func (svc *apigwFilter) DeleteByID(ctx context.Context, ID uint64) (err error) {
 			return
 		}
 
-		// send the signal to reload all queues
-		apigw.Service().Reload(ctx)
+		// send the signal to reload all routes
+		if r.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()
@@ -176,6 +190,7 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 	var (
 		qProps = &apigwFilterActionProps{}
 		q      *types.ApigwFilter
+		r      *types.ApigwRoute
 	)
 
 	err = func() (err error) {
@@ -187,6 +202,10 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 			return ApigwFilterErrNotAllowedToDelete(qProps)
 		}
 
+		if r, err = svc.route.FindByID(ctx, q.Route); err != nil {
+			return err
+		}
+
 		qProps.setFilter(q)
 
 		q.DeletedAt = nil
@@ -196,8 +215,10 @@ func (svc *apigwFilter) UndeleteByID(ctx context.Context, ID uint64) (err error)
 			return
 		}
 
-		// send the signal to reload all queues
-		apigw.Service().Reload(ctx)
+		// send the signal to reload all routes
+		if r.Enabled {
+			apigw.Service().Reload(ctx)
+		}
 
 		return nil
 	}()

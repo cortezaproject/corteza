@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/jsenv"
 )
 
@@ -35,6 +36,17 @@ func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res 
 		return
 	}
 
+	var vv interface{}
+
+	switch a := args.Scope.(type) {
+	case *expr.KVV:
+		vv = a.Get()
+	case *expr.String:
+		vv = a.Get()
+	default:
+		vv = a
+	}
+
 	// call jsenv, feed it function and expect a result
 	tr := jsenv.NewTransformer(jsenv.LoaderJS, jsenv.TargetNoop)
 	vm := jsenv.New(tr)
@@ -46,7 +58,7 @@ func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res 
 		return
 	}
 
-	out, err := fn.Exec(vm.New(args.scopeString))
+	out, err := fn.Exec(vm.New(vv))
 
 	if err != nil {
 		err = fmt.Errorf("could not exec jsenv function: %s", err)

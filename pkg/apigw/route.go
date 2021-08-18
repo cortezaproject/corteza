@@ -10,6 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 )
@@ -34,7 +35,7 @@ type (
 
 func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
-		ctx   = req.Context()
+		ctx   = auth.SetIdentityToContext(req.Context(), auth.ServiceUser())
 		scope = types.Scp{}
 	)
 
