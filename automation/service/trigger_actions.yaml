@@ -33,20 +33,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {trigger}"
+    log: "looked-up for a {{trigger}}"
     severity: info
 
   - action: create
-    log: "created {trigger}"
+    log: "created {{trigger}}"
 
   - action: update
-    log: "updated {trigger}"
+    log: "updated {{trigger}}"
 
   - action: delete
-    log: "deleted {trigger}"
+    log: "deleted {{trigger}}"
 
   - action: undelete
-    log: "undeleted {trigger}"
+    log: "undeleted {{trigger}}"
 
 errors:
   - error: notFound
@@ -61,7 +61,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this trigger"
-    log: "failed to read {trigger.ID}; insufficient permissions"
+    log: "failed to read {{trigger.ID}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list triggers"
@@ -73,12 +73,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this trigger"
-    log: "failed to update {trigger.ID}; insufficient permissions"
+    log: "failed to update {{trigger.ID}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this trigger"
-    log: "failed to delete {trigger.ID}; insufficient permissions"
+    log: "failed to delete {{trigger.ID}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this trigger"
-    log: "failed to undelete {trigger.ID}; insufficient permissions"
+    log: "failed to undelete {{trigger.ID}}; insufficient permissions"

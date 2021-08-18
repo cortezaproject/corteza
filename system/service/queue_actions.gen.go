@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/messagebus"
 	"strings"
 	"time"
@@ -130,7 +131,7 @@ func (p queueActionProps) Serialize() actionlog.Meta {
 //
 func (p queueActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -150,56 +151,56 @@ func (p queueActionProps) Format(in string, err error) string {
 	}
 
 	if p.queue != nil {
-		// replacement for "{queue}" (in order how fields are defined)
+		// replacement for "{{queue}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{queue}",
+			"{{queue}}",
 			fns(
 				p.queue.Queue,
 				p.queue.ID,
 			),
 		)
-		pairs = append(pairs, "{queue.queue}", fns(p.queue.Queue))
-		pairs = append(pairs, "{queue.ID}", fns(p.queue.ID))
+		pairs = append(pairs, "{{queue.queue}}", fns(p.queue.Queue))
+		pairs = append(pairs, "{{queue.ID}}", fns(p.queue.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Queue,
 				p.new.Consumer,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.queue}", fns(p.new.Queue))
-		pairs = append(pairs, "{new.consumer}", fns(p.new.Consumer))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.queue}}", fns(p.new.Queue))
+		pairs = append(pairs, "{{new.consumer}}", fns(p.new.Consumer))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Queue,
 				p.update.Consumer,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.queue}", fns(p.update.Queue))
-		pairs = append(pairs, "{update.consumer}", fns(p.update.Consumer))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.queue}}", fns(p.update.Queue))
+		pairs = append(pairs, "{{update.consumer}}", fns(p.update.Consumer))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.search != nil {
-		// replacement for "{search}" (in order how fields are defined)
+		// replacement for "{{search}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{search}",
+			"{{search}}",
 			fns(),
 		)
 	}
@@ -267,7 +268,7 @@ func QueueActionLookup(props ...*queueActionProps) *queueAction {
 		timestamp: time.Now(),
 		resource:  "system:queue",
 		action:    "lookup",
-		log:       "looked-up for a {queue}",
+		log:       "looked-up for a {{queue}}",
 		severity:  actionlog.Info,
 	}
 
@@ -287,7 +288,7 @@ func QueueActionCreate(props ...*queueActionProps) *queueAction {
 		timestamp: time.Now(),
 		resource:  "system:queue",
 		action:    "create",
-		log:       "created {queue}",
+		log:       "created {{queue}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -307,7 +308,7 @@ func QueueActionUpdate(props ...*queueActionProps) *queueAction {
 		timestamp: time.Now(),
 		resource:  "system:queue",
 		action:    "update",
-		log:       "updated {queue}",
+		log:       "updated {{queue}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -327,7 +328,7 @@ func QueueActionDelete(props ...*queueActionProps) *queueAction {
 		timestamp: time.Now(),
 		resource:  "system:queue",
 		action:    "delete",
-		log:       "deleted {queue}",
+		log:       "deleted {{queue}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -347,7 +348,7 @@ func QueueActionUndelete(props ...*queueActionProps) *queueAction {
 		timestamp: time.Now(),
 		resource:  "system:queue",
 		action:    "undelete",
-		log:       "undeleted {queue}",
+		log:       "undeleted {{queue}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -385,6 +386,10 @@ func QueueErrGeneric(mm ...*queueActionProps) *errors.Error {
 		errors.Meta(queueLogMetaKey{}, "{err}"),
 		errors.Meta(queuePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -414,6 +419,10 @@ func QueueErrNotFound(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -445,6 +454,10 @@ func QueueErrInvalidID(mm ...*queueActionProps) *errors.Error {
 
 		errors.Meta(queuePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -475,6 +488,10 @@ func QueueErrInvalidConsumer(mm ...*queueActionProps) *errors.Error {
 
 		errors.Meta(queuePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.invalidConsumer"),
+
 		errors.StackSkip(1),
 	)
 
@@ -504,6 +521,10 @@ func QueueErrAlreadyExists(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -537,6 +558,10 @@ func QueueErrNotAllowedToCreate(mm ...*queueActionProps) *errors.Error {
 		errors.Meta(queueLogMetaKey{}, "failed to create a queue; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -566,8 +591,12 @@ func QueueErrNotAllowedToRead(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to read {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to read {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -601,6 +630,10 @@ func QueueErrNotAllowedToSearch(mm ...*queueActionProps) *errors.Error {
 		errors.Meta(queueLogMetaKey{}, "failed to search or list; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -630,8 +663,12 @@ func QueueErrNotAllowedToUpdate(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to update {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to update {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -662,8 +699,12 @@ func QueueErrNotAllowedToDelete(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to delete {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to delete {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -694,8 +735,12 @@ func QueueErrNotAllowedToUndelete(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to undelete {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to undelete {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -726,8 +771,12 @@ func QueueErrNotAllowedToWriteTo(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to add message to {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to add message to {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToWriteTo"),
 
 		errors.StackSkip(1),
 	)
@@ -758,8 +807,12 @@ func QueueErrNotAllowedToReadFrom(mm ...*queueActionProps) *errors.Error {
 		errors.Meta("resource", "system:queue"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(queueLogMetaKey{}, "failed to read message from {queue.queue}; insufficient permissions"),
+		errors.Meta(queueLogMetaKey{}, "failed to read message from {{queue.queue}}; insufficient permissions"),
 		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.notAllowedToReadFrom"),
 
 		errors.StackSkip(1),
 	)

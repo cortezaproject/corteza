@@ -43,14 +43,14 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {attachment}"
+    log: "looked-up for a {{attachment}}"
     severity: info
 
   - action: create
-    log: "created {attachment}"
+    log: "created {{attachment}}"
 
   - action: delete
-    log: "deleted {attachment}"
+    log: "deleted {{attachment}}"
 
 errors:
   - error: notFound
@@ -116,7 +116,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this module"
-    log: "could not delete {module}; insufficient permissions"
+    log: "could not delete {{module}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list modules"
@@ -124,19 +124,19 @@ errors:
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
-    log: "could not delete {namespace}; insufficient permissions"
+    log: "could not delete {{namespace}}; insufficient permissions"
 
   - error: notAllowedToReadPage
     message: "not allowed to read this page"
-    log: "could not read {page}; insufficient permissions"
+    log: "could not read {{page}}; insufficient permissions"
 
   - error: notAllowedToReadRecord
     message: "not allowed to read this record"
-    log: "could not read {record}; insufficient permissions"
+    log: "could not read {{record}}; insufficient permissions"
 
   - error: notAllowedToUpdatePage
     message: "not allowed to update this page"
-    log: "could not update {page}; insufficient permissions"
+    log: "could not update {{page}}; insufficient permissions"
 
   - error: notAllowedToCreateRecords
     message: "not allowed to create records"
@@ -144,8 +144,8 @@ errors:
 
   - error: notAllowedToUpdateRecord
     message: "not allowed to update this record"
-    log: "could not update {record}; insufficient permissions"
+    log: "could not update {{record}}; insufficient permissions"
 
   - error: notAllowedToUpdateNamespace
     message: "not allowed to update this namespace"
-    log: "could not update {namespace}; insufficient permissions"
+    log: "could not update {{namespace}}; insufficient permissions"

@@ -26,42 +26,42 @@ actions:
     log: "searched for nodes"
 
   - action: lookup
-    log: "looked-up for a {node}"
+    log: "looked-up for a {{node}}"
     severity: info
 
   - action: create
-    log: "created {node}"
+    log: "created {{node}}"
 
   - action: createFromPairingURI
-    log: "created {node} from pairing URI"
+    log: "created {{node}} from pairing URI"
 
   - action: recreateFromPairingURI
-    log: "recreate {node} from pairing URI"
+    log: "recreate {{node}} from pairing URI"
 
   - action: update
-    log: "updated {node}"
+    log: "updated {{node}}"
 
 
   - action: delete
-    log: "deleted {node}"
+    log: "deleted {{node}}"
 
   - action: undelete
-    log: "undeleted {node}"
+    log: "undeleted {{node}}"
 
   - action: ottRegenerated
-    log: "regenerated one-time-token for {node}"
+    log: "regenerated one-time-token for {{node}}"
 
   - action: pair
-    log: "{node} pairing started"
+    log: "{{node}} pairing started"
 
   - action: handshakeInit
-    log: "{node} handshake initialized"
+    log: "{{node}} handshake initialized"
 
   - action: handshakeConfirm
-    log: "{node} handshake confirmed"
+    log: "{{node}} handshake confirmed"
 
   - action: handshakeComplete
-    log: "{node} handshake completed"
+    log: "{{node}} handshake completed"
 
 errors:
   - error: notFound
@@ -69,7 +69,7 @@ errors:
     severity: warning
 
   - error: pairingURIInvalid
-    message: "pairing URI invalid: {err}"
+    message: "pairing URI invalid: {{err}}"
 #
   - error: pairingURITokenInvalid
     message: "pairing URI with invalid pairing token"
@@ -90,8 +90,8 @@ errors:
 
   - error: notAllowedToManage
     message: "not allowed to manage this node"
-    log: "could not manage {node}; insufficient permissions"
+    log: "could not manage {{node}}; insufficient permissions"
 
   - error: notAllowedToPair
     message: "not allowed to pair this node"
-    log: "could not pair {node}; insufficient permissions"
+    log: "could not pair {{node}}; insufficient permissions"

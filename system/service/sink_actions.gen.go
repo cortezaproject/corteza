@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -138,7 +139,7 @@ func (p sinkActionProps) Serialize() actionlog.Meta {
 //
 func (p sinkActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -156,16 +157,16 @@ func (p sinkActionProps) Format(in string, err error) string {
 	} else {
 		pairs = append(pairs, "nil")
 	}
-	pairs = append(pairs, "{url}", fns(p.url))
-	pairs = append(pairs, "{responseStatus}", fns(p.responseStatus))
-	pairs = append(pairs, "{contentType}", fns(p.contentType))
-	pairs = append(pairs, "{sinkParams}", fns(p.sinkParams))
+	pairs = append(pairs, "{{url}}", fns(p.url))
+	pairs = append(pairs, "{{responseStatus}}", fns(p.responseStatus))
+	pairs = append(pairs, "{{contentType}}", fns(p.contentType))
+	pairs = append(pairs, "{{sinkParams}}", fns(p.sinkParams))
 
 	if p.mailHeader != nil {
-		// replacement for "{mailHeader}" (in order how fields are defined)
+		// replacement for "{{mailHeader}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{mailHeader}",
+			"{{mailHeader}}",
 			fns(
 				p.mailHeader.To,
 				p.mailHeader.CC,
@@ -175,12 +176,12 @@ func (p sinkActionProps) Format(in string, err error) string {
 				p.mailHeader.Raw,
 			),
 		)
-		pairs = append(pairs, "{mailHeader.to}", fns(p.mailHeader.To))
-		pairs = append(pairs, "{mailHeader.CC}", fns(p.mailHeader.CC))
-		pairs = append(pairs, "{mailHeader.BCC}", fns(p.mailHeader.BCC))
-		pairs = append(pairs, "{mailHeader.from}", fns(p.mailHeader.From))
-		pairs = append(pairs, "{mailHeader.replyTo}", fns(p.mailHeader.ReplyTo))
-		pairs = append(pairs, "{mailHeader.raw}", fns(p.mailHeader.Raw))
+		pairs = append(pairs, "{{mailHeader.to}}", fns(p.mailHeader.To))
+		pairs = append(pairs, "{{mailHeader.CC}}", fns(p.mailHeader.CC))
+		pairs = append(pairs, "{{mailHeader.BCC}}", fns(p.mailHeader.BCC))
+		pairs = append(pairs, "{{mailHeader.from}}", fns(p.mailHeader.From))
+		pairs = append(pairs, "{{mailHeader.replyTo}}", fns(p.mailHeader.ReplyTo))
+		pairs = append(pairs, "{{mailHeader.raw}}", fns(p.mailHeader.Raw))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -304,6 +305,10 @@ func SinkErrGeneric(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta(sinkLogMetaKey{}, "{err}"),
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -327,12 +332,16 @@ func SinkErrFailedToSign(mm ...*sinkActionProps) *errors.Error {
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("could not sign request params: {err}", nil),
+		p.Format("could not sign request params: {{err}}", nil),
 
 		errors.Meta("type", "failedToSign"),
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.failedToSign"),
 
 		errors.StackSkip(1),
 	)
@@ -364,6 +373,10 @@ func SinkErrFailedToCreateEvent(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.failedToCreateEvent"),
+
 		errors.StackSkip(1),
 	)
 
@@ -393,6 +406,10 @@ func SinkErrFailedToProcess(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.failedToProcess"),
 
 		errors.StackSkip(1),
 	)
@@ -424,6 +441,10 @@ func SinkErrFailedToRespond(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.failedToRespond"),
+
 		errors.StackSkip(1),
 	)
 
@@ -453,6 +474,10 @@ func SinkErrMissingSignature(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.missingSignature"),
 
 		errors.StackSkip(1),
 	)
@@ -484,6 +509,10 @@ func SinkErrInvalidSignatureParam(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidSignatureParam"),
+
 		errors.StackSkip(1),
 	)
 
@@ -513,6 +542,10 @@ func SinkErrBadSinkParamEncoding(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.badSinkParamEncoding"),
 
 		errors.StackSkip(1),
 	)
@@ -544,6 +577,10 @@ func SinkErrInvalidSignature(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidSignature"),
+
 		errors.StackSkip(1),
 	)
 
@@ -573,6 +610,10 @@ func SinkErrInvalidSinkRequestUrlParams(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidSinkRequestUrlParams"),
 
 		errors.StackSkip(1),
 	)
@@ -604,6 +645,10 @@ func SinkErrInvalidHttpMethod(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidHttpMethod"),
+
 		errors.StackSkip(1),
 	)
 
@@ -633,6 +678,10 @@ func SinkErrInvalidContentType(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidContentType"),
 
 		errors.StackSkip(1),
 	)
@@ -664,6 +713,10 @@ func SinkErrInvalidPath(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.invalidPath"),
+
 		errors.StackSkip(1),
 	)
 
@@ -693,6 +746,10 @@ func SinkErrMisplacedSignature(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.misplacedSignature"),
 
 		errors.StackSkip(1),
 	)
@@ -724,6 +781,10 @@ func SinkErrSignatureExpired(mm ...*sinkActionProps) *errors.Error {
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.signatureExpired"),
+
 		errors.StackSkip(1),
 	)
 
@@ -754,6 +815,10 @@ func SinkErrContentLengthExceedsMaxAllowedSize(mm ...*sinkActionProps) *errors.E
 
 		errors.Meta(sinkPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.contentLengthExceedsMaxAllowedSize"),
+
 		errors.StackSkip(1),
 	)
 
@@ -783,6 +848,10 @@ func SinkErrProcessingError(mm ...*sinkActionProps) *errors.Error {
 		errors.Meta("resource", "system:sink"),
 
 		errors.Meta(sinkPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "sink.errors.processingError"),
 
 		errors.StackSkip(1),
 	)

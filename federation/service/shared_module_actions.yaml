@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {module}"
+    log: "looked-up for a {{module}}"
     severity: info
 
   - action: create
-    log: "created {module}"
+    log: "created {{module}}"
 
   - action: update
-    log: "updated {module}"
+    log: "updated {{module}}"
 
   - action: delete
-    log: "deleted {module}"
+    log: "deleted {{module}}"
 
   - action: undelete
-    log: "undeleted {module}"
+    log: "undeleted {{module}}"
 
 errors:
   - error: notFound
@@ -79,8 +79,8 @@ errors:
 
   - error: notAllowedToManage
     message: "not allowed to manage this module"
-    log: "could not read {module}; insufficient permissions"
+    log: "could not read {{module}}; insufficient permissions"
 
   - error: notAllowedToMap
     message: "not allowed to map this module"
-    log: "could not map {module}; insufficient permissions"
+    log: "could not map {{module}}; insufficient permissions"

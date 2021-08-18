@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -99,7 +100,7 @@ func (p nodeSyncActionProps) Serialize() actionlog.Meta {
 //
 func (p nodeSyncActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -119,10 +120,10 @@ func (p nodeSyncActionProps) Format(in string, err error) string {
 	}
 
 	if p.nodeSync != nil {
-		// replacement for "{nodeSync}" (in order how fields are defined)
+		// replacement for "{{nodeSync}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{nodeSync}",
+			"{{nodeSync}}",
 			fns(
 				p.nodeSync.NodeID,
 				p.nodeSync.SyncStatus,
@@ -130,22 +131,22 @@ func (p nodeSyncActionProps) Format(in string, err error) string {
 				p.nodeSync.TimeOfAction,
 			),
 		)
-		pairs = append(pairs, "{nodeSync.NodeID}", fns(p.nodeSync.NodeID))
-		pairs = append(pairs, "{nodeSync.SyncStatus}", fns(p.nodeSync.SyncStatus))
-		pairs = append(pairs, "{nodeSync.SyncType}", fns(p.nodeSync.SyncType))
-		pairs = append(pairs, "{nodeSync.TimeOfAction}", fns(p.nodeSync.TimeOfAction))
+		pairs = append(pairs, "{{nodeSync.NodeID}}", fns(p.nodeSync.NodeID))
+		pairs = append(pairs, "{{nodeSync.SyncStatus}}", fns(p.nodeSync.SyncStatus))
+		pairs = append(pairs, "{{nodeSync.SyncType}}", fns(p.nodeSync.SyncType))
+		pairs = append(pairs, "{{nodeSync.TimeOfAction}}", fns(p.nodeSync.TimeOfAction))
 	}
 
 	if p.nodeSyncFilter != nil {
-		// replacement for "{nodeSyncFilter}" (in order how fields are defined)
+		// replacement for "{{nodeSyncFilter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{nodeSyncFilter}",
+			"{{nodeSyncFilter}}",
 			fns(
 				p.nodeSyncFilter.Query,
 			),
 		)
-		pairs = append(pairs, "{nodeSyncFilter.Query}", fns(p.nodeSyncFilter.Query))
+		pairs = append(pairs, "{{nodeSyncFilter.Query}}", fns(p.nodeSyncFilter.Query))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -249,6 +250,10 @@ func NodeSyncErrGeneric(mm ...*nodeSyncActionProps) *errors.Error {
 		errors.Meta(nodeSyncLogMetaKey{}, "{err}"),
 		errors.Meta(nodeSyncPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -279,6 +284,10 @@ func NodeSyncErrNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 
 		errors.Meta(nodeSyncPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.notFound"),
+
 		errors.StackSkip(1),
 	)
 
@@ -308,6 +317,10 @@ func NodeSyncErrNodeNotFound(mm ...*nodeSyncActionProps) *errors.Error {
 		errors.Meta("resource", "federation:node_sync"),
 
 		errors.Meta(nodeSyncPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "nodeSync.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)

@@ -32,20 +32,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {queue}"
+    log: "looked-up for a {{queue}}"
     severity: info
 
   - action: create
-    log: "created {queue}"
+    log: "created {{queue}}"
 
   - action: update
-    log: "updated {queue}"
+    log: "updated {{queue}}"
 
   - action: delete
-    log: "deleted {queue}"
+    log: "deleted {{queue}}"
 
   - action: undelete
-    log: "undeleted {queue}"
+    log: "undeleted {{queue}}"
 
 errors:
   - error: notFound
@@ -70,7 +70,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this queue"
-    log: "failed to read {queue.queue}; insufficient permissions"
+    log: "failed to read {{queue.queue}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list queues"
@@ -78,20 +78,20 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this queue"
-    log: "failed to update {queue.queue}; insufficient permissions"
+    log: "failed to update {{queue.queue}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this queue"
-    log: "failed to delete {queue.queue}; insufficient permissions"
+    log: "failed to delete {{queue.queue}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this queue"
-    log: "failed to undelete {queue.queue}; insufficient permissions"
+    log: "failed to undelete {{queue.queue}}; insufficient permissions"
 
   - error: notAllowedToWriteTo
     message: "not allowed to add messages to this queue"
-    log: "failed to add message to {queue.queue}; insufficient permissions"
+    log: "failed to add message to {{queue.queue}}; insufficient permissions"
 
   - error: notAllowedToReadFrom
     message: "not allowed to read messages from this queue"
-    log: "failed to read message from {queue.queue}; insufficient permissions"
+    log: "failed to read message from {{queue.queue}}; insufficient permissions"
