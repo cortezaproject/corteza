@@ -170,7 +170,7 @@ func TestModuleCreateForbidden(t *testing.T) {
 		FormData("name", "some-module").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create modules")).
+		Assert(helpers.AssertError("module.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -206,7 +206,7 @@ func TestModuleUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this module")).
+		Assert(helpers.AssertError("module.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -621,7 +621,7 @@ func TestModuleDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this module")).
+		Assert(helpers.AssertError("module.errors.notAllowedToDelete")).
 		End()
 }
 

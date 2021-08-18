@@ -31,7 +31,7 @@ func Test_mfaProc(t *testing.T) {
 		{
 			name:    "Email: successful login",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "Email OTP valid"}},
+			alerts:  []request.Alert{{Type: "primary", Text: "mfa.handle.email-resent"}},
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyEmailOtp")
@@ -47,7 +47,7 @@ func Test_mfaProc(t *testing.T) {
 		{
 			name:    "TOTP: successful login",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "TOTP valid"}},
+			alerts:  []request.Alert{{Type: "primary", Text: "mfa.handle.topt-valid"}},
 			link:    GetLinks().Mfa,
 			fn: func(_ *settings.Settings) {
 				req.Form.Set("action", "verifyTotp")

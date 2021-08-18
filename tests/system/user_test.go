@@ -326,7 +326,7 @@ func TestUserCreateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create users")).
+		Assert(helpers.AssertError("user.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -360,7 +360,7 @@ func TestUserUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this user")).
+		Assert(helpers.AssertError("user.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -448,7 +448,7 @@ func TestUserDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this user")).
+		Assert(helpers.AssertError("user.errors.notAllowedToDelete")).
 		End()
 }
 

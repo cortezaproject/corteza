@@ -140,7 +140,7 @@ func TestPageCreateForbidden(t *testing.T) {
 		FormData("title", "some-page").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create pages")).
+		Assert(helpers.AssertError("page.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -176,7 +176,7 @@ func TestPageUpdateForbidden(t *testing.T) {
 		FormData("title", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this page")).
+		Assert(helpers.AssertError("page.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -233,7 +233,7 @@ func TestPageDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this page")).
+		Assert(helpers.AssertError("page.errors.notAllowedToDelete")).
 		End()
 }
 

@@ -132,7 +132,7 @@ func TestTriggerCreate(t *testing.T) {
 		helpers.DenyMe(h, wf.RbacResource(), "triggers.manage")
 		req().Expect(t).
 			Status(http.StatusOK).
-			Assert(helpers.AssertError("not allowed to create triggers")).
+			Assert(helpers.AssertError("trigger.errors.notAllowedToCreate")).
 			End()
 	})
 }
@@ -233,7 +233,7 @@ func TestTriggerUpdate(t *testing.T) {
 		helpers.DenyMe(h, wf.RbacResource(), "triggers.manage")
 		req(tg2.ID, "bar").Expect(t).
 			Status(http.StatusOK).
-			Assert(helpers.AssertError("not allowed to update this trigger")).
+			Assert(helpers.AssertError("trigger.errors.notAllowedToUpdate")).
 			End()
 
 		res := h.lookupTriggerByID(tg2.ID)
@@ -253,7 +253,7 @@ func TestTriggerDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this trigger")).
+		Assert(helpers.AssertError("trigger.errors.notAllowedToDelete")).
 		End()
 
 	res = h.lookupTriggerByID(res.ID)

@@ -147,7 +147,7 @@ func TestApplicationCreateForbidden(t *testing.T) {
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create applications")).
+		Assert(helpers.AssertError("application.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -194,7 +194,7 @@ func TestApplicationUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this application")).
+		Assert(helpers.AssertError("application.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -259,7 +259,7 @@ func TestApplicationReorder_forbidden(t *testing.T) {
 		JSON(fmt.Sprintf(`{ "applicationIDs": ["%d", "%d", "%d"] }`, b.ID, a.ID, c.ID)).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this application")).
+		Assert(helpers.AssertError("application.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -299,7 +299,7 @@ func TestApplicationDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this application")).
+		Assert(helpers.AssertError("application.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -455,7 +455,7 @@ func TestApplicationFlags(t *testing.T) {
 			Header("Accept", "application/json").
 			Expect(t).
 			Status(http.StatusOK).
-			Assert(helpers.AssertError("not allowed to manage global flags for applications")).
+			Assert(helpers.AssertError("application.errors.notAllowedToManageFlagGlobal")).
 			End()
 
 	})
@@ -488,7 +488,7 @@ func TestApplicationFlags(t *testing.T) {
 			Header("Accept", "application/json").
 			Expect(t).
 			Status(http.StatusOK).
-			Assert(helpers.AssertError("not allowed to manage flags for applications")).
+			Assert(helpers.AssertError("application.errors.notAllowedToManageFlag")).
 			End()
 	})
 

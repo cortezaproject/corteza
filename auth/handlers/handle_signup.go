@@ -34,7 +34,7 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: t("singup.alerts.singup-successful"),
+				Text: t("signup.alerts.signup-successful"),
 			})
 
 			h.Log.Info(
@@ -105,7 +105,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: t("singup.alerts.email-confirmed-logged-in"),
+				Text: t("signup.alerts.email-confirmed-logged-in"),
 			})
 
 			req.RedirectTo = GetLinks().Profile
@@ -135,7 +135,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: t("singup.alerts.inv-or-exp-token"),
+		Text: t("signup.alerts.inv-or-exp-token"),
 	})
 
 	return nil
@@ -157,6 +157,6 @@ func (h *AuthHandlers) signupDisabledAlert(req *request.AuthReq) {
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "danger",
-		Text: t("singup.alerts.singup-disabled"),
+		Text: t("signup.alerts.signup-disabled"),
 	})
 }
