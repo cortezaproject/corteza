@@ -1120,7 +1120,7 @@ func testComposeRecords(t *testing.T, s store.ComposeRecords) {
 			f.Limit = 100
 
 			_, f, err = store.SearchComposeRecords(ctx, s, mod, f)
-			req.Error(err, "not allowed to sort by multi-value fields: strMulti")
+			req.Error(err, "by.errors.notAllowedToSort multi-value fields: strMulti")
 		})
 
 		t.Run("advanced sorting; NULL; record value + sys fields", func(t *testing.T) {

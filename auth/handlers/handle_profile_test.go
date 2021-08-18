@@ -71,7 +71,7 @@ func Test_profileFormProc(t *testing.T) {
 		{
 			name:    "success",
 			err:     "",
-			alerts:  []request.Alert{{Type: "primary", Text: "Profile successfully updated.", Html: ""}},
+			alerts:  []request.Alert{{Type: "primary", Text: "profile.alerts.profile-updated", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string(nil),
 			fn: func(_ *settings.Settings) {
@@ -91,7 +91,7 @@ func Test_profileFormProc(t *testing.T) {
 		{
 			name:    "proc invalid ID",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid ID", "handle": "handle", "name": "name"},
 			fn: func(_ *settings.Settings) {
@@ -108,7 +108,7 @@ func Test_profileFormProc(t *testing.T) {
 		{
 			name:    "proc invalid handle",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid handle", "handle": "handle", "name": "name"},
 			fn: func(_ *settings.Settings) {
@@ -125,7 +125,7 @@ func Test_profileFormProc(t *testing.T) {
 		{
 			name:    "proc invalid email",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "invalid email", "handle": "handle", "name": "name"},
 			fn: func(_ *settings.Settings) {
@@ -142,7 +142,7 @@ func Test_profileFormProc(t *testing.T) {
 		{
 			name:    "proc handle not unique",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "handle not unique", "handle": "handle", "name": "name"},
 			fn: func(_ *settings.Settings) {
@@ -157,9 +157,9 @@ func Test_profileFormProc(t *testing.T) {
 			},
 		},
 		{
-			name:    "not allowed to update this user",
+			name:    "user.errors.notAllowedToUpdate",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Could not update profile due to input errors", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "profile.alerts.profile-update-fail", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string{"email": "mockuser@example.tld", "error": "not allowed to update this user", "handle": "handle", "name": "name"},
 			fn: func(_ *settings.Settings) {

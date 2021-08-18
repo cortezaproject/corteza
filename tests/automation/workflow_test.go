@@ -128,7 +128,7 @@ func TestWorkflowCreateForbidden(t *testing.T) {
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create workflows")).
+		Assert(helpers.AssertError("workflow.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -145,7 +145,7 @@ func TestWorkflowCreateNotUnique(t *testing.T) {
 		FormData("handle", workflow.Handle).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("workflow handle not unique")).
+		Assert(helpers.AssertError("workflow.errors.handleNotUnique")).
 		End()
 }
 
@@ -246,7 +246,7 @@ func TestWorkflowUpdateForbidden(t *testing.T) {
 		FormData("email", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this workflow")).
+		Assert(helpers.AssertError("workflow.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -282,7 +282,7 @@ func TestWorkflowDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this workflow")).
+		Assert(helpers.AssertError("workflow.errors.notAllowedToDelete")).
 		End()
 }
 

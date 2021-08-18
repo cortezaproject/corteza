@@ -67,7 +67,7 @@ func Test_signupProc(t *testing.T) {
 		{
 			name:    "success email confirmed",
 			err:     "",
-			alerts:  []request.Alert{{Type: "primary", Text: "Sign-up successful.", Html: ""}},
+			alerts:  []request.Alert{{Type: "primary", Text: "signup.alerts.signup-successful", Html: ""}},
 			link:    GetLinks().Profile,
 			payload: map[string]string(nil),
 			fn: func(_ *settings.Settings) {
@@ -105,7 +105,7 @@ func Test_signupProc(t *testing.T) {
 		{
 			name:    "internal signup disabled",
 			err:     "",
-			alerts:  []request.Alert{{Type: "danger", Text: "Signup disabled", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "signup.alerts.signup-disabled", Html: ""}},
 			link:    GetLinks().Login,
 			payload: map[string]string(nil),
 			fn: func(_ *settings.Settings) {
