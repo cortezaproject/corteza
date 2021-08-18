@@ -1,18 +1,18 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "sessions" }}
 <div class="card-body p-0">
-	    <div class="card-title p-3 border-bottom">
-            <h4 class="card-title d-inline">{{ tr "session.template.title" }}</h4>
-            {{ if .sessions}}
-            <button
-                type="submit"
-                name="delete-all-but-current"
-                value="true"
-                class="btn btn-sm btn-danger float-right"
-            >
-                {{ tr "session.template.button.delete-all" }}
-            </button>
-            {{ end }}
-	    </div>
+	<div class="card-title p-3 border-bottom">
+		<h4 class="card-title d-inline">{{ tr "sessions.template.title" }}</h4>
+		{{ if .sessions}}
+		<button
+			type="submit"
+			name="delete-all-but-current"
+			value="true"
+			class="btn btn-sm btn-danger float-right"
+		>
+			{{ tr "sessions.template.delete-all" }}
+		</button>
+		{{ end }}
+	</div>
 	<form
 		method="POST"
 		action="{{ links.Sessions }}"
@@ -23,7 +23,7 @@
 	{{ range .sessions}}
 		<div class="mb-3 border-bottom">
 			{{ if .Current }}
-                <h5>{{ tr "session.template.form.title" }}</h5>
+                <h5>{{ tr "sessions.template.list.current" }}</h5>
 			{{ end }}
             {{ if not .Current }}
                 <button
@@ -32,37 +32,37 @@
                     value="{{ .ID }}"
                     class="btn btn-sm btn-link text-danger float-right"
                 >
-                    {{ tr "session.template.button.delete-this" }}
+                    {{ tr "sessions.template.list.delete" }}
                 </button>
             {{ end }}
-			<label class="mb-0 d-block">{{ tr "session.template.form.label-auth" }}</label>
+			<label class="mb-0 d-block">{{ tr "sessions.template.list.authorized-on" }}</label>
 			<p class="w-75 d-inline-block">
                 <time datetime="{{ .CreatedAt }}">{{ .CreatedAt | date "Mon, 02 Jan 2006 15:04 MST" }}</time>
             </p>
-			<label class="mb-0 d-block">{{ tr "session.template.form.label-IP" }}</label>
+			<label class="mb-0 d-block">{{ tr "sessions.template.list.ip-address" }}</label>
 			<p class="w-75 d-inline-block">{{ .RemoteAddr }}</p>
 			{{ if .SameRemoteAddr}}
-                <span class="badge badge-light float-right">{{ tr "session.template.form.span-machine" }}</span>
+                <span class="badge badge-light float-right">{{ tr "sessions.template.list.same-machine" }}</span>
             {{ end }}
-			<label class="mb-0 d-block">{{ tr "session.template.form.label-expire.title" }}</label>
+			<label class="mb-0 d-block">{{ tr "sessions.template.list.expires" }}</label>
 			<p class="w-75 d-inline-block">
 			    <time datetime="{{ .ExpiresAt }}">{{ .ExpiresAt | date "Mon, 02 Jan 2006 15:04 MST" }}</time>
 			</p>
 			{{ if .Expired }}
-                <span class="badge badge-warning float-right">{{ tr "session.template.form.label-expire.expired" }}</span>
+                <span class="badge badge-warning float-right">{{ tr "sessions.template.list.expired" }}</span>
                 {{ else if eq .ExpiresIn 0 }}
-                <span class="badge badge-warning float-right">{{ tr "session.template.form.label-expire.today" }}</span>
+                <span class="badge badge-warning float-right">{{ tr "sessions.template.list.today" }}</span>
                 {{ else if eq .ExpiresIn 1 }}
-                <span class="badge badge-light float-right">{{ tr "session.template.form.label-expire.when" }}</span>
+                <span class="badge badge-light float-right">{{ tr "sessions.template.list.tomorrow" }}</span>
                 {{ else }}
-                <span class="badge badge-light float-right">in {{ .ExpiresIn }} days</span>
+                <span class="badge badge-light float-right">{{ tr "sessions.template.list.soon" "days" .ExpiresIn }}</span>
                 {{ end }}
-			<label class="mb-0 d-block">{{ tr "session.template.form.label-browser" }}</label>
+			<label class="mb-0 d-block">{{ tr "sessions.template.list.browser" }}</label>
 			<p class="small w-75 d-inline-block">
 			    {{ .UserAgent }}
 			</p>
 			{{ if .SameUserAgent}}
-                <span class="badge badge-light float-right">{{ tr "session.template.form.span-browser" }}</span>
+                <span class="badge badge-light float-right">{{ tr "sessions.template.list.same-browser" }}</span>
             {{ end }}
 		</div>
 	{{ end }}

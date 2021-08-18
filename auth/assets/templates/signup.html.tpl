@@ -25,7 +25,7 @@
                 placeholder="{{ tr "signup.template.form.email.placeholder" }}"
                 autocomplete="username"
                 value="{{ .form.email }}"
-                aria-label="{{ tr "signup.template.form.email.aria-label" }}">
+                aria-label="{{ tr "signup.template.form.email.label" }}">
         </div>
         <div class="mb-3">
             <label>
@@ -38,7 +38,7 @@
 				required
 				placeholder="{{ tr "signup.template.form.password.placeholder" }}"
 				autocomplete="new-password"
-				aria-label="{{ tr "signup.template.form.password.aria-label" }}">
+				aria-label="{{ tr "signup.template.form.password.label" }}">
         </div>
         <div class="mb-3">
             <label>
@@ -51,7 +51,7 @@
 				placeholder="{{ tr "signup.template.form.name.placeholder" }}"
 				value="{{ .form.name }}"
 				autocomplete="name"
-				aria-label="{{ tr "signup.template.form.name.aria-label" }}">
+				aria-label="{{ tr "signup.template.form.name.label" }}">
         </div>
         <div class="mb-3">
             <label>
@@ -64,7 +64,7 @@
 				placeholder="{{ tr "signup.template.form.nickname.placeholder" }}"
 				value="{{ .form.handle }}"
 				autocomplete="handle"
-				aria-label="{{ tr "signup.template.form.nickname.aria-label" }}">
+				aria-label="{{ tr "signup.template.form.nickname.label" }}">
         </div>
 		<div>
 			<button
@@ -74,8 +74,14 @@
 			>{{ tr "signup.template.form.button.sign-up" }}</button>
 		</div>
 	</form>
+<<<<<<< HEAD
 	<div class="text-center my-3">{{ tr "signup.template.form.link.alternative" }}
 		<a href="{{ links.Login }}">{{ tr "signup.template.form.link.login" }}</a>
+=======
+	<div class="text-center my-3">
+		{{ tr "signup.template.log-in" "link" links.Login }}
+>>>>>>> 838e629a... Translation fixes
 	</div>
 </div>
+
 {{ template "inc_footer.html.tpl" . }}

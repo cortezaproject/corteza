@@ -59,7 +59,7 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.handle.email-resent"))
+		req.PushAlert(t("mfa.email.resent"))
 		req.AuthUser.CompleteEmailOTP()
 
 	case "verifyTotp":
@@ -75,7 +75,7 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.handle.topt-valid"))
+		req.PushAlert(t("mfa.topt.valid"))
 		req.AuthUser.CompleteTOTP()
 	}
 

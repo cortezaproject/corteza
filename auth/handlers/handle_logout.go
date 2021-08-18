@@ -21,6 +21,12 @@ func (h *AuthHandlers) logoutProc(req *request.AuthReq) (err error) {
 	h.Log.Info("logout successful")
 
 	req.Template = TmplLogout
-	req.Data["backlink"] = req.Request.FormValue("back")
+
+	if req.Request.FormValue("back") != "" {
+		req.Data["link"] = req.Request.FormValue("back")
+	} else {
+		req.Data["link"] = GetLinks().Login
+	}
+
 	return
 }

@@ -3,11 +3,11 @@
 <div class="card-body p-0">
 	{{ if .invalidUser }}
 	<div class="text-danger font-weight-bold p-3" role="alert">
-		{{ .invalidUser }}
+		{{ tr "oauth2-authorize-client.template.errors.invalid-user" "link" links.Profile }}
 	</div>
 	{{ end }}
 
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "oauth2_authorize_client.template.title" }} "{{ coalesce .client.Name }}"</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "oauth2-authorize-client.template.title" }} "{{ coalesce .client.Name }}"</h1>
 
 	<form
 		action="{{ links.OAuth2AuthorizeClient }}"
@@ -16,10 +16,10 @@
 	>
 	  {{ .csrfField }}
 	  <p>
-	  	{{ tr "oauth2_authorize_client.template.form.greeting-paragraph" }} {{ coalesce .user.Name .user.Handle .user.Email }},
+	  	{{ tr "oauth2-authorize-client.template.form.greeting-paragraph" }} {{ coalesce .user.Name .user.Handle .user.Email }},
 	  </p>
 	  <p>
-		  <b>{{ .client.Name }}</b> {{ tr "oauth2_authorize_client.template.form.question-for-client" }}
+		  <b>{{ .client.Name }}</b> {{ tr "oauth2-authorize-client.template.form.question-for-client" }}
 	  </p>
 
 	  <p class="text-center">
@@ -30,7 +30,7 @@
 		  class="btn btn-{{ if .disabled }}secondary{{ else }}primary{{ end }} btn-lg m-2"
 		  style="width:250px;"
 		>
-		  {{ tr "oauth2_authorize_client.template.form.button-allow" }}
+		  {{ tr "oauth2-authorize-client.template.form.buttons.allow" }}
 		</button>
 		<button
 		  type="submit"
@@ -38,11 +38,11 @@
 		  class="btn btn-danger btn-lg m-2"
 		  style="width:250px;"
 		>
-		  {{ tr "oauth2_authorize_client.template.form.button-deny" }}
+		  {{ tr "oauth2-authorize-client.template.form.buttons.deny" }}
 		</button>
 	  </p>
       <div class="text-center">
-	    {{ tr "oauth2_authorize_client.template.form.mistake" }} <a href="{{ links.Logout }}">{{ tr "oauth2_authorize_client.template.form.log-out-link" }}</a>.
+	    {{ tr "oauth2-authorize-client.template.links.mistake" }}
       </div>
 
 	</form>

@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">{{ tr "request_password_reset.template.title" }}</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "request-password-reset.template.title" }}</h1>
 	<form
 		method="POST"
 		action="{{ links.RequestPasswordReset }}"
@@ -14,26 +14,24 @@
 		{{ end }}
 		<div class="mb-3">
 			<label>
-                {{ tr "request_password_reset.template.form.email.label" }}
+                {{ tr "request-password-reset.template.form.email.label" }}
             </label>
 			<input
 				type="email"
 				class="form-control"
 				name="email"
 				required
-				placeholder="{{ tr "request_password_reset.template.form.email.placeholder" }}"
+				placeholder="{{ tr "request-password-reset.template.form.email.placeholder" }}"
 				autocomplete="username"
 				value="{{ if .form }}{{ .form.email }}{{ end }}"
-				aria-label="{{ tr "request_password_reset.template.form.email.aria-label" }}">
+				aria-label="{{ tr "request-password-reset.template.form.email.label" }}">
 		</div>
 		<div class="text-right">
-			<button class="btn btn-primary btn-block btn-lg" type="submit">{{ tr "request_password_reset.template.form.button" }}</button>
+			<button class="btn btn-primary btn-block btn-lg" type="submit">{{ tr "request-password-reset.template.form.buttons.request" }}</button>
 		</div>
 	</form>
 	<div class="text-center my-3">
-		<a href="{{ links.Signup }}">{{ tr "request_password_reset.template.new-acc-link" }}</a>
-		{{ tr "request_password_reset.template.or" }}
-		<a href="{{ links.Login }}">{{ tr "request_password_reset.template.login" }}</a>
+		{{ tr "request-password-reset.template.links" "signup" links.Signup "login" links.Login }}</a>
 	</div>
 </div>
 {{ template "inc_footer.html.tpl" . }}

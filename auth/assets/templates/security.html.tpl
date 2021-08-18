@@ -8,19 +8,19 @@
 	>
 
 	{{ if .settings.LocalEnabled }}
-	<h5>{{ tr "security.template.form.title" }}</h5>
-	<a href="{{ links.ChangePassword }}">{{ tr "security.template.form.passw-change" }}</a>
+	<h5>{{ tr "security.template.password.title" }}</h5>
+	<a href="{{ links.ChangePassword }}">{{ tr "security.template.password.change-link" }}</a>
 	{{ end }}
 
 	<hr />
 
 	<div>
 		{{ .csrfField }}
-		<h5>{{ tr "security.template.security.title" }}</h5>
+		<h5>{{ tr "security.template.mfa.title" }}</h5>
 		{{ if or .settings.MultiFactor.TOTP.Enabled .settings.MultiFactor.EmailOTP.Enabled }}
 			{{ if .settings.MultiFactor.TOTP.Enabled }}
 			<div class="py-4">
-				<h6>{{ tr "security.template.security.description" }}</h6>
+				<h6>{{ tr "security.template.mfa.totp.title" }}</h6>
 				<div class="row">
 					<div class="col-10 pt-2">
 						{{ if .totpEnforced }}
@@ -29,18 +29,18 @@
 						<i class="bi bi-exclamation-circle-fill text-danger h5 mr-1"></i>
 						{{ end }}
 						{{ if .totpEnforced }}
-							{{ tr "security.template.security.req-login" }}
+							{{ tr "security.template.mfa.totp.enforced" }}
 						{{ else }}
-							{{ tr "security.template.security.disable" }}
+							{{ tr "security.template.mfa.totp.disabled" }}
 						{{ end }}
 					</div>
 					<div class="col-md-2 col-sm-12">
 						{{ if .totpEnforced }}
 							{{ if not .settings.MultiFactor.TOTP.Enforced }}
-							<button name="action" value="disableTOTP" class="btn btn-danger float-right">{{ tr "security.template.button.disable" }}</button>
+							<button name="action" value="disableTOTP" class="btn btn-danger float-right">{{ tr "security.template.mfa.totp.disable" }}</button>
 							{{ end }}
 						{{ else }}
-							<button name="action" value="configureTOTP" class="btn btn-primary float-right">{{ tr "security.template.button.configure" }}</button>
+							<button name="action" value="configureTOTP" class="btn btn-primary float-right">{{ tr "security.template.mfa.totp.configure" }}</button>
 						{{ end }}
 					</div>
 				</div>
@@ -49,7 +49,7 @@
 
 			{{ if .settings.MultiFactor.EmailOTP.Enabled }}
 			<div class="py-4">
-				<h6>{{ tr "security.template.aditional-security.title" }}</h6>
+				<h6>{{ tr "security.template.mfa.email.title" }}</h6>
 				<div class="row">
 					<div class="col-10 pt-2">
                     {{ if .emailOtpEnforced }}
@@ -58,18 +58,18 @@
                     <i class="bi bi-exclamation-circle-fill text-danger h5 mr-1"></i>
                     {{ end }}
 					{{ if .emailOtpEnforced }}
-						{{ tr "security.template.aditional-security.email-otp-enforced" }}
+						{{ tr "security.template.mfa.email.enforced" }}
 					{{ else }}
-						{{ tr "security.template.aditional-security.disable" }}
+						{{ tr "security.template.mfa.email.disabled" }}
 					{{ end }}
 					</div>
 					<div class="col-md-2 col-sm-12">
 					{{ if .emailOtpEnforced }}
 						{{ if not .settings.MultiFactor.EmailOTP.Enforced }}
-						<button name="action" value="disableEmailOTP" class="btn btn-danger float-right">{{ tr "security.template.button.disable" }}</button>
+						<button name="action" value="disableEmailOTP" class="btn btn-danger float-right">{{ tr "security.template.mfa.email.disable" }}</button>
 						{{ end }}
 					{{ else }}
-						<button name="action" value="enableEmailOTP" class="btn btn-primary float-right">{{ tr "security.template.button.enable" }}</button>
+						<button name="action" value="enableEmailOTP" class="btn btn-primary float-right">{{ tr "security.template.mfa.email.enable" }}</button>
 					{{ end }}
 					</div>
 
@@ -78,7 +78,7 @@
 			{{ end }}
 		{{ else }}
 			<div class="mb-4 font-italic" role="alert">
-				{{ tr "security.template.alert" }}
+				{{ tr "security.template.mfa.all-disabled" }}
 			</div>
 		{{ end }}
 		</div>

@@ -38,7 +38,7 @@ func (h *AuthHandlers) securityProc(req *request.AuthReq) error {
 			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: t("security.TFA-TOTP-disabled"),
+				Text: t("security.totp-disabled"),
 			})
 
 			// Make sure we update User's data in the session

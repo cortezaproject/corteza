@@ -8,7 +8,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>{{ tr "mfa.template.form-1.title" }}</h5>
+		<h5>{{ tr "mfa.template.email.instructions" }}</h5>
 
 		{{ if .form.emailOtpError }}
 		<div class="text-danger my-4 font-weight-bold" role="alert">
@@ -27,10 +27,10 @@
 				maxlength="6"
 				minlength="6"
 				aria-required="true"
-				placeholder="{{ tr "mfa.template.input-group-my-3.placeholder" }}"
+				placeholder="000 000"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="{{ tr "mfa.template.input-group-my-3.aria-label" }}">
+				aria-label="{{ tr "mfa.template.email.code" }}">
 		</div>
 
 		<button
@@ -39,7 +39,7 @@
 			value="verifyEmailOtp"
 			type="submit"
 		>
-			{{ tr "mfa.buttons.verify" }}
+			{{ tr "mfa.template.email.verify" }}
 		</button>
 
 		<a
@@ -48,12 +48,12 @@
 			name="action"
 			value="resendEmailOtp"
 		>
-			{{ tr "mfa.buttons.resend" }}
+			{{ tr "mfa.template.email.resend" }}
 		</a>
 	</form>
 	{{ else if not .emailOtpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.paragraph-1" }}
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.email.confirmed" }}
 		</p>
 	{{ end }}
 
@@ -63,7 +63,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>{{ tr "mfa.template.form-2.title" }}</h5>
+		<h5>{{ tr "mfa.template.totp.instructions" }}</h5>
 
 		{{ if .form.totpError }}
 		<div class="alert alert-danger" role="alert">
@@ -82,10 +82,10 @@
 				maxlength="6"
 				minlength="6"
 				aria-required="true"
-				placeholder="{{ tr "mfa.template.input-group-my-3.placeholder" }}"
+				placeholder="000 000"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="{{ tr "mfa.template.input-group-my-3.aria-label" }}">
+				aria-label="{{ tr "mfa.template.totp.code" }}">
 		</div>
 
 		<button
@@ -94,12 +94,12 @@
 			name="action"
 			value="verifyTotp"
 		>
-			{{ tr "mfa.buttons.verify" }}
+			{{ tr "mfa.template.email.verify" }}
 		</button>
 	</form>
 	{{ else if not .totpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.paragraph-2" }}
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.totp.confirmed" }}
 		</p>
 	{{ end }}
 </div>
