@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -95,17 +94,13 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
-			Text: fmt.Sprintf(t("oauth2_authorize_client.alerts.no-auth-or-prems"), req.Client),
+			Text: t("oauth2-authorize-client.alerts.denied", "client", req.Client.Meta.Name),
 		})
 		return nil
 	}
 
 	if !req.AuthUser.User.EmailConfirmed {
-		req.Data["invalidUser"] = template.HTML(fmt.Sprintf(
-			`Cannot continue with unauthorized email, visit <a href="%s">your profile</a> and resolve the issue.`,
-			GetLinks().Profile,
-		))
-
+		req.Data["invalidUser"] = true
 		req.Data["disabled"] = true
 	} else if client.Trusted {
 		h.Log.Debug("pre-authorized trusted oauth2 client")
@@ -145,7 +140,7 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: t("oauth2_authorize_client.alerts.client-access-denied"),
+		Text: t("oauth2-authorize-client.alerts.denied", "client", req.Client.Meta.Name),
 	})
 	return
 }

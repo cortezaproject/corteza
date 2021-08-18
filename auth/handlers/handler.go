@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -233,8 +234,13 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			// translator template function
 			ttf = func(t *template.Template) *template.Template {
 				return t.Funcs(map[string]interface{}{
-					"tr": func(key string, pp ...string) string {
-						return loc.Get(req.Context(), "auth", key, pp...)
+					"tr": func(key string, pp ...interface{}) template.HTML {
+						ss := make([]string, len(pp))
+						for i := range pp {
+							ss[i] = cast.ToString(pp[i])
+						}
+
+						return template.HTML(loc.Get(req.Context(), "auth", key, ss...))
 					},
 				})
 			}

@@ -14,7 +14,7 @@
         <div class="p-3">
             <div class="text-primary font-weight-bold">{{ .Name }}</div>
             <div>
-                {{ tr "authorized-clients.template.authorized" }}
+                {{ tr "authorized-clients.template.list.authorized-on" }}
                 <time
                     datetime="{{ .ConfirmedAt | date "2006-01-02T15:04:05Z07:00" }}"
                 >
@@ -27,12 +27,12 @@
                 value="{{ .ID }}"
                 class="btn btn-sm btn-danger"
             >
-                {{ tr "authorized-clients.template.button.revoke-access" }}
+                {{ tr "authorized-clients.template.list.buttons.revoke" }}
             </button>
         </div>
 	{{ else }}
 		<div class="text-center m-3 mb-5">
-			<i>{{ tr "authorized-clients.template.no-auth-clients" }}</i>
+			<i>{{ tr "authorized-clients.template.list.empty" }}</i>
 		</div>
 	{{ end }}
 	</form>

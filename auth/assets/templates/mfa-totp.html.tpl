@@ -1,10 +1,10 @@
 {{ template "inc_header.html.tpl"  set . "hideNav" true }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Configure two-factor authentication with TOTP</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa-totp.template.title" }}</h1>
 
 	{{ if .enforced }}
 	<p class="p-3 text-danger mb-0 font-weight-bold">
-		{{ tr "mfa_totp.template.paragraph" }}
+		{{ tr "mfa-totp.template.enforced" }}
 	</p>
 	{{ end }}
 
@@ -20,7 +20,7 @@
 					method="POST"
 								action="{{ links.MfaTotpNewSecret }}"
 				>
-					{{ tr "mfa_totp.template.form.title-2" }}
+					{{ tr "mfa-totp.template.form.title" }}
 
 					{{ if .form.error }}
 					<div class="alert alert-danger" role="alert">
@@ -50,38 +50,27 @@
 						value="true"
 						type="submit"
 					>
-						{{ tr "mfa_totp.template.form.button" }}
+						{{ tr "mfa-totp.template.form.button" }}
 					</button>
 				</form>
 			</div>
 			<div class="col-12 col-sm-6">
 				<p class="text-justify">
-					{{ tr "mfa_totp.template.form.paragraph-one" }}
-				</p>
-				<p>
-					{{ tr "mfa_totp.template.form.paragraph-two" }}
-				</p>
-				<p>
-					{{ tr "mfa_totp.template.form.paragraph-three" }}
+				{{ tr "mfa-totp.template.instructions" }}
 				</p>
 				<ul>
 					<li>
-						<a target="_blank" href="https://lastpass.com/auth/">{{ tr "mfa_totp.template.form.ul-links.auth" }}</a>
+						{{ tr "mfa-totp.template.lastpass" "lastpass" "https://lastpass.com/auth/" }}
 					</li>
 					<li>
-						{{ tr "mfa_totp.template.form.ul-links.text" }} <br />
-						<a target="_blank" href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">{{ tr "mfa_totp.template.form.ul-links.android" }}</a>
-						{{ tr "mfa_totp.template.form.ul-links.or" }}
-						<a target="_blank" href="https://apps.apple.com/us/app/google-authenticator/id388497605">{{ tr "mfa_totp.template.form.ul-links.store" }}</a>
+						{{ tr "mfa-totp.template.gauth" "android" "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" "iphone" "https://apps.apple.com/us/app/google-authenticator/id388497605" }}
 					</li>
 					<li>
-						<a target="_blank" href="https://authy.com">{{ tr "mfa_totp.template.form.ul-links.authy" }}</a>
+						{{ tr "mfa-totp.template.authy" "link" "https://authy.com" }}
 					</li>
 				</ul>
 			</div>
 		</div>
 	</div>
-
-
 </div>
 {{ template "inc_footer.html.tpl" . }}

@@ -7,12 +7,12 @@
 		</div>
 		{{ else }}
 		<div class="text-dark font-weight-bold" role="primary">
-			{{ tr "logout.log-out" }}
+			{{ tr "logout.template.log-out" }}
 		</div>
 		{{ end }}
 
 		<div class="text-center my-3">
-			Click here to <a href="{{ if .backlink }}{{ .backlink }}{{ else }}{{ links.Login }}{{ end }}">Log in</a>
+			{{ tr "logout.template.log-in" "link" .link }}
 		</div>
 
 	</form>

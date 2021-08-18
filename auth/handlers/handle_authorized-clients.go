@@ -63,7 +63,7 @@ func (h *AuthHandlers) clientsProc(req *request.AuthReq) error {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("authorized-clients.alerts.text"),
+			Text: t("authorized-clients.alerts.removed"),
 		})
 	}
 

@@ -21,15 +21,15 @@
                 class="form-control"
                 name="email"
                 id="profileFormEmail"
-                placeholder="{{ tr "profile.template.form.email.placeholder" }}"
+                placeholder="email@domain.ltd"
                 autocomplete="username"
                 readonly
                 value="{{ .form.email }}"
-                aria-label="{{ tr "profile.template.form.email.aria-label" }}">
+                aria-label="{{ tr "profile.template.form.email.label" }}">
             <div>
                 {{ if .emailConfirmationRequired }}
                 <div class="form-text text-danger">
-                    {{ tr "profile.template.form.text-danger-1" }} <a href="{{ links.PendingEmailConfirmation }}?resend">{{ tr "profile.template.form.text-danger-2" }}</a>
+                	{{ tr "profile.template.form.email.resend-confirmation-link" "link" links.PendingEmailConfirmation }}
                 </div>
                 {{ end }}
             </div>
@@ -45,7 +45,7 @@
                 placeholder="{{ tr "profile.template.form.name.placeholder" }}"
                 value="{{ .form.name }}"
                 autocomplete="name"
-                aria-label="{{ tr "profile.template.form.name.aria-label" }}">
+                aria-label="{{ tr "profile.template.form.name.label" }}">
 		</div>
 
 		<div class="mb-3">
@@ -58,7 +58,7 @@
                 placeholder="{{ tr "profile.template.form.handle.placeholder" }}"
                 value="{{ .form.handle }}"
                 autocomplete="handle"
-                aria-label="{{ tr "profile.template.form.handle.aria-label" }}">
+                aria-label="{{ tr "profile.template.form.handle.label" }}">
 		</div>
 
         <div>
@@ -66,7 +66,7 @@
                 type="submit"
                 class="btn btn-primary btn-block btn-lg"
             >
-                {{ tr "profile.template.form.button" }}
+                {{ tr "profile.template.form.buttons.submit" }}
             </button>
         </div>
 	</form>
