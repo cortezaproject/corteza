@@ -76,3 +76,17 @@ func Example_average() {
 	// output:
 	// 4
 }
+
+func Example_randomWithSingleInput() {
+	eval(`max(random(6), 7)`, nil)
+
+	// output:
+	// 7
+}
+
+func Example_randomWithTwoInput() {
+	eval(`min(random(2, 6), 1)`, nil)
+
+	// output:
+	// 1
+}

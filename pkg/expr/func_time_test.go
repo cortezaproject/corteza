@@ -85,3 +85,52 @@ func Example_isWeekDay() {
 	// output:
 	// true
 }
+
+func Example_modTime() {
+	eval(`modTime(ghd, "+30m")`, exampleTimeParams)
+
+	// output:
+	// 1993-02-02 06:30:00 -0500 -0500
+}
+
+func Example_modWeek() {
+	eval(`modWeek(ghd, "1")`, exampleTimeParams)
+
+	// output:
+	// 1993-02-09 06:00:00 -0500 -0500
+}
+
+func Example_modDate() {
+	eval(`modDate(ghd, "5")`, exampleTimeParams)
+
+	// output:
+	// 1993-02-07 06:00:00 -0500 -0500
+}
+
+func Example_modMonth() {
+	eval(`modMonth(ghd, "1")`, exampleTimeParams)
+
+	// output:
+	// 1993-03-02 06:00:00 -0500 -0500
+}
+
+func Example_modYear() {
+	eval(`modYear(ghd, "5")`, exampleTimeParams)
+
+	// output:
+	// 1998-02-02 06:00:00 -0500 -0500
+}
+
+func Example_sub() {
+	eval(`sub(hgp, ghd)`, exampleTimeParams)
+
+	// output:
+	// 321627600000
+}
+
+func Example_subErrorCheck() {
+	eval(`sub(ghd, hgp)`, exampleTimeParams)
+
+	// output:
+	// error: can not evaluate sub(ghd, hgp): expecting 2nd input to be less than 1st input
+}
