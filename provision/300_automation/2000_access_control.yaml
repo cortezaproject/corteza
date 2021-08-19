@@ -1,5 +1,5 @@
 allow:
-  admins:
+  admin:
     corteza::automation/:
       - grant
       - workflow.create
@@ -16,7 +16,7 @@ allow:
       - triggers.manage
       - sessions.manage
 
-  developers:
+  developer:
     corteza::automation/:
       - grant
       - workflow.create
