@@ -69,8 +69,10 @@ func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (res 
 
 	// this one should go out once the ResultAny
 	// is mainly used
-	case uint64, int64:
-		res.ResultInt = int64(vv.(uint64))
+	case uint64:
+		res.ResultInt = int64(vv)
+	case int64:
+		res.ResultInt = int64(vv)
 
 	// this one should go out once the ResultAny
 	// is mainly used
