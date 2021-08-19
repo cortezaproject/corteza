@@ -16,6 +16,7 @@ func TimeFunctions() []gval.Language {
 		gval.Function("parseISOTime", parseISOTime),
 		gval.Function("modTime", modTime),
 		gval.Function("modDate", modDate),
+		gval.Function("modWeek", modWeek),
 		gval.Function("modMonth", modMonth),
 		gval.Function("modYear", modYear),
 		gval.Function("parseDuration", time.ParseDuration),
@@ -23,6 +24,7 @@ func TimeFunctions() []gval.Language {
 		gval.Function("isLeapYear", isLeapYear),
 		gval.Function("now", now),
 		gval.Function("isWeekDay", isWeekDay),
+		gval.Function("sub", sub),
 	}
 }
 
@@ -131,6 +133,16 @@ func modDate(base interface{}, mod interface{}) (*time.Time, error) {
 	return &tmp, nil
 }
 
+func modWeek(base interface{}, mod interface{}) (*time.Time, error) {
+	t, m, err := prepMod(base, mod)
+	if err != nil {
+		return nil, err
+	}
+
+	tmp := t.AddDate(0, 0, 7*m)
+	return &tmp, nil
+}
+
 func modMonth(base interface{}, mod interface{}) (*time.Time, error) {
 	t, m, err := prepMod(base, mod)
 	if err != nil {
@@ -183,4 +195,27 @@ func strfTime(base interface{}, f string) (string, error) {
 	}
 	o, _ := strftime.Format(f, *t, strftime.WithMilliseconds('b'))
 	return o, nil
+}
+
+// sub returns difference between two date into milliseconds
+func sub(from interface{}, to interface{}) (out int64, err error) {
+	t1, _, err := prepMod(from, 0)
+	if err != nil {
+		return
+	}
+
+	t2, _, err := prepMod(to, 0)
+	if err != nil {
+		return
+	}
+
+	var duration time.Duration
+
+	if t1.After(*t2) {
+		duration = t1.Sub(*t2)
+	} else {
+		return -1, errors.New("expecting 2nd input to be less than 1st input")
+	}
+
+	return duration.Milliseconds(), nil
 }

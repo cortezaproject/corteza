@@ -1,9 +1,10 @@
 package expr
 
 import (
-	"math"
-
 	"github.com/PaesslerAG/gval"
+	"github.com/pkg/errors"
+	"math"
+	"math/rand"
 )
 
 func NumericFunctions() []gval.Language {
@@ -19,6 +20,7 @@ func NumericFunctions() []gval.Language {
 		gval.Function("sqrt", math.Sqrt),
 		gval.Function("sum", sum),
 		gval.Function("average", average),
+		gval.Function("random", random),
 	}
 }
 
@@ -111,4 +113,31 @@ func average(v ...interface{}) float64 {
 	}
 
 	return sum / j
+}
+
+func random(v ...float64) (out float64, err error) {
+	var (
+		from, to  float64
+		totalArgs = len(v)
+	)
+
+	if totalArgs == 0 || totalArgs > 2 {
+		return 0, errors.Errorf("expecting 1 or 2 parameter, got %d", totalArgs)
+	}
+
+	if totalArgs > 0 {
+		if to = v[0]; to < 0 {
+			return 0, errors.New("unexpected input type of 1st parameter")
+		}
+	}
+
+	if totalArgs > 1 {
+		if to = v[1]; to < 0 {
+			return 0, errors.New("unexpected input type of 2nd parameter")
+		}
+		from = v[0]
+	}
+
+	out = from + rand.Float64()*(to-from)
+	return
 }
