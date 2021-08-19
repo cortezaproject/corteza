@@ -3,6 +3,8 @@ package apigw
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/filter/proxy"
@@ -62,8 +64,8 @@ func New(opts *options.ApigwOpt, logger *zap.Logger, storer storer) *apigw {
 		opts:   opts,
 		log:    logger,
 		storer: storer,
-		reload: make(chan bool),
 		reg:    reg,
+		reload: make(chan bool),
 	}
 }
 
@@ -167,61 +169,89 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 	}
 
 	for _, r := range s.routes {
-		hasPostFilters = false
-		log := s.log.With(zap.String("route", r.String()))
+		var (
+			log  = s.log.With(zap.String("route", r.String()))
+			pipe = pipeline.NewPipeline(log)
+		)
 
-		r.pipe = pipeline.NewPipeline(log)
+		hasPostFilters = false
 		r.opts = s.opts
 		r.log = log
 
 		regFilters, err := s.loadFilters(ctx, r.ID)
 
 		if err != nil {
-			log.Error("could not load functions for route", zap.Error(err))
+			log.Error("could not load filters for route", zap.Error(err))
 			continue
 		}
 
-		r.pipe.ErrorHandler(filter.NewErrorHandler("error handler expediter", []string{}))
-
 		for _, f := range regFilters {
-			h, err := s.reg.Get(f.Ref)
+			flog := log.With(zap.String("ref", f.Ref))
+
+			ff, err := s.registerFilter(f, r)
 
 			if err != nil {
-				log.Error("could not register filter", zap.Error(err))
+				flog.Error("could not register filter", zap.Error(err))
 				continue
 			}
 
-			enc, err := json.Marshal(f.Params)
-
-			if err != nil {
-				log.Error("could not load params for filter", zap.String("ref", f.Ref), zap.Error(err))
-				continue
-			}
-
-			h, err = s.reg.Merge(h, enc)
-
-			if err != nil {
-				log.Error("could not merge params to handler", zap.String("ref", f.Ref), zap.Error(err))
-				continue
-			}
+			pipe.Add(ff)
 
 			// check if it's a postfilter for async support
 			if f.Kind == string(types.PostFilter) {
 				hasPostFilters = true
 			}
 
-			r.pipe.Add(h)
+			flog.Debug("registered filter")
 		}
+
+		r.handler = pipe.Handler()
+		r.errHandler = pipe.Error()
 
 		// add default postfilter on async
 		// routes if not present
 		if r.meta.async && !hasPostFilters {
 			log.Info("registering default postfilter", zap.Error(err))
-			r.pipe.Add(defaultPostFilter)
+
+			pipe.Add(&pipeline.Worker{
+				Handler: defaultPostFilter.Handler(),
+				Name:    defaultPostFilter.String(),
+				Weight:  math.MaxInt8,
+			})
 		}
 
 		log.Debug("successfuly registered route")
 	}
+}
+
+func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker, err error) {
+	handler, err := s.reg.Get(f.Ref)
+
+	if err != nil {
+		return
+	}
+
+	enc, err := json.Marshal(f.Params)
+
+	if err != nil {
+		err = fmt.Errorf("could not load params for filter: %s", err)
+		return
+	}
+
+	handler, err = s.reg.Merge(handler, enc)
+
+	if err != nil {
+		err = fmt.Errorf("could not merge params to handler: %s", err)
+		return
+	}
+
+	ff = &pipeline.Worker{
+		Handler: handler.Handler(),
+		Name:    handler.String(),
+		Weight:  filter.FilterWeight(int(f.Weight), types.FilterKind(f.Kind)),
+	}
+
+	return
 }
 
 func (s *apigw) Funcs(kind string) (list types.FilterMetaList) {

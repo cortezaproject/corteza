@@ -1,24 +1,43 @@
 package filter
 
 import (
-	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_header(t *testing.T) {
-	type (
-		tf struct {
-			name    string
-			expr    string
-			err     string
-			headers http.Header
+type (
+	tf struct {
+		name    string
+		expr    string
+		err     string
+		url     string
+		o       string
+		headers http.Header
+	}
+)
+
+func Test_headerMerge(t *testing.T) {
+	var (
+		tcc = []tf{
+			{
+				name:    "non matching key",
+				expr:    `{"expr":"Foo1 == bar\""}`,
+				headers: map[string][]string{"Foo": {"bar"}},
+				err:     "could not validate origin parameters: parsing error: Foo1 == bar\"\t:1:12 - 1:13 unexpected String while scanning operator",
+			},
 		}
 	)
 
+	for _, tc := range tcc {
+		t.Run(tc.name, testMerge(NewHeader(), tc))
+	}
+}
+
+func Test_headerHandle(t *testing.T) {
 	var (
 		tcc = []tf{
 			{
@@ -35,13 +54,13 @@ func Test_header(t *testing.T) {
 				name:    "non matching value",
 				expr:    `{"expr":"Foo == \"bar1\""}`,
 				headers: map[string][]string{"Foo": {"bar"}},
-				err:     "could not validate headers",
+				err:     `could not validate headers: (validation failed) (Foo == "bar1")`,
 			},
 			{
 				name:    "non matching key",
 				expr:    `{"expr":"Foo1 == \"bar\""}`,
 				headers: map[string][]string{"Foo": {"bar"}},
-				err:     "could not validate headers: failed to select 'Foo1' on *expr.Vars: no such key 'Foo1'",
+				err:     `could not validate headers: (failed to select 'Foo1' on *expr.Vars: no such key 'Foo1') (Foo1 == "bar")`,
 			},
 			{
 				name:    "regex matching key",
@@ -57,44 +76,14 @@ func Test_header(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		var (
-			ctx = context.Background()
-		)
+		r := httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
+		r.Header = tc.headers
 
-		t.Run(tc.name, func(t *testing.T) {
-			req := require.New(t)
-
-			r, err := http.NewRequest(http.MethodGet, "/foo", http.NoBody)
-			r.Header = tc.headers
-
-			req.NoError(err)
-
-			scope := &types.Scp{"request": r}
-
-			h := NewHeader()
-			h.Merge([]byte(tc.expr))
-
-			err = h.Exec(ctx, scope)
-
-			if tc.err != "" {
-				req.EqualError(err, tc.err)
-			} else {
-				req.NoError(err)
-			}
-		})
+		t.Run(tc.name, testHandle(NewHeader(), r, tc))
 	}
 }
 
-func Test_queryParam(t *testing.T) {
-	type (
-		tf struct {
-			name string
-			expr string
-			err  string
-			url  string
-		}
-	)
-
+func Test_queryParamMerge(t *testing.T) {
 	var (
 		tcc = []tf{
 			{
@@ -106,13 +95,12 @@ func Test_queryParam(t *testing.T) {
 				name: "matching simple query parameter - invalid expression key",
 				expr: `{"expr1":"foo == \"bar\""}`,
 				url:  "https://examp.le?foo=bar",
-				err: "could not parse matching expression: parsing error: 	 - 1:1 unexpected EOF while scanning extensions",
+				err: "could not validate query parameters: parsing error: 	 - 1:1 unexpected EOF while scanning extensions",
 			},
 			{
 				name: "matching simple query parameter - missing value",
 				expr: `{"expr":"foo == \"bar\""}`,
 				url:  "https://examp.le?foo=bar1",
-				err:  "could not validate query params",
 			},
 			{
 				name: "matching simple query parameter - missing value",
@@ -123,96 +111,72 @@ func Test_queryParam(t *testing.T) {
 	)
 
 	for _, tc := range tcc {
-		var (
-			ctx = context.Background()
-		)
-
-		t.Run(tc.name, func(t *testing.T) {
-			req := require.New(t)
-
-			r, err := http.NewRequest(http.MethodGet, tc.url, http.NoBody)
-
-			req.NoError(err)
-
-			scope := &types.Scp{"request": r}
-
-			h := NewQueryParam()
-			h.Merge([]byte(tc.expr))
-
-			err = h.Exec(ctx, scope)
-
-			if tc.err != "" {
-				req.EqualError(err, tc.err)
-			} else {
-				req.NoError(err)
-			}
-		})
+		t.Run(tc.name, testMerge(NewQueryParam(), tc))
 	}
 }
 
-func Test_origin(t *testing.T) {
-	type (
-		tf struct {
-			name string
-			expr string
-			err  string
-			o    string
-		}
-	)
-
+func Test_queryParamHandle(t *testing.T) {
 	var (
 		tcc = []tf{
 			{
-				name: "matching simple origin value",
-				expr: `{"expr":"origin == \"https://www.google.com\""}`,
-				o:    "https://www.google.com",
+				name: "matching simple query parameter",
+				expr: `{"expr":"foo == \"bar\""}`,
+				url:  "https://examp.le?foo=bar",
 			},
 			{
-				name: "matching simple nonexistent origin value",
-				expr: `{"expr":"origin == \"https://www.google.com\""}`,
-				o:    "",
-				err:  "could not validate origin",
+				name: "matching simple query parameter - missing value",
+				expr: `{"expr":"foo == \"bar\""}`,
+				url:  "https://examp.le?foo=bar1",
+				err:  `could not validate query parameters: (validation failed) (foo == "bar")`,
 			},
 			{
-				name: "matching simple origin value - invalid expression key",
-				expr: `{"expr1":"origin == \"https://www.google.com\""}`,
-				o:    "",
-				err:  "could not parse matching expression: parsing error: \t - 1:1 unexpected EOF while scanning extensions",
-			},
-			{
-				name: "matching simple origin value - invalid expression key",
-				expr: `{"expr1":"origin == \"https"}`,
-				o:    "",
-				err:  "could not parse matching expression: parsing error: \t - 1:1 unexpected EOF while scanning extensions",
+				name: "matching query parameter",
+				expr: `{"expr":"foo == \"bar-baz\""}`,
+				url:  "https://examp.le?foo=bar-baz",
 			},
 		}
 	)
 
 	for _, tc := range tcc {
+		r := httptest.NewRequest(http.MethodGet, tc.url, http.NoBody)
+		t.Run(tc.name, testHandle(NewQueryParam(), r, tc))
+	}
+}
+
+func testMerge(h types.Handler, tc tf) func(t *testing.T) {
+	return func(t *testing.T) {
 		var (
-			ctx = context.Background()
+			req = require.New(t)
 		)
 
-		t.Run(tc.name, func(t *testing.T) {
-			req := require.New(t)
+		_, err := h.Merge([]byte(tc.expr))
 
-			r, err := http.NewRequest(http.MethodGet, "/foo", http.NoBody)
-			r.Header.Set("Origin", tc.o)
-
+		if tc.err != "" {
+			req.EqualError(err, tc.err)
+		} else {
 			req.NoError(err)
+		}
+	}
+}
 
-			scope := &types.Scp{"request": r}
+func testHandle(h types.Handler, r *http.Request, tc tf) func(t *testing.T) {
+	return func(t *testing.T) {
+		var (
+			req = require.New(t)
+		)
 
-			h := NewOrigin()
-			h.Merge([]byte(tc.expr))
+		h, err := h.Merge([]byte(tc.expr))
 
-			err = h.Exec(ctx, scope)
+		req.NoError(err)
 
-			if tc.err != "" {
-				req.EqualError(err, tc.err)
-			} else {
-				req.NoError(err)
-			}
-		})
+		hfn := h.Handler()
+
+		err = hfn(httptest.NewRecorder(), r)
+
+		if tc.err != "" {
+			req.EqualError(err, tc.err)
+		} else {
+			req.NoError(err)
+		}
 	}
 }

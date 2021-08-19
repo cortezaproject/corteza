@@ -60,7 +60,6 @@ func (r *Registry) All() (list types.FilterMetaList) {
 func (r *Registry) Preload() {
 	// prefilters
 	r.Add("queryParam", filter.NewQueryParam())
-	r.Add("origin", filter.NewOrigin())
 	r.Add("header", filter.NewHeader())
 
 	// processers
@@ -73,6 +72,6 @@ func (r *Registry) Preload() {
 	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse())
 }
 
-func NewWorkflow() (wf types.WfExecer) {
+func NewWorkflow() (wf filter.WfExecer) {
 	return service.Workflow(&zap.Logger{}, options.CorredorOpt{})
 }

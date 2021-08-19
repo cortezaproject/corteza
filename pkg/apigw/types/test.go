@@ -15,12 +15,13 @@ type (
 		Type_ func() FilterKind
 	}
 
-	MockErrorExecer struct {
-		Exec_ func(context.Context, *Scp, error)
+	MockErrorHandler struct {
+		Handler_ ErrorHandlerFunc
 	}
 
 	MockHandler struct {
-		Foo string `json:"foo"`
+		Foo      string `json:"foo"`
+		Handler_ HandlerFunc
 	}
 
 	MockStorer struct {
@@ -35,16 +36,8 @@ func (h MockHandler) String() string {
 	return "MockHandler"
 }
 
-func (h MockHandler) Type() FilterKind {
-	return PreFilter
-}
-
-func (h MockHandler) Weight() int {
-	return 0
-}
-
-func (h MockHandler) Exec(_ context.Context, _ *Scp) error {
-	panic("not implemented") // TODO: Implement
+func (h MockHandler) Handler() HandlerFunc {
+	return h.Handler_
 }
 
 func (h MockHandler) Merge(params []byte) (Handler, error) {
@@ -66,24 +59,8 @@ func (td MockStorer) SearchApigwFilters(ctx context.Context, f st.ApigwFilterFil
 	return td.F(ctx, f)
 }
 
-func (me MockExecer) String() string {
-	return "MockExecer"
-}
-
-func (h MockExecer) Type() FilterKind {
-	return PreFilter
-}
-
-func (h MockExecer) Weight() int {
-	return 0
-}
-
-func (me MockExecer) Exec(ctx context.Context, s *Scp) (err error) {
-	return me.Exec_(ctx, s)
-}
-
-func (me MockErrorExecer) Exec(ctx context.Context, s *Scp, e error) {
-	me.Exec_(ctx, s, e)
+func (h MockErrorHandler) Handler() ErrorHandlerFunc {
+	return h.Handler_
 }
 
 func (mrt MockRoundTripper) RoundTrip(rq *http.Request) (r *http.Response, err error) {

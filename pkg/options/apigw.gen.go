@@ -16,6 +16,7 @@ type (
 	ApigwOpt struct {
 		Enabled              bool          `env:"APIGW_ENABLED"`
 		LogEnabled           bool          `env:"APIGW_LOG_ENABLED"`
+		LogRequestBody       bool          `env:"APIGW_LOG_REQUEST_BODY"`
 		ProxyEnableDebugLog  bool          `env:"APIGW_PROXY_ENABLE_DEBUG_LOG"`
 		ProxyFollowRedirects bool          `env:"APIGW_PROXY_FOLLOW_REDIRECTS"`
 		ProxyOutboundTimeout time.Duration `env:"APIGW_PROXY_OUTBOUND_TIMEOUT"`
@@ -27,6 +28,7 @@ func Apigw() (o *ApigwOpt) {
 	o = &ApigwOpt{
 		Enabled:              true,
 		LogEnabled:           false,
+		LogRequestBody:       false,
 		ProxyEnableDebugLog:  false,
 		ProxyFollowRedirects: true,
 		ProxyOutboundTimeout: time.Second * 30,

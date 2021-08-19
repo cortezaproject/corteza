@@ -353,13 +353,14 @@ func TestKVV_Assign(t *testing.T) {
 
 	// Making sure http.Header is properly converted
 	kvv = KVV{}
-	req.NoError(kvv.Assign(http.Header{"foo": []string{"bar"}}))
-	req.Contains(kvv.value, "foo")
-	req.Equal([]string{"bar"}, kvv.value["foo"])
+	req.NoError(kvv.Assign(http.Header{"foo-bar": []string{"bar"}}))
+	req.Contains(kvv.value, "foo-bar")
+	req.Equal([]string{"bar"}, kvv.value["foo-bar"])
 
 	// Making sure url.Values are properly converted
 	kvv = KVV{}
 	req.NoError(kvv.Assign(url.Values{"foo": []string{"bar"}}))
+
 	req.Contains(kvv.value, "foo")
 	req.Equal([]string{"bar"}, kvv.value["foo"])
 
@@ -372,7 +373,6 @@ func TestKVV_Assign(t *testing.T) {
 	req.NoError(Assign(&kvv, "deep[3]", Must(NewString("b4z"))))
 	req.Contains(kvv.value, "deep")
 	req.Equal([]string{"bar", "baz", "bar", "b4z"}, kvv.value["deep"])
-
 }
 
 func TestKVV_Set(t *testing.T) {

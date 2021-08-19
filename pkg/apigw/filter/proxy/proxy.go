@@ -11,7 +11,9 @@ import (
 	"net/url"
 	"time"
 
+	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -38,7 +40,7 @@ type (
 
 		params struct {
 			Location string          `json:"location"`
-			Auth     proxyAuthParams `json:"auth"`
+			Auth     ProxyAuthParams `json:"auth"`
 		}
 	}
 )
@@ -66,19 +68,11 @@ func New(l *zap.Logger, c *http.Client, s types.SecureStorager) (p *proxy) {
 }
 
 func (h proxy) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h proxy) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h proxy) Meta() types.FilterMeta {
 	return h.FilterMeta
-}
-
-func (h proxy) Weight() int {
-	return h.Wgt
 }
 
 func (f *proxy) Merge(params []byte) (types.Handler, error) {
@@ -98,71 +92,77 @@ func (f *proxy) Merge(params []byte) (types.Handler, error) {
 	return f, err
 }
 
-func (h proxy) Exec(ctx context.Context, scope *types.Scp) (err error) {
-	ctx, cancel := context.WithTimeout(ctx, scope.Opts().ProxyOutboundTimeout)
-	defer cancel()
+func (h proxy) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) (err error) {
+		var (
+			ctx   = r.Context()
+			scope = actx.ScopeFromContext(ctx)
+		)
 
-	req := scope.Request()
-	log := h.log.With(zap.String("ref", h.Name))
+		ctx, cancel := context.WithTimeout(ctx, scope.Opts().ProxyOutboundTimeout)
+		defer cancel()
 
-	outreq := req.Clone(ctx)
+		log := h.log.With(zap.String("ref", h.Name))
 
-	l, err := url.ParseRequestURI(h.params.Location)
+		outreq := r.Clone(ctx)
 
-	if err != nil {
-		return fmt.Errorf("could not parse destination location for proxying: %s", err)
+		l, err := url.ParseRequestURI(h.params.Location)
+
+		if err != nil {
+			return pe.InvalidData("could not parse destination location for proxying: (%v)", err)
+		}
+
+		outreq.URL = l
+		outreq.RequestURI = ""
+		outreq.Method = r.Method
+		outreq.Host = l.Hostname()
+
+		// use authservicer, set any additional headers
+		err = h.a.Do(outreq)
+
+		if err != nil {
+			return pe.External("could not authenticate to external auth: (%v)", err)
+		}
+
+		// merge the old query params to the new request
+		// do not overwrite old ones
+		// do it after the authServicer, since we also may add them there
+		mergeQueryParams(r, outreq)
+
+		if scope.Opts().ProxyEnableDebugLog {
+			o, _ := httputil.DumpRequestOut(outreq, false)
+			log.Debug("proxy outbound request", zap.Any("request", string(o)))
+		}
+
+		// temporary metrics before the proper functionality
+		startTime := time.Now()
+
+		// todo - disable / enable follow redirects, already
+		// added to options
+		resp, err := h.c.Do(outreq)
+
+		if err != nil {
+			return pe.Internal("could not proxy request: (%v)", err)
+		}
+
+		if scope.Opts().ProxyEnableDebugLog {
+			o, _ := httputil.DumpResponse(resp, false)
+			log.Debug("proxy outbound response", zap.Any("request", string(o)), zap.Duration("duration", time.Since(startTime)))
+		}
+
+		b, err := io.ReadAll(resp.Body)
+
+		if err != nil {
+			return pe.Internal("could not read body on proxy request: (%v)", err)
+		}
+
+		mergeHeaders(resp.Header, rw.Header())
+
+		// add to writer
+		rw.Write(b)
+
+		return nil
 	}
-
-	outreq.URL = l
-	outreq.RequestURI = ""
-	outreq.Method = req.Method
-	outreq.Host = l.Hostname()
-
-	// use authservicer, set any additional headers
-	err = h.a.Do(outreq)
-
-	if err != nil {
-		return fmt.Errorf("errors setting auth for proxying: %s", err)
-	}
-
-	// merge the old query params to the new request
-	// do not overwrite old ones
-	// do it after the authServicer, since we also may add them there
-	mergeQueryParams(req, outreq)
-
-	if scope.Opts().ProxyEnableDebugLog {
-		o, _ := httputil.DumpRequestOut(outreq, false)
-		log.Debug("proxy outbound request", zap.Any("request", string(o)))
-	}
-
-	// temporary metrics before the proper functionality
-	startTime := time.Now()
-
-	// todo - disable / enable follow redirects, already
-	// added to options
-	resp, err := h.c.Do(outreq)
-
-	if err != nil {
-		return fmt.Errorf("could not proxy request: %s", err)
-	}
-
-	if scope.Opts().ProxyEnableDebugLog {
-		o, _ := httputil.DumpResponse(resp, false)
-		log.Debug("proxy outbound response", zap.Any("request", string(o)), zap.Duration("duration", time.Since(startTime)))
-	}
-
-	b, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		return fmt.Errorf("could not read get body on proxy request: %s", err)
-	}
-
-	mergeHeaders(resp.Header, scope.Writer().Header())
-
-	// add to writer
-	scope.Writer().Write(b)
-
-	return nil
 }
 
 func mergeHeaders(orig, dest http.Header) {

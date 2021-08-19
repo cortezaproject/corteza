@@ -19,6 +19,8 @@ func TestPathSplit(t *testing.T) {
 		{p: "a.[]", err: invalidPathErr.Error()},
 		{p: "a[]", r: []string{"a", ""}},
 		{p: "a[1]bzz", err: invalidPathErr.Error()},
+		{p: "a[b][c].d[1]", r: []string{"a", "b", "c", "d", "1"}},
+		{p: "a.Content-Type", r: []string{"a", "Content-Type"}},
 	}
 
 	for _, tc := range tcc {

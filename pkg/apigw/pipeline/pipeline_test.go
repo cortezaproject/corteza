@@ -1,13 +1,18 @@
 package pipeline
 
 import (
-	"context"
-	"fmt"
+	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+)
+
+var (
+	mockEmptyHandler = func(rw http.ResponseWriter, r *http.Request) (err error) { return }
 )
 
 func NewPl() *Pl {
@@ -20,51 +25,101 @@ func Test_pipelineAdd(t *testing.T) {
 	)
 
 	p := NewPl()
-	p.Add(types.MockExecer{})
-
-	req.Len(p.w.prefilter, 1)
-}
-
-func Test_pipelineExec(t *testing.T) {
-	var (
-		ctx   = context.Background()
-		req   = require.New(t)
-		scope = &types.Scp{"foo": 1}
-	)
-
-	p := NewPl()
-	p.Add(types.MockExecer{
-		Exec_: func(c context.Context, s *types.Scp) (err error) {
-			s.Set("foo", 2)
-			return nil
-		},
+	p.Add(&Worker{
+		Handler: mockEmptyHandler,
+		Weight:  0,
+		Name:    "mockWorker",
 	})
 
-	err := p.Exec(ctx, scope, false)
+	req.Len(p.workers, 1)
+}
 
-	req.NoError(err)
+func Test_pipelineHandleMultiple(t *testing.T) {
+	var (
+		req = require.New(t)
+		rr  = httptest.NewRecorder()
+		p   = NewPl()
 
-	foo, err := scope.Get("foo")
+		first = types.MockHandler{
+			Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+				rw.Write([]byte(`first`))
+				return nil
+			},
+		}
 
-	req.NoError(err)
-	req.Equal(2, foo)
+		second = types.MockHandler{
+			Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+				rw.Write([]byte(`second`))
+				return nil
+			},
+		}
+	)
+
+	p.Add(&Worker{
+		Handler: first.Handler(),
+		Weight:  5,
+		Name:    "mockHandler",
+	})
+
+	p.Add(&Worker{
+		Handler: second.Handler(),
+		Weight:  0,
+		Name:    "mockHandler",
+	})
+
+	p.Handler().ServeHTTP(rr, &http.Request{})
+
+	req.Equal(`secondfirst`, rr.Body.String())
 }
 
 func Test_pipelineExecErr(t *testing.T) {
-	var (
-		ctx   = context.Background()
-		req   = require.New(t)
-		scope = &types.Scp{"foo": 1}
+	type (
+		tf struct {
+			name string
+			mh   types.MockHandler
+			w    *Worker
+			wgt  int
+			exp  string
+		}
 	)
 
-	p := NewPl()
-	p.Add(types.MockExecer{
-		Exec_: func(c context.Context, s *types.Scp) (err error) {
-			return fmt.Errorf("error returned")
-		},
-	})
+	var (
+		tcc = []tf{
+			{
+				name: "matching simple",
+				mh: types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						return errors.New("triggered")
+					}},
+				w:   &Worker{},
+				exp: `{"error":{"message":"triggered"}}` + "\n",
+			},
+			{
+				name: "matching simple",
+				mh: types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						rw.Write([]byte(`foobar`))
+						return nil
+					}},
+				w:   &Worker{},
+				exp: `foobar`,
+			},
+		}
+	)
 
-	err := p.Exec(ctx, scope, false)
+	for _, tc := range tcc {
+		var (
+			p   = NewPl()
+			rr  = httptest.NewRecorder()
+			req = require.New(t)
+		)
 
-	req.Error(err, "error returned")
+		tc.w.Handler = tc.mh.Handler()
+
+		p.Add(tc.w)
+		p.Handler().ServeHTTP(rr, &http.Request{})
+
+		req.Equal(tc.exp, rr.Body.String())
+	}
+
 }

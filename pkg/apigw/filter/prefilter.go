@@ -2,17 +2,20 @@ package filter
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 )
 
 type (
 	header struct {
 		types.FilterMeta
+		eval   expr.Evaluable
 		params struct {
 			Expr string `json:"expr"`
 		}
@@ -20,6 +23,7 @@ type (
 
 	queryParam struct {
 		types.FilterMeta
+		eval   expr.Evaluable
 		params struct {
 			Expr string `json:"expr"`
 		}
@@ -27,6 +31,7 @@ type (
 
 	origin struct {
 		types.FilterMeta
+		eval   expr.Evaluable
 		params struct {
 			Expr string `json:"expr"`
 		}
@@ -52,131 +57,62 @@ func NewHeader() (v *header) {
 }
 
 func (h header) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h header) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h header) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h header) Weight() int {
-	return h.Wgt
-}
-
 func (v *header) Merge(params []byte) (types.Handler, error) {
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&v.params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	parser := expr.NewParser()
+	v.eval, err = parser.Parse(v.params.Expr)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not validate origin parameters: %s", err)
+	}
+
 	return v, err
 }
 
-func (h header) Exec(ctx context.Context, scope *types.Scp) error {
-	vv := map[string]interface{}{}
-	headers := scope.Request().Header
+func (h header) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) error {
+		var (
+			ctx = r.Context()
+		)
 
-	for k, v := range headers {
-		// sanitize header keys?
-		vv[k] = v[0]
+		vv := map[string]interface{}{}
+		headers := r.Header
+
+		for k, v := range headers {
+			vv[k] = v[0]
+		}
+
+		// get the request data and put it into vars
+		out, err := expr.NewVars(vv)
+
+		if err != nil {
+			return pe.Internal("could not validate headers: (%v) (%s)", err, h.params.Expr)
+		}
+
+		b, err := h.eval.Test(ctx, out)
+
+		if err != nil {
+			return pe.InvalidData("could not validate headers: (%v) (%s)", err, h.params.Expr)
+		}
+
+		if !b {
+			return pe.InvalidData("could not validate headers: (%v) (%s)", errors.New("validation failed"), h.params.Expr)
+		}
+
+		return nil
 	}
-
-	// get the request data and put it into vars
-	out, err := expr.NewVars(vv)
-
-	if err != nil {
-		return err
-	}
-
-	pp := expr.NewParser()
-	tt, err := pp.Parse(h.params.Expr)
-
-	if err != nil {
-		return fmt.Errorf("could not parse matching expression: %s", err)
-	}
-
-	b, err := tt.Test(ctx, out)
-
-	if err != nil {
-		return fmt.Errorf("could not validate headers: %s", err)
-	}
-
-	if !b {
-		return fmt.Errorf("could not validate headers")
-	}
-
-	return nil
-}
-
-func NewOrigin() (v *origin) {
-	v = &origin{}
-
-	v.Name = "origin"
-	v.Label = "Origin"
-	v.Kind = types.PreFilter
-
-	v.Args = []*types.FilterMetaArg{
-		{
-			Type:    "expr",
-			Label:   "expr",
-			Options: map[string]interface{}{},
-		},
-	}
-
-	return
-}
-
-func (h origin) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h origin) Type() types.FilterKind {
-	return h.Kind
-}
-
-func (h origin) Meta() types.FilterMeta {
-	return h.FilterMeta
-}
-
-func (h origin) Weight() int {
-	return h.Wgt
-}
-
-func (v *origin) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&v.params)
-	return v, err
-}
-
-func (h origin) Exec(ctx context.Context, scope *types.Scp) error {
-	vv := map[string]interface{}{
-		"origin": scope.Request().Header.Get("Origin"),
-	}
-
-	// get the request data and put it into vars
-	out, err := expr.NewVars(vv)
-
-	if err != nil {
-		return err
-	}
-	// spew.Dump("OUT", out)
-	pp := expr.NewParser()
-	tt, err := pp.Parse(h.params.Expr)
-
-	if err != nil {
-		return fmt.Errorf("could not parse matching expression: %s", err)
-	}
-
-	b, err := tt.Test(ctx, out)
-
-	if err != nil {
-		return fmt.Errorf("could not validate origin: %s", err)
-	}
-
-	if !b {
-		return fmt.Errorf("could not validate origin")
-	}
-
-	return nil
 }
 
 func NewQueryParam() (v *queryParam) {
@@ -198,57 +134,60 @@ func NewQueryParam() (v *queryParam) {
 }
 
 func (h queryParam) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h queryParam) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h queryParam) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h queryParam) Weight() int {
-	return h.Wgt
-}
-
 func (v *queryParam) Merge(params []byte) (types.Handler, error) {
 	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&v.params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	parser := expr.NewParser()
+	v.eval, err = parser.Parse(v.params.Expr)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not validate query parameters: %s", err)
+	}
+
 	return v, err
 }
 
-func (h queryParam) Exec(ctx context.Context, scope *types.Scp) error {
-	vv := map[string]interface{}{}
-	vals := scope.Request().URL.Query()
+func (h *queryParam) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) error {
+		var (
+			ctx = r.Context()
+		)
 
-	for k, v := range vals {
-		vv[k] = v[0]
+		vv := map[string]interface{}{}
+		vals := r.URL.Query()
+
+		for k, v := range vals {
+			vv[k] = v[0]
+		}
+
+		// get the request data and put it into vars
+		out, err := expr.NewVars(vv)
+
+		if err != nil {
+			return pe.Internal("could not validate query parameters: (%v) (%s)", err, h.params.Expr)
+		}
+
+		b, err := h.eval.Test(ctx, out)
+
+		if err != nil {
+			return pe.InvalidData("could not validate query parameters: (%v) (%s)", err, h.params.Expr)
+		}
+
+		if !b {
+			return pe.InvalidData("could not validate query parameters: (%v) (%s)", errors.New("validation failed"), h.params.Expr)
+		}
+
+		return nil
 	}
-
-	// get the request data and put it into vars
-	out, err := expr.NewVars(vv)
-
-	if err != nil {
-		return err
-	}
-
-	pp := expr.NewParser()
-	tt, err := pp.Parse(h.params.Expr)
-
-	if err != nil {
-		return fmt.Errorf("could not parse matching expression: %s", err)
-	}
-
-	b, err := tt.Test(ctx, out)
-
-	if err != nil {
-		return fmt.Errorf("could not validate query params: %s", err)
-	}
-
-	if !b {
-		return fmt.Errorf("could not validate query params")
-	}
-
-	return nil
 }

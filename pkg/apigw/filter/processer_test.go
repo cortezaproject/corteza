@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
@@ -21,6 +22,7 @@ func Test_processerPayload(t *testing.T) {
 		tf struct {
 			name   string
 			err    string
+			errv   string
 			params string
 			exp    string
 			rq     *http.Request
@@ -69,7 +71,7 @@ func Test_processerPayload(t *testing.T) {
 					Body:   ioutil.NopCloser(strings.NewReader(`[{"name":"johnny", "surname":"mnemonic"},{"name":"johnny", "surname":"knoxville"}]`)),
 				},
 				params: prepareFuncPayload(``),
-				err:    `function body empty`,
+				errv:   `could not register function, body empty`,
 			},
 		}
 	)
@@ -77,26 +79,34 @@ func Test_processerPayload(t *testing.T) {
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
 			var (
-				ctx = context.Background()
 				req = require.New(t)
+				rc  = httptest.NewRecorder()
 			)
 
 			pp := NewPayload(zap.NewNop())
-			pp.Merge([]byte(tc.params))
+			_, err := pp.Merge([]byte(tc.params))
 
-			scope := &types.Scp{
-				"request": tc.rq,
-				"writer":  httptest.NewRecorder(),
-				"opts":    options.Apigw(),
+			if tc.errv != "" {
+				req.EqualError(err, tc.errv)
+				return
+			} else {
+				req.NoError(err)
 			}
 
-			err := pp.Exec(ctx, scope)
+			scope := &types.Scp{
+				"opts": options.Apigw(),
+			}
+
+			tc.rq = tc.rq.WithContext(agctx.ScopeToContext(context.Background(), scope))
+
+			hn := pp.Handler()
+			err = hn(rc, tc.rq)
 
 			if tc.err != "" {
 				req.EqualError(err, tc.err)
 			} else {
 				req.NoError(err)
-				req.Equal(tc.exp, scope.Writer().(*httptest.ResponseRecorder).Body.String())
+				req.Equal(tc.exp, rc.Body.String())
 			}
 		})
 	}

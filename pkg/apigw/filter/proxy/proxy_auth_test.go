@@ -14,7 +14,7 @@ func Test_authDo(t *testing.T) {
 			name   string
 			err    string
 			errv   string
-			params proxyAuthParams
+			params ProxyAuthParams
 			exp    http.Header
 		}
 	)
@@ -23,7 +23,7 @@ func Test_authDo(t *testing.T) {
 		tcc = []tf{
 			{
 				name: "auth header match headers",
-				params: proxyAuthParams{
+				params: ProxyAuthParams{
 					Type: proxyAuthTypeHeader,
 					Params: map[string]interface{}{
 						"Client-Id":          "123455",
@@ -37,7 +37,7 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth header match canonicalized headers",
-				params: proxyAuthParams{
+				params: ProxyAuthParams{
 					Type: proxyAuthTypeHeader,
 					Params: map[string]interface{}{
 						"camelCaseHeader": "123455",
@@ -49,7 +49,7 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers",
-				params: proxyAuthParams{
+				params: ProxyAuthParams{
 					Type: proxyAuthTypeBasic,
 					Params: map[string]interface{}{
 						"username": "user",
@@ -60,7 +60,7 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers fail user validation",
-				params: proxyAuthParams{
+				params: ProxyAuthParams{
 					Type:   proxyAuthTypeBasic,
 					Params: map[string]interface{}{"password": "pass1234"},
 				},
@@ -69,7 +69,7 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name: "auth basic match headers fail pass validation",
-				params: proxyAuthParams{
+				params: ProxyAuthParams{
 					Type:   proxyAuthTypeBasic,
 					Params: map[string]interface{}{"username": "user"},
 				},
@@ -78,8 +78,18 @@ func Test_authDo(t *testing.T) {
 			},
 			{
 				name:   "noop default fallback",
-				params: proxyAuthParams{},
+				params: ProxyAuthParams{},
 				exp:    http.Header{},
+			},
+			{
+				name: "auth JWT token",
+				params: ProxyAuthParams{
+					Type:   proxyAuthTypeJWT,
+					Params: map[string]interface{}{"jwt": "1234"},
+				},
+				exp: http.Header{
+					"Authorization": []string{"Bearer 1234"},
+				},
 			},
 		}
 	)

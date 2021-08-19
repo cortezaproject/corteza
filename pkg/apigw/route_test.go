@@ -1,7 +1,6 @@
 package apigw
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -18,68 +17,68 @@ func Test_pl(t *testing.T) {
 	type (
 		tf struct {
 			name       string
-			handler    pipeline.Worker
 			method     string
-			errHandler types.ErrorHandler
+			expError   string
 			expStatus  int
-			expError   error
+			handler    *types.MockHandler
+			errHandler *types.MockErrorHandler
 		}
 	)
 
 	var (
 		tcc = []tf{
 			{
-				name: "successful exec",
-				handler: types.MockExecer{
-					Exec_: func(c context.Context, s *types.Scp) (err error) {
-						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
-						return
-					},
-				},
-				errHandler: types.MockErrorExecer{
-					Exec_: func(c context.Context, s *types.Scp, e error) {
-						s.Writer().Write([]byte(e.Error()))
+				name: "successful handler",
+				handler: &types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						rw.WriteHeader(http.StatusTemporaryRedirect)
+						return nil
 					},
 				},
 				method:    "POST",
 				expStatus: http.StatusTemporaryRedirect,
-				expError:  nil,
+				expError:  "",
 			},
 			{
-				name: "unsuccessful exec",
-				handler: types.MockExecer{
-					Exec_: func(c context.Context, s *types.Scp) (err error) {
-						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
+				name: "unsuccessful handle custom error response",
+				handler: &types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						rw.WriteHeader(http.StatusTemporaryRedirect)
 						return errors.New("test error")
 					},
 				},
-				errHandler: types.MockErrorExecer{
-					Exec_: func(c context.Context, s *types.Scp, e error) {
-						s.Writer().WriteHeader(http.StatusInternalServerError)
-						s.Writer().Write([]byte(e.Error()))
+				errHandler: &types.MockErrorHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request, err error) {
+						rw.Write([]byte("custom error response: " + err.Error()))
 					},
 				},
 				method:    "POST",
 				expStatus: http.StatusTemporaryRedirect,
-				expError:  errors.New("test error"),
+				expError:  "custom error response: test error",
+			},
+			{
+				name: "unsuccessful handle default error response",
+				handler: &types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						rw.WriteHeader(http.StatusTemporaryRedirect)
+						return errors.New("test error")
+					},
+				},
+				method:    "POST",
+				expStatus: http.StatusTemporaryRedirect,
+				expError:  "{\"error\":{\"message\":\"test error\"}}\n",
 			},
 			{
 				name: "request method validation fail",
-				handler: types.MockExecer{
-					Exec_: func(c context.Context, s *types.Scp) (err error) {
-						s.Writer().WriteHeader(http.StatusTemporaryRedirect)
+				handler: &types.MockHandler{
+					Handler_: func(rw http.ResponseWriter, r *http.Request) error {
+						rw.WriteHeader(http.StatusTemporaryRedirect)
 						return errors.New("test error")
-					},
-				},
-				errHandler: types.MockErrorExecer{
-					Exec_: func(c context.Context, s *types.Scp, e error) {
-						s.Writer().WriteHeader(http.StatusInternalServerError)
-						s.Writer().Write([]byte(e.Error()))
 					},
 				},
 				method:    "GET",
 				expStatus: http.StatusInternalServerError,
-				expError:  errors.New("could not validate request: invalid method POST"),
+				expError:  "{\"error\":{\"message\":\"invalid method POST\"}}\n",
 			},
 		}
 	)
@@ -92,28 +91,28 @@ func Test_pl(t *testing.T) {
 				pipe = pipeline.NewPipeline(zap.NewNop())
 			)
 
-			r, err := http.NewRequest("POST", "/foo", http.NoBody)
-			req.NoError(err)
+			r := httptest.NewRequest("POST", "/foo", http.NoBody)
 
-			pipe.Add(tc.handler)
-			pipe.ErrorHandler(tc.errHandler)
+			pipe.Add(&pipeline.Worker{
+				Handler: tc.handler.Handler(),
+			})
+
+			if tc.errHandler != nil {
+				pipe.ErrorHandler(tc.errHandler.Handler())
+			}
 
 			route := &route{
-				method: tc.method,
-				pipe:   pipe,
-				log:    zap.NewNop(),
-				opts:   options.Apigw(),
+				method:     tc.method,
+				log:        zap.NewNop(),
+				opts:       options.Apigw(),
+				handler:    pipe.Handler(),
+				errHandler: pipe.Error(),
 			}
 
 			route.ServeHTTP(rr, r)
 
-			expError := ""
-			if tc.expError != nil {
-				expError = tc.expError.Error()
-			}
-
 			req.Equal(tc.expStatus, rr.Result().StatusCode)
-			req.Equal(expError, rr.Body.String())
+			req.Equal(tc.expError, rr.Body.String())
 		})
 	}
 }
