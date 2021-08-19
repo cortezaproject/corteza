@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"go.uber.org/zap"
@@ -98,8 +99,12 @@ func (pp *Pl) ErrorHandler(ff types.ErrorHandler) {
 func (pp *Pl) process(ctx context.Context, scope *types.Scp, w ...Worker) (err error) {
 	for _, w := range w {
 		pp.log.Debug("started worker", zap.Any("worker", w.String()))
+
+		start := time.Now()
 		err = w.Exec(ctx, scope)
-		pp.log.Debug("finished worker", zap.Any("worker", w.String()))
+		elapsed := time.Since(start)
+
+		pp.log.Debug("finished worker", zap.Any("worker", w.String()), zap.Duration("duration", elapsed))
 
 		if err != nil {
 			pp.log.Debug("could not execute worker", zap.Error(err))

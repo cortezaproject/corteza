@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
+	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
@@ -61,13 +62,19 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.log.Debug("incoming request", zap.Any("request", string(o)))
 	}
 
+	start := time.Now()
+
 	err := r.pipe.Exec(ctx, &scope, r.meta.async)
+
+	elapsed := time.Since(start)
 
 	if err != nil {
 		// call the error handler
 		r.log.Debug("calling default error handler on error")
 		r.pipe.Error().Exec(ctx, &scope, err)
 	}
+
+	r.log.Debug("finished serving route", zap.String("route", r.String()), zap.Duration("duration", elapsed))
 }
 
 func (r route) validate(req *http.Request) (err error) {
