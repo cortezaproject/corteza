@@ -57,7 +57,7 @@ type (
 
 	proxyAuthType string
 
-	proxyAuthParams struct {
+	ProxyAuthParams struct {
 		Type   proxyAuthType          `json:"type"`
 		Params map[string]interface{} `json:"params"`
 	}
@@ -75,7 +75,7 @@ type (
 	}
 )
 
-func NewProxyAuthHeader(p proxyAuthParams) (s proxyAuthServicerHeader, err error) {
+func NewProxyAuthHeader(p ProxyAuthParams) (s proxyAuthServicerHeader, err error) {
 	s = proxyAuthServicerHeader{
 		params: p.Params,
 	}
@@ -83,7 +83,7 @@ func NewProxyAuthHeader(p proxyAuthParams) (s proxyAuthServicerHeader, err error
 	return
 }
 
-func NewProxyAuthQuery(p proxyAuthParams) (s proxyAuthServicerQuery, err error) {
+func NewProxyAuthQuery(p ProxyAuthParams) (s proxyAuthServicerQuery, err error) {
 	s = proxyAuthServicerQuery{
 		params: p.Params,
 	}
@@ -91,7 +91,7 @@ func NewProxyAuthQuery(p proxyAuthParams) (s proxyAuthServicerQuery, err error) 
 	return
 }
 
-func NewProxyAuthBasic(p proxyAuthParams) (s proxyAuthServicerBasic, err error) {
+func NewProxyAuthBasic(p ProxyAuthParams) (s proxyAuthServicerBasic, err error) {
 	var (
 		ok         bool
 		user, pass string
@@ -112,7 +112,7 @@ func NewProxyAuthBasic(p proxyAuthParams) (s proxyAuthServicerBasic, err error) 
 	return
 }
 
-func NewProxyAuthOauth2(p proxyAuthParams, c *http.Client, s types.SecureStorager) (ss proxyAuthServicerOauth2, err error) {
+func NewProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorager) (ss proxyAuthServicerOauth2, err error) {
 	var (
 		ok                       bool
 		client, secret, tokenUrl string
@@ -149,7 +149,7 @@ func NewProxyAuthOauth2(p proxyAuthParams, c *http.Client, s types.SecureStorage
 	return
 }
 
-func NewProxyAuthJWT(p proxyAuthParams) (ss proxyAuthServicerJWT, err error) {
+func NewProxyAuthJWT(p ProxyAuthParams) (ss proxyAuthServicerJWT, err error) {
 	var (
 		ok  bool
 		jwt string
@@ -167,7 +167,7 @@ func NewProxyAuthJWT(p proxyAuthParams) (ss proxyAuthServicerJWT, err error) {
 	return
 }
 
-func NewProxyAuthServicer(c *http.Client, p proxyAuthParams, s types.SecureStorager) (ProxyAuthServicer, error) {
+func NewProxyAuthServicer(c *http.Client, p ProxyAuthParams, s types.SecureStorager) (ProxyAuthServicer, error) {
 	switch p.Type {
 	case proxyAuthTypeHeader:
 		return NewProxyAuthHeader(p)

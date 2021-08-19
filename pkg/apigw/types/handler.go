@@ -1,40 +1,30 @@
 package types
 
 import (
-	"context"
-
-	atypes "github.com/cortezaproject/corteza-server/automation/types"
-	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"net/http"
 )
 
 type (
-	Execer interface {
-		Exec(context.Context, *Scp) error
-		Type() FilterKind
-	}
-
-	Sorter interface {
-		Weight() int
-	}
-
-	ErrorHandler interface {
-		Exec(context.Context, *Scp, error)
-	}
-
 	Stringer interface {
 		String() string
 	}
 
-	WfExecer interface {
-		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error)
+	HTTPHandler interface {
+		Handler() HandlerFunc
+	}
+
+	HTTPErrorHandler interface {
+		Handler() ErrorHandlerFunc
 	}
 
 	Handler interface {
-		Execer
+		HTTPHandler
 		Stringer
-		Sorter
 
 		Merge([]byte) (Handler, error)
 		Meta() FilterMeta
 	}
+
+	HandlerFunc      func(rw http.ResponseWriter, r *http.Request) error
+	ErrorHandlerFunc func(rw http.ResponseWriter, r *http.Request, err error)
 )

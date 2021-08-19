@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/stretchr/testify/require"
@@ -94,7 +95,7 @@ func Test_proxy(t *testing.T) {
 			{
 				name:   "proxy processer params parse error",
 				params: `{"location": "invalid url", "auth": {"type": "header", "params": {}}}`,
-				err:    `could not parse destination location for proxying: parse "invalid url": invalid URI for request`,
+				err:    `could not parse destination location for proxying: (parse "invalid url": invalid URI for request)`,
 			},
 			{
 				name: "proxy processer params request error",
@@ -105,7 +106,7 @@ func Test_proxy(t *testing.T) {
 					}
 				},
 				params: `{"location": "https://example.com", "auth": {"type": "header", "params": {}}}`,
-				err:    `could not proxy request: Post "https://example.com": error on client.Do`,
+				err:    `could not proxy request: (Post "https://example.com": error on client.Do)`,
 			},
 			{
 				name: "proxy processer hop headers removed",
@@ -159,7 +160,7 @@ func Test_proxy(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			var (
-				ctx = context.Background()
+				rc  = httptest.NewRecorder()
 				req = require.New(t)
 				c   = http.DefaultClient
 				rq  = tc.rq
@@ -170,26 +171,28 @@ func Test_proxy(t *testing.T) {
 			}
 
 			if rq == nil {
-				rq, _ = http.NewRequest("POST", "/foo", strings.NewReader(`custom request body`))
+				rq = httptest.NewRequest("POST", "/foo", strings.NewReader(`custom request body`))
 			}
 
 			proxy := New(zap.NewNop(), c, struct{}{})
 			proxy.Merge([]byte(tc.params))
 
 			scope := &types.Scp{
-				"request": rq,
-				"writer":  httptest.NewRecorder(),
-				"opts":    options.Apigw(),
+				"opts": options.Apigw(),
 			}
 
-			err := proxy.Exec(ctx, scope)
+			ctx := agctx.ScopeToContext(context.Background(), scope)
+			rq = rq.WithContext(ctx)
+
+			hn := proxy.Handler()
+			err := hn(rc, rq)
 
 			if tc.err != "" {
 				req.EqualError(err, tc.err)
 			} else {
 				req.NoError(err)
-				req.Equal(tc.exp.Header, scope.Writer().(*httptest.ResponseRecorder).Header())
-				req.Equal(tc.exp.Body, scope.Writer().(*httptest.ResponseRecorder).Body)
+				req.Equal(tc.exp.Header, rc.Header())
+				req.Equal(tc.exp.Body, rc.Body)
 			}
 		})
 	}

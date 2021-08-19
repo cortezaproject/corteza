@@ -8,9 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 
 	atypes "github.com/cortezaproject/corteza-server/automation/types"
+	agctx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 	"github.com/cortezaproject/corteza-server/pkg/expr"
 	"github.com/cortezaproject/corteza-server/pkg/jsenv"
 	"go.uber.org/zap"
@@ -19,15 +22,20 @@ import (
 type (
 	workflow struct {
 		types.FilterMeta
-		d types.WfExecer
+		d WfExecer
 
 		params struct {
 			Workflow uint64 `json:"workflow,string"`
 		}
 	}
 
+	WfExecer interface {
+		Exec(ctx context.Context, workflowID uint64, p atypes.WorkflowExecParams) (*expr.Vars, atypes.Stacktrace, error)
+	}
+
 	processerPayload struct {
 		types.FilterMeta
+
 		vm  jsenv.Vm
 		log *zap.Logger
 
@@ -38,7 +46,7 @@ type (
 	}
 )
 
-func NewWorkflow(wf types.WfExecer) (p *workflow) {
+func NewWorkflow(wf WfExecer) (p *workflow) {
 	p = &workflow{}
 
 	p.d = wf
@@ -59,19 +67,11 @@ func NewWorkflow(wf types.WfExecer) (p *workflow) {
 }
 
 func (h workflow) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h workflow) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h workflow) Meta() types.FilterMeta {
 	return h.FilterMeta
-}
-
-func (h workflow) Weight() int {
-	return h.Wgt
 }
 
 func (f *workflow) Merge(params []byte) (types.Handler, error) {
@@ -80,78 +80,80 @@ func (f *workflow) Merge(params []byte) (types.Handler, error) {
 	return f, err
 }
 
-func (h workflow) Exec(ctx context.Context, scope *types.Scp) error {
-	var (
-		err error
-	)
+func (h workflow) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) error {
+		var (
+			err   error
+			ctx   = r.Context()
+			scope = agctx.ScopeFromContext(ctx)
+		)
 
-	payload, err := scope.Get("payload")
+		payload, err := scope.Get("payload")
 
-	if err != nil {
-		return err
-	}
-
-	rr, err := scope.Get("request")
-
-	if err != nil {
-		return err
-	}
-
-	// setup scope for workflow
-	vv := map[string]interface{}{
-		"payload": payload,
-		"request": rr,
-	}
-
-	// get the request data and put it into vars
-	in, err := expr.NewVars(vv)
-
-	if err != nil {
-		return err
-	}
-
-	wp := atypes.WorkflowExecParams{
-		Trace: true,
-		// todo depending on settings per-route
-		Async: false,
-		// todo depending on settings per-route
-		Wait:  true,
-		Input: in,
-	}
-
-	out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
-
-	if err != nil {
-		return err
-	}
-
-	// merge out with scope
-	merged, err := in.Merge(out)
-
-	if err != nil {
-		return err
-	}
-
-	mm, err := expr.CastToVars(merged)
-
-	for k, v := range mm {
-		scope.Set(k, v)
-	}
-
-	ss := scope.Filter(func(k string, v interface{}) bool {
-		if k == "eventType" || k == "resourceType" {
-			return false
+		if err != nil {
+			return pe.Internal("could not get payload: (%v)", err)
 		}
 
-		return true
-	})
+		// setup scope for workflow
+		vv := map[string]interface{}{
+			"payload": payload,
+			"request": r,
+		}
 
-	scope = ss
+		// get the request data and put it into vars
+		in, err := expr.NewVars(vv)
 
-	scope.Set("request", rr)
-	scope.Set("payload", payload)
+		if err != nil {
+			return pe.Internal("could not validate request data: (%v)", err)
+		}
 
-	return err
+		wp := atypes.WorkflowExecParams{
+			Trace: true,
+			// todo depending on settings per-route
+			Async: false,
+			// todo depending on settings per-route
+			Wait:  true,
+			Input: in,
+		}
+
+		out, _, err := h.d.Exec(ctx, h.params.Workflow, wp)
+
+		if err != nil {
+			return pe.Internal("could not exec workflow: (%v)", err)
+		}
+
+		// merge out with scope
+		merged, err := in.Merge(out)
+
+		if err != nil {
+			return pe.Internal("could not receive workflow results: (%v)", err)
+		}
+
+		mm, err := expr.CastToVars(merged)
+
+		if err != nil {
+			return pe.Internal("could not receive workflow results: (%v)", err)
+		}
+
+		for k, v := range mm {
+			scope.Set(k, v)
+		}
+
+		ss := scope.Filter(func(k string, v interface{}) bool {
+			if k == "eventType" || k == "resourceType" {
+				return false
+			}
+
+			return true
+		})
+
+		scope = ss
+
+		scope.Set("request", r)
+		scope.Set("payload", payload)
+
+		return nil
+	}
 }
 
 func NewPayload(l *zap.Logger) (p *processerPayload) {
@@ -184,81 +186,75 @@ func NewPayload(l *zap.Logger) (p *processerPayload) {
 }
 
 func (h processerPayload) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h processerPayload) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h processerPayload) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h processerPayload) Weight() int {
-	return h.Wgt
-}
-
-func (f *processerPayload) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&f.params)
+func (h *processerPayload) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
 	if err != nil {
 		return nil, err
 	}
 
-	fn, err := base64.StdEncoding.DecodeString(f.params.Func)
+	fn, err := base64.StdEncoding.DecodeString(h.params.Func)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not decode js func: %s", err)
 	}
 
-	f.params.Func = string(fn)
-
-	return f, err
-}
-
-func (h processerPayload) Exec(ctx context.Context, scope *types.Scp) (err error) {
-	log := h.log.With(zap.String("function", h.String()))
+	h.params.Func = string(fn)
 
 	if h.params.Func == "" {
-		err = errors.New("function body empty")
-		log.Debug("could not register function", zap.Error(err))
+		return nil, errors.New("could not register function, body empty")
+	}
+
+	return h, err
+}
+
+func (h processerPayload) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) (err error) {
+		var (
+			ctx   = r.Context()
+			scope = agctx.ScopeFromContext(ctx)
+		)
+
+		scope.Set("request", r)
+
+		fn, err := h.vm.RegisterFunction(h.params.Func)
+
+		if err != nil {
+			return pe.InvalidData("could not register function: (%v)", err)
+		}
+
+		out, err := fn.Exec(h.vm.New(scope))
+
+		if err != nil {
+			return pe.Internal("could not exec payload function: (%v)", err)
+		}
+
+		// add to scope, so next steps can get the structure
+		scope.Set("payload", out)
+
+		// check if string
+		switch out.(type) {
+		case string:
+			// handling the newline, to keep the consistency with the json encoder
+			// which automatically appends the newline
+			_, err = rw.Write([]byte(fmt.Sprintf("%s\n", out)))
+		default:
+			err = json.NewEncoder(rw).Encode(out)
+		}
+
+		if err != nil {
+			return pe.Internal("could not write to response body: (%v)", err)
+		}
+
 		return
 	}
-
-	fn, err := h.vm.RegisterFunction(h.params.Func)
-
-	if err != nil {
-		log.Debug("could not register function", zap.Error(err))
-		return
-	}
-
-	out, err := fn.Exec(h.vm.New(scope))
-
-	if err != nil {
-		log.Debug("could not exec payload function", zap.Error(err))
-		return
-	}
-
-	// add to scope, so next steps can get the structure
-	scope.Set("payload", out)
-
-	// check if string
-	switch out.(type) {
-	case string:
-		// handling the newline, to keep the consistency with the json encoder
-		// which automatically appends the newline
-		_, err = scope.Writer().Write([]byte(fmt.Sprintf("%s\n", out)))
-	default:
-		err = json.NewEncoder(scope.Writer()).Encode(out)
-	}
-
-	if err != nil {
-		log.Debug("could not write to body", zap.Error(err))
-		return
-	}
-
-	return
 }
 
 func (h processerPayload) VM() jsenv.Vm {

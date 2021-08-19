@@ -1,122 +1,107 @@
 package pipeline
 
 import (
-	"context"
+	"net/http"
 	"sort"
 	"time"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 )
 
 type (
-	Worker interface {
-		types.Execer
-		types.Stringer
-		types.Sorter
+	Worker struct {
+		Handler func(rw http.ResponseWriter, r *http.Request) error
+		Weight  int
+		Name    string
 	}
 
-	workerSet []Worker
-
-	workers struct {
-		prefilter  workerSet
-		processer  workerSet
-		postfilter workerSet
-	}
+	workerSet []*Worker
 
 	Pl struct {
-		w   workers
-		err types.ErrorHandler
-		log *zap.Logger
+		workers workerSet
+		err     types.ErrorHandlerFunc
+		log     *zap.Logger
 	}
 )
 
 func NewPipeline(log *zap.Logger) *Pl {
+	var (
+		defaultErrorHandler = types.NewDefaultErrorHandler(log)
+	)
+
 	return &Pl{
 		log: log,
-		w:   workers{},
-		err: types.DefaultErrorHandler{},
+		err: defaultErrorHandler.Handler(),
 	}
 }
 
-func (pp *Pl) Error() types.ErrorHandler {
+func (pp *Pl) Error() types.ErrorHandlerFunc {
 	return pp.err
 }
 
-// Exec takes care of error handling and main
-// functionality that takes place in worker
-func (pp *Pl) Exec(ctx context.Context, scope *types.Scp, async bool) (err error) {
-	err = pp.process(ctx, scope, pp.w.prefilter...)
-
-	if err != nil {
-		return
-	}
-
-	if async {
-		go pp.process(ctx, scope, pp.w.processer...)
-	} else {
-		err = pp.process(ctx, scope, pp.w.processer...)
-
-		if err != nil {
-			return
-		}
-	}
-
-	err = pp.process(ctx, scope, pp.w.postfilter...)
-
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-// Add registers a new worker with parameters
-// fetched from store
-func (pp *Pl) Add(w Worker) {
-	var pipe *workerSet
-
-	switch w.Type() {
-	case types.PreFilter:
-		pipe = &pp.w.prefilter
-	case types.Processer:
-		pipe = &pp.w.processer
-	case types.PostFilter:
-		pipe = &pp.w.postfilter
-	}
-
-	*pipe = append(*pipe, w)
-	sort.Sort(pipe)
-
-	pp.log.Debug("registered worker", zap.Any("worker", w.String()))
-}
-
 // add error handler
-func (pp *Pl) ErrorHandler(ff types.ErrorHandler) {
+func (pp *Pl) ErrorHandler(ff types.ErrorHandlerFunc) {
 	pp.err = ff
 }
 
-func (pp *Pl) process(ctx context.Context, scope *types.Scp, w ...Worker) (err error) {
-	for _, w := range w {
-		pp.log.Debug("started worker", zap.Any("worker", w.String()))
+// add filter
+func (pp *Pl) Add(w *Worker) {
+	pp.workers = append(pp.workers, w)
+	sort.Sort(pp.workers)
+}
 
-		start := time.Now()
-		err = w.Exec(ctx, scope)
-		elapsed := time.Since(start)
+func (pp *Pl) AddHandler(h http.Handler) {}
 
-		pp.log.Debug("finished worker", zap.Any("worker", w.String()), zap.Duration("duration", elapsed))
+func (pp *Pl) Handler() http.Handler {
+	var (
+		middleware []func(http.Handler) http.Handler
+	)
 
-		if err != nil {
-			pp.log.Debug("could not execute worker", zap.Error(err))
-			return
-		}
+	for _, wrker := range pp.workers {
+		middleware = append(middleware, pp.makeHandler(*wrker))
 	}
 
-	return
+	return chi.Chain(middleware...).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}))
+}
+
+func (pp *Pl) makeHandler(hh Worker) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			var (
+				start = time.Now()
+			)
+
+			pp.log.Debug("started processing", zap.String("filter", hh.Name))
+
+			// if w.async {
+			// 	ctx = context.Background()
+			// 	r.WithContext(context.Background())
+			// 	go w.handler(rw, r)
+			// 	next.ServeHTTP(rw, r)
+			// } else {
+
+			err := hh.Handler(rw, r)
+
+			pp.log.Debug("finished processing",
+				zap.String("filter", hh.Name),
+				zap.Duration("duration", time.Since(start)))
+
+			if err != nil {
+				pp.err(rw, r, err)
+				return
+			} else {
+				next.ServeHTTP(rw, r)
+			}
+			// }
+
+		})
+	}
 }
 
 func (a workerSet) Len() int { return len(a) }
 func (a workerSet) Less(i, j int) bool {
-	return a[i].Weight() < a[j].Weight()
+	return a[i].Weight < a[j].Weight
 }
 func (a workerSet) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

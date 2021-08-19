@@ -17,6 +17,12 @@ props:
     description: |-
       Enable extra logging
 
+  - name: logRequestBody
+    type: bool
+    default: false
+    description: |-
+      Enable incoming request body output in logs
+
   - name: proxyEnableDebugLog
     type: bool
     default: false

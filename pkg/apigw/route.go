@@ -9,7 +9,7 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/cortezaproject/corteza-server/pkg/apigw/pipeline"
+	actx "github.com/cortezaproject/corteza-server/pkg/apigw/ctx"
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/options"
@@ -25,7 +25,9 @@ type (
 
 		opts *options.ApigwOpt
 		log  *zap.Logger
-		pipe *pipeline.Pl
+
+		handler    http.Handler
+		errHandler types.ErrorHandlerFunc
 	}
 
 	routeMeta struct {
@@ -38,7 +40,10 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		ctx   = auth.SetIdentityToContext(req.Context(), auth.ServiceUser())
 		scope = types.Scp{}
+		start = time.Now()
 	)
+
+	r.log.Debug("started serving route")
 
 	b, _ := io.ReadAll(req.Body)
 	body := string(b)
@@ -46,35 +51,27 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// write again
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
 
-	scope.Set("request", req)
-	scope.Set("writer", w)
 	scope.Set("opts", r.opts)
 	scope.Set("payload", body)
 
 	if err := r.validate(req); err != nil {
 		r.log.Debug("error validating request on route", zap.Error(err))
-		r.pipe.Error().Exec(ctx, &scope, fmt.Errorf("could not validate request: %s", err))
+		r.errHandler(w, req, err)
 		return
 	}
 
 	if r.opts.LogEnabled {
-		o, _ := httputil.DumpRequest(req, false)
+		o, _ := httputil.DumpRequest(req, r.opts.LogRequestBody)
 		r.log.Debug("incoming request", zap.Any("request", string(o)))
 	}
 
-	start := time.Now()
+	req = req.WithContext(actx.ScopeToContext(ctx, &scope))
 
-	err := r.pipe.Exec(ctx, &scope, r.meta.async)
+	r.handler.ServeHTTP(w, req)
 
-	elapsed := time.Since(start)
-
-	if err != nil {
-		// call the error handler
-		r.log.Debug("calling default error handler on error")
-		r.pipe.Error().Exec(ctx, &scope, err)
-	}
-
-	r.log.Debug("finished serving route", zap.String("route", r.String()), zap.Duration("duration", elapsed))
+	r.log.Debug("finished serving route",
+		zap.Duration("duration", time.Since(start)),
+	)
 }
 
 func (r route) validate(req *http.Request) (err error) {

@@ -46,7 +46,7 @@ func pathSplitter(data []byte, atEOF bool) (advance int, token []byte, err error
 				return i + 1, data[start:i], nil
 			}
 
-			if data[i+1] != '.' {
+			if data[i+1] != '.' && data[i+1] != '[' {
 				return 0, nil, invalidPathErr
 			}
 

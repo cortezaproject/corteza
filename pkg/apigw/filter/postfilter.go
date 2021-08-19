@@ -2,18 +2,22 @@ package filter
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
+	pe "github.com/cortezaproject/corteza-server/pkg/errors"
 )
 
 type (
 	redirection struct {
 		types.FilterMeta
+
+		location *url.URL
+		status   int
+
 		params struct {
 			HTTPStatus int    `json:"status,string"`
 			Location   string `json:"location"`
@@ -31,11 +35,6 @@ type (
 
 	defaultJsonResponse struct {
 		types.FilterMeta
-	}
-
-	errorHandler struct {
-		name string
-		args []string
 	}
 )
 
@@ -63,11 +62,7 @@ func NewRedirection() (e *redirection) {
 }
 
 func (h redirection) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h redirection) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h redirection) Meta() types.FilterMeta {
@@ -78,61 +73,30 @@ func (h redirection) Weight() int {
 	return h.Wgt
 }
 
-func (f *redirection) Merge(params []byte) (types.Handler, error) {
-	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&f.params)
-	return f, err
-}
+func (h *redirection) Merge(params []byte) (types.Handler, error) {
+	err := json.NewDecoder(bytes.NewBuffer(params)).Decode(&h.params)
 
-func (h redirection) Exec(ctx context.Context, scope *types.Scp) error {
 	loc, err := url.ParseRequestURI(h.params.Location)
 
 	if err != nil {
-		return fmt.Errorf("could not redirect: %s", err)
+		return nil, fmt.Errorf("could not validate parameters, invalid URL: %s", err)
 	}
 
-	status := h.params.HTTPStatus
-
-	if !checkStatus("redirect", status) {
-		return fmt.Errorf("could not redirect: wrong status %d", status)
+	if !checkStatus("redirect", h.params.HTTPStatus) {
+		return nil, fmt.Errorf("could not validate parameters, wrong status %d", h.params.HTTPStatus)
 	}
 
-	http.Redirect(scope.Writer(), scope.Request(), loc.String(), status)
+	h.location = loc
+	h.status = h.params.HTTPStatus
 
-	return nil
+	return h, err
 }
 
-func NewErrorHandler(name string, args []string) (e *errorHandler) {
-	e = &errorHandler{
-		name: name,
-		args: args,
+func (h redirection) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) error {
+		http.Redirect(rw, r, h.location.String(), h.status)
+		return nil
 	}
-
-	return
-}
-
-func (pp errorHandler) Exec(ctx context.Context, scope *types.Scp, err error) {
-	type (
-		responseHelper struct {
-			ErrResponse struct {
-				Msg string `json:"msg"`
-			} `json:"error"`
-		}
-	)
-
-	resp := responseHelper{
-		ErrResponse: struct {
-			Msg string "json:\"msg\""
-		}{
-			Msg: err.Error(),
-		},
-	}
-
-	// set http status code
-	scope.Writer().WriteHeader(http.StatusInternalServerError)
-
-	// set body
-	json.NewEncoder(scope.Writer()).Encode(resp)
-
 }
 
 func NewDefaultJsonResponse() (e *defaultJsonResponse) {
@@ -146,32 +110,28 @@ func NewDefaultJsonResponse() (e *defaultJsonResponse) {
 }
 
 func (h defaultJsonResponse) String() string {
-	return fmt.Sprintf("apigw function %s (%s)", h.Name, h.Label)
-}
-
-func (h defaultJsonResponse) Type() types.FilterKind {
-	return h.Kind
+	return fmt.Sprintf("apigw filter %s (%s)", h.Name, h.Label)
 }
 
 func (h defaultJsonResponse) Meta() types.FilterMeta {
 	return h.FilterMeta
 }
 
-func (h defaultJsonResponse) Weight() int {
-	return h.Wgt
-}
-
 func (f *defaultJsonResponse) Merge(params []byte) (h types.Handler, err error) {
 	return f, err
 }
 
-func (h defaultJsonResponse) Exec(ctx context.Context, scope *types.Scp) (err error) {
-	scope.Writer().Header().Set("Content-Type", "application/json")
-	scope.Writer().WriteHeader(http.StatusAccepted)
+func (h defaultJsonResponse) Handler() types.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) error {
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusAccepted)
 
-	_, err = scope.Writer().Write([]byte(`{}`))
+		if _, err := rw.Write([]byte(`{}`)); err != nil {
+			return pe.Internal("could not write to body: (%v)", err)
+		}
 
-	return
+		return nil
+	}
 }
 
 func checkStatus(typ string, status int) bool {

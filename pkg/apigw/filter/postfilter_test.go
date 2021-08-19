@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,12 +9,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Tesst_redirection(t *testing.T) {
+func Test_redirectionMerge(t *testing.T) {
+	var (
+		tcc = []tf{
+			{
+				name: "url validation",
+				expr: `{"status":"301", "location": "invalid url"}`,
+				err:  `could not validate parameters, invalid URL: parse "invalid url": invalid URI for request`,
+			},
+			{
+				name: "invalid redirection status",
+				expr: `{"status":"400", "location": "http://redire.ct/to"}`,
+				err:  "could not validate parameters, wrong status 400",
+			},
+		}
+	)
+
+	for _, tc := range tcc {
+		t.Run(tc.name, testMerge(NewRedirection(), tc))
+	}
+}
+
+func Test_redirection(t *testing.T) {
 	type (
 		tf struct {
 			name string
 			expr string
 			err  string
+			loc  string
+			code int
 		}
 	)
 
@@ -24,43 +46,33 @@ func Tesst_redirection(t *testing.T) {
 			{
 				name: "simple redirection",
 				expr: `{"status":"302", "location": "http://redire.ct/to"}`,
+				loc:  "http://redire.ct/to",
+				code: 302,
 			},
 			{
 				name: "permanent redirection",
 				expr: `{"status":"301", "location": "http://redire.ct/to"}`,
-			},
-			{
-				name: "url validation",
-				expr: `{"status":"301", "location": "invalid url"}`,
-				err:  `could not redirect: parse "invalid url": invalid URI for request`,
-			},
-			{
-				name: "invalid redirection status",
-				expr: `{"status":"400", "location": "http://redire.ct/to"}`,
-				err:  "could not redirect: wrong status 400",
+				loc:  "http://redire.ct/to",
+				code: 301,
 			},
 		}
 	)
 
 	for _, tc := range tcc {
-		var (
-			ctx = context.Background()
-		)
-
 		t.Run(tc.name, func(t *testing.T) {
-			req := require.New(t)
+			var (
+				req = require.New(t)
+				r   = httptest.NewRequest(http.MethodGet, "/foo", http.NoBody)
+				rc  = httptest.NewRecorder()
+			)
 
-			r, err := http.NewRequest(http.MethodGet, "/foo", http.NoBody)
+			h := getHandler(NewRedirection())
+			h, err := h.Merge([]byte(tc.expr))
 
 			req.NoError(err)
 
-			rc := httptest.NewRecorder()
-			scope := &types.Scp{"request": r, "writer": rc}
-
-			h := NewRedirection()
-			h.Merge([]byte(tc.expr))
-
-			err = h.Exec(ctx, scope)
+			hn := h.Handler()
+			err = hn(rc, r)
 
 			if tc.err != "" {
 				req.EqualError(err, tc.err)
@@ -68,8 +80,13 @@ func Tesst_redirection(t *testing.T) {
 			}
 
 			req.NoError(err)
-			req.Equal(h.params.Location, rc.Header().Get("Location"))
-			req.Equal(h.params.HTTPStatus, rc.Code)
+			req.Equal(tc.loc, rc.Header().Get("Location"))
+			req.Equal(tc.code, rc.Code)
 		})
 	}
+}
+
+// hackity hack
+func getHandler(h types.Handler) types.Handler {
+	return h
 }
