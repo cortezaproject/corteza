@@ -74,13 +74,8 @@
 			>{{ tr "signup.template.form.button.sign-up" }}</button>
 		</div>
 	</form>
-<<<<<<< HEAD
-	<div class="text-center my-3">{{ tr "signup.template.form.link.alternative" }}
-		<a href="{{ links.Login }}">{{ tr "signup.template.form.link.login" }}</a>
-=======
 	<div class="text-center my-3">
 		{{ tr "signup.template.log-in" "link" links.Login }}
->>>>>>> 838e629a... Translation fixes
 	</div>
 </div>
 
