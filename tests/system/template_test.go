@@ -116,7 +116,7 @@ func TestTemplateCreateForbidden(t *testing.T) {
 	h.apiInit().
 		Post("/template/").
 		Header("Accept", "application/json").
-		FormData("handle", rs()).
+		FormData("handle", "a"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("template.errors.notAllowedToCreate")).
