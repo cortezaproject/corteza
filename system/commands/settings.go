@@ -97,7 +97,7 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 		},
 	}
 
-	set.Flags().BoolP("as-string", "s", false, "Treat input value as string (to avoid wrapping in quites)")
+	set.Flags().BoolP("as-string", "s", false, "Treat input value as string (to avoid wrapping in quotes)")
 
 	imp := &cobra.Command{
 		Use:     "import [file]",
