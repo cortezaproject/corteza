@@ -28,7 +28,7 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.handle.email-resent"))
+		req.PushAlert(t("mfa.email.resent"))
 		req.RedirectTo = GetLinks().Mfa
 	}
 

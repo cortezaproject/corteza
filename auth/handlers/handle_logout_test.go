@@ -45,6 +45,6 @@ func Test_logoutProc(t *testing.T) {
 	rq.Empty(authReq.Session.Values)
 	rq.Empty(authReq.AuthUser)
 	rq.Empty(authReq.Client)
-	rq.Equal("/back", authReq.Data["backlink"])
+	rq.Equal("/back", authReq.Data["link"])
 	rq.Equal(TmplLogout, authReq.Template)
 }
