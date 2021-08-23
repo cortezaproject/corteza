@@ -27,63 +27,63 @@ props:
 
 actions:
   - action: authenticate
-    log: "successfully authenticated with {credentials.kind}"
+    log: "successfully authenticated with {{credentials.kind}}"
 
   - action: issueToken
-    log: "token '{credentials.kind}' issued"
+    log: "token '{{credentials.kind}}' issued"
 
   - action: validateToken
-    log: "token '{credentials.kind}' validated"
+    log: "token '{{credentials.kind}}' validated"
 
   - action: changePassword
     log: "password changed"
 
   - action: internalSignup
-    log: "{user.email} signed-up"
+    log: "{{user.email}} signed-up"
 
   - action: confirmEmail
-    log: "email {user.email} confirmed"
+    log: "email {{user.email}} confirmed"
 
   - action: externalSignup
-    log: "{user.email} signed-up after successful external authentication via {credentials.kind}"
+    log: "{{user.email}} signed-up after successful external authentication via {{credentials.kind}}"
 
   - action: sendEmailConfirmationToken
-    log: "confirmation notification sent to {email}"
+    log: "confirmation notification sent to {{email}}"
 
   - action: sendPasswordResetToken
-    log: "password reset token sent to {email}"
+    log: "password reset token sent to {{email}}"
 
   - action: exchangePasswordResetToken
     log: "password reset token exchanged"
 
   - action: autoPromote
-    log: "auto-promoted to {role}"
+    log: "auto-promoted to {{role}}"
 
   - action: updateCredentials
-    log: "credentials {credentials.kind} updated"
+    log: "credentials {{credentials.kind}} updated"
 
   - action: createCredentials
-    log: "new credentials {credentials.kind} created"
+    log: "new credentials {{credentials.kind}} created"
 
   - action: impersonate
-    log: "impersonating {user}"
+    log: "impersonating {{user}}"
 
   - action: totpConfigure
-    log: "time-based one-time-password for {user} configured"
+    log: "time-based one-time-password for {{user}} configured"
 
   - action: totpRemove
-    log: "time-based one-time-password for {user} removed"
+    log: "time-based one-time-password for {{user}} removed"
 
   - action: totpValidate
-    log: "time-based one-time-password for {user} validated"
+    log: "time-based one-time-password for {{user}} validated"
 
   - action: emailOtpVerify
-    log: "email one-time-password for {user} verified"
+    log: "email one-time-password for {{user}} verified"
 
 errors:
   - error: invalidCredentials
     message: "invalid username and password combination"
-    log: "{email} failed to authenticate with {credentials.kind}"
+    log: "{{email}} failed to authenticate with {{credentials.kind}}"
     severity: warning
 
   - error: invalidEmailFormat
@@ -94,22 +94,22 @@ errors:
 
   - error: failedForUnknownUser
     maskedWith: invalidCredentials
-    log: "unknown user {email} tried to log-in with {credentials.kind}"
+    log: "unknown user {{email}} tried to log-in with {{credentials.kind}}"
     severity: warning
 
   - error: failedForDeletedUser
     maskedWith: invalidCredentials
-    log: "deleted user {user} tried to log-in with {credentials.kind}"
+    log: "deleted user {{user}} tried to log-in with {{credentials.kind}}"
     severity: warning
 
   - error: failedForSuspendedUser
     maskedWith: invalidCredentials
-    log: "suspended user {user} tried to log-in with {credentials.kind}"
+    log: "suspended user {{user}} tried to log-in with {{credentials.kind}}"
     severity: warning
 
   - error: failedForSystemUser
     maskedWith: invalidCredentials
-    log: "system user {user} tried to log-in with {credentials.kind}"
+    log: "system user {{user}} tried to log-in with {{credentials.kind}}"
     severity: warning
 
   - error: failedUnconfirmedEmail
@@ -141,11 +141,11 @@ errors:
 
   - error: profileWithoutValidEmail
     message: "external authentication provider returned profile without valid email"
-    log: "external authentication provider {credentials.kind} returned profile without valid email"
+    log: "external authentication provider {{credentials.kind}} returned profile without valid email"
     severity: warning
 
   - error: credentialsLinkedToInvalidUser
-    message: "credentials {credentials.kind} linked to disabled or deleted user {user}"
+    message: "credentials {{credentials.kind}} linked to disabled or deleted user {{user}}"
     severity: warning
 
   - error: invalidToken

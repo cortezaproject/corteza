@@ -26,20 +26,20 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {filter}"
+    log: "looked-up for a {{filter}}"
     severity: info
 
   - action: create
-    log: "created {filter}"
+    log: "created {{filter}}"
 
   - action: update
-    log: "updated {filter}"
+    log: "updated {{filter}}"
 
   - action: delete
-    log: "deleted {filter}"
+    log: "deleted {{filter}}"
 
   - action: undelete
-    log: "undeleted {filter}"
+    log: "undeleted {{filter}}"
 
 errors:
   - error: notFound
@@ -60,16 +60,16 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this filter"
-    log: "failed to read {filter}; insufficient permissions"
+    log: "failed to read {{filter}}; insufficient permissions"
 
   - error: notAllowedToUpdate
     message: "not allowed to update this filter"
-    log: "failed to update {filter}; insufficient permissions"
+    log: "failed to update {{filter}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this filter"
-    log: "failed to delete {filter}; insufficient permissions"
+    log: "failed to delete {{filter}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this filter"
-    log: "failed to undelete {filter}; insufficient permissions"
+    log: "failed to undelete {{filter}}; insufficient permissions"

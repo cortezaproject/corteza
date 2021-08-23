@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -96,7 +97,7 @@ func (p apigwFilterActionProps) Serialize() actionlog.Meta {
 //
 func (p apigwFilterActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -116,24 +117,24 @@ func (p apigwFilterActionProps) Format(in string, err error) string {
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.ID,
 				p.filter.Ref,
 			),
 		)
-		pairs = append(pairs, "{filter.ID}", fns(p.filter.ID))
-		pairs = append(pairs, "{filter.ref}", fns(p.filter.Ref))
+		pairs = append(pairs, "{{filter.ID}}", fns(p.filter.ID))
+		pairs = append(pairs, "{{filter.ref}}", fns(p.filter.Ref))
 	}
 
 	if p.search != nil {
-		// replacement for "{search}" (in order how fields are defined)
+		// replacement for "{{search}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{search}",
+			"{{search}}",
 			fns(),
 		)
 	}
@@ -201,7 +202,7 @@ func ApigwFilterActionLookup(props ...*apigwFilterActionProps) *apigwFilterActio
 		timestamp: time.Now(),
 		resource:  "system:filter",
 		action:    "lookup",
-		log:       "looked-up for a {filter}",
+		log:       "looked-up for a {{filter}}",
 		severity:  actionlog.Info,
 	}
 
@@ -221,7 +222,7 @@ func ApigwFilterActionCreate(props ...*apigwFilterActionProps) *apigwFilterActio
 		timestamp: time.Now(),
 		resource:  "system:filter",
 		action:    "create",
-		log:       "created {filter}",
+		log:       "created {{filter}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -241,7 +242,7 @@ func ApigwFilterActionUpdate(props ...*apigwFilterActionProps) *apigwFilterActio
 		timestamp: time.Now(),
 		resource:  "system:filter",
 		action:    "update",
-		log:       "updated {filter}",
+		log:       "updated {{filter}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -261,7 +262,7 @@ func ApigwFilterActionDelete(props ...*apigwFilterActionProps) *apigwFilterActio
 		timestamp: time.Now(),
 		resource:  "system:filter",
 		action:    "delete",
-		log:       "deleted {filter}",
+		log:       "deleted {{filter}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -281,7 +282,7 @@ func ApigwFilterActionUndelete(props ...*apigwFilterActionProps) *apigwFilterAct
 		timestamp: time.Now(),
 		resource:  "system:filter",
 		action:    "undelete",
-		log:       "undeleted {filter}",
+		log:       "undeleted {{filter}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -319,6 +320,10 @@ func ApigwFilterErrGeneric(mm ...*apigwFilterActionProps) *errors.Error {
 		errors.Meta(apigwFilterLogMetaKey{}, "{err}"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -348,6 +353,10 @@ func ApigwFilterErrNotFound(mm ...*apigwFilterActionProps) *errors.Error {
 		errors.Meta("resource", "system:filter"),
 
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -379,6 +388,10 @@ func ApigwFilterErrInvalidID(mm ...*apigwFilterActionProps) *errors.Error {
 
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -408,6 +421,10 @@ func ApigwFilterErrInvalidRoute(mm ...*apigwFilterActionProps) *errors.Error {
 		errors.Meta("resource", "system:filter"),
 
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.invalidRoute"),
 
 		errors.StackSkip(1),
 	)
@@ -441,6 +458,10 @@ func ApigwFilterErrNotAllowedToCreate(mm ...*apigwFilterActionProps) *errors.Err
 		errors.Meta(apigwFilterLogMetaKey{}, "failed to create a route; insufficient permissions"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -470,8 +491,12 @@ func ApigwFilterErrNotAllowedToRead(mm ...*apigwFilterActionProps) *errors.Error
 		errors.Meta("resource", "system:filter"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwFilterLogMetaKey{}, "failed to read {filter}; insufficient permissions"),
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to read {{filter}}; insufficient permissions"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -502,8 +527,12 @@ func ApigwFilterErrNotAllowedToUpdate(mm ...*apigwFilterActionProps) *errors.Err
 		errors.Meta("resource", "system:filter"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwFilterLogMetaKey{}, "failed to update {filter}; insufficient permissions"),
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to update {{filter}}; insufficient permissions"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -534,8 +563,12 @@ func ApigwFilterErrNotAllowedToDelete(mm ...*apigwFilterActionProps) *errors.Err
 		errors.Meta("resource", "system:filter"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwFilterLogMetaKey{}, "failed to delete {filter}; insufficient permissions"),
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to delete {{filter}}; insufficient permissions"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -566,8 +599,12 @@ func ApigwFilterErrNotAllowedToUndelete(mm ...*apigwFilterActionProps) *errors.E
 		errors.Meta("resource", "system:filter"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwFilterLogMetaKey{}, "failed to undelete {filter}; insufficient permissions"),
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to undelete {{filter}}; insufficient permissions"),
 		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

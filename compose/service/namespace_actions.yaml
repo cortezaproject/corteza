@@ -29,23 +29,23 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {namespace}"
+    log: "looked-up for a {{namespace}}"
     severity: info
 
   - action: create
-    log: "created {namespace}"
+    log: "created {{namespace}}"
 
   - action: update
-    log: "updated {namespace}"
+    log: "updated {{namespace}}"
 
   - action: delete
-    log: "deleted {namespace}"
+    log: "deleted {{namespace}}"
 
   - action: undelete
-    log: "undeleted {namespace}"
+    log: "undeleted {{namespace}}"
 
   - action: reorder
-    log: "reordered {namespace}"
+    log: "reordered {{namespace}}"
 
 errors:
   - error: notFound
@@ -62,7 +62,7 @@ errors:
 
   - error: handleNotUnique
     message: "handle not unique"
-    log: "used duplicate handle ({namespace.slug}) for namespace"
+    log: "used duplicate handle ({{namespace.slug}}) for namespace"
     severity: warning
 
   - error: staleData
@@ -71,7 +71,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this namespace"
-    log: "could not read {namespace}; insufficient permissions"
+    log: "could not read {{namespace}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list namespaces"
@@ -83,12 +83,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this namespace"
-    log: "could not update {namespace}; insufficient permissions"
+    log: "could not update {{namespace}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this namespace"
-    log: "could not delete {namespace}; insufficient permissions"
+    log: "could not delete {{namespace}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this namespace"
-    log: "could not undelete {namespace}; insufficient permissions"
+    log: "could not undelete {{namespace}}; insufficient permissions"

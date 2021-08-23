@@ -67,9 +67,10 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 
 		h.Log.Warn("invalid password reset token used", zap.Error(err))
 		req.RedirectTo = GetLinks().RequestPasswordReset
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "warning",
-			Text: "Invalid or expired password reset token, please repeat password reset request.",
+			Text: t("password_reset_requested.alert.inv-exp-passw-token"),
 		})
 	}
 
@@ -83,9 +84,10 @@ func (h *AuthHandlers) resetPasswordProc(req *request.AuthReq) (err error) {
 	err = h.AuthService.SetPassword(req.Context(), req.AuthUser.User.ID, req.Request.PostFormValue("password"))
 
 	if err == nil {
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Password successfully reset.",
+			Text: t("password_reset_requested.alert.pass-reset-success"),
 		})
 
 		req.RedirectTo = GetLinks().Profile
@@ -116,8 +118,9 @@ func (h *AuthHandlers) onlyIfPasswordResetEnabled(fn handlerFn) handlerFn {
 
 func (h *AuthHandlers) passwordResetDisabledAlert(req *request.AuthReq) {
 	req.RedirectTo = GetLinks().Login
+	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "danger",
-		Text: "Password reset disabled",
+		Text: t("password_reset_requested.alert.pass-reset-disabled"),
 	})
 }

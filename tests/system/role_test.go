@@ -141,7 +141,7 @@ func TestRoleCreateForbidden(t *testing.T) {
 		FormData("name", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create roles")).
+		Assert(helpers.AssertError("role.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -157,7 +157,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 		FormData("handle", role.Handle).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("role handle not unique")).
+		Assert(helpers.AssertError("role.errors.handleNotUnique")).
 		End()
 
 	h.apiInit().
@@ -167,7 +167,7 @@ func TestRoleCreateNotUnique(t *testing.T) {
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("role name not unique")).
+		Assert(helpers.AssertError("role.errors.nameNotUnique")).
 		End()
 
 }
@@ -277,7 +277,7 @@ func TestRoleUpdateForbidden(t *testing.T) {
 		FormData("email", h.randEmail()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this role")).
+		Assert(helpers.AssertError("role.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -313,7 +313,7 @@ func TestRoleDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this role")).
+		Assert(helpers.AssertError("role.errors.notAllowedToDelete")).
 		End()
 }
 

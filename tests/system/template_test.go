@@ -119,7 +119,7 @@ func TestTemplateCreateForbidden(t *testing.T) {
 		FormData("handle", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create templates")).
+		Assert(helpers.AssertError("template.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -150,7 +150,7 @@ func TestTemplateUpdateForbidden(t *testing.T) {
 		FormData("handle", rs()).
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this template")).
+		Assert(helpers.AssertError("template.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -188,7 +188,7 @@ func TestTemplateDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this template")).
+		Assert(helpers.AssertError("template.errors.notAllowedToDelete")).
 		End()
 }
 
@@ -247,7 +247,7 @@ func TestTemplateRenderForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to render this template")).
+		Assert(helpers.AssertError("template.errors.notAllowedToRender")).
 		End()
 }
 

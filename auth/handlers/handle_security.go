@@ -35,9 +35,10 @@ func (h *AuthHandlers) securityProc(req *request.AuthReq) error {
 		if user, err := h.AuthService.ConfigureEmailOTP(req.Context(), req.AuthUser.User.ID, enable); err != nil {
 			return err
 		} else {
+			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: "Two factor authentication with TOTP disabled",
+				Text: t("security.totp-disabled"),
 			})
 
 			// Make sure we update User's data in the session

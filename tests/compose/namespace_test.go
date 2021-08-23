@@ -120,7 +120,7 @@ func TestNamespaceCreateForbidden(t *testing.T) {
 		FormData("name", "some-namespace").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create namespaces")).
+		Assert(helpers.AssertError("namespace.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -151,7 +151,7 @@ func TestNamespaceUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this namespace")).
+		Assert(helpers.AssertError("namespace.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -188,7 +188,7 @@ func TestNamespaceDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this namespace")).
+		Assert(helpers.AssertError("namespace.errors.notAllowedToDelete")).
 		End()
 }
 

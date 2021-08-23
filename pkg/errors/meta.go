@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+
+	"github.com/spf13/cast"
 )
 
 type (
 	meta map[interface{}]interface{}
 )
 
-// returns max length of (string) keys and slcie of all strings
+// StringKeys returns max length of (string) keys and slice of all strings
 func (m meta) StringKeys() (int, []string) {
 	var (
 		l, ml int
@@ -18,7 +20,7 @@ func (m meta) StringKeys() (int, []string) {
 		kk    = make([]string, 0, len(m))
 	)
 
-	// collecting keys so we can sort them to ensure
+	// collecting keys so that we can sort them to ensure
 	// stable order and find out max length of the key
 	for k := range m {
 		switch c := k.(type) {
@@ -68,4 +70,17 @@ func (m meta) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(o)
+}
+
+// returns string pairs (both key & value are strings=
+func (m meta) pairs() []string {
+	out := make([]string, 0, len(m)*2)
+
+	for k := range m {
+		if key, ok := k.(string); ok {
+			out = append(out, key, cast.ToString(m[k]))
+		}
+	}
+
+	return out
 }

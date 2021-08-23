@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -121,7 +122,7 @@ func (p namespaceActionProps) Serialize() actionlog.Meta {
 //
 func (p namespaceActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -141,10 +142,10 @@ func (p namespaceActionProps) Format(in string, err error) string {
 	}
 
 	if p.namespace != nil {
-		// replacement for "{namespace}" (in order how fields are defined)
+		// replacement for "{{namespace}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{namespace}",
+			"{{namespace}}",
 			fns(
 				p.namespace.Name,
 				p.namespace.Slug,
@@ -152,17 +153,17 @@ func (p namespaceActionProps) Format(in string, err error) string {
 				p.namespace.Enabled,
 			),
 		)
-		pairs = append(pairs, "{namespace.name}", fns(p.namespace.Name))
-		pairs = append(pairs, "{namespace.slug}", fns(p.namespace.Slug))
-		pairs = append(pairs, "{namespace.ID}", fns(p.namespace.ID))
-		pairs = append(pairs, "{namespace.enabled}", fns(p.namespace.Enabled))
+		pairs = append(pairs, "{{namespace.name}}", fns(p.namespace.Name))
+		pairs = append(pairs, "{{namespace.slug}}", fns(p.namespace.Slug))
+		pairs = append(pairs, "{{namespace.ID}}", fns(p.namespace.ID))
+		pairs = append(pairs, "{{namespace.enabled}}", fns(p.namespace.Enabled))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.Name,
 				p.changed.Slug,
@@ -171,18 +172,18 @@ func (p namespaceActionProps) Format(in string, err error) string {
 				p.changed.Enabled,
 			),
 		)
-		pairs = append(pairs, "{changed.name}", fns(p.changed.Name))
-		pairs = append(pairs, "{changed.slug}", fns(p.changed.Slug))
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
-		pairs = append(pairs, "{changed.meta}", fns(p.changed.Meta))
-		pairs = append(pairs, "{changed.enabled}", fns(p.changed.Enabled))
+		pairs = append(pairs, "{{changed.name}}", fns(p.changed.Name))
+		pairs = append(pairs, "{{changed.slug}}", fns(p.changed.Slug))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.meta}}", fns(p.changed.Meta))
+		pairs = append(pairs, "{{changed.enabled}}", fns(p.changed.Enabled))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Slug,
@@ -190,10 +191,10 @@ func (p namespaceActionProps) Format(in string, err error) string {
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.slug}", fns(p.filter.Slug))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.slug}}", fns(p.filter.Slug))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -259,7 +260,7 @@ func NamespaceActionLookup(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "lookup",
-		log:       "looked-up for a {namespace}",
+		log:       "looked-up for a {{namespace}}",
 		severity:  actionlog.Info,
 	}
 
@@ -279,7 +280,7 @@ func NamespaceActionCreate(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "create",
-		log:       "created {namespace}",
+		log:       "created {{namespace}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -299,7 +300,7 @@ func NamespaceActionUpdate(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "update",
-		log:       "updated {namespace}",
+		log:       "updated {{namespace}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -319,7 +320,7 @@ func NamespaceActionDelete(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "delete",
-		log:       "deleted {namespace}",
+		log:       "deleted {{namespace}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -339,7 +340,7 @@ func NamespaceActionUndelete(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "undelete",
-		log:       "undeleted {namespace}",
+		log:       "undeleted {{namespace}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -359,7 +360,7 @@ func NamespaceActionReorder(props ...*namespaceActionProps) *namespaceAction {
 		timestamp: time.Now(),
 		resource:  "compose:namespace",
 		action:    "reorder",
-		log:       "reordered {namespace}",
+		log:       "reordered {{namespace}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -397,6 +398,10 @@ func NamespaceErrGeneric(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta(namespaceLogMetaKey{}, "{err}"),
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -426,6 +431,10 @@ func NamespaceErrNotFound(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta("resource", "compose:namespace"),
 
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -457,6 +466,10 @@ func NamespaceErrInvalidID(mm ...*namespaceActionProps) *errors.Error {
 
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -487,6 +500,10 @@ func NamespaceErrInvalidHandle(mm ...*namespaceActionProps) *errors.Error {
 
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.invalidHandle"),
+
 		errors.StackSkip(1),
 	)
 
@@ -516,8 +533,12 @@ func NamespaceErrHandleNotUnique(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "used duplicate handle ({namespace.slug}) for namespace"),
+		errors.Meta(namespaceLogMetaKey{}, "used duplicate handle ({{namespace.slug}}) for namespace"),
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -549,6 +570,10 @@ func NamespaceErrStaleData(mm ...*namespaceActionProps) *errors.Error {
 
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -578,8 +603,12 @@ func NamespaceErrNotAllowedToRead(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "could not read {namespace}; insufficient permissions"),
+		errors.Meta(namespaceLogMetaKey{}, "could not read {{namespace}}; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -613,6 +642,10 @@ func NamespaceErrNotAllowedToSearch(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta(namespaceLogMetaKey{}, "could not search or list namespaces; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -645,6 +678,10 @@ func NamespaceErrNotAllowedToCreate(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta(namespaceLogMetaKey{}, "could not create namespaces; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -674,8 +711,12 @@ func NamespaceErrNotAllowedToUpdate(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "could not update {namespace}; insufficient permissions"),
+		errors.Meta(namespaceLogMetaKey{}, "could not update {{namespace}}; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -706,8 +747,12 @@ func NamespaceErrNotAllowedToDelete(mm ...*namespaceActionProps) *errors.Error {
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "could not delete {namespace}; insufficient permissions"),
+		errors.Meta(namespaceLogMetaKey{}, "could not delete {{namespace}}; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -738,8 +783,12 @@ func NamespaceErrNotAllowedToUndelete(mm ...*namespaceActionProps) *errors.Error
 		errors.Meta("resource", "compose:namespace"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(namespaceLogMetaKey{}, "could not undelete {namespace}; insufficient permissions"),
+		errors.Meta(namespaceLogMetaKey{}, "could not undelete {{namespace}}; insufficient permissions"),
 		errors.Meta(namespacePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "namespace.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)

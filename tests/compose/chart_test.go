@@ -128,7 +128,7 @@ func TestChartCreateForbidden(t *testing.T) {
 		FormData("name", "some-chart").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to create charts")).
+		Assert(helpers.AssertError("chart.errors.notAllowedToCreate")).
 		End()
 }
 
@@ -164,7 +164,7 @@ func TestChartUpdateForbidden(t *testing.T) {
 		FormData("name", "changed-name").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to update this chart")).
+		Assert(helpers.AssertError("chart.errors.notAllowedToUpdate")).
 		End()
 }
 
@@ -204,7 +204,7 @@ func TestChartDeleteForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to delete this chart")).
+		Assert(helpers.AssertError("chart.errors.notAllowedToDelete")).
 		End()
 }
 

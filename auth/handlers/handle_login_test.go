@@ -75,7 +75,7 @@ func Test_loginProc(t *testing.T) {
 		{
 			name:    "successful login",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "You are now logged-in", Html: ""}},
+			alerts:  []request.Alert{{Type: "primary", Text: "login.alerts.logged-in", Html: ""}},
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
@@ -93,7 +93,7 @@ func Test_loginProc(t *testing.T) {
 		{
 			name:    "internal login is not enabled",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "danger", Text: "Local accounts disabled", Html: ""}},
+			alerts:  []request.Alert{{Type: "danger", Text: "login.alert.local-disabled", Html: ""}},
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
@@ -138,7 +138,7 @@ func Test_loginProc(t *testing.T) {
 		},
 		{
 			name:    "credentials linked to invalid user",
-			payload: map[string]string{"email": "mockuser@example.tld", "error": "credentials {credentials.kind} linked to disabled or deleted user {user}"},
+			payload: map[string]string{"email": "mockuser@example.tld", "error": "credentials {{credentials.kind}} linked to disabled or deleted user {{user}}"},
 			alerts:  []request.Alert(nil),
 			link:    GetLinks().Login,
 			fn: func(*settings.Settings) {

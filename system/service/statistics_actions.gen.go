@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -65,7 +66,7 @@ func (p statisticsActionProps) Serialize() actionlog.Meta {
 //
 func (p statisticsActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 	)
 
 	if err != nil {
@@ -155,6 +156,10 @@ func StatisticsErrGeneric(mm ...*statisticsActionProps) *errors.Error {
 		errors.Meta(statisticsLogMetaKey{}, "{err}"),
 		errors.Meta(statisticsPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "statistics.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -184,6 +189,10 @@ func StatisticsErrNotAllowedToReadStatistics(mm ...*statisticsActionProps) *erro
 		errors.Meta("resource", "system:statistics"),
 
 		errors.Meta(statisticsPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "statistics.errors.notAllowedToReadStatistics"),
 
 		errors.StackSkip(1),
 	)

@@ -166,6 +166,9 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 				"version":   func() string { return version.Version },
 				"buildtime": func() string { return version.BuildTime },
 				"links":     handlers.GetLinks,
+
+				// temp, will be replaced
+				"tr": func(key string, pp ...string) string { return key },
 			})
 
 		useEmbedded = len(opt.AssetsPath) == 0

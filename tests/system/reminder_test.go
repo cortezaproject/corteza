@@ -65,7 +65,7 @@ func TestReminderAssign_forbidden(t *testing.T) {
 		FormData("assignedTo", "404").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to assign reminders to other users")).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToAssign")).
 		End()
 }
 
@@ -114,7 +114,7 @@ func TestReminderReadForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to read reminders of other users")).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToRead")).
 		End()
 }
 
@@ -146,7 +146,7 @@ func TestReminderUpdateForbidden(t *testing.T) {
 		FormData("resource", "changed:resource").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to assign reminders to other users")).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToAssign")).
 		End()
 }
 
@@ -211,7 +211,7 @@ func TestReminderDismissForbidden(t *testing.T) {
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
-		Assert(helpers.AssertError("not allowed to dismiss reminders of other users")).
+		Assert(helpers.AssertError("reminder.errors.notAllowedToDismiss")).
 		End()
 }
 

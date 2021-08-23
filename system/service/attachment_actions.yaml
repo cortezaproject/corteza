@@ -31,14 +31,14 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {attachment}"
+    log: "looked-up for a {{attachment}}"
     severity: info
 
   - action: create
-    log: "created {attachment}"
+    log: "created {{attachment}}"
 
   - action: delete
-    log: "deleted {attachment}"
+    log: "deleted {{attachment}}"
 
 errors:
   - error: notFound

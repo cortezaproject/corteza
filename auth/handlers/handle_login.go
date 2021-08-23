@@ -98,7 +98,9 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 			zap.Bool("perm-login", isPerm),
 			zap.Duration("lifetime", lifetime),
 		)
-		req.PushAlert("You are now logged-in")
+
+		t := translator(req, "auth")
+		req.PushAlert(t("login.alerts.logged-in"))
 
 		if req.AuthUser.PendingEmailOTP() {
 			// Email OTP enforced (globally or by user sec. policy)
@@ -153,5 +155,7 @@ func (h *AuthHandlers) localDisabledAlert(req *request.AuthReq) {
 		req.RedirectTo = GetLinks().Login
 	}
 
-	req.PushDangerAlert("Local accounts disabled")
+	t := translator(req, "auth")
+
+	req.PushDangerAlert(t("login.alert.local-disabled"))
 }
