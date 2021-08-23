@@ -25,6 +25,8 @@ func NewRole(rl *types.Role) *Role {
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&rl.CreatedAt, rl.UpdatedAt, rl.DeletedAt, rl.ArchivedAt))
 
+	rl.ID = 0
+
 	return r
 }
 

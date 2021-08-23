@@ -25,6 +25,8 @@ func NewTemplate(t *types.Template) *Template {
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDAS(&t.CreatedAt, t.UpdatedAt, t.DeletedAt, nil, nil))
 
+	t.ID = 0
+
 	return r
 }
 

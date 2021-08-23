@@ -48,32 +48,14 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 		r.RefParent = r.AddRef(types.PageResourceType, parentRef).Constraint(r.RefNs)
 	}
 
-	// Quick utility to extract references from options
-	ss := func(m map[string]interface{}, kk ...string) string {
-		for _, k := range kk {
-			if vr, has := m[k]; has {
-				v, _ := vr.(string)
-				return v
-			}
-		}
-		return ""
-	}
-
-	add := func(rr RefSet, r *Ref) RefSet {
-		if rr == nil {
-			rr = make(RefSet, 0, 2)
-		}
-
-		return append(rr, r)
-	}
-
+	var ref *Ref
 	for i, b := range pg.Blocks {
 		switch b.Kind {
 		case "RecordList":
-			id := ss(b.Options, "module", "moduleID")
-			if id != "" {
-				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
-				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+			ref = r.pbRecordList(b.Options)
+			if ref != nil {
+				r.addRef(ref)
+				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
 			}
 
@@ -81,27 +63,27 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			bb, _ := b.Options["buttons"].([]interface{})
 			for _, b := range bb {
 				button, _ := b.(map[string]interface{})
-				id := ss(button, "workflow", "workflowID")
-				if id != "" {
-					ref := r.AddRef(automationTypes.WorkflowResourceType, id)
-					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				ref = r.pbAutomation(button)
+				if ref != nil {
+					r.addRef(ref)
+					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 					r.WfRefs = append(r.WfRefs, ref)
 				}
 			}
 
 		case "RecordOrganizer":
-			id := ss(b.Options, "module", "moduleID")
-			if id != "" {
-				ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
-				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+			ref = r.pbRecordList(b.Options)
+			if ref != nil {
+				r.addRef(ref)
+				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 				r.ModRefs = append(r.ModRefs, ref)
 			}
 
 		case "Chart":
-			id := ss(b.Options, "chart", "chartID")
-			if id != "" {
-				ref := r.AddRef(types.ChartResourceType, id).Constraint(r.RefNs)
-				r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+			ref = r.pbChart(b.Options)
+			if ref != nil {
+				r.addRef(ref)
+				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 				r.RefCharts = append(r.RefCharts, ref)
 			}
 
@@ -110,10 +92,11 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			for _, f := range ff {
 				feed, _ := f.(map[string]interface{})
 				fOpts, _ := (feed["options"]).(map[string]interface{})
-				id := ss(fOpts, "module", "moduleID")
-				if id != "" {
-					ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
-					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+
+				ref = r.pbCalendar(fOpts)
+				if ref != nil {
+					r.addRef(ref)
+					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 					r.ModRefs = append(r.ModRefs, ref)
 				}
 			}
@@ -122,10 +105,10 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 			mm, _ := b.Options["metrics"].([]interface{})
 			for _, m := range mm {
 				mops, _ := m.(map[string]interface{})
-				id := ss(mops, "module", "moduleID")
-				if id != "" {
-					ref := r.AddRef(types.ModuleResourceType, id).Constraint(r.RefNs)
-					r.BlockRefs[i] = add(r.BlockRefs[i], ref)
+				ref = r.pbMetric(mops)
+				if ref != nil {
+					r.addRef(ref)
+					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
 					r.ModRefs = append(r.ModRefs, ref)
 				}
 			}
@@ -143,7 +126,53 @@ func NewComposePage(pg *types.Page, nsRef, modRef, parentRef string) *ComposePag
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
 
+	pg.ID = 0
+	pg.SelfID = 0
+	pg.NamespaceID = 0
+	pg.ModuleID = 0
+
 	return r
+}
+
+func (r *ComposePage) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	for _, n := range new {
+		switch n.ResourceType {
+		case types.NamespaceResourceType:
+			r.RefNs = MakeRef(types.NamespaceResourceType, n.Identifiers)
+		case types.ModuleResourceType:
+			r.RefMod = MakeRef(types.ModuleResourceType, n.Identifiers)
+		case types.PageResourceType:
+			r.RefParent = MakeRef(types.PageResourceType, n.Identifiers)
+		}
+	}
+}
+
+func (r *ComposePage) Prune(ref *Ref) {
+	var auxRef *Ref
+
+outer:
+	for i := len(r.Res.Blocks) - 1; i >= 0; i-- {
+		b := r.Res.Blocks[i]
+
+		switch b.Kind {
+		// Implement the rest when support is needed
+		case "Automation":
+			bb, _ := b.Options["buttons"].([]interface{})
+			for _, b := range bb {
+				button, _ := b.(map[string]interface{})
+				auxRef = r.pbAutomation(button)
+
+				if auxRef.equals(ref) {
+					r.ReplaceRef(ref, nil)
+					r.WfRefs = r.WfRefs.replaceRef(ref, nil)
+					r.removeBlock(i)
+					continue outer
+				}
+			}
+		}
+	}
 }
 
 func (r *ComposePage) SysID() uint64 {
@@ -195,4 +224,80 @@ func FindComposePage(rr InterfaceSet, ii Identifiers) (pg *types.Page) {
 
 func ComposePageErrUnresolved(ii Identifiers) error {
 	return fmt.Errorf("compose page unresolved %v", ii.StringSlice())
+}
+
+// Page block utilities
+func (r *ComposePage) removeBlock(i int) {
+	// do the swap remove thing
+	r.Res.Blocks[i] = r.Res.Blocks[len(r.Res.Blocks)-1]
+	r.Res.Blocks = r.Res.Blocks[:len(r.Res.Blocks)-1]
+
+	// correct block refs.
+	// +1 here because it's already cut
+	r.BlockRefs[i] = r.BlockRefs[len(r.Res.Blocks)]
+	delete(r.BlockRefs, len(r.Res.Blocks))
+}
+
+func (r *ComposePage) optString(opt map[string]interface{}, kk ...string) string {
+	for _, k := range kk {
+		if vr, has := opt[k]; has {
+			v, _ := vr.(string)
+			return v
+		}
+	}
+	return ""
+}
+
+func (r *ComposePage) pbRecordList(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "module", "moduleID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ModuleResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
+}
+
+func (r *ComposePage) pbAutomation(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "workflow", "workflowID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(automationTypes.WorkflowResourceType, MakeIdentifiers(id))
+}
+
+func (r *ComposePage) pbRecordOrganizer(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "module", "moduleID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ModuleResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
+}
+
+func (r *ComposePage) pbChart(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "chart", "chartID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ChartResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
+}
+
+func (r *ComposePage) pbCalendar(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "module", "moduleID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ModuleResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
+}
+
+func (r *ComposePage) pbMetric(opt map[string]interface{}) (out *Ref) {
+	id := r.optString(opt, "module", "moduleID")
+	if id == "" {
+		return
+	}
+
+	return MakeRef(types.ModuleResourceType, MakeIdentifiers(id)).Constraint(r.RefNs)
 }

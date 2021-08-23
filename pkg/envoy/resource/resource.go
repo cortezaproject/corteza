@@ -104,12 +104,13 @@ func (t *base) AddIdentifier(ss ...string) {
 	t.ii.Add(ss...)
 }
 
+// SetIdentifier sets the identifiers to whatever was provided
+func (t *base) SetIdentifier(ii Identifiers) {
+	t.ii = ii
+}
+
 // AddRef adds a new reference to the current resource
 func (t *base) AddRef(rt string, ii ...string) *Ref {
-	if t.rr == nil {
-		t.rr = make(RefSet, 0, 10)
-	}
-
 	iiC := make([]string, 0, len(ii))
 	for _, i := range ii {
 		if i != "" {
@@ -117,10 +118,18 @@ func (t *base) AddRef(rt string, ii ...string) *Ref {
 		}
 	}
 
-	ref := &Ref{ResourceType: rt, Identifiers: Identifiers{}.Add(iiC...)}
-	t.rr = append(t.rr, ref)
+	return t.addRef(&Ref{ResourceType: rt, Identifiers: Identifiers{}.Add(iiC...)})
+}
 
-	return ref
+func (t *base) addRef(r *Ref) *Ref {
+	t.rr = append(t.rr, r)
+	return r
+}
+
+// ReplaceRef replaces the given ref with the new one.
+// The new ref is added regardles if the old one exists or not.
+func (t *base) ReplaceRef(old, new *Ref) {
+	t.rr = t.rr.replaceRef(old, new)
 }
 
 // SetResourceType sets the resource type of the current resource struct
@@ -218,4 +227,14 @@ func MakeRef(rt string, ii Identifiers) *Ref {
 
 func IgnoreDepResolution(ref *Ref) bool {
 	return ref.ResourceType == composeTypes.ModuleFieldResourceType
+}
+
+func (t *base) ReID(ii Identifiers) {
+	t.SetIdentifier(ii)
+}
+
+func (t *base) ReRef(old RefSet, new RefSet) {
+	for i, o := range old {
+		t.ReplaceRef(o, new[i])
+	}
 }
