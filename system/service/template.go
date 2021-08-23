@@ -196,6 +196,10 @@ func (svc template) Create(ctx context.Context, new *types.Template) (tpl *types
 	)
 
 	err = func() (err error) {
+		if !handle.IsValid(new.Handle) {
+			return TemplateErrInvalidHandle()
+		}
+
 		if !svc.ac.CanCreateTemplate(ctx) {
 			return TemplateErrNotAllowedToCreate()
 		}
@@ -230,6 +234,10 @@ func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types
 	err = func() (err error) {
 		if upd.ID == 0 {
 			return TemplateErrInvalidID()
+		}
+
+		if !handle.IsValid(upd.Handle) {
+			return TemplateErrInvalidHandle()
 		}
 
 		if tpl, err = store.LookupTemplateByID(ctx, svc.store, upd.ID); err != nil {
