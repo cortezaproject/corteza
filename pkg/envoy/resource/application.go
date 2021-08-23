@@ -31,6 +31,8 @@ func NewApplication(res *types.Application) *Application {
 		})
 	}
 
+	res.ID = 0
+
 	return r
 }
 

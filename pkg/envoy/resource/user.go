@@ -25,6 +25,8 @@ func NewUser(u *types.User) *User {
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDAS(&u.CreatedAt, u.UpdatedAt, u.DeletedAt, nil, u.SuspendedAt))
 
+	u.ID = 0
+
 	return r
 }
 

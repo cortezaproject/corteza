@@ -68,12 +68,36 @@ func NewComposeModule(res *types.Module, nsRef string) *ComposeModule {
 				r.RefRoles = append(r.RefRoles, r.AddRef(systemTypes.RoleResourceType, refRole))
 			}
 		}
+
+		f.ID = 0
+		f.NamespaceID = 0
+		f.ModuleID = 0
 	}
 
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&res.CreatedAt, res.UpdatedAt, res.DeletedAt, nil))
 
+	res.ID = 0
+	res.NamespaceID = 0
+
 	return r
+}
+
+func (r *ComposeModule) ReRef(old RefSet, new RefSet) {
+	r.base.ReRef(old, new)
+
+	// Additional references
+	for _, n := range new {
+		if n.ResourceType == types.NamespaceResourceType {
+			r.RefNs = MakeRef(types.NamespaceResourceType, n.Identifiers)
+		}
+	}
+
+	for i, o := range old {
+		if o.ResourceType == types.ModuleResourceType {
+			r.RefMods = r.RefMods.replaceRef(o, new[i])
+		}
+	}
 }
 
 func (r *ComposeModule) SysID() uint64 {

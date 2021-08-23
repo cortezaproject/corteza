@@ -7,9 +7,10 @@ type (
 		Identifiers() Identifiers
 		ResourceType() string
 		Refs() RefSet
-
 		MarkPlaceholder()
 		Placeholder() bool
+		ReID(Identifiers)
+		ReRef(old RefSet, new RefSet)
 	}
 
 	InterfaceSet []Interface
@@ -39,6 +40,12 @@ type (
 		EncodeTranslations() ([]*ResourceTranslation, error)
 	}
 
+	PrunableInterface interface {
+		Interface
+
+		Prune(*Ref)
+	}
+
 	RefSet []*Ref
 	Ref    struct {
 		// @todo check with Denis regarding strings here (the cdocs comment)
@@ -57,6 +64,14 @@ var (
 	RbacResourceType        = "rbac-rule"
 	ResourceTranslationType = "resource-translation"
 )
+
+func MakeRef(rt string, ii Identifiers) *Ref {
+	return &Ref{ResourceType: rt, Identifiers: ii}
+}
+
+func MakeWildRef(rt string) *Ref {
+	return &Ref{ResourceType: rt, Identifiers: MakeIdentifiers("*")}
+}
 
 func MakeIdentifiers(ss ...string) Identifiers {
 	ii := make(Identifiers)
@@ -128,6 +143,36 @@ func (rr InterfaceSet) Walk(f func(r Interface) error) (err error) {
 	return nil
 }
 
+// SearchForIdentifiers returns the resources where the provided identifiers exist
+//
+// The Resource is matching if at least one identifier matches.
+func (rr InterfaceSet) SearchForIdentifiers(ii Identifiers) (out InterfaceSet) {
+	out = make(InterfaceSet, 0, len(rr)/2)
+
+	for _, r := range rr {
+		if r.Identifiers().HasAny(ii) {
+			out = append(out, r)
+		}
+	}
+
+	return
+}
+
+// SearchForReferences returns the resources where the provided references exist
+//
+// The Resource is matching if at least one reference matches.
+func (rr InterfaceSet) SearchForReferences(ref *Ref) (out InterfaceSet) {
+	out = make(InterfaceSet, 0, len(rr)/2)
+
+	for _, r := range rr {
+		if r.Refs().HasRef(ref) {
+			out = append(out, r)
+		}
+	}
+
+	return
+}
+
 // Constraint returns the current reference with added constraint
 func (r *Ref) Constraint(c *Ref) *Ref {
 	if r.Constraints == nil {
@@ -144,7 +189,69 @@ func (r *Ref) Constraint(c *Ref) *Ref {
 
 // IsWildcard checks if this Ref points to all resources of a specific resource type
 func (r *Ref) IsWildcard() bool {
-	return r.Identifiers["*"]
+	return r.Identifiers != nil && r.Identifiers["*"]
+}
+
+func (a *Ref) equals(b *Ref) bool {
+	if a.ResourceType != b.ResourceType {
+		return false
+	}
+
+	if !b.IsWildcard() && !a.Identifiers.HasAny(b.Identifiers) {
+		return false
+	}
+
+	for _, c := range b.Constraints {
+		if !a.Constraints.HasRef(c) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (rr RefSet) findRef(ref *Ref) int {
+	for i, r := range rr {
+		if r.equals(ref) {
+			return i
+		}
+	}
+
+	return -1
+}
+
+// replaceRef replaces the reference both on the ref level and on the
+// constraint level.
+func (rr RefSet) replaceRef(old, new *Ref) RefSet {
+	found := false
+
+	for x := len(rr) - 1; x >= 0; x-- {
+		r := rr[x]
+
+		if r.equals(old) {
+			found = true
+			if new == nil {
+				rr[x] = rr[len(rr)-1]
+				return rr[:len(rr)-1]
+			} else {
+				rr[x] = new
+			}
+		} else {
+			if len(r.Constraints) > 0 {
+				r.Constraints = r.Constraints.replaceRef(old, new)
+			}
+		}
+	}
+
+	if !found {
+		return append(rr, new)
+	}
+
+	return rr
+}
+
+func (rr RefSet) HasRef(ref *Ref) bool {
+	return rr.findRef(ref) > -1
 }
 
 // Unique returns only unique references
