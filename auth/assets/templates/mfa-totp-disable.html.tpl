@@ -1,13 +1,13 @@
 {{ template "inc_header.html.tpl"  set . "hideNav" true }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Disable two-factor authentication with TOTP</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa-totp-disable.template.title" }}</h1>
 
 	<form
 		class="p-3"
 		method="POST"
 		action="{{ links.MfaTotpDisable }}"
 	>
-		Disable by entering existing code.
+		{{ tr "mfa-totp-disable.template.instructions" }}
 
 		{{ if .form.error }}
 		<div class="pt-3 text-danger font-weight-bold" role="alert">
@@ -37,7 +37,7 @@
 			value="true"
 			type="submit"
 		>
-			Remove
+			{{ tr "mfa-totp-disable.template.button.remove" }}
 		</button>
 	</form>
 </div>

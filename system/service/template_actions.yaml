@@ -32,23 +32,23 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {template}"
+    log: "looked-up for a {{template}}"
     severity: info
 
   - action: create
-    log: "created {template}"
+    log: "created {{template}}"
 
   - action: update
-    log: "updated {template}"
+    log: "updated {{template}}"
 
   - action: delete
-    log: "deleted {template}"
+    log: "deleted {{template}}"
 
   - action: undelete
-    log: "undeleted {template}"
+    log: "undeleted {{template}}"
 
   - action: render
-    log: "rendered {template}"
+    log: "rendered {{template}}"
 
 errors:
   - error: notFound
@@ -68,7 +68,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this template"
-    log: "failed to read {template.handle}; insufficient permissions"
+    log: "failed to read {{template.handle}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list templates"
@@ -80,16 +80,16 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this template"
-    log: "failed to update {template.handle}; insufficient permissions"
+    log: "failed to update {{template.handle}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this template"
-    log: "failed to delete {template.handle}; insufficient permissions"
+    log: "failed to delete {{template.handle}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this template"
-    log: "failed to undelete {template.handle}; insufficient permissions"
+    log: "failed to undelete {{template.handle}}; insufficient permissions"
 
   - error: notAllowedToRender
     message: "not allowed to render this template"
-    log: "failed to render {template.handle}; insufficient permissions"
+    log: "failed to render {{template.handle}}; insufficient permissions"

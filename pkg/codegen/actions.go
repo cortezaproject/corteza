@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -17,7 +18,7 @@ type (
 	// definitions are in multiple files and each definition
 	// should produce one output
 	actionsDef struct {
-		App       string
+		Component string
 		Source    string
 		outputDir string
 
@@ -109,13 +110,14 @@ func procActions(mm ...string) (dd []*actionsDef, err error) {
 	dd = make([]*actionsDef, 0)
 	for _, m := range mm {
 		err = func() error {
+
 			if f, err = os.Open(m); err != nil {
 				return err
 			}
 
 			defer f.Close()
 
-			d = &actionsDef{}
+			d = &actionsDef{Component: strings.SplitN(m, string(filepath.Separator), 2)[0]}
 
 			if err := yaml.NewDecoder(f).Decode(d); err != nil {
 				return err
@@ -200,7 +202,7 @@ func actionNormalize(d *actionsDef) error {
 		return nil
 	}
 
-	placeholderMatcher := regexp.MustCompile(`{(.+?)}`)
+	placeholderMatcher := regexp.MustCompile(`\{\{(.+?)\}\}`)
 	checkPlaceholders := func(def string, kind, s string) error {
 		for _, match := range placeholderMatcher.FindAllStringSubmatch(s, 1) {
 			placeholder := match[1]

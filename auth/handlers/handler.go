@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/gob"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/auth/saml"
 	"github.com/cortezaproject/corteza-server/auth/settings"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"github.com/go-oauth2/oauth2/v4"
@@ -20,6 +22,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -63,7 +66,7 @@ type (
 	}
 
 	templateExecutor interface {
-		ExecuteTemplate(io.Writer, string, interface{}) error
+		ExecuteTemplate(io.Writer, string, interface{}, ...func(template *template.Template) *template.Template) error
 	}
 
 	oauth2Service interface {
@@ -134,6 +137,7 @@ func init() {
 func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
+			loc = locale.Global()
 			req = &request.AuthReq{
 				Response:   w,
 				Request:    r,
@@ -149,6 +153,13 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method),
 		)
+
+		if h.Opt.DevelopmentMode {
+			if err := loc.Reload(); err != nil {
+				// when in development mode, refresh languages for every request
+				h.Log.Error("failed to load locales", zap.Error(err))
+			}
+		}
 
 		err := func() (err error) {
 			if err = r.ParseForm(); err != nil {
@@ -219,12 +230,32 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			}
 		}
 
+		var (
+			// translator template function
+			ttf = func(t *template.Template) *template.Template {
+				return t.Funcs(map[string]interface{}{
+					"tr": func(key string, pp ...interface{}) template.HTML {
+						ss := make([]string, len(pp))
+						for i := range pp {
+							ss[i] = cast.ToString(pp[i])
+						}
+
+						return template.HTML(loc.Get(req.Context(), "auth", key, ss...))
+					},
+				})
+			}
+		)
+
 		// Handling just text/html response types from here on
 		//
 		// If handler does not wish to use the template leave/set it to "" (empty string)
-
 		if err == nil && req.Template != "" {
-			err = h.Templates.ExecuteTemplate(w, req.Template, h.enrichTmplData(req))
+			err = h.Templates.ExecuteTemplate(w,
+				req.Template,
+				h.enrichTmplData(req),
+				ttf,
+			)
+
 			h.Log.Debug("template executed", zap.String("name", req.Template), zap.Error(err))
 
 		}
@@ -232,7 +263,7 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 		if err != nil {
 			err = h.Templates.ExecuteTemplate(w, TmplInternalError, map[string]interface{}{
 				"error": err,
-			})
+			}, ttf)
 
 			if err == nil {
 				return
@@ -370,4 +401,8 @@ func anonyOnly(fn handlerFn) handlerFn {
 			return fn(req)
 		}
 	}
+}
+
+func translator(req *request.AuthReq, ns string) func(key string, rr ...string) string {
+	return (&locale.Languages{}).GetNS(req.Context(), ns)
 }

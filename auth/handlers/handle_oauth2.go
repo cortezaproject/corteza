@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -91,19 +90,17 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		request.SetOauth2Client(req.Session, nil)
 		request.SetOauth2AuthParams(req.Session, nil)
 		req.RedirectTo = GetLinks().Profile
+
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
-			Text: fmt.Sprintf("cannot authorize '%s', no permissions.", req.Client),
+			Text: t("oauth2-authorize-client.alerts.denied", "client", req.Client.Meta.Name),
 		})
 		return nil
 	}
 
 	if !req.AuthUser.User.EmailConfirmed {
-		req.Data["invalidUser"] = template.HTML(fmt.Sprintf(
-			`Cannot continue with unauthorized email, visit <a href="%s">your profile</a> and resolve the issue.`,
-			GetLinks().Profile,
-		))
-
+		req.Data["invalidUser"] = true
 		req.Data["disabled"] = true
 	} else if client.Trusted {
 		h.Log.Debug("pre-authorized trusted oauth2 client")
@@ -140,9 +137,10 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 	//
 	request.SetOauth2AuthParams(req.Session, nil)
 	req.RedirectTo = GetLinks().Profile
+	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: "Access for client denied",
+		Text: t("oauth2-authorize-client.alerts.denied", "client", req.Client.Meta.Name),
 	})
 	return
 }

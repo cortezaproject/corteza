@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -128,7 +129,7 @@ func (p apigwRouteActionProps) Serialize() actionlog.Meta {
 //
 func (p apigwRouteActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -148,52 +149,52 @@ func (p apigwRouteActionProps) Format(in string, err error) string {
 	}
 
 	if p.route != nil {
-		// replacement for "{route}" (in order how fields are defined)
+		// replacement for "{{route}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{route}",
+			"{{route}}",
 			fns(
 				p.route.Endpoint,
 				p.route.ID,
 			),
 		)
-		pairs = append(pairs, "{route.endpoint}", fns(p.route.Endpoint))
-		pairs = append(pairs, "{route.ID}", fns(p.route.ID))
+		pairs = append(pairs, "{{route.endpoint}}", fns(p.route.Endpoint))
+		pairs = append(pairs, "{{route.ID}}", fns(p.route.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Endpoint,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.endpoint}", fns(p.new.Endpoint))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.endpoint}}", fns(p.new.Endpoint))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Endpoint,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.endpoint}", fns(p.update.Endpoint))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.endpoint}}", fns(p.update.Endpoint))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.search != nil {
-		// replacement for "{search}" (in order how fields are defined)
+		// replacement for "{{search}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{search}",
+			"{{search}}",
 			fns(),
 		)
 	}
@@ -261,7 +262,7 @@ func ApigwRouteActionLookup(props ...*apigwRouteActionProps) *apigwRouteAction {
 		timestamp: time.Now(),
 		resource:  "system:apigw-route",
 		action:    "lookup",
-		log:       "looked-up for a {route}",
+		log:       "looked-up for a {{route}}",
 		severity:  actionlog.Info,
 	}
 
@@ -281,7 +282,7 @@ func ApigwRouteActionCreate(props ...*apigwRouteActionProps) *apigwRouteAction {
 		timestamp: time.Now(),
 		resource:  "system:apigw-route",
 		action:    "create",
-		log:       "created {route}",
+		log:       "created {{route}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -301,7 +302,7 @@ func ApigwRouteActionUpdate(props ...*apigwRouteActionProps) *apigwRouteAction {
 		timestamp: time.Now(),
 		resource:  "system:apigw-route",
 		action:    "update",
-		log:       "updated {route}",
+		log:       "updated {{route}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -321,7 +322,7 @@ func ApigwRouteActionDelete(props ...*apigwRouteActionProps) *apigwRouteAction {
 		timestamp: time.Now(),
 		resource:  "system:apigw-route",
 		action:    "delete",
-		log:       "deleted {route}",
+		log:       "deleted {{route}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -341,7 +342,7 @@ func ApigwRouteActionUndelete(props ...*apigwRouteActionProps) *apigwRouteAction
 		timestamp: time.Now(),
 		resource:  "system:apigw-route",
 		action:    "undelete",
-		log:       "undeleted {route}",
+		log:       "undeleted {{route}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -379,6 +380,10 @@ func ApigwRouteErrGeneric(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta(apigwRouteLogMetaKey{}, "{err}"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -408,6 +413,10 @@ func ApigwRouteErrNotFound(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -439,6 +448,10 @@ func ApigwRouteErrInvalidID(mm ...*apigwRouteActionProps) *errors.Error {
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -468,6 +481,10 @@ func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.invalidEndpoint"),
 
 		errors.StackSkip(1),
 	)
@@ -499,6 +516,10 @@ func ApigwRouteErrExistsEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.existsEndpoint"),
+
 		errors.StackSkip(1),
 	)
 
@@ -528,6 +549,10 @@ func ApigwRouteErrAlreadyExists(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta("resource", "system:apigw-route"),
 
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.alreadyExists"),
 
 		errors.StackSkip(1),
 	)
@@ -561,6 +586,10 @@ func ApigwRouteErrNotAllowedToCreate(mm ...*apigwRouteActionProps) *errors.Error
 		errors.Meta(apigwRouteLogMetaKey{}, "failed to create a route; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -590,8 +619,12 @@ func ApigwRouteErrNotAllowedToRead(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwRouteLogMetaKey{}, "failed to read {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to read {{route.endpoint}}; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -622,8 +655,12 @@ func ApigwRouteErrNotAllowedToUpdate(mm ...*apigwRouteActionProps) *errors.Error
 		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwRouteLogMetaKey{}, "failed to update {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to update {{route.endpoint}}; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -654,8 +691,12 @@ func ApigwRouteErrNotAllowedToDelete(mm ...*apigwRouteActionProps) *errors.Error
 		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwRouteLogMetaKey{}, "failed to delete {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to delete {{route.endpoint}}; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -686,8 +727,12 @@ func ApigwRouteErrNotAllowedToUndelete(mm ...*apigwRouteActionProps) *errors.Err
 		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwRouteLogMetaKey{}, "failed to undelete {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to undelete {{route.endpoint}}; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -718,8 +763,12 @@ func ApigwRouteErrNotAllowedToExec(mm ...*apigwRouteActionProps) *errors.Error {
 		errors.Meta("resource", "system:apigw-route"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(apigwRouteLogMetaKey{}, "failed to exec {route.endpoint}; insufficient permissions"),
+		errors.Meta(apigwRouteLogMetaKey{}, "failed to exec {{route.endpoint}}; insufficient permissions"),
 		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwRoute.errors.notAllowedToExec"),
 
 		errors.StackSkip(1),
 	)

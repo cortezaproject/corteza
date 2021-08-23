@@ -1,13 +1,14 @@
 package handlers
 
 import (
-	"github.com/cortezaproject/corteza-server/auth/request"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/auth/request"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -59,9 +60,10 @@ func (h *AuthHandlers) clientsProc(req *request.AuthReq) error {
 			return err
 		}
 
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Client authorization deleted",
+			Text: t("authorized-clients.alerts.removed"),
 		})
 	}
 

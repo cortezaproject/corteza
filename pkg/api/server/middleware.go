@@ -1,19 +1,22 @@
 package server
 
 import (
+	"net/http"
+	"os"
+	"runtime/debug"
+
 	"github.com/cortezaproject/corteza-server/pkg/api"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/getsentry/sentry-go/http"
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
-	"net/http"
-	"os"
-	"runtime/debug"
 )
 
 func BaseMiddleware(isProduction bool, log *zap.Logger) []func(http.Handler) http.Handler {
 	return []func(http.Handler) http.Handler{
 		handleCORS,
+		locale.DetectLanguage(locale.Global()),
 		middleware.RealIP,
 		api.RemoteAddrToContext,
 		middleware.RequestID,

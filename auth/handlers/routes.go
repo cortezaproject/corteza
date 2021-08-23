@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/auth/request"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
@@ -22,6 +23,8 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 
 	r.Handle("/auth/", http.RedirectHandler("/auth", http.StatusSeeOther))
 	r.Group(func(r chi.Router) {
+		r.Use(locale.DetectLanguage(locale.Global()))
+
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				ctx := actionlog.RequestOriginToContext(r.Context(), actionlog.RequestOrigin_Auth)

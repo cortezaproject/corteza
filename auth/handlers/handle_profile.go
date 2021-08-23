@@ -40,9 +40,10 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		req.AuthUser.User = user
 		req.AuthUser.Save(req.Session)
 
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: "Profile successfully updated.",
+			Text: t("profile.alerts.profile-updated"),
 		})
 
 		req.RedirectTo = GetLinks().Profile
@@ -63,9 +64,10 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 			"name":   u.Name,
 		})
 
+		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "danger",
-			Text: "Could not update profile due to input errors",
+			Text: t("profile.alerts.profile-update-fail"),
 		})
 
 		h.Log.Warn("handled error", zap.Error(err))

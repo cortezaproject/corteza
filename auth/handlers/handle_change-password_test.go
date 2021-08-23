@@ -63,7 +63,7 @@ func Test_changePasswordProc(t *testing.T) {
 		{
 			name:    "successful password change",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "Password successfully changed.", Html: ""}},
+			alerts:  []request.Alert{{Type: "primary", Text: "change-password.alerts.text", Html: ""}},
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{

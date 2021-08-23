@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "hideNav" true }}
 <div class="card-body p-0 mb-2">
-	<h1 class="h4 card-title p-3 border-bottom">Multi-factor authentication</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa.template.title" }}</h1>
 
 	{{ if .emailOtpPending }}
 	<form
@@ -8,7 +8,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>Check your inbox and enter the received code</h5>
+		<h5>{{ tr "mfa.template.email.instructions" }}</h5>
 
 		{{ if .form.emailOtpError }}
 		<div class="text-danger my-4 font-weight-bold" role="alert">
@@ -30,7 +30,7 @@
 				placeholder="000 000"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="Code">
+				aria-label="{{ tr "mfa.template.email.code" }}">
 		</div>
 
 		<button
@@ -39,7 +39,7 @@
 			value="verifyEmailOtp"
 			type="submit"
 		>
-			Verify
+			{{ tr "mfa.template.email.verify" }}
 		</button>
 
 		<a
@@ -48,12 +48,12 @@
 			name="action"
 			value="resendEmailOtp"
 		>
-			Resend
+			{{ tr "mfa.template.email.resend" }}
 		</a>
 	</form>
 	{{ else if not .emailOtpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> Email OTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.email.confirmed" }}
 		</p>
 	{{ end }}
 
@@ -63,7 +63,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>Check your TOTP application and enter the code you received</h5>
+		<h5>{{ tr "mfa.template.totp.instructions" }}</h5>
 
 		{{ if .form.totpError }}
 		<div class="alert alert-danger" role="alert">
@@ -85,7 +85,7 @@
 				placeholder="000 000"
 				autocomplete="off"
 				style="letter-spacing:5px;font-size:20px;"
-				aria-label="Code">
+				aria-label="{{ tr "mfa.template.totp.code" }}">
 		</div>
 
 		<button
@@ -94,12 +94,12 @@
 			name="action"
 			value="verifyTotp"
 		>
-			Verify
+			{{ tr "mfa.template.email.verify" }}
 		</button>
 	</form>
 	{{ else if not .totpDisabled }}
 		<p class="p-3 mb-0">
-			<i class="bi bi-check-circle text-success h5 mr-1"></i> TOTP confirmed
+			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.totp.confirmed" }}
 		</p>
 	{{ end }}
 </div>

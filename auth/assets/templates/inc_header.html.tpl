@@ -17,6 +17,14 @@
 		</title>
 	</head>
 	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat top;background-size: cover;background-attachment: fixed;">
+        {{ if .user }}
+            <div class="position-absolute user text-white m-2">
+                {{ tr "inc_header.logged-in-as" }}
+                <a class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
+                |
+                <a class="font-weight-bold text-white" href="{{ links.Logout }}">{{ tr "inc_header.logout" }}</a>
+            </div>
+        {{ end }}
 		<main class="auth mt-sm-5 pt-md-5">
 			<div class="card">
 			{{ template "inc_nav.html.tpl" . }}

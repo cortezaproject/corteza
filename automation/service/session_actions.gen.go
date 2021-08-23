@@ -11,11 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/cortezaproject/corteza-server/automation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"strings"
-	"time"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
 type (
@@ -125,7 +127,7 @@ func (p sessionActionProps) Serialize() actionlog.Meta {
 //
 func (p sessionActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -145,46 +147,46 @@ func (p sessionActionProps) Format(in string, err error) string {
 	}
 
 	if p.session != nil {
-		// replacement for "{session}" (in order how fields are defined)
+		// replacement for "{{session}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{session}",
+			"{{session}}",
 			fns(
 				p.session.ID,
 			),
 		)
-		pairs = append(pairs, "{session.ID}", fns(p.session.ID))
+		pairs = append(pairs, "{{session.ID}}", fns(p.session.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(),
 		)
 	}
@@ -252,7 +254,7 @@ func SessionActionLookup(props ...*sessionActionProps) *sessionAction {
 		timestamp: time.Now(),
 		resource:  "automation:session",
 		action:    "lookup",
-		log:       "looked-up for a {session}",
+		log:       "looked-up for a {{session}}",
 		severity:  actionlog.Info,
 	}
 
@@ -272,7 +274,7 @@ func SessionActionCreate(props ...*sessionActionProps) *sessionAction {
 		timestamp: time.Now(),
 		resource:  "automation:session",
 		action:    "create",
-		log:       "created {session}",
+		log:       "created {{session}}",
 		severity:  actionlog.Info,
 	}
 
@@ -292,7 +294,7 @@ func SessionActionUpdate(props ...*sessionActionProps) *sessionAction {
 		timestamp: time.Now(),
 		resource:  "automation:session",
 		action:    "update",
-		log:       "updated {session}",
+		log:       "updated {{session}}",
 		severity:  actionlog.Info,
 	}
 
@@ -312,7 +314,7 @@ func SessionActionDelete(props ...*sessionActionProps) *sessionAction {
 		timestamp: time.Now(),
 		resource:  "automation:session",
 		action:    "delete",
-		log:       "deleted {session}",
+		log:       "deleted {{session}}",
 		severity:  actionlog.Info,
 	}
 
@@ -332,7 +334,7 @@ func SessionActionUndelete(props ...*sessionActionProps) *sessionAction {
 		timestamp: time.Now(),
 		resource:  "automation:session",
 		action:    "undelete",
-		log:       "undeleted {session}",
+		log:       "undeleted {{session}}",
 		severity:  actionlog.Info,
 	}
 
@@ -370,6 +372,10 @@ func SessionErrGeneric(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta(sessionLogMetaKey{}, "{err}"),
 		errors.Meta(sessionPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -399,6 +405,10 @@ func SessionErrNotFound(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta("resource", "automation:session"),
 
 		errors.Meta(sessionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -430,6 +440,10 @@ func SessionErrInvalidID(mm ...*sessionActionProps) *errors.Error {
 
 		errors.Meta(sessionPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -460,6 +474,10 @@ func SessionErrStaleData(mm ...*sessionActionProps) *errors.Error {
 
 		errors.Meta(sessionPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.staleData"),
+
 		errors.StackSkip(1),
 	)
 
@@ -489,8 +507,12 @@ func SessionErrNotAllowedToRead(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta("resource", "automation:session"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sessionLogMetaKey{}, "failed to read {session}; insufficient permissions"),
+		errors.Meta(sessionLogMetaKey{}, "failed to read {{session}}; insufficient permissions"),
 		errors.Meta(sessionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -524,6 +546,10 @@ func SessionErrNotAllowedToSearch(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta(sessionLogMetaKey{}, "failed to search or list session; insufficient permissions"),
 		errors.Meta(sessionPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -553,8 +579,12 @@ func SessionErrNotAllowedToDelete(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta("resource", "automation:session"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sessionLogMetaKey{}, "failed to delete {session}; insufficient permissions"),
+		errors.Meta(sessionLogMetaKey{}, "failed to delete {{session}}; insufficient permissions"),
 		errors.Meta(sessionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -585,8 +615,12 @@ func SessionErrNotAllowedToManage(mm ...*sessionActionProps) *errors.Error {
 		errors.Meta("resource", "automation:session"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sessionLogMetaKey{}, "failed to manage {session}; insufficient permissions"),
+		errors.Meta(sessionLogMetaKey{}, "failed to manage {{session}}; insufficient permissions"),
 		errors.Meta(sessionPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "automation"),
+		errors.Meta(locale.ErrorMetaKey{}, "session.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

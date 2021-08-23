@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" . }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Sign up</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "signup.template.title" }}</h1>
 	<form
 		method="POST"
 		action="{{ links.Signup }}"
@@ -15,67 +15,73 @@
 
         <div class="mb-3">
             <label>
-                E-mail *
+				{{ tr "signup.template.form.email.label" }}
             </label>
             <input
                 type="email"
                 class="form-control"
                 name="email"
                 required
-                placeholder="email@domain.ltd"
+                placeholder="{{ tr "signup.template.form.email.placeholder" }}"
                 autocomplete="username"
                 value="{{ .form.email }}"
-                aria-label="Email">
+                aria-label="{{ tr "signup.template.form.email.label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Password *
+                {{ tr "signup.template.form.password.label" }}
             </label>
 			<input
 				type="password"
 				class="form-control"
 				name="password"
 				required
-				placeholder="Password"
+				placeholder="{{ tr "signup.template.form.password.placeholder" }}"
 				autocomplete="new-password"
-				aria-label="Password">
+				aria-label="{{ tr "signup.template.form.password.label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Full Name
+                {{ tr "signup.template.form.name.label" }}
             </label>
 			<input
 				type="text"
 				class="form-control"
 				name="name"
-				placeholder="Your full name"
+				placeholder="{{ tr "signup.template.form.name.placeholder" }}"
 				value="{{ .form.name }}"
 				autocomplete="name"
-				aria-label="Full name">
+				aria-label="{{ tr "signup.template.form.name.label" }}">
         </div>
         <div class="mb-3">
             <label>
-                Short name, nickname or handle
+                {{ tr "signup.template.form.nickname.label" }}
             </label>
 			<input
 				type="text"
 				class="form-control handle-mask"
 				name="handle"
-				placeholder="Short name, nickname or handle"
+				placeholder="{{ tr "signup.template.form.nickname.placeholder" }}"
 				value="{{ .form.handle }}"
 				autocomplete="handle"
-				aria-label="Handle">
+				aria-label="{{ tr "signup.template.form.nickname.label" }}">
         </div>
 		<div>
 			<button
 				id="submit"
 				class="btn btn-primary btn-block btn-lg"
 				type="submit"
-			>Submit</button>
+			>{{ tr "signup.template.form.button.sign-up" }}</button>
 		</div>
 	</form>
-	<div class="text-center my-3">Already have an account?
-		<a href="{{ links.Login }}">Log in here</a>
+<<<<<<< HEAD
+	<div class="text-center my-3">{{ tr "signup.template.form.link.alternative" }}
+		<a href="{{ links.Login }}">{{ tr "signup.template.form.link.login" }}</a>
+=======
+	<div class="text-center my-3">
+		{{ tr "signup.template.log-in" "link" links.Login }}
+>>>>>>> 838e629a... Translation fixes
 	</div>
 </div>
+
 {{ template "inc_footer.html.tpl" . }}

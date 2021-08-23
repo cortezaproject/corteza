@@ -32,23 +32,23 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {page}"
+    log: "looked-up for a {{page}}"
     severity: info
 
   - action: create
-    log: "created {page}"
+    log: "created {{page}}"
 
   - action: update
-    log: "updated {page}"
+    log: "updated {{page}}"
 
   - action: delete
-    log: "deleted {page}"
+    log: "deleted {{page}}"
 
   - action: undelete
-    log: "undeleted {page}"
+    log: "undeleted {{page}}"
 
   - action: reorder
-    log: "reordered {page}"
+    log: "reordered {{page}}"
 
 errors:
   - error: notFound
@@ -73,7 +73,7 @@ errors:
 
   - error: handleNotUnique
     message: "handle not unique"
-    log: "used duplicate handle ({page.handle}) for page"
+    log: "used duplicate handle ({{page.handle}}) for page"
     severity: warning
 
   - error: staleData
@@ -86,7 +86,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this page"
-    log: "could not read {page}; insufficient permissions"
+    log: "could not read {{page}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list pages"
@@ -94,7 +94,7 @@ errors:
 
   - error: notAllowedToReadNamespace
     message: "not allowed to read this namespace"
-    log: "could not read namespace {namespace}; insufficient permissions"
+    log: "could not read namespace {{namespace}}; insufficient permissions"
 
   - error: notAllowedToListPages
     message: "not allowed to list pages"
@@ -106,12 +106,12 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this page"
-    log: "could not update {page}; insufficient permissions"
+    log: "could not update {{page}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this page"
-    log: "could not delete {page}; insufficient permissions"
+    log: "could not delete {{page}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this page"
-    log: "could not undelete {page}; insufficient permissions"
+    log: "could not undelete {{page}}; insufficient permissions"

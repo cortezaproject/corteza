@@ -110,7 +110,8 @@ mfa-totp-disable:
       error: "There was an error..."
 
 logout:
-  Default: {}
+  Default:
+    link: '#'
   With error:
     form:
       error: "There was an error..."

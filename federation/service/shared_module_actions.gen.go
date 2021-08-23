@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/federation/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -129,7 +130,7 @@ func (p sharedModuleActionProps) Serialize() actionlog.Meta {
 //
 func (p sharedModuleActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -149,57 +150,57 @@ func (p sharedModuleActionProps) Format(in string, err error) string {
 	}
 
 	if p.module != nil {
-		// replacement for "{module}" (in order how fields are defined)
+		// replacement for "{{module}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{module}",
+			"{{module}}",
 			fns(
 				p.module.ID,
 			),
 		)
-		pairs = append(pairs, "{module.ID}", fns(p.module.ID))
+		pairs = append(pairs, "{{module.ID}}", fns(p.module.ID))
 	}
 
 	if p.changed != nil {
-		// replacement for "{changed}" (in order how fields are defined)
+		// replacement for "{{changed}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{changed}",
+			"{{changed}}",
 			fns(
 				p.changed.ID,
 			),
 		)
-		pairs = append(pairs, "{changed.ID}", fns(p.changed.ID))
+		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.Sort,
 				p.filter.Limit,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
-		pairs = append(pairs, "{filter.limit}", fns(p.filter.Limit))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))
 	}
 
 	if p.node != nil {
-		// replacement for "{node}" (in order how fields are defined)
+		// replacement for "{{node}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{node}",
+			"{{node}}",
 			fns(
 				p.node.ID,
 				p.node.Name,
 			),
 		)
-		pairs = append(pairs, "{node.ID}", fns(p.node.ID))
-		pairs = append(pairs, "{node.Name}", fns(p.node.Name))
+		pairs = append(pairs, "{{node.ID}}", fns(p.node.ID))
+		pairs = append(pairs, "{{node.Name}}", fns(p.node.Name))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -265,7 +266,7 @@ func SharedModuleActionLookup(props ...*sharedModuleActionProps) *sharedModuleAc
 		timestamp: time.Now(),
 		resource:  "federation:shared_module",
 		action:    "lookup",
-		log:       "looked-up for a {module}",
+		log:       "looked-up for a {{module}}",
 		severity:  actionlog.Info,
 	}
 
@@ -285,7 +286,7 @@ func SharedModuleActionCreate(props ...*sharedModuleActionProps) *sharedModuleAc
 		timestamp: time.Now(),
 		resource:  "federation:shared_module",
 		action:    "create",
-		log:       "created {module}",
+		log:       "created {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -305,7 +306,7 @@ func SharedModuleActionUpdate(props ...*sharedModuleActionProps) *sharedModuleAc
 		timestamp: time.Now(),
 		resource:  "federation:shared_module",
 		action:    "update",
-		log:       "updated {module}",
+		log:       "updated {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -325,7 +326,7 @@ func SharedModuleActionDelete(props ...*sharedModuleActionProps) *sharedModuleAc
 		timestamp: time.Now(),
 		resource:  "federation:shared_module",
 		action:    "delete",
-		log:       "deleted {module}",
+		log:       "deleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -345,7 +346,7 @@ func SharedModuleActionUndelete(props ...*sharedModuleActionProps) *sharedModule
 		timestamp: time.Now(),
 		resource:  "federation:shared_module",
 		action:    "undelete",
-		log:       "undeleted {module}",
+		log:       "undeleted {{module}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -383,6 +384,10 @@ func SharedModuleErrGeneric(mm ...*sharedModuleActionProps) *errors.Error {
 		errors.Meta(sharedModuleLogMetaKey{}, "{err}"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -412,6 +417,10 @@ func SharedModuleErrNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 		errors.Meta("resource", "federation:shared_module"),
 
 		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -443,6 +452,10 @@ func SharedModuleErrInvalidID(mm ...*sharedModuleActionProps) *errors.Error {
 
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -472,6 +485,10 @@ func SharedModuleErrStaleData(mm ...*sharedModuleActionProps) *errors.Error {
 		errors.Meta("resource", "federation:shared_module"),
 
 		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.staleData"),
 
 		errors.StackSkip(1),
 	)
@@ -505,6 +522,10 @@ func SharedModuleErrFederationSyncStructureChanged(mm ...*sharedModuleActionProp
 		errors.Meta(sharedModuleLogMetaKey{}, "could not update shared module, structure different"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.federationSyncStructureChanged"),
+
 		errors.StackSkip(1),
 	)
 
@@ -537,6 +558,10 @@ func SharedModuleErrNotUnique(mm ...*sharedModuleActionProps) *errors.Error {
 		errors.Meta(sharedModuleLogMetaKey{}, "used duplicate node TODO"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notUnique"),
+
 		errors.StackSkip(1),
 	)
 
@@ -566,6 +591,10 @@ func SharedModuleErrNodeNotFound(mm ...*sharedModuleActionProps) *errors.Error {
 		errors.Meta("resource", "federation:shared_module"),
 
 		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.nodeNotFound"),
 
 		errors.StackSkip(1),
 	)
@@ -599,6 +628,10 @@ func SharedModuleErrNotAllowedToCreate(mm ...*sharedModuleActionProps) *errors.E
 		errors.Meta(sharedModuleLogMetaKey{}, "could not create modules; insufficient permissions"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -628,8 +661,12 @@ func SharedModuleErrNotAllowedToManage(mm ...*sharedModuleActionProps) *errors.E
 		errors.Meta("resource", "federation:shared_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not read {module}; insufficient permissions"),
+		errors.Meta(sharedModuleLogMetaKey{}, "could not read {{module}}; insufficient permissions"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)
@@ -660,8 +697,12 @@ func SharedModuleErrNotAllowedToMap(mm ...*sharedModuleActionProps) *errors.Erro
 		errors.Meta("resource", "federation:shared_module"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(sharedModuleLogMetaKey{}, "could not map {module}; insufficient permissions"),
+		errors.Meta(sharedModuleLogMetaKey{}, "could not map {{module}}; insufficient permissions"),
 		errors.Meta(sharedModulePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "federation"),
+		errors.Meta(locale.ErrorMetaKey{}, "sharedModule.errors.notAllowedToMap"),
 
 		errors.StackSkip(1),
 	)

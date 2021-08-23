@@ -11,11 +11,13 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza-server/pkg/actionlog"
-	"github.com/cortezaproject/corteza-server/pkg/errors"
-	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza-server/pkg/actionlog"
+	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+	"github.com/cortezaproject/corteza-server/system/types"
 )
 
 type (
@@ -165,7 +167,7 @@ func (p userActionProps) Serialize() actionlog.Meta {
 //
 func (p userActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -185,10 +187,10 @@ func (p userActionProps) Format(in string, err error) string {
 	}
 
 	if p.user != nil {
-		// replacement for "{user}" (in order how fields are defined)
+		// replacement for "{{user}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{user}",
+			"{{user}}",
 			fns(
 				p.user.Handle,
 				p.user.Email,
@@ -197,18 +199,18 @@ func (p userActionProps) Format(in string, err error) string {
 				p.user.ID,
 			),
 		)
-		pairs = append(pairs, "{user.handle}", fns(p.user.Handle))
-		pairs = append(pairs, "{user.email}", fns(p.user.Email))
-		pairs = append(pairs, "{user.name}", fns(p.user.Name))
-		pairs = append(pairs, "{user.username}", fns(p.user.Username))
-		pairs = append(pairs, "{user.ID}", fns(p.user.ID))
+		pairs = append(pairs, "{{user.handle}}", fns(p.user.Handle))
+		pairs = append(pairs, "{{user.email}}", fns(p.user.Email))
+		pairs = append(pairs, "{{user.name}}", fns(p.user.Name))
+		pairs = append(pairs, "{{user.username}}", fns(p.user.Username))
+		pairs = append(pairs, "{{user.ID}}", fns(p.user.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.Email,
@@ -217,18 +219,18 @@ func (p userActionProps) Format(in string, err error) string {
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.email}", fns(p.new.Email))
-		pairs = append(pairs, "{new.name}", fns(p.new.Name))
-		pairs = append(pairs, "{new.username}", fns(p.new.Username))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.email}}", fns(p.new.Email))
+		pairs = append(pairs, "{{new.name}}", fns(p.new.Name))
+		pairs = append(pairs, "{{new.username}}", fns(p.new.Username))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.Email,
@@ -237,18 +239,18 @@ func (p userActionProps) Format(in string, err error) string {
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.email}", fns(p.update.Email))
-		pairs = append(pairs, "{update.name}", fns(p.update.Name))
-		pairs = append(pairs, "{update.username}", fns(p.update.Username))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.email}}", fns(p.update.Email))
+		pairs = append(pairs, "{{update.name}}", fns(p.update.Name))
+		pairs = append(pairs, "{{update.username}}", fns(p.update.Username))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.existing != nil {
-		// replacement for "{existing}" (in order how fields are defined)
+		// replacement for "{{existing}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{existing}",
+			"{{existing}}",
 			fns(
 				p.existing.Handle,
 				p.existing.Email,
@@ -257,18 +259,18 @@ func (p userActionProps) Format(in string, err error) string {
 				p.existing.ID,
 			),
 		)
-		pairs = append(pairs, "{existing.handle}", fns(p.existing.Handle))
-		pairs = append(pairs, "{existing.email}", fns(p.existing.Email))
-		pairs = append(pairs, "{existing.name}", fns(p.existing.Name))
-		pairs = append(pairs, "{existing.username}", fns(p.existing.Username))
-		pairs = append(pairs, "{existing.ID}", fns(p.existing.ID))
+		pairs = append(pairs, "{{existing.handle}}", fns(p.existing.Handle))
+		pairs = append(pairs, "{{existing.email}}", fns(p.existing.Email))
+		pairs = append(pairs, "{{existing.name}}", fns(p.existing.Name))
+		pairs = append(pairs, "{{existing.username}}", fns(p.existing.Username))
+		pairs = append(pairs, "{{existing.ID}}", fns(p.existing.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Query,
 				p.filter.UserID,
@@ -281,15 +283,15 @@ func (p userActionProps) Format(in string, err error) string {
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.query}", fns(p.filter.Query))
-		pairs = append(pairs, "{filter.userID}", fns(p.filter.UserID))
-		pairs = append(pairs, "{filter.roleID}", fns(p.filter.RoleID))
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.email}", fns(p.filter.Email))
-		pairs = append(pairs, "{filter.username}", fns(p.filter.Username))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.suspended}", fns(p.filter.Suspended))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
+		pairs = append(pairs, "{{filter.userID}}", fns(p.filter.UserID))
+		pairs = append(pairs, "{{filter.roleID}}", fns(p.filter.RoleID))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.email}}", fns(p.filter.Email))
+		pairs = append(pairs, "{{filter.username}}", fns(p.filter.Username))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.suspended}}", fns(p.filter.Suspended))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -355,7 +357,7 @@ func UserActionLookup(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "lookup",
-		log:       "looked-up for a {user}",
+		log:       "looked-up for a {{user}}",
 		severity:  actionlog.Info,
 	}
 
@@ -375,7 +377,7 @@ func UserActionCreate(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "create",
-		log:       "created {user}",
+		log:       "created {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -395,7 +397,7 @@ func UserActionUpdate(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "update",
-		log:       "updated {user}",
+		log:       "updated {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -415,7 +417,7 @@ func UserActionDelete(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "delete",
-		log:       "deleted {user}",
+		log:       "deleted {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -435,7 +437,7 @@ func UserActionUndelete(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "undelete",
-		log:       "undeleted {user}",
+		log:       "undeleted {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -455,7 +457,7 @@ func UserActionSuspend(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "suspend",
-		log:       "suspended {user}",
+		log:       "suspended {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -475,7 +477,7 @@ func UserActionUnsuspend(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "unsuspend",
-		log:       "unsuspended {user}",
+		log:       "unsuspended {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -495,7 +497,7 @@ func UserActionSetPassword(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "setPassword",
-		log:       "password changed for {user}",
+		log:       "password changed for {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -515,7 +517,7 @@ func UserActionRemovePassword(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "removePassword",
-		log:       "password removed for {user}",
+		log:       "password removed for {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -535,7 +537,7 @@ func UserActionDeleteAuthTokens(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "deleteAuthTokens",
-		log:       "deleted auth tokens of {user}",
+		log:       "deleted auth tokens of {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -555,7 +557,7 @@ func UserActionDeleteAuthSessions(props ...*userActionProps) *userAction {
 		timestamp: time.Now(),
 		resource:  "system:user",
 		action:    "deleteAuthSessions",
-		log:       "deleted auth sessions of {user}",
+		log:       "deleted auth sessions of {{user}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -593,6 +595,10 @@ func UserErrGeneric(mm ...*userActionProps) *errors.Error {
 		errors.Meta(userLogMetaKey{}, "{err}"),
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -622,6 +628,10 @@ func UserErrNotFound(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -653,6 +663,10 @@ func UserErrInvalidID(mm ...*userActionProps) *errors.Error {
 
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -682,6 +696,10 @@ func UserErrInvalidHandle(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.invalidHandle"),
 
 		errors.StackSkip(1),
 	)
@@ -713,6 +731,10 @@ func UserErrInvalidEmail(mm ...*userActionProps) *errors.Error {
 
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.invalidEmail"),
+
 		errors.StackSkip(1),
 	)
 
@@ -742,8 +764,12 @@ func UserErrNotAllowedToRead(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to read {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to read {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -777,6 +803,10 @@ func UserErrNotAllowedToSearch(mm ...*userActionProps) *errors.Error {
 		errors.Meta(userLogMetaKey{}, "failed to search for users; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -808,6 +838,10 @@ func UserErrNotAllowedToListUsers(mm ...*userActionProps) *errors.Error {
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(userLogMetaKey{}, "failed to list user; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToListUsers"),
 
 		errors.StackSkip(1),
 	)
@@ -841,6 +875,10 @@ func UserErrNotAllowedToCreate(mm ...*userActionProps) *errors.Error {
 		errors.Meta(userLogMetaKey{}, "failed to create users; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -873,6 +911,10 @@ func UserErrNotAllowedToCreateSystem(mm ...*userActionProps) *errors.Error {
 		errors.Meta(userLogMetaKey{}, "failed to create system users"),
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToCreateSystem"),
+
 		errors.StackSkip(1),
 	)
 
@@ -902,8 +944,12 @@ func UserErrNotAllowedToUpdate(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to update {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to update {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -937,6 +983,10 @@ func UserErrNotAllowedToUpdateSystem(mm ...*userActionProps) *errors.Error {
 		errors.Meta(userLogMetaKey{}, "failed to update system users"),
 		errors.Meta(userPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToUpdateSystem"),
+
 		errors.StackSkip(1),
 	)
 
@@ -966,8 +1016,12 @@ func UserErrNotAllowedToDelete(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to delete {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to delete {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -998,8 +1052,12 @@ func UserErrNotAllowedToUndelete(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to undelete {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to undelete {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -1030,8 +1088,12 @@ func UserErrNotAllowedToSuspend(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to suspend {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to suspend {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToSuspend"),
 
 		errors.StackSkip(1),
 	)
@@ -1062,8 +1124,12 @@ func UserErrNotAllowedToUnsuspend(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "failed to unsuspend {user.handle}; insufficient permissions"),
+		errors.Meta(userLogMetaKey{}, "failed to unsuspend {{user.handle}}; insufficient permissions"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.notAllowedToUnsuspend"),
 
 		errors.StackSkip(1),
 	)
@@ -1094,8 +1160,12 @@ func UserErrHandleNotUnique(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "used duplicate handle ({user.handle}) for user"),
+		errors.Meta(userLogMetaKey{}, "used duplicate handle ({{user.handle}}) for user"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.handleNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -1126,8 +1196,12 @@ func UserErrEmailNotUnique(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "used duplicate email ({user.email}) for user"),
+		errors.Meta(userLogMetaKey{}, "used duplicate email ({{user.email}}) for user"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.emailNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -1158,8 +1232,12 @@ func UserErrUsernameNotUnique(mm ...*userActionProps) *errors.Error {
 		errors.Meta("resource", "system:user"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(userLogMetaKey{}, "used duplicate username ({user.username}) for user"),
+		errors.Meta(userLogMetaKey{}, "used duplicate username ({{user.username}}) for user"),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.usernameNotUnique"),
 
 		errors.StackSkip(1),
 	)
@@ -1195,6 +1273,10 @@ func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
 		// details, used in detailed eror reporting
 		errors.Meta("details", p.Format("foo bar", nil)),
 		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.passwordNotSecure"),
 
 		errors.StackSkip(1),
 	)

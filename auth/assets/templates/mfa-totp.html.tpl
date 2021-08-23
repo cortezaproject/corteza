@@ -1,11 +1,10 @@
 {{ template "inc_header.html.tpl"  set . "hideNav" true }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Configure two-factor authentication with TOTP</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "mfa-totp.template.title" }}</h1>
 
 	{{ if .enforced }}
 	<p class="p-3 text-danger mb-0 font-weight-bold">
-		TOTP multi factor authentication is enforced by Corteza administrator.
-		Please configure it right away.
+		{{ tr "mfa-totp.template.enforced" }}
 	</p>
 	{{ end }}
 
@@ -21,7 +20,7 @@
 					method="POST"
 								action="{{ links.MfaTotpNewSecret }}"
 				>
-					Complete the configuration by entering code from the authenticator application:
+					{{ tr "mfa-totp.template.form.title" }}
 
 					{{ if .form.error }}
 					<div class="alert alert-danger" role="alert">
@@ -51,40 +50,27 @@
 						value="true"
 						type="submit"
 					>
-						Submit
+						{{ tr "mfa-totp.template.form.button" }}
 					</button>
 				</form>
 			</div>
 			<div class="col-12 col-sm-6">
 				<p class="text-justify">
-					Corteza uses time based one time passwords (TOTP) as one of the
-					underlying technologies for two-factor authentication.
-					Use one of the applications listed below and type in the secret or scan the QR code.
-				</p>
-				<p>
-					This will enable additional security for your account.
-				</p>
-				<p>
-					You can use one of the following applications:
+				{{ tr "mfa-totp.template.instructions" }}
 				</p>
 				<ul>
 					<li>
-						<a target="_blank" href="https://lastpass.com/auth/">LastPass Authenticator</a>
+						{{ tr "mfa-totp.template.lastpass" "lastpass" "https://lastpass.com/auth/" }}
 					</li>
 					<li>
-						Google Authenticator in <br />
-						<a target="_blank" href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2">Android</a>
-						or
-						<a target="_blank" href="https://apps.apple.com/us/app/google-authenticator/id388497605">App Store</a>
+						{{ tr "mfa-totp.template.gauth" "android" "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" "iphone" "https://apps.apple.com/us/app/google-authenticator/id388497605" }}
 					</li>
 					<li>
-						<a target="_blank" href="https://authy.com">Authy</a>
+						{{ tr "mfa-totp.template.authy" "link" "https://authy.com" }}
 					</li>
 				</ul>
 			</div>
 		</div>
 	</div>
-
-
 </div>
 {{ template "inc_footer.html.tpl" . }}

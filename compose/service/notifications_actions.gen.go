@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza-server/compose/types"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"strings"
 	"time"
 )
@@ -139,7 +140,7 @@ func (p notificationActionProps) Serialize() actionlog.Meta {
 //
 func (p notificationActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -159,10 +160,10 @@ func (p notificationActionProps) Format(in string, err error) string {
 	}
 
 	if p.mail != nil {
-		// replacement for "{mail}" (in order how fields are defined)
+		// replacement for "{{mail}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{mail}",
+			"{{mail}}",
 			fns(
 				p.mail.Subject,
 				p.mail.To,
@@ -173,18 +174,18 @@ func (p notificationActionProps) Format(in string, err error) string {
 				p.mail.RemoteAttachments,
 			),
 		)
-		pairs = append(pairs, "{mail.subject}", fns(p.mail.Subject))
-		pairs = append(pairs, "{mail.to}", fns(p.mail.To))
-		pairs = append(pairs, "{mail.cc}", fns(p.mail.Cc))
-		pairs = append(pairs, "{mail.replyTo}", fns(p.mail.ReplyTo))
-		pairs = append(pairs, "{mail.contentPlain}", fns(p.mail.ContentPlain))
-		pairs = append(pairs, "{mail.contentHTML}", fns(p.mail.ContentHTML))
-		pairs = append(pairs, "{mail.remoteAttachments}", fns(p.mail.RemoteAttachments))
+		pairs = append(pairs, "{{mail.subject}}", fns(p.mail.Subject))
+		pairs = append(pairs, "{{mail.to}}", fns(p.mail.To))
+		pairs = append(pairs, "{{mail.cc}}", fns(p.mail.Cc))
+		pairs = append(pairs, "{{mail.replyTo}}", fns(p.mail.ReplyTo))
+		pairs = append(pairs, "{{mail.contentPlain}}", fns(p.mail.ContentPlain))
+		pairs = append(pairs, "{{mail.contentHTML}}", fns(p.mail.ContentHTML))
+		pairs = append(pairs, "{{mail.remoteAttachments}}", fns(p.mail.RemoteAttachments))
 	}
-	pairs = append(pairs, "{recipient}", fns(p.recipient))
-	pairs = append(pairs, "{attachmentURL}", fns(p.attachmentURL))
-	pairs = append(pairs, "{attachmentSize}", fns(p.attachmentSize))
-	pairs = append(pairs, "{attachmentType}", fns(p.attachmentType))
+	pairs = append(pairs, "{{recipient}}", fns(p.recipient))
+	pairs = append(pairs, "{{attachmentURL}}", fns(p.attachmentURL))
+	pairs = append(pairs, "{{attachmentSize}}", fns(p.attachmentSize))
+	pairs = append(pairs, "{{attachmentType}}", fns(p.attachmentType))
 	return strings.NewReplacer(pairs...).Replace(in)
 }
 
@@ -287,6 +288,10 @@ func NotificationErrGeneric(mm ...*notificationActionProps) *errors.Error {
 		errors.Meta(notificationLogMetaKey{}, "{err}"),
 		errors.Meta(notificationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -310,12 +315,16 @@ func NotificationErrFailedToLoadUser(mm ...*notificationActionProps) *errors.Err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("could not load user for {recipient}", nil),
+		p.Format("could not load user for {{recipient}}", nil),
 
 		errors.Meta("type", "failedToLoadUser"),
 		errors.Meta("resource", "compose:notification"),
 
 		errors.Meta(notificationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.failedToLoadUser"),
 
 		errors.StackSkip(1),
 	)
@@ -340,12 +349,16 @@ func NotificationErrInvalidReceipientFormat(mm ...*notificationActionProps) *err
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("invalid recipient format ({recipient})", nil),
+		p.Format("invalid recipient format ({{recipient}})", nil),
 
 		errors.Meta("type", "invalidReceipientFormat"),
 		errors.Meta("resource", "compose:notification"),
 
 		errors.Meta(notificationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.invalidReceipientFormat"),
 
 		errors.StackSkip(1),
 	)
@@ -377,6 +390,10 @@ func NotificationErrNoRecipients(mm ...*notificationActionProps) *errors.Error {
 
 		errors.Meta(notificationPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.noRecipients"),
+
 		errors.StackSkip(1),
 	)
 
@@ -400,12 +417,16 @@ func NotificationErrFailedToDownloadAttachment(mm ...*notificationActionProps) *
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("could not download attachment from {attachmentURL}: {err}", nil),
+		p.Format("could not download attachment from {{attachmentURL}}: {{err}}", nil),
 
 		errors.Meta("type", "failedToDownloadAttachment"),
 		errors.Meta("resource", "compose:notification"),
 
 		errors.Meta(notificationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "notification.errors.failedToDownloadAttachment"),
 
 		errors.StackSkip(1),
 	)

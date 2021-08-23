@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -145,7 +146,7 @@ func (p reminderActionProps) Serialize() actionlog.Meta {
 //
 func (p reminderActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -165,10 +166,10 @@ func (p reminderActionProps) Format(in string, err error) string {
 	}
 
 	if p.reminder != nil {
-		// replacement for "{reminder}" (in order how fields are defined)
+		// replacement for "{{reminder}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{reminder}",
+			"{{reminder}}",
 			fns(
 				p.reminder.Resource,
 				p.reminder.ID,
@@ -177,18 +178,18 @@ func (p reminderActionProps) Format(in string, err error) string {
 				p.reminder.RemindAt,
 			),
 		)
-		pairs = append(pairs, "{reminder.resource}", fns(p.reminder.Resource))
-		pairs = append(pairs, "{reminder.ID}", fns(p.reminder.ID))
-		pairs = append(pairs, "{reminder.assignedTo}", fns(p.reminder.AssignedTo))
-		pairs = append(pairs, "{reminder.assignedBy}", fns(p.reminder.AssignedBy))
-		pairs = append(pairs, "{reminder.remindAt}", fns(p.reminder.RemindAt))
+		pairs = append(pairs, "{{reminder.resource}}", fns(p.reminder.Resource))
+		pairs = append(pairs, "{{reminder.ID}}", fns(p.reminder.ID))
+		pairs = append(pairs, "{{reminder.assignedTo}}", fns(p.reminder.AssignedTo))
+		pairs = append(pairs, "{{reminder.assignedBy}}", fns(p.reminder.AssignedBy))
+		pairs = append(pairs, "{{reminder.remindAt}}", fns(p.reminder.RemindAt))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Resource,
 				p.new.ID,
@@ -197,18 +198,18 @@ func (p reminderActionProps) Format(in string, err error) string {
 				p.new.RemindAt,
 			),
 		)
-		pairs = append(pairs, "{new.resource}", fns(p.new.Resource))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
-		pairs = append(pairs, "{new.assignedTo}", fns(p.new.AssignedTo))
-		pairs = append(pairs, "{new.assignedBy}", fns(p.new.AssignedBy))
-		pairs = append(pairs, "{new.remindAt}", fns(p.new.RemindAt))
+		pairs = append(pairs, "{{new.resource}}", fns(p.new.Resource))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.assignedTo}}", fns(p.new.AssignedTo))
+		pairs = append(pairs, "{{new.assignedBy}}", fns(p.new.AssignedBy))
+		pairs = append(pairs, "{{new.remindAt}}", fns(p.new.RemindAt))
 	}
 
 	if p.updated != nil {
-		// replacement for "{updated}" (in order how fields are defined)
+		// replacement for "{{updated}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{updated}",
+			"{{updated}}",
 			fns(
 				p.updated.Resource,
 				p.updated.ID,
@@ -217,18 +218,18 @@ func (p reminderActionProps) Format(in string, err error) string {
 				p.updated.RemindAt,
 			),
 		)
-		pairs = append(pairs, "{updated.resource}", fns(p.updated.Resource))
-		pairs = append(pairs, "{updated.ID}", fns(p.updated.ID))
-		pairs = append(pairs, "{updated.assignedTo}", fns(p.updated.AssignedTo))
-		pairs = append(pairs, "{updated.assignedBy}", fns(p.updated.AssignedBy))
-		pairs = append(pairs, "{updated.remindAt}", fns(p.updated.RemindAt))
+		pairs = append(pairs, "{{updated.resource}}", fns(p.updated.Resource))
+		pairs = append(pairs, "{{updated.ID}}", fns(p.updated.ID))
+		pairs = append(pairs, "{{updated.assignedTo}}", fns(p.updated.AssignedTo))
+		pairs = append(pairs, "{{updated.assignedBy}}", fns(p.updated.AssignedBy))
+		pairs = append(pairs, "{{updated.remindAt}}", fns(p.updated.RemindAt))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Resource,
 				p.filter.ReminderID,
@@ -240,14 +241,14 @@ func (p reminderActionProps) Format(in string, err error) string {
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.resource}", fns(p.filter.Resource))
-		pairs = append(pairs, "{filter.reminderID}", fns(p.filter.ReminderID))
-		pairs = append(pairs, "{filter.assignedTo}", fns(p.filter.AssignedTo))
-		pairs = append(pairs, "{filter.scheduledFrom}", fns(p.filter.ScheduledFrom))
-		pairs = append(pairs, "{filter.scheduledUntil}", fns(p.filter.ScheduledUntil))
-		pairs = append(pairs, "{filter.excludeDismissed}", fns(p.filter.ExcludeDismissed))
-		pairs = append(pairs, "{filter.scheduledOnly}", fns(p.filter.ScheduledOnly))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.resource}}", fns(p.filter.Resource))
+		pairs = append(pairs, "{{filter.reminderID}}", fns(p.filter.ReminderID))
+		pairs = append(pairs, "{{filter.assignedTo}}", fns(p.filter.AssignedTo))
+		pairs = append(pairs, "{{filter.scheduledFrom}}", fns(p.filter.ScheduledFrom))
+		pairs = append(pairs, "{{filter.scheduledUntil}}", fns(p.filter.ScheduledUntil))
+		pairs = append(pairs, "{{filter.excludeDismissed}}", fns(p.filter.ExcludeDismissed))
+		pairs = append(pairs, "{{filter.scheduledOnly}}", fns(p.filter.ScheduledOnly))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -313,7 +314,7 @@ func ReminderActionLookup(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "lookup",
-		log:       "looked-up for a {reminder}",
+		log:       "looked-up for a {{reminder}}",
 		severity:  actionlog.Info,
 	}
 
@@ -333,7 +334,7 @@ func ReminderActionCreate(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "create",
-		log:       "created {reminder}",
+		log:       "created {{reminder}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -353,7 +354,7 @@ func ReminderActionUpdate(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "update",
-		log:       "updated {reminder}",
+		log:       "updated {{reminder}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -373,7 +374,7 @@ func ReminderActionDelete(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "delete",
-		log:       "deleted {reminder}",
+		log:       "deleted {{reminder}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -393,7 +394,7 @@ func ReminderActionDismiss(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "dismiss",
-		log:       "deleted {reminder}",
+		log:       "deleted {{reminder}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -413,7 +414,7 @@ func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
 		timestamp: time.Now(),
 		resource:  "system:reminder",
 		action:    "snooze",
-		log:       "deleted {reminder}",
+		log:       "deleted {{reminder}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -451,6 +452,10 @@ func ReminderErrGeneric(mm ...*reminderActionProps) *errors.Error {
 		errors.Meta(reminderLogMetaKey{}, "{err}"),
 		errors.Meta(reminderPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -480,6 +485,10 @@ func ReminderErrNotFound(mm ...*reminderActionProps) *errors.Error {
 		errors.Meta("resource", "system:reminder"),
 
 		errors.Meta(reminderPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -511,6 +520,10 @@ func ReminderErrInvalidID(mm ...*reminderActionProps) *errors.Error {
 
 		errors.Meta(reminderPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -540,6 +553,10 @@ func ReminderErrNotAllowedToAssign(mm ...*reminderActionProps) *errors.Error {
 		errors.Meta("resource", "system:reminder"),
 
 		errors.Meta(reminderPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.notAllowedToAssign"),
 
 		errors.StackSkip(1),
 	)
@@ -571,6 +588,10 @@ func ReminderErrNotAllowedToDismiss(mm ...*reminderActionProps) *errors.Error {
 
 		errors.Meta(reminderPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.notAllowedToDismiss"),
+
 		errors.StackSkip(1),
 	)
 
@@ -600,6 +621,10 @@ func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 		errors.Meta("resource", "system:reminder"),
 
 		errors.Meta(reminderPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "reminder.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)

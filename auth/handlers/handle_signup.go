@@ -31,9 +31,10 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 
 	if err == nil {
 		if newUser.EmailConfirmed {
+			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: "Sign-up successful.",
+				Text: t("signup.alerts.signup-successful"),
 			})
 
 			h.Log.Info(
@@ -101,9 +102,10 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 		if err == nil {
 			// redirect back to self (but without token and with user in session
 			h.Log.Debug("valid email confirmation token found, redirecting to profile")
+			t := translator(req, "auth")
 			req.NewAlerts = append(req.NewAlerts, request.Alert{
 				Type: "primary",
-				Text: "Email address confirmed, you're now logged-in.",
+				Text: t("signup.alerts.email-confirmed-logged-in"),
 			})
 
 			req.RedirectTo = GetLinks().Profile
@@ -130,9 +132,10 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 		req.RedirectTo = GetLinks().Profile
 	}
 
+	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: "Invalid or expired email confirmation token, please resend confirmation request.",
+		Text: t("signup.alerts.inv-or-exp-token"),
 	})
 
 	return nil
@@ -151,8 +154,9 @@ func (h *AuthHandlers) onlyIfSignupEnabled(fn handlerFn) handlerFn {
 
 func (h *AuthHandlers) signupDisabledAlert(req *request.AuthReq) {
 	req.RedirectTo = GetLinks().Login
+	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "danger",
-		Text: "Signup disabled",
+		Text: t("signup.alerts.signup-disabled"),
 	})
 }

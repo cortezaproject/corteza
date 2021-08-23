@@ -41,38 +41,38 @@ actions:
     severity: info
 
   - action: lookup
-    log: "looked-up for a {role}"
+    log: "looked-up for a {{role}}"
     severity: info
 
   - action: create
-    log: "created {role}"
+    log: "created {{role}}"
 
   - action: update
-    log: "updated {role}"
+    log: "updated {{role}}"
 
   - action: delete
-    log: "deleted {role}"
+    log: "deleted {{role}}"
 
   - action: undelete
-    log: "undeleted {role}"
+    log: "undeleted {{role}}"
 
   - action: archive
-    log: "archived {role}"
+    log: "archived {{role}}"
 
   - action: unarchive
-    log: "unarchived {role}"
+    log: "unarchived {{role}}"
 
   - action: merge
-    log: "merged {target} with {role}"
+    log: "merged {{target}} with {{role}}"
 
   - action: members
-    log: "searched for members of {role}"
+    log: "searched for members of {{role}}"
 
   - action: memberAdd
-    log: "added {member.email} to {role}"
+    log: "added {{member.email}} to {{role}}"
 
   - action: memberRemove
-    log: "removed {member.email} from {role}"
+    log: "removed {{member.email}} from {{role}}"
 
 
 errors:
@@ -90,7 +90,7 @@ errors:
 
   - error: notAllowedToRead
     message: "not allowed to read this role"
-    log: "failed to read {role.handle}; insufficient permissions"
+    log: "failed to read {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToSearch
     message: "not allowed to search or list roles"
@@ -102,34 +102,34 @@ errors:
 
   - error: notAllowedToUpdate
     message: "not allowed to update this role"
-    log: "failed to update {role.handle}; insufficient permissions"
+    log: "failed to update {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToDelete
     message: "not allowed to delete this role"
-    log: "failed to delete {role.handle}; insufficient permissions"
+    log: "failed to delete {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToUndelete
     message: "not allowed to undelete this role"
-    log: "failed to undelete {role.handle}; insufficient permissions"
+    log: "failed to undelete {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToArchive
     message: "not allowed to archive this role"
-    log: "failed to archive {role.handle}; insufficient permissions"
+    log: "failed to archive {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToUnarchive
     message: "not allowed to unarchive this role"
-    log: "failed to unarchive {role.handle}; insufficient permissions"
+    log: "failed to unarchive {{role.handle}}; insufficient permissions"
 
   - error: notAllowedToManageMembers
     message: "not allowed to manage role members"
-    log: "failed to manage {role.handle} members; insufficient permissions"
+    log: "failed to manage {{role.handle}} members; insufficient permissions"
 
   - error: handleNotUnique
     message: "role handle not unique"
-    log: "used duplicate handle ({role.handle}) for role"
+    log: "used duplicate handle ({{role.handle}}) for role"
     severity: warning
 
   - error: nameNotUnique
     message: "role name not unique"
-    log: "used duplicate name ({role.name}) for role"
+    log: "used duplicate name ({{role.name}}) for role"
     severity: warning

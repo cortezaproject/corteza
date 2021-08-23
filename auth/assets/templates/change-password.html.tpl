@@ -1,6 +1,6 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "security" }}
 <div class="card-body p-0">
-	<h1 class="h4 card-title p-3 border-bottom">Change your password</h1>
+	<h1 class="h4 card-title p-3 border-bottom">{{ tr "change-password.template.title" }}</h1>
 	<form
 		method="POST"
 		action="{{ links.ChangePassword }}"
@@ -14,20 +14,20 @@
 		{{ end }}
 		<div class="mb-3">
 		    <label>
-                E-mail *
+                {{ tr "change-password.template.form.email.label" }}
             </label>
 			<input
 				type="email"
 				class="form-control"
 				name="email"
 				readonly
-				placeholder="email@domain.ltd"
+				placeholder="{{ tr "change-password.template.form.email.placeholder" }}"
 				value="{{ .user.Email }}"
-				aria-label="Email">
+				aria-label="{{ tr "change-password.template.form.email.aria-label" }}">
 		</div>
 		<div class="mb-3">
             <label>
-                Old Password *
+                {{ tr "change-password.template.form.old-password.label" }}
             </label>
 			<input
 				type="password"
@@ -35,12 +35,12 @@
 				class="form-control"
 				name="oldPassword"
 				autocomplete="current-password"
-				placeholder="Enter your old password"
-				aria-label="Old password">
+				placeholder="{{ tr "change-password.template.form.old-password.placeholder" }}"
+				aria-label="{{ tr "change-password.template.form.old-password.aria-label" }}">
 		</div>
 		<div class="mb-3">
             <label>
-                New Password *
+                {{ tr "change-password.template.form.new-password.label" }}
             </label>
 			<input
 				type="password"
@@ -48,11 +48,11 @@
 				class="form-control"
 				name="newPassword"
 				autocomplete="new-password"
-				placeholder="Enter your new password"
-				aria-label="New password">
+				placeholder="{{ tr "change-password.template.form.new-password.placeholder" }}"
+				aria-label="{{ tr "change-password.template.form.new-password.aria-label" }}">
 		</div>
 		<div class="text-right">
-			<button class="btn btn-primary btn-block btn-lg" type="submit">Change your password</button>
+			<button class="btn btn-primary btn-block btn-lg" type="submit">{{ tr "change-password.template.form.button.change-password" }}</button>
 		</div>
 	</form>
 </div>

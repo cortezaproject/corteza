@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
+	"github.com/cortezaproject/corteza-server/pkg/locale"
 	"github.com/cortezaproject/corteza-server/system/types"
 	"strings"
 	"time"
@@ -131,7 +132,7 @@ func (p reportActionProps) Serialize() actionlog.Meta {
 //
 func (p reportActionProps) Format(in string, err error) string {
 	var (
-		pairs = []string{"{err}"}
+		pairs = []string{"{{err}}"}
 		// first non-empty string
 		fns = func(ii ...interface{}) string {
 			for _, i := range ii {
@@ -151,61 +152,61 @@ func (p reportActionProps) Format(in string, err error) string {
 	}
 
 	if p.report != nil {
-		// replacement for "{report}" (in order how fields are defined)
+		// replacement for "{{report}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{report}",
+			"{{report}}",
 			fns(
 				p.report.Handle,
 				p.report.ID,
 			),
 		)
-		pairs = append(pairs, "{report.handle}", fns(p.report.Handle))
-		pairs = append(pairs, "{report.ID}", fns(p.report.ID))
+		pairs = append(pairs, "{{report.handle}}", fns(p.report.Handle))
+		pairs = append(pairs, "{{report.ID}}", fns(p.report.ID))
 	}
 
 	if p.new != nil {
-		// replacement for "{new}" (in order how fields are defined)
+		// replacement for "{{new}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{new}",
+			"{{new}}",
 			fns(
 				p.new.Handle,
 				p.new.ID,
 			),
 		)
-		pairs = append(pairs, "{new.handle}", fns(p.new.Handle))
-		pairs = append(pairs, "{new.ID}", fns(p.new.ID))
+		pairs = append(pairs, "{{new.handle}}", fns(p.new.Handle))
+		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
 
 	if p.update != nil {
-		// replacement for "{update}" (in order how fields are defined)
+		// replacement for "{{update}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{update}",
+			"{{update}}",
 			fns(
 				p.update.Handle,
 				p.update.ID,
 			),
 		)
-		pairs = append(pairs, "{update.handle}", fns(p.update.Handle))
-		pairs = append(pairs, "{update.ID}", fns(p.update.ID))
+		pairs = append(pairs, "{{update.handle}}", fns(p.update.Handle))
+		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
 	}
 
 	if p.filter != nil {
-		// replacement for "{filter}" (in order how fields are defined)
+		// replacement for "{{filter}}" (in order how fields are defined)
 		pairs = append(
 			pairs,
-			"{filter}",
+			"{{filter}}",
 			fns(
 				p.filter.Handle,
 				p.filter.Deleted,
 				p.filter.Sort,
 			),
 		)
-		pairs = append(pairs, "{filter.handle}", fns(p.filter.Handle))
-		pairs = append(pairs, "{filter.deleted}", fns(p.filter.Deleted))
-		pairs = append(pairs, "{filter.sort}", fns(p.filter.Sort))
+		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
+		pairs = append(pairs, "{{filter.deleted}}", fns(p.filter.Deleted))
+		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 	}
 	return strings.NewReplacer(pairs...).Replace(in)
 }
@@ -271,7 +272,7 @@ func ReportActionLookup(props ...*reportActionProps) *reportAction {
 		timestamp: time.Now(),
 		resource:  "system:report",
 		action:    "lookup",
-		log:       "looked-up for a {report}",
+		log:       "looked-up for a {{report}}",
 		severity:  actionlog.Info,
 	}
 
@@ -291,7 +292,7 @@ func ReportActionCreate(props ...*reportActionProps) *reportAction {
 		timestamp: time.Now(),
 		resource:  "system:report",
 		action:    "create",
-		log:       "created {report}",
+		log:       "created {{report}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -311,7 +312,7 @@ func ReportActionUpdate(props ...*reportActionProps) *reportAction {
 		timestamp: time.Now(),
 		resource:  "system:report",
 		action:    "update",
-		log:       "updated {report}",
+		log:       "updated {{report}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -331,7 +332,7 @@ func ReportActionDelete(props ...*reportActionProps) *reportAction {
 		timestamp: time.Now(),
 		resource:  "system:report",
 		action:    "delete",
-		log:       "deleted {report}",
+		log:       "deleted {{report}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -351,7 +352,7 @@ func ReportActionUndelete(props ...*reportActionProps) *reportAction {
 		timestamp: time.Now(),
 		resource:  "system:report",
 		action:    "undelete",
-		log:       "undeleted {report}",
+		log:       "undeleted {{report}}",
 		severity:  actionlog.Notice,
 	}
 
@@ -409,6 +410,10 @@ func ReportErrGeneric(mm ...*reportActionProps) *errors.Error {
 		errors.Meta(reportLogMetaKey{}, "{err}"),
 		errors.Meta(reportPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.generic"),
+
 		errors.StackSkip(1),
 	)
 
@@ -438,6 +443,10 @@ func ReportErrNotFound(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notFound"),
 
 		errors.StackSkip(1),
 	)
@@ -469,6 +478,10 @@ func ReportErrInvalidID(mm ...*reportActionProps) *errors.Error {
 
 		errors.Meta(reportPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.invalidID"),
+
 		errors.StackSkip(1),
 	)
 
@@ -498,8 +511,12 @@ func ReportErrNotAllowedToRead(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(reportLogMetaKey{}, "failed to read {report}; insufficient permissions"),
+		errors.Meta(reportLogMetaKey{}, "failed to read {{report}}; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToRead"),
 
 		errors.StackSkip(1),
 	)
@@ -533,6 +550,10 @@ func ReportErrNotAllowedToSearch(mm ...*reportActionProps) *errors.Error {
 		errors.Meta(reportLogMetaKey{}, "failed to search for reports; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToSearch"),
+
 		errors.StackSkip(1),
 	)
 
@@ -564,6 +585,10 @@ func ReportErrNotAllowedToListReports(mm ...*reportActionProps) *errors.Error {
 		// action log entry; no formatting, it will be applied inside recordAction fn.
 		errors.Meta(reportLogMetaKey{}, "failed to list report; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToListReports"),
 
 		errors.StackSkip(1),
 	)
@@ -597,6 +622,10 @@ func ReportErrNotAllowedToCreate(mm ...*reportActionProps) *errors.Error {
 		errors.Meta(reportLogMetaKey{}, "failed to create report; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
 
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToCreate"),
+
 		errors.StackSkip(1),
 	)
 
@@ -626,8 +655,12 @@ func ReportErrNotAllowedToUpdate(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(reportLogMetaKey{}, "failed to update {report}; insufficient permissions"),
+		errors.Meta(reportLogMetaKey{}, "failed to update {{report}}; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToUpdate"),
 
 		errors.StackSkip(1),
 	)
@@ -658,8 +691,12 @@ func ReportErrNotAllowedToDelete(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(reportLogMetaKey{}, "failed to delete {report}; insufficient permissions"),
+		errors.Meta(reportLogMetaKey{}, "failed to delete {{report}}; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToDelete"),
 
 		errors.StackSkip(1),
 	)
@@ -690,8 +727,12 @@ func ReportErrNotAllowedToUndelete(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(reportLogMetaKey{}, "failed to undelete {report}; insufficient permissions"),
+		errors.Meta(reportLogMetaKey{}, "failed to undelete {{report}}; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToUndelete"),
 
 		errors.StackSkip(1),
 	)
@@ -722,8 +763,12 @@ func ReportErrNotAllowedToRun(mm ...*reportActionProps) *errors.Error {
 		errors.Meta("resource", "system:report"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(reportLogMetaKey{}, "failed to run {report}; insufficient permissions"),
+		errors.Meta(reportLogMetaKey{}, "failed to run {{report}}; insufficient permissions"),
 		errors.Meta(reportPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "report.errors.notAllowedToRun"),
 
 		errors.StackSkip(1),
 	)

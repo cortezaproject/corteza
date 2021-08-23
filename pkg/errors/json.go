@@ -1,6 +1,10 @@
 package errors
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/cortezaproject/corteza-server/pkg/locale"
+)
 
 func (e Error) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
@@ -14,4 +18,12 @@ func (e Error) MarshalJSON() ([]byte, error) {
 		Stack:   e.stack,
 		Wrap:    e.wrap,
 	})
+}
+
+func (e Error) Translate(tr func(string, string, ...string) string) error {
+	if msg := tr(e.meta.AsString(locale.ErrorMetaNamespace{}), e.meta.AsString(locale.ErrorMetaKey{}), e.meta.pairs()...); len(msg) > 0 {
+		e.message = msg
+	}
+
+	return &e
 }
