@@ -12,6 +12,12 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/locale"
 )
 
+type (
+	translatable interface {
+		Translate(tr func(string, string, ...string) string) error
+	}
+)
+
 // ServeHTTP Prepares and encodes given error for HTTP transport
 //
 // mask arg hides extra/debug info
@@ -118,11 +124,13 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 		err = fmt.Errorf(err.Error())
 	}
 
-	if tr, is := err.(interface {
-		Translate(tr func(string, string, ...string) string) error
-	}); is {
+	// if error is translatable, pass in the lambda that returns
+	// translated error
+	//
+	// we're using global locale service directly for now
+	if tr, is := err.(translatable); is {
 		err = tr.Translate(func(ns string, key string, pairs ...string) string {
-			return locale.Global().Get(ctx, ns, key, pairs...)
+			return locale.Global().T(ctx, ns, key, pairs...)
 		})
 	}
 

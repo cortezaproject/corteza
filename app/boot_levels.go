@@ -94,14 +94,13 @@ func (app *CortezaApp) Setup() (err error) {
 	{
 		var (
 			localeLog = zap.NewNop()
-			languages *locale.Languages
 		)
 
 		if app.Opt.Locale.Log {
 			localeLog = app.Log
 		}
 
-		if languages, err = locale.New(localeLog, app.Opt.Locale); err != nil {
+		if languages, err := locale.Service(localeLog, app.Opt.Locale); err != nil {
 			return err
 		} else {
 			locale.SetGlobal(languages)

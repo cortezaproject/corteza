@@ -230,14 +230,14 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			// because we need request's context to detect the language from!
 			ttf = func(t *template.Template) *template.Template {
 				return t.Funcs(map[string]interface{}{
-					"language": func() string { return loc.Current(req.Context()).String() },
+					"language": func() string { return locale.GetLanguageFromContext(req.Context()).String() },
 					"tr": func(key string, pp ...interface{}) template.HTML {
 						ss := make([]string, len(pp))
 						for i := range pp {
 							ss[i] = cast.ToString(pp[i])
 						}
 
-						return template.HTML(loc.Get(req.Context(), "auth", key, ss...))
+						return template.HTML(loc.T(req.Context(), "auth", key, ss...))
 					},
 				})
 			}
@@ -401,5 +401,5 @@ func anonyOnly(fn handlerFn) handlerFn {
 }
 
 func translator(req *request.AuthReq, ns string) func(key string, rr ...string) string {
-	return (&locale.Languages{}).GetNS(req.Context(), ns)
+	return locale.Global().NS(req.Context(), ns)
 }
