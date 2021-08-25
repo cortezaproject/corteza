@@ -132,6 +132,19 @@ func (svc *service) Reload() error {
 		svc.set[lang.Tag] = lang
 	}
 
+	// Do another pass and link all extended languages
+	for _, lang := range svc.set {
+		if lang.Extends.IsRoot() {
+			continue
+		}
+
+		if svc.set[lang.Extends] == nil {
+			return fmt.Errorf("could not extend langage %q from an unknown language %q", lang.Tag, lang.Extends)
+		}
+
+		lang.extends = svc.set[lang.Extends]
+	}
+
 	return nil
 }
 
