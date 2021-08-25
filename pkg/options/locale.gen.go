@@ -10,6 +10,7 @@ package options
 
 type (
 	LocaleOpt struct {
+		Languages        string `env:"LOCALE_LANGUAGES"`
 		Path             string `env:"LOCALE_PATH"`
 		QueryStringParam string `env:"LOCALE_QUERY_STRING_PARAM"`
 		Log              bool   `env:"LOCALE_LOG"`
@@ -20,6 +21,7 @@ type (
 // Locale initializes and returns a LocaleOpt with default values
 func Locale() (o *LocaleOpt) {
 	o = &LocaleOpt{
+		Languages:        "en",
 		QueryStringParam: "lng",
 	}
 

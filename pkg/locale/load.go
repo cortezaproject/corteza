@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.uber.org/zap"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -20,7 +19,8 @@ const serverApplication = "corteza-server"
 
 var defaultLanguage = language.English
 
-func load(log *zap.Logger, pp ...string) (ll []*Language, err error) {
+// Load all configs that are reachable in the given paths
+func loadConfigs(pp ...string) (ll []*Language, err error) {
 	var (
 		pattern string
 		f       *os.File
@@ -39,9 +39,8 @@ func load(log *zap.Logger, pp ...string) (ll []*Language, err error) {
 			tag := language.Make(filepath.Base(filepath.Dir(c)))
 
 			lang := &Language{
-				Tag:      tag,
-				internal: make(internal),
-				external: make(external),
+				Tag: tag,
+				src: filepath.Dir(c),
 			}
 
 			err = func() error {
@@ -51,23 +50,19 @@ func load(log *zap.Logger, pp ...string) (ll []*Language, err error) {
 				}
 
 				defer f.Close()
-
 				if err = yaml.NewDecoder(f).Decode(&lang); err != nil {
 					return fmt.Errorf("could not decode %s: %v", p, err)
 				}
 
-				return loadTranslations(lang, filepath.Dir(c))
+				return nil
 			}()
 
 			if err != nil {
 				return nil, err
 			}
 
-			log.Info("language loaded", zap.String("tag", lang.Tag.String()), zap.String("config", c))
-
 			ll = append(ll, lang)
 		}
-
 	}
 
 	return

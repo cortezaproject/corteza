@@ -1,6 +1,14 @@
 props:
+  - name: languages
+    default: "en"
+    description: |
+      List of compa delimited languages (language tags) to enable.
+      In case when an enabled language can not be loaded, error is logged.
+
+      When loading language configurations (config.xml) from the configured path(s).
+
   - name: path
-    description: Path to locale config and translation files, separated by colon
+    description: One or more paths to locale config and translation files, separated by colon
 
   - name: queryStringParam
     description: |

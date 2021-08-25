@@ -44,11 +44,31 @@ func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}
 }
 
 func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, error) {
+	svc := locale.Global()
+
 	return func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-		err := locale.Global().EncodeExternal(w, language.Make(r.Lang), r.Application)
-		if err != nil {
-			errors.ProperlyServeHTTP(w, req, err, false)
+		if !svc.HasLanguage(language.Make(r.Lang)) {
+			errors.ProperlyServeHTTP(w, req, errors.New(
+				errors.KindNotFound,
+				"no such language",
+				errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
+			), true)
+			return
 		}
+
+		if !svc.HasApplication(language.Make(r.Lang), r.Application) {
+			errors.ProperlyServeHTTP(w, req, errors.New(
+				errors.KindNotFound,
+				"no such application",
+				errors.StackTrimAtFn("http.HandlerFunc.ServeHTTP"),
+			), true)
+			return
+		}
+
+		if err := locale.Global().EncodeExternal(w, language.Make(r.Lang), r.Application); err != nil {
+			errors.ProperlyServeHTTP(w, req, err, true)
+		}
+
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	}, nil
 }
