@@ -101,7 +101,7 @@ func (app *CortezaApp) Setup() (err error) {
 			localeLog = app.Log
 		}
 
-		if languages, err = locale.New(localeLog, strings.Split(app.Opt.Locale.Path, ":")...); err != nil {
+		if languages, err = locale.New(localeLog, app.Opt.Locale); err != nil {
 			return err
 		} else {
 			locale.SetGlobal(languages)
