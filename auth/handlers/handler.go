@@ -154,13 +154,6 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 			zap.String("method", r.Method),
 		)
 
-		if h.Opt.DevelopmentMode {
-			if err := loc.Reload(); err != nil {
-				// when in development mode, refresh languages for every request
-				h.Log.Error("failed to load locales", zap.Error(err))
-			}
-		}
-
 		err := func() (err error) {
 			if err = r.ParseForm(); err != nil {
 				return

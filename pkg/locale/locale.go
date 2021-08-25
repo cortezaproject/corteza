@@ -72,10 +72,6 @@ func (set *Languages) Default() language.Tag {
 	return set.def
 }
 
-func (set *Languages) Options() options.LocaleOpt {
-	return set.opt
-}
-
 func (set *Languages) Tags() (tt []language.Tag) {
 	tt = make([]language.Tag, 0, len(set.ll))
 	for t := range set.ll {

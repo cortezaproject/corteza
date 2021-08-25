@@ -12,3 +12,9 @@ props:
   - name: log
     type: bool
     description: Log locale related events and actions
+
+  - name: developmentMode
+    type: bool
+    description: |-
+      When enabled, Corteza reloads language files on every request
+      Enable this for debugging or developing
