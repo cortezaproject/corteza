@@ -29,6 +29,7 @@ import (
 	"github.com/go-chi/chi"
 	oauth2def "github.com/go-oauth2/oauth2/v4"
 	"go.uber.org/zap"
+	"golang.org/x/text/language"
 )
 
 type (
@@ -168,7 +169,8 @@ func New(ctx context.Context, log *zap.Logger, s store.Storer, opt options.AuthO
 				"links":     handlers.GetLinks,
 
 				// temp, will be replaced
-				"tr": func(key string, pp ...string) string { return key },
+				"language": func() string { return language.Tag{}.String() },
+				"tr":       func(key string, pp ...string) string { return key },
 			})
 
 		useEmbedded = len(opt.AssetsPath) == 0
