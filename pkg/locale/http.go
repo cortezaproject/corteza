@@ -12,13 +12,20 @@ const AcceptLanguageHeader = "Accept-Language"
 func DetectLanguage(ll *Languages) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if ll.opt.DevelopmentMode {
+				if err := ll.Reload(); err != nil {
+					// when in development mode, refresh languages for every request
+					ll.log.Error("failed to load locales", zap.Error(err))
+				}
+			}
+
 			var (
 				rawLanguageTag string
 			)
 
 			// try to detect the language from the request's query string:
-			if ll.Options().QueryStringParam != "" {
-				rawLanguageTag = r.URL.Query().Get(ll.Options().QueryStringParam)
+			if ll.opt.QueryStringParam != "" {
+				rawLanguageTag = r.URL.Query().Get(ll.opt.QueryStringParam)
 			}
 
 			// try to detect the language from the request's headers:
@@ -56,11 +63,13 @@ func DetectLanguage(ll *Languages) func(next http.Handler) http.Handler {
 				// new request with new context
 				r = r.WithContext(SetLanguageToContext(r.Context(), preferred))
 
-				ll.log.Debug(
-					"language detected",
-					zap.String("preferred", preferred.String()),
-					zap.String("raw", rawLanguageTag),
-				)
+				if ll.opt.DevelopmentMode {
+					ll.log.Debug(
+						"language detected",
+						zap.String("preferred", preferred.String()),
+						zap.String("raw", rawLanguageTag),
+					)
+				}
 			}
 
 			next.ServeHTTP(w, r)

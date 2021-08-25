@@ -27,8 +27,6 @@ func (Locale) New() *Locale {
 }
 
 func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}, error) {
-	locale.Global().Reload() // @todo debug only; remove later
-
 	var (
 		rval        = make([]*localeResponse, 0, 16)
 		currentLang = locale.GetLanguageFromContext(ctx)
@@ -46,8 +44,6 @@ func (ctrl Locale) List(ctx context.Context, r *request.LocaleList) (interface{}
 }
 
 func (ctrl Locale) Get(ctx context.Context, r *request.LocaleGet) (interface{}, error) {
-	locale.Global().Reload() // @todo debug only; remove later
-
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 		err := locale.Global().EncodeExternal(w, language.Make(r.Lang), r.Application)
