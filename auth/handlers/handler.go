@@ -232,8 +232,12 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 
 		var (
 			// translator template function
+			//
+			// we're adding these functions on every request on all templates
+			// because we need request's context to detect the language from!
 			ttf = func(t *template.Template) *template.Template {
 				return t.Funcs(map[string]interface{}{
+					"language": func() string { return loc.Current(req.Context()).String() },
 					"tr": func(key string, pp ...interface{}) template.HTML {
 						ss := make([]string, len(pp))
 						for i := range pp {

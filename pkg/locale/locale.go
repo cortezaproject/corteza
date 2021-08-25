@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 	"golang.org/x/text/language"
 )
@@ -45,6 +46,8 @@ type (
 
 		log *zap.Logger
 
+		opt options.LocaleOpt
+
 		// sources
 		src []string
 		ll  map[language.Tag]*Language
@@ -56,13 +59,21 @@ type (
 	ErrorMetaKey       struct{}
 )
 
-func New(log *zap.Logger, src ...string) (*Languages, error) {
-	ll := &Languages{src: src, log: log.Named("locale")}
+func New(log *zap.Logger, opt options.LocaleOpt) (*Languages, error) {
+	ll := &Languages{
+		opt: opt,
+		src: strings.Split(opt.Path, ":"),
+		log: log.Named("locale"),
+	}
 	return ll, ll.Reload()
 }
 
 func (set *Languages) Default() language.Tag {
 	return set.def
+}
+
+func (set *Languages) Options() options.LocaleOpt {
+	return set.opt
 }
 
 func (set *Languages) Tags() (tt []language.Tag) {
@@ -142,6 +153,10 @@ func (set *Languages) GetNS(ctx context.Context, ns string) func(key string, rr 
 	return func(key string, rr ...string) string {
 		return set.get(code, ns, key, rr...)
 	}
+}
+
+func (set *Languages) Current(ctx context.Context) language.Tag {
+	return GetLanguageFromContext(ctx)
 }
 
 func (set *Languages) Get(ctx context.Context, ns, key string, rr ...string) string {

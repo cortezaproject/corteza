@@ -10,14 +10,17 @@ package options
 
 type (
 	LocaleOpt struct {
-		Path string `env:"LOCALE_PATH"`
-		Log  bool   `env:"LOCALE_LOG"`
+		Path             string `env:"LOCALE_PATH"`
+		QueryStringParam string `env:"LOCALE_QUERY_STRING_PARAM"`
+		Log              bool   `env:"LOCALE_LOG"`
 	}
 )
 
 // Locale initializes and returns a LocaleOpt with default values
 func Locale() (o *LocaleOpt) {
-	o = &LocaleOpt{}
+	o = &LocaleOpt{
+		QueryStringParam: "lng",
+	}
 
 	fill(o)
 
