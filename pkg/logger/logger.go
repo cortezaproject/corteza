@@ -1,24 +1,58 @@
 package logger
 
 import (
-	"os"
 	"time"
 
+	"github.com/cortezaproject/corteza-server/pkg/options"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/cortezaproject/corteza-server/pkg/options"
+	"moul.io/zapfilter"
 )
 
 var (
-	DefaultLevel  = zap.NewAtomicLevel()
+	opt           = options.Log()
 	defaultLogger = zap.NewNop()
 )
 
+func Default() *zap.Logger {
+	return defaultLogger
+}
+
+func SetDefault(logger *zap.Logger) {
+	if logger == nil {
+		logger = zap.NewNop()
+	}
+
+	defaultLogger = logger
+}
+
+// Init (re)initializes logger according to the settings
+func Init() {
+	if opt.Debug {
+		// Do we want to enable debug logger
+		// with a bit more dev-friendly output
+		defaultLogger = MakeDebugLogger()
+		defaultLogger.Debug("full debug mode enabled")
+		return
+	}
+
+	var (
+		err  error
+		conf = applyOptions(zap.NewProductionConfig(), opt)
+	)
+
+	defaultLogger, err = conf.Build()
+	if err != nil {
+		panic(err)
+	}
+
+	defaultLogger = applySpecials(defaultLogger, opt)
+}
+
 func MakeDebugLogger() *zap.Logger {
-	conf := zap.NewDevelopmentConfig()
-	conf.Level = DefaultLevel
-	conf.Level.SetLevel(zap.DebugLevel)
+	var (
+		conf = applyOptions(zap.NewDevelopmentConfig(), opt)
+	)
 
 	// Print log level in colors
 	conf.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -33,71 +67,37 @@ func MakeDebugLogger() *zap.Logger {
 		panic(err)
 	}
 
-	logger.Debug("full debug mode enabled (LOG_DEBUG=true)")
-
-	return applyStacktrace(logger, zap.DPanicLevel)
+	return applySpecials(logger, opt)
 }
 
-func Init() {
-	var (
-		err error
+// Applies options from environment variables
+func applyOptions(conf zap.Config, opt *options.LogOpt) zap.Config {
+	// LOG_LEVEL
+	conf.Level = zap.NewAtomicLevelAt(mustParseLevel(opt.Level))
 
-		// Set WARN as default log level -- running serve-api
-		// will override this if LOG_LEVEL is not set
-		logLevel = zapcore.WarnLevel
+	// LOG_INCLUDE_CALLER
+	conf.DisableCaller = !opt.IncludeCaller
 
-		// Do we want to enable debug logger
-		// with a bit more dev-friendly output
-		debuggingLogger = options.EnvBool("LOG_DEBUG", false)
-	)
-
-	if ll, has := os.LookupEnv("LOG_LEVEL"); has {
-		_ = logLevel.Set(ll)
-	}
-
-	DefaultLevel.SetLevel(logLevel)
-
-	if debuggingLogger {
-		defaultLogger = MakeDebugLogger()
-		return
-	}
-
-	conf := zap.NewProductionConfig()
-	conf.Level = DefaultLevel
-
-	// We do not want sampling
 	conf.Sampling = nil
 
-	defaultLogger, err = conf.Build()
-	if err != nil {
+	return conf
+}
+
+// Applies "special" options - filtering and conditional stack-level
+func applySpecials(l *zap.Logger, opt *options.LogOpt) *zap.Logger {
+	if len(opt.Filter) > 0 {
+		// LOG_FILTER
+		l = zap.New(zapfilter.NewFilteringCore(l.Core(), zapfilter.MustParseRules(opt.Filter)))
+	}
+
+	// LOG_STACKTRACE_LEVEL
+	return l.WithOptions(zap.AddStacktrace(mustParseLevel(opt.StacktraceLevel)))
+}
+
+func mustParseLevel(l string) (o zapcore.Level) {
+	if err := o.Set(l); err != nil {
 		panic(err)
 	}
 
-	// Add stacktrace ONLY for panics
-	defaultLogger = applyStacktrace(defaultLogger, zap.PanicLevel)
-}
-
-// applies configured stacktrace level
-//
-// By default it uses Panic or DPanic (depends if debug logger is used)
-// This can be manipulated by setting LOG_STACKTRACE_LEVEL to
-// value "debug", "info", "warn", "error", "dpanic", "panic", or "fatal"
-func applyStacktrace(in *zap.Logger, def zapcore.Level) *zap.Logger {
-	if stl, has := os.LookupEnv("LOG_STACKTRACE_LEVEL"); has {
-		_ = def.UnmarshalText([]byte(stl))
-	}
-
-	return in.WithOptions(zap.AddStacktrace(def))
-}
-
-func Default() *zap.Logger {
-	return defaultLogger
-}
-
-func SetDefault(logger *zap.Logger) {
-	if logger == nil {
-		logger = zap.NewNop()
-	}
-
-	defaultLogger = logger
+	return
 }

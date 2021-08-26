@@ -1,7 +1,5 @@
 # cloud.google.com/go v0.67.0
 cloud.google.com/go/compute/metadata
-# github.com/0xAX/notificator v0.0.0-20191016112426-3962a5ea8da1
-## explicit
 # github.com/766b/chi-prometheus v0.0.0-20180509160047-46ac2b31aa30
 ## explicit
 github.com/766b/chi-prometheus
@@ -46,10 +44,6 @@ github.com/brianvoe/gofakeit/v6
 github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
-# github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4
-## explicit
-# github.com/codegangsta/gin v0.0.0-20171026143024-cafe2ce98974
-## explicit
 # github.com/crewjam/httperr v0.0.0-20190612203328-a946449404da
 github.com/crewjam/httperr
 # github.com/crewjam/saml v0.4.5
@@ -236,8 +230,6 @@ github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
 # github.com/mattermost/xml-roundtrip-validator v0.0.0-20201213122252-bcd7e1b9601e
 github.com/mattermost/xml-roundtrip-validator
-# github.com/mattn/go-shellwords v1.0.12
-## explicit
 # github.com/mattn/go-sqlite3 v1.14.0
 ## explicit
 github.com/mattn/go-sqlite3
@@ -266,8 +258,6 @@ github.com/mitchellh/reflectwalk
 # github.com/ngrok/sqlmw v0.0.0-20200129213757-d5c93a81bec6
 ## explicit
 github.com/ngrok/sqlmw
-# github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e
-## explicit
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -332,8 +322,6 @@ github.com/stretchr/testify/require
 go.uber.org/atomic
 # go.uber.org/multierr v1.6.0
 go.uber.org/multierr
-# go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee
-## explicit
 # go.uber.org/zap v1.19.0
 ## explicit
 go.uber.org/zap
@@ -504,11 +492,12 @@ gopkg.in/mail.v2
 gopkg.in/square/go-jose.v2
 gopkg.in/square/go-jose.v2/cipher
 gopkg.in/square/go-jose.v2/json
-# gopkg.in/urfave/cli.v1 v1.20.0
-## explicit
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
+# moul.io/zapfilter v1.6.1
+## explicit
+moul.io/zapfilter
 # rsc.io/qr v0.2.0
 ## explicit
 rsc.io/qr
