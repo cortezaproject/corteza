@@ -7,7 +7,6 @@ import (
 	authCommands "github.com/cortezaproject/corteza-server/auth/commands"
 	federationCommands "github.com/cortezaproject/corteza-server/federation/commands"
 	"github.com/cortezaproject/corteza-server/pkg/cli"
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	fakerCommands "github.com/cortezaproject/corteza-server/pkg/seeder/commands"
 	"github.com/cortezaproject/corteza-server/store"
@@ -33,8 +32,6 @@ func (app *CortezaApp) InitCLI() {
 		if err := cli.LoadEnv(envs...); err != nil {
 			return fmt.Errorf("failed to load environmental variables: %w", err)
 		}
-
-		logger.Init()
 
 		// Environmental variables (from the env, files, see cli.LoadEnv) MUST be
 		// loaded at this point!

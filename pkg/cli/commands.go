@@ -1,11 +1,8 @@
 package cli
 
 import (
-	"github.com/cortezaproject/corteza-server/pkg/logger"
 	"github.com/cortezaproject/corteza-server/pkg/version"
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-	"os"
 )
 
 var (
@@ -67,12 +64,6 @@ func RootCommand(ppRunEfn func() error) *cobra.Command {
 
 func ServeCommand(runEfn func() error) *cobra.Command {
 	serveApiCommand.RunE = func(cmd *cobra.Command, args []string) (err error) {
-		if _, set := os.LookupEnv("LOG_LEVEL"); !set {
-			// If LOG_LEVEL is not explicitly set, let's
-			// set it to INFO so that it
-			logger.DefaultLevel.SetLevel(zap.InfoLevel)
-		}
-
 		return runEfn()
 	}
 

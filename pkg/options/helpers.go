@@ -57,7 +57,6 @@ func fill(opt interface{}) {
 			}
 
 			panic("unsupported type/kind for field " + t.Name)
-
 		}
 	}
 }

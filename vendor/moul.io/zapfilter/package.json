@@ -1,0 +1,21 @@
+{
+    "_comment": "this project is not a node.js one, package.json is just used to define some metadata",
+    "name": "@moul.io/zapfilter",
+    "version": "0.0.1",
+    "author": "Manfred Touron <oss@moul.io> (https://manfred.life)",
+    "contributors": [
+        "Manfred Touron <oss@moul.io> (https://manfred.life)"
+    ],
+    "license": "(Apache-2.0 OR MIT)",
+    "scripts": {
+        "start": "zapfilter",
+        "install": "make install",
+        "test": "make test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/moul/zapfilter.git"
+    },
+    "bugs": "https://github.com/moul/zapfilter/issues",
+    "homepage": "https://moul.io/zapfilter"
+}
