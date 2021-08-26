@@ -40,7 +40,7 @@ type (
 		log *zap.Logger
 
 		params struct {
-			Func   string `json:"func"`
+			Func   string `json:"jsfunc"`
 			Encode bool   `json:"encode"`
 		}
 	}

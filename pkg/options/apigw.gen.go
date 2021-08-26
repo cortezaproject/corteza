@@ -15,6 +15,7 @@ import (
 type (
 	ApigwOpt struct {
 		Enabled              bool          `env:"APIGW_ENABLED"`
+		Debug                bool          `env:"APIGW_DEBUG"`
 		LogEnabled           bool          `env:"APIGW_LOG_ENABLED"`
 		LogRequestBody       bool          `env:"APIGW_LOG_REQUEST_BODY"`
 		ProxyEnableDebugLog  bool          `env:"APIGW_PROXY_ENABLE_DEBUG_LOG"`
@@ -27,6 +28,7 @@ type (
 func Apigw() (o *ApigwOpt) {
 	o = &ApigwOpt{
 		Enabled:              true,
+		Debug:                false,
 		LogEnabled:           false,
 		LogRequestBody:       false,
 		ProxyEnableDebugLog:  false,

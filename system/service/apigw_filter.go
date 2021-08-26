@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/apigw"
+	agtypes "github.com/cortezaproject/corteza-server/pkg/apigw/types"
 	a "github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/store"
 	"github.com/cortezaproject/corteza-server/system/types"
@@ -83,6 +84,13 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 			return ApigwFilterErrNotFound(qProps)
 		}
 
+		// check for existing filters if route is async
+		if r.Meta.Async {
+			if err = svc.validateAsyncRoute(ctx, r, new, qProps); err != nil {
+				return
+			}
+		}
+
 		if err = store.CreateApigwFilter(ctx, svc.store, new); err != nil {
 			return err
 		}
@@ -98,6 +106,33 @@ func (svc *apigwFilter) Create(ctx context.Context, new *types.ApigwFilter) (q *
 	}()
 
 	return q, svc.recordAction(ctx, qProps, ApigwFilterActionCreate, err)
+}
+
+func (svc *apigwFilter) validateAsyncRoute(ctx context.Context, r *types.ApigwRoute, f *types.ApigwFilter, props *apigwFilterActionProps) (err error) {
+	filters, _, err := svc.Search(ctx, types.ApigwFilterFilter{
+		RouteID: r.ID,
+		Enabled: true,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if f.Kind == string(agtypes.Processer) {
+		processers, _ := filters.Filter(func(af *types.ApigwFilter) (bool, error) {
+			return af.Kind == string(agtypes.Processer), nil
+		})
+
+		if len(processers) == 1 {
+			return ApigwFilterErrAsyncRouteTooManyProcessers(props)
+		}
+	}
+
+	if f.Kind == string(agtypes.PostFilter) {
+		return ApigwFilterErrAsyncRouteTooManyAfterFilters(props)
+	}
+
+	return
 }
 
 func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *types.ApigwFilter, err error) {

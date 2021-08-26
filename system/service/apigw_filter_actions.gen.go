@@ -615,6 +615,78 @@ func ApigwFilterErrNotAllowedToUndelete(mm ...*apigwFilterActionProps) *errors.E
 	return e
 }
 
+// ApigwFilterErrAsyncRouteTooManyProcessers returns "system:filter.asyncRouteTooManyProcessers" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFilterErrAsyncRouteTooManyProcessers(mm ...*apigwFilterActionProps) *errors.Error {
+	var p = &apigwFilterActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("processer already exists for this async route", nil),
+
+		errors.Meta("type", "asyncRouteTooManyProcessers"),
+		errors.Meta("resource", "system:filter"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to add {{filter}}; too many processers, async route"),
+		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.asyncRouteTooManyProcessers"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// ApigwFilterErrAsyncRouteTooManyAfterFilters returns "system:filter.asyncRouteTooManyAfterFilters" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFilterErrAsyncRouteTooManyAfterFilters(mm ...*apigwFilterActionProps) *errors.Error {
+	var p = &apigwFilterActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("no after filters are allowd for this async route", nil),
+
+		errors.Meta("type", "asyncRouteTooManyAfterFilters"),
+		errors.Meta("resource", "system:filter"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(apigwFilterLogMetaKey{}, "failed to add {{filter}}; too many afterfilters, async route"),
+		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigwFilter.errors.asyncRouteTooManyAfterFilters"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 

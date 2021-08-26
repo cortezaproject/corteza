@@ -113,5 +113,5 @@ func Test_processerPayload(t *testing.T) {
 }
 
 func prepareFuncPayload(s string) string {
-	return fmt.Sprintf(`{"func": "%s"}`, base64.StdEncoding.EncodeToString([]byte(s)))
+	return fmt.Sprintf(`{"jsfunc": "%s"}`, base64.StdEncoding.EncodeToString([]byte(s)))
 }

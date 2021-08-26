@@ -1,14 +1,11 @@
 package types
 
 import (
+	"fmt"
 	"net/http"
 )
 
 type (
-	Stringer interface {
-		String() string
-	}
-
 	HTTPHandler interface {
 		Handler() HandlerFunc
 	}
@@ -19,7 +16,7 @@ type (
 
 	Handler interface {
 		HTTPHandler
-		Stringer
+		fmt.Stringer
 
 		Merge([]byte) (Handler, error)
 		Meta() FilterMeta
