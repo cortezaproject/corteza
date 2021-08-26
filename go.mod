@@ -73,10 +73,11 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/steinfletcher/apitest v1.3.8
 	github.com/steinfletcher/apitest-jsonpath v1.3.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tebeka/strftime v0.1.5 // indirect
-	go.uber.org/atomic v1.6.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/atomic v1.7.0
+	go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee // indirect
+	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/image v0.0.0-20190910094157-69e4b8554b2a // indirect
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
@@ -88,6 +89,6 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	rsc.io/qr v0.2.0
 )
