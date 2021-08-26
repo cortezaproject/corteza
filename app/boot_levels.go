@@ -285,7 +285,7 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		//       w/o using any access control
 
 		var (
-			ac  = rbac.NewService(app.Log, app.Store)
+			ac  = rbac.NewService(zap.NewNop(), app.Store)
 			acr = make([]*rbac.Role, 0)
 		)
 		for _, r := range auth.ProvisionUser().Roles() {
@@ -337,8 +337,13 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	}
 
 	if rbac.Global() == nil {
+		log := zap.NewNop()
+		if app.Opt.RBAC.Log {
+			log = app.Log
+		}
+
 		//Initialize RBAC subsystem
-		ac := rbac.NewService(app.Log, app.Store)
+		ac := rbac.NewService(log, app.Store)
 
 		// and (re)load rules from the storage backend
 		ac.Reload(ctx)

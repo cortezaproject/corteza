@@ -13,6 +13,10 @@ props:
 #    default: true
 #    description: When disabled all operations on all resources are allowed
 
+  - name: log
+    type: bool
+    description: Log RBAC related events and actions
+
   - name: serviceUser
   - name: bypassRoles
     # Using literal string instead of DefaultBypassRole constant for clarity & documentation
