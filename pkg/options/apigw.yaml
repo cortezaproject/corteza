@@ -11,6 +11,12 @@ props:
     description: |-
       Enable API Gateway
 
+  - name: Debug
+    type: bool
+    default: false
+    description: |-
+      Enable API Gateway debugging info
+
   - name: logEnabled
     type: bool
     default: false

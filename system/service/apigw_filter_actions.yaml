@@ -73,3 +73,11 @@ errors:
   - error: notAllowedToUndelete
     message: "not allowed to undelete this filter"
     log: "failed to undelete {{filter}}; insufficient permissions"
+
+  - error: asyncRouteTooManyProcessers
+    message: "processer already exists for this async route"
+    log: "failed to add {{filter}}; too many processers, async route"
+
+  - error: asyncRouteTooManyAfterFilters
+    message: "no after filters are allowd for this async route"
+    log: "failed to add {{filter}}; too many afterfilters, async route"

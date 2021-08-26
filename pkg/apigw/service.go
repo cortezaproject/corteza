@@ -154,7 +154,6 @@ func (s *apigw) Router(r chi.Router) {
 // init all the routes
 func (s *apigw) Init(ctx context.Context, route ...*route) {
 	var (
-		hasPostFilters    bool
 		defaultPostFilter types.Handler
 	)
 
@@ -174,7 +173,10 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 			pipe = pipeline.NewPipeline(log)
 		)
 
-		hasPostFilters = false
+		// pipeline needs to know how to handle
+		// async processers
+		pipe.Async(r.meta.async)
+
 		r.opts = s.opts
 		r.log = log
 
@@ -188,6 +190,13 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 		for _, f := range regFilters {
 			flog := log.With(zap.String("ref", f.Ref))
 
+			// make sure there is only one postfilter
+			// on async routes
+			if r.meta.async && f.Kind == string(types.PostFilter) {
+				flog.Debug("not registering filter for async route")
+				continue
+			}
+
 			ff, err := s.registerFilter(f, r)
 
 			if err != nil {
@@ -197,28 +206,24 @@ func (s *apigw) Init(ctx context.Context, route ...*route) {
 
 			pipe.Add(ff)
 
-			// check if it's a postfilter for async support
-			if f.Kind == string(types.PostFilter) {
-				hasPostFilters = true
-			}
-
 			flog.Debug("registered filter")
 		}
 
-		r.handler = pipe.Handler()
-		r.errHandler = pipe.Error()
-
 		// add default postfilter on async
 		// routes if not present
-		if r.meta.async && !hasPostFilters {
+		if r.meta.async {
 			log.Info("registering default postfilter", zap.Error(err))
 
 			pipe.Add(&pipeline.Worker{
 				Handler: defaultPostFilter.Handler(),
 				Name:    defaultPostFilter.String(),
+				Type:    types.PostFilter,
 				Weight:  math.MaxInt8,
 			})
 		}
+
+		r.handler = pipe.Handler()
+		r.errHandler = pipe.Error()
 
 		log.Debug("successfuly registered route")
 	}
@@ -246,8 +251,10 @@ func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker
 	}
 
 	ff = &pipeline.Worker{
+		Async:   r.meta.async && f.Kind == string(types.Processer),
 		Handler: handler.Handler(),
 		Name:    handler.String(),
+		Type:    types.FilterKind(f.Kind),
 		Weight:  filter.FilterWeight(int(f.Weight), types.FilterKind(f.Kind)),
 	}
 
