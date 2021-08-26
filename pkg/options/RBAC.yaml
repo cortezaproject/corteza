@@ -2,6 +2,12 @@ docs:
   title: RBAC options
 
 props:
+# Maybe someday we'll allow RBAC to be disabled
+#
+# Boolean might not be the best way but providing a secret here that would
+# protect the entire corteza with a simple basic HTTP out while RBAC check are disabled
+# would make sense?
+#
 #  - name: enabled
 #    type: bool
 #    default: true
