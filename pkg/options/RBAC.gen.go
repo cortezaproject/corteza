@@ -10,6 +10,7 @@ package options
 
 type (
 	RBACOpt struct {
+		Log                bool   `env:"RBAC_LOG"`
 		ServiceUser        string `env:"RBAC_SERVICE_USER"`
 		BypassRoles        string `env:"RBAC_BYPASS_ROLES"`
 		AuthenticatedRoles string `env:"RBAC_AUTHENTICATED_ROLES"`
