@@ -117,6 +117,17 @@ func (h emailHandler) setAddress(_ context.Context, args *emailSetAddressArgs) (
 	return nil
 }
 
+func (h emailHandler) addAddress(_ context.Context, args *emailAddAddressArgs) (err error) {
+	if args.Message.msg == nil {
+		return fmt.Errorf("email message not initialized")
+	}
+
+	mm := args.Message.msg.GetHeader(args.Type)
+	mm = append(mm, args.Message.msg.FormatAddress(args.Address, args.Name))
+	args.Message.msg.SetHeader(args.Type, mm...)
+	return nil
+}
+
 func (h emailHandler) attach(_ context.Context, args *emailAttachArgs) (err error) {
 	if args.Message.msg == nil {
 		return fmt.Errorf("email message not initialized")

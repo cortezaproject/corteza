@@ -134,7 +134,26 @@ functions:
   setAddress:
     kind: function
     meta:
-      short: Email address
+      short: Email set address
+      description: Sets the recipient, sender or reply-to addresses
+    params:
+      message: *messageParam
+      type:
+        required: true
+        meta: { label: Type, description: One of From, ReplyTo, To, CC, BCC }
+        types: [ { wf: String } ]
+      address:
+        required: true
+        meta: { label: Address }
+        types: [ { wf: String } ]
+      name:
+        meta: { label: Name }
+        types: [ { wf: String } ]
+
+  addAddress:
+    kind: function
+    meta:
+      short: Email add address
       description: Adds new recipient, sender or reply-to address
     params:
       message: *messageParam
