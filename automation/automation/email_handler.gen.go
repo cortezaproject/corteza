@@ -35,6 +35,7 @@ func (h emailHandler) register() {
 		h.SetHeaders(),
 		h.SetHeader(),
 		h.SetAddress(),
+		h.AddAddress(),
 		h.Attach(),
 		h.Embed(),
 	)
@@ -809,7 +810,7 @@ type (
 	}
 )
 
-// SetAddress function Email address
+// SetAddress function Email set address
 //
 // expects implementation of setAddress function:
 // func (h emailHandler) setAddress(ctx context.Context, args *emailSetAddressArgs) (err error) {
@@ -821,8 +822,8 @@ func (h emailHandler) SetAddress() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string(nil),
 		Meta: &atypes.FunctionMeta{
-			Short:       "Email address",
-			Description: "Adds new recipient, sender or reply-to address",
+			Short:       "Email set address",
+			Description: "Sets the recipient, sender or reply-to addresses",
 		},
 
 		Parameters: []*atypes.Param{
@@ -872,6 +873,89 @@ func (h emailHandler) SetAddress() *atypes.Function {
 			}
 
 			return out, h.setAddress(ctx, args)
+		},
+	}
+}
+
+type (
+	emailAddAddressArgs struct {
+		hasMessage bool
+		Message    *emailMessage
+
+		hasType bool
+		Type    string
+
+		hasAddress bool
+		Address    string
+
+		hasName bool
+		Name    string
+	}
+)
+
+// AddAddress function Email add address
+//
+// expects implementation of addAddress function:
+// func (h emailHandler) addAddress(ctx context.Context, args *emailAddAddressArgs) (err error) {
+//    return
+// }
+func (h emailHandler) AddAddress() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "emailAddAddress",
+		Kind:   "function",
+		Labels: map[string]string(nil),
+		Meta: &atypes.FunctionMeta{
+			Short:       "Email add address",
+			Description: "Adds new recipient, sender or reply-to address",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "message",
+				Types: []string{"EmailMessage"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Message to be sent",
+				},
+			},
+			{
+				Name:  "type",
+				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Type",
+					Description: "One of From",
+				},
+			},
+			{
+				Name:  "address",
+				Types: []string{"String"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label: "Address",
+				},
+			},
+			{
+				Name:  "name",
+				Types: []string{"String"},
+				Meta: &atypes.ParamMeta{
+					Label: "Name",
+				},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &emailAddAddressArgs{
+					hasMessage: in.Has("message"),
+					hasType:    in.Has("type"),
+					hasAddress: in.Has("address"),
+					hasName:    in.Has("name"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			return out, h.addAddress(ctx, args)
 		},
 	}
 }
