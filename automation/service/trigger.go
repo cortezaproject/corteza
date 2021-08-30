@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/cortezaproject/corteza-server/automation/types"
+	cmpEvent "github.com/cortezaproject/corteza-server/compose/service/event"
 	"github.com/cortezaproject/corteza-server/pkg/actionlog"
 	"github.com/cortezaproject/corteza-server/pkg/auth"
 	"github.com/cortezaproject/corteza-server/pkg/errors"
@@ -17,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/options"
 	"github.com/cortezaproject/corteza-server/pkg/wfexec"
 	"github.com/cortezaproject/corteza-server/store"
+	sysEvent "github.com/cortezaproject/corteza-server/system/service/event"
 	"go.uber.org/zap"
 )
 
@@ -464,6 +466,10 @@ func (svc *trigger) registerWorkflow(ctx context.Context, wf *types.Workflow, tt
 		return fmt.Errorf("all triggers must reference the given workflow")
 	}
 
+	if wis := validateWorkflowTriggers(wf, tt...); len(wis) > 0 {
+		return wis
+	}
+
 	if wf.RunAs > 0 {
 		if runAs, err = DefaultUser.FindByAny(ctx, wf.RunAs); err != nil {
 			return fmt.Errorf("failed to load run-as user %d: %w", wf.RunAs, err)
@@ -628,4 +634,44 @@ func toLabeledTriggers(set []*types.Trigger) []label.LabeledResource {
 	}
 
 	return ll
+}
+
+// Checks if triggers are compatible with the workflow
+//
+// It ignores disabled triggers and does not care if triggers are in fact bond to the
+// given workflow
+func validateWorkflowTriggers(wf *types.Workflow, tt ...*types.Trigger) (wis types.WorkflowIssueSet) {
+	var (
+		// @todo find a better way how to flag events type that require
+		//       run-as param to be set
+		//       Possible solution: flag in definition that generates static
+		//       list w/o the need  of cross-component imports
+		requireRunAs = []eventbus.Event{
+			sysEvent.SinkOnRequest(nil, nil),
+			sysEvent.QueueOnMessage(nil),
+			sysEvent.SystemOnInterval(),
+			sysEvent.SystemOnTimestamp(),
+			cmpEvent.ComposeOnInterval(),
+			cmpEvent.ComposeOnTimestamp(),
+		}
+	)
+
+	for i, t := range tt {
+		if !t.Enabled {
+			continue
+		}
+
+		for _, ev := range requireRunAs {
+			if t.ResourceType == ev.ResourceType() && t.EventType == ev.EventType() {
+				if wf.RunAs == 0 {
+					wis = wis.Append(
+						errors.InvalidData("%s for %s requires run-as to be set", ev.ResourceType(), ev.EventType()),
+						map[string]int{"trigger": i},
+					)
+				}
+			}
+		}
+	}
+
+	return
 }
