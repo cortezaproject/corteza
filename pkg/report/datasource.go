@@ -12,7 +12,7 @@ type (
 	}
 
 	// Loader returns the next Frame from the Datasource; returns nil, nil if no more
-	Loader func(cap int) ([]*Frame, error)
+	Loader func(cap int, processed bool) ([]*Frame, error)
 	// Closer closes the Datasource
 	Closer func()
 
@@ -34,7 +34,7 @@ type (
 	//       somethins similar to how we do typecasting should do the trick.
 	PartitionableDatasource interface {
 		Datasource
-		Partition(context.Context, uint, string, ...*FrameDefinition) (Loader, Closer, error)
+		Partition(partitionSize uint, partitionCol string) (bool, error)
 	}
 
 	// @todo TransformableDatasource

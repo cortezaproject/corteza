@@ -3,6 +3,7 @@ package rdbms
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -27,6 +28,10 @@ type (
 
 		store *Store
 		rows  *sql.Rows
+
+		partitioned   bool
+		partitionSize uint
+		partitionCol  string
 
 		baseFilter *qlng.ASTNode
 
@@ -86,8 +91,11 @@ func (r *recordDatasource) Describe() report.FrameDescriptionSet {
 }
 
 func (r *recordDatasource) Load(ctx context.Context, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
-	def := dd[0]
+	if r.partitioned {
+		return r.partition(ctx, r.partitionSize, r.partitionCol, dd...)
+	}
 
+	def := dd[0]
 	q, err := r.preloadQuery(def)
 	if err != nil {
 		return nil, nil, err
@@ -207,7 +215,21 @@ func (r *recordDatasource) Group(d report.GroupDefinition, name string) (bool, e
 
 // @todo add Transform
 
-func (r *recordDatasource) Partition(ctx context.Context, partitionSize uint, partitionCol string, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
+func (r *recordDatasource) Partition(partitionSize uint, partitionCol string) (bool, error) {
+	if r.partitioned {
+		return true, nil
+	}
+	if partitionCol == "" {
+		return false, errors.New("unable to partition: partition column not defined")
+	}
+
+	r.partitioned = true
+	r.partitionCol = partitionCol
+	r.partitionSize = partitionSize
+	return true, nil
+}
+
+func (r *recordDatasource) partition(ctx context.Context, partitionSize uint, partitionCol string, dd ...*report.FrameDefinition) (l report.Loader, c report.Closer, err error) {
 	def := dd[0]
 
 	q, err := r.preloadQuery(def)
@@ -320,11 +342,11 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 		return nil, nil, fmt.Errorf("cannot execute query: %w", err)
 	}
 
-	return func(cap int) ([]*report.Frame, error) {
+	return func(cap int, processed bool) ([]*report.Frame, error) {
 			f := &report.Frame{
 				Name:   def.Name,
 				Source: def.Source,
-				Ref:    def.Ref,
+				Ref:    r.Name(),
 				Sort:   def.Sort,
 				Filter: def.Filter,
 			}
@@ -336,7 +358,7 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 			// any additional pages
 			i := 0
 			f.Columns = def.Columns
-			f.Rows = make(report.FrameRowSet, 0, cap+1)
+			f.Rows = make(report.FrameRowSet, 0, cap)
 
 			for r.rows.Next() {
 				i++
@@ -347,21 +369,37 @@ func (r *recordDatasource) load(ctx context.Context, def *report.FrameDefinition
 				}
 
 				// If the count goes over the capacity, then we have a next page
-				if checkCap && i > cap {
+				if checkCap && (processed && i > cap || !processed && i >= cap) {
 					out := []*report.Frame{f}
 					f = &report.Frame{
+						Name:   def.Name,
+						Source: def.Source,
+						Ref:    r.Name(),
 						Sort:   def.Sort,
 						Filter: def.Filter,
 					}
 					i = 0
-					return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor), nil
+					if processed {
+						return r.calculatePaging(out, def.Sort, uint(cap), def.Paging.PageCursor), nil
+					}
+					return out, nil
 				}
 			}
 
 			if i > 0 {
-				return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor), nil
+				if processed {
+					return r.calculatePaging([]*report.Frame{f}, def.Sort, uint(cap), def.Paging.PageCursor), nil
+				} else {
+					return []*report.Frame{f}, nil
+				}
 			}
-			return []*report.Frame{f}, nil
+
+			if processed {
+				return []*report.Frame{f}, nil
+			}
+
+			// This indicates that the DS is empty
+			return nil, nil
 		}, func() {
 			if r.rows == nil {
 				return

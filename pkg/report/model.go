@@ -239,7 +239,7 @@ func (m *model) Load(ctx context.Context, dd ...*FrameDefinition) (ff []*Frame, 
 		}
 		defer c()
 
-		ff, err = l(int(def.Paging.Limit))
+		ff, err = l(int(def.Paging.Limit), true)
 		if err != nil {
 			return err
 		}
