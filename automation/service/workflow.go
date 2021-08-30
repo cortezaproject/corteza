@@ -210,7 +210,9 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			CreatedBy: cUser,
 		}
 
-		if _, wf.Issues = Convert(svc, wf); len(wf.Issues) == 0 {
+		if wf.Issues, err = svc.validateWorkflow(ctx, wf); err != nil {
+			return
+		} else if len(wf.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, wf); err != nil {
 				return err
 			}
@@ -249,7 +251,9 @@ func (svc *workflow) DeleteByID(ctx context.Context, workflowID uint64) error {
 			return workflowUnchanged, err
 		}
 
-		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
+			return workflowUnchanged, err
+		} else if len(res.Issues) == 0 {
 			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
 				return workflowUnchanged, err
 			}
@@ -267,7 +271,9 @@ func (svc *workflow) UndeleteByID(ctx context.Context, workflowID uint64) error 
 			return workflowUnchanged, err
 		}
 
-		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
+			return workflowUnchanged, err
+		} else if len(res.Issues) == 0 {
 			if err := svc.triggers.registerWorkflows(ctx, res); err != nil {
 				return workflowUnchanged, err
 			}
@@ -313,7 +319,9 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 			return err
 		}
 
-		if _, res.Issues = Convert(svc, res); len(res.Issues) == 0 {
+		if res.Issues, err = svc.validateWorkflow(ctx, res); err != nil {
+			return
+		} else if len(res.Issues) == 0 {
 			if err = svc.triggers.registerWorkflows(ctx, res); err != nil {
 				return err
 			}
@@ -601,6 +609,25 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 	}()
 
 	return results, stacktrace, svc.recordAction(ctx, wap, WorkflowActionExecute, err)
+}
+
+// validates workflow by trying to convert it to graph and checking assigned triggers
+func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (types.WorkflowIssueSet, error) {
+	_, wis := Convert(svc, wf)
+
+	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
+		WorkflowID: types.WorkflowSet{wf}.IDs(),
+		Deleted:    filter.StateInclusive,
+		Disabled:   filter.StateExcluded,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	wis = append(wis, validateWorkflowTriggers(wf, tt...)...)
+
+	return wis, nil
 }
 
 func makeWorkflowHandler(ac workflowExecController, s *session, t *types.Trigger, wf *types.Workflow, g *wfexec.Graph, _runAs intAuth.Identifiable) eventbus.HandlerFn {
