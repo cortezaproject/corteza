@@ -73,6 +73,7 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 
 		var c *report.FrameColumn
 		c = report.MakeColumnOfKind("Record")
+		c.System = true
 		c.Name = "id"
 		c.Label = "Record ID"
 		c.Primary = true
@@ -92,31 +93,37 @@ func (svc record) Datasource(ctx context.Context, ld *report.LoadStepDefinition)
 
 		// Sys fields
 		c = report.MakeColumnOfKind("Date")
+		c.System = true
 		c.Name = "createdAt"
 		c.Label = "Created at"
 		cols = append(cols, c)
 
 		c = report.MakeColumnOfKind("User")
+		c.System = true
 		c.Name = "createdBy"
 		c.Label = "Created by"
 		cols = append(cols, c)
 
 		c = report.MakeColumnOfKind("Date")
+		c.System = true
 		c.Name = "updatedAt"
 		c.Label = "Updated at"
 		cols = append(cols, c)
 
 		c = report.MakeColumnOfKind("User")
+		c.System = true
 		c.Name = "updatedBy"
 		c.Label = "Updated by"
 		cols = append(cols, c)
 
 		c = report.MakeColumnOfKind("Date")
+		c.System = true
 		c.Name = "deletedAt"
 		c.Label = "Deleted at"
 		cols = append(cols, c)
 
 		c = report.MakeColumnOfKind("User")
+		c.System = true
 		c.Name = "deletedBy"
 		c.Label = "Deleted by"
 		cols = append(cols, c)

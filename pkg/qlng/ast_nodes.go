@@ -3,8 +3,11 @@ package qlng
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/expr"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -29,6 +32,26 @@ type (
 		opDef *opDef
 	}
 )
+
+func (n *ASTNode) String() string {
+	// Leaf edge-cases
+	switch {
+	case n.Symbol != "":
+		return n.Symbol
+	case n.Value != nil:
+		return "\"" + cast.ToString(n.Value.V.Get()) + "\""
+	}
+
+	// Process arguments for the op.
+	args := make([]string, len(n.Args))
+	for i, a := range n.Args {
+		s := a.String()
+		args[i] = s
+	}
+
+	// Default handlers
+	return fmt.Sprintf("%s(%s)", n.Ref, strings.Join(args, ", "))
+}
 
 func MakeValueOf(t string, v interface{}) *typedValue {
 	return &typedValue{
