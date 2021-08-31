@@ -143,9 +143,9 @@ func (h Queues) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
 		r.Get("/queues/", h.List)
-		r.Put("/queues", h.Create)
+		r.Post("/queues", h.Create)
 		r.Get("/queues/{queueID}", h.Read)
-		r.Post("/queues/{queueID}", h.Update)
+		r.Put("/queues/{queueID}", h.Update)
 		r.Delete("/queues/{queueID}", h.Delete)
 		r.Post("/queues/{queueID}/undelete", h.Undelete)
 	})
