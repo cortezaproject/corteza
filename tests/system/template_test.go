@@ -131,7 +131,6 @@ func TestTemplateCreate(t *testing.T) {
 	h.apiInit().
 		Post("/template/").
 		Header("Accept", "application/json").
-		FormData("handle", rs()).
 		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
@@ -147,7 +146,7 @@ func TestTemplateUpdateForbidden(t *testing.T) {
 	h.apiInit().
 		Put(fmt.Sprintf("/template/%d", u.ID)).
 		Header("Accept", "application/json").
-		FormData("handle", rs()).
+		FormData("handle", "handle_"+rs()).
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("template.errors.notAllowedToUpdate")).
