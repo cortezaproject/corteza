@@ -32,6 +32,11 @@ func onInterval(now time.Time, ii ...string) (bool, error) {
 
 	// At least one of the given expressions should match
 	for _, i := range ii {
+		if len(i) == 0 {
+			// skip empty values
+			continue
+		}
+
 		exp, err := cronexpr.Parse(i)
 		if err != nil {
 			return false, err
@@ -61,6 +66,11 @@ func onTimestamp(now time.Time, tt ...string) (bool, error) {
 	)
 
 	for _, t := range tt {
+		if len(t) == 0 {
+			// skip empty values
+			continue
+		}
+
 		ts, err := time.Parse(time.RFC3339, t)
 		if err != nil {
 			return false, err
