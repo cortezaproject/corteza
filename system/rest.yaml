@@ -1590,7 +1590,7 @@ endpoints:
       - { type: string, name: sort,       required: false, title: Sort items }
       - { type: uint,   name: deleted,    required: false, title: Exclude (0, default), include (1) or return only (2) deleted queues }
   - name: create
-    method: PUT
+    method: POST
     title: Create messaging queue
     path: ""
     parameters:
@@ -1606,7 +1606,7 @@ endpoints:
       path:
       - { type: uint64, name: queueID, required: true, title: Queue ID }
   - name: update
-    method: POST
+    method: PUT
     title: Update queue details
     path: "/{queueID}"
     parameters:
