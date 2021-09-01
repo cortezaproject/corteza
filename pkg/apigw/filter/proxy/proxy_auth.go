@@ -1,14 +1,13 @@
 package proxy
 
 import (
-	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/cortezaproject/corteza-server/pkg/apigw/types"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
+	"github.com/cortezaproject/corteza-server/pkg/http/auth"
 )
 
 const (
@@ -36,12 +35,15 @@ type (
 	}
 
 	proxyAuthServicerBasic struct {
+		servicer auth.ServicerBasic
+
 		user string
 		pass string
 	}
 
 	proxyAuthServicerOauth2 struct {
-		c *http.Client
+		c        *http.Client
+		servicer auth.ServicerOauth2
 
 		client   string
 		secret   string
@@ -75,6 +77,23 @@ type (
 	}
 )
 
+func NewProxyAuthServicer(c *http.Client, p ProxyAuthParams, s types.SecureStorager) (ProxyAuthServicer, error) {
+	switch p.Type {
+	case proxyAuthTypeHeader:
+		return NewProxyAuthHeader(p)
+	case proxyAuthTypeQuery:
+		return NewProxyAuthQuery(p)
+	case proxyAuthTypeBasic:
+		return NewProxyAuthBasic(p)
+	case proxyAuthTypeOauth2:
+		return NewProxyAuthOauth2(p, c, s)
+	case proxyAuthTypeJWT:
+		return NewProxyAuthJWT(p)
+	default:
+		return proxyAuthServicerNoop{}, nil
+	}
+}
+
 func NewProxyAuthHeader(p ProxyAuthParams) (s proxyAuthServicerHeader, err error) {
 	s = proxyAuthServicerHeader{
 		params: p.Params,
@@ -107,13 +126,19 @@ func NewProxyAuthBasic(p ProxyAuthParams) (s proxyAuthServicerBasic, err error) 
 		return
 	}
 
-	s = proxyAuthServicerBasic{user: user, pass: pass}
+	servicer, _ := auth.NewBasic(auth.BasicParams{
+		User: user,
+		Pass: pass,
+	})
+
+	s = proxyAuthServicerBasic{user: user, pass: pass, servicer: servicer}
 
 	return
 }
 
 func NewProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorager) (ss proxyAuthServicerOauth2, err error) {
 	var (
+		u                        *url.URL
 		ok                       bool
 		client, secret, tokenUrl string
 		scope                    []string = []string{}
@@ -133,14 +158,22 @@ func NewProxyAuthOauth2(p ProxyAuthParams, c *http.Client, s types.SecureStorage
 		scope = strings.Fields(scopes)
 	}
 
-	if tokenUrl, ok = p.Params["token_url"].(string); !ok {
-		err = fmt.Errorf("invalid param token url")
+	if u, err = url.Parse(p.Params["token_url"].(string)); err != nil {
+		err = fmt.Errorf("invalid param token url: %s", err)
 		return
 	}
+
+	servicer, err := auth.NewOauth2(auth.Oauth2Params{
+		Client:   client,
+		Secret:   secret,
+		Scope:    scope,
+		TokenUrl: u,
+	}, c, s)
 
 	ss = proxyAuthServicerOauth2{
 		c:        c,
 		client:   client,
+		servicer: servicer,
 		secret:   secret,
 		scope:    scope,
 		tokenUrl: tokenUrl,
@@ -167,23 +200,6 @@ func NewProxyAuthJWT(p ProxyAuthParams) (ss proxyAuthServicerJWT, err error) {
 	return
 }
 
-func NewProxyAuthServicer(c *http.Client, p ProxyAuthParams, s types.SecureStorager) (ProxyAuthServicer, error) {
-	switch p.Type {
-	case proxyAuthTypeHeader:
-		return NewProxyAuthHeader(p)
-	case proxyAuthTypeQuery:
-		return NewProxyAuthQuery(p)
-	case proxyAuthTypeBasic:
-		return NewProxyAuthBasic(p)
-	case proxyAuthTypeOauth2:
-		return NewProxyAuthOauth2(p, c, s)
-	case proxyAuthTypeJWT:
-		return NewProxyAuthJWT(p)
-	default:
-		return proxyAuthServicerNoop{}, nil
-	}
-}
-
 func (s proxyAuthServicerHeader) Do(r *http.Request) error {
 	for k, v := range s.params {
 		r.Header.Add(k, v.(string))
@@ -208,27 +224,17 @@ func (s proxyAuthServicerQuery) Do(r *http.Request) error {
 }
 
 func (s proxyAuthServicerBasic) Do(r *http.Request) error {
-	r.SetBasicAuth(s.user, s.pass)
+	r.Header.Set("Authorization", "Basic "+s.servicer.Do(r.Context()))
 	return nil
 }
 
 func (s proxyAuthServicerOauth2) Do(r *http.Request) error {
-	c := &clientcredentials.Config{
-		ClientID:     s.client,
-		ClientSecret: s.secret,
-		Scopes:       s.scope,
-		TokenURL:     s.tokenUrl,
-	}
-
-	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, s.c)
-
-	t, err := c.Token(ctx)
+	t, err := s.servicer.Do(r.Context())
 
 	if err != nil {
 		return err
 	}
 
-	// todo - store this to secure storager
 	r.Header.Set("Authorization", "Bearer "+t.AccessToken)
 
 	return nil
