@@ -50,6 +50,13 @@ func (j *stepJoin) Run(ctx context.Context, dd ...Datasource) (Datasource, error
 		return nil, fmt.Errorf("foreign join datasources not defined: %s", j.def.LocalSource)
 	}
 
+	// @todo temporarily disabled
+	for _, d := range dd {
+		if _, ok := d.(*joinedDataset); ok {
+			return nil, fmt.Errorf("unable to join a joined source: %s", d.Name())
+		}
+	}
+
 	// @todo multiple joins
 	return &joinedDataset{
 		def:     j.def,
@@ -397,6 +404,11 @@ func (d *joinedDataset) validateSort(def *FrameDefinition, dd FrameDescriptionSe
 		if len(aa) > 1 {
 			sortDS = aa[0]
 		}
+	}
+
+	// @todo temporarily disabled
+	if sortDS != "" {
+		return fmt.Errorf("[temporary] initial sort can not by by a foreign column: %s", sortDS)
 	}
 
 	// The first one is always local so this is ok

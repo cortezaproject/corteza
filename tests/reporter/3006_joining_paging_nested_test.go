@@ -7,6 +7,9 @@ import (
 )
 
 func Test3006_joining_paging_nested(t *testing.T) {
+
+	t.Skip("@todo temporarily disabled")
+
 	var (
 		ctx, h, s      = setup(t)
 		m, _, dd       = loadScenario(ctx, s, t, h)
