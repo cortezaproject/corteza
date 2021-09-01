@@ -185,6 +185,12 @@ change-password:
     form:
       error: "There was an error..."
 
+create-password:
+  Default: {}
+  With error:
+    form:
+      error: "There was an error..."
+
 authorized-clients:
   Empty: {}
   Full:

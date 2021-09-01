@@ -6,6 +6,7 @@ type (
 		SignupEnabled             bool
 		EmailConfirmationRequired bool
 		PasswordResetEnabled      bool
+		PasswordCreateEnabled     bool
 		ExternalEnabled           bool
 		SplitCredentialsCheck     bool
 		Providers                 []Provider

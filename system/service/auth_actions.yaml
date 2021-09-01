@@ -56,6 +56,9 @@ actions:
   - action: exchangePasswordResetToken
     log: "password reset token exchanged"
 
+  - action: generatePasswordCreateToken
+    log: "password create token generated for {{email}}"
+
   - action: autoPromote
     log: "auto-promoted to {{role}}"
 
@@ -128,8 +131,14 @@ errors:
   - error: passwodResetFailedOldPasswordCheckFailed
     message: "failed to change password, old password does not match"
 
+  - error: passwordCreateFailedForUnknownUser
+    message: "failed to create password for the unknown user"
+
   - error: passwordResetDisabledByConfig
     message: "password reset is disabled"
+
+  - error: passwordCreateDisabledByConfig
+    message: "password create is disabled"
 
   - error: passwordNotSecure
     message: "provided password is not secure; use longer password with more non-alphanumeric character"

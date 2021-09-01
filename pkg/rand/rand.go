@@ -9,10 +9,12 @@ import (
 // credits: https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang
 
 const (
-	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+	letterSpecials = "~=+%^*/()[]{}/!@#$?|"
+	letterDigits   = "0123456789"
+	letterBytes    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" + letterDigits
+	letterIdxBits  = 6                    // 6 bits to represent a letter index
+	letterIdxMask  = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax   = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
 var randSrc = rand.NewSource(time.Now().UnixNano())
@@ -38,4 +40,28 @@ func Bytes(n int) []byte {
 	}
 
 	return b
+}
+
+// Password generates a random ASCII string with at least one digit and one special character
+func Password(n int) string {
+	mu.Lock()
+	defer mu.Unlock()
+
+	b := make([]byte, n)
+
+	for i := 0; i < n; i++ {
+		var s string
+		if i == 0 {
+			s = letterDigits
+		} else if i == 1 {
+			s = letterSpecials
+		} else {
+			s = letterBytes
+		}
+		b[i] = s[rand.Intn(len(s))]
+	}
+	rand.Shuffle(len(b), func(i, j int) {
+		b[i], b[j] = b[j], b[i]
+	})
+	return string(b) // E.g. "3i[g0|)z"
 }

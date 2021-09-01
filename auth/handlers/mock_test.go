@@ -85,8 +85,10 @@ type (
 		internalLogin                     func(context.Context, string, string) (u *types.User, err error)
 		setPassword                       func(context.Context, uint64, string) (err error)
 		changePassword                    func(context.Context, uint64, string, string) (err error)
+		createPassword                    func(context.Context, uint64, string) (err error)
 		validateEmailConfirmationToken    func(context.Context, string) (user *types.User, err error)
 		validatePasswordResetToken        func(context.Context, string) (user *types.User, err error)
+		validatePasswordCreateToken       func(context.Context, string) (user *types.User, err error)
 		sendEmailAddressConfirmationToken func(context.Context, *types.User) (err error)
 		sendPasswordResetToken            func(context.Context, string) (err error)
 		passwordSet                       func(context.Context, string) bool
@@ -136,6 +138,10 @@ func (s authServiceMocked) ValidateEmailConfirmationToken(ctx context.Context, t
 
 func (s authServiceMocked) ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error) {
 	return s.validatePasswordResetToken(ctx, token)
+}
+
+func (s authServiceMocked) ValidatePasswordCreateToken(ctx context.Context, token string) (user *types.User, err error) {
+	return s.validatePasswordCreateToken(ctx, token)
 }
 
 func (s authServiceMocked) PasswordSet(ctx context.Context, email string) (is bool) {
@@ -248,6 +254,13 @@ func (ma mockAuthService) ValidatePasswordResetToken(ctx context.Context, token 
 	return &types.User{ID: 123}, nil
 }
 
+//
+// Mocking authService
+//
+func (ma mockAuthService) ValidatePasswordCreateToken(ctx context.Context, token string) (*types.User, error) {
+	return &types.User{ID: 123}, nil
+}
+
 func (ma mockAuthService) SendEmailOTP(ctx context.Context) error {
 	return nil
 }
@@ -266,6 +279,10 @@ func (m mockNotificationService) EmailConfirmation(ctx context.Context, emailAdd
 
 func (m mockNotificationService) PasswordReset(ctx context.Context, emailAddress string, token string) error {
 	return nil
+}
+
+func (m mockNotificationService) PasswordCreate(ctx context.Context, emailAddress string, token string) (string, error) {
+	return "", nil
 }
 
 func (m mockNotificationService) EmailOTP(ctx context.Context, emailAddress string, code string) error {
