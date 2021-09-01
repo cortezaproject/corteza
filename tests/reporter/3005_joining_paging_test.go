@@ -6,7 +6,7 @@ import (
 	"github.com/cortezaproject/corteza-server/pkg/report"
 )
 
-func Test3004_joining_paging(t *testing.T) {
+func Test3005_joining_paging(t *testing.T) {
 	var (
 		ctx, h, s      = setup(t)
 		m, _, dd       = loadScenario(ctx, s, t, h)
@@ -30,10 +30,10 @@ func Test3004_joining_paging(t *testing.T) {
 		", aa_05, aa :: 05",
 		", aa_04, aa :: 04")
 
-	foreign = ix["aa_05"]
+	foreign = ix["bb/aa/aa_05"]
 	h.a.NotNil(foreign)
 
-	foreign = ix["aa_04"]
+	foreign = ix["bb/aa/aa_04"]
 	h.a.NotNil(foreign)
 
 	// // // PAGE 2
@@ -52,10 +52,10 @@ func Test3004_joining_paging(t *testing.T) {
 		", aa_03, aa :: 03",
 		", aa_02, aa :: 02")
 
-	foreign = ix["aa_03"]
+	foreign = ix["bb/aa/aa_03"]
 	h.a.NotNil(foreign)
 
-	foreign = ix["aa_02"]
+	foreign = ix["bb/aa/aa_02"]
 	h.a.NotNil(foreign)
 
 	// // // PAGE 1
@@ -72,6 +72,6 @@ func Test3004_joining_paging(t *testing.T) {
 	checkRows(h, local,
 		", aa_01, aa :: 01")
 
-	foreign = ix["aa_01"]
+	foreign = ix["bb/aa/aa_01"]
 	h.a.NotNil(foreign)
 }

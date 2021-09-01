@@ -27,7 +27,7 @@ func Test3004_filtering(t *testing.T) {
 		", Maria_Königsmann, Maria, Königsmann")
 
 	// Engel_Kiefer
-	foreign = ix["Engel_Kiefer"]
+	foreign = ix["jobs/users/Engel_Kiefer"]
 	h.a.NotNil(foreign)
 	h.a.Equal(4, foreign.Size())
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())
@@ -38,7 +38,7 @@ func Test3004_filtering(t *testing.T) {
 		", Engel_Kiefer, u12 j9, a, 71, 90")
 
 	// Engel_Loritz
-	foreign = ix["Maria_Königsmann"]
+	foreign = ix["jobs/users/Maria_Königsmann"]
 	h.a.NotNil(foreign)
 	h.a.Equal(2, foreign.Size())
 	h.a.Equal("id<Record>, usr<String>, name<String>, type<Select>, cost<Number>, time_spent<Number>", foreign.Columns.String())

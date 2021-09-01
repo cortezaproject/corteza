@@ -1,0 +1,24 @@
+{
+  "handle": "testing_report",
+  "sources": [{
+    "step": { "load": {
+      "name": "users",
+      "source": "composeRecords",
+      "definition": {
+        "module": "user",
+        "namespace": "ns"
+      }
+  }}}],
+  "frames": [{
+    "name":   "result",
+    "source": "users",
+    "columns": [
+      { "name": "id", "label": "id" },
+      { "name": "join_key", "label": "join_key" },
+      { "name": "first_name", "label": "first_name" }
+    ],
+    "paging": {
+      "limit": 5
+    }
+  }]
+}

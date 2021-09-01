@@ -354,7 +354,7 @@ func indexJoinedResult(ff []*report.Frame) map[string]*report.Frame {
 	out := make(map[string]*report.Frame)
 	// the first one is the local ds
 	for _, f := range ff[1:] {
-		out[f.RefValue] = f
+		out[fmt.Sprintf("%s/%s/%s", f.Ref, f.RelSource, f.RefValue)] = f
 	}
 
 	return out

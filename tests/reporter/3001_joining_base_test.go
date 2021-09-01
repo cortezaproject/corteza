@@ -32,7 +32,7 @@ func Test3001_joining_base(t *testing.T) {
 		"aa_05, aa :: 05")
 
 	// aa_01
-	foreign = ix["aa_01"]
+	foreign = ix["bb/aa/aa_01"]
 	h.a.NotNil(foreign)
 	h.a.Equal("pk<String>, fk_a<String>, label<String>", foreign.Columns.OmitSys().String())
 	h.a.Equal("joined", foreign.Source)
@@ -45,7 +45,7 @@ func Test3001_joining_base(t *testing.T) {
 		"bb_03, aa_01, bb :: 03")
 
 	// aa_02
-	foreign = ix["aa_02"]
+	foreign = ix["bb/aa/aa_02"]
 	h.a.NotNil(foreign)
 	h.a.Equal("pk<String>, fk_a<String>, label<String>", foreign.Columns.OmitSys().String())
 	h.a.Equal("joined", foreign.Source)
@@ -57,7 +57,7 @@ func Test3001_joining_base(t *testing.T) {
 		"bb_05, aa_02, bb :: 05")
 
 	// aa_03
-	foreign = ix["aa_03"]
+	foreign = ix["bb/aa/aa_03"]
 	h.a.NotNil(foreign)
 	h.a.Equal("pk<String>, fk_a<String>, label<String>", foreign.Columns.OmitSys().String())
 	h.a.Equal("joined", foreign.Source)
@@ -68,7 +68,7 @@ func Test3001_joining_base(t *testing.T) {
 		"bb_06, aa_03, bb :: 06")
 
 	// aa_04
-	foreign = ix["aa_04"]
+	foreign = ix["bb/aa/aa_04"]
 	h.a.NotNil(foreign)
 	h.a.Equal("pk<String>, fk_a<String>, label<String>", foreign.Columns.OmitSys().String())
 	h.a.Equal("joined", foreign.Source)
@@ -79,7 +79,7 @@ func Test3001_joining_base(t *testing.T) {
 		"bb_07, aa_04, bb :: 07")
 
 	// aa_05
-	foreign = ix["aa_05"]
+	foreign = ix["bb/aa/aa_05"]
 	h.a.NotNil(foreign)
 	h.a.Equal("pk<String>, fk_a<String>, label<String>", foreign.Columns.OmitSys().String())
 	h.a.Equal("joined", foreign.Source)
