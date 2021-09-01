@@ -52,3 +52,12 @@ applications:
       icon: applications/workflows.png
       logo: applications/workflows.png
       url: workflow/
+
+  - name: Reporter
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: applications/reporter.png
+      logo: applications/reporter.png
+      url: reporter/
