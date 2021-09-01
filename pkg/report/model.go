@@ -108,13 +108,6 @@ func (m *model) Run(ctx context.Context) (err error) {
 			return errors.New("no model steps defined")
 		}
 
-		for _, s := range m.steps {
-			err = s.Validate()
-			if err != nil {
-				return err
-			}
-		}
-
 		return nil
 	}()
 	if err != nil {
