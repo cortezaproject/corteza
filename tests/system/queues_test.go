@@ -96,7 +96,7 @@ func TestQueueCreate(t *testing.T) {
 	queue := rs()
 
 	h.apiInit().
-		Put("/queues").
+		Post("/queues").
 		FormData("consumer", consumer).
 		FormData("queue", queue).
 		Expect(t).
@@ -120,7 +120,7 @@ func TestQueueUpdate(t *testing.T) {
 	helpers.AllowMe(h, messagebus.QueueRbacResource(0), "update")
 
 	h.apiInit().
-		Post(fmt.Sprintf("/queues/%d", res.ID)).
+		Put(fmt.Sprintf("/queues/%d", res.ID)).
 		Header("Accept", "application/json").
 		JSON(helpers.JSON(res)).
 		Expect(t).
