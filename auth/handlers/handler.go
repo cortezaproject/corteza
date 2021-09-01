@@ -35,6 +35,7 @@ type (
 		ChangePassword(ctx context.Context, userID uint64, oldPassword, newPassword string) (err error)
 		ValidateEmailConfirmationToken(ctx context.Context, token string) (user *types.User, err error)
 		ValidatePasswordResetToken(ctx context.Context, token string) (user *types.User, err error)
+		ValidatePasswordCreateToken(ctx context.Context, token string) (user *types.User, err error)
 		SendEmailAddressConfirmationToken(ctx context.Context, u *types.User) (err error)
 		SendPasswordResetToken(ctx context.Context, email string) (err error)
 		GetProviders() types.ExternalAuthProviderSet
@@ -109,6 +110,7 @@ type (
 const (
 	TmplAuthorizedClients        = "authorized-clients.html.tpl"
 	TmplChangePassword           = "change-password.html.tpl"
+	TmplCreatePassword           = "create-password.html.tpl"
 	TmplLogin                    = "login.html.tpl"
 	TmplLogout                   = "logout.html.tpl"
 	TmplOAuth2AuthorizeClient    = "oauth2-authorize-client.html.tpl"

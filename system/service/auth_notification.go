@@ -29,6 +29,7 @@ type (
 		EmailOTP(ctx context.Context, emailAddress string, otp string) error
 		EmailConfirmation(ctx context.Context, emailAddress string, url string) error
 		PasswordReset(ctx context.Context, emailAddress string, url string) error
+		PasswordCreate(url string) (string, error)
 	}
 )
 
@@ -61,6 +62,10 @@ func (svc authNotification) PasswordReset(ctx context.Context, emailAddress stri
 	return svc.send(ctx, "auth_email_password_reset", emailAddress, map[string]interface{}{
 		"URL": fmt.Sprintf("%s/reset-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)),
 	})
+}
+
+func (svc authNotification) PasswordCreate(token string) (string, error) {
+	return fmt.Sprintf("%s/create-password?token=%s", svc.opt.BaseURL, url.QueryEscape(token)), nil
 }
 
 func (svc authNotification) newMail() *gomail.Message {

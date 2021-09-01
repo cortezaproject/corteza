@@ -80,6 +80,8 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.Security), h.handle(authOnly(h.securityProc)))
 			r.Get(tbp(l.ChangePassword), h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordForm))))
 			r.Post(tbp(l.ChangePassword), h.handle(h.onlyIfLocalEnabled(authOnly(h.changePasswordProc))))
+			r.Get(tbp(l.CreatePassword), h.handle(h.onlyIfPasswordCreateEnabled(h.createPasswordForm)))
+			r.Post(tbp(l.CreatePassword), h.handle(h.onlyIfPasswordCreateEnabled(h.createPasswordProc)))
 
 			r.Get(tbp(l.MfaTotpNewSecret), h.handle(partAuthOnly(h.mfaTotpConfigForm)))
 			r.Post(tbp(l.MfaTotpNewSecret), h.handle(partAuthOnly(h.mfaTotpConfigProc)))

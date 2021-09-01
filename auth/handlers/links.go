@@ -12,6 +12,7 @@ type (
 
 		Security,
 		ChangePassword,
+		CreatePassword,
 
 		RequestPasswordReset,
 		PasswordResetRequested,
@@ -58,6 +59,7 @@ func GetLinks() Links {
 		Login:                    b + "auth/login",
 		Security:                 b + "auth/security",
 		ChangePassword:           b + "auth/change-password",
+		CreatePassword:           b + "auth/create-password",
 		RequestPasswordReset:     b + "auth/request-password-reset",
 		PasswordResetRequested:   b + "auth/password-reset-requested",
 		ResetPassword:            b + "auth/reset-password",

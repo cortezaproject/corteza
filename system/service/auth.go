@@ -48,6 +48,7 @@ const (
 	credentialsTypeEmailAuthToken              = "email-authentication-token"
 	credentialsTypeResetPasswordToken          = "password-reset-token"
 	credentialsTypeResetPasswordTokenExchanged = "password-reset-token-exchanged"
+	credentialsTypeCreatePasswordToken         = "password-create-token"
 	credentialsTypeMfaTotpSecret               = "mfa-totp-secret"
 	credentialsTypeMFAEmailOTP                 = "mfa-email-otp"
 
@@ -676,6 +677,11 @@ func (svc auth) ValidatePasswordResetToken(ctx context.Context, token string) (u
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeResetPasswordToken)
 }
 
+// ValidatePasswordCreateToken validates password create token
+func (svc auth) ValidatePasswordCreateToken(ctx context.Context, token string) (user *types.User, err error) {
+	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeCreatePasswordToken)
+}
+
 // PasswordSet checks and returns true if user's password is set
 // False is also returned in case user does not exist.
 func (svc *auth) PasswordSet(ctx context.Context, email string) (is bool) {
@@ -840,6 +846,47 @@ func (svc auth) sendPasswordResetToken(ctx context.Context, u *types.User) (err 
 	return svc.notifications.PasswordReset(ctx, u.Email, token)
 }
 
+// GeneratePasswordCreateToken generates password create token
+func (svc auth) GeneratePasswordCreateToken(ctx context.Context, email string) (url string, err error) {
+	var (
+		u *types.User
+
+		aam = &authActionProps{
+			user:  u,
+			email: email,
+		}
+	)
+
+	err = func() error {
+		if !svc.settings.Auth.Internal.Enabled || !svc.settings.Auth.Internal.PasswordCreate.Enabled {
+			return AuthErrPasswordCreateDisabledByConfig(aam)
+		}
+
+		if u, err = store.LookupUserByEmail(ctx, svc.store, email); err != nil {
+			return err
+		}
+
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
+
+		if url, err = svc.sendPasswordCreateToken(ctx, u); err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return url, svc.recordAction(ctx, aam, AuthActionGeneratePasswordCreateToken, err)
+}
+
+func (svc auth) sendPasswordCreateToken(ctx context.Context, u *types.User) (url string, err error) {
+	token, err := svc.createUserToken(ctx, u, credentialsTypeCreatePasswordToken)
+	if err != nil {
+		return
+	}
+
+	return svc.notifications.PasswordCreate(token)
+}
+
 // procLogin fn performs standard validation, credentials-update tasks and triggers events
 func (svc auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c *types.Credentials, p *types.AuthProvider) (err error) {
 	if err = svc.eventbus.WaitFor(ctx, event.AuthBeforeLogin(u, p)); err != nil {
@@ -960,6 +1007,16 @@ func (svc auth) createUserToken(ctx context.Context, u *types.User, kind string)
 
 			// random number, 6 chars
 			token = fmt.Sprintf("%06d", rand2.Int())[0:6]
+		case credentialsTypeCreatePasswordToken:
+			expSec := svc.settings.Auth.Internal.PasswordCreate.Expires
+			if expSec == 0 {
+				expSec = 24
+			}
+
+			expiresAt = now().Add(time.Hour * time.Duration(expSec))
+
+			// random password string, "3i[g0|)z"
+			token = fmt.Sprintf("%s", rand.Password(credentialsTokenLength))
 		default:
 			// 1h expiration for all tokens send via email
 			expiresAt = now().Add(time.Minute * 60)

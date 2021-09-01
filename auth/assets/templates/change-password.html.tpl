@@ -23,7 +23,7 @@
 				readonly
 				placeholder="{{ tr "change-password.template.form.email.placeholder" }}"
 				value="{{ .user.Email }}"
-				aria-label="{{ tr "change-password.template.form.email.aria-label" }}">
+				aria-label="{{ tr "change-password.template.form.email.label" }}">
 		</div>
 		<div class="mb-3">
             <label>
@@ -36,7 +36,7 @@
 				name="oldPassword"
 				autocomplete="current-password"
 				placeholder="{{ tr "change-password.template.form.old-password.placeholder" }}"
-				aria-label="{{ tr "change-password.template.form.old-password.aria-label" }}">
+				aria-label="{{ tr "change-password.template.form.old-password.label" }}">
 		</div>
 		<div class="mb-3">
             <label>
@@ -49,7 +49,7 @@
 				name="newPassword"
 				autocomplete="new-password"
 				placeholder="{{ tr "change-password.template.form.new-password.placeholder" }}"
-				aria-label="{{ tr "change-password.template.form.new-password.aria-label" }}">
+				aria-label="{{ tr "change-password.template.form.new-password.label" }}">
 		</div>
 		<div class="text-right">
 			<button class="btn btn-primary btn-block btn-lg" type="submit">{{ tr "change-password.template.form.button.change-password" }}</button>

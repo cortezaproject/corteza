@@ -135,7 +135,7 @@ func (h *AuthHandlers) confirmEmail(req *request.AuthReq) (err error) {
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "warning",
-		Text: t("signup.alerts.inv-or-exp-token"),
+		Text: t("signup.alerts.invalid-expired-token"),
 	})
 
 	return nil
