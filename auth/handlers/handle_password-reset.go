@@ -47,30 +47,30 @@ func (h *AuthHandlers) resetPasswordForm(req *request.AuthReq) (err error) {
 
 	req.Template = TmplResetPassword
 
-	if req.AuthUser == nil {
-		// user not set, expecting valid token in URL
-		if token := req.Request.URL.Query().Get("token"); len(token) > 0 {
-			var user *types.User
+	// user not set, expecting valid token in URL
+	if token := req.Request.URL.Query().Get("token"); len(token) > 0 {
+		var user *types.User
 
-			user, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
-			if err == nil {
-				// login user
-				req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
+		user, err = h.AuthService.ValidatePasswordResetToken(req.Context(), token)
+		if err == nil {
+			// login user
+			req.AuthUser = request.NewAuthUser(h.Settings, user, false, h.Opt.SessionLifetime)
 
-				// redirect back to self (but without token and with user in session
-				h.Log.Debug("valid password reset token found, refreshing page with stored user")
-				req.RedirectTo = GetLinks().ResetPassword
-				req.AuthUser.Save(req.Session)
-				return nil
-			}
+			// redirect back to self (but without token and with user in session
+			h.Log.Debug("valid password reset token found, refreshing page with stored user")
+			req.RedirectTo = GetLinks().ResetPassword
+			req.AuthUser.Save(req.Session)
+			return nil
 		}
+	}
 
+	if req.AuthUser == nil || err != nil {
 		h.Log.Warn("invalid password reset token used", zap.Error(err))
 		req.RedirectTo = GetLinks().RequestPasswordReset
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "warning",
-			Text: t("password_reset_requested.alert.inv-exp-passw-token"),
+			Text: t("password-reset-requested.alerts.invalid-expired-password-token"),
 		})
 	}
 
@@ -87,7 +87,7 @@ func (h *AuthHandlers) resetPasswordProc(req *request.AuthReq) (err error) {
 		t := translator(req, "auth")
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("password_reset_requested.alert.pass-reset-success"),
+			Text: t("password-reset-requested.alerts.password-reset-success"),
 		})
 
 		req.RedirectTo = GetLinks().Profile
@@ -121,6 +121,6 @@ func (h *AuthHandlers) passwordResetDisabledAlert(req *request.AuthReq) {
 	t := translator(req, "auth")
 	req.NewAlerts = append(req.NewAlerts, request.Alert{
 		Type: "danger",
-		Text: t("password_reset_requested.alert.pass-reset-disabled"),
+		Text: t("password-reset-requested.alerts.password-reset-disabled"),
 	})
 }

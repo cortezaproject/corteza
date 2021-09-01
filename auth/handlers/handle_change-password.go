@@ -27,7 +27,7 @@ func (h *AuthHandlers) changePasswordProc(req *request.AuthReq) (err error) {
 	if err == nil {
 		req.NewAlerts = append(req.NewAlerts, request.Alert{
 			Type: "primary",
-			Text: t("change-password.alerts.text"),
+			Text: t("change-password.alerts.password-change-success"),
 		})
 
 		req.RedirectTo = GetLinks().Profile

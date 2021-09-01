@@ -18,9 +18,10 @@ import (
 
 func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 	var (
-		flagNoPassword bool
-		flagPassword   string
-		flagRoles      []string
+		flagNoPassword       bool
+		flagPassword         string
+		flagMakePasswordLink bool
+		flagRoles            []string
 	)
 
 	// User management commands.
@@ -101,6 +102,9 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 				err error
 
+				// url for to create password(make-password-link)
+				url string
+
 				// Use provided password...
 				password = []byte(flagPassword)
 
@@ -108,12 +112,11 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				mm   types.RoleMemberSet
 			)
 
-			if !flagNoPassword && len(password) == 0 {
+			if !flagNoPassword && !flagMakePasswordLink && len(password) == 0 {
 				cmd.Print("Set password: ")
 				if password, err = terminal.ReadPassword(syscall.Stdin); err != nil {
 					cli.HandleError(err)
 				}
-
 			}
 
 			if len(password) > 0 && !authSvc.CheckPasswordStrength(string(password)) {
@@ -134,7 +137,19 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				cli.HandleError(err)
 			}
 
+			// generate the create password link of user
+			if !flagNoPassword && len(password) == 0 && flagMakePasswordLink {
+				url, err = authSvc.GeneratePasswordCreateToken(ctx, user.Email)
+				if err != nil {
+					cli.HandleError(err)
+				}
+			}
+
 			cmd.Printf("User created [%d].\n", user.ID)
+			if flagMakePasswordLink && len(url) > 0 {
+				cmd.Println("Set password by clicking here:")
+				cmd.Printf("%s\n", url)
+			}
 
 			if len(mm) > 0 {
 				_ = mm.Walk(func(m *types.RoleMember) error {
@@ -164,6 +179,12 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		"password",
 		"",
 		"Provide password (as alternative to interactive way)")
+
+	addCmd.Flags().BoolVar(
+		&flagMakePasswordLink,
+		"make-password-link",
+		false,
+		"Provide link to create password")
 
 	addCmd.Flags().StringSliceVar(
 		&flagRoles,

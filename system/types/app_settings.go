@@ -50,6 +50,15 @@ type (
 				// Can users reset their passwords
 				PasswordReset struct{ Enabled bool } `kv:"password-reset"`
 
+				// PasswordCreate setting for create password for user via generated link with token
+				// If user has no password then link redirects to create password page
+				// Otherwise it redirects to profile page of that user
+				// link can be generated through useradd cli command with `make-password-link` flag
+				PasswordCreate struct {
+					Enabled bool
+					Expires uint
+				} `kv:"password-create"`
+
 				// Splits credentials check into 2 parts
 				// If user has password credentials it offers him to enter the password
 				// Otherwise we offer the user to choose among the enabled external providers

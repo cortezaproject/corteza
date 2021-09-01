@@ -456,6 +456,26 @@ func AuthActionExchangePasswordResetToken(props ...*authActionProps) *authAction
 	return a
 }
 
+// AuthActionGeneratePasswordCreateToken returns "system:auth.generatePasswordCreateToken" action
+//
+// This function is auto-generated.
+//
+func AuthActionGeneratePasswordCreateToken(props ...*authActionProps) *authAction {
+	a := &authAction{
+		timestamp: time.Now(),
+		resource:  "system:auth",
+		action:    "generatePasswordCreateToken",
+		log:       "password create token generated for {{email}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // AuthActionAutoPromote returns "system:auth.autoPromote" action
 //
 // This function is auto-generated.
@@ -1092,6 +1112,40 @@ func AuthErrPasswodResetFailedOldPasswordCheckFailed(mm ...*authActionProps) *er
 	return e
 }
 
+// AuthErrPasswordCreateFailedForUnknownUser returns "system:auth.passwordCreateFailedForUnknownUser" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrPasswordCreateFailedForUnknownUser(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("failed to create password for the unknown user", nil),
+
+		errors.Meta("type", "passwordCreateFailedForUnknownUser"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordCreateFailedForUnknownUser"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // AuthErrPasswordResetDisabledByConfig returns "system:auth.passwordResetDisabledByConfig" as *errors.Error
 //
 //
@@ -1116,6 +1170,40 @@ func AuthErrPasswordResetDisabledByConfig(mm ...*authActionProps) *errors.Error 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordResetDisabledByConfig"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// AuthErrPasswordCreateDisabledByConfig returns "system:auth.passwordCreateDisabledByConfig" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func AuthErrPasswordCreateDisabledByConfig(mm ...*authActionProps) *errors.Error {
+	var p = &authActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("password create is disabled", nil),
+
+		errors.Meta("type", "passwordCreateDisabledByConfig"),
+		errors.Meta("resource", "system:auth"),
+
+		errors.Meta(authPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "auth.errors.passwordCreateDisabledByConfig"),
 
 		errors.StackSkip(1),
 	)
