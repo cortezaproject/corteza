@@ -39,6 +39,8 @@ type (
 		SamlMetadata,
 		SamlLogout,
 
+		Base,
+
 		Assets string
 	}
 )
@@ -82,6 +84,7 @@ func GetLinks() Links {
 		SamlLogout:   b + "auth/external/saml/slo",
 
 		Assets: b + "auth/assets/public",
+		Base: b,
 	}
 }
 

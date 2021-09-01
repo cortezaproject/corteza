@@ -17,6 +17,7 @@
 	<body style="background: url({{ links.Assets }}/background.jpeg) no-repeat top;background-size: cover;background-attachment: fixed;">
         {{ if .user }}
             <div class="position-absolute user text-white m-2">
+			    <a class="font-weight-bold text-white" href="{{ links.Base }}"><i class="bi bi-grid-3x2-gap-fill text-white mr-1 align-middle" style="font-size: 1.4rem;"></i></a>
                 {{ tr "inc_header.logged-in-as" }}
                 <a class="font-weight-bold text-white" href="{{ links.Profile }}">{{ coalesce .user.Name .user.Handle .user.Email }}</a>
                 |
