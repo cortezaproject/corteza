@@ -1,0 +1,29 @@
+functions:
+  authenticate:
+    meta:
+      short: "Authentication: OAUTH2"
+    params:
+      client:
+        required: true
+        types:
+          - { wf: String }
+      secret:
+        required: true
+        types:
+          - { wf: String }
+      scope:
+        required: true
+        types:
+          - { wf: String }
+      tokenUrl:
+        required: true
+        types:
+          - { wf: String }
+    results:
+      accessToken:
+        wf: String
+      refreshToken:
+        wf: String
+      token:
+        wf: Any
+
